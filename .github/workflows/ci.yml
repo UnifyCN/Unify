@@ -21,14 +21,19 @@ jobs:
           node-version: 14.x
 
       - name: Install dependencies
+        working-directory: Unify-front-end
         run: npm install
 
       - name: Run tests
         # ignore test for now as it is not implemented yet
+        working-directory: Unify-front-end
         run: echo "Skipping tests"
 
+
       - name: Build
+        working-directory: Unify-front-end
         run: npm run build
 
       - name: Deploy
+        working-directory: Unify-front-end
         run: npm run deploy
