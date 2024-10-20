@@ -13,26 +13,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: Unify-front-end/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
 
       - name: Install dependencies
         working-directory: Unify-front-end
         run: npm install
 
-      - name: Run tests
-        # ignore test for now as it is not implemented yet
+      - name: Run TypeScript
         working-directory: Unify-front-end
-        run: echo "Skipping tests"
+        run: npx tsc --noEmit
 
-
-      - name: Build
+      - name: Build the project
         working-directory: Unify-front-end
-        run: npm run build
+        run: npx expo build:web
 
       - name: Deploy
         working-directory: Unify-front-end
