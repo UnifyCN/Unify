@@ -24,23 +24,23 @@ jobs:
       - name: Cache node modules
         uses: actions/cache@v3
         with:
-          path: Unify-front-end/node_modules
+          path: unify-front-end/node_modules
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
       - name: Install dependencies
-        working-directory: Unify-front-end
+        working-directory: unify-front-end
         run: npm install
 
       - name: Run TypeScript
-        working-directory: Unify-front-end
+        working-directory: unify-front-end
         run: npx tsc --noEmit
 
       - name: Build the project
-        working-directory: Unify-front-end
+        working-directory: unify-front-end
         run: npx expo build:web
 
       - name: Deploy
-        working-directory: Unify-front-end
+        working-directory: unify-front-end
         run: npm run deploy
