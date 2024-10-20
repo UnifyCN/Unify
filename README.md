@@ -1,2 +1,2 @@
 # UNIFY
-Enactus SFU Social Media App
+Enactus SFU Social Media App!
