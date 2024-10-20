@@ -9,7 +9,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "deploy": "echo 'Deploy script is not set up yet'"
   },
   "jest": {
     "preset": "jest-expo"
