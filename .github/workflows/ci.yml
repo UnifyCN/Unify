@@ -39,7 +39,7 @@ jobs:
 
       - name: Build the project
         working-directory: unify-front-end
-        run: npx expo build:web
+        run: npx expo export:web
 
       - name: Deploy
         working-directory: unify-front-end
