@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "deploy": "eas update"
+    "deploy": "npx eas update"
   },
   "jest": {
     "preset": "jest-expo"
