@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "deploy": "echo 'Deploy script is not set up yet'"
+    "deploy": "eas update"
   },
   "jest": {
     "preset": "jest-expo"
