@@ -27,7 +27,6 @@ const LearnScreen = () => {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          {" "}
           {/* I'll fix the size of the icon after */}
           <MaterialIcons
             name="search"
@@ -43,28 +42,26 @@ const LearnScreen = () => {
           />
         </View>
 
-        {/* Tags, currently horizontal scroll from a template, I'll figure to make them in a row vertically */}
+        {/* Tags search*/}
         <View style={styles.tagsContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <TouchableOpacity style={styles.tagButtonActive}>
-              <Text style={styles.tagTextActive}>All</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Housing</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Finance</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Employment</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Item B</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Item C</Text>
-            </TouchableOpacity>
-          </ScrollView>
+          <TouchableOpacity style={styles.tagButtonActive}>
+            <Text style={styles.tagTextActive}>All</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tagButton}>
+            <Text style={styles.tagText}>Housing</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tagButton}>
+            <Text style={styles.tagText}>Finance</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tagButton}>
+            <Text style={styles.tagText}>Employment</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tagButton}>
+            <Text style={styles.tagText}>Item B</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.tagButton}>
+            <Text style={styles.tagText}>Item C</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -92,33 +89,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 12,
     marginBottom: 20,
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  tabButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: "transparent",
-    marginRight: 10,
-  },
-  tabButtonActive: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: "#333",
-    marginRight: 10,
-  },
-  tabText: {
-    fontSize: 16,
-    color: "#888",
-  },
-  tabTextActive: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "bold",
   },
   welcomeContainer: {
     marginBottom: 20,
@@ -152,7 +122,8 @@ const styles = StyleSheet.create({
   },
   tagsContainer: {
     flexDirection: "row",
-    marginBottom: 20,
+    flexWrap: "wrap", // Allows wrapping to the next line
+    gap: 5, // Space between tags
   },
   tagButton: {
     backgroundColor: "#f0f0f0",
@@ -160,6 +131,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     marginRight: 8,
+    marginBottom: 8,
   },
   tagButtonActive: {
     backgroundColor: "#333",
@@ -167,6 +139,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     marginRight: 8,
+    marginBottom: 8,
   },
   tagText: {
     color: "#333",
