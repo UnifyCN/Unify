@@ -12,7 +12,7 @@ import { MaterialIcons, Feather } from "@expo/vector-icons";
 const LearnScreen = () => {
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header test, we can implement this in details after*/}
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>Unify</Text>
         <Feather name="bell" size={24} color="black" />
@@ -27,20 +27,23 @@ const LearnScreen = () => {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
+          {" "}
+          {/* I'll fix the size of the icon after */}
           <MaterialIcons
             name="search"
             size={20}
             color="#888"
             style={styles.searchIcon}
           />
+          {/* we can change the placeholder text? this is just my default*/}
           <TextInput
             style={styles.searchInput}
-            placeholder="Search for lessons..."
+            placeholder="Search something to learn?..."
             placeholderTextColor="#888"
           />
         </View>
 
-        {/* Tags */}
+        {/* Tags, currently horizontal scroll from a template, I'll figure to make them in a row vertically */}
         <View style={styles.tagsContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <TouchableOpacity style={styles.tagButtonActive}>
