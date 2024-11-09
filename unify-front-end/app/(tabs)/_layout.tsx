@@ -1,17 +1,22 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { View } from "react-native";
 
-import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
+import CustomHomeIcon from "@/components/icons/HomePageIcon";
+import CustomLearnIcon from "@/components/icons/LearnPageIcon";
+import CustomProfileIcon from "@/components/icons/ProfilePageIcon";
+
+import { tabLayoutStyles } from "./styles/LayoutStyles";
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+        tabBarActiveTintColor: Colors[colorScheme ?? "dark"].tint,
         headerShown: false,
       }}
     >
@@ -20,22 +25,9 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "home" : "home-outline"}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "code-slash" : "code-slash-outline"}
-              color={color}
-            />
+            <View style={tabLayoutStyles.tabContainer}>
+              <CustomHomeIcon color={color} focused={focused} />
+            </View>
           ),
         }}
       />
@@ -44,11 +36,21 @@ export default function TabLayout() {
         options={{
           title: "Learn",
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon
-              name={focused ? "code-slash" : "code-slash-outline"}
-              color={color}
-            />
-          ),
+            <View style={tabLayoutStyles.tabContainer}>
+              <CustomLearnIcon color={color} focused={focused} />
+            </View>
+          )
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) => (
+            <View style={tabLayoutStyles.tabContainer}>
+              <CustomProfileIcon color={color} focused={focused} />
+            </View>
+          )
         }}
       />
     </Tabs>
