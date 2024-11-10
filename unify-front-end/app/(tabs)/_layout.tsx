@@ -40,7 +40,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="Learn"
+        name="learn/index"
         options={{
           title: "Learn",
           tabBarIcon: ({ color, focused }) => (
@@ -51,6 +51,8 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="learn/modules" options={{ href: null }} />
+      <Tabs.Screen name="learn/journey-map" options={{ href: null }} />
     </Tabs>
   );
 }
