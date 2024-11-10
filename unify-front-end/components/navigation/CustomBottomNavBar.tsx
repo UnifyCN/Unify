@@ -4,6 +4,7 @@ import CustomHomeIcon from '../icons/HomePageIcon';
 import CustomLearnIcon from '../icons/LearnPageIcon';
 import CustomProfileIcon from '../icons/ProfilePageIcon';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import React from 'react';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -60,7 +61,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
     </View>
   );
 
-  function getIconByRouteName(routeName: string, color: string) {
+  function getIconByRouteName(routeName: string, color: string): React.ReactNode {
     const iconMap: Record<string, React.ReactNode> = {
         index: <CustomHomeIcon name="Home" color={color} />,
         Learn: <CustomLearnIcon name="Learn" color={color} />,
