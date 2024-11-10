@@ -12,7 +12,7 @@ import { MaterialIcons, Feather } from "@expo/vector-icons";
 // 6x version is no longer maintained by react navigation guys
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-const LearnScreen = () => {
+const Modules = () => {
   return (
     <View style={styles.container}>
       {/* Header test, we can implement this in details after*/}
@@ -154,4 +154,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LearnScreen;
+export default Modules;
