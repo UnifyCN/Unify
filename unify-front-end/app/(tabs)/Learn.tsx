@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,20 @@ import {
 import { MaterialIcons, Feather } from "@expo/vector-icons";
 
 const LearnScreen = () => {
+  const [selectedTag, setSelectedTag] = useState("All");
+
+  const tags = [
+    "All",
+    "Housing",
+    "Finance",
+    "Employment",
+    "Item B",
+    "Item C",
+    "Item D",
+    "Item E",
+    "Item F",
+  ];
+
   return (
     <View style={styles.container}>
       {/* Header test, we can implement this in details after*/}
@@ -44,24 +58,23 @@ const LearnScreen = () => {
 
         {/* Tags search*/}
         <View style={styles.tagsContainer}>
-          <TouchableOpacity style={styles.tagButtonActive}>
-            <Text style={styles.tagTextActive}>All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tagButton}>
-            <Text style={styles.tagText}>Housing</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tagButton}>
-            <Text style={styles.tagText}>Finance</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tagButton}>
-            <Text style={styles.tagText}>Employment</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tagButton}>
-            <Text style={styles.tagText}>Item B</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tagButton}>
-            <Text style={styles.tagText}>Item C</Text>
-          </TouchableOpacity>
+          {tags.map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={
+                selectedTag === tag ? styles.tagButtonActive : styles.tagButton
+              }
+              onPress={() => setSelectedTag(tag)}
+            >
+              <Text
+                style={
+                  selectedTag === tag ? styles.tagTextActive : styles.tagText
+                }
+              >
+                {tag}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     </View>
