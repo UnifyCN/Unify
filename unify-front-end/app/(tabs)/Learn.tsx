@@ -79,27 +79,27 @@ const LearnScreen = () => {
             </TouchableOpacity>
           </Link>
         </View>
-        {/* horizontal scroll containing all the lessons */}
+        {/* Horizontal scroll containing all the lessons */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardContainer}>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
         </ScrollView>
@@ -113,27 +113,27 @@ const LearnScreen = () => {
             </TouchableOpacity>
           </Link>
         </View>
-        {/* horizontal scroll containing all the lessons */}
+        {/* Horizontal scroll containing all the lessons */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardContainer}>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
         </ScrollView>
@@ -153,21 +153,21 @@ const LearnScreen = () => {
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/lessons" asChild style={styles.card}>
             <TouchableOpacity>
               <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescript}>Short description</Text>
+              <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
         </ScrollView>
@@ -257,9 +257,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
   },
-  lessonHeader: {
+  lessonHeader: { // Formats header+arrow for each lesson section
     flexDirection: "row",
-    fontWeight: "bold",
     marginTop: 20,
   },
   lessonText: {
@@ -267,19 +266,18 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#343434",
   },
-  cardContainer: {
+  cardContainer: { // Container holding all the lesson cards
     flexDirection: "row",
     paddingTop: 20,
     paddingRight: 20,
   },
-  card: {
+  card: { // Each card as a light grey square
     backgroundColor: "#EEEEEE",
     width: 170,
     height: 170,
     borderRadius: 12,
     marginRight: 16,
     alignItems: "center",
-    justifyContent: "center",
   },
   cardImage: {
     width: 50, 
@@ -287,16 +285,16 @@ const styles = StyleSheet.create({
     alignSelf: "baseline",
     marginLeft: 18,
     marginBottom: 30,
-    marginTop: 10,
+    marginTop: 25,
   },
-  cardTitle: {
+  cardTitle: { 
     alignSelf: "baseline",
     marginLeft: 18,
     marginBottom: 5,
     color: "#9F9D9D",
     fontWeight: "600",
   },
-  cardDescript: {
+  cardDescription: { 
     alignSelf: "baseline",
     marginLeft: 18,
     marginBottom: 6,
