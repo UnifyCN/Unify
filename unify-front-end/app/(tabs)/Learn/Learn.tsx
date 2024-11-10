@@ -8,7 +8,10 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
-
+// For now, we will use this cause latest version is having bug with expo 
+// 6x version is no longer maintained by react navigation guys
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 const LearnScreen = () => {
   return (
     <View style={styles.container}>
