@@ -2,13 +2,13 @@ import React from 'react';
 import { Image, ImageStyle, StyleProp } from 'react-native';
 
 interface CustomIconProps {
+  name: string;
   color: string;
-  focused: boolean;
 }
 
-const CustomLearnIcon: React.FC<CustomIconProps> = ({ color, focused }) => (
+const CustomLearnIcon: React.FC<CustomIconProps> = ({ color }) => (
   <Image
-    source={focused ? require('../../assets/images/LearnPage.png') : require('../../assets/images/LearnPage.png')}
+    source={require('../../assets/images/LearnPage.png')}
     style={{ tintColor: color, width: 24, height: 24 } as StyleProp<ImageStyle>}
   />
 );
