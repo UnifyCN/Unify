@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Stack, useNavigation } from "expo-router";
+import JourneyMap from "./journey-map";
 import Modules from "./modules";
 
 const TabNavigator=() => {
@@ -22,18 +23,15 @@ const TabNavigator=() => {
                         <Text style={[styles.inactiveTabText, activeTab === 'Journey Map' && styles.activeTabText]}>Journey Map</Text>
                 </TouchableOpacity>
             </View>
+            {activeTab === "Modules" ? <Modules/> : <JourneyMap/>}
         </>
     )
 }
 
 const Learn = () => {
-    const [activeTab, setActiveTab] = useState("Modules");
     return(
         <>
-            <Modules/>
-            <View style={{backgroundColor: 'white', padding: 20}}>
                 <TabNavigator/>
-            </View>
         </>
     )
 } 
