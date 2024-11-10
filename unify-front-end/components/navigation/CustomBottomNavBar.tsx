@@ -41,18 +41,17 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
 
             return (
                 <AnimatedTouchableOpacity
-                layout={LinearTransition.springify().mass(0.5)}
                     key={route.key}
                     onPress={onPress}
                     style={[styles.tabItem, 
-                    {backgroundColor: isFocused ? "#E7E7E9ff" : "transparent"}]}
+                    {backgroundColor: isFocused ? "#E7E7E9" : "transparent"}]}
                     accessibilityRole="button"
                     accessibilityLabel={label}
                 >
                     <View style={styles.iconWrapper}>
-                        {getIconByRouteName(route.name, isFocused ? "#434241ff" : "#646464ff")}
+                        {getIconByRouteName(route.name, isFocused ? "#000000" : "#5C5C5C", isFocused)}
                     </View>
-                    {isFocused && <Animated.Text entering={FadeIn.duration(200)} exiting={FadeOut.duration(200)} style={styles.text}>
+                    {isFocused && <Animated.Text  style={styles.text}>
                         {label as string}
                     </Animated.Text>}
                 </AnimatedTouchableOpacity>
@@ -61,14 +60,14 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
     </View>
   );
 
-  function getIconByRouteName(routeName: string, color: string): React.ReactNode {
+  function getIconByRouteName(routeName: string, color: string, isFocused: boolean): React.ReactNode {
     const iconMap: Record<string, React.ReactNode> = {
-        index: <CustomHomeIcon name="Home" color={color} />,
-        Learn: <CustomLearnIcon name="Learn" color={color} />,
-        profile: <CustomProfileIcon name="Profile" color={color} />,
+        index: <CustomHomeIcon name={"Home"} color={color} focused={isFocused} />,
+        Learn: <CustomLearnIcon name={"Learn"} color={color} focused={isFocused} />,
+        profile: <CustomProfileIcon name={"Profile"} color={color} focused={isFocused} />,
       };
   
-      return iconMap[routeName] || <CustomHomeIcon name="Home" color={color} />;
+      return iconMap[routeName] || <CustomHomeIcon name="Home" color={color} focused={isFocused} />;
     }
   };
 
@@ -79,32 +78,36 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         justifyContent: "center",
         alignItems: "center",
-        width: "80%",
+        width: 377,
         alignSelf: "center",
         bottom: 40,
-        borderRadius: 40,
-        paddingHorizontal: 6,
-        paddingVertical: 10,
+        height: 48,
+        borderRadius: 99,
+        paddingTop: 4,
+        paddingRight: 5,
+        paddingBottom: 4,
+        paddingLeft: 4,
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.3,
-        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 4,
     },
     tabItem: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        height: 36,
+        height: 40,
+        gap: 8,
         paddingHorizontal: 30,
-        borderRadius: 30,
+        borderRadius: 999,
     },
     iconWrapper: {
         justifyContent: 'center',
         alignItems: 'center', 
     },
     text: {
-        color: "#434241ff",
-        fontWeight: "bold",
+        color: "#000000",
         marginLeft: 8,
     }
 })
