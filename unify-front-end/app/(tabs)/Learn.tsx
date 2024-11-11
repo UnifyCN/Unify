@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,20 @@ import { Link } from 'expo-router';
 import { Image } from 'expo-image';
 
 const LearnScreen = () => {
+  const [selectedTag, setSelectedTag] = useState("All");
+
+  const tags = [
+    "All",
+    "Housing",
+    "Finance",
+    "Employment",
+    "Item B",
+    "Item C",
+    "Item D",
+    "Item E",
+    "Item F",
+  ];
+
   return (
     <View style={styles.container}>
       {/* Header test, we can implement this in details after*/}
