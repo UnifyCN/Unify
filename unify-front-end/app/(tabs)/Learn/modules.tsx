@@ -11,7 +11,7 @@ import { MaterialIcons, Feather } from "@expo/vector-icons";
 import { Link } from 'expo-router';
 import { Image } from 'expo-image';
 
-const LearnScreen = () => {
+const Modules = () => {
   const [selectedTag, setSelectedTag] = useState("All");
 
   const tags = [
@@ -87,7 +87,7 @@ const LearnScreen = () => {
         {/* Lesson Library section */}
         <View style={styles.lessonHeader}> 
           <Text style={styles.lessonText}>Lesson Library</Text>
-          <Link href="/lessons" asChild>
+          <Link href="../lessons" asChild>
             <TouchableOpacity>
               <Feather name="chevron-right" size={28} color="#343434" />
             </TouchableOpacity>
@@ -95,23 +95,23 @@ const LearnScreen = () => {
         </View>
         {/* Horizontal scroll containing all the lessons */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardContainer}>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
@@ -121,7 +121,7 @@ const LearnScreen = () => {
         {/* In-Progress Lessons section */}
         <View style={styles.lessonHeader}> 
           <Text style={styles.lessonText}>In-Progress</Text>
-          <Link href="/lessons" asChild>
+          <Link href="../lessons" asChild>
             <TouchableOpacity>
               <Feather name="chevron-right" size={28} color="#343434" />
             </TouchableOpacity>
@@ -129,23 +129,23 @@ const LearnScreen = () => {
         </View>
         {/* Horizontal scroll containing all the lessons */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardContainer}>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
@@ -155,7 +155,7 @@ const LearnScreen = () => {
         {/* Completed Lessons section */}
         <View style={styles.lessonHeader}> 
           <Text style={styles.lessonText}>Completed</Text>
-          <Link href="/lessons" asChild>
+          <Link href="../lessons" asChild>
             <TouchableOpacity>
               <Feather name="chevron-right" size={28} color="#343434" />
             </TouchableOpacity>
@@ -163,23 +163,23 @@ const LearnScreen = () => {
         </View>
         {/* horizontal scroll containing all the lessons */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardContainer}>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
-          <Link href="/lessons" asChild style={styles.card}>
+          <Link href="../lessons" asChild style={styles.card}>
             <TouchableOpacity>
-              <Image style={styles.cardImage} source={require("../../assets/images/placeholderImg.png")}/>
+              <Image style={styles.cardImage} source={require("../../../assets/images/placeholderImg.png")}/>
               <Text style={styles.cardTitle}>Lesson Title</Text>
               <Text style={styles.cardDescription}>Short description</Text>
             </TouchableOpacity>
