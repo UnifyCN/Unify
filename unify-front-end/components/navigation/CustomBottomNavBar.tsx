@@ -14,7 +14,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
         {state.routes.map((route, index) => {
             console.log(route);
 
-            if (["_sitemap", "+not-found", "learn/modules", "learn/journey-map", "learn/test"].includes(route.name)) return null;
+            if (["_sitemap", "+not-found", "learn/modules", "learn/journey-map"].includes(route.name)) return null;
 
             const { options } = descriptors[route.key];
             const label = String(
