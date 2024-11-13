@@ -48,8 +48,8 @@ const Modules = () => {
             {/* I'll fix the size of the icon after */}
             <MaterialIcons
               name="search"
-              size={20}
-              color="#888"
+              size={30}
+              color="#555"
               style={styles.searchIcon}
             />
             {/* we can change the placeholder text? this is just my default*/}
@@ -268,9 +268,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    borderRadius: 8,
+    borderRadius: 15,
     backgroundColor: "#fff",
     padding: 10,
+    height: 70,
   },
   searchIcon: {
     marginRight: 8,
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    fontSize: 16,
+    fontSize: 17,
     color: "#333",
   },
   tagsContainer: {
