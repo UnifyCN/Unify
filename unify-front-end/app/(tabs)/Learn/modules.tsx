@@ -87,7 +87,7 @@ const Modules = () => {
         {/* Lesson Library section */}
         <View style={styles.lessonHeader}>
           <Text style={styles.lessonText}>Lesson Library</Text>
-          <Link href="/(tabs)/Learn/Lesson-library" asChild>
+          <Link href="./Lesson-library" asChild>
             <TouchableOpacity>
               <Feather name="chevron-right" size={28} color="#343434" />
             </TouchableOpacity>
@@ -134,7 +134,7 @@ const Modules = () => {
         {/* In-Progress Lessons section */}
         <View style={styles.lessonHeader}>
           <Text style={styles.lessonText}>In-Progress</Text>
-          <Link href="../lessons" asChild>
+          <Link href="./In-progress" asChild>
             <TouchableOpacity>
               <Feather name="chevron-right" size={28} color="#343434" />
             </TouchableOpacity>
