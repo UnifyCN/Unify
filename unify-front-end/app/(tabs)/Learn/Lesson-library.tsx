@@ -55,17 +55,17 @@ const LessonLibrary = () => {
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <LessonCard
             imageSource={require("../../../assets/images/Demoimage.jpeg")}
-            title="Lesson Title 1"
+            title="Lesson A"
             description="A brief description of the lesson goes here."
           />
           <LessonCard
             imageSource={require("../../../assets/images/Demoimage.jpeg")}
-            title="Lesson Title 2"
+            title="Pathway to finance"
             description="A brief description of the lesson goes here."
           />
           <LessonCard
             imageSource={require("../../../assets/images/Demoimage.jpeg")}
-            title="Lesson Title 3"
+            title="Lesson B something"
             description="A brief description of the lesson goes here."
           />
         </ScrollView>

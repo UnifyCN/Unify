@@ -25,7 +25,7 @@ const LessonCard: React.FC<LessonCardProps> = ({
         style={styles.cardImage}
         imageStyle={styles.imageStyle}
       >
-        {/* Overlay to reduce brightness */}
+        {/* Overlay */}
         <View style={styles.overlay} />
 
         {/* Title and Description */}
@@ -55,21 +55,23 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Adjust the opacity to reduce brightness
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // dark cover overlay to display text better!
     borderRadius: 12,
   },
   textContainer: {
     padding: 10,
+    marginLeft: 8,
+    marginBottom: 10,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#fff", // White text for better contrast
+    color: "#fff",
     marginBottom: 5,
   },
   cardDescription: {
     fontSize: 14,
-    color: "#ddd", // Light text for better contrast
+    color: "#ddd",
   },
 });
 
