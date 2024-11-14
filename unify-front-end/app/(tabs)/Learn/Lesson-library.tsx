@@ -5,19 +5,18 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
+  ScrollView,
 } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import { Link } from "expo-router";
+import LessonCard from "../../../components/LessonCard";
 
 const LessonLibrary = () => {
-  const navigation = useNavigation();
-
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerContainer}>
-        {/* Back to Learnbutton */}
+        {/* Back Button and Learn Text */}
         <View style={styles.backButtonAndLearnContainer}>
           <Link href="/(tabs)/Learn/modules" asChild>
             <TouchableOpacity style={styles.backButton}>
@@ -41,8 +40,8 @@ const LessonLibrary = () => {
         <View style={styles.searchContainer}>
           <MaterialIcons
             name="search"
-            size={30}
-            color="#555"
+            size={20}
+            color="#888"
             style={styles.searchIcon}
           />
           <TextInput
@@ -51,6 +50,25 @@ const LessonLibrary = () => {
             placeholderTextColor="#888"
           />
         </View>
+
+        {/* Scrollable Content */}
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <LessonCard
+            imageSource={require("../../../assets/images/Demoimage.jpeg")}
+            title="Lesson Title 1"
+            description="A brief description of the lesson goes here."
+          />
+          <LessonCard
+            imageSource={require("../../../assets/images/Demoimage.jpeg")}
+            title="Lesson Title 2"
+            description="A brief description of the lesson goes here."
+          />
+          <LessonCard
+            imageSource={require("../../../assets/images/Demoimage.jpeg")}
+            title="Lesson Title 3"
+            description="A brief description of the lesson goes here."
+          />
+        </ScrollView>
       </View>
     </View>
   );
@@ -61,7 +79,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "#fff",
-    marginLeft: 8,
   },
   headerContainer: {
     flexDirection: "row",
@@ -69,8 +86,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+  backButtonAndLearnContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   backButton: {
-    // padding: 8,
+    marginRight: 8,
+  },
+  learnText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#343434",
   },
   bellButton: {
     padding: 8,
@@ -82,27 +108,18 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   content: {
-    margin: 8,
-  },
-  backButtonAndLearnContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  learnText: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#343434",
+    flex: 1,
+    marginLeft: 8,
   },
   searchContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    borderRadius: 15,
+    borderRadius: 8,
     backgroundColor: "#fff",
     padding: 10,
     borderWidth: 1,
     borderColor: "#ccc",
-    height: 70,
   },
   searchIcon: {
     marginRight: 8,
@@ -110,8 +127,11 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    fontSize: 17,
+    fontSize: 16,
     color: "#333",
+  },
+  scrollViewContent: {
+    paddingBottom: 20, // Add padding to the bottom to ensure all content is visible
   },
 });
 
