@@ -22,7 +22,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="learn/index"
+        name="Learn/index"
         options={{
           title: "Learn"
         }}
@@ -33,8 +33,8 @@ export default function TabLayout() {
           title: "Profile"
         }}
       />
-      <Tabs.Screen name="learn/modules" options={{ href: null }} />
-      <Tabs.Screen name="learn/journey-map" options={{ href: null }} />
+      <Tabs.Screen name="Learn/modules" options={{ href: null }} />
+      <Tabs.Screen name="Learn/journey-map" options={{ href: null }} />
     </Tabs>
   );
 }
