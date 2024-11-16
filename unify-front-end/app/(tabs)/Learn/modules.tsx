@@ -8,9 +8,9 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
+import { Link } from "expo-router";
+import { Image } from "expo-image";
 import { ProgressSection } from "@/components/ProgressSection";
-import { Link } from 'expo-router';
-import { Image } from 'expo-image';
 
 const Modules = () => {
   const [selectedTag, setSelectedTag] = useState("All");
@@ -35,7 +35,6 @@ const Modules = () => {
         <Feather name="bell" size={24} color="black" />
       </View>
 
-
       {/*page is vertically scrollable*/}
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.contentBox}>
@@ -50,8 +49,8 @@ const Modules = () => {
             {/* I'll fix the size of the icon after */}
             <MaterialIcons
               name="search"
-              size={20}
-              color="#888"
+              size={30}
+              color="#555"
               style={styles.searchIcon}
             />
             {/* we can change the placeholder text? this is just my default*/}
@@ -64,27 +63,28 @@ const Modules = () => {
 
           {/* Tags search*/}
           <View style={styles.tagsContainer}>
-            <TouchableOpacity style={styles.tagButtonActive}>
-              <Text style={styles.tagTextActive}>All</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Housing</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Finance</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Employment</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Item B</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tagButton}>
-              <Text style={styles.tagText}>Item C</Text>
-            </TouchableOpacity>
+            {tags.map((tag) => (
+              <TouchableOpacity
+                key={tag}
+                style={
+                  selectedTag === tag
+                    ? styles.tagButtonActive
+                    : styles.tagButton
+                }
+                onPress={() => setSelectedTag(tag)}
+              >
+                <Text
+                  style={
+                    selectedTag === tag ? styles.tagTextActive : styles.tagText
+                  }
+                >
+                  {tag}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
-        
+
         {/* padding so that navigation doesn't hide lesson cards at bottom */}
         <View style={{paddingBottom: 50}}>
           {/* Progress sections holding lessons cards */}
@@ -136,9 +136,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    borderRadius: 8,
+    borderRadius: 15,
     backgroundColor: "#fff",
     padding: 10,
+    height: 70,
   },
   searchIcon: {
     marginRight: 8,
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    fontSize: 16,
+    fontSize: 17,
     color: "#333",
   },
   tagsContainer: {

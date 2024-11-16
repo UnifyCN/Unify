@@ -18,19 +18,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home"
+          title: "Home",
         }}
       />
       <Tabs.Screen
         name="Learn/index"
         options={{
-          title: "Learn"
+          title: "Learn",
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile"
+          title: "Profile",
         }}
       />
       <Tabs.Screen name="Learn/modules" options={{ href: null }} />
