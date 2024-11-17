@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import LessonCard from "../../../components/LessonCard";
+import LessonCard from "../../../components/learn/LessonCard";
 
 const InProgress = () => {
   return (
@@ -18,7 +18,7 @@ const InProgress = () => {
       <View style={styles.headerContainer}>
         {/* Back Button and Learn Text */}
         <View style={styles.backButtonAndLearnContainer}>
-          <Link href="/(tabs)/Learn/modules" asChild>
+          <Link href="./learn/modules" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Feather name="chevron-left" size={28} color="#343434" />
             </TouchableOpacity>
