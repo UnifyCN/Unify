@@ -88,9 +88,9 @@ const Modules = () => {
         {/* padding so that navigation doesn't hide lesson cards at bottom */}
         <View style={{paddingBottom: 50}}>
           {/* Progress sections holding lessons cards */}
-          <ProgressSection header="Lesson Library" />
-          <ProgressSection header="In-Progress" />
-          <ProgressSection header="Complete"/>
+          <ProgressSection header="Lesson Library" navigatePage={"./Lesson-library"} />
+          <ProgressSection header="In-Progress" navigatePage={"./In-progress"}/>
+          <ProgressSection header="Complete"navigatePage={"../lessons"}/>
         </View>
       </ScrollView>
     </View>

@@ -6,21 +6,22 @@ import {
     ScrollView,
 } from 'react-native'
 import {Feather } from "@expo/vector-icons";
-import { Link } from 'expo-router';
+import { Href, Link } from 'expo-router';
 import { Image } from 'expo-image';
  
 
-export type ProgressSectionProps = {
+interface ProgressSectionProps{
     header: string;
+    navigatePage: Href;
 }
 
-export function ProgressSection({header}: ProgressSectionProps){
+export function ProgressSection({header, navigatePage}: ProgressSectionProps){
     return (
         // wrapping JSX into a singular return element
         <>
         <View style={styles.lessonHeader}> 
             <Text style={styles.lessonText}>{header}</Text>
-            <Link href="../lessons" asChild>
+            <Link href={navigatePage} asChild>
                 <TouchableOpacity>
                     <Feather name="chevron-right" size={28} color="#343434" />
                 </TouchableOpacity>
@@ -28,7 +29,8 @@ export function ProgressSection({header}: ProgressSectionProps){
         </View>
         
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardContainer}>
-            <Link href="../app/(tabs)/lessons" asChild style={styles.card}>
+            
+            <Link href="./Main-lesson" asChild style={styles.card}>
                 <TouchableOpacity>
                     <Image style={styles.cardImage} source={require("../assets/images/placeholderImg.png")}/>
                     <Text style={styles.cardTitle}>Lesson Title</Text>
@@ -36,14 +38,14 @@ export function ProgressSection({header}: ProgressSectionProps){
                 </TouchableOpacity>
             </Link>
 
-            <Link href="../app/(tabs)/lessons" asChild style={styles.card}>
+            <Link href="./Main-lesson" asChild style={styles.card}>
                 <TouchableOpacity>
                     <Image style={styles.cardImage} source={require("../assets/images/placeholderImg.png")}/>
                     <Text style={styles.cardTitle}>Lesson Title</Text>
                     <Text style={styles.cardDescription}>Short description</Text>
                 </TouchableOpacity>
             </Link>
-            <Link href="../app/(tabs)/lessons" asChild style={styles.card}>
+            <Link href="./Main-lesson" asChild style={styles.card}>
                 <TouchableOpacity>
                     <Image style={styles.cardImage} source={require("../assets/images/placeholderImg.png")}/>
                     <Text style={styles.cardTitle}>Lesson Title</Text>
