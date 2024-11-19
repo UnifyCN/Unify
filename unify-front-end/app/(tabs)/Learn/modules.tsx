@@ -28,13 +28,7 @@ const Modules = () => {
   ];
 
   return (
-    <View style={styles.container}>
-      {/* Header test, we can implement this in details after*/}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Unify</Text>
-        <Feather name="bell" size={24} color="black" />
-      </View>
-
+    <View>
       {/*page is vertically scrollable*/}
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.contentBox}>
@@ -98,22 +92,6 @@ const Modules = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    padding: 20,
-  },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#343434",
-  },
   contentBox: {
     backgroundColor: "#EEEEEE", // Grey background for the entire box
     padding: 20,

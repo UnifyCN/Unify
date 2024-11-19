@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import LessonCard from "../../../components/LessonCard";
+import LessonCard from "../../../components/learn/LessonCard";
 
 const LessonLibrary = () => {
   return (

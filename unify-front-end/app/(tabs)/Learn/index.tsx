@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, } from "react-native";
 import { Stack, useNavigation } from "expo-router";
+import { MaterialIcons, Feather } from "@expo/vector-icons";
 import JourneyMap from "./journey-map";
 import Modules from "./modules";
 
@@ -31,18 +32,45 @@ const TabNavigator=() => {
 const Learn = () => {
     return(
         <>
+        <View style={styles.container}>
+              {/* Header test, we can implement this in details after*/}
+            <View style={styles.headerContainer}>
+                <Text style={styles.headerText}>Unify</Text>
+                <Feather name="bell" size={24} color="black" />
+            </View>
+            <ScrollView>
                 <TabNavigator/>
+
+            </ScrollView>
+        </View>
         </>
     )
 } 
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#f5f5f5",
+        padding: 20,
+      },
+    headerContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    headerText: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#343434",
+      },
     tabs: {
         backgroundColor: '#e0e0e0', 
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 20,
+        marginBottom: 20,
         },
     tab: {
         backgroundColor: "transparent",
