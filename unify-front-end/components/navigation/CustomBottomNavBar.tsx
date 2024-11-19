@@ -12,7 +12,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigat
   return (
     <View style={styles.container}>
         {state.routes.map((route, index) => {
-            console.log(route);
+            // console.log(route);
 
             if (["_sitemap", "+not-found", "learn/modules", "learn/journey-map"].includes(route.name)) return null;
 
