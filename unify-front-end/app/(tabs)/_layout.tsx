@@ -22,7 +22,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="learn/index"
+        name="learn/modules/index"
         options={{
           title: "Learn",
         }}
