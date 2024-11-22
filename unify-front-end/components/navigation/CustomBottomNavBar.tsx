@@ -42,13 +42,18 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           return null;
 
         const { options } = descriptors[route.key];
-        const label = String(
+        let label = String(
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
             ? options.title
             : route.name
         );
+
+        // Handle specific case for Learn/index
+        if (label === "Learn/index") {
+          label = "Learn";
+        }
 
         const isFocused = state.index === index;
 
