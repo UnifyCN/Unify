@@ -1,7 +1,7 @@
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import CustomHomeIcon from "../icons/HomePageIcon";
-import CustomLearnIcon from "../icons/LearnPageIcon";
+import CustomlearnIcon from "../icons/LearnPageIcon";
 import CustomProfileIcon from "../icons/ProfilePageIcon";
 import Animated, {
   FadeIn,
@@ -27,16 +27,16 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           [
             "_sitemap",
             "+not-found",
-            "Learn/modules",
-            "Learn/journey-map",
-            "Learn/module/in-progress",
-            "Learn/module/lesson-library",
-            "Learn/In-progress",
-            "Learn/Lesson-library",
-            "Learn/Main-lesson",
-            "Learn/moduleComponents/lesson-library",
-            "Learn/moduleComponents/index",
-            "Learn/moduleComponents/in-progress",
+            "learn/modules",
+            "learn/journey-map",
+            "learn/module/in-progress",
+            "learn/module/lesson-library",
+            "learn/In-progress",
+            "learn/Lesson-library",
+            "learn/Main-lesson",
+            "learn/moduleComponents/lesson-library",
+            "learn/moduleComponents/index",
+            "learn/moduleComponents/in-progress",
           ].includes(route.name)
         )
           return null;
@@ -50,9 +50,9 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             : route.name
         );
 
-        // Handle specific case for Learn/index
-        if (label === "Learn/index") {
-          label = "Learn";
+        // Handle specific case for learn/index
+        if (label === "learn/index") {
+          label = "learn";
         }
 
         const isFocused = state.index === index;
@@ -105,8 +105,8 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   ): React.ReactNode {
     const iconMap: Record<string, React.ReactNode> = {
       index: <CustomHomeIcon name={"Home"} color={color} focused={isFocused} />,
-      "Learn/index": (
-        <CustomLearnIcon name={"Learn"} color={color} focused={isFocused} />
+      "learn/index": (
+        <CustomlearnIcon name={"Learn"} color={color} focused={isFocused} />
       ),
       profile: (
         <CustomProfileIcon name={"Profile"} color={color} focused={isFocused} />
