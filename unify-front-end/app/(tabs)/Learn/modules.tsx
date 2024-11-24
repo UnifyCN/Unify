@@ -84,11 +84,11 @@ const Modules = () => {
           {/* Progress sections holding lessons cards */}
           <ProgressSection
             header="Lesson Library"
-            navigatePage={"/(tabs)/Learn/Lesson-library"}
+            navigatePage={"/(tabs)/learn/Lesson-library"}
           />
           <ProgressSection
             header="In-Progress"
-            navigatePage={"/(tabs)/Learn/In-progress"}
+            navigatePage={"/(tabs)/learn/In-progress"}
           />
           <ProgressSection header="Complete" navigatePage={"../lessons"} />
         </View>
