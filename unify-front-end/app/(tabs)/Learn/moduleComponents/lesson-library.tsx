@@ -18,7 +18,7 @@ const LessonLibrary = () => {
       <View style={styles.headerContainer}>
         {/* Back Button and Learn Text */}
         <View style={styles.backButtonAndLearnContainer}>
-          <Link href="./index" asChild>
+          <Link href="/(tabs)/Learn" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Feather name="chevron-left" size={28} color="#343434" />
             </TouchableOpacity>
