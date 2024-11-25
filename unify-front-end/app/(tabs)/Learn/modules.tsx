@@ -8,9 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
-import { Link } from "expo-router";
-import { Image } from "expo-image";
-import { ProgressSection } from "@/components/ProgressSection";
+import { ProgressSection } from "@/components/learn/ProgressSection";
 
 const Modules = () => {
   const [selectedTag, setSelectedTag] = useState("All");
@@ -77,14 +75,14 @@ const Modules = () => {
               </TouchableOpacity>
             ))}
           </View>
-        </View>
-
-        {/* padding so that navigation doesn't hide lesson cards at bottom */}
-        <View style={{paddingBottom: 50}}>
-          {/* Progress sections holding lessons cards */}
-          <ProgressSection header="Lesson Library" navigatePage={"./Lesson-library"} />
-          <ProgressSection header="In-Progress" navigatePage={"./In-progress"}/>
-          <ProgressSection header="Complete"navigatePage={"../lessons"}/>
+          
+          {/* padding so that navigation doesn't hide lesson cards at bottom */}
+          <View style={{paddingBottom: 50}}>
+            {/* Progress sections holding lessons cards */}
+            <ProgressSection header="Lesson Library" navigatePage={"/(tabs)/Learn/Lesson-library"} />
+            <ProgressSection header="In-Progress" navigatePage={"/(tabs)/Learn/In-progress"}/>
+            <ProgressSection header="Complete"navigatePage={"/(tabs)/Learn/moduleComponents/lesson-library"}/>
+          </View>
         </View>
       </ScrollView>
     </View>
