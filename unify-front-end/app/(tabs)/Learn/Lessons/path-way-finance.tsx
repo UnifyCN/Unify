@@ -35,14 +35,14 @@ const PathWayFinance = () => {
           curabitur nec praesent, vel quis.
         </Text>
         <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 5 }} />
-      </View>
 
-      <View>
-        <SubLessonCard
-          imageSource={require("../../../../assets/images/piggyBank.png")} // Replace with your local image
-          title="Budgeting 101"
-          description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-        />
+        <View style={styles.topicsContainer}>
+          <SubLessonCard
+            imageSource={require("../../../../assets/images/piggyBank.png")} // Replace with your local image
+            title="Budgeting 101"
+            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -80,6 +80,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#666",
     marginBottom: 16,
+  },
+  topicsContainer: {
+    marginTop: 20,
   },
 });
 

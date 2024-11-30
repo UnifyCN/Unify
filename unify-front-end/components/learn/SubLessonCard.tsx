@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 8,
     overflow: "hidden",
     marginBottom: 16,
     elevation: 2,
@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
   image: {
     width: "40%",
     height: "100%",
+    borderRadius: 8,
   },
   textContainer: {
     flex: 1,
