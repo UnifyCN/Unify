@@ -35,26 +35,31 @@ const PathWayFinance = () => {
           curabitur nec praesent, vel quis.
         </Text>
         <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 5 }} />
-
+        <Text style={styles.topicsTitle}>Topics</Text>
+        {/* Topics */}
         <View style={styles.topicsContainer}>
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")} // Replace with your local image
+            imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
           />
-        </View>
-
-        <View style={styles.topicsContainer}>
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")} // Replace with your local image
+            imageSource={require("../../../../assets/images/piggyBank.png")}
+            title="Saving Strategies"
+            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+          />
+          <SubLessonCard
+            imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
           />
-        </View>
-
-        <View style={styles.topicsContainer}>
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")} // Replace with your local image
+            imageSource={require("../../../../assets/images/piggyBank.png")}
+            title="Budgeting 101"
+            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+          />
+          <SubLessonCard
+            imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
           />
@@ -67,7 +72,7 @@ const PathWayFinance = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
   },
   backgroundImage: {
     width: "100%",
@@ -100,6 +105,13 @@ const styles = StyleSheet.create({
   },
   topicsContainer: {
     marginTop: 10,
+  },
+  topicsTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    color: "#505152",
   },
 });
 
