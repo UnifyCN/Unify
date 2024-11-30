@@ -10,6 +10,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import LessonProgressBar from "@/components/learn/LessonProgressBar";
+import ProgressCard from "@/components/learn/ProgressCard";
 
 const Budgeting = () => {
   return (
@@ -19,7 +20,7 @@ const Budgeting = () => {
         style={styles.backgroundImage}
       >
         <View style={styles.headerContentContainer}>
-          <Link href="/(tabs)/Learn" asChild>
+          <Link href="/(tabs)/Learn/Lessons/path-way-finance" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Feather name="chevron-left" size={25} color="#FFFFFF" />
             </TouchableOpacity>
@@ -31,13 +32,37 @@ const Budgeting = () => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>Budgeting 101</Text>
         <Text style={styles.description}>
-          Learn the basics of budgeting to manage your finances effectively.
+          Lorem ipsum odor amet, consectetuer adipiscing elit. Sapien curabitur
+          nec praesent, vel quis.
         </Text>
         {/* Lesson Progress Bar, just put in completed/total lesson and it'll dynamically render*/}
         <LessonProgressBar completed={2} total={3} />
         <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 3 }} />
         <Text style={styles.topicsTitle}>Lessons</Text>
-        {/* Add your topics content here */}
+        <ProgressCard
+          imageSource={require("../../../../../assets/images/piggyBank.png")}
+          title="What is Budgeting"
+          description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
+          progress={100}
+        />
+        <ProgressCard
+          imageSource={require("../../../../../assets/images/piggyBank.png")}
+          title="Budgeting Level 1"
+          description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
+          progress={30}
+        />
+        <ProgressCard
+          imageSource={require("../../../../../assets/images/piggyBank.png")}
+          title="Introduction to Investment"
+          description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
+          progress={50}
+        />
+        <ProgressCard
+          imageSource={require("../../../../../assets/images/piggyBank.png")}
+          title="Introduction to Investment"
+          description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
+          progress={70}
+        />
       </View>
     </ScrollView>
   );
@@ -84,7 +109,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 20,
     color: "#505152",
   },
 });
