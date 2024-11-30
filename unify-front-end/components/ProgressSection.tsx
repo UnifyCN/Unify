@@ -36,13 +36,17 @@ export function ProgressSection({
         showsHorizontalScrollIndicator={false}
         style={styles.cardContainer}
       >
-        <Link href="./Main-lesson" asChild style={styles.card}>
+        <Link
+          href="/(tabs)/Learn/Lessons/path-way-finance"
+          asChild
+          style={styles.card}
+        >
           <TouchableOpacity>
             <Image
               style={styles.cardImage}
               source={require("../assets/images/placeholderImg.png")}
             />
-            <Text style={styles.cardTitle}>Lesson Title</Text>
+            <Text style={styles.cardTitle}>Pathway to finance</Text>
             <Text style={styles.cardDescription}>Short description</Text>
           </TouchableOpacity>
         </Link>
