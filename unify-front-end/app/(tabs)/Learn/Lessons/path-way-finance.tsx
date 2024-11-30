@@ -43,6 +43,22 @@ const PathWayFinance = () => {
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
           />
         </View>
+
+        <View style={styles.topicsContainer}>
+          <SubLessonCard
+            imageSource={require("../../../../assets/images/piggyBank.png")} // Replace with your local image
+            title="Budgeting 101"
+            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+          />
+        </View>
+
+        <View style={styles.topicsContainer}>
+          <SubLessonCard
+            imageSource={require("../../../../assets/images/piggyBank.png")} // Replace with your local image
+            title="Budgeting 101"
+            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+          />
+        </View>
       </View>
     </ScrollView>
   );
@@ -69,6 +85,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginLeft: 15,
     marginRight: 15,
+    marginBottom: 40,
   },
   title: {
     fontSize: 24,
@@ -82,7 +99,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   topicsContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
 });
 

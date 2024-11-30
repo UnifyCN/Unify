@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    borderRadius: 8,
+    borderRadius: 20,
     overflow: "hidden",
     marginBottom: 16,
     elevation: 2,
@@ -44,11 +44,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    height: 160,
   },
   image: {
-    width: "40%",
+    width: "45%",
     height: "100%",
-    borderRadius: 8,
+    borderRadius: 20,
   },
   textContainer: {
     flex: 1,
@@ -56,12 +57,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: "bold",
     marginBottom: 8,
   },
   description: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#666",
   },
 });

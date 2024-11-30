@@ -75,14 +75,22 @@ const Modules = () => {
               </TouchableOpacity>
             ))}
           </View>
-          
-          {/* padding so that navigation doesn't hide lesson cards at bottom */}
-          <View style={{paddingBottom: 50}}>
-            {/* Progress sections holding lessons cards */}
-            <ProgressSection header="Lesson Library" navigatePage={"/(tabs)/Learn/Lesson-library"} />
-            <ProgressSection header="In-Progress" navigatePage={"/(tabs)/Learn/In-progress"}/>
-            <ProgressSection header="Complete"navigatePage={"/(tabs)/Learn/moduleComponents/lesson-library"}/>
-          </View>
+        </View>
+        {/* padding so that navigation doesn't hide lesson cards at bottom */}
+        <View style={{ paddingBottom: 50 }}>
+          {/* Progress sections holding lessons cards */}
+          <ProgressSection
+            header="Lesson Library"
+            navigatePage={"/(tabs)/Learn/Lesson-library"}
+          />
+          <ProgressSection
+            header="In-Progress"
+            navigatePage={"/(tabs)/Learn/In-progress"}
+          />
+          <ProgressSection
+            header="Complete"
+            navigatePage={"/(tabs)/Learn/moduleComponents/lesson-library"}
+          />
         </View>
       </ScrollView>
     </View>
