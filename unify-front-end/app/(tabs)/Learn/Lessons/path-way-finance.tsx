@@ -42,26 +42,31 @@ const PathWayFinance = () => {
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Saving Strategies"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
+            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
         </View>
       </View>
