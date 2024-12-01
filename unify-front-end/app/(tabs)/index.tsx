@@ -35,9 +35,9 @@ export default function HomeScreen() {
       <View style={styles.cardContainer} key={index}>
         <Link href="../lessons" asChild style={styles.longCard}>
           <TouchableOpacity>
-            <Image style={styles.cardImage} source={card.image} />
-            <Text style={styles.cardTitle}>{card.title}</Text>
-            <Text style={styles.cardDescription}>{card.description}</Text>
+            <Image style={styles.longCardImage} source={card.image} />
+            <Text style={styles.longCardTitle}>{card.title}</Text>
+            <Text style={styles.longCardDescription}>{card.description}</Text>
           </TouchableOpacity>
         </Link>
       </View>
@@ -47,13 +47,15 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headContainer}>
-        <TouchableOpacity>
-          <Feather name="menu" size={28} color="#343434" />
-        </TouchableOpacity>
         <Text style={styles.titleText}>Unify</Text>
-        <TouchableOpacity>
-          <Feather name="search" size={24} color="black" />
-        </TouchableOpacity>
+        <View style={styles.iconContainer}>
+          <TouchableOpacity>
+            <Feather name="bell" size={28} color="#343434" />
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Feather name="search" size={24} color="black" />
+          </TouchableOpacity>
+        </View>
       </View>
       <ScrollView style={styles.scrollContainer}>
         <Text style={styles.placeholderText}>PlaceHolder Name</Text>
@@ -83,11 +85,11 @@ export default function HomeScreen() {
           <Link href="../lessons" asChild style={styles.longCard}>
             <TouchableOpacity>
               <Image
-                style={styles.cardImage}
+                style={styles.longCardImage}
                 source={require("../../assets/images/placeholderImg.png")}
               />
-              <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescription}>Short description</Text>
+              <Text style={styles.longCardTitle}>Lesson Title</Text>
+              <Text style={styles.longCardDescription}>Short description</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -123,7 +125,7 @@ export default function HomeScreen() {
           end={{ x: 0.5, y: 1 }}
         >
           <Image
-            source={require("../../assets/images/dialogIcon.svg")}
+            source={require("../../assets/images/postIcon.svg")}
             style={styles.floatingButtonIcon}
           />
         </LinearGradient>
@@ -146,12 +148,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     flexShrink: 0,
-    paddingTop: 25.18,
-    paddingBottom: 25.18,
-    paddingHorizontal: 16.72,
+    paddingVertical: "5%",
+    paddingHorizontal: "8%",
     alignContent: "center",
     flexDirection: "row",
     backgroundColor: "#EEEEEE",
+  },
+  iconContainer: {
+    display: "flex",
+    flexDirection: "row",
+    gap: "25%",
   },
   titleText: {
     fontSize: 25.182,
@@ -162,60 +168,82 @@ const styles = StyleSheet.create({
     fontSize: 25.182,
     fontWeight: 600,
     color: "#343434",
-    marginLeft: 12,
+    marginLeft: "3%",
   },
   scrollContainer: {
     display: "flex",
     height: "100%",
     width: "100%",
     backgroundColor: "#fff",
-    paddingHorizontal: 24,
-    paddingVertical: 24,
+    paddingHorizontal: "5%",
+    paddingVertical: "5%",
   },
   cardImage: {
-    width: 50,
-    height: 50,
+    width: "25%",
+    height: "25%",
     alignSelf: "baseline",
-    marginLeft: 18,
+    marginLeft: 16,
     marginBottom: 30,
-    marginTop: 25,
+    marginTop: 20,
   },
   cardTitle: {
     alignSelf: "baseline",
-    marginLeft: 18,
-    marginBottom: 5,
+    marginLeft: 16,
+    marginBottom: 12,
     color: "#9F9D9D",
     fontWeight: "600",
   },
   cardDescription: {
     alignSelf: "baseline",
-    marginLeft: 18,
-    marginBottom: 6,
+    marginLeft: "12%",
+    marginBottom: "4%",
     color: "#CECECE",
     fontWeight: "600",
   },
   card: {
     backgroundColor: "#EEEEEE",
-    width: 170,
-    height: 170,
+    width: "50%",
+    height: "140%",
     borderRadius: 12,
     marginRight: 16,
     alignItems: "center",
   },
   cardContainer: {
     flexDirection: "row",
-    paddingVertical: 20,
-    paddingHorizontal: 12,
+    paddingVertical: "10%",
+    paddingHorizontal: "5%",
     justifyContent: "space-between",
-    marginBottom: -26,
+    marginBottom: -16,
   },
   longCard: {
     backgroundColor: "#EEEEEE",
-    width: "100%",
-    height: 170,
+    width: "105%",
+    height: "100%",
     borderRadius: 12,
     marginRight: 16,
     alignItems: "center",
+    paddingVertical: "18%",
+  },
+  longCardImage: {
+    height: "70%",
+    width: "20%",
+    alignSelf: "baseline",
+    marginLeft: 16,
+    marginBottom: 30,
+  },
+  longCardTitle: {
+    alignSelf: "baseline",
+    marginLeft: 16,
+    marginBottom: 12,
+    color: "#9F9D9D",
+    fontWeight: "600",
+  },
+  longCardDescription: {
+    alignSelf: "baseline",
+    marginLeft: "12%",
+    marginBottom: "4%",
+    color: "#CECECE",
+    fontWeight: "600",
   },
   feedText: {
     fontSize: 25.182,
@@ -228,33 +256,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap", // Allows wrapping to the next line
     gap: 5, // Space between tags
-    paddingVertical: 16.79,
-    paddingHorizontal: 12,
-    marginBottom: -20,
+    paddingVertical: "4%",
+    paddingHorizontal: "3%",
+    marginBottom: "-5%",
+    marginLeft: 12,
   },
   tagButton: {
     display: "flex",
     backgroundColor: "#EEEEEE",
-    paddingVertical: 6.296,
-    paddingHorizontal: 25.182,
-    borderRadius: 8.394,
-    marginRight: 8,
-    marginBottom: 8,
-    width: 105.975,
-    height: 27.59,
+    paddingVertical: "2%",
+    paddingHorizontal: "6%",
+    borderRadius: 8,
+    marginRight: "2%",
+    marginBottom: "2%",
+    width: "30%", 
+    height: "80%", 
     alignItems: "center",
     justifyContent: "center",
   },
   tagButtonActive: {
     display: "flex",
     backgroundColor: "#343434",
-    paddingVertical: 6.296,
-    paddingHorizontal: 25.182,
-    borderRadius: 8.394,
-    marginRight: 8,
-    marginBottom: 8,
-    width: 105.975,
-    height: 27.59,
+    paddingVertical: "2%",
+    paddingHorizontal: "6%",
+    borderRadius: 8, 
+    marginRight: "2%",
+    marginBottom: "2%",
+    width: "30%",
+    height: "80%",
     alignItems: "center",
     justifyContent: "center",
   },

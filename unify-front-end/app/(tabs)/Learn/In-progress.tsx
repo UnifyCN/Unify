@@ -18,7 +18,7 @@ const InProgress = () => {
       <View style={styles.headerContainer}>
         {/* Back Button and Learn Text */}
         <View style={styles.backButtonAndLearnContainer}>
-          <Link href="/(tabs)/learn" asChild>
+          <Link href="/(tabs)/Learn" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Feather name="chevron-left" size={28} color="#343434" />
             </TouchableOpacity>
@@ -54,19 +54,28 @@ const InProgress = () => {
         {/* Scrollable Content */}
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <LessonCard
-            imageSource={require("../../../assets/images/Demoimage.jpeg")}
-            title="Lesson A"
+            imageSource={require("../../../assets/images/Budget101.jpeg")}
+            title="Budget 101"
             description="A brief description of the lesson goes here."
+            style={{ borderRadius: 35 }}
           />
           <LessonCard
-            imageSource={require("../../../assets/images/Demoimage.jpeg")}
-            title="Pathway to finance"
+            imageSource={require("../../../assets/images/BudgetIntro.jpeg")}
+            title="Intro to Budgeting"
             description="A brief description of the lesson goes here."
+            style={{ borderRadius: 35 }}
           />
           <LessonCard
-            imageSource={require("../../../assets/images/Demoimage.jpeg")}
-            title="Lesson B something"
+            imageSource={require("../../../assets/images/FindPlace.jpeg")}
+            title="Finding a New Place"
             description="A brief description of the lesson goes here."
+            style={{ borderRadius: 35 }}
+          />
+          <LessonCard
+            imageSource={require("../../../assets/images/CoverLetter.jpeg")}
+            title="Perfect your Cover Letter"
+            description="A brief description of the lesson goes here."
+            style={{ borderRadius: 35 }}
           />
         </ScrollView>
       </View>
