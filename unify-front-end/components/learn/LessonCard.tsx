@@ -5,21 +5,24 @@ import {
   StyleSheet,
   ImageBackground,
   ImageSourcePropType,
+  ViewStyle,
 } from "react-native";
 
 interface LessonCardProps {
   imageSource: ImageSourcePropType;
   title: string;
   description: string;
+  style?: ViewStyle; // Add an optional `style` prop
 }
 
 const LessonCard: React.FC<LessonCardProps> = ({
   imageSource,
   title,
   description,
+  style, // Destructure the `style` prop
 }) => {
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, style]}> {/* Apply custom styles */}
       <ImageBackground
         source={imageSource}
         style={styles.cardImage}
@@ -55,7 +58,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // dark cover overlay to display text better!
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark cover overlay
     borderRadius: 12,
   },
   textContainer: {
