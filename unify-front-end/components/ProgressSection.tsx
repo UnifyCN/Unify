@@ -8,6 +8,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
+import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
 import React from "react";
 
 interface ProgressSectionProps {
@@ -36,20 +37,12 @@ export function ProgressSection({
         showsHorizontalScrollIndicator={false}
         style={styles.cardContainer}
       >
-        <Link
+        <ProgressSectionCard
+          title="Pathway to finance"
+          description="Short description"
+          image={require("../assets/images/placeholderImg.png")}
           href="/(tabs)/Learn/Lessons/path-way-finance"
-          asChild
-          style={styles.card}
-        >
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Pathway to finance</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
+        />
 
         <Link href="./Main-lesson" asChild style={styles.card}>
           <TouchableOpacity>

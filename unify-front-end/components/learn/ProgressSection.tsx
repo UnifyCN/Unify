@@ -8,6 +8,8 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
+import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
+import React from "react";
 
 interface ProgressSectionProps {
   header: string;
@@ -35,49 +37,26 @@ export function ProgressSection({
         showsHorizontalScrollIndicator={false}
         style={styles.cardContainer}
       >
-        <Link
+        <ProgressSectionCard
+          title="Pathway to finance"
+          description="Short description"
+          image={require("../../assets/images/placeholderImg.png")}
           href="/(tabs)/Learn/Lessons/path-way-finance"
-          asChild
-          style={styles.card}
-        >
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Pathway finance</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
+        />
 
-        <Link
-          href="/(tabs)/Learn/moduleComponents/main-lesson"
-          asChild
-          style={styles.card}
-        >
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Lesson Title</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
-        <Link
-          href="/(tabs)/Learn/moduleComponents/main-lesson"
-          asChild
-          style={styles.card}
-        >
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Lesson Title</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
+        <ProgressSectionCard
+          title="Lesson Title"
+          description="Short description"
+          image={require("../../assets/images/placeholderImg.png")}
+          href="./Main-lesson"
+        />
+
+        <ProgressSectionCard
+          title="Lesson Title"
+          description="Short description"
+          image={require("../../assets/images/placeholderImg.png")}
+          href="./Main-lesson"
+        />
       </ScrollView>
     </>
   );
@@ -102,7 +81,7 @@ const styles = StyleSheet.create({
   },
   card: {
     // Each card as a light grey square
-    backgroundColor: "#E3E3E3",
+    backgroundColor: "#EEEEEE",
     width: 170,
     height: 170,
     borderRadius: 12,
