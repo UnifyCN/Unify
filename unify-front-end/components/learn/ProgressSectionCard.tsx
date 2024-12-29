@@ -1,5 +1,10 @@
 import React from "react";
-import { TouchableOpacity, Image, Text, StyleSheet } from "react-native";
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ImageBackground,
+} from "react-native";
 import { Href, Link } from "expo-router";
 
 interface ProgressSectionCardProps {
@@ -18,9 +23,14 @@ export function ProgressSectionCard({
   return (
     <Link href={href} asChild style={styles.card}>
       <TouchableOpacity>
-        <Image style={styles.cardImage} source={image} />
-        <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.cardDescription}>{description}</Text>
+        <ImageBackground
+          source={image}
+          style={styles.cardImage}
+          imageStyle={styles.imageStyle}
+        >
+          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={styles.cardDescription}>{description}</Text>
+        </ImageBackground>
       </TouchableOpacity>
     </Link>
   );
@@ -28,35 +38,34 @@ export function ProgressSectionCard({
 
 const styles = StyleSheet.create({
   card: {
-    // Each card as a light grey square
     backgroundColor: "#EEEEEE",
     width: 170,
     height: 170,
     borderRadius: 12,
     marginRight: 16,
-    alignItems: "center",
+    overflow: "hidden",
   },
   cardImage: {
-    width: 50,
-    height: 50,
-    alignSelf: "baseline",
-    marginLeft: 18,
-    marginBottom: 30,
-    marginTop: 25,
+    flex: 1,
+    justifyContent: "flex-end",
+    padding: 10,
+  },
+  imageStyle: {
+    borderRadius: 12,
   },
   cardTitle: {
-    alignSelf: "baseline",
-    marginLeft: 18,
-    marginBottom: 5,
-    color: "#9F9D9D",
-    fontWeight: "600",
+    fontWeight: "bold",
+    color: "#fff",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 5,
+    borderRadius: 5,
   },
   cardDescription: {
-    alignSelf: "baseline",
-    marginLeft: 18,
-    marginBottom: 6,
-    color: "#CECECE",
-    fontWeight: "600",
+    color: "#fff",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: 5,
+    borderRadius: 5,
+    marginTop: 5,
   },
 });
 
