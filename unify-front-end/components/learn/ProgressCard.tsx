@@ -1,13 +1,15 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import CircularProgress from "react-native-circular-progress-indicator";
+import { Link } from "expo-router";
 
 interface ProgressCardProps {
   imageSource: any;
   title: string;
   description: string;
   progress: number;
+  link: string;
 }
 
 const ProgressCard: React.FC<ProgressCardProps> = ({
@@ -15,42 +17,45 @@ const ProgressCard: React.FC<ProgressCardProps> = ({
   title,
   description,
   progress,
+  link,
 }) => {
   return (
-    <View style={styles.card}>
-      {/* Background Image */}
-      <Image source={imageSource} style={styles.image} />
+    <Link href={link as any} asChild>
+      <TouchableOpacity style={styles.card}>
+        {/* Background Image */}
+        <Image source={imageSource} style={styles.image} />
 
-      <View style={styles.overlay}>
-        <View style={styles.contentContainer}>
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.description}>{description}</Text>
-          </View>
+        <View style={styles.overlay}>
+          <View style={styles.contentContainer}>
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.description}>{description}</Text>
+            </View>
 
-          {/* Progress bar*/}
-          <View style={styles.progressContainer}>
-            {progress === 100 ? (
-              <MaterialIcons name="check-circle" size={40} color="#4caf50" />
-            ) : (
-              <CircularProgress
-                value={progress}
-                maxValue={100}
-                radius={35}
-                progressValueColor={"#fff"}
-                activeStrokeColor={"#9fc9f5"}
-                inActiveStrokeColor={"#d0d0d0"}
-                inActiveStrokeOpacity={0.4}
-                inActiveStrokeWidth={5}
-                activeStrokeWidth={5}
-                valueSuffix={"%"}
-                titleColor="#fff"
-              />
-            )}
+            {/* Progress bar*/}
+            <View style={styles.progressContainer}>
+              {progress === 100 ? (
+                <MaterialIcons name="check-circle" size={40} color="#4caf50" />
+              ) : (
+                <CircularProgress
+                  value={progress}
+                  maxValue={100}
+                  radius={35}
+                  progressValueColor={"#fff"}
+                  activeStrokeColor={"#9fc9f5"}
+                  inActiveStrokeColor={"#d0d0d0"}
+                  inActiveStrokeOpacity={0.4}
+                  inActiveStrokeWidth={5}
+                  activeStrokeWidth={5}
+                  valueSuffix={"%"}
+                  titleColor="#fff"
+                />
+              )}
+            </View>
           </View>
         </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+    </Link>
   );
 };
 

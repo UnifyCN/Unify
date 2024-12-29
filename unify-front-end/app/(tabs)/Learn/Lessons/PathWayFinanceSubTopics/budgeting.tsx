@@ -44,24 +44,28 @@ const Budgeting = () => {
           title="What is Budgeting"
           description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
           progress={100}
+          link="/(tabs)/Learn/moduleComponents/lesson-completed"
         />
         <ProgressCard
           imageSource={require("../../../../../assets/images/piggyBank.png")}
           title="Budgeting Level 1"
           description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
           progress={30}
+          link="/(tabs)/Learn/moduleComponents/lesson-completed"
         />
         <ProgressCard
           imageSource={require("../../../../../assets/images/piggyBank.png")}
           title="Introduction to Investment"
           description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
           progress={50}
+          link="/(tabs)/Learn/moduleComponents/lesson-completed"
         />
         <ProgressCard
           imageSource={require("../../../../../assets/images/piggyBank.png")}
           title="Introduction to Investment"
           description="Lorem ipsum odor amet, consectetuer adipiscing elit,adipiscing elit."
           progress={70}
+          link="/(tabs)/Learn/moduleComponents/lesson-completed"
         />
       </View>
     </ScrollView>
