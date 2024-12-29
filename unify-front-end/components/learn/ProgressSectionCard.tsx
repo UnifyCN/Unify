@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
   ImageBackground,
+  View,
 } from "react-native";
 import { Href, Link } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
 
 interface ProgressSectionCardProps {
   title: string;
@@ -16,10 +18,11 @@ interface ProgressSectionCardProps {
 
 export function ProgressSectionCard({
   title,
-  description,
   image,
   href,
 }: ProgressSectionCardProps) {
+  const [liked, setLiked] = useState(false);
+
   return (
     <Link href={href} asChild style={styles.card}>
       <TouchableOpacity>
@@ -28,8 +31,19 @@ export function ProgressSectionCard({
           style={styles.cardImage}
           imageStyle={styles.imageStyle}
         >
+          {/* Overlay */}
+          <View style={styles.overlay} />
+          <TouchableOpacity
+            style={styles.heartIcon}
+            onPress={() => setLiked(!liked)}
+          >
+            <FontAwesome
+              name={liked ? "heart" : "heart-o"}
+              size={24}
+              color={liked ? "red" : "white"}
+            />
+          </TouchableOpacity>
           <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.cardDescription}>{description}</Text>
         </ImageBackground>
       </TouchableOpacity>
     </Link>
@@ -39,7 +53,7 @@ export function ProgressSectionCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: "#EEEEEE",
-    width: 170,
+    width: 200,
     height: 170,
     borderRadius: 12,
     marginRight: 16,
@@ -55,17 +69,20 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontWeight: "bold",
+    fontSize: 18,
     color: "#fff",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     padding: 5,
     borderRadius: 5,
   },
-  cardDescription: {
-    color: "#fff",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 5,
-    borderRadius: 5,
-    marginTop: 5,
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.3)", // Dark cover overlay
+    borderRadius: 12,
+  },
+  heartIcon: {
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
 });
 

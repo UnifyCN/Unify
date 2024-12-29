@@ -16,7 +16,7 @@ interface ProgressSectionProps {
   navigatePage: Href;
 }
 
-export function ProgressSection({
+export function ProgressSectionComplete({
   header,
   navigatePage,
 }: ProgressSectionProps) {
