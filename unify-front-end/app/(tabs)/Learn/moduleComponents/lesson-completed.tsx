@@ -110,6 +110,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: "#343434",
     alignSelf: "center",
+    textAlign: "center",
   },
   subTitle: {
     fontSize: 22,
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   nextButton: {
     marginBottom: 60,
     width: 100,
-    borderRadius: 20,
+    borderRadius: 40,
     alignSelf: "center",
     justifyContent: 'center',
     paddingVertical: 12,
