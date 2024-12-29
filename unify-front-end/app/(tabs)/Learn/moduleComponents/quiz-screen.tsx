@@ -8,8 +8,30 @@ import {
 import { Link } from "expo-router";
 import QuizProgressBar from "@/components/learn/QuizProgressBar";
 import QuizQuestion from "@/components/learn/QuizQuestion";
+import React, { useState} from "react";
+import { useNavigation } from "@react-navigation/native";
 
 const QuizScreen = () => {
+  const navigation = useNavigation();
+  const totalQuestions = 10; // number of total quiz questions
+  const [question, changeQuestion] = useState(1); // used to change to each question
+
+  // a function that handles what happens when the "next" button is pressed
+  const nextPressed = () => {
+    if (question < totalQuestions) {
+      changeQuestion((prev) => prev + 1);
+    }
+  };
+  // a function that handles what happens when "back" button is pressed
+  const backPressed = () => {
+    if (question === 1) {
+      changeQuestion(1);
+    } else {
+      // go back to previous question number when back button is pressed
+      changeQuestion((prev) => Math.max(prev - 1, 1));
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
@@ -19,31 +41,46 @@ const QuizScreen = () => {
 
       <View style={styles.contentContainer}>
         {/*Progress Bar*/}
-        <QuizProgressBar completed={1} 
-        total={10} 
+        <QuizProgressBar completed={question} 
+        total={totalQuestions} 
         question={"What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?"} />
 
-        {/* Different listed questions */}
+        {/*Different listed questions*/}
         <QuizQuestion question={"A. Lorem ipsum dolor sit ame sed"}/>
         <QuizQuestion question={"B. Lorem ipsum dolor sit ame sed"}/>
         <QuizQuestion question={"C. Lorem ipsum dolor sit ame sed"}/>
         <QuizQuestion question={"D. Lorem ipsum dolor sit ame sed"}/>
 
-        {/* Back and next buttons */}
+        {/*Back and next buttons*/}
         <View style={styles.buttonsContainer}>
-          <Link href="/(tabs)/Learn/moduleComponents/lesson-completed" asChild>
-            <TouchableOpacity style={styles.backButton}>
-              <Text style={{color: "#000", fontSize: 17}}>Back</Text>
+          {/* back button directs to lesson page if on first question,*/}
+          {/* otherwise directs to previous question  */}
+          {question === 1 ? (
+              <Link href="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
+                <TouchableOpacity style={styles.backButton} onPress={() => changeQuestion(1)}>
+                  <Text style={styles.backButtonText}>Back</Text>
+                </TouchableOpacity>
+              </Link>
+            ) : (
+              <TouchableOpacity style={styles.backButton} onPress={backPressed}>
+                <Text style={styles.backButtonText}>Back</Text>
+              </TouchableOpacity>
+            )}
+
+          {/* display submit button when the current question is the final question */}
+          {question < totalQuestions ? (
+            <TouchableOpacity style={styles.nextButton} onPress={nextPressed}>
+              <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
-          </Link>
-          <Link href="/(tabs)/Learn/moduleComponents/quiz-completed" asChild>
-            <TouchableOpacity style={styles.nextButton}>
-              <Text style={{color: "#fff", fontSize: 17}}>Next</Text>
-            </TouchableOpacity>
-          </Link>
+          ) : (
+            <Link href="/(tabs)/Learn/moduleComponents/quiz-completed" asChild>
+              <TouchableOpacity style={styles.nextButton} onPress={() => changeQuestion(1)}>
+                <Text style={styles.nextButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </Link>
+          )}
         </View>
       </View>
-
     </ScrollView>
   );
 }
@@ -77,12 +114,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   nextButton: {
-    width: 100,
+    width: 118,
     backgroundColor: "#343434",
     borderRadius: 40,
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 32,
+  },
+  nextButtonText: {
+    color: "#fff", 
+    fontSize: 17, 
+    textAlign: "center"
   },
   backButton: {
     width: 105,
@@ -93,6 +135,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 32,
+  },
+  backButtonText: {
+    color: "#000", 
+    fontSize: 17
   },
 });
 

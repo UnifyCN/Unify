@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,9 +5,7 @@ import {
   StyleSheet,
   Image,
   ScrollView,
-  Modal
 } from "react-native";
-import { Feather} from "@expo/vector-icons";
 import { Link } from "expo-router";
 
 const QuizCompleted = () => {
@@ -50,7 +47,7 @@ const QuizCompleted = () => {
 
       <Link href="/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
         <TouchableOpacity style={styles.backButton}>
-          <Text style={{color: "#fff", fontSize: 17}}>Back to Budgeting 101</Text>
+          <Text style={styles.backButtonText}>Back to Budgeting 101</Text>
         </TouchableOpacity>
       </Link>
     </ScrollView>
@@ -140,6 +137,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     paddingHorizontal: 25,
+  },
+  backButtonText: {
+    color: "#fff", 
+    fontSize: 17
   },
 });
 

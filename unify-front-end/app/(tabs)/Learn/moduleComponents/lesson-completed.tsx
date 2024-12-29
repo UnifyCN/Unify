@@ -38,7 +38,7 @@ const LessonCompleted = () => {
 
       <Image source={require("../../../../assets/images/lessonCompleted.png")} style={styles.image}></Image>
       <Text style={styles.title}>Lesson Completed!</Text>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3, marginLeft: 80, marginRight: 80}}/>
+      <View style={styles.titleDivider}/>
       <Text style={styles.subTitle}>Key Takeaways</Text>
 
       <View style={styles.textContainer}>
@@ -51,7 +51,7 @@ const LessonCompleted = () => {
       </View>
 
       <TouchableOpacity style={styles.nextButton} onPress={() => setShowModal(true)}>
-        <Text style={{color: "#fff", fontSize: 17}}>Next</Text>
+        <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
 
       {/* Modal: fades in when next button is pressed */}
@@ -70,7 +70,7 @@ const LessonCompleted = () => {
           {/* Go back to key takeaways*/}
           <TouchableOpacity style={[styles.modalButton, styles.modalBottomButton]}
             onPress={() => setShowModal(false)}>
-            <Text style={[styles.buttonText, {color: "#000000"}]}>No, go back to key takeaways</Text>
+            <Text style={[styles.buttonText, {color: "#000"}]}>No, go back to key takeaways</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -103,6 +103,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     color: "#343434",
+  },
+  titleDivider: {
+    borderBottomColor: '#EEEEEE', 
+    borderBottomWidth: 3, 
+    marginHorizontal: 80,
   },
   title: {
     fontSize: 26,
@@ -147,6 +152,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 32,
     backgroundColor: "#343434",
+  },
+  nextButtonText: {
+    color: "#fff", 
+    fontSize: 17, 
+    textAlign: "center"
   },
   modal: {
     flex: 1,
