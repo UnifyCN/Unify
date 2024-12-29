@@ -16,7 +16,7 @@ interface ProgressSectionProps {
   navigatePage: Href;
 }
 
-export function ProgressSection({
+export function ProgressSectionLL({
   header,
   navigatePage,
 }: ProgressSectionProps) {
@@ -38,32 +38,25 @@ export function ProgressSection({
         style={styles.cardContainer}
       >
         <ProgressSectionCard
-          title="Pathway to finance"
+          title="Pathway to Finance"
           description="Short description"
-          image={require("../assets/images/placeholderImg.png")}
+          image={require("../../assets/images/Budget101.jpeg")}
           href="/(tabs)/Learn/Lessons/path-way-finance"
         />
 
-        <Link href="./Main-lesson" asChild style={styles.card}>
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Lesson Title</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
-        <Link href="./Main-lesson" asChild style={styles.card}>
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Lesson Title</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
+        <ProgressSectionCard
+          title="Lesson Title"
+          description="Short description"
+          image={require("../../assets/images/placeholderImg.png")}
+          href="./Main-lesson"
+        />
+
+        <ProgressSectionCard
+          title="Lesson Title"
+          description="Short description"
+          image={require("../../assets/images/placeholderImg.png")}
+          href="./Main-lesson"
+        />
       </ScrollView>
     </>
   );
