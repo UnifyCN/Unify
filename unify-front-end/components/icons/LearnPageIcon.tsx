@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ImageStyle, StyleProp } from 'react-native';
+import { Image} from 'react-native';
 
 interface CustomIconProps {
   name: string;
@@ -7,15 +7,24 @@ interface CustomIconProps {
   focused: boolean;
 }
 
-const CustomLearnIcon: React.FC<CustomIconProps> = ({ color, focused }) => (
-  <Image
-    source={
-      focused
-        ? require('@/assets/images/LearnPageFocused.svg')
-        : require('@/assets/images/LearnPage.svg')
-    }
-    style={{ tintColor: color, width: 24, height: 24 } as StyleProp<ImageStyle>}
-  />
-);
+const icon = {
+  focused: require('@/assets/images/LearnPageFocused.svg'),
+  default: require('@/assets/images/LearnPage.svg'),
+};
 
-export default CustomLearnIcon;
+export default function CustomLearnIcon({
+  name,
+  color,
+  focused
+}: CustomIconProps) {
+  return (
+    <Image 
+      source={
+        focused
+          ? icon.focused
+          : icon.default
+      }
+      style={{ tintColor: color}}
+    />
+  )
+}

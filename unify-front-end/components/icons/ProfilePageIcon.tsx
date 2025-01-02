@@ -7,15 +7,24 @@ interface CustomIconProps {
   focused: boolean;
 }
 
-const CustomProfileIcon: React.FC<CustomIconProps> = ({ color, focused }) => (
-  <Image
-    source={
-      focused
-        ? require('@/assets/images/ProfilePageFocused.svg')
-        : require('@/assets/images/ProfilePage.svg')
-    }
-    style={{ tintColor: color, width: 24, height: 24 } as StyleProp<ImageStyle>}
-  />
-);
+const icon = {
+  focused: require('@/assets/images/ProfilePageFocused.svg'),
+  default: require('@/assets/images/ProfilePage.svg'),
+};
 
-export default CustomProfileIcon;
+export default function CustomProfileIcon({
+  name,
+  color,
+  focused
+}: CustomIconProps) {
+  return (
+    <Image 
+      source={
+        focused
+          ? icon.focused
+          : icon.default
+      }
+      style={{ tintColor: color}}
+    />
+  )
+}
