@@ -16,7 +16,6 @@ export default function TabTwoScreen() {
         <ThemedText type="title">Profile</ThemedText>
       </ThemedView>
       <ThemedText>This will be the profile page of Unify.</ThemedText>
-      
     </ParallaxScrollView>
   );
 }

@@ -1,5 +1,7 @@
 import React from "react";
 import { View, Image, ImageStyle, StyleProp } from "react-native";
+import SVGHomePage from "@/assets/images/HomePage.svg";
+import SVGHomePageFocused from "@/assets/images/HomePageFocused.svg";
 
 interface CustomIconProps {
   name: string;
@@ -21,8 +23,8 @@ interface CustomIconProps {
 // export default CustomHomeIcon;
 // Optimize for performance by only render the icon once
 const icon = {
-  focused: require('@/assets/images/ProfilePageFocused.svg'),
-  default: require('@/assets/images/ProfilePage.svg'),
+  focused: require('@/assets/images/HomePageFocused.svg'),
+  default: require('@/assets/images/HomePage.svg'),
 };
 
 export default function CustomProfileIcon({
