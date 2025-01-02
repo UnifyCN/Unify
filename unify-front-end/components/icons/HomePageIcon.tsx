@@ -22,10 +22,6 @@ interface CustomIconProps {
 
 // export default CustomHomeIcon;
 // Optimize for performance by only render the icon once
-const icon = {
-  focused: require('@/assets/images/HomePageFocused.svg'),
-  default: require('@/assets/images/HomePage.svg'),
-};
 
 export default function CustomProfileIcon({
   name, 
@@ -33,13 +29,8 @@ export default function CustomProfileIcon({
   focused
 }: CustomIconProps) {
   return (
-    <Image 
-      source={
-        focused
-          ? icon.focused
-          : icon.default
-      }
-      style={{ tintColor: color }}
-    />
+    <>
+      {focused ? <SVGHomePageFocused fill={color}/> : <SVGHomePage fill={color}/>}
+    </>
   )
 }
