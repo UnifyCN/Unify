@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Image, ImageStyle, StyleProp } from "react-native";
-import SVGHomeIcon from "@/assets/images/HomePage.svg";
-import SVGHomeIconFocused from "@/assets/images/HomePageFocused.svg";
+import SVGHomePageIcon from "@/assets/images/HomePage.svg";
+import SVGHomePageIconFocused from "@/assets/images/HomePageFocused.svg";
 
 interface CustomIconProps {
   name: string;
@@ -30,7 +30,7 @@ export default function CustomProfileIcon({
 }: CustomIconProps) {
   return (
     <>
-      {focused ? <SVGHomeIconFocused fill={color}/> : <SVGHomeIcon fill={color}/>}
+      {focused ? <SVGHomePageIconFocused fill={color}/> : <SVGHomePageIcon fill={color}/>}
     </>
   )
 }
