@@ -1,5 +1,7 @@
 import React from 'react';
 import { Image} from 'react-native';
+import SVGLearnIcon from '@/assets/images/LearnPage.svg';
+import SVGLearnFocusedIcon from '@/assets/images/LearnPageFocused.svg';
 
 interface CustomIconProps {
   name: string;
@@ -18,13 +20,8 @@ export default function CustomLearnIcon({
   focused
 }: CustomIconProps) {
   return (
-    <Image 
-      source={
-        focused
-          ? icon.focused
-          : icon.default
-      }
-      style={{ tintColor: color}}
-    />
+    <>
+      {focused ? <SVGLearnFocusedIcon fill={color}/> : <SVGLearnIcon fill={color}/>}
+    </>
   )
 }
