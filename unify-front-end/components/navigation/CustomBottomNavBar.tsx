@@ -10,6 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 import React from "react";
 
+// For future animation implementations if needed
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -128,33 +129,35 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
+    position: "absolute",
     flexDirection: "row",
     backgroundColor: "#fff",
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
-    width: 377,
     alignSelf: "center",
-    bottom: 40,
+    flexShrink: 0,
+    bottom: 25,
+    width: 365,
     height: 52,
-    borderRadius: 99,
-    paddingTop: 4,
-    paddingRight: 5,
-    paddingBottom: 4,
-    paddingLeft: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    borderRadius: 25,
+    borderCurve: "continuous",
+    paddingHorizontal: 4,
+    paddingVertical: 5,
+    shadowColor: "black",
+    shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.08,
-    shadowRadius: 4,
+    shadowRadius: 10,
     elevation: 4,
+    
   },
   tabItem: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
     height: 40,
-    gap: 8,
     paddingHorizontal: 30,
-    borderRadius: 999,
+    borderRadius: 25,
+    borderCurve: "continuous",
+    gap: 8,
   },
   iconWrapper: {
     justifyContent: "center",
@@ -162,7 +165,6 @@ const styles = StyleSheet.create({
   },
   text: {
     color: "#000000",
-    marginLeft: 8,
   },
 });
 
