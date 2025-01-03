@@ -69,26 +69,26 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             navigation.navigate(route.name);
           }
         };
-
+        const primaryColor = "#2F97C4";
+        const whiteColor = "#FFFFFF"
         return (
           <AnimatedTouchableOpacity
             key={route.key}
             onPress={onPress}
             style={[
               styles.tabItem,
-              { backgroundColor: isFocused ? "#E7E7E9" : "transparent" },
+              { backgroundColor: isFocused ? primaryColor : whiteColor },
             ]}
             accessibilityRole="button"
             accessibilityLabel={label}
           >
-            <View style={styles.iconWrapper}>
-              {getIconByRouteName(
-                route.name,
-                isFocused ? "#000000" : "#5C5C5C",
-                isFocused
-              )}
-            </View>
-            <Text style={{color: isFocused? "#000000" : "#5C5C5C"}}>
+
+            {getIconByRouteName(
+              route.name,
+              isFocused ? whiteColor : primaryColor,
+              isFocused
+            )}
+            <Text style={{color: isFocused? whiteColor : primaryColor}}>
               {label}
             </Text>
             {/* {isFocused && (
@@ -150,15 +150,12 @@ const styles = StyleSheet.create({
   tabItem: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     height: 40,
     paddingHorizontal: 16,
     borderRadius: 25,
     borderCurve: "continuous",
     gap: 8,
-  },
-  iconWrapper: {
-    justifyContent: "center",
-    alignItems: "center",
   },
   text: {
     color: "#000000",
