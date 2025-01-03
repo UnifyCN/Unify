@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import CustomHomeIcon from "../icons/HomePageIcon";
 import CustomlearnIcon from "../icons/LearnPageIcon";
@@ -56,11 +56,6 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             : route.name
         );
 
-        // Handle specific case for learn/index
-        if (label === "learn/index") {
-          label = "learn";
-        }
-
         const isFocused = state.index === index;
 
         const onPress = () => {
@@ -93,11 +88,14 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
                 isFocused
               )}
             </View>
-            {isFocused && (
-              <Animated.Text style={styles.text}>
+            <Text style={{color: isFocused? "#000000" : "#5C5C5C"}}>
+              {label}
+            </Text>
+            {/* {isFocused && (
+              <Text style={styles.text}>
                 {label as string}
-              </Animated.Text>
-            )}
+              </Text>
+            )} */}
           </AnimatedTouchableOpacity>
         );
       })}
@@ -138,11 +136,10 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     bottom: 25,
     width: 365,
-    height: 52,
+    height: 50,
     borderRadius: 25,
     borderCurve: "continuous",
     paddingHorizontal: 4,
-    paddingVertical: 5,
     shadowColor: "black",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.08,
@@ -154,7 +151,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     height: 40,
-    paddingHorizontal: 30,
+    paddingHorizontal: 16,
     borderRadius: 25,
     borderCurve: "continuous",
     gap: 8,
