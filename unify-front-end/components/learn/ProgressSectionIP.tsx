@@ -41,7 +41,7 @@ export function ProgressSectionIP({
           title="Budgeting 101"
           description="Short description"
           image={require("../../assets/images/BudgetIntro.jpeg")}
-          href="/(tabs)/Learn/Lessons/path-way-finance"
+          href="/(tabs)/learn/Lessons/path-way-finance"
         />
 
         <ProgressSectionCard
