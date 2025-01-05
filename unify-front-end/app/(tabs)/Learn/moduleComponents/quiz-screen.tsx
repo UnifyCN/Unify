@@ -5,24 +5,29 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { Link } from "expo-router";
+import { Feather} from "@expo/vector-icons";
 import QuizProgressBar from "@/components/learn/QuizProgressBar";
 import QuizQuestion from "@/components/learn/QuizQuestion";
 import React, { useState} from "react";
-import { useNavigation } from "@react-navigation/native";
+import PopupModal from "@/components/learn/PopupModal";
 
 const QuizScreen = () => {
-  const navigation = useNavigation();
-  const totalQuestions = 10; // number of total quiz questions
-  const [question, changeQuestion] = useState(1); // used to change to each question
+  // back button popup caption
+  const [showBackModal, setShowBackModal] = useState(false);
+  // submit button popup caption
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  // number of total quiz questions
+  const totalQuestions = 10;
+  // used to change to each question
+  const [question, changeQuestion] = useState(1); 
 
-  // a function that handles what happens when the "next" button is pressed
+  // function handles "next" button press
   const nextPressed = () => {
     if (question < totalQuestions) {
       changeQuestion((prev) => prev + 1);
     }
   };
-  // a function that handles what happens when "back" button is pressed
+  // function handles "back" button press
   const backPressed = () => {
     if (question === 1) {
       changeQuestion(1);
@@ -31,10 +36,22 @@ const QuizScreen = () => {
       changeQuestion((prev) => Math.max(prev - 1, 1));
     }
   };
+  // function handles "submit" button press
+  const submitPressed = () => {
+    setShowSubmitModal(true);
+  }
+  // function takes user back to lesson takeaways page
+  const headBackPressed = () => {
+    // changeQuestion(1);
+    setShowBackModal(true);
+  }
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
+        <TouchableOpacity style={styles.backToLessonButton} onPress={headBackPressed}>
+          <Feather name="chevron-left" size={25} />
+        </TouchableOpacity>
         <Text style={styles.headerText}>Budgeting Level 1 Quiz</Text>
       </View>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
@@ -56,11 +73,9 @@ const QuizScreen = () => {
           {/* back button directs to lesson page if on first question,*/}
           {/* otherwise directs to previous question  */}
           {question === 1 ? (
-              <Link href="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
-                <TouchableOpacity style={styles.backButton} onPress={() => changeQuestion(1)}>
-                  <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity>
-              </Link>
+              <TouchableOpacity style={styles.backButton} onPress={headBackPressed}>
+                <Text style={styles.backButtonText}>Back</Text>
+              </TouchableOpacity>
             ) : (
               <TouchableOpacity style={styles.backButton} onPress={backPressed}>
                 <Text style={styles.backButtonText}>Back</Text>
@@ -73,14 +88,40 @@ const QuizScreen = () => {
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
           ) : (
-            <Link href="/(tabs)/Learn/moduleComponents/quiz-completed" asChild>
-              <TouchableOpacity style={styles.nextButton} onPress={() => changeQuestion(1)}>
-                <Text style={styles.nextButtonText}>Submit</Text>
-              </TouchableOpacity>
-            </Link>
+            <TouchableOpacity style={styles.nextButton} onPress={submitPressed}>
+              <Text style={styles.nextButtonText}>Submit</Text>
+            </TouchableOpacity>
           )}
         </View>
       </View>
+
+      {/* Modals */}
+      <PopupModal
+        question = "Are you sure you want to exit the quiz?"
+        topResponse = "Yes, go back to key takeaways"
+        bottomResponse = "No, continue with the quiz"
+        show={showBackModal}
+        setShow={() => setShowBackModal(false)}
+        link="/(tabs)/Learn/moduleComponents/lesson-completed"
+        confirm={() => {
+          // reset questions when user confirms exit
+          changeQuestion(1);
+          setShowBackModal(false);
+        }}
+      />
+      <PopupModal
+        question = "Are you sure you want to submit the quiz?"
+        topResponse = "Yes, submit the quiz!"
+        bottomResponse = "No, go back to questions"
+        show={showSubmitModal}
+        setShow={() => setShowSubmitModal(false)}
+        link="/(tabs)/Learn/moduleComponents/quiz-completed"
+        confirm={() => {
+          // reset questions when user confirms exit
+          changeQuestion(1);
+          setShowSubmitModal(false);
+        }}
+      />
     </ScrollView>
   );
 }
@@ -90,12 +131,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  backToLessonButton: {
+    padding: 8,
+  },
   headerContentContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingTop: 16,
     paddingHorizontal: 16,
-    paddingLeft: 30,
     paddingBottom: 10,
   },
   headerText: {

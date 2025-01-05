@@ -6,10 +6,10 @@ import {
   StyleSheet,
   Image,
   ScrollView,
-  Modal
 } from "react-native";
 import { Feather} from "@expo/vector-icons";
 import { Link } from "expo-router";
+import PopupModal from "@/components/learn/PopupModal";
 
 const LessonCompleted = () => {
 
@@ -27,7 +27,7 @@ const LessonCompleted = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
-        <Link href="/(tabs)/Learn" asChild>
+        <Link href="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
           <TouchableOpacity style={styles.backButton}>
             <Feather name="chevron-left" size={25} />
           </TouchableOpacity>
@@ -54,27 +54,16 @@ const LessonCompleted = () => {
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
 
-      {/* Modal: fades in when next button is pressed */}
-      <Modal transparent visible={showModal} animationType="fade">
-      <View style={styles.modal}>
-        <View style={styles.modalContent}>
-          <Image source={require("../../../../assets/images/warn.png")} style={styles.image}></Image>
-          <Text style={{fontWeight: "bold", fontSize: 17}}>Are you ready for the quiz?</Text>
-          {/* Proceed to quiz*/}
-          <Link href="/(tabs)/Learn/moduleComponents/quiz-screen" asChild>
-            <TouchableOpacity style={styles.modalButton}
-              onPress={() => setShowModal(false)}>
-              <Text style={[styles.buttonText, {color: "#FFFFFF"}]}>Yes, I am ready for the quiz!</Text>
-            </TouchableOpacity>
-          </Link>
-          {/* Go back to key takeaways*/}
-          <TouchableOpacity style={[styles.modalButton, styles.modalBottomButton]}
-            onPress={() => setShowModal(false)}>
-            <Text style={[styles.buttonText, {color: "#000"}]}>No, go back to key takeaways</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      </Modal>
+      <PopupModal
+        question = "Are you ready for the quiz?"
+        topResponse = "Yes, I am ready for the quiz!"
+        bottomResponse = "No, go back to key takeaways"
+        show={showModal}
+        setShow={() => setShowModal(false)}
+        link="/(tabs)/Learn/moduleComponents/quiz-screen"
+        confirm={() => {setShowModal(false);}}
+      />
+
     </ScrollView>
   );
 };
@@ -157,40 +146,6 @@ const styles = StyleSheet.create({
     color: "#fff", 
     fontSize: 17, 
     textAlign: "center"
-  },
-  modal: {
-    flex: 1,
-    backgroundColor: 'rgba(24, 24, 24, 0.4)', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-  },
-  modalContent: {
-    width: '80%',
-    height: 305,
-    backgroundColor: '#fff', 
-    borderRadius: 16,
-    alignItems: 'center',
-  },
-  modalButton: {
-    paddingVertical: 11,
-    borderRadius: 20,
-    marginVertical: 5,
-    alignItems: 'center',
-    width: "auto",
-    backgroundColor: '#3FADF2', 
-    marginTop: 22
-  },
-  modalBottomButton: {
-    backgroundColor: '#F5F5F5', 
-    borderWidth: 1, 
-    borderColor: '#000000', 
-    marginTop: 10
-  },
-  buttonText: {
-    color: '#000',
-    fontWeight: '600',
-    fontSize: 16,
-    paddingHorizontal: 25,
   },
 });
 

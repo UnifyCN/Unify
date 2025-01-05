@@ -1,10 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
+import {Text, StyleSheet, TouchableOpacity } from "react-native";
 
-interface QuizQuestion {
-  completed: number;
-  total: number;
+interface QuizQuestionProps {
   question: string;
 }
 
