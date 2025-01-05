@@ -28,21 +28,6 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           [
             "_sitemap",
             "+not-found",
-            "learn/modules",
-            "learn/journey-map",
-            "learn/module/in-progress",
-            "learn/module/lesson-library",
-            "learn/in-progress",
-            "learn/Lesson-library",
-            "learn/Main-lesson",
-            "learn/moduleComponents/lesson-library",
-            "learn/moduleComponents/index",
-            "learn/moduleComponents/in-progress",
-            "learn/Lessons/path-way-finance",
-            "learn/moduleComponents/lesson-completed",
-            "learn/moduleComponents/quiz-screen",
-            "learn/moduleComponents/main-lesson",
-            "learn/Lessons/PathWayFinanceSubTopics/budgeting",
           ].includes(route.name)
         )
           return null;
