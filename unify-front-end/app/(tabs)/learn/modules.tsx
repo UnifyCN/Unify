@@ -85,15 +85,15 @@ const Modules = () => {
           components once we have the backend to implement the data dynamically and for functionalities like liked lessons */}
           <ProgressSectionLL
             header="Lesson Library"
-            navigatePage={"/(tabs)/Learn/Lesson-library"}
+            navigatePage={"/(tabs)/learn/Lesson-library"}
           />
           <ProgressSectionIP
             header="In-Progress"
-            navigatePage={"/(tabs)/Learn/In-progress"}
+            navigatePage={"/(tabs)/learn/in-progress"}
           />
           <ProgressSectionComplete
             header="Complete"
-            navigatePage={"/(tabs)/Learn/moduleComponents/lesson-library"}
+            navigatePage={"/(tabs)/learn/moduleComponents/lesson-library"}
           />
         </View>
       </ScrollView>
