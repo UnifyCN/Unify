@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Text, useColorScheme, TouchableOpacity, Image } from 'react-native';
+import { ScrollView, StyleSheet, View, Text, useColorScheme, TouchableOpacity, Image, SafeAreaView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import Search from '../../assets/images/search.svg';
+import Carousel from '../../components/home/Carousel';
+import NationalNews from '../../assets/images/nationalNews.svg';
+import Immigration from '../../assets/images/immigration.svg';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
@@ -45,53 +50,34 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
       <View style={styles.headContainer}>
-        <Text style={styles.titleText}>Unify</Text>
-        <View style={styles.iconContainer}>
-          <TouchableOpacity>
-            <Feather name="bell" size={28} color="#343434" />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Feather name="search" size={24} color="black" />
-          </TouchableOpacity>
+        <Text style={styles.titleText}>unify</Text>
+        <View style={styles.searchBar}>
+          <Search style={styles.searchIcon} width={20} height={20} />
+          <Text style={styles.search}>Search</Text>
         </View>
       </View>
+      <View style={styles.divider} />
       <ScrollView style={styles.scrollContainer}>
-        <Text style={styles.placeholderText}>PlaceHolder Name</Text>
+        <Text style={styles.placeholderText}>Highlights</Text>
+        <Carousel />
         <View style={styles.cardContainer}>
-          <Link href="../lessons" asChild style={styles.card}>
-            <TouchableOpacity>
-              <Image
-                style={styles.cardImage}
-                source={require("../../assets/images/placeholderImg.png")}
-              />
-              <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescription}>Short description</Text>
-            </TouchableOpacity>
-          </Link>
-          <Link href="../lessons" asChild style={styles.card}>
-            <TouchableOpacity>
-              <Image
-                style={styles.cardImage}
-                source={require("../../assets/images/placeholderImg.png")}
-              />
-              <Text style={styles.cardTitle}>Lesson Title</Text>
-              <Text style={styles.cardDescription}>Short description</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-        <View style={styles.cardContainer}>
-          <Link href="../lessons" asChild style={styles.longCard}>
-            <TouchableOpacity>
-              <Image
-                style={styles.longCardImage}
-                source={require("../../assets/images/placeholderImg.png")}
-              />
-              <Text style={styles.longCardTitle}>Lesson Title</Text>
-              <Text style={styles.longCardDescription}>Short description</Text>
-            </TouchableOpacity>
-          </Link>
+          <View style={styles.card}>
+            <NationalNews style={styles.cardImage} />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>Lesson 1</Text>
+              <Text style={styles.cardDescription}>Description 1</Text>
+            </View>
+          </View>
+          <View style={styles.card}>
+            <Immigration style={styles.cardImage} />
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>Lesson 2</Text>
+              <Text style={styles.cardDescription}>Description 2</Text>
+            </View>
+          </View>
         </View>
         <Text style={styles.feedText}>Your Feed</Text>
         <View style={styles.tagsContainer}>
@@ -130,7 +116,7 @@ export default function HomeScreen() {
           />
         </LinearGradient>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -148,50 +134,83 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     flexShrink: 0,
-    paddingVertical: "5%",
-    paddingHorizontal: "8%",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     alignContent: "center",
     flexDirection: "row",
-    backgroundColor: "#EEEEEE",
+    backgroundColor: "#fff",
+    gap: 28
   },
-  iconContainer: {
-    display: "flex",
+  searchIcon: {
+    overflow: "hidden"
+  },
+  search: {
+    fontSize: 15,
+    color: "#9f9d9d",
+    textAlign: "left"
+  },
+  searchBar: {
+    flex: 1,
+    borderRadius: 12,
+    backgroundColor: "#eee",
+    width: "100%",
     flexDirection: "row",
-    gap: "25%",
+    alignItems: "center",
+    paddingLeft: 24,
+    paddingTop: 8,
+    paddingRight: 124,
+    paddingBottom: 8,
+    gap: 8
+  },
+  divider: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#E5E5E5",
   },
   titleText: {
-    fontSize: 25.182,
-    fontWeight: 600,
+    fontSize: 24,
+    fontWeight: 700,
     color: "#343434",
   },
   placeholderText: {
-    fontSize: 25.182,
+    fontSize: 24,
+    lineHeight: 25,
     fontWeight: 600,
-    color: "#343434",
-    marginLeft: "3%",
+    color: "#000",
+    textAlign: "left",
+    marginBottom: 12,
   },
   scrollContainer: {
     display: "flex",
     height: "100%",
     width: "100%",
     backgroundColor: "#fff",
-    paddingHorizontal: "5%",
-    paddingVertical: "5%",
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    paddingBottom: 44,
   },
   cardImage: {
-    width: "25%",
-    height: "25%",
-    alignSelf: "baseline",
-    marginLeft: 16,
-    marginBottom: 30,
-    marginTop: 20,
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    borderRadius: 12,
+  },
+  cardContent: {
+    position: "absolute",
+    top: "50%",
+    left: "5%",
+    transform: [{ translateY: -50 }],
+    width: "90%",
+    zIndex: 1,
+    alignItems: "flex-start",
   },
   cardTitle: {
     alignSelf: "baseline",
-    marginLeft: 16,
-    marginBottom: 12,
     color: "#9F9D9D",
     fontWeight: "600",
+    marginBottom: 4
   },
   cardDescription: {
     alignSelf: "baseline",
@@ -202,18 +221,18 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#EEEEEE",
-    width: "50%",
-    height: "140%",
+    height: "100%",
     borderRadius: 12,
-    marginRight: 16,
     alignItems: "center",
+    flex: 1,
+    position: "relative",
   },
   cardContainer: {
     flexDirection: "row",
-    paddingVertical: "10%",
-    paddingHorizontal: "5%",
+    height: 100,
+    paddingTop: 12,
     justifyContent: "space-between",
-    marginBottom: -16,
+    gap: 12
   },
   longCard: {
     backgroundColor: "#EEEEEE",
