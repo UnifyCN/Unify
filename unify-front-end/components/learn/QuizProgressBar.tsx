@@ -2,24 +2,21 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 
-interface LessonProgressBarProps {
+interface QuizProgressBarProps {
   completed: number;
   total: number;
+  question: string;
 }
 
-const LessonProgressBar: React.FC<LessonProgressBarProps> = ({
+const QuizProgressBar: React.FC<QuizProgressBarProps> = ({
   completed,
   total,
+  question,
 }) => {
   const percentage = (completed / total) * 100;
 
   return (
     <View style={styles.container}>
-      {/* Progress Text */}
-      <Text style={styles.progressText}>
-        Progress: {completed}/{total} lessons completed
-      </Text>
-
       {/* Progress Bar Container */}
       <View style={styles.progressBarContainer}>
         {/* Gradient Progress Bar */}
@@ -30,6 +27,17 @@ const LessonProgressBar: React.FC<LessonProgressBarProps> = ({
           end={{ x: 1, y: 0 }}
         />
       </View>
+      {/* Progress Text */}
+      <Text style={styles.progressText}>
+        Progress: {completed}/{total} questions completed
+      </Text>
+      {/* Display current question shown */}
+      <Text style={styles.questionHeader}>
+        Question {completed}
+      </Text>
+      <Text style={styles.questionText}>
+        {question}
+      </Text>
     </View>
   );
 };
@@ -44,10 +52,23 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     fontWeight: "600",
   },
+  questionHeader: {
+    fontSize: 25,
+    color: "#34343",
+    marginBottom: 10,
+    marginTop: 20,
+    fontWeight: "500",
+  },
+  questionText: {
+    fontSize: 19,
+    color: "#333",
+    marginBottom: 5,
+  },
   progressBarContainer: {
     height: 10,
     width: "100%",
     backgroundColor: "#e0e0e0",
+    marginBottom: 10,
     borderRadius: 5,
     overflow: "hidden",
   },
@@ -57,4 +78,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LessonProgressBar;
+export default QuizProgressBar;
