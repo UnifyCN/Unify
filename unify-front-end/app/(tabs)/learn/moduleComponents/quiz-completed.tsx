@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,11 +6,9 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { Feather} from "@expo/vector-icons";
 import { Link } from "expo-router";
-import PopupModal from "@/components/learn/PopupModal";
 
-const LessonCompleted = () => {
+const QuizCompleted = () => {
 
   // each bullet point note in key takeaways would go here
   const bulletList = [
@@ -21,49 +18,38 @@ const LessonCompleted = () => {
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.",
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.",
   ];
-  // Controls whether the modal that prompts quiz is displayed or not
-  const [showModal, setShowModal] = useState(false)
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
-        <Link href="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
-          <TouchableOpacity style={styles.backButton}>
-            <Feather name="chevron-left" size={25} />
-          </TouchableOpacity>
-        </Link>
-        <Text style={styles.headerText}>Budgeting Level 1</Text>
+        <Text style={styles.headerText}>Budgeting Level 1 Quiz</Text>
       </View>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
+      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1}}/>
 
-      <Image source={require("../../../../assets/images/lessonCompleted.png")} style={styles.image}></Image>
-      <Text style={styles.title}>Lesson Completed!</Text>
-      <View style={styles.titleDivider}/>
-      <Text style={styles.subTitle}>Key Takeaways</Text>
+      <Image source={require("../../../../assets/images/quizCompleted.png")} style={styles.image}></Image>
+      <Text style={styles.title}>Congratulations! You’ve passed the quiz!</Text>
+      <Text style={styles.quizResultText}>You got 7/10 correct!</Text>
+      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3, marginLeft: 80, marginRight: 80}}/>
+      <Text style={styles.subTitle}>Let's Review!</Text>
 
       <View style={styles.textContainer}>
         {bulletList.map((item, index) => (
           <View style={styles.listItem} key={index}>
-            <Text style={styles.listBullet}>•  </Text>
+            <Text style={styles.notes}>{index + 1}.  </Text>
             <Text style={styles.notes}>{item}</Text>
           </View>
         ))}
+        <Text style={styles.subTitle}>What’s the Next Step?</Text>
+        <Text style={styles.bottomText}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.
+        </Text>
       </View>
 
-      <TouchableOpacity style={styles.nextButton} onPress={() => setShowModal(true)}>
-        <Text style={styles.nextButtonText}>Next</Text>
-      </TouchableOpacity>
-
-      <PopupModal
-        question = "Are you ready for the quiz?"
-        topResponse = "Yes, I am ready for the quiz!"
-        bottomResponse = "No, go back to key takeaways"
-        show={showModal}
-        setShow={() => setShowModal(false)}
-        link="/(tabs)/Learn/moduleComponents/quiz-screen"
-        confirm={() => {setShowModal(false);}}
-      />
-
+      <Link href="/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
+        <TouchableOpacity style={styles.backButton}>
+          <Text style={styles.backButtonText}>Back to Budgeting 101</Text>
+        </TouchableOpacity>
+      </Link>
     </ScrollView>
   );
 };
@@ -83,58 +69,62 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 16,
     paddingHorizontal: 16,
+    paddingLeft: 30,
     paddingBottom: 10,
-  },
-  backButton: {
-    padding: 8,
   },
   headerText: {
     fontSize: 20,
     fontWeight: "600",
     color: "#343434",
   },
-  titleDivider: {
-    borderBottomColor: '#EEEEEE', 
-    borderBottomWidth: 3, 
-    marginHorizontal: 80,
-  },
   title: {
     fontSize: 26,
     fontWeight: "600",
-    marginBottom: 15,
+    marginBottom: 10,
     color: "#343434",
     alignSelf: "center",
     textAlign: "center",
+    width: 300,
   },
   subTitle: {
     fontSize: 22,
     fontWeight: "600",
-    marginTop: 12,
+    marginVertical: 12,
     color: "#000000",
     alignSelf: "center",
   },
+  quizResultText: {
+    fontSize: 22,
+    fontWeight: 500,
+    marginBottom: 15,
+    color: "#000",
+    alignSelf: "center",
+    textAlign: "center",
+  },
   textContainer: {
-    padding: 20,
+    paddingHorizontal: 20,
     marginHorizontal: 15,
     flexDirection: 'column',
     alignItems: 'flex-start',
   },
   notes: {
     fontSize: 17,
-    color: "#6000000",
+    color: "#000",
     marginBottom: 16,
   },
-  listBullet: {
-    fontWeight: 'bold',
-    fontSize: 22,
+  bottomText: {
+    fontSize: 17,
+    color: "#000",
+    marginBottom: 30,
+    textAlign: "center",
   },
   listItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  nextButton: {
+  backButton: {
     marginBottom: 60,
-    width: 100,
+    width: 236,
     borderRadius: 40,
     alignSelf: "center",
     justifyContent: 'center',
@@ -142,11 +132,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     backgroundColor: "#343434",
   },
-  nextButtonText: {
+  buttonText: {
+    color: '#000',
+    fontWeight: '600',
+    fontSize: 16,
+    paddingHorizontal: 25,
+  },
+  backButtonText: {
     color: "#fff", 
-    fontSize: 17, 
-    textAlign: "center"
+    fontSize: 17
   },
 });
 
-export default LessonCompleted;
+export default QuizCompleted;
