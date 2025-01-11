@@ -27,7 +27,7 @@ const MainLesson = () => {
         <View style={[styles.headerContainer,{paddingBottom:screenHeight*.4}]}>
           {/* Back Button and Learn Text */}
           <View style={styles.headerContentContainer}>
-            <Link href="/(tabs)/Learn/modules" asChild>
+            <Link href="/(tabs)/learn/modules" asChild>
               <TouchableOpacity style={styles.backButton}>
                 <Feather name="chevron-left" size={28} color="#343434" />
               </TouchableOpacity>
