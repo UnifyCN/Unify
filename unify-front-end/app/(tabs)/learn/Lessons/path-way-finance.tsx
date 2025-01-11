@@ -19,7 +19,7 @@ const PathWayFinance = () => {
         style={styles.backgroundImage}
       >
         <View style={styles.headerContentContainer}>
-          <Link href="/(tabs)/Learn" asChild>
+          <Link href="/(tabs)/learn" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Feather name="chevron-left" size={25} color="#FFFFFF" />
             </TouchableOpacity>

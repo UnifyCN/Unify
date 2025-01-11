@@ -85,7 +85,7 @@ const Modules = () => {
           components once we have the backend to implement the data dynamically and for functionalities like liked lessons */}
           <ProgressSectionLL
             header="Lesson Library"
-            navigatePage={"/(tabs)/learn/Lesson-library"}
+            navigatePage={"/(tabs)/learn/lesson-library"}
           />
           <ProgressSectionIP
             header="In-Progress"
