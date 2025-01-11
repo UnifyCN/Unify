@@ -41,7 +41,7 @@ export function ProgressSectionComplete({
           title="Pathway to finance"
           description="Short description"
           image={require("../../assets/images/finance.jpg")}
-          href="/(tabs)/Learn/Lessons/path-way-finance"
+          href="/(tabs)/learn/Lessons/path-way-finance"
         />
 
         <ProgressSectionCard

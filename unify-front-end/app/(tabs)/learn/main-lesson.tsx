@@ -20,7 +20,7 @@ const MainLesson = () => {
     <ScrollView>
       <View style={styles.container}>
         {/* Header Image */}
-        <Image source={require("../../../../assets/images/lessonsImg.png")} 
+        <Image source={require("@/assets/images/lessonsImg.png")} 
         style={[styles.headerImg, {width: screenWidth, height: screenHeight*.4}]}/>
       
         {/* Header*/}
@@ -61,15 +61,15 @@ const MainLesson = () => {
           {/*Subtopic Cards */}
           <View style= {styles.scrollContainer}>
             <TopicCard
-              icon={require("../../../../assets/images/placeholderImg.png")}
+              icon={require("@/assets/images/placeholderImg.png")}
               subTopicTitle="topic"
               description="description"/>
             <TopicCard
-              icon={require("../../../../assets/images/placeholderImg.png")}
+              icon={require("@/assets/images/placeholderImg.png")}
               subTopicTitle="topic"
               description="description"/>
             <TopicCard
-              icon={require("../../../../assets/images/placeholderImg.png")}
+              icon={require("@/assets/images/placeholderImg.png")}
               subTopicTitle="topic"
               description="description"/>
           </View>

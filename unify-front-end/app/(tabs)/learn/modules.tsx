@@ -93,7 +93,7 @@ const Modules = () => {
           />
           <ProgressSectionComplete
             header="Complete"
-            navigatePage={"/(tabs)/learn/moduleComponents/lesson-library"}
+            navigatePage={"/(tabs)/learn/lesson-library"}
           />
         </View>
       </ScrollView>

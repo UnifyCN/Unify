@@ -41,7 +41,7 @@ export function ProgressSection({
           title="Pathway to finance"
           description="Short description"
           image={require("../assets/images/placeholderImg.png")}
-          href="/(tabs)/Learn/Lessons/path-way-finance"
+          href="/(tabs)/learn/Lessons/path-way-finance"
         />
 
         <Link href="./Main-lesson" asChild style={styles.card}>
@@ -54,7 +54,7 @@ export function ProgressSection({
             <Text style={styles.cardDescription}>Short description</Text>
           </TouchableOpacity>
         </Link>
-        <Link href="./Main-lesson" asChild style={styles.card}>
+        <Link href="./main-lesson" asChild style={styles.card}>
           <TouchableOpacity>
             <Image
               style={styles.cardImage}

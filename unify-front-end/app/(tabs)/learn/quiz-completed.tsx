@@ -26,7 +26,7 @@ const QuizCompleted = () => {
       </View>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1}}/>
 
-      <Image source={require("../../../../assets/images/quizCompleted.png")} style={styles.image}></Image>
+      <Image source={require("@/assets/images/quizCompleted.png")} style={styles.image}></Image>
       <Text style={styles.title}>Congratulations! You’ve passed the quiz!</Text>
       <Text style={styles.quizResultText}>You got 7/10 correct!</Text>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3, marginLeft: 80, marginRight: 80}}/>
@@ -45,7 +45,7 @@ const QuizCompleted = () => {
         </Text>
       </View>
 
-      <Link href="/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
+      <Link href="/learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
         <TouchableOpacity style={styles.backButton}>
           <Text style={styles.backButtonText}>Back to Budgeting 101</Text>
         </TouchableOpacity>

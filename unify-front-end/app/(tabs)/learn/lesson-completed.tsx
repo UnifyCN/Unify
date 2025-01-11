@@ -27,7 +27,7 @@ const LessonCompleted = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
-        <Link href="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
+        <Link href="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
           <TouchableOpacity style={styles.backButton}>
             <Feather name="chevron-left" size={25} />
           </TouchableOpacity>
@@ -36,7 +36,7 @@ const LessonCompleted = () => {
       </View>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
 
-      <Image source={require("../../../../assets/images/lessonCompleted.png")} style={styles.image}></Image>
+      <Image source={require("@/assets/images/lessonCompleted.png")} style={styles.image}></Image>
       <Text style={styles.title}>Lesson Completed!</Text>
       <View style={styles.titleDivider}/>
       <Text style={styles.subTitle}>Key Takeaways</Text>
