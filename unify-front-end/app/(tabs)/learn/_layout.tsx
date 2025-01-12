@@ -5,8 +5,6 @@ export default function LearnLayOut() {
         <Stack
             screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" options={{title: "Learn"}} />
-            <Stack.Screen name="in-progress" options={{title: "In Progress"}} />
-            <Stack.Screen name="lesson-library" options={{title: "Lesson Library"}} />
         </Stack>
     )
 }

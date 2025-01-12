@@ -8,7 +8,8 @@ import {
   ScrollView,
 } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
-import { Link, useLocalSearchParams, router, Redirect } from "expo-router";
+import { Link, useLocalSearchParams, router, Stack, Redirect } from "expo-router";
+
 import LessonCard from "@/components/learn/LessonCard";
 
 export default function SubSetPage(){
@@ -17,6 +18,8 @@ export default function SubSetPage(){
     
     return(
         <View style={styles.container}>
+            {/*Configure stack behavior dynamically*/}
+            <Stack.Screen options={{title: subset as string}}/>
             {/* Header 
             Todo: Refactor header into its own component*/}
             <View style={styles.headerContainer}>
