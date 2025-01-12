@@ -1,4 +1,4 @@
-name: Front End CI Pipeline
+name: Full Stack CI Pipeline
 
 on:
   push:
@@ -9,7 +9,8 @@ on:
       - main
 
 jobs:
-  build:
+  front-end:
+    name: Front End CI Pipeline
     runs-on: ubuntu-latest
 
     steps:
@@ -44,3 +45,40 @@ jobs:
       - name: Deploy
         working-directory: unify-front-end
         run: npm run deploy
+
+  back-end:
+    name: Back End CI Pipeline
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: unify-back-end/node_modules
+          key: ${{ runner.os }}-npm-backend-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install dependencies
+        working-directory: unify-back-end
+        run: npm install
+
+      - name: Run TypeScript
+        working-directory: unify-back-end
+        run: npx tsc --noEmit     
+
+      - name: Build the server
+        working-directory: unify-back-end
+        run: npm run build
+
+      # - name: Start server for testing
+      #   working-directory: unify-back-end
+      #   run: node dist/index.js &
