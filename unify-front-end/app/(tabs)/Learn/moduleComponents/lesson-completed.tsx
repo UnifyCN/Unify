@@ -36,23 +36,26 @@ const LessonCompleted = () => {
       </View>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
 
-      <Image source={require("../../../../assets/images/lessonCompleted.png")} style={styles.image}></Image>
-      <Text style={styles.title}>Lesson Completed!</Text>
-      <View style={styles.titleDivider}/>
-      <Text style={styles.subTitle}>Key Takeaways</Text>
+      {/* text + next button content */}
+      <View style={styles.scrollPadding}>
+        <Image source={require("../../../../assets/images/lessonCompleted.png")} style={styles.image}></Image>
+        <Text style={styles.title}>Lesson Completed!</Text>
+        <View style={styles.titleDivider}/>
+        <Text style={styles.subTitle}>Key Takeaways</Text>
 
-      <View style={styles.textContainer}>
-        {bulletList.map((item, index) => (
-          <View style={styles.listItem} key={index}>
-            <Text style={styles.listBullet}>•  </Text>
-            <Text style={styles.notes}>{item}</Text>
-          </View>
-        ))}
+        <View style={styles.textContainer}>
+          {bulletList.map((item, index) => (
+            <View style={styles.listItem} key={index}>
+              <Text style={styles.listBullet}>•  </Text>
+              <Text style={styles.notes}>{item}</Text>
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity style={styles.nextButton} onPress={() => setShowModal(true)}>
+          <Text style={styles.nextButtonText}>Next</Text>
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.nextButton} onPress={() => setShowModal(true)}>
-        <Text style={styles.nextButtonText}>Next</Text>
-      </TouchableOpacity>
 
       <PopupModal
         question = "Are you ready for the quiz?"
@@ -147,6 +150,9 @@ const styles = StyleSheet.create({
     fontSize: 17, 
     textAlign: "center"
   },
+  scrollPadding: {
+    paddingBottom: 50,
+  }
 });
 
 export default LessonCompleted;

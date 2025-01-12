@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   backButton: {
-    marginBottom: 60,
+    marginBottom: 100,
     width: 236,
     borderRadius: 40,
     alignSelf: "center",

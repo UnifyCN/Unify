@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '80%',
-    height: 305,
+    height: 325,
     backgroundColor: '#fff', 
     borderRadius: 16,
     alignItems: 'center',
@@ -86,6 +86,8 @@ const styles = StyleSheet.create({
   questionText: {
     fontWeight: "bold", 
     fontSize: 17,
+    marginHorizontal: 50,
+    textAlign: "center",
   },
   noText: {
     color: '#000',

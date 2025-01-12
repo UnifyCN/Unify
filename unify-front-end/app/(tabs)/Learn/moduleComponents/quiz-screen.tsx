@@ -5,46 +5,85 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
+import React, {useState} from "react";
+import {useNavigation} from "@react-navigation/native";
 import { Feather} from "@expo/vector-icons";
 import QuizProgressBar from "@/components/learn/QuizProgressBar";
 import QuizQuestion from "@/components/learn/QuizQuestion";
-import React, { useState} from "react";
 import PopupModal from "@/components/learn/PopupModal";
 
 const QuizScreen = () => {
+  const navigation = useNavigation();
+
+  const questions = [
+    {
+      question: "1 What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      options: [
+        "A. Lorem ipsum dolor sit ame sed", 
+        "B. Lorem ipsum dolor sit ame sed", 
+        "C. Lorem ipsum dolor sit ame sed", 
+        "D. Lorem ipsum dolor sit ame sed"
+      ],
+      correctAnswer: "A. Lorem ipsum dolor sit ame sed",
+    },
+    {
+      question: "2 What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      options: [
+        "A. Lorem ipsum dolor sit ame sed", 
+        "B. Lorem ipsum dolor sit ame sed", 
+        "C. Lorem ipsum dolor sit ame sed", 
+        "D. Lorem ipsum dolor sit ame sed"
+      ],
+      correctAnswer: "A. Lorem ipsum dolor sit ame sed",
+    },
+    {
+      question: "3 What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      options: [
+        "A. Lorem ipsum dolor sit ame sed", 
+        "B. Lorem ipsum dolor sit ame sed", 
+        "C. Lorem ipsum dolor sit ame sed", 
+        "D. Lorem ipsum dolor sit ame sed"
+      ],
+      correctAnswer: "A. Lorem ipsum dolor sit ame sed",
+    },
+  ];
+
   // back button popup caption
   const [showBackModal, setShowBackModal] = useState(false);
   // submit button popup caption
   const [showSubmitModal, setShowSubmitModal] = useState(false);
-  // number of total quiz questions
-  const totalQuestions = 10;
   // used to change to each question
-  const [question, changeQuestion] = useState(1); 
+  const [question, changeQuestion] = useState(0); 
+  // keeps track of wrong answers, in an array of strings
+  const [wrongAnswers, setWrongAnswers] = useState<string[]>([]);
 
-  // function handles "next" button press
+
   const nextPressed = () => {
-    if (question < totalQuestions) {
+    if (question < questions.length) {
       changeQuestion((prev) => prev + 1);
     }
   };
-  // function handles "back" button press
   const backPressed = () => {
-    if (question === 1) {
-      changeQuestion(1);
-    } else {
+    if (question > 0) {
       // go back to previous question number when back button is pressed
-      changeQuestion((prev) => Math.max(prev - 1, 1));
+      changeQuestion((prev) => Math.max(prev -1 , 0));
     }
   };
-  // function handles "submit" button press
   const submitPressed = () => {
     setShowSubmitModal(true);
   }
-  // function takes user back to lesson takeaways page
+  // takes user back to lesson takeaways page
   const headBackPressed = () => {
-    // changeQuestion(1);
     setShowBackModal(true);
   }
+
+  // handles if an answer is selected + whether it is correct/incorrect
+   const answerSelected = (answer: string) => {
+    const isCorrect = answer === questions[question].correctAnswer;
+  };
+  const wrongAnswerSelected = (answer: string) => {
+    setWrongAnswers((prev) => [...prev, answer]);
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -58,21 +97,22 @@ const QuizScreen = () => {
 
       <View style={styles.contentContainer}>
         {/*Progress Bar*/}
-        <QuizProgressBar completed={question} 
-        total={totalQuestions} 
-        question={"What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?"} />
+        <QuizProgressBar completed={question + 1} total={questions.length}/>
 
         {/*Different listed questions*/}
-        <QuizQuestion question={"A. Lorem ipsum dolor sit ame sed"}/>
-        <QuizQuestion question={"B. Lorem ipsum dolor sit ame sed"}/>
-        <QuizQuestion question={"C. Lorem ipsum dolor sit ame sed"}/>
-        <QuizQuestion question={"D. Lorem ipsum dolor sit ame sed"}/>
+        <QuizQuestion
+          question={questions[question].question}
+          answers={questions[question].options}
+          correctAnswer={questions[question].correctAnswer}
+          selectedAnswer={answerSelected}
+          addWrongAnswer={wrongAnswerSelected}
+        />
 
         {/*Back and next buttons*/}
         <View style={styles.buttonsContainer}>
           {/* back button directs to lesson page if on first question,*/}
           {/* otherwise directs to previous question  */}
-          {question === 1 ? (
+          {question === 0 ? (
               <TouchableOpacity style={styles.backButton} onPress={headBackPressed}>
                 <Text style={styles.backButtonText}>Back</Text>
               </TouchableOpacity>
@@ -83,7 +123,7 @@ const QuizScreen = () => {
             )}
 
           {/* display submit button when the current question is the final question */}
-          {question < totalQuestions ? (
+          {question + 1 < questions.length ? (
             <TouchableOpacity style={styles.nextButton} onPress={nextPressed}>
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
@@ -105,8 +145,10 @@ const QuizScreen = () => {
         link="/(tabs)/Learn/moduleComponents/lesson-completed"
         confirm={() => {
           // reset questions when user confirms exit
-          changeQuestion(1);
+          changeQuestion(0);
           setShowBackModal(false);
+          //reset stored answers if exiting quiz
+          setWrongAnswers([]);
         }}
       />
       <PopupModal
@@ -117,9 +159,13 @@ const QuizScreen = () => {
         setShow={() => setShowSubmitModal(false)}
         link="/(tabs)/Learn/moduleComponents/quiz-completed"
         confirm={() => {
-          // reset questions when user confirms exit
-          changeQuestion(1);
+          // reset questions when user confirms submission
+          changeQuestion(0);
           setShowSubmitModal(false);
+
+          // navigation.navigate("QuizResults", { wrongAnswers });
+          console.log("Stored wrong answers: ",wrongAnswers);
+          setWrongAnswers([]);
         }}
       />
     </ScrollView>
@@ -152,7 +198,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   buttonsContainer: {
-    paddingVertical: 25,
+    paddingVertical: 30,
     flexDirection: "row",
     justifyContent: "space-between"
   },
