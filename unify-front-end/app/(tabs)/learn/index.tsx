@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, } from "react-native";
 import { Stack, useNavigation } from "expo-router";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
-import JourneyMap from "./JourneyMap";
+import JourneyMap from "@/components/learn/JourneyMap";
 import Modules from "./modules";
 
 const TabNavigator=() => {

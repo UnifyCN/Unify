@@ -15,7 +15,7 @@ const PathWayFinance = () => {
   return (
     <ScrollView style={styles.container}>
       <ImageBackground
-        source={require("../../../../assets/images/finance.jpg")}
+        source={require("@/assets/images/finance.jpg")}
         style={styles.backgroundImage}
       >
         <View style={styles.headerContentContainer}>
@@ -42,31 +42,31 @@ const PathWayFinance = () => {
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Saving Strategies"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
             imageSource={require("../../../../assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
         </View>
       </View>

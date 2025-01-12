@@ -44,7 +44,7 @@ export function ProgressSection({
           href="/(tabs)/learn/Lessons/path-way-finance"
         />
 
-        <Link href="./Main-lesson" asChild style={styles.card}>
+        <Link href="./main-lesson" asChild style={styles.card}>
           <TouchableOpacity>
             <Image
               style={styles.cardImage}
