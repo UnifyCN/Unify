@@ -1,53 +1,23 @@
-import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View, Text, useColorScheme, TouchableOpacity, Image, SafeAreaView } from 'react-native';
+import React, { act, useState } from 'react';
+import { ScrollView, StyleSheet, View, Text, useColorScheme, TouchableOpacity, Image, SafeAreaView, Dimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import Search from '../../assets/images/search.svg';
 import Carousel from '../../components/home/Carousel';
-import NationalNews from '../../assets/images/nationalNews.svg';
-import Immigration from '../../assets/images/immigration.svg';
+
+import ForYouFeed from '../../components/home/ForYouFeed';
+import FollowingFeed from '../../components/home/FollowingFeed';
+import GroupsFeed from '../../components/home/GroupsFeed';
+
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme();
-  const [selectedTag, setSelectedTag] = useState<keyof typeof cardData>("For you")
 
-  const tags = [
-    "For you",
-    "Following",
-    "Groups",
-  ];
+  const router = useRouter();
 
-  const cardData = {
-    "For you": [
-      { title: "Lesson 1", description: "Description 1", image: require("../../assets/images/placeholderImg.png") },
-      { title: "Lesson 2", description: "Description 2", image: require("../../assets/images/placeholderImg.png") },
-    ],
-    "Following": [
-      { title: "Following Lesson 1", description: "Description 1", image: require("../../assets/images/placeholderImg.png") },
-      { title: "Following Lesson 2", description: "Description 2", image: require("../../assets/images/placeholderImg.png") },
-    ],
-    "Groups": [
-      { title: "Group Lesson 1", description: "Description 1", image: require("../../assets/images/placeholderImg.png") },
-      { title: "Group Lesson 2", description: "Description 2", image: require("../../assets/images/placeholderImg.png") },
-    ],
-  };
-
-  // Render cards based on the selected tag
-  const renderCards = () => {
-    return cardData[selectedTag].map((card, index) => (
-      <View style={styles.cardContainer} key={index}>
-        <Link href="../lessons" asChild style={styles.longCard}>
-          <TouchableOpacity>
-            <Image style={styles.longCardImage} source={card.image} />
-            <Text style={styles.longCardTitle}>{card.title}</Text>
-            <Text style={styles.longCardDescription}>{card.description}</Text>
-          </TouchableOpacity>
-        </Link>
-      </View>
-    ));
-  };
+  const [activeTab, setActiveTab] = useState("For You");
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,47 +31,53 @@ export default function HomeScreen() {
       </View>
       <View style={styles.divider} />
       <ScrollView style={styles.scrollContainer}>
-        <Text style={styles.placeholderText}>Highlights</Text>
-        <Carousel />
+        <View style={styles.carouselContainer}>
+          <Text style={styles.placeholderText}>Highlights</Text>
+          <Carousel />
+        </View>
         <View style={styles.cardContainer}>
-          <View style={styles.card}>
-            <NationalNews style={styles.cardImage} />
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Lesson 1</Text>
-              <Text style={styles.cardDescription}>Description 1</Text>
-            </View>
-          </View>
-          <View style={styles.card}>
-            <Immigration style={styles.cardImage} />
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Lesson 2</Text>
-              <Text style={styles.cardDescription}>Description 2</Text>
-            </View>
-          </View>
+          <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/Lesson-library')}>
+            <Image style={styles.cardImage} source={require('../../assets/images/nationalNews.png')} />
+            <Text style={styles.cardDescription}>National News</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/journey-map')}>
+            <Image style={styles.cardImage} source={require('../../assets/images/journeyMap.png')} />
+            <Text style={styles.cardDescription}>Journey  Map</Text>
+          </TouchableOpacity>
         </View>
         <Text style={styles.feedText}>Your Feed</Text>
-        <View style={styles.tagsContainer}>
-          {tags.map((tag) => (
-            <TouchableOpacity
-              key={tag}
-              style={
-                selectedTag === tag
-                  ? styles.tagButtonActive
-                  : styles.tagButton
-              }
-              onPress={() => setSelectedTag(tag as keyof typeof cardData)}
-            >
-              <Text
-                style={
-                  selectedTag === tag ? styles.tagTextActive : styles.tagText
-                }
+        <View style={styles.tabs}>
+          <TouchableOpacity
+              onPress={() => setActiveTab('For You')}
+              style={[styles.tab, activeTab === 'For You' && styles.activeTab]}
               >
-                {tag}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                  <Text style={[styles.tabText, activeTab === 'For You' && styles.tabText]}>For You</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+              onPress={() => setActiveTab('Following')}
+              style={[styles.tab, activeTab === 'Following'&& styles.activeTab]}
+              >
+                  <Text style={[styles.tabText, activeTab === 'Following' && styles.tabText]}>Following</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+              onPress={() => setActiveTab('Groups')}
+              style={[styles.tab, activeTab === 'Groups' && styles.activeTab]}
+              >
+                  <Text style={[styles.tabText, activeTab === 'Groups' && styles.tabText]}>Groups</Text>
+          </TouchableOpacity>
         </View>
-        {renderCards()}
+        {activeTab === 'For You' && (
+          <View style={[styles.focusBar, { left: '3%', width: '27%' }]} />
+        )}
+        {activeTab === 'Following' && (
+          <View style={[styles.focusBar, { left: '36%', width: '27%' }]} />
+        )}
+        {activeTab === 'Groups' && (
+          <View style={[styles.focusBar, { left: '70%', width: '27%' }]} />
+        )}
+        {activeTab === "For You" && <ForYouFeed />}
+        {activeTab === "Following" && <FollowingFeed />}
+        {activeTab === "Groups" && <GroupsFeed />}
       </ScrollView>
       <TouchableOpacity style={styles.floatingButton}>
         <LinearGradient
@@ -111,7 +87,7 @@ export default function HomeScreen() {
           end={{ x: 0.5, y: 1 }}
         >
           <Image
-            source={require("../../assets/images/postIcon.svg")}
+            source={require("../../assets/images/postIcon.jpg")}
             style={styles.floatingButtonIcon}
           />
         </LinearGradient>
@@ -185,134 +161,86 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
     backgroundColor: "#fff",
-    paddingHorizontal: 20,
     paddingTop: 30,
     paddingBottom: 44,
   },
-  cardImage: {
+  carouselContainer: {
     width: "100%",
+    paddingHorizontal: 20,
+  },
+  cardImage: {
     height: "100%",
-    position: "absolute",
-    top: 0,
-    left: 0,
+    width: "100%",
+    resizeMode: "cover",
     borderRadius: 12,
-  },
-  cardContent: {
     position: "absolute",
-    top: "50%",
-    left: "5%",
-    transform: [{ translateY: -50 }],
-    width: "90%",
-    zIndex: 1,
-    alignItems: "flex-start",
-  },
-  cardTitle: {
-    alignSelf: "baseline",
-    color: "#9F9D9D",
-    fontWeight: "600",
-    marginBottom: 4
   },
   cardDescription: {
-    alignSelf: "baseline",
-    marginLeft: "12%",
-    marginBottom: "4%",
-    color: "#CECECE",
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "500",
+    lineHeight: 19,
+    color: "#fff",
+    textAlign: "left",
+    position: "absolute",
+    top: "60%",
+    left: "8%",
+    width: "54%"
   },
   card: {
-    backgroundColor: "#EEEEEE",
-    height: "100%",
     borderRadius: 12,
-    alignItems: "center",
-    flex: 1,
-    position: "relative",
+    backgroundColor: "#c7c7c7",
+    width: "48%",
+    overflow: "hidden",
+    height: 120
   },
   cardContainer: {
+    width: "100%",
     flexDirection: "row",
-    height: 100,
-    paddingTop: 12,
-    justifyContent: "space-between",
-    gap: 12
-  },
-  longCard: {
-    backgroundColor: "#EEEEEE",
-    width: "105%",
-    height: "100%",
-    borderRadius: 12,
-    marginRight: 16,
     alignItems: "center",
-    paddingVertical: "18%",
-  },
-  longCardImage: {
-    height: "70%",
-    width: "20%",
-    alignSelf: "baseline",
-    marginLeft: 16,
-    marginBottom: 30,
-  },
-  longCardTitle: {
-    alignSelf: "baseline",
-    marginLeft: 16,
-    marginBottom: 12,
-    color: "#9F9D9D",
-    fontWeight: "600",
-  },
-  longCardDescription: {
-    alignSelf: "baseline",
-    marginLeft: "12%",
-    marginBottom: "4%",
-    color: "#CECECE",
-    fontWeight: "600",
+    gap: 12,
+    marginTop: 12,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
   },
   feedText: {
-    fontSize: 25.182,
+    fontSize: 26,
+    lineHeight: 25,
     fontWeight: 600,
-    color: "#343434",
-    marginLeft: 12,
-    marginTop: 38,
+    color: "#000",
+    marginTop: 44,
+    textAlign: "left",
+    paddingHorizontal: 20,
   },
-  tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap", // Allows wrapping to the next line
-    gap: 5, // Space between tags
-    paddingVertical: "4%",
-    paddingHorizontal: "3%",
-    marginBottom: "-5%",
-    marginLeft: 12,
+  tabs: {
+    marginTop: 16,
+    backgroundColor: '#F9F9F9', 
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  tagButton: {
-    display: "flex",
-    backgroundColor: "#EEEEEE",
-    paddingVertical: "2%",
-    paddingHorizontal: "6%",
-    borderRadius: 8,
-    marginRight: "2%",
-    marginBottom: "2%",
-    width: "30%", 
-    height: "80%", 
-    alignItems: "center",
-    justifyContent: "center",
+  tab: {
+    backgroundColor: "transparent",
+    flex: 1,
+    alignItems: 'center',
+    borderColor: "transparent",
+    paddingVertical: 8,
   },
-  tagButtonActive: {
-    display: "flex",
-    backgroundColor: "#343434",
-    paddingVertical: "2%",
-    paddingHorizontal: "6%",
-    borderRadius: 8, 
-    marginRight: "2%",
-    marginBottom: "2%",
-    width: "30%",
-    height: "80%",
-    alignItems: "center",
-    justifyContent: "center",
+  activeTab: {
+    backgroundColor: '#F9F9F9',
   },
-  tagText: {
-    color: "#9E9E9E",
-    fontSize: 12,
+  tabText: {
+    fontSize: 14,
+    fontWeight: 600,
   },
-  tagTextActive: {
-    color: "#fff",
-    fontSize: 12,
+  focusBar: {
+    borderRadius: 99,
+    backgroundColor: "#000",
+    flex: 1,
+    width: "100%",
+    height: 2,
+    overflow: "hidden",
+    marginBottom: 2,
+    zIndex: 1,
   },
   floatingButton: {
     position: "absolute",

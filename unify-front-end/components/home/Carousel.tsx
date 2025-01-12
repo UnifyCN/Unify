@@ -28,7 +28,7 @@ const Carousel: React.FC = () => {
       id: "01",
       image: require("../../assets/images/Carousel1.png"),
       description: "Learning Progress",
-      progress: 75,
+      progress: 20,
     },
     {
       id: "02",
