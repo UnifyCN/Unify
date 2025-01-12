@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import Search from '../../assets/images/search.svg';
 import Carousel from '../../components/home/Carousel';
+import postIcon from '@/../../assets/images/icons.svg';
 
 import ForYouFeed from '../../components/home/ForYouFeed';
 import FollowingFeed from '../../components/home/FollowingFeed';
@@ -87,7 +88,7 @@ export default function HomeScreen() {
           end={{ x: 0.5, y: 1 }}
         >
           <Image
-            source={require("../../assets/images/postIcon.jpg")}
+            source={require('../../assets/images/icons.png')}
             style={styles.floatingButtonIcon}
           />
         </LinearGradient>
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: "absolute",
-    bottom: 62,
+    bottom: 85,
     right: 20,
     width: 58.75,
     height: 58.75,
@@ -267,6 +268,5 @@ const styles = StyleSheet.create({
   floatingButtonIcon: {
     width: 30,
     height: 30,
-    tintColor: "#fff",
   }
 });
