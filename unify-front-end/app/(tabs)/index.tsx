@@ -164,6 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 30,
     paddingBottom: 44,
+    marginBottom: 36
   },
   carouselContainer: {
     width: "100%",
