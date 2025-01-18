@@ -1,28 +1,35 @@
-import React, { act, useState } from 'react';
-import { ScrollView, StyleSheet, View, Text, useColorScheme, TouchableOpacity, Image, SafeAreaView, Dimensions } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Image, SafeAreaView, FlatList } from 'react-native';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
 import Search from '../../assets/images/search.svg';
 import Carousel from '../../components/home/Carousel';
-import postIcon from '@/../../assets/images/icons.svg';
-
 import ForYouFeed from '../../components/home/ForYouFeed';
 import FollowingFeed from '../../components/home/FollowingFeed';
 import GroupsFeed from '../../components/home/GroupsFeed';
 
-
 export default function HomeScreen() {
-
   const router = useRouter();
-
   const [activeTab, setActiveTab] = useState("For You");
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+  // Feed data for FlatList
+  const renderFeedContent = () => {
+    switch (activeTab) {
+      case 'For You':
+        return <ForYouFeed />;
+      case 'Following':
+        return <FollowingFeed />;
+      case 'Groups':
+        return <GroupsFeed />;
+      default:
+        return <ForYouFeed />;
+    }
+  };
+
+  // Render Header content
+  const renderHeader = () => (
+    <View>
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
         <View style={styles.searchBar}>
@@ -31,79 +38,87 @@ export default function HomeScreen() {
         </View>
       </View>
       <View style={styles.divider} />
-      <ScrollView style={styles.scrollContainer}>
-        <View style={styles.carouselContainer}>
-          <Text style={styles.placeholderText}>Highlights</Text>
-          <Carousel />
-        </View>
-        <View style={styles.cardContainer}>
-          <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/Lesson-library')}>
-            <Image style={styles.cardImage} source={require('../../assets/images/nationalNews.png')} />
-            <Text style={styles.cardDescription}>National News</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/journey-map')}>
-            <Image style={styles.cardImage} source={require('../../assets/images/journeyMap.png')} />
-            <Text style={styles.cardDescription}>Journey  Map</Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.feedText}>Your Feed</Text>
-        <View style={styles.tabs}>
-          <TouchableOpacity
-              onPress={() => setActiveTab('For You')}
-              style={[styles.tab, activeTab === 'For You' && styles.activeTab]}
-              >
-                  <Text style={[styles.tabText, activeTab === 'For You' && styles.tabText]}>For You</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-              onPress={() => setActiveTab('Following')}
-              style={[styles.tab, activeTab === 'Following'&& styles.activeTab]}
-              >
-                  <Text style={[styles.tabText, activeTab === 'Following' && styles.tabText]}>Following</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-              onPress={() => setActiveTab('Groups')}
-              style={[styles.tab, activeTab === 'Groups' && styles.activeTab]}
-              >
-                  <Text style={[styles.tabText, activeTab === 'Groups' && styles.tabText]}>Groups</Text>
-          </TouchableOpacity>
-        </View>
-        {activeTab === 'For You' && (
-          <View style={[styles.focusBar, { left: '3%', width: '27%' }]} />
-        )}
-        {activeTab === 'Following' && (
-          <View style={[styles.focusBar, { left: '36%', width: '27%' }]} />
-        )}
-        {activeTab === 'Groups' && (
-          <View style={[styles.focusBar, { left: '70%', width: '27%' }]} />
-        )}
-        {activeTab === "For You" && <ForYouFeed />}
-        {activeTab === "Following" && <FollowingFeed />}
-        {activeTab === "Groups" && <GroupsFeed />}
-      </ScrollView>
-      <TouchableOpacity style={styles.floatingButton}>
-        <LinearGradient
-          colors={['#232323', '#000']}
-          style={styles.gradientBackground}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
+
+      {/* Carousel and Card Sections (Non-scrolling parts) */}
+      <View style={styles.carouselContainer}>
+        <Text style={styles.placeholderText}>Highlights</Text>
+        <Carousel />
+      </View>
+
+      <View style={styles.cardContainer}>
+        <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/Lesson-library')}>
+          <Image style={styles.cardImage} source={require('../../assets/images/nationalNews.png')} />
+          <Text style={styles.cardDescription}>National News</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/journey-map')}>
+          <Image style={styles.cardImage} source={require('../../assets/images/journeyMap.png')} />
+          <Text style={styles.cardDescription}>Journey Map</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tabs Section */}
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          onPress={() => setActiveTab('For You')}
+          style={[styles.tab, activeTab === 'For You' && styles.activeTab]}
         >
-          <Image
-            source={require('../../assets/images/icons.png')}
-            style={styles.floatingButtonIcon}
-          />
-        </LinearGradient>
-      </TouchableOpacity>
+          <Text style={[styles.tabText, activeTab === 'For You' && styles.tabText]}>For You</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setActiveTab('Following')}
+          style={[styles.tab, activeTab === 'Following' && styles.activeTab]}
+        >
+          <Text style={[styles.tabText, activeTab === 'Following' && styles.tabText]}>Following</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setActiveTab('Groups')}
+          style={[styles.tab, activeTab === 'Groups' && styles.activeTab]}
+        >
+          <Text style={[styles.tabText, activeTab === 'Groups' && styles.tabText]}>Groups</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
+
+      {/* FlatList for the entire scrollable content */}
+      <FlatList
+        data={[{ key: 'feed' }]}  // Simple dummy data to trigger the render method
+        renderItem={() => (
+          <View style={styles.feedContainer}>
+            {renderFeedContent()}
+          </View>
+        )}
+        keyExtractor={(item) => item.key}
+        ListHeaderComponent={renderHeader}  // Move header and non-scrollable parts here
+        ListFooterComponent={() => (
+          <TouchableOpacity style={styles.floatingButton}>
+            <LinearGradient
+              colors={['#232323', '#000']}
+              style={styles.gradientBackground}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+            >
+              <Image
+                source={require('../../assets/images/icons.png')}
+                style={styles.floatingButtonIcon}
+              />
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 2,
+    flex: 1, // Ensure the container takes up the full screen
     backgroundColor: "#fff",
     flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "stretch",
   },
   headContainer: {
     display: "flex",
@@ -113,7 +128,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    alignContent: "center",
     flexDirection: "row",
     backgroundColor: "#fff",
     gap: 28
@@ -157,17 +171,18 @@ const styles = StyleSheet.create({
     textAlign: "left",
     marginBottom: 12,
   },
-  scrollContainer: {
-    display: "flex",
-    height: "100%",
-    width: "100%",
-    backgroundColor: "#fff",
-    paddingTop: 30,
-    paddingBottom: 44,
-    marginBottom: 36
-  },
   carouselContainer: {
+    paddingTop: 30,
     width: "100%",
+    paddingHorizontal: 20,
+  },
+  cardContainer: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 12,
+    justifyContent: "space-between",
     paddingHorizontal: 20,
   },
   cardImage: {
@@ -195,23 +210,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     height: 120
   },
-  cardContainer: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 12,
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-  },
-  feedText: {
-    fontSize: 26,
-    lineHeight: 25,
-    fontWeight: 600,
-    color: "#000",
-    marginTop: 44,
-    textAlign: "left",
-    paddingHorizontal: 20,
+  feedContainer: {
+    paddingTop: 30,
+    paddingBottom: 44,
+    marginBottom: 36,
   },
   tabs: {
     marginTop: 16,
@@ -234,16 +236,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 600,
   },
-  focusBar: {
-    borderRadius: 99,
-    backgroundColor: "#000",
-    flex: 1,
-    width: "100%",
-    height: 2,
-    overflow: "hidden",
-    marginBottom: 2,
-    zIndex: 1,
-  },
   floatingButton: {
     position: "absolute",
     bottom: 85,
@@ -265,7 +257,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-  } ,
+  },
   floatingButtonIcon: {
     width: 30,
     height: 30,
