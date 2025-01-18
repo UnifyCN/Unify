@@ -211,7 +211,6 @@ const styles = StyleSheet.create({
     height: 120
   },
   feedContainer: {
-    paddingTop: 30,
     paddingBottom: 44,
     marginBottom: 36,
   },
