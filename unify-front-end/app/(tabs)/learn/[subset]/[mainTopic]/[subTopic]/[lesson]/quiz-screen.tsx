@@ -102,7 +102,7 @@ const QuizScreen = () => {
         bottomResponse = "No, continue with the quiz"
         show={showBackModal}
         setShow={() => setShowBackModal(false)}
-        link="/(tabs)/Learn/moduleComponents/lesson-completed"
+        link="/(tabs)/learn/lesson-completed"
         confirm={() => {
           // reset questions when user confirms exit
           changeQuestion(1);
@@ -115,7 +115,7 @@ const QuizScreen = () => {
         bottomResponse = "No, go back to questions"
         show={showSubmitModal}
         setShow={() => setShowSubmitModal(false)}
-        link="/(tabs)/Learn/moduleComponents/quiz-completed"
+        link="/(tabs)/learn/quiz-completed"
         confirm={() => {
           // reset questions when user confirms exit
           changeQuestion(1);

@@ -8,7 +8,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
-import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
+import { ProgressSectionCard } from "@/components/learn/ProgressSection/ProgressSectionCard";
 import React from "react";
 
 interface ProgressSectionProps {
@@ -37,33 +37,18 @@ export function ProgressSection({
         showsHorizontalScrollIndicator={false}
         style={styles.cardContainer}
       >
+        {/*TODO: Add a fetch logic to get the necessary info for card (around 3 or 4 card) for a particular section here, then use
+        map method to ProgressSectionCard
+        Lesson Library: main topic
+        In progress: sub-topic
+        Completed: sub-topic
+        Favourite: specific lesson  */}
         <ProgressSectionCard
           title="Pathway to finance"
           description="Short description"
           image={require("../assets/images/placeholderImg.png")}
-          href="/(tabs)/Learn/Lessons/path-way-finance"
+          href="/(tabs)/learn/Lessons/path-way-finance"
         />
-
-        <Link href="./Main-lesson" asChild style={styles.card}>
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Lesson Title</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
-        <Link href="./Main-lesson" asChild style={styles.card}>
-          <TouchableOpacity>
-            <Image
-              style={styles.cardImage}
-              source={require("../assets/images/placeholderImg.png")}
-            />
-            <Text style={styles.cardTitle}>Lesson Title</Text>
-            <Text style={styles.cardDescription}>Short description</Text>
-          </TouchableOpacity>
-        </Link>
       </ScrollView>
     </>
   );

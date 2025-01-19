@@ -20,7 +20,7 @@ const Budgeting = () => {
         style={styles.backgroundImage}
       >
         <View style={styles.headerContentContainer}>
-          <Link href="/(tabs)/Learn/Lessons/path-way-finance" asChild>
+          <Link href="/(tabs)/learn/Lessons/path-way-finance" asChild>
             <TouchableOpacity style={styles.backButton}>
               <Feather name="chevron-left" size={25} color="#FFFFFF" />
             </TouchableOpacity>

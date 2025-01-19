@@ -7,13 +7,13 @@ import {
   ImageSourcePropType,
 } from "react-native";
 
-interface TopicCardProps {
+interface MainTopicCardProps {
     icon: ImageSourcePropType;
     subTopicTitle: string;
     description: string;
 }
 
-const TopicCard: React.FC<TopicCardProps> = ({
+const MainTopicCard: React.FC<MainTopicCardProps> = ({
   icon,
   subTopicTitle,
   description,
@@ -55,4 +55,4 @@ const styles = StyleSheet.create({
   }
 });
   
-  export default TopicCard;
+  export default MainTopicCard;
