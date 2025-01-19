@@ -5,84 +5,100 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import React, {useState} from "react";
-import {useNavigation} from "@react-navigation/native";
-import { Feather} from "@expo/vector-icons";
+import React, { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import QuizProgressBar from "@/components/learn/QuizProgressBar";
 import QuizQuestion from "@/components/learn/QuizQuestion";
 import PopupModal from "@/components/learn/PopupModal";
+import { useRouter } from "expo-router";
 
 const QuizScreen = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
 
   const questions = [
     {
-      question: "1 What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      question: "What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
       options: [
-        "A. Lorem ipsum dolor sit ame sed", 
-        "B. Lorem ipsum dolor sit ame sed", 
-        "C. Lorem ipsum dolor sit ame sed", 
-        "D. Lorem ipsum dolor sit ame sed"
+        "A. Lorem ipsum dolor sit ame sed",
+        "B. Lorem ipsum dolor sit ame sed",
+        "C. Lorem ipsum dolor sit ame sed",
+        "D. Lorem ipsum dolor sit ame sed",
       ],
       correctAnswer: "A. Lorem ipsum dolor sit ame sed",
     },
     {
-      question: "2 What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      question: "What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
       options: [
-        "A. Lorem ipsum dolor sit ame sed", 
-        "B. Lorem ipsum dolor sit ame sed", 
-        "C. Lorem ipsum dolor sit ame sed", 
-        "D. Lorem ipsum dolor sit ame sed"
+        "A. Lorem ipsum dolor sit ame sed",
+        "B. Lorem ipsum dolor sit ame sed",
+        "C. Lorem ipsum dolor sit ame sed",
+        "D. Lorem ipsum dolor sit ame sed",
       ],
       correctAnswer: "A. Lorem ipsum dolor sit ame sed",
     },
     {
-      question: "3 What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      question: "What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
       options: [
-        "A. Lorem ipsum dolor sit ame sed", 
-        "B. Lorem ipsum dolor sit ame sed", 
-        "C. Lorem ipsum dolor sit ame sed", 
-        "D. Lorem ipsum dolor sit ame sed"
+        "A. Lorem ipsum dolor sit ame sed",
+        "B. Lorem ipsum dolor sit ame sed",
+        "C. Lorem ipsum dolor sit ame sed",
+        "D. Lorem ipsum dolor sit ame sed",
       ],
       correctAnswer: "A. Lorem ipsum dolor sit ame sed",
     },
   ];
 
-  // back button popup caption
-  const [showBackModal, setShowBackModal] = useState(false);
-  // submit button popup caption
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  // show/hide back + submit modal
+  const [showBackModal, setShowBackModal] = useState(false); 
+  const [showSubmitModal, setShowSubmitModal] = useState(false); 
   // used to change to each question
-  const [question, changeQuestion] = useState(0); 
-  // keeps track of wrong answers, in an array of strings
-  const [wrongAnswers, setWrongAnswers] = useState<string[]>([]);
-
+  const [currentQuestion, changeQuestion] = useState(0); 
+  // keeps track of wrong/selected answers
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]); 
+  const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
 
   const nextPressed = () => {
-    if (question < questions.length) {
+    if (currentQuestion < questions.length - 1) {
       changeQuestion((prev) => prev + 1);
     }
   };
+
   const backPressed = () => {
-    if (question > 0) {
+    if (currentQuestion > 0) {
       // go back to previous question number when back button is pressed
-      changeQuestion((prev) => Math.max(prev -1 , 0));
+      changeQuestion((prev) => prev - 1);
     }
   };
+
   const submitPressed = () => {
-    setShowSubmitModal(true);
-  }
-  // takes user back to lesson takeaways page
+    // go through each question, find wrong answers
+    const incorrectAnswers = questions
+      .map((q, index) => {
+        // get selected answers
+        const selected = selectedAnswers[index];
+        // return values only if its incorrect, otherwise return null, then filter null items
+        return selected !== q.correctAnswer
+          ? { question: q.question, options: q.options, correctAnswer: q.correctAnswer, selectedAnswer: selected }
+          : null;
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+    // store the wrong answers
+    setWrongAnswers(incorrectAnswers);
+    setShowSubmitModal(true); 
+  };
+
+  // shows modal to take user back to lesson takeaways page
   const headBackPressed = () => {
     setShowBackModal(true);
-  }
-
-  // handles if an answer is selected + whether it is correct/incorrect
-   const answerSelected = (answer: string) => {
-    const isCorrect = answer === questions[question].correctAnswer;
   };
-  const wrongAnswerSelected = (answer: string) => {
-    setWrongAnswers((prev) => [...prev, answer]);
+
+  // handles answer selection
+  const answerSelected = (answer: string) => {
+    // update with currently selected answers
+    const updatedAnswers = [...selectedAnswers];
+    // change the answer for the current question
+    updatedAnswers[currentQuestion] = answer;
+    setSelectedAnswers(updatedAnswers);
   };
 
   return (
@@ -93,37 +109,33 @@ const QuizScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerText}>Budgeting Level 1 Quiz</Text>
       </View>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
+      <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
 
       <View style={styles.contentContainer}>
         {/*Progress Bar*/}
-        <QuizProgressBar completed={question + 1} total={questions.length}/>
-
+        <QuizProgressBar completed={currentQuestion + 1} total={questions.length} />
         {/*Different listed questions*/}
         <QuizQuestion
-          question={questions[question].question}
-          answers={questions[question].options}
-          correctAnswer={questions[question].correctAnswer}
+          question={questions[currentQuestion].question}
+          answers={questions[currentQuestion].options}
           selectedAnswer={answerSelected}
-          addWrongAnswer={wrongAnswerSelected}
+          currentAnswer={selectedAnswers[currentQuestion]}
         />
-
         {/*Back and next buttons*/}
         <View style={styles.buttonsContainer}>
           {/* back button directs to lesson page if on first question,*/}
           {/* otherwise directs to previous question  */}
-          {question === 0 ? (
-              <TouchableOpacity style={styles.backButton} onPress={headBackPressed}>
-                <Text style={styles.backButtonText}>Back</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.backButton} onPress={backPressed}>
-                <Text style={styles.backButtonText}>Back</Text>
-              </TouchableOpacity>
-            )}
-
+          {currentQuestion === 0 ? (
+            <TouchableOpacity style={styles.backButton} onPress={headBackPressed}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.backButton} onPress={backPressed}>
+              <Text style={styles.backButtonText}>Back</Text>
+            </TouchableOpacity>
+          )}
           {/* display submit button when the current question is the final question */}
-          {question + 1 < questions.length ? (
+          {currentQuestion + 1 < questions.length ? (
             <TouchableOpacity style={styles.nextButton} onPress={nextPressed}>
               <Text style={styles.nextButtonText}>Next</Text>
             </TouchableOpacity>
@@ -137,9 +149,9 @@ const QuizScreen = () => {
 
       {/* Modals */}
       <PopupModal
-        question = "Are you sure you want to exit the quiz?"
-        topResponse = "Yes, go back to key takeaways"
-        bottomResponse = "No, continue with the quiz"
+        question="Are you sure you want to exit the quiz?"
+        topResponse="Yes, go back to key takeaways"
+        bottomResponse="No, continue with the quiz"
         show={showBackModal}
         setShow={() => setShowBackModal(false)}
         link="/(tabs)/Learn/moduleComponents/lesson-completed"
@@ -147,30 +159,36 @@ const QuizScreen = () => {
           // reset questions when user confirms exit
           changeQuestion(0);
           setShowBackModal(false);
-          //reset stored answers if exiting quiz
+          //reset stored/selected answers if exiting quiz
+          setSelectedAnswers([]);
           setWrongAnswers([]);
         }}
       />
       <PopupModal
-        question = "Are you sure you want to submit the quiz?"
-        topResponse = "Yes, submit the quiz!"
-        bottomResponse = "No, go back to questions"
+        question="Are you sure you want to submit the quiz?"
+        topResponse="Yes, submit the quiz!"
+        bottomResponse="No, go back to questions"
         show={showSubmitModal}
         setShow={() => setShowSubmitModal(false)}
         link="/(tabs)/Learn/moduleComponents/quiz-completed"
         confirm={() => {
-          // reset questions when user confirms submission
           changeQuestion(0);
           setShowSubmitModal(false);
 
-          // navigation.navigate("QuizResults", { wrongAnswers });
+          router.push({
+            pathname: "/(tabs)/Learn/moduleComponents/quiz-completed",
+            params: { wrongAnswers: JSON.stringify(wrongAnswers) },
+            // params: { wrongAnswers: "sample123" },
+          });
+
           console.log("Stored wrong answers: ",wrongAnswers);
           setWrongAnswers([]);
+          setSelectedAnswers([]);
         }}
       />
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

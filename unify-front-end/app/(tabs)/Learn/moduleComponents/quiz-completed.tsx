@@ -6,18 +6,23 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams, useRouter} from "expo-router";
 
 const QuizCompleted = () => {
 
-  // each bullet point note in key takeaways would go here
-  const bulletList = [
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.",
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.",
-  ];
+  // receive wrong answers from quiz-screen
+  const { wrongAnswers } = useLocalSearchParams();
+
+  const parsedAnswers = wrongAnswers ? JSON.parse(wrongAnswers as string) : [];
+  // const parsedAnswers = [
+  //   { question: "Question 1", userAnswer: "an answer here", correctAnswer: "the correct answer here" },
+  //   { question: "Question 2", userAnswer: "another answer here", correctAnswer: "another correct answer" },
+  // ];
+  console.log("Raw wrongAnswers:", wrongAnswers);
+  console.log("Parsed Answers:", parsedAnswers);
+
+  const totalQuestions = 3; //this will change to be dynamic later
+  const correctAnswers = totalQuestions - parsedAnswers.length;
 
   return (
     <ScrollView style={styles.container}>
@@ -28,23 +33,46 @@ const QuizCompleted = () => {
 
       <Image source={require("../../../../assets/images/quizCompleted.png")} style={styles.image}></Image>
       <Text style={styles.title}>Congratulations! You’ve passed the quiz!</Text>
-      <Text style={styles.quizResultText}>You got 7/10 correct!</Text>
+      <Text style={styles.quizResultText}>You got {correctAnswers}/{totalQuestions} correct!</Text>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3, marginLeft: 80, marginRight: 80}}/>
       <Text style={styles.subTitle}>Let's Review!</Text>
 
       <View style={styles.textContainer}>
-        {bulletList.map((item, index) => (
+        {/* {bulletList.map((item, index) => (
           <View style={styles.listItem} key={index}>
             <Text style={styles.notes}>{index + 1}.  </Text>
             <Text style={styles.notes}>{item}</Text>
           </View>
-        ))}
+        ))} */}
+
+        {parsedAnswers.length > 0 ? (
+          parsedAnswers.map((item: { question: string; userAnswer: string; correctAnswer: string }, index: number) => (
+            <View key={index}>
+              {/* show what the question was first + which number it was */}
+              <Text style={styles.notes}>
+                {index + 1}. {item.question}
+              </Text>
+              {/*show users answer + correct answer*/}
+              <Text style={styles.notes}>
+                Your Answer: <Text>{item.userAnswer}</Text>
+              </Text>
+              <Text style={styles.notes}>
+                Correct Answer: <Text >{item.correctAnswer}</Text>
+              </Text>
+            </View>
+          ))
+        ) : (
+          //if all answers are right, show a message to indicate this
+          <Text style={styles.notes}>No incorrect answers to review!</Text>
+        )}
+        
+      </View>
+      <View style={styles.textContainer}>
         <Text style={styles.subTitle}>What’s the Next Step?</Text>
         <Text style={styles.bottomText}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.
         </Text>
       </View>
-
       <Link href="/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
         <TouchableOpacity style={styles.backButton}>
           <Text style={styles.backButtonText}>Back to Budgeting 101</Text>

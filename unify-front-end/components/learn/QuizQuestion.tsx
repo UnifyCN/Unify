@@ -1,65 +1,41 @@
 import React from "react";
-import {useState, useEffect} from "react";
-import {Text, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Text, StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface QuizQuestionProps {
   question: string;
   answers: string[];
-  correctAnswer: string;
-  selectedAnswer: any;
-  addWrongAnswer: any;
+  // function that gets called when an answer is selected
+  selectedAnswer: (answer: string) => void; 
+  // if an answer is currently selected (optional)
+  currentAnswer?: string; 
 }
 
 const QuizQuestion: React.FC<QuizQuestionProps> = ({
   question,
   answers,
-  correctAnswer,
   selectedAnswer,
-  addWrongAnswer,
+  currentAnswer,
 }) => {
-
-  const [onAnswerSelect, setSelectedAnswer] = useState(null);
-  const [answerColor, setAnswerColor] = useState<string>('white');
-
-  // whenever the question changes, reset the selected answer + its color
-  useEffect(() => {
-    setSelectedAnswer(null);
-  }, [question]);
-
-
-  // when an answer is pressed, it sets it as the current selected answer + checks if it is correct
-  const answerPressed = (answer: any) => {
-    setSelectedAnswer(answer);
-    const isCorrect = answer === correctAnswer;
-    selectedAnswer(isCorrect);
-    
-    if (!isCorrect) {
-      addWrongAnswer(answer);
-    }
+  // represent the answer being pressed for that question
+  const answerPressed = (answer: string) => {
+    selectedAnswer(answer);
   };
 
   return (
     <View>
-      <Text style={styles.questionText}>
-        {question}
-      </Text>
+      <Text style={styles.questionText}>{question}</Text>
 
+      {/* for each answer in the set of options, check if its correct */}
       {answers.map((answer, index) => {
-        // change the color of the selected answer based on whether it is wrong/right
-        const backgroundColor =
-          onAnswerSelect === answer
-            ? answer === correctAnswer
-              ? "#E2FFC6"
-              : "#FFC1C1" 
-            : "white";
+        const isSelected = currentAnswer === answer;
+        // change answer to dark grey if selected
+        const backgroundColor = isSelected ? "#d0d0d0" : "white";
 
         return (
           <TouchableOpacity
             key={index}
             style={[styles.card, { backgroundColor }]}
             onPress={() => answerPressed(answer)}
-            // disable answer selection once an answer has been chosen
-            disabled={!!onAnswerSelect}
           >
             <Text style={styles.answerText}>{answer}</Text>
           </TouchableOpacity>
