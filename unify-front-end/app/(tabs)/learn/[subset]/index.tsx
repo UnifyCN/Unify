@@ -13,7 +13,7 @@ import { Link, useLocalSearchParams, router, Stack, Redirect } from "expo-router
 import LessonCard from "@/components/learn/LessonCard";
 
 export default function SubSetPage(){
-    // In progress, complete, or favourite, display those use the same format so it's a matter of fetching the correct one based on url
+    // Lesson library, In progress, Complete, or favourite, figma use the same format/card to display them so it's a matter of fetching the correct one based on url
     const { subset } = useLocalSearchParams();
     
     return(

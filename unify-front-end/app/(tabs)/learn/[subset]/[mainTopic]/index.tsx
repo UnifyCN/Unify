@@ -14,9 +14,8 @@ import SubLessonCard from "@/components/learn/SubLessonCard";
 import TopicCard from "@/components/learn/TopicCard";
 
 const MainTopic = () => {
-  const mainTopic = useLocalSearchParams();
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
+  const { mainTopic } = useLocalSearchParams();
+  //TODO: add a fetch logic for main topic and display it out
   return (
     <ScrollView style={styles.container}>
       <ImageBackground
@@ -34,7 +33,7 @@ const MainTopic = () => {
 
       {/* Title and Description */}
       <View style={styles.textContainer}>
-        <Text style={styles.title}>Pathway to Finance</Text>
+        <Text style={styles.title}>{mainTopic}</Text>
         <Text style={styles.description}>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sapien
           curabitur nec praesent, vel quis.
@@ -44,31 +43,31 @@ const MainTopic = () => {
         {/* Topics */}
         <View style={styles.topicsContainer}>
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
+            imageSource={require("@/assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
             link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
+            imageSource={require("@/assets/images/piggyBank.png")}
             title="Saving Strategies"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
             link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
+            imageSource={require("@/assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
             link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
+            imageSource={require("@/assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
             link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
+            imageSource={require("@/assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
             link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
