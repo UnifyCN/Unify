@@ -8,9 +8,9 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
-import { ProgressSectionLL } from "@/components/learn/ProgressSectionLL";
-import { ProgressSectionIP } from "@/components/learn/ProgressSectionIP";
-import { ProgressSectionComplete } from "@/components/learn/ProgressSectionComplete";
+import { ProgressSectionLL } from "@/components/learn/ProgressSection/ProgressSectionLL";
+import { ProgressSectionIP } from "@/components/learn/ProgressSection/ProgressSectionIP";
+import { ProgressSectionComplete } from "@/components/learn/ProgressSection/ProgressSectionComplete";
 
 const Modules = () => {
   const [selectedTag, setSelectedTag] = useState("All");
@@ -81,7 +81,7 @@ const Modules = () => {
         {/* padding so that navigation doesn't hide lesson cards at bottom */}
         <View style={{ paddingBottom: 50 }}>
           {/* Progress sections holding lessons cards */}
-          {/* NOTE: Currently built on top of the previous design using progress sections, we'll need to update and redesign in to using dynamic progressSectionCards
+          {/* TODO: Currently built on top of the previous design using progress sections, we'll need to update and redesign in to using dynamic progressSectionCards
           components once we have the backend to implement the data dynamically and for functionalities like liked lessons */}
           <ProgressSectionLL
             header="Lesson Library"
