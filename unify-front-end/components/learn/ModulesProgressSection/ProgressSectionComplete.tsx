@@ -8,7 +8,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
-import { ProgressSectionCard } from "@/components/learn/ProgressSection/ProgressSectionCard";
+import { ProgressSectionCard } from "@/components/learn/ModulesProgressSection/ProgressSectionCard";
 import React from "react";
 
 interface ProgressSectionProps {
@@ -16,7 +16,7 @@ interface ProgressSectionProps {
   navigatePage: Href;
 }
 
-export function ProgressSectionIP({
+export function ProgressSectionComplete({
   header,
   navigatePage,
 }: ProgressSectionProps) {
@@ -38,9 +38,9 @@ export function ProgressSectionIP({
         style={styles.cardContainer}
       >
         <ProgressSectionCard
-          title="Budgeting 101"
+          title="Pathway to finance"
           description="Short description"
-          image={require("@/assets/images/BudgetIntro.jpeg")}
+          image={require("@/assets/images/finance.jpg")}
           href="/(tabs)/learn/Lessons/path-way-finance"
         />
 
@@ -48,14 +48,14 @@ export function ProgressSectionIP({
           title="Lesson Title"
           description="Short description"
           image={require("@/assets/images/placeholderImg.png")}
-          href="/(tabs)/learn/main-lesson"
+          href="./Main-lesson"
         />
 
         <ProgressSectionCard
           title="Lesson Title"
           description="Short description"
           image={require("@/assets/images/placeholderImg.png")}
-          href="/(tabs)/learn/main-lesson"
+          href="./Main-lesson"
         />
       </ScrollView>
     </>

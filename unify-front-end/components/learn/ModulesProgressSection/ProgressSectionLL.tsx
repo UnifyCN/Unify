@@ -8,7 +8,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
-import { ProgressSectionCard } from "@/components/learn/ProgressSection/ProgressSectionCard";
+import { ProgressSectionCard } from "@/components/learn/ModulesProgressSection/ProgressSectionCard";
 import React from "react";
 
 interface ProgressSectionProps {
@@ -16,7 +16,7 @@ interface ProgressSectionProps {
   navigatePage: Href;
 }
 
-export function ProgressSectionComplete({
+export function ProgressSectionLL({
   header,
   navigatePage,
 }: ProgressSectionProps) {
@@ -38,9 +38,9 @@ export function ProgressSectionComplete({
         style={styles.cardContainer}
       >
         <ProgressSectionCard
-          title="Pathway to finance"
+          title="Pathway to Finance"
           description="Short description"
-          image={require("@/assets/images/finance.jpg")}
+          image={require("@/assets/images/Budget101.jpeg")}
           href="/(tabs)/learn/Lessons/path-way-finance"
         />
 

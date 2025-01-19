@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   ImageBackground,
+  Dimensions
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
@@ -74,13 +75,14 @@ const PathWayFinance = () => {
   );
 };
 
+const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
   },
   backgroundImage: {
-    width: "100%",
+    width: width,
     height: 350, // Fixed height for the background image
   },
   headerContentContainer: {

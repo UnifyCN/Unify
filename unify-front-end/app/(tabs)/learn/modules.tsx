@@ -8,9 +8,9 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
-import { ProgressSectionLL } from "@/components/learn/ProgressSection/ProgressSectionLL";
-import { ProgressSectionIP } from "@/components/learn/ProgressSection/ProgressSectionIP";
-import { ProgressSectionComplete } from "@/components/learn/ProgressSection/ProgressSectionComplete";
+import { ProgressSectionLL } from "@/components/learn/ModulesProgressSection/ProgressSectionLL";
+import { ProgressSectionIP } from "@/components/learn/ModulesProgressSection/ProgressSectionIP";
+import { ProgressSectionComplete } from "@/components/learn/ModulesProgressSection/ProgressSectionComplete";
 
 const Modules = () => {
   const [selectedTag, setSelectedTag] = useState("All");

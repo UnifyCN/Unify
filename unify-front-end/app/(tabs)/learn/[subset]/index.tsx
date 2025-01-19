@@ -11,11 +11,21 @@ import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { Link, useLocalSearchParams, router, Stack, Redirect } from "expo-router";
 
 import LessonCard from "@/components/learn/LessonCard";
+import { library } from "@fortawesome/fontawesome-svg-core";
 
 export default function SubSetPage(){
     // Lesson library, In progress, Complete, or favourite, figma use the same format/card to display them so it's a matter of fetching the correct one based on url
     const { subset } = useLocalSearchParams();
-    
+    const SUBSET_TITLES:  Record<string, string> = {
+      "lesson-library": "Lesson Library",
+      "in-progress": "In Progress",
+      "completed": "Completed",
+      "favourite": "Favourite",
+    }
+    if (!SUBSET_TITLES.hasOwnProperty(subset as string))
+      return <Redirect href={"/+not-found"} />
+      
+    const title = SUBSET_TITLES[subset as string];
     return(
         <View style={styles.container}>
             {/*Configure stack behavior dynamically*/}
@@ -39,7 +49,7 @@ export default function SubSetPage(){
 
             <View style={styles.content}>
                 {/* Title */}
-                <Text style={styles.headerText}>{subset}</Text>
+                <Text style={styles.headerText}>{title}</Text>
                     {/* Search bar */}
                     <View style={styles.searchContainer}>
                         <MaterialIcons

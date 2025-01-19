@@ -9,25 +9,23 @@ import {
   ScrollView,
 } from "react-native";
 import { Feather} from "@expo/vector-icons";
-import { Link, useLocalSearchParams, router } from "expo-router";
+import { Link, useLocalSearchParams, router, Stack } from "expo-router";
 import SubLessonCard from "@/components/learn/SubLessonCard";
-import TopicCard from "@/components/learn/MainTopicCard";
 
 const MainTopic = () => {
   const { mainTopic } = useLocalSearchParams();
-  //TODO: add a fetch logic for main topic and display it out
+  //TODO: add a fetch logic for main topic and use it to create the title of the page, if the fetch doesn't exists, redirect to not-found
   return (
     <ScrollView style={styles.container}>
+      <Stack.Screen options={{title: mainTopic as string}}/>
       <ImageBackground
         source={require("@/assets/images/finance.jpg")}
         style={styles.backgroundImage}
-      >
+        >
         <View style={styles.headerContentContainer}>
-          <Link href="/(tabs)/learn" asChild>
-            <TouchableOpacity style={styles.backButton}>
-              <Feather name="chevron-left" size={25} color="#FFFFFF" />
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity style={styles.backButton} onPress={() => {router.back()}}>
+            <Feather name="chevron-left" size={25} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
       </ImageBackground>
 
@@ -41,49 +39,34 @@ const MainTopic = () => {
         <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 5 }} />
         <Text style={styles.topicsTitle}>Topics</Text>
         {/* Topics */}
+        {/*TODO: use a map method to map to SubLessonCard
+        Rename this MainTopicCard */}
         <View style={styles.topicsContainer}>
           <SubLessonCard
             imageSource={require("@/assets/images/piggyBank.png")}
             title="Budgeting 101"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
             link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
-          />
+            />
           <SubLessonCard
             imageSource={require("@/assets/images/piggyBank.png")}
             title="Saving Strategies"
             description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
             link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
-          />
-          <SubLessonCard
-            imageSource={require("@/assets/images/piggyBank.png")}
-            title="Budgeting 101"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
-          />
-          <SubLessonCard
-            imageSource={require("@/assets/images/piggyBank.png")}
-            title="Budgeting 101"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
-          />
-          <SubLessonCard
-            imageSource={require("@/assets/images/piggyBank.png")}
-            title="Budgeting 101"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/learn/Lessons/PathWayFinanceSubTopics/budgeting"
-          />
+            />
         </View>
       </View>
     </ScrollView>
   );
 }
+const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
   },
   backgroundImage: {
-    width: "100%",
+    width: width,
     height: 350, // Fixed height for the background image
   },
   headerContentContainer: {
@@ -104,11 +87,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 8,
-    color: "#505152",
+    color: "#343434",
   },
   description: {
     fontSize: 16,
-    color: "#666",
+    color: "#343434",
     marginBottom: 16,
   },
   topicsContainer: {
