@@ -11,7 +11,7 @@ import {
 import { Feather} from "@expo/vector-icons";
 import { Link, useLocalSearchParams, router } from "expo-router";
 import SubLessonCard from "@/components/learn/SubLessonCard";
-import TopicCard from "@/components/learn/TopicCard";
+import TopicCard from "@/components/learn/MainTopicCard";
 
 const MainTopic = () => {
   const { mainTopic } = useLocalSearchParams();
