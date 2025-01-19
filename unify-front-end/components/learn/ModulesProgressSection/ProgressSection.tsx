@@ -8,7 +8,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
-import { ProgressSectionCard } from "@/components/learn/ProgressSection/ProgressSectionCard";
+import { ProgressSectionCard } from "@/components/learn/ModulesProgressSection/ProgressSectionCard";
 import React from "react";
 
 interface ProgressSectionProps {
