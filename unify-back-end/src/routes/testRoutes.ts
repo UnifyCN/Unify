@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../POSTGRESdb';
 import connectDB from '../MONGOdb';
+import User from '../mongoModels/user';
 
 const router = Router();
 
@@ -43,4 +44,16 @@ router.get('/users', async (req, res) => {
 
 // Connecting to mongo
 connectDB();
+
+// Get all users (just a test for querying mongo)
+router.get('/MongoUsers', async (req, res) => {
+  try {
+      const users = await User.find();
+      res.json(users);
+  } catch (error) {
+      res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 export default router;
