@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import pool from '../db';
+import pool from '../POSTGRESdb';
+import connectDB from '../MONGOdb';
 
 const router = Router();
 
@@ -39,4 +40,7 @@ router.get('/users', async (req, res) => {
   }
 });
 
+
+// Connecting to mongo
+connectDB();
 export default router;
