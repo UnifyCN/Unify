@@ -8,7 +8,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
-import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
+import { ProgressSectionCard } from "@/components/learn/ModulesProgressSection/ProgressSectionCard";
 import React from "react";
 
 interface ProgressSectionProps {
@@ -16,7 +16,7 @@ interface ProgressSectionProps {
   navigatePage: Href;
 }
 
-export function ProgressSectionLL({
+export function ProgressSectionIP({
   header,
   navigatePage,
 }: ProgressSectionProps) {
@@ -38,24 +38,24 @@ export function ProgressSectionLL({
         style={styles.cardContainer}
       >
         <ProgressSectionCard
-          title="Pathway to Finance"
+          title="Budgeting 101"
           description="Short description"
-          image={require("../../assets/images/Budget101.jpeg")}
-          href="/(tabs)/Learn/Lessons/path-way-finance"
+          image={require("@/assets/images/BudgetIntro.jpeg")}
+          href="/(tabs)/learn/Lessons/path-way-finance"
         />
 
         <ProgressSectionCard
           title="Lesson Title"
           description="Short description"
-          image={require("../../assets/images/placeholderImg.png")}
-          href="./Main-lesson"
+          image={require("@/assets/images/placeholderImg.png")}
+          href="/(tabs)/learn/main-lesson"
         />
 
         <ProgressSectionCard
           title="Lesson Title"
           description="Short description"
-          image={require("../../assets/images/placeholderImg.png")}
-          href="./Main-lesson"
+          image={require("@/assets/images/placeholderImg.png")}
+          href="/(tabs)/learn/main-lesson"
         />
       </ScrollView>
     </>

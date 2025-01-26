@@ -33,7 +33,7 @@ const PopupModal: React.FC<PopupModalProps> = ({
     <Modal transparent visible={show} animationType="fade">
       <View style={styles.modal}>
         <View style={styles.modalContent}>
-          <Image source={require("../../assets/images/warn.png")} style={styles.image}></Image>
+          <Image source={require("@/assets/images/warn.png")} style={styles.image}></Image>
           <Text style={styles.questionText}>{question}</Text>
           {/* Proceed to quiz*/}
           {link ? (  // only navigate if link is provided
