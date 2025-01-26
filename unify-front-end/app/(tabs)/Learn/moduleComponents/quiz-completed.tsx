@@ -6,23 +6,12 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { Link, useLocalSearchParams, useRouter} from "expo-router";
+import { Link, useLocalSearchParams} from "expo-router";
 
 const QuizCompleted = () => {
-
-  // receive wrong answers from quiz-screen
-  const { wrongAnswers } = useLocalSearchParams();
-
-  const parsedAnswers = wrongAnswers ? JSON.parse(wrongAnswers as string) : [];
-  // const parsedAnswers = [
-  //   { question: "Question 1", userAnswer: "an answer here", correctAnswer: "the correct answer here" },
-  //   { question: "Question 2", userAnswer: "another answer here", correctAnswer: "another correct answer" },
-  // ];
-  console.log("Raw wrongAnswers:", wrongAnswers);
-  console.log("Parsed Answers:", parsedAnswers);
-
-  const totalQuestions = 3; //this will change to be dynamic later
-  const correctAnswers = totalQuestions - parsedAnswers.length;
+  const { wrongAnswers, totalQuestions } = useLocalSearchParams(); 
+  const parsedAnswers = wrongAnswers ? JSON.parse(wrongAnswers as string): [];
+  const correctAnswers = Number(totalQuestions) - parsedAnswers.length;
 
   return (
     <ScrollView style={styles.container}>
@@ -38,35 +27,30 @@ const QuizCompleted = () => {
       <Text style={styles.subTitle}>Let's Review!</Text>
 
       <View style={styles.textContainer}>
-        {/* {bulletList.map((item, index) => (
-          <View style={styles.listItem} key={index}>
-            <Text style={styles.notes}>{index + 1}.  </Text>
-            <Text style={styles.notes}>{item}</Text>
-          </View>
-        ))} */}
-
-        {parsedAnswers.length > 0 ? (
-          parsedAnswers.map((item: { question: string; userAnswer: string; correctAnswer: string }, index: number) => (
+          {parsedAnswers.length > 0 ? (
+          parsedAnswers.map((item: { question: string; selectedAnswer: string; correctAnswer: string }, index: number) => (
             <View key={index}>
               {/* show what the question was first + which number it was */}
               <Text style={styles.notes}>
                 {index + 1}. {item.question}
               </Text>
-              {/*show users answer + correct answer*/}
+              {/* show users answer + correct answer */}
               <Text style={styles.notes}>
-                Your Answer: <Text>{item.userAnswer}</Text>
+                <Text style={styles.notesBold}>Your Answer: </Text>
+                <Text>{item.selectedAnswer}</Text>
               </Text>
               <Text style={styles.notes}>
-                Correct Answer: <Text >{item.correctAnswer}</Text>
+                <Text style={styles.notesBold}>Correct Answer: </Text>
+                <Text >{item.correctAnswer}</Text>
               </Text>
             </View>
-          ))
-        ) : (
-          //if all answers are right, show a message to indicate this
-          <Text style={styles.notes}>No incorrect answers to review!</Text>
-        )}
-        
+          )) 
+        ) : ( 
+          //if all answers are right, show a message to indicate this 
+           <Text style={styles.notes}>No incorrect answers to review!</Text> 
+         )} 
       </View>
+
       <View style={styles.textContainer}>
         <Text style={styles.subTitle}>What’s the Next Step?</Text>
         <Text style={styles.bottomText}>
@@ -75,7 +59,7 @@ const QuizCompleted = () => {
       </View>
       <Link href="/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
         <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backButtonText}>Back to Budgeting 101</Text>
+          <Text style={styles.backButtonText}>Back to Budgeting</Text>
         </TouchableOpacity>
       </Link>
     </ScrollView>
@@ -140,6 +124,12 @@ const styles = StyleSheet.create({
     color: "#000",
     marginBottom: 16,
   },
+  notesBold: {
+    fontSize: 17,
+    color: "#000",
+    marginBottom: 16,
+    fontWeight: "bold"
+  },
   bottomText: {
     fontSize: 17,
     color: "#000",
@@ -152,7 +142,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginBottom: 100,
-    width: 236,
     borderRadius: 40,
     alignSelf: "center",
     justifyContent: 'center',
@@ -168,8 +157,10 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     color: "#fff", 
-    fontSize: 17
+    fontSize: 17,
+    textAlign: "center",
   },
+  
 });
 
 export default QuizCompleted;

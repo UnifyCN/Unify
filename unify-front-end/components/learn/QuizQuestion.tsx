@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     width: "100%",
     borderColor: "#000",
     borderWidth: 1,
-    borderRadius: 40,
+    borderRadius: 25,
     marginVertical: 10,
   },
   answerText: {

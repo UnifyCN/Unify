@@ -19,7 +19,7 @@ const QuizProgressBar: React.FC<QuizProgressBarProps> = ({
       <View style={styles.progressBarContainer}>
         {/* Gradient Progress Bar */}
         <ExpoLinearGradient
-          colors={["#000000", "#888888"]} // Gradient colors
+          colors={["#888888", "#000000"]} // Gradient colors
           style={[styles.progressBar, { width: `${percentage}%` }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}

@@ -14,47 +14,55 @@ import { useRouter } from "expo-router";
 
 const QuizScreen = () => {
   const router = useRouter();
-
   const questions = [
     {
-      question: "What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      question:
+        "What is an example of a measurable metric in a resume bullet point?",
       options: [
-        "A. Lorem ipsum dolor sit ame sed",
-        "B. Lorem ipsum dolor sit ame sed",
-        "C. Lorem ipsum dolor sit ame sed",
-        "D. Lorem ipsum dolor sit ame sed",
+        "A. Collaborated on a project to improve sales.",
+        "B. Increased engagement by 35% through targeted social media campaigns.",
+        "C. Worked on advertising for an app.",
+        "D. Assisted team members with technical tasks.",
       ],
-      correctAnswer: "A. Lorem ipsum dolor sit ame sed",
+      correctAnswer: "B. Increased engagement by 35% through targeted social media campaigns.",
     },
     {
-      question: "What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      question:
+        "Resumes for engineering and technical roles should avoid listing specific tools or software to keep the format clean.",
       options: [
-        "A. Lorem ipsum dolor sit ame sed",
-        "B. Lorem ipsum dolor sit ame sed",
-        "C. Lorem ipsum dolor sit ame sed",
-        "D. Lorem ipsum dolor sit ame sed",
+        "A. True",
+        "B. False",
       ],
-      correctAnswer: "A. Lorem ipsum dolor sit ame sed",
+      correctAnswer: "B. False",
     },
     {
-      question: "What is Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do eiusmod tempor incididunt?",
+      question:
+        "Tailoring your resume to include keywords and skills from a job description helps avoid disqualification by automated resume-sorting systems.",
       options: [
-        "A. Lorem ipsum dolor sit ame sed",
-        "B. Lorem ipsum dolor sit ame sed",
-        "C. Lorem ipsum dolor sit ame sed",
-        "D. Lorem ipsum dolor sit ame sed",
+        "A. True",
+        "B. False",
       ],
-      correctAnswer: "A. Lorem ipsum dolor sit ame sed",
+      correctAnswer: "A. True",
+    },
+    {
+      question:
+        "Which of the following is not a soft skill?",
+      options: [
+        "A. Communication",
+        "B. Leadership",
+        "C. Photoshop proficiency",
+        "D. Teamwork",
+      ],
+      correctAnswer: "C. Photoshop proficiency",
     },
   ];
 
   // show/hide back + submit modal
-  const [showBackModal, setShowBackModal] = useState(false); 
-  const [showSubmitModal, setShowSubmitModal] = useState(false); 
-  // used to change to each question
-  const [currentQuestion, changeQuestion] = useState(0); 
+  const [showBackModal, setShowBackModal] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [currentQuestion, changeQuestion] = useState(0);
   // keeps track of wrong/selected answers
-  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]); 
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
   const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
 
   const nextPressed = () => {
@@ -65,7 +73,6 @@ const QuizScreen = () => {
 
   const backPressed = () => {
     if (currentQuestion > 0) {
-      // go back to previous question number when back button is pressed
       changeQuestion((prev) => prev - 1);
     }
   };
@@ -76,25 +83,28 @@ const QuizScreen = () => {
       .map((q, index) => {
         // get selected answers
         const selected = selectedAnswers[index];
-        // return values only if its incorrect, otherwise return null, then filter null items
+         // return values only if its incorrect, otherwise return null, then filter null items
         return selected !== q.correctAnswer
-          ? { question: q.question, options: q.options, correctAnswer: q.correctAnswer, selectedAnswer: selected }
+          ? {
+              question: q.question,
+              options: q.options,
+              correctAnswer: q.correctAnswer,
+              selectedAnswer: selected,
+            }
           : null;
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
     // store the wrong answers
     setWrongAnswers(incorrectAnswers);
-    setShowSubmitModal(true); 
+    setShowSubmitModal(true);
   };
 
-  // shows modal to take user back to lesson takeaways page
   const headBackPressed = () => {
     setShowBackModal(true);
   };
 
   // handles answer selection
   const answerSelected = (answer: string) => {
-    // update with currently selected answers
     const updatedAnswers = [...selectedAnswers];
     // change the answer for the current question
     updatedAnswers[currentQuestion] = answer;
@@ -104,16 +114,24 @@ const QuizScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
-        <TouchableOpacity style={styles.backToLessonButton} onPress={headBackPressed}>
+        <TouchableOpacity
+          style={styles.backToLessonButton}
+          onPress={headBackPressed}
+        >
           <Feather name="chevron-left" size={25} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Budgeting Level 1 Quiz</Text>
+        <Text style={styles.headerText}>Key Takeaways</Text>
       </View>
       <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
-
       <View style={styles.contentContainer}>
+        <View>
+          <Text style={styles.quizTitle}>Budgeting Level 1 Quiz</Text>
+        </View>
         {/*Progress Bar*/}
-        <QuizProgressBar completed={currentQuestion + 1} total={questions.length} />
+        <QuizProgressBar
+          completed={currentQuestion + 1}
+          total={questions.length}
+        />
         {/*Different listed questions*/}
         <QuizQuestion
           question={questions[currentQuestion].question}
@@ -126,7 +144,10 @@ const QuizScreen = () => {
           {/* back button directs to lesson page if on first question,*/}
           {/* otherwise directs to previous question  */}
           {currentQuestion === 0 ? (
-            <TouchableOpacity style={styles.backButton} onPress={headBackPressed}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={headBackPressed}
+            >
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
           ) : (
@@ -147,7 +168,7 @@ const QuizScreen = () => {
         </View>
       </View>
 
-      {/* Modals */}
+      {/*Modals*/}
       <PopupModal
         question="Are you sure you want to exit the quiz?"
         topResponse="Yes, go back to key takeaways"
@@ -159,7 +180,7 @@ const QuizScreen = () => {
           // reset questions when user confirms exit
           changeQuestion(0);
           setShowBackModal(false);
-          //reset stored/selected answers if exiting quiz
+          // reset stored/selected answers if exiting quiz
           setSelectedAnswers([]);
           setWrongAnswers([]);
         }}
@@ -170,20 +191,15 @@ const QuizScreen = () => {
         bottomResponse="No, go back to questions"
         show={showSubmitModal}
         setShow={() => setShowSubmitModal(false)}
-        link="/(tabs)/Learn/moduleComponents/quiz-completed"
         confirm={() => {
-          changeQuestion(0);
-          setShowSubmitModal(false);
-
           router.push({
-            pathname: "/(tabs)/Learn/moduleComponents/quiz-completed",
-            params: { wrongAnswers: JSON.stringify(wrongAnswers) },
-            // params: { wrongAnswers: "sample123" },
+            pathname: "/Learn/moduleComponents/quiz-completed",
+            params: { wrongAnswers: JSON.stringify(wrongAnswers), totalQuestions: questions.length},
           });
-
-          console.log("Stored wrong answers: ",wrongAnswers);
+          changeQuestion(0);
           setWrongAnswers([]);
           setSelectedAnswers([]);
+          setShowSubmitModal(false);
         }}
       />
     </ScrollView>
@@ -210,6 +226,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#343434",
   },
+  quizTitle: {
+    fontSize: 17,
+    color: "#333",
+    marginBottom: 5,
+    fontWeight: "600",
+  },
   contentContainer: {
     padding: 20,
     marginHorizontal: 15,
@@ -218,20 +240,20 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     paddingVertical: 30,
     flexDirection: "row",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
   nextButton: {
     width: 118,
     backgroundColor: "#343434",
     borderRadius: 40,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 32,
   },
   nextButtonText: {
-    color: "#fff", 
-    fontSize: 17, 
-    textAlign: "center"
+    color: "#fff",
+    fontSize: 17,
+    textAlign: "center",
   },
   backButton: {
     width: 105,
@@ -239,13 +261,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     backgroundColor: "#E7E7E9",
     borderRadius: 40,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 32,
   },
   backButtonText: {
-    color: "#000", 
-    fontSize: 17
+    color: "#000",
+    fontSize: 17,
   },
 });
 
