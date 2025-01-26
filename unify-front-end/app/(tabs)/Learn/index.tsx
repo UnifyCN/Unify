@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, } from "react-native";
 import { Stack, useNavigation } from "expo-router";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
-import JourneyMap from "@/components/learn/JourneyMap";
+import JourneyMap from "./journey-map";
 import Modules from "./modules";
 
 const TabNavigator=() => {
@@ -29,7 +29,7 @@ const TabNavigator=() => {
     )
 }
 
-export default function Learn() {
+const Learn = () => {
     return(
         <>
         <View style={styles.container}>
@@ -96,3 +96,5 @@ const styles = StyleSheet.create({
         color: "white",
     }
   });
+
+export default Learn;

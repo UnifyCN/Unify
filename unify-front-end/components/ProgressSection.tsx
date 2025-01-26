@@ -8,7 +8,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Href, Link } from "expo-router";
 import { Image } from "expo-image";
-import { ProgressSectionCard } from "@/components/learn/ModulesProgressSection/ProgressSectionCard";
+import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
 import React from "react";
 
 interface ProgressSectionProps {
@@ -16,7 +16,7 @@ interface ProgressSectionProps {
   navigatePage: Href;
 }
 
-export function ProgressSectionLL({
+export function ProgressSection({
   header,
   navigatePage,
 }: ProgressSectionProps) {
@@ -38,25 +38,32 @@ export function ProgressSectionLL({
         style={styles.cardContainer}
       >
         <ProgressSectionCard
-          title="Pathway to Finance"
+          title="Pathway to finance"
           description="Short description"
-          image={require("@/assets/images/Budget101.jpeg")}
-          href="/(tabs)/learn/Lessons/path-way-finance"
+          image={require("../assets/images/placeholderImg.png")}
+          href="/(tabs)/Learn/Lessons/path-way-finance"
         />
 
-        <ProgressSectionCard
-          title="Lesson Title"
-          description="Short description"
-          image={require("@/assets/images/placeholderImg.png")}
-          href="./Main-lesson"
-        />
-
-        <ProgressSectionCard
-          title="Lesson Title"
-          description="Short description"
-          image={require("@/assets/images/placeholderImg.png")}
-          href="./Main-lesson"
-        />
+        <Link href="./Main-lesson" asChild style={styles.card}>
+          <TouchableOpacity>
+            <Image
+              style={styles.cardImage}
+              source={require("../assets/images/placeholderImg.png")}
+            />
+            <Text style={styles.cardTitle}>Lesson Title</Text>
+            <Text style={styles.cardDescription}>Short description</Text>
+          </TouchableOpacity>
+        </Link>
+        <Link href="./Main-lesson" asChild style={styles.card}>
+          <TouchableOpacity>
+            <Image
+              style={styles.cardImage}
+              source={require("../assets/images/placeholderImg.png")}
+            />
+            <Text style={styles.cardTitle}>Lesson Title</Text>
+            <Text style={styles.cardDescription}>Short description</Text>
+          </TouchableOpacity>
+        </Link>
       </ScrollView>
     </>
   );

@@ -8,9 +8,9 @@ import {
   ScrollView,
 } from "react-native";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
-import { ProgressSectionLL } from "@/components/learn/ModulesProgressSection/ProgressSectionLL";
-import { ProgressSectionIP } from "@/components/learn/ModulesProgressSection/ProgressSectionIP";
-import { ProgressSectionComplete } from "@/components/learn/ModulesProgressSection/ProgressSectionComplete";
+import { ProgressSectionLL } from "@/components/learn/ProgressSectionLL";
+import { ProgressSectionIP } from "@/components/learn/ProgressSectionIP";
+import { ProgressSectionComplete } from "@/components/learn/ProgressSectionComplete";
 
 const Modules = () => {
   const [selectedTag, setSelectedTag] = useState("All");
@@ -81,19 +81,19 @@ const Modules = () => {
         {/* padding so that navigation doesn't hide lesson cards at bottom */}
         <View style={{ paddingBottom: 50 }}>
           {/* Progress sections holding lessons cards */}
-          {/* TODO: Currently built on top of the previous design using progress sections, we'll need to update and redesign in to using dynamic progressSectionCards
+          {/* NOTE: Currently built on top of the previous design using progress sections, we'll need to update and redesign in to using dynamic progressSectionCards
           components once we have the backend to implement the data dynamically and for functionalities like liked lessons */}
           <ProgressSectionLL
             header="Lesson Library"
-            navigatePage={"/(tabs)/learn/lesson-library"}
+            navigatePage={"/(tabs)/Learn/Lesson-library"}
           />
           <ProgressSectionIP
             header="In-Progress"
-            navigatePage={"/(tabs)/learn/in-progress"}
+            navigatePage={"/(tabs)/Learn/In-progress"}
           />
           <ProgressSectionComplete
             header="Complete"
-            navigatePage={"/(tabs)/learn/lesson-library"}
+            navigatePage={"/(tabs)/Learn/moduleComponents/lesson-library"}
           />
         </View>
       </ScrollView>

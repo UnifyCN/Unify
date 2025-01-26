@@ -24,31 +24,29 @@ export function ProgressSectionCard({
   const [liked, setLiked] = useState(false);
 
   return (
-    <View>
-      <Link href={href} asChild style={styles.card}>
-        <TouchableOpacity>
-          <ImageBackground
-            source={image}
-            style={styles.cardImage}
-            imageStyle={styles.imageStyle}
+    <Link href={href} asChild style={styles.card}>
+      <TouchableOpacity>
+        <ImageBackground
+          source={image}
+          style={styles.cardImage}
+          imageStyle={styles.imageStyle}
+        >
+          {/* Overlay */}
+          <View style={styles.overlay} />
+          <TouchableOpacity
+            style={styles.heartIcon}
+            onPress={() => setLiked(!liked)}
           >
-            {/* Overlay */}
-            <View style={styles.overlay} />
-            <TouchableOpacity
-              style={styles.heartIcon}
-              onPress={() => setLiked(!liked)}
-            >
-              <FontAwesome
-                name={liked ? "heart" : "heart-o"}
-                size={24}
-                color={liked ? "red" : "white"}
-              />
-            </TouchableOpacity>
-            <Text style={styles.cardTitle}>{title}</Text>
-          </ImageBackground>
-        </TouchableOpacity>
-      </Link>
-    </View>
+            <FontAwesome
+              name={liked ? "heart" : "heart-o"}
+              size={24}
+              color={liked ? "red" : "white"}
+            />
+          </TouchableOpacity>
+          <Text style={styles.cardTitle}>{title}</Text>
+        </ImageBackground>
+      </TouchableOpacity>
+    </Link>
   );
 }
 

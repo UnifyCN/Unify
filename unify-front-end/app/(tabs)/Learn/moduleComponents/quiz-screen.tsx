@@ -175,7 +175,7 @@ const QuizScreen = () => {
         bottomResponse="No, continue with the quiz"
         show={showBackModal}
         setShow={() => setShowBackModal(false)}
-        link="/(tabs)/learn/lesson-completed"
+        link="/(tabs)/Learn/moduleComponents/lesson-completed"
         confirm={() => {
           // reset questions when user confirms exit
           changeQuestion(0);
@@ -193,7 +193,7 @@ const QuizScreen = () => {
         setShow={() => setShowSubmitModal(false)}
         confirm={() => {
           router.push({
-            pathname: "/(tabs)/learn/quiz-completed",
+            pathname: "/Learn/moduleComponents/quiz-completed",
             params: { wrongAnswers: JSON.stringify(wrongAnswers), totalQuestions: questions.length},
           });
           changeQuestion(0);
