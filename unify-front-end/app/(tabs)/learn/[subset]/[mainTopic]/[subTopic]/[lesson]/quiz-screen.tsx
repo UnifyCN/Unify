@@ -192,10 +192,10 @@ const QuizScreen = () => {
         show={showSubmitModal}
         setShow={() => setShowSubmitModal(false)}
         confirm={() => {
-          router.push({
-            pathname: "/(tabs)/learn/quiz-completed",
-            params: { wrongAnswers: JSON.stringify(wrongAnswers), totalQuestions: questions.length},
-          });
+          // router.push({
+          //   pathname: "/(tabs)/learn/quiz-completed",
+          //   params: { wrongAnswers: JSON.stringify(wrongAnswers), totalQuestions: questions.length},
+          // });
           changeQuestion(0);
           setWrongAnswers([]);
           setSelectedAnswers([]);
