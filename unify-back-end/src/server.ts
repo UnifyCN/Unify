@@ -1,6 +1,13 @@
 import { MikroORM } from '@mikro-orm/sqlite'; // change to postgres after
+import { User } from './modules/user/user.entity.js'; 
 
 // initialize the ORM, loading the config file dynamically
 const orm = await MikroORM.init();
-console.log(orm.em); // access EntityManager via `em` property
-console.log(orm.schema); // access SchemaGeneartor via `schema` property
+const user = new User();
+user.email = 'foo@bar.com';
+user.fullName = 'Foo Bar';
+user.password = '123456';
+
+await orm.em.persist(user).flush();
+
+console.log('user id is:', user.id);
