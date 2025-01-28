@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import testRoutes from './routes/testRoutes';
+//import testRoutes from './routes/testRoutes';
 
 // Load environment variables
 dotenv.config();
@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 
 // Routes
-app.use('/api', testRoutes);
+//app.use('/api', testRoutes);
 
 // Start Server
 app.listen(PORT, () => {
