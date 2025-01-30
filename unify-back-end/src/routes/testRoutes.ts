@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import pool from '../POSTGRESdb.js';
-import connectDB from '../MONGOdb.js';
-import User from '../mongoModels/User.js';
+import pool from '../POSTGRESdb';
+import connectDB from '../MONGOdb';
+import User from '../mongoModels/User';
 
 const router = Router();
 
