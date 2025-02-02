@@ -1,33 +1,51 @@
 import { 
-  StyleSheet, 
-  Text, 
-  View,
-  Image,
-  ScrollView,
-  TouchableOpacity,
+  StyleSheet, Text, View,Image, ScrollView, TouchableOpacity, FlatList,
 } from 'react-native';
+import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome, Feather } from "@expo/vector-icons";
+import { StatusBar } from 'expo-status-bar';
+import { Link } from "expo-router";
+import PostsFeed from '../../components/profile/PostsFeed';
+import RepliesFeed from '../../components/profile/RepliesFeed';
+import SavedFeed from '../../components/profile/SavedFeed';
+import FeedProfile2 from "@/assets/images/Feed_Profile2.svg";
 
 export default function TabTwoScreen() {
-  return (
-    <SafeAreaView style={styles.container}>
+  const [activeTab, setActiveTab] = useState("Posts");
+  // Feed data for FlatList
+  const renderFeedContent = () => {
+    switch (activeTab) {
+      case 'For You':
+        return <PostsFeed />;
+      case 'Replies':
+        return <RepliesFeed />;
+      case 'Saved':
+        return <SavedFeed />;
+      default:
+        return <PostsFeed />;
+    }
+  };
+
+  const renderHeader = () => (
+    <View style={styles.container}>
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
-        <Feather  name='menu' size={28} color="black"/>
+        <Link href="/Profile/profile-settings" asChild>
+          <TouchableOpacity>
+            <Feather  name='menu' size={26} color="black"/>
+          </TouchableOpacity>
+        </Link>
       </View>
       <View style={styles.divider} />
       <ScrollView>
         <View style={styles.contentContainer}>
           <View style={styles.profileContainer}>
-            <View style={styles.avatarContainer}>
-                  <Image
-                  //change to avatar image later
-                    source={{ uri: "https://via.placeholder.com/100" }}
-                    style={styles.avatar}
-                  />
+            <View style={styles.avatarBorder}>
+              <View style={styles.avatarContainer}>
+                <FeedProfile2 width={100} height={100} />
+              </View>
             </View>
-
             <View style={styles.profileInfoContainer}>
               <Text style={styles.username}>User_Name</Text>
               <View style={styles.statsContainer}>
@@ -61,19 +79,59 @@ export default function TabTwoScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={styles.button}>
-              <Text style={styles.buttonText}>Edit profile</Text>
-            </TouchableOpacity>
+            <Link href="/Profile/edit-profile" asChild>
+              <TouchableOpacity style={styles.button}>
+                <Text style={styles.buttonText}>Edit profile</Text>
+              </TouchableOpacity>
+            </Link>
+
             <TouchableOpacity style={styles.button}>
               <Text style={styles.buttonText}>Share profile</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button}>
+              <Feather  name='user-plus' size={20} color="black"/>
+            </TouchableOpacity>
           </View>
         </View>
+
+         {/* Tabs*/}
+         <View style={styles.tabsContainer}>
+            <TouchableOpacity
+              onPress={() => setActiveTab('Posts')}
+              style={[styles.tab, activeTab === 'Posts' && styles.activeTab]}>
+              <Text style={[styles.tabText, activeTab === 'Posts'  && styles.activeTabText]}>Posts</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setActiveTab('Replies')}
+              style={[styles.tab, activeTab === 'Replies' && styles.activeTab]}>
+              <Text style={[styles.tabText, activeTab === 'Replies'  && styles.activeTabText]}>Replies</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setActiveTab('Saved')}
+              style={[styles.tab, activeTab === 'Saved' && styles.activeTab]} >
+              <Text style={[styles.tabText, activeTab === 'Saved' && styles.activeTabText]}>Saved</Text>
+            </TouchableOpacity>
+          </View>
       </ScrollView>
+    </View>
+    );
 
-
-    </SafeAreaView>
-  );
+    return (
+        <SafeAreaView style={styles.container}>
+          <StatusBar style="dark" />
+          {/* FlatList for the entire scrollable content */}
+          <FlatList
+            data={[{ key: 'feed' }]}  // Simple dummy data to trigger the render method
+            renderItem={() => (
+              <View style={styles.feedContainer}>
+                {renderFeedContent()}
+              </View>)}
+            keyExtractor={(item) => item.key}
+            // Move header and non-scrollable parts here
+            ListHeaderComponent={renderHeader}/>
+        </SafeAreaView>
+      );
 }
 
 const styles = StyleSheet.create({
@@ -96,14 +154,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     gap: 28
   },
-  avatarContainer: {
-    marginBottom: 12,
+  avatarBorder: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 2, 
+    borderColor: "#EEEEEE",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  avatar: {
+  avatarContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: "#ddd",
+    overflow: "hidden",
   },
   divider: {
     width: "100%",
@@ -122,10 +186,10 @@ const styles = StyleSheet.create({
   profileInfoContainer: {
     flexDirection: "column",
     alignItems: "flex-start",
-    paddingLeft: 30,
+    paddingLeft: 35,
   },
   username: {
-    paddingTop: 10,
+    paddingTop: 3,
     fontSize: 23,
     fontWeight: "700",
     marginVertical: 4,
@@ -133,28 +197,29 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginVertical: 8,
+    marginVertical: 2,
   },
   statsInfoContainer: {
     flexDirection: "column",
     paddingRight: 10,
   },
   statsText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     marginHorizontal: 8,
     color: "#343434",
   },
   statsLabel: {
-    fontSize: 14,
+    fontSize: 17,
     color: "#000",
   },
   actualName: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: "600",
+    paddingBottom: 3,
   },
   locationText: {
-    fontSize: 15,
+    fontSize: 16,
     marginBottom: 12,
   },
   personalDetails: {
@@ -170,17 +235,48 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    marginVertical: 8,
+    marginTop: 10,
   },
   button: {
-    backgroundColor: "#F9F9F9",
+    backgroundColor: "#FEFEFE",
     padding: 8,
-    borderRadius: 4,
-    minWidth: "40%",
+    borderRadius: 5,
     alignItems: "center",
   },
   buttonText: {
     fontSize: 15,
+    fontWeight: "500",
+  },
+  tabsContainer: { 
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tab: {
+    backgroundColor: "transparent",
+    flex: 1,
+    alignItems: 'center',
+    borderColor: "transparent",
+    paddingVertical: 8,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: "#9E9E9E",
+    paddingBottom: 5,
+  },
+  activeTab: {
+    backgroundColor: '#fff',
+  },
+  activeTabText: {
+    color: "black",
     fontWeight: "600",
+    borderBottomWidth: 2,
+    borderBottomColor: "black",
+    paddingHorizontal: 10,
+  },
+  feedContainer: {
+    paddingBottom: 44,
+    marginBottom: 36,
   },
 });
