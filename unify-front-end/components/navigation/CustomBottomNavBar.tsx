@@ -45,7 +45,8 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             "Learn/moduleComponents/main-lesson",
             "Learn/Lessons/PathWayFinanceSubTopics/budgeting",
             "Profile/profile-settings",
-            "Profile/edit-profile"
+            "Profile/edit-profile",
+            "Profile/profile-suggestions"
           ].includes(route.name)
         )
           return null;
