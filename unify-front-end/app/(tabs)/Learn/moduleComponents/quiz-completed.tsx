@@ -7,11 +7,15 @@ import {
   ScrollView,
 } from "react-native";
 import { Link, useLocalSearchParams} from "expo-router";
+import QuizFail from "../../../../assets/images/failedQuiz.svg";
+import QuizPass from "../../../../assets/images/passedQuiz.svg";
+
 
 const QuizCompleted = () => {
   const { wrongAnswers, totalQuestions } = useLocalSearchParams(); 
   const parsedAnswers = wrongAnswers ? JSON.parse(wrongAnswers as string): [];
   const correctAnswers = Number(totalQuestions) - parsedAnswers.length;
+  const percentagePassed = (correctAnswers / Number(totalQuestions)) * 100;
 
   return (
     <ScrollView style={styles.container}>
@@ -20,8 +24,19 @@ const QuizCompleted = () => {
       </View>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1}}/>
 
-      <Image source={require("../../../../assets/images/quizCompleted.png")} style={styles.image}></Image>
-      <Text style={styles.title}>Congratulations! You’ve passed the quiz!</Text>
+      {percentagePassed >= 49 ? (
+        <View>
+          <QuizPass width={170} height={170} style={styles.image} />
+          <Text style={styles.title}>Congratulations! You’ve passed the quiz!</Text>
+        </View>
+        ) :
+        (
+        <View>
+          <QuizFail width={170} height={170} style={styles.image} />
+          <Text style={styles.title}>Oops! You did not pass</Text>
+        </View>
+        )}
+
       <Text style={styles.quizResultText}>You got {correctAnswers}/{totalQuestions} correct!</Text>
       <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3, marginLeft: 80, marginRight: 80}}/>
       <Text style={styles.subTitle}>Let's Review!</Text>
