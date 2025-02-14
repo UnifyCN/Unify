@@ -5,7 +5,7 @@ CREATE TABLE users (
     pronouns TEXT,
     biography TEXT,
     email VARCHAR(100) UNIQUE NOT NULL,
-    password TEXT NOT NULL,
+    user_password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -40,7 +40,7 @@ CREATE TABLE post_comments (
 -- Tags table
 CREATE TABLE tags (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL
+    tag_name VARCHAR(100) UNIQUE NOT NULL
 );
 
 -- Post Tags table (Many-to-Many relationship between posts and tags)
@@ -53,8 +53,8 @@ CREATE TABLE post_tags (
 -- Groups table
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) UNIQUE NOT NULL,
-    description TEXT,
+    group_name VARCHAR(100) UNIQUE NOT NULL,
+    groups_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -70,8 +70,15 @@ CREATE TABLE group_members (
 CREATE TABLE main_topics (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
-    description TEXT,
+    main_topic_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Main topics tags
+CREATE TABLE main_topic_tags (
+    main_topic_id INT REFERENCES main_topics(id) ON DELETE CASCADE,
+    tag_id INT REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (main_topic_id, tag_id)
 );
 
 -- Sub Topics table
@@ -80,7 +87,7 @@ CREATE TABLE sub_topics (
     main_topic_id INT REFERENCES main_topics(id) ON DELETE CASCADE,
     progress INT DEFAULT 0,
     title TEXT NOT NULL,
-    description TEXT,
+    sub_topic_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -89,8 +96,8 @@ CREATE TABLE lessons (
     id SERIAL PRIMARY KEY,
     sub_topic_id INT REFERENCES sub_topics(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    description TEXT,
-    content JSONB NOT NULL,
+    lesson_description TEXT,
+    -- content JSONB NOT NULL,? comment on this one for now
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -118,7 +125,7 @@ CREATE TABLE quizzes (
     id SERIAL PRIMARY KEY,
     lesson_id INT REFERENCES lessons(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    questions JSONB NOT NULL,
+    -- questions JSONB NOT NULL, also commented for now
     progress TEXT CHECK (progress IN ('pass', 'fail', NULL)) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
