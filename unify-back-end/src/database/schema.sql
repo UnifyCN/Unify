@@ -7,7 +7,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     user_password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Posts table
@@ -16,14 +16,14 @@ CREATE TABLE posts (
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Post Likes table
 CREATE TABLE post_likes (
-    id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     post_id INT REFERENCES posts(id) ON DELETE CASCADE,    
+    PRIMARY KEY (user_id, post_id)
 );
 
 -- Post Comments table
@@ -84,10 +84,19 @@ CREATE TABLE main_topic_tags (
 CREATE TABLE sub_topics (
     id SERIAL PRIMARY KEY,
     main_topic_id INT REFERENCES main_topics(id) ON DELETE CASCADE,
-    progress INT DEFAULT 0,
     title TEXT NOT NULL,
     sub_topic_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Sub topics progress table
+CREATE TABLE sub_topic_progress (
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    sub_topic_id INT REFERENCES sub_topics(id) ON DELETE CASCADE,
+    progress INT CHECK (progress BETWEEN 0 AND 100) DEFAULT 0,
+    sub_topic_completed BOOLEAN DEFAULT FALSE,
+    last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, sub_topic_id)
 );
 
 -- Lessons table
@@ -125,7 +134,6 @@ CREATE TABLE quizzes (
     lesson_id INT REFERENCES lessons(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     questions JSONB NOT NULL,
-    progress TEXT CHECK (progress IN ('pass', 'fail')) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
