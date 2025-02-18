@@ -27,18 +27,18 @@ router.get('/users', async (req, res) => {
 });
 
 
-// Connecting to mongo
-connectDB();
+// // Connecting to mongo
+// connectDB();
 
-// Get all users (just a test for querying mongo)
-router.get('/MongoUsers', async (req, res) => {
-  try {
-      const users = await User.find();
-      res.json(users);
-  } catch (error) {
-      res.status(500).json({ message: 'Server error' });
-  }
-});
+// // Get all users (just a test for querying mongo)
+// router.get('/MongoUsers', async (req, res) => {
+//   try {
+//       const users = await User.find();
+//       res.json(users);
+//   } catch (error) {
+//       res.status(500).json({ message: 'Server error' });
+//   }
+// });
 
 
 export default router;
