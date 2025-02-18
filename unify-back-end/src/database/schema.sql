@@ -23,8 +23,7 @@ CREATE TABLE posts (
 CREATE TABLE post_likes (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    post_id INT REFERENCES posts(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    post_id INT REFERENCES posts(id) ON DELETE CASCADE,    
 );
 
 -- Post Comments table
@@ -97,7 +96,7 @@ CREATE TABLE lessons (
     sub_topic_id INT REFERENCES sub_topics(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     lesson_description TEXT,
-    -- content JSONB NOT NULL,? comment on this one for now
+    content JSONB NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -125,7 +124,15 @@ CREATE TABLE quizzes (
     id SERIAL PRIMARY KEY,
     lesson_id INT REFERENCES lessons(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    -- questions JSONB NOT NULL, also commented for now
-    progress TEXT CHECK (progress IN ('pass', 'fail', NULL)) DEFAULT NULL,
+    questions JSONB NOT NULL,
+    progress TEXT CHECK (progress IN ('pass', 'fail')) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Quiz progress table
+CREATE TABLE quiz_progress (
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    quiz_id INT REFERENCES quizzes(id) ON DELETE CASCADE,
+    progress TEXT CHECK (progress IN ('pass', 'fail')) DEFAULT NULL,
+    PRIMARY KEY (user_id, quiz_id)
 );
