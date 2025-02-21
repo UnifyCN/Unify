@@ -93,7 +93,7 @@ CREATE TABLE sub_topics (
 CREATE TABLE sub_topic_progress (
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     sub_topic_id INT REFERENCES sub_topics(id) ON DELETE CASCADE,
-    progress INT CHECK (progress BETWEEN 0 AND 100) DEFAULT 0,
+    progress INT CHECK (progress BETWEEN 0 AND 3) DEFAULT 0,
     sub_topic_completed BOOLEAN DEFAULT FALSE,
     last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, sub_topic_id)
