@@ -1,34 +1,24 @@
-import React, { useState } from 'react';
+import { useState, memo } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Image, SafeAreaView, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import Search from '../../assets/images/search.svg';
-import Carousel from '../../components/home/Carousel';
-import ForYouFeed from '../../components/home/ForYouFeed';
-import FollowingFeed from '../../components/home/FollowingFeed';
-import GroupsFeed from '../../components/home/GroupsFeed';
+import Search from '@/assets/images/search.svg';
+import CreatePost from '@/assets/images/create_post_button.svg'
+import Carousel from '@/components/home/Carousel';
+import ForYouFeed from '@/components/home/ForYouFeed';
+import FollowingFeed from '@/components/home/FollowingFeed';
+import GroupsFeed from '@/components/home/GroupsFeed';
 
-export default function HomeScreen() {
+
+interface HeaderProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("For You");
-
-  // Feed data for FlatList
-  const renderFeedContent = () => {
-    switch (activeTab) {
-      case 'For You':
-        return <ForYouFeed />;
-      case 'Following':
-        return <FollowingFeed />;
-      case 'Groups':
-        return <GroupsFeed />;
-      default:
-        return <ForYouFeed />;
-    }
-  };
-
-  // Render Header content
-  const renderHeader = () => (
+  
+  return (
     <View>
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
@@ -39,77 +29,84 @@ export default function HomeScreen() {
       </View>
       <View style={styles.divider} />
 
-      {/* Carousel and Card Sections (Non-scrolling parts) */}
       <View style={styles.carouselContainer}>
         <Text style={styles.placeholderText}>Highlights</Text>
         <Carousel />
       </View>
 
       <View style={styles.cardContainer}>
-        <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/Lesson-library')}>
-          <Image style={styles.cardImage} source={require('../../assets/images/nationalNews.png')} />
+        <TouchableOpacity 
+          style={styles.card} 
+          onPress={() => router.push('/(tabs)/Learn/Lesson-library')}
+        >
+          <Image 
+            style={styles.cardImage} 
+            source={require('@/assets/images/nationalNews.png')} 
+          />
           <Text style={styles.cardDescription}>National News</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.card} onPress={() => router.push('/(tabs)/Learn/journey-map')}>
-          <Image style={styles.cardImage} source={require('../../assets/images/journeyMap.png')} />
+        <TouchableOpacity 
+          style={styles.card} 
+          onPress={() => router.push('/(tabs)/Learn/journey-map')}
+        >
+          <Image 
+            style={styles.cardImage} 
+            source={require('@/assets/images/journeyMap.png')} 
+          />
           <Text style={styles.cardDescription}>Journey Map</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Tabs Section */}
       <View style={styles.tabs}>
-        <TouchableOpacity
-          onPress={() => setActiveTab('For You')}
-          style={[styles.tab, activeTab === 'For You' && styles.activeTab]}
-        >
-          <Text style={[styles.tabText, activeTab === 'For You' && styles.tabText]}>For You</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab('Following')}
-          style={[styles.tab, activeTab === 'Following' && styles.activeTab]}
-        >
-          <Text style={[styles.tabText, activeTab === 'Following' && styles.tabText]}>Following</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setActiveTab('Groups')}
-          style={[styles.tab, activeTab === 'Groups' && styles.activeTab]}
-        >
-          <Text style={[styles.tabText, activeTab === 'Groups' && styles.tabText]}>Groups</Text>
-        </TouchableOpacity>
+        {['For You', 'Following', 'Groups'].map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => setActiveTab(tab)}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
+          >
+            <Text style={styles.tabText}>{tab}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   );
+});
+
+export default function HomeScreen() {
+  const [activeTab, setActiveTab] = useState("For You");
+
+  const renderFeedContent = () => {
+    switch (activeTab) {
+      case 'Following':
+        return <FollowingFeed />;
+      case 'Groups':
+        return <GroupsFeed />;
+      default:
+        return <ForYouFeed />;
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-
-      {/* FlatList for the entire scrollable content */}
       <FlatList
-        data={[{ key: 'feed' }]}  // Simple dummy data to trigger the render method
+        data={[{ key: 'feed' }]}
         renderItem={() => (
           <View style={styles.feedContainer}>
             {renderFeedContent()}
           </View>
         )}
         keyExtractor={(item) => item.key}
-        ListHeaderComponent={renderHeader}  // Move header and non-scrollable parts here
-        ListFooterComponent={() => (
-          <TouchableOpacity style={styles.floatingButton}>
-            <LinearGradient
-              colors={['#232323', '#000']}
-              style={styles.gradientBackground}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-            >
-              <Image
-                source={require('../../assets/images/icons.png')}
-                style={styles.floatingButtonIcon}
-              />
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
+        ListHeaderComponent={
+          <Header 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab}
+          />
+        }
       />
+      <TouchableOpacity style={styles.floatingButton}>
+        <CreatePost />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -245,7 +242,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
