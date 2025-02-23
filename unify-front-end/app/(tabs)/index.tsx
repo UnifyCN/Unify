@@ -56,7 +56,10 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
           <Text style={styles.cardDescription}>Journey Map</Text>
         </TouchableOpacity>
       </View>
-
+      
+      <Text style= {{fontWeight: 600, fontSize: 24, color: "black", paddingHorizontal: 20, marginTop: 20}}>
+        Your Feed
+      </Text>
       <View style={styles.tabs}>
         {['For You', 'Following', 'Groups'].map((tab) => (
           <TouchableOpacity
