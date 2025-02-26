@@ -20,7 +20,7 @@ const TabNavigator=() => {
 
     const translateX = slideAnim.interpolate({
         inputRange: [0, 1],
-        outputRange: [0, 100],
+        outputRange: [-100, 100],
     });
     
     return(
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     },
     slider: {
         position: 'absolute',
-        width: '50%',
+        width: '51%',
         height: '100%',
         backgroundColor: '#46A8DA',
         borderRadius: 20,
