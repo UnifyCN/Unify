@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
         paddingVertical: 5.5,
         borderRadius: 20,
         borderColor: "transparent",
+        zIndex: 2,
     },
     activeTabLeft: {
         marginRight: -30,
@@ -105,10 +106,12 @@ const styles = StyleSheet.create({
         marginLeft: -30,
     },
     inactiveTabText: {
-        color: 'black',
+        color: '#46A8DA',
+        zIndex: 3,
     },
     activeTabText: {
         color: "white",
+        zIndex: 3,
     },
     slider: {
         position: 'absolute',
@@ -116,5 +119,6 @@ const styles = StyleSheet.create({
         height: '100%',
         backgroundColor: '#46A8DA',
         borderRadius: 20,
+        zIndex: 1,
     },
   });
