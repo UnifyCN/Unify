@@ -1,13 +1,11 @@
-import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
+import { useState } from "react";
+import { View, TouchableOpacity, StyleSheet, Text, LayoutChangeEvent } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { useScrollContext } from "@/context/ScrollContext";
 import CustomHomeIcon from "../icons/HomePageIcon";
 import CustomlearnIcon from "../icons/LearnPageIcon";
 import CustomProfileIcon from "../icons/ProfilePageIcon";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-} from "react-native-reanimated";
+import Animated, { Easing, useAnimatedStyle, useDerivedValue, withTiming} from "react-native-reanimated";
 import React from "react";
 
 // For future animation implementations if needed
@@ -18,12 +16,34 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
+  insets,
 }) => {
-  return (
-    <View style={styles.container}>
-      {state.routes.map((route, index) => {
-        // console.log(route);
+  const [height, setHeight] = useState(0);
+  const [scrollValue] = useScrollContext();
+  const shownAmount = useDerivedValue(
+    () => withTiming(scrollValue.value > 0.5 ? 1: 0, {
+      duration: 250,
+      easing: Easing.out(Easing.cubic),
+    })
+  )
+  
+  const animatedStyle = useAnimatedStyle(
+    () => ({
+      transform: [{ translateY: shownAmount.value * (height * 1.5)}]
+    })
+  )
 
+  const handleLayout = (e: LayoutChangeEvent) => setHeight(e.nativeEvent.layout.height);
+
+  return (
+    <Animated.View 
+      style={[
+        styles.container,
+        animatedStyle,
+        ]} 
+      onLayout={handleLayout}>
+
+      {state.routes.map((route, index) => {
         if (
           [
             "_sitemap",
@@ -76,15 +96,10 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             <Text style={{color: isFocused? whiteColor : primaryColor}}>
               {label}
             </Text>
-            {/* {isFocused && (
-              <Text style={styles.text}>
-                {label as string}
-              </Text>
-            )} */}
           </AnimatedTouchableOpacity>
         );
       })}
-    </View>
+    </Animated.View>
   );
 
   function getIconByRouteName(
@@ -119,7 +134,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     flexShrink: 0,
-    bottom: 25,
+    bottom: 15,
     width: 365,
     height: 50,
     borderRadius: 25,
