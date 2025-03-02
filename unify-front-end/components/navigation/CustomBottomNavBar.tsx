@@ -1,39 +1,28 @@
-import { useState } from "react";
-import { View, TouchableOpacity, StyleSheet, Text, LayoutChangeEvent } from "react-native";
+import { TouchableOpacity, StyleSheet, Text} from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useScrollContext } from "@/context/ScrollContext";
 import CustomHomeIcon from "../icons/HomePageIcon";
 import CustomlearnIcon from "../icons/LearnPageIcon";
 import CustomProfileIcon from "../icons/ProfilePageIcon";
 import Animated, { Easing, useAnimatedStyle, useDerivedValue, withTiming} from "react-native-reanimated";
-import React from "react";
+import { useScrollVisibility } from "@/hooks/useScrollVisibility";
 
-// For future animation implementations if needed
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
+const NAV_BAR_HEIGHT = 50;
+const OFFSET_BOTTOM = 15;
 
 const CustomNavBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
-  insets,
 }) => {
-  const [height, setHeight] = useState(0);
-  const [scrollValue] = useScrollContext();
-  const shownAmount = useDerivedValue(
-    () => withTiming(scrollValue.value > 0.5 ? 1: 0, {
-      duration: 250,
-      easing: Easing.out(Easing.cubic),
-    })
-  )
-  
+
+  const visibilityProgress = useScrollVisibility();
+  // Hide the tab bar by transform it either rise it by the original value or 0 to kill it
   const animatedStyle = useAnimatedStyle(
     () => ({
-      transform: [{ translateY: shownAmount.value * (height * 1.5)}]
+      transform: [{ translateY: visibilityProgress.value * (NAV_BAR_HEIGHT + OFFSET_BOTTOM)}],
     })
-  )
-
-  const handleLayout = (e: LayoutChangeEvent) => setHeight(e.nativeEvent.layout.height);
+  , [visibilityProgress])
 
   return (
     <Animated.View 
@@ -41,8 +30,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
         styles.container,
         animatedStyle,
         ]} 
-      onLayout={handleLayout}>
-
+      >
       {state.routes.map((route, index) => {
         if (
           [
@@ -77,7 +65,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
         const primaryColor = "#2F97C4";
         const whiteColor = "#FFFFFF"
         return (
-          <AnimatedTouchableOpacity
+          <TouchableOpacity
             key={route.key}
             onPress={onPress}
             style={[
@@ -96,7 +84,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             <Text style={{color: isFocused? whiteColor : primaryColor}}>
               {label}
             </Text>
-          </AnimatedTouchableOpacity>
+          </TouchableOpacity>
         );
       })}
     </Animated.View>
@@ -134,9 +122,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     flexShrink: 0,
-    bottom: 15,
+    bottom: OFFSET_BOTTOM,
     width: 365,
-    height: 50,
+    height: NAV_BAR_HEIGHT,
     borderRadius: 25,
     borderCurve: "continuous",
     paddingHorizontal: 4,
