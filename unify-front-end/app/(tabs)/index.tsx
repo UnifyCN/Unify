@@ -1,5 +1,7 @@
 import { useState, memo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image, SafeAreaView, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image, SafeAreaView} from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated'
+import { useScrollContext } from '@/context/ScrollContext';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Search from '@/assets/images/search.svg';
@@ -89,10 +91,29 @@ export default function HomeScreen() {
     }
   }
 
+  const [scrollValue,] = useScrollContext();
+  const previousScrollValue = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    // Change this if this cause any error 
+    onScroll: (e) => {
+      const offsetY = e.contentOffset.y;
+      const SCROLL_DISTANCE = 200;
+      if (offsetY < 0 || offsetY > e.contentSize.height)
+        return;
+
+      scrollValue.value = Math.max(
+        0, Math.min(1, scrollValue.value + (offsetY - previousScrollValue.value) / SCROLL_DISTANCE)
+      );
+
+      previousScrollValue.value = offsetY;
+    }
+  }
+);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      <FlatList
+      <Animated.FlatList
         data={[{ key: 'feed' }]}
         renderItem={() => (
           <View style={styles.feedContainer}>
@@ -106,6 +127,7 @@ export default function HomeScreen() {
             setActiveTab={setActiveTab}
           />
         }
+        onScroll={scrollHandler}
       />
       <TouchableOpacity style={styles.floatingButton}>
         <CreatePost />
