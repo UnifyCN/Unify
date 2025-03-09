@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Animated,
   FlatList,
@@ -17,10 +17,10 @@ interface CarouselItem {
 }
 
 const Carousel: React.FC = () => {
-  const scrollX = React.useRef(new Animated.Value(0)).current;
+  const scrollX = useRef(new Animated.Value(0)).current;
   const { width: screenWidth } = useWindowDimensions();
   const containerWidth = screenWidth - 40;
-  const flatListRef = React.useRef<FlatList>(null);
+  const flatListRef = useRef<FlatList>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const carouselData: CarouselItem[] = [
@@ -47,39 +47,72 @@ const Carousel: React.FC = () => {
     },
   ];
 
+  // Duplicate the data to create an infinite loop effect
+  const infiniteCarouselData = [
+    carouselData[carouselData.length - 1], // Last item
+    ...carouselData, // Original items
+    carouselData[0], // First item
+  ];
+
+  // Define the height and width of each item for getItemLayout
+  const ITEM_HEIGHT = 220; // Height of each carousel item
+  const ITEM_WIDTH = containerWidth; // Width of each carousel item
+
+  // getItemLayout function to calculate the offset of each item
+  const getItemLayout = (data: any, index: number) => ({
+    length: ITEM_WIDTH,
+    offset: ITEM_WIDTH * index,
+    index,
+  });
+
+  // Handle scroll events
   const handleScroll = (event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
+    const newIndex = Math.round(offsetX / ITEM_WIDTH);
 
-    // Calculate the clamped index
-    const newIndex = Math.round(offsetX / containerWidth);
-    if (newIndex < 0 || newIndex >= carouselData.length) {
-      flatListRef.current?.scrollToOffset({
-        offset: currentIndex * containerWidth,
-        animated: true,
+    // Handle infinite scroll logic
+    if (newIndex === 0) {
+      // If the user scrolls to the first duplicated item, jump to the last original item
+      flatListRef.current?.scrollToIndex({
+        index: carouselData.length,
+        animated: false,
       });
+      setCurrentIndex(carouselData.length - 1);
+    } else if (newIndex === infiniteCarouselData.length - 1) {
+      // If the user scrolls to the last duplicated item, jump to the first original item
+      flatListRef.current?.scrollToIndex({
+        index: 1, // Jump to the first original item
+        animated: false,
+      });
+      setCurrentIndex(0);
+    } else {
+      // Update the current index for the original items
+      setCurrentIndex(newIndex - 1);
     }
   };
 
-  const handleMomentumScrollEnd = (event: any) => {
-    const offsetX = event.nativeEvent.contentOffset.x;
-
-    const newIndex = Math.round(offsetX / containerWidth);
-    const clampedIndex = Math.max(0, Math.min(newIndex, carouselData.length - 1));
-    setCurrentIndex(clampedIndex);
-
-    flatListRef.current?.scrollToOffset({
-      offset: clampedIndex * containerWidth,
-      animated: true,
-    });
+  // Handle scroll-to-index failures
+  const handleScrollToIndexFailed = (info: {
+    index: number;
+    highestMeasuredFrameIndex: number;
+    averageItemLength: number;
+  }) => {
+    // Retry scrolling after a short delay
+    setTimeout(() => {
+      flatListRef.current?.scrollToIndex({
+        index: info.index,
+        animated: true,
+      });
+    }, 50);
   };
 
   const renderItem = ({ item, index }: { item: CarouselItem; index: number }) => (
-    <View style={[styles.itemContainer, { width: containerWidth }]}>
+    <View style={[styles.itemContainer, { width: ITEM_WIDTH }]}>
       <Image source={item.image} style={styles.image} />
       <View style={{ paddingHorizontal: 14 }}>
         <Text style={styles.description}>{item.description}</Text>
         {/* Only show the progress bar for the first item */}
-        {index === 0 && (
+        {index === 1 && (
           <View style={styles.progressContainer}>
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <Text style={styles.progressText}>Completion</Text>
@@ -96,7 +129,7 @@ const Carousel: React.FC = () => {
           </View>
         )}
         {/* Add text for other items */}
-        {index !== 0 && (
+        {index !== 1 && (
           <View style={{ marginTop: 8, flexDirection: "row", justifyContent: "space-between", paddingTop: 10 }}>
             <Text style={styles.additionalTextLeft}>
                 Last Updated
@@ -112,24 +145,25 @@ const Carousel: React.FC = () => {
 
   const renderDotIndicators = () => {
     return carouselData.map((_, index) => {
+      // Adjust the input range to account for the duplicated items
       const inputRange = [
-        (index - 1) * containerWidth,
-        index * containerWidth,
-        (index + 1) * containerWidth,
+        (index) * ITEM_WIDTH,
+        (index + 1) * ITEM_WIDTH,
+        (index + 2) * ITEM_WIDTH,
       ];
-  
+
       const scale = scrollX.interpolate({
         inputRange,
         outputRange: [0.8, 1.2, 0.8],
         extrapolate: "clamp",
       });
-  
+
       const opacity = scrollX.interpolate({
         inputRange,
         outputRange: [0.5, 1, 0.5],
         extrapolate: "clamp",
       });
-  
+
       return (
         <Animated.View
           key={index}
@@ -149,21 +183,23 @@ const Carousel: React.FC = () => {
     <View style={[styles.container, { width: containerWidth }]}>
       <Animated.FlatList
         ref={flatListRef}
-        data={carouselData}
+        data={infiniteCarouselData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => `${item.id}-${index}`} // Ensure unique keys
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         snapToAlignment="center"
-        snapToInterval={containerWidth}
+        snapToInterval={ITEM_WIDTH}
         decelerationRate="fast"
         onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { x: scrollX } } }],
             { useNativeDriver: false, listener: handleScroll }
         )}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEventThrottle={16}
+        initialScrollIndex={1} // Start at the first original item
+        getItemLayout={getItemLayout} // Provide item layout measurements
+        onScrollToIndexFailed={handleScrollToIndexFailed} // Handle scroll-to-index failures
       />
       <View style={styles.dotContainer}>{renderDotIndicators()}</View>
     </View>
