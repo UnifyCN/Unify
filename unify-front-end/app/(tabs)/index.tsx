@@ -1,5 +1,8 @@
 import { useState, memo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image, SafeAreaView, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image, SafeAreaView} from 'react-native';
+import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle} from 'react-native-reanimated'
+import { useScrollContext } from '@/context/ScrollContext';
+import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Search from '@/assets/images/search.svg';
@@ -9,6 +12,8 @@ import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
 
+const SCROLL_DISTANCE = 200;
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
 
 interface HeaderProps {
   activeTab: string;
@@ -89,10 +94,36 @@ export default function HomeScreen() {
     }
   }
 
+  const [scrollValue,] = useScrollContext();
+  const previousScrollValue = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    // Change this if this cause any error 
+    onScroll: (e) => {
+      const offsetY = e.contentOffset.y;
+      if (offsetY < 0 || offsetY > e.contentSize.height)
+        return;
+
+      scrollValue.value = Math.max(
+        0, Math.min(1, scrollValue.value + (offsetY - previousScrollValue.value) / SCROLL_DISTANCE)
+      );
+
+      previousScrollValue.value = offsetY;
+    },
+  }
+);
+
+  const visibilityProgress = useScrollVisibility();
+  // Hide the post button, 135 is the combination of the button diameter + 75 offset from the bottom
+  const animatedStyle = useAnimatedStyle(
+    () => ({
+      transform: [{ translateY: visibilityProgress.value * (135)}],
+    })
+  , [visibilityProgress])
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      <FlatList
+      <Animated.FlatList
         data={[{ key: 'feed' }]}
         renderItem={() => (
           <View style={styles.feedContainer}>
@@ -106,10 +137,11 @@ export default function HomeScreen() {
             setActiveTab={setActiveTab}
           />
         }
+        onScroll={scrollHandler}
       />
-      <TouchableOpacity style={styles.floatingButton}>
-        <CreatePost />
-      </TouchableOpacity>
+      <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
+          <CreatePost />
+      </AnimatedTouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -237,7 +269,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: "absolute",
-    bottom: 85,
+    bottom: 70,
     right: 20,
     width: 58.75,
     height: 58.75,
