@@ -36,6 +36,25 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           [
             "_sitemap",
             "+not-found",
+            "Learn/modules",
+            "Learn/journey-map",
+            "Learn/module/in-progress",
+            "Learn/module/lesson-library",
+            "Learn/In-progress",
+            "Learn/Lesson-library",
+            "Learn/Main-lesson",
+            "Learn/moduleComponents/lesson-library",
+            "Learn/moduleComponents/index",
+            "Learn/moduleComponents/in-progress",
+            "Learn/Lessons/path-way-finance",
+            "Learn/moduleComponents/lesson-completed",
+            "Learn/moduleComponents/quiz-screen",
+            "Learn/moduleComponents/quiz-completed",
+            "Learn/moduleComponents/main-lesson",
+            "Learn/Lessons/PathWayFinanceSubTopics/budgeting",
+            "Profile/profile-settings",
+            "Profile/edit-profile",
+            "Profile/profile-suggestions"
           ].includes(route.name)
         )
           return null;
@@ -97,7 +116,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   ): React.ReactNode {
     const iconMap: Record<string, React.ReactNode> = {
       index: <CustomHomeIcon name={"Home"} color={color} focused={isFocused} />,
-      learn: (
+      "Learn/index": (
         <CustomlearnIcon name={"Learn"} color={color} focused={isFocused} />
       ),
       profile: (

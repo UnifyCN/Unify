@@ -22,25 +22,22 @@ const LessonCard: React.FC<LessonCardProps> = ({
   style, // Destructure the `style` prop
 }) => {
   return (
-    <>
-      {/* Apply custom styles */}
-      <View style={[styles.card, style]}> 
-        <ImageBackground
-          source={imageSource}
-          style={styles.cardImage}
-          imageStyle={styles.imageStyle}
-        >
-          {/* Overlay */}
-          <View style={styles.overlay} />
+    <View style={[styles.card, style]}> {/* Apply custom styles */}
+      <ImageBackground
+        source={imageSource}
+        style={styles.cardImage}
+        imageStyle={styles.imageStyle}
+      >
+        {/* Overlay */}
+        <View style={styles.overlay} />
 
-          {/* Title and Description */}
-          <View style={styles.textContainer}>
-            <Text style={styles.cardTitle}>{title}</Text>
-            <Text style={styles.cardDescription}>{description}</Text>
-          </View>
-        </ImageBackground>
-      </View>
-    </>
+        {/* Title and Description */}
+        <View style={styles.textContainer}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <Text style={styles.cardDescription}>{description}</Text>
+        </View>
+      </ImageBackground>
+    </View>
   );
 };
 

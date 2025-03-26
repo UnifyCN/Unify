@@ -42,7 +42,7 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
       <View style={styles.cardContainer}>
         <TouchableOpacity 
           style={styles.card} 
-          onPress={() => router.push('/(tabs)/learn/Lesson-library')}
+          onPress={() => router.push('/(tabs)/Learn/Lesson-library')}
         >
           <Image 
             style={styles.cardImage} 
@@ -52,7 +52,7 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.card} 
-          onPress={() => router.push('/(tabs)/learn/journey-map')}
+          onPress={() => router.push('/(tabs)/Learn/journey-map')}
         >
           <Image 
             style={styles.cardImage} 

@@ -15,7 +15,7 @@ interface PopupModalProps {
   bottomResponse: string;
   show: boolean;
   setShow: any;
-  link: string;
+  link?: string;
   confirm: any;
 }
 
@@ -25,24 +25,29 @@ const PopupModal: React.FC<PopupModalProps> = ({
   bottomResponse,
   show,
   setShow,
-  link,
+  link = "",
   confirm
 }) => {
   return (
-    // Modalthat fades in when next button is pressed 
+    // Modal that fades in when next button is pressed 
     <Modal transparent visible={show} animationType="fade">
       <View style={styles.modal}>
         <View style={styles.modalContent}>
-          <Image source={require("@/assets/images/warn.png")} style={styles.image}></Image>
+          <Image source={require("../../assets/images/warn.png")} style={styles.image}></Image>
           <Text style={styles.questionText}>{question}</Text>
           {/* Proceed to quiz*/}
-          <Link href={link as any} asChild>
-            <TouchableOpacity style={styles.modalButton}
-              // calls a function (ex. clearing quiz questions) after button is pressed
-              onPress={() => {confirm()}}>
+          {link ? (  // only navigate if link is provided
+            <Link href={link as any} asChild>
+              <TouchableOpacity style={styles.modalButton}
+                onPress={() => { confirm(); }}>
+                <Text style={styles.yesText}>{topResponse}</Text>
+              </TouchableOpacity>
+            </Link>
+          ) : (
+            <TouchableOpacity style={styles.modalButton} onPress={() => { confirm(); }}>
               <Text style={styles.yesText}>{topResponse}</Text>
             </TouchableOpacity>
-          </Link>
+          )}
           {/* Go back to key takeaways*/}
           <TouchableOpacity style={[styles.modalButton, styles.modalBottomButton]}
             onPress={setShow}>
@@ -63,7 +68,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '80%',
-    height: 305,
+    height: 325,
     backgroundColor: '#fff', 
     borderRadius: 16,
     alignItems: 'center',
@@ -86,6 +91,8 @@ const styles = StyleSheet.create({
   questionText: {
     fontWeight: "bold", 
     fontSize: 17,
+    marginHorizontal: 50,
+    textAlign: "center",
   },
   noText: {
     color: '#000',
