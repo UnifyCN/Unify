@@ -33,6 +33,12 @@ export default function TabLayout() {
           title: "Profile",
         }}
       />
+      <Tabs.Screen
+        name="loginlogout"
+        options={{
+          title: "Login/Logout",
+        }}
+      />
     </Tabs>
   );
 }
