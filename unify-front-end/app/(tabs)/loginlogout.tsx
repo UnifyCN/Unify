@@ -5,7 +5,7 @@ import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react-native";
 import outputs from "@/amplify_outputs.json"; 
 
 Amplify.configure(outputs);
-
+//test
 const SignOutButton = () => {
   const { signOut } = useAuthenticator();
 
