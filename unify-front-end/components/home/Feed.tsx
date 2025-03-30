@@ -27,9 +27,10 @@ export interface User {
 export interface Post {
   id: number;
   user: User;
+  userReply?: string;
   time: string;
   description: string;
-  pictures: React.FC[];
+  pictures?: React.FC[];
   likes: number;
   liked: boolean;
   comments: number;
@@ -83,6 +84,13 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
                 <Text style={styles.name}>{item.user.name}</Text>
                 <Text style={styles.time}>{item.time}</Text>
             </View>
+            
+            {item.userReply && (
+              <View style={styles.replyContainer}>
+                <Text style={styles.time}>Replying to </Text>
+                <Text style={styles.replyUser}>{item.userReply}</Text>
+              </View>
+            )}
 
             {/* Description */}
             <Text style={styles.description}>{item.description}</Text>
@@ -181,7 +189,12 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 16,
     textAlign: "left",
-    color: "gray",
+    color: "#999999",
+  },
+  replyUser: {
+    fontSize: 16,
+    textAlign: "left",
+    color: "#FE0034",
   },
   description: {
     fontSize: 16,
@@ -222,6 +235,9 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "#E5E5E5",
   },
+  replyContainer: {
+    flexDirection: "row",
+  }
 });
 
 export default Feed;
