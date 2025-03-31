@@ -1,10 +1,19 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
+  PostLike: a.model({
+    id: a.id(), // Primary Key
+    userId: a.id().required(), 
+    postId: a.id().required(), 
+    user: a.belongsTo('User', 'userId'), 
+    post: a.belongsTo('Post', 'postId'), 
+    createdAt: a.datetime(), 
+  }),
+
   Post: a.model({
     id: a.id(), // Primary Key
     userId: a.id(),
-    user: a.belongsTo('Users', 'userId'), // References Users model
+    user: a.belongsTo('User', 'userId'), 
     content: a.string(),
     mediaUrl: a.string(), // Store in S3
     createdAt: a.datetime(),
@@ -14,16 +23,7 @@ const schema = a.schema({
     // tags: a.manyToMany(() => a.ref('Tag'), () => a.ref('PostTag')),
   }),
 
-  PostLike: a.model({
-    id: a.id(), // Primary Key
-    userId: a.id(), 
-    postId: a.id(), 
-    user: a.belongsTo('Users', 'userId'), 
-    post: a.belongsTo('Post', 'postId'), 
-    createdAt: a.datetime(), 
-  }),
-
-  Users: a.model({
+  User: a.model({ // Ensure the model name is singular
     id: a.id(), // Primary Key
     username: a.string().required(),
     pronouns: a.string(),
@@ -31,8 +31,8 @@ const schema = a.schema({
     email: a.string().required(),
     password: a.string().required(),
     profilePicture: a.string(), // Store in S3
-    posts: a.hasMany('Post', 'userId'), // Inverse relationship for Post.user
-    likes: a.hasMany('PostLike', 'userID'), // Inverse relationship for PostLike.userID
+    post: a.hasMany('Post', 'userId'), // Inverse relationship for Post.user
+    likes: a.hasMany('PostLike', 'userId'), // Corrected reference to userId
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
     // groups: a.hasMany(() => a.ref('GroupMember'), 'userID'),
@@ -40,8 +40,6 @@ const schema = a.schema({
     // following: a.hasMany(() => a.ref('UserFollower'), 'followingID'),
     // lessonProgress: a.hasMany(() => a.ref('LessonProgress'), 'userID'),
   }),
-
-  
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
