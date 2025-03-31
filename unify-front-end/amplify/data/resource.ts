@@ -15,12 +15,12 @@ const schema = a.schema({
     userId: a.id(), 
     postId: a.id(), 
     content: a.string(), 
-    parentCommentID: a.id(), // Optional field for nested replies
+    parentCommentId: a.id(), // id for nested replies
     user: a.belongsTo('User', 'userId'), 
     post: a.belongsTo('Post', 'postId'), 
     parentComment: a.belongsTo('PostComment', 'parentCommentId'), // Self-referencing relationship for nested replies
     replies: a.hasMany('PostComment', 'parentCommentId'), // Inverse relationship for nested replies
-    createdAt: a.datetime(),
+    createdAt: a.datetime(), 
   }),
 
   Post: a.model({
