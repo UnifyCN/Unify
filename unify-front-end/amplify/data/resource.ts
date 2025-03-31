@@ -2,7 +2,7 @@ import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
   Post: a.model({
-    id : a.id(), // Primary Key
+    id: a.id(), // Primary Key
     userId: a.id(),
     user: a.belongsTo('Users', 'userId'), // References Users model
     content: a.string(),
@@ -13,6 +13,7 @@ const schema = a.schema({
     // comments: a.hasMany(() => a.ref('PostComment'), 'postID'),
     // tags: a.manyToMany(() => a.ref('Tag'), () => a.ref('PostTag')),
   }),
+
   Users: a.model({
     id: a.id(), // Primary Key
     username: a.string().required(),
@@ -29,6 +30,15 @@ const schema = a.schema({
     // following: a.hasMany(() => a.ref('UserFollower'), 'followingID'),
     // lessonProgress: a.hasMany(() => a.ref('LessonProgress'), 'userID'),
   }),
+
+  PostLike: a.model({
+    id: a.id(), // Primary Key
+    userID: a.id(), 
+    postID: a.id(), 
+    user: a.belongsTo('Users', 'userID'), 
+    post: a.belongsTo('Post', 'postID'), 
+    createdAt: a.datetime(), 
+}),
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
