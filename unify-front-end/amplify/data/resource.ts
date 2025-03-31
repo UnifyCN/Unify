@@ -9,9 +9,18 @@ const schema = a.schema({
     mediaUrl: a.string(), // Store in S3
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
-    // likes: a.hasMany(() => a.ref('PostLike'), 'postID'),
+    likes: a.hasMany('PostLike', 'postId'),
     // comments: a.hasMany(() => a.ref('PostComment'), 'postID'),
     // tags: a.manyToMany(() => a.ref('Tag'), () => a.ref('PostTag')),
+  }),
+
+  PostLike: a.model({
+    id: a.id(), // Primary Key
+    userId: a.id(), 
+    postId: a.id(), 
+    user: a.belongsTo('Users', 'userId'), 
+    post: a.belongsTo('Post', 'postId'), 
+    createdAt: a.datetime(), 
   }),
 
   Users: a.model({
@@ -23,6 +32,7 @@ const schema = a.schema({
     password: a.string().required(),
     profilePicture: a.string(), // Store in S3
     posts: a.hasMany('Post', 'userId'), // Inverse relationship for Post.user
+    likes: a.hasMany('PostLike', 'userID'), // Inverse relationship for PostLike.userID
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
     // groups: a.hasMany(() => a.ref('GroupMember'), 'userID'),
@@ -31,14 +41,7 @@ const schema = a.schema({
     // lessonProgress: a.hasMany(() => a.ref('LessonProgress'), 'userID'),
   }),
 
-  PostLike: a.model({
-    id: a.id(), // Primary Key
-    userID: a.id(), 
-    postID: a.id(), 
-    user: a.belongsTo('Users', 'userID'), 
-    post: a.belongsTo('Post', 'postID'), 
-    createdAt: a.datetime(), 
-}),
+  
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
