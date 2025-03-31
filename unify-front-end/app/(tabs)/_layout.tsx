@@ -39,6 +39,12 @@ export default function TabLayout() {
           title: "Login/Logout",
         }}
       />
+      <Tabs.Screen
+        name="testAmplify"
+        options={{
+          title: "test",
+        }}
+      />
     </Tabs>
   );
 }
