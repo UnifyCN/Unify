@@ -10,6 +10,19 @@ const schema = a.schema({
     createdAt: a.datetime(), 
   }),
 
+  PostComment: a.model({
+    id: a.id(), // Primary Key
+    userId: a.id(), 
+    postId: a.id(), 
+    content: a.string(), 
+    parentCommentID: a.id(), // Optional field for nested replies
+    user: a.belongsTo('User', 'userId'), 
+    post: a.belongsTo('Post', 'postId'), 
+    parentComment: a.belongsTo('PostComment', 'parentCommentId'), // Self-referencing relationship for nested replies
+    replies: a.hasMany('PostComment', 'parentCommentId'), // Inverse relationship for nested replies
+    createdAt: a.datetime(),
+  }),
+
   Post: a.model({
     id: a.id(), // Primary Key
     userId: a.id(),
@@ -19,7 +32,7 @@ const schema = a.schema({
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
     likes: a.hasMany('PostLike', 'postId'),
-    // comments: a.hasMany(() => a.ref('PostComment'), 'postID'),
+    comments: a.hasMany('PostComment', 'postId'), // Inverse relationship for PostComment.post
     // tags: a.manyToMany(() => a.ref('Tag'), () => a.ref('PostTag')),
   }),
 
@@ -32,7 +45,8 @@ const schema = a.schema({
     password: a.string().required(),
     profilePicture: a.string(), // Store in S3
     post: a.hasMany('Post', 'userId'), // Inverse relationship for Post.user
-    likes: a.hasMany('PostLike', 'userId'), // Corrected reference to userId
+    likes: a.hasMany('PostLike', 'userId'), // Inverser relationship for PostLike.user
+    comments: a.hasMany('PostComment', 'userId'), // Inverse relationship for PostComment.user
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
     // groups: a.hasMany(() => a.ref('GroupMember'), 'userID'),
