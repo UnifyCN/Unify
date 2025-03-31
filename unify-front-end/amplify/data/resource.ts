@@ -1,19 +1,42 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
+  PostLike: a.model({
+    id: a.id(), // Primary Key
+    userId: a.id().required(), 
+    postId: a.id().required(), 
+    user: a.belongsTo('User', 'userId'), 
+    post: a.belongsTo('Post', 'postId'), 
+    createdAt: a.datetime(), 
+  }),
+
+  PostComment: a.model({
+    id: a.id(), // Primary Key
+    userId: a.id(), 
+    postId: a.id(), 
+    content: a.string(), 
+    parentCommentId: a.id(), // id for nested replies
+    user: a.belongsTo('User', 'userId'), 
+    post: a.belongsTo('Post', 'postId'), 
+    parentComment: a.belongsTo('PostComment', 'parentCommentId'), // Self-referencing relationship for nested replies
+    replies: a.hasMany('PostComment', 'parentCommentId'), // Inverse relationship for nested replies
+    createdAt: a.datetime(), 
+  }),
+
   Post: a.model({
-    id : a.id(), // Primary Key
+    id: a.id(), // Primary Key
     userId: a.id(),
-    user: a.belongsTo('Users', 'userId'), // References Users model
+    user: a.belongsTo('User', 'userId'), 
     content: a.string(),
     mediaUrl: a.string(), // Store in S3
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
-    // likes: a.hasMany(() => a.ref('PostLike'), 'postID'),
-    // comments: a.hasMany(() => a.ref('PostComment'), 'postID'),
+    likes: a.hasMany('PostLike', 'postId'),
+    comments: a.hasMany('PostComment', 'postId'), // Inverse relationship for PostComment.post
     // tags: a.manyToMany(() => a.ref('Tag'), () => a.ref('PostTag')),
   }),
-  Users: a.model({
+
+  User: a.model({ // Ensure the model name is singular
     id: a.id(), // Primary Key
     username: a.string().required(),
     pronouns: a.string(),
@@ -21,7 +44,9 @@ const schema = a.schema({
     email: a.string().required(),
     password: a.string().required(),
     profilePicture: a.string(), // Store in S3
-    posts: a.hasMany('Post', 'userId'), // Inverse relationship for Post.user
+    post: a.hasMany('Post', 'userId'), // Inverse relationship for Post.user
+    likes: a.hasMany('PostLike', 'userId'), // Inverser relationship for PostLike.user
+    comments: a.hasMany('PostComment', 'userId'), // Inverse relationship for PostComment.user
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
     // groups: a.hasMany(() => a.ref('GroupMember'), 'userID'),
