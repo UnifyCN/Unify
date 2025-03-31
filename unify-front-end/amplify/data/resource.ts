@@ -15,6 +15,7 @@ const schema = a.schema({
       email: a.string().required(),
       password: a.string().required(),
       profilePicture: a.string(), // Store in S3
+      postsId: a.id(),
       posts: a.hasMany('posts', 'postId'),
       // groups: a.hasMany(() => a.ref('GroupMember'), 'userID'),
       // followers: a.hasMany(() => a.ref('UserFollower'), 'followerID'),
