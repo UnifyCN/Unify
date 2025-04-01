@@ -16,6 +16,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@aws-cdk/cloud-assembly-schema": "40.6.0",
     "@aws-amplify/react-native": "^1.1.7",
     "@aws-amplify/ui-react-native": "^2.4.5",
     "@expo/vector-icons": "^14.0.2",
