@@ -69,6 +69,8 @@ const schema = a.schema({
     name: a.string().required(),
     posts: a.hasMany('PostTag', 'tagId'), // Many-to-many relationship with Post through PostTag
   })
+
+  
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
