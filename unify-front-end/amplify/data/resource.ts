@@ -1,6 +1,14 @@
 import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
+  PostTag: a.model({
+    tagId: a.id().required(),
+    postId: a.id().required(),
+    tag: a.belongsTo('Tag', 'tagId'), // Foreign key reference to Tag model
+    post: a.belongsTo('Post', 'postId'), // Foreign key reference to Post model
+    createdAt: a.datetime(),
+  }),
+
   PostLike: a.model({
     id: a.id(), // Primary Key
     userId: a.id().required(), 
@@ -33,7 +41,7 @@ const schema = a.schema({
     updatedAt: a.datetime(),
     likes: a.hasMany('PostLike', 'postId'),
     comments: a.hasMany('PostComment', 'postId'), // Inverse relationship for PostComment.post
-    // tags: a.manyToMany(() => a.ref('Tag'), () => a.ref('PostTag')),
+    tags: a.hasMany('PostTag', 'postId'), // Many-to-many relationship with Tag through PostTag
   }),
 
   User: a.model({ // Ensure the model name is singular
@@ -59,6 +67,7 @@ const schema = a.schema({
   Tag: a.model({
     id: a.id(),
     name: a.string().required(),
+    posts: a.hasMany('PostTag', 'tagId'), // Many-to-many relationship with Post through PostTag
   })
 }).authorization((allow) => [allow.guest()]);
 
