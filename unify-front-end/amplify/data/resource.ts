@@ -60,7 +60,7 @@ const schema = a.schema({
     memberships: a.hasMany('GroupMember', 'userId'), // Relationship to GroupMember
     followers: a.hasMany('UserFollower', 'followingId'), // Users who follow this user
     following: a.hasMany('UserFollower', 'followerId'), // Users this user is following
-    // lessonProgress: a.hasMany(() => a.ref('LessonProgress'), 'userID'),
+    progress: a.hasMany('Progress', 'userId'), // Relationship to Progress
   }),
 
   // Tags used for posts or lessons
@@ -101,7 +101,8 @@ const schema = a.schema({
     title: a.string(), 
     description: a.string(), 
     createdAt: a.datetime(), 
-    subTopics: a.hasMany('SubTopic', 'mainTopicID'), // Relationship to SubTopic
+    subTopics: a.hasMany('SubTopic', 'mainTopicId'), // Relationship to SubTopic
+    progress: a.hasMany('Progress', 'mainTopicId'), // Relationship to Progress
   }),
 
   SubTopic: a.model({
@@ -109,9 +110,10 @@ const schema = a.schema({
     mainTopicId: a.id(), // Foreign Key referencing MainTopic
     title: a.string(),
     description: a.string(), 
-    progress: a.integer(), // Counted as in percentage
+    progressDisplay: a.integer(), // Counted as in percentage, front end display only
+    progress: a.hasMany('Progress', 'subTopicId'), // Relationship to Progress
     createdAt: a.datetime(), 
-    lessons: a.hasMany('Lesson', 'subTopicID'), // Relationship to Lesson
+    lessons: a.hasMany('Lesson', 'subTopicId'), // Relationship to Lesson
     mainTopic: a.belongsTo('MainTopic', 'mainTopicId'), // Foreign key reference to MainTopic model
 }),
 
@@ -125,6 +127,7 @@ const schema = a.schema({
     createdAt: a.datetime(), 
     quizzes: a.hasMany('Quiz', 'lessonId'), // Relationship to Quiz
     subtopic: a.belongsTo('SubTopic', 'subTopicId'), // Foreign key reference to SubTopic model
+    Progress: a.hasMany('Progress', 'lessonId'), // Relationship to Progress
   }),
 
   Quiz: a.model({
@@ -137,6 +140,26 @@ const schema = a.schema({
     createdAt: a.datetime(), 
   }),
 
+  // Quiz progress is tracked in quiz model, when all quizes that belongs to a lesson are passed, the lesson is considered passed
+  // There are multiple lessons for every sub topic, tracked in subtopic model
+  // Create a new progress model for every sub topic, main topic
+  // Each user can have multple progress models. e.g: user1 can have progress for main topic 1, sub topic 1, lesson 1, lesson 2, etc.
+  Progress: a.model({
+    id: a.id(), // Primary Key
+    userId: a.id(), // Foreign Key referencing User
+    user: a.belongsTo('User', 'userId'), // Foreign key reference to User model
+    mainTopicId: a.id(), // Foreign Key referencing MainTopic (optional)
+    mainTopic: a.belongsTo('MainTopic', 'mainTopicId'), // Foreign key reference to MainTopic model
+    subTopicId: a.id(), // Foreign Key referencing SubTopic (optional)
+    subTopic: a.belongsTo('SubTopic', 'subTopicId'), // Foreign key reference to SubTopic model
+    lessonId: a.id(), // Foreign Key referencing Lesson (optional)
+    lesson: a.belongsTo('Lesson', 'lessonId'), // Foreign key reference to Lesson model
+    progress: a.integer(), // Progress percentage (0-100)
+    completed: a.boolean(), // Whether the item is completed
+    lastAccessedAt: a.datetime(), 
+    createdAt: a.datetime(), 
+    updatedAt: a.datetime(), 
+}),
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
