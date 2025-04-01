@@ -58,8 +58,8 @@ const schema = a.schema({
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
     memberships: a.hasMany('GroupMember', 'userId'), // Relationship to GroupMember
-    // followers: a.hasMany(() => a.ref('UserFollower'), 'followerID'),
-    // following: a.hasMany(() => a.ref('UserFollower'), 'followingID'),
+    followers: a.hasMany('UserFollower', 'followingId'), // Users who follow this user
+    following: a.hasMany('UserFollower', 'followerId'), // Users this user is following
     // lessonProgress: a.hasMany(() => a.ref('LessonProgress'), 'userID'),
   }),
 
@@ -85,6 +85,15 @@ const schema = a.schema({
     user: a.belongsTo('User', 'userId'), // Relationship to User
     group: a.belongsTo('Group', 'groupId'), // Relationship to Group
     joinedAt: a.datetime(), 
+  }),
+
+  UserFollower: a.model({
+    id: a.id(), // Primary Key
+    followerId: a.id(), // ID of the follower (User who follows)
+    followingId: a.id(), // ID of the user being followed
+    follower: a.belongsTo('User', 'followerId'), // Relationship to the follower User
+    following: a.belongsTo('User', 'followingId'), // Relationship to the followed User
+    createdAt: a.datetime(),
   }),
 
 }).authorization((allow) => [allow.guest()]);
