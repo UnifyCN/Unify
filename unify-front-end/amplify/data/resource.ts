@@ -96,6 +96,46 @@ const schema = a.schema({
     createdAt: a.datetime(),
   }),
 
+  MainTopic: a.model({
+    id: a.id(), // Primary Key
+    title: a.string(), // Title of the main topic
+    description: a.string(), // Description of the main topic
+    createdAt: a.datetime(), // Timestamp for when the main topic was created
+    subTopics: a.hasMany('SubTopic', 'mainTopicID'), // Relationship to SubTopic
+  }),
+
+  SubTopic: a.model({
+    id: a.id(), // Primary Key
+    mainTopicID: a.id(), // Foreign Key referencing MainTopic
+    title: a.string(), // Title of the subtopic
+    description: a.string(), // Description of the subtopic
+    progress: a.integer(), // Progress percentage
+    createdAt: a.datetime(), // Timestamp for when the subtopic was created
+    lessons: a.hasMany('Lesson', 'subTopicID'), // Relationship to Lesson
+}),
+
+  Lesson: a.model({
+    id: a.id(), // Primary Key
+    subTopicId: a.id(), // Foreign Key referencing SubTopic
+    title: a.string(), 
+    description: a.string(), 
+    videoUrl: a.string(), // URL for the lesson video (stored in S3)
+    content: a.json(), // JSON content for the lesson (supports multiple formats)
+    createdAt: a.datetime(), 
+    quizzes: a.hasMany('Quiz', 'lessonId'), // Relationship to Quiz
+    subtopic: a.belongsTo('SubTopic', 'subTopicId'), // Foreign key reference to SubTopic model
+  }),
+
+  Quiz: a.model({
+    id: a.id(), // Primary Key
+    lessonId: a.id(), 
+    lesson: a.belongsTo('Lesson', 'lessonId'), // Foreign key reference to Lesson model
+    title: a.string(), 
+    questions: a.json(), // JSON format for questions (supports multiple-choice, open-ended, etc.)
+    progress: a.string(), // Status of the quiz ("pass", "fail", or null)
+    createdAt: a.datetime(), 
+  }),
+
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
