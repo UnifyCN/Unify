@@ -98,20 +98,21 @@ const schema = a.schema({
 
   MainTopic: a.model({
     id: a.id(), // Primary Key
-    title: a.string(), // Title of the main topic
-    description: a.string(), // Description of the main topic
-    createdAt: a.datetime(), // Timestamp for when the main topic was created
+    title: a.string(), 
+    description: a.string(), 
+    createdAt: a.datetime(), 
     subTopics: a.hasMany('SubTopic', 'mainTopicID'), // Relationship to SubTopic
   }),
 
   SubTopic: a.model({
     id: a.id(), // Primary Key
-    mainTopicID: a.id(), // Foreign Key referencing MainTopic
-    title: a.string(), // Title of the subtopic
-    description: a.string(), // Description of the subtopic
-    progress: a.integer(), // Progress percentage
-    createdAt: a.datetime(), // Timestamp for when the subtopic was created
+    mainTopicId: a.id(), // Foreign Key referencing MainTopic
+    title: a.string(),
+    description: a.string(), 
+    progress: a.integer(), // Counted as in percentage
+    createdAt: a.datetime(), 
     lessons: a.hasMany('Lesson', 'subTopicID'), // Relationship to Lesson
+    mainTopic: a.belongsTo('MainTopic', 'mainTopicId'), // Foreign key reference to MainTopic model
 }),
 
   Lesson: a.model({
