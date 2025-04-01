@@ -57,7 +57,7 @@ const schema = a.schema({
     comments: a.hasMany('PostComment', 'userId'), // Inverse relationship for PostComment.user
     createdAt: a.datetime(),
     updatedAt: a.datetime(),
-    // groups: a.hasMany(() => a.ref('GroupMember'), 'userID'),
+    memberships: a.hasMany('GroupMember', 'userId'), // Relationship to GroupMember
     // followers: a.hasMany(() => a.ref('UserFollower'), 'followerID'),
     // following: a.hasMany(() => a.ref('UserFollower'), 'followingID'),
     // lessonProgress: a.hasMany(() => a.ref('LessonProgress'), 'userID'),
@@ -68,9 +68,25 @@ const schema = a.schema({
     id: a.id(),
     name: a.string().required(),
     posts: a.hasMany('PostTag', 'tagId'), // Many-to-many relationship with Post through PostTag
-  })
+  }),
 
-  
+  Group: a.model({
+    id: a.id(), // Primary Key
+    name: a.string(), 
+    description: a.string(), 
+    createdAt: a.datetime(), 
+    members: a.hasMany('GroupMember', 'groupId'), // Relationship to GroupMember
+  }),
+
+  GroupMember: a.model({
+    id: a.id(), // Primary Key
+    userId: a.id(), 
+    groupId: a.id(), 
+    user: a.belongsTo('User', 'userId'), // Relationship to User
+    group: a.belongsTo('Group', 'groupId'), // Relationship to Group
+    joinedAt: a.datetime(), 
+  }),
+
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
