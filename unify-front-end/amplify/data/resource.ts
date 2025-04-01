@@ -44,7 +44,7 @@ const schema = a.schema({
     tags: a.hasMany('PostTag', 'postId'), // Many-to-many relationship with Tag through PostTag
   }),
 
-  User: a.model({ // Ensure the model name is singular
+  User: a.model({ 
     id: a.id(), // Primary Key
     username: a.string().required(),
     pronouns: a.string(),
