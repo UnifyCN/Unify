@@ -54,6 +54,12 @@ const schema = a.schema({
     // following: a.hasMany(() => a.ref('UserFollower'), 'followingID'),
     // lessonProgress: a.hasMany(() => a.ref('LessonProgress'), 'userID'),
   }),
+
+  // Tags used for posts or lessons
+  Tag: a.model({
+    id: a.id(),
+    name: a.string().required(),
+  })
 }).authorization((allow) => [allow.guest()]);
 
 export type Schema = ClientSchema<typeof schema>;
