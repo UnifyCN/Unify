@@ -20,14 +20,14 @@ import { GraphQLError } from "graphql";
 const client = generateClient<Schema>();
 const Modules = () => {
   //Backend data fetching
-  const [LessonLibrarySubTopic, setLessonLibrarySubTopic] = useState<Schema["SubTopic"]["type"][]>([]);
+  const [LessonLibraryMainTopic, setLessonLibraryMainTopic] = useState<Schema["MainTopic"]["type"][]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
 
   //Fetching Lesson Library data from the backend
   useEffect(() => {
-    const sub = client.models.SubTopic.observeQuery().subscribe({
+    const sub = client.models.MainTopic.observeQuery().subscribe({
       next: ({ items }) => {
-        setLessonLibrarySubTopic([...items]);
+        setLessonLibraryMainTopic([...items]);
       },
     });
 
@@ -108,6 +108,7 @@ const Modules = () => {
           <ProgressSectionLL
             header="Lesson Library"
             navigatePage={"/(tabs)/Learn/Lesson-library"}
+            mainTopic={LessonLibraryMainTopic}            
           />
           <ProgressSectionIP
             header="In-Progress"
