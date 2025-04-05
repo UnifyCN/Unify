@@ -77,7 +77,7 @@ const Modules = () => {
             />
           </View>
 
-          {/* Tags search*/}
+          {/* Tags search */}
           <View style={styles.tagsContainer}>
             {tags.map((tag) => (
               <TouchableOpacity
