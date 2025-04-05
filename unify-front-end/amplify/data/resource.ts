@@ -144,6 +144,7 @@ const schema = a.schema({
   // There are multiple lessons for every sub topic, tracked in subtopic model
   // Create a new progress model for every sub topic, main topic
   // Each user can have multple progress models. e.g: user1 can have progress for main topic 1, sub topic 1, lesson 1, lesson 2, etc.
+  
   Progress: a.model({
     id: a.id(), // Primary Key
     userId: a.id(), // Foreign Key referencing User
@@ -160,7 +161,7 @@ const schema = a.schema({
     createdAt: a.datetime(), 
     updatedAt: a.datetime(), 
 }),
-}).authorization((allow) => [allow.guest()]);
+}).authorization((allow) => [allow.authenticated()]); // Allow authenticated users to access the data
 
 export type Schema = ClientSchema<typeof schema>;
 
