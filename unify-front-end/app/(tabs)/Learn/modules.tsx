@@ -12,6 +12,10 @@ import { ProgressSectionLL } from "@/components/learn/ProgressSectionLL";
 import { ProgressSectionIP } from "@/components/learn/ProgressSectionIP";
 import { ProgressSectionComplete } from "@/components/learn/ProgressSectionComplete";
 
+// Data fetching imports
+import { generateClient } from "aws-amplify/data";
+import { type Schema } from '@/amplify/data/resource';
+
 const Modules = () => {
   const [selectedTag, setSelectedTag] = useState("All");
 
