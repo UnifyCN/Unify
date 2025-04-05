@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,9 +14,27 @@ import { ProgressSectionComplete } from "@/components/learn/ProgressSectionCompl
 
 // Data fetching imports
 import { generateClient } from "aws-amplify/data";
-import { type Schema } from '@/amplify/data/resource';
+import type { Schema } from '@/amplify/data/resource';
+import { GraphQLError } from "graphql";
 
+const client = generateClient<Schema>();
 const Modules = () => {
+  //Backend data fetching
+  const [LessonLibrarySubTopic, setLessonLibrarySubTopic] = useState<Schema["SubTopic"]["type"][]>([]);
+  const [errors, setErrors] = useState<GraphQLError>();
+
+  //Fetching Lesson Library data from the backend
+  useEffect(() => {
+    const sub = client.models.SubTopic.observeQuery().subscribe({
+      next: ({ items }) => {
+        setLessonLibrarySubTopic([...items]);
+      },
+    });
+
+    return () => sub.unsubscribe();
+  }, []);
+  
+
   const [selectedTag, setSelectedTag] = useState("All");
 
   const tags = [
