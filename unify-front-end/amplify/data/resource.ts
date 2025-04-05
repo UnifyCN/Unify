@@ -104,7 +104,7 @@ const schema = a.schema({
     subTopics: a.hasMany('SubTopic', 'mainTopicId'), // Relationship to SubTopic
     progress: a.hasMany('Progress', 'mainTopicId'), // Relationship to Progress
     mediaUrl: a.string(),
-    linkToLesson: a.string(), // URL for the main topic lesson (
+    linkToLesson: a.string(), // URL for the main topic lesson 
   }),
 
   SubTopic: a.model({
