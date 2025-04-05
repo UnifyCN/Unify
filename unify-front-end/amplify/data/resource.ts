@@ -98,11 +98,13 @@ const schema = a.schema({
 
   MainTopic: a.model({
     id: a.id(), // Primary Key
-    title: a.string(), 
+    title: a.string().required(), 
     description: a.string(), 
     createdAt: a.datetime(), 
     subTopics: a.hasMany('SubTopic', 'mainTopicId'), // Relationship to SubTopic
     progress: a.hasMany('Progress', 'mainTopicId'), // Relationship to Progress
+    mediaUrl: a.string(),
+    linkToLesson: a.string(), // URL for the main topic lesson (
   }),
 
   SubTopic: a.model({
@@ -115,6 +117,7 @@ const schema = a.schema({
     createdAt: a.datetime(), 
     lessons: a.hasMany('Lesson', 'subTopicId'), // Relationship to Lesson
     mainTopic: a.belongsTo('MainTopic', 'mainTopicId'), // Foreign key reference to MainTopic model
+    mediaUrl: a.string(), // URL for the subtopic media (stored in S3)
 }),
 
   Lesson: a.model({
@@ -128,6 +131,7 @@ const schema = a.schema({
     quizzes: a.hasMany('Quiz', 'lessonId'), // Relationship to Quiz
     subtopic: a.belongsTo('SubTopic', 'subTopicId'), // Foreign key reference to SubTopic model
     Progress: a.hasMany('Progress', 'lessonId'), // Relationship to Progress
+    mediaUrl: a.string(), // URL for the lesson media (stored in S3)
   }),
 
   Quiz: a.model({
@@ -144,6 +148,7 @@ const schema = a.schema({
   // There are multiple lessons for every sub topic, tracked in subtopic model
   // Create a new progress model for every sub topic, main topic
   // Each user can have multple progress models. e.g: user1 can have progress for main topic 1, sub topic 1, lesson 1, lesson 2, etc.
+  
   Progress: a.model({
     id: a.id(), // Primary Key
     userId: a.id(), // Foreign Key referencing User
@@ -160,13 +165,13 @@ const schema = a.schema({
     createdAt: a.datetime(), 
     updatedAt: a.datetime(), 
 }),
-}).authorization((allow) => [allow.guest()]);
+}).authorization((allow) => [allow.authenticated()]); // Allow authenticated users to access the data
 
 export type Schema = ClientSchema<typeof schema>;
 
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'iam',
+    defaultAuthorizationMode: 'userPool',
   },
 });

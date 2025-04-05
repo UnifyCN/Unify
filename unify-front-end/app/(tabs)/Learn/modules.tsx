@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,29 @@ import { ProgressSectionLL } from "@/components/learn/ProgressSectionLL";
 import { ProgressSectionIP } from "@/components/learn/ProgressSectionIP";
 import { ProgressSectionComplete } from "@/components/learn/ProgressSectionComplete";
 
+// Data fetching imports
+import { generateClient } from "aws-amplify/data";
+import type { Schema } from '@/amplify/data/resource';
+import { GraphQLError } from "graphql";
+
+const client = generateClient<Schema>();
 const Modules = () => {
+  //Backend data fetching
+  const [LessonLibraryMainTopic, setLessonLibraryMainTopic] = useState<Schema["MainTopic"]["type"][]>([]);
+  const [errors, setErrors] = useState<GraphQLError>();
+
+  //Fetching Lesson Library data from the backend
+  useEffect(() => {
+    const sub = client.models.MainTopic.observeQuery().subscribe({
+      next: ({ items }) => {
+        setLessonLibraryMainTopic([...items]);
+      },
+    });
+
+    return () => sub.unsubscribe();
+  }, []);
+  
+
   const [selectedTag, setSelectedTag] = useState("All");
 
   const tags = [
@@ -86,6 +108,7 @@ const Modules = () => {
           <ProgressSectionLL
             header="Lesson Library"
             navigatePage={"/(tabs)/Learn/Lesson-library"}
+            mainTopic={LessonLibraryMainTopic}            
           />
           <ProgressSectionIP
             header="In-Progress"
