@@ -1,55 +1,40 @@
-
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import React, {useState} from 'react';
+import { View, StyleSheet, FlatList, Animated, ViewToken, TouchableOpacity, Text } from 'react-native';
+import { useState, useRef } from 'react';
 import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
-import OnboardingOne from '../assets/images/onboardingSvgOne.svg';
-import OnboardingTwo from '../assets/images/onboardingSvgTwo.svg';
-import OnboardingThree from '../assets/images/onboardingSvgThree.svg';
-
-const onboardingSteps = [
-  {
-    graphic: OnboardingOne,
-    title: "Fostering Community",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
-  },
-  {
-    graphic: OnboardingTwo,
-    title: "Empowering Learning",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
-  },
-  {
-    graphic: OnboardingThree,
-    title: "Providing Resources",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
-  },
-];
+import OnboardSlides from '@/components/onboarding/OnboardSlides';
+import OnboardItem from '@/components/onboarding/OnboardItem';
+import Paginator from '@/components/onboarding/Paginator';
+import OnboardNav from '@/components/onboarding/OnboardNav';
 
 export default function Onboarding() {
-  const [screenIndex, setScreenIndex] = useState(0);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const slidesRef = useRef<FlatList>(null);
   const router = useRouter();
-  const data = onboardingSteps[screenIndex];
-  const Graphic = data.graphic;
 
-  const onNext = () => {
-    const lastScreen = screenIndex === onboardingSteps.length - 1;
-    if (lastScreen) {
-      endOnboarding();
-    } else {
-      setScreenIndex(screenIndex + 1);
+  const viewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
+    if (viewableItems.length > 0 && viewableItems[0].index !== null) {
+      setCurrentIndex(viewableItems[0].index);
+    }
+  }).current;
+
+  const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+  const handleNext = () => {
+    if (currentIndex < OnboardSlides.length - 1) {
+      slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
     }
   };
-  const onBack = () => {
-    const lastScreen = screenIndex === onboardingSteps.length - 1;
-    if (lastScreen) {
+  const handleBack = () => {
+    if (currentIndex === 0) {
       endOnboarding();
     } else {
-      setScreenIndex(screenIndex - 1);
+      slidesRef.current?.scrollToIndex({ index: currentIndex - 1 });
     }
   };
   const endOnboarding = () => {
     router.push('/(tabs)');
-    setScreenIndex(0);
+    setCurrentIndex(0);
   };
 
   return (
@@ -59,24 +44,32 @@ export default function Onboarding() {
           <Text style={styles.skipButton}>Skip</Text>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.contentContainer}>
-        <Graphic width={150} height={150} /> 
-        <Text style={styles.title}>{data.title}</Text>
-        <Text style={styles.description}>{data.description}</Text>
+      <View style={styles.onboardContent}>
+        <FlatList 
+          data={OnboardSlides} 
+          renderItem={({ item }) => <OnboardItem item={item} />} 
+          keyExtractor={(item) => item.id.toString()}
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          pagingEnabled 
+          bounces={false} 
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: false }
+          )}
+          onViewableItemsChanged={viewableItemsChanged}
+          scrollEventThrottle={32}
+          viewabilityConfig={viewConfig}
+          ref={slidesRef}
+        />
+        <Paginator data={OnboardSlides}scrollX={scrollX}/>
       </View>
-      
-      <View style={styles.navContainer}>
-        <TouchableOpacity style={styles.navButtonContainer} onPress={onBack}>
-          <Feather name='chevron-left' size={26} color="#343434"/>
-          <Text style={styles.navButton}>Back</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navButtonContainer} onPress={onNext}>
-          <Text style={styles.navButton}>Next</Text>
-          <Feather name='chevron-right' size={26} color="#343434"/>
-        </TouchableOpacity>
-      </View>
+      <OnboardNav 
+        currentIndex={currentIndex} 
+        totalSlides={OnboardSlides.length} 
+        onNext={handleNext} 
+        onBack={handleBack} 
+      />
     </View>
   );
 }
@@ -86,38 +79,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
-  contentContainer: {
-    flex: 1,
-    alignItems: "center", 
+  onboardContent: {
+    flex: .7,
     justifyContent: "center",
-    padding: 30,
-  },
-  title: {
-    fontSize: 25,
-    fontWeight: "bold",
-    marginTop: 20,
-  },
-  description: {
-    fontSize: 18,
-    color: "#5C5C5C",
-    textAlign: "center",
-    marginTop: 20,
-    width: "80%",
-  },
-  navContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 30,
-    paddingBottom: 50,
-  },
-  navButtonContainer: {
-    flexDirection: "row",
     alignItems: "center",
-  },
-  navButton: {
-    fontWeight: "600",
-    color: "#343434",
-    fontSize: 17,
+    marginTop: 50,
   },
   skipContainer: {
     padding: 30,

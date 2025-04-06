@@ -84,7 +84,7 @@ export default function TabTwoScreen() {
               <Text style={styles.buttonText}>Edit profile</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={() => router.push('/onboarding')}>
               <Text style={styles.buttonText}>Share profile</Text>
             </TouchableOpacity>
 
