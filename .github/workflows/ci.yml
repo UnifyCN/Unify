@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: unify-front-end/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('unify-front-end/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: unify-back-end/node_modules
-          key: ${{ runner.os }}-npm-backend-${{ hashFiles('unify-back-end/package-lock.json') }}
+          key: ${{ runner.os }}-npm-backend-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
