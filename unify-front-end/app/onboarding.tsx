@@ -23,6 +23,8 @@ export default function Onboarding() {
   const handleNext = () => {
     if (currentIndex < OnboardSlides.length - 1) {
       slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
+    } else {
+      router.push('/create-account');
     }
   };
   const handleBack = () => {
@@ -33,7 +35,7 @@ export default function Onboarding() {
     }
   };
   const endOnboarding = () => {
-    router.push('/(tabs)');
+    router.push('/create-account');
     setCurrentIndex(0);
   };
 

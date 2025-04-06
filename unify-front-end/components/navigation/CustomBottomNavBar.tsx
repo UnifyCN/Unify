@@ -36,6 +36,9 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           [
             "_sitemap",
             "+not-found",
+            "loginlogout",
+            "testAmplify",
+            "create-account",
             "Learn/modules",
             "Learn/journey-map",
             "Learn/module/in-progress",
