@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   front-end:
@@ -25,7 +26,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -33,13 +34,20 @@ jobs:
         run: npm install -g @aws-amplify/cli
 
       - name: Pull Amplify Environment
-        run: amplify pull --appId ${{ secrets.AMPLIFY_APP_ID }} --envName ${{ secrets.AMPLIFY_ENV_NAME }} --yes --amplify "{\"envName\":\"${{ secrets.AMPLIFY_ENV_NAME }}\"}" --frontend "{\"frontend\":\"javascript\",\"config\":{\"SourceDir\":\"src\",\"DistributionDir\":\"build\",\"BuildCommand\":\"npm run build\",\"StartCommand\":\"npm start\"}}" --providers "{\"awscloudformation\":{\"region\":\"${{ secrets.AWS_REGION }}\",\"useProfile\":false}}"
+        run: |
+          amplify pull \
+            --appId ${{ secrets.AMPLIFY_APP_ID }} \
+            --envName ${{ secrets.AMPLIFY_ENV_NAME }} \
+            --amplify "{\"envName\":\"${{ secrets.AMPLIFY_ENV_NAME }}\"}" \
+            --frontend "{\"frontend\":\"javascript\",\"config\":{\"SourceDir\":\"src\",\"DistributionDir\":\"build\",\"BuildCommand\":\"npm run build\",\"StartCommand\":\"npm start\"}}" \
+            --providers "{\"awscloudformation\":{\"region\":\"${{ secrets.AWS_REGION }}\",\"accessKeyId\":\"${{ secrets.AWS_ACCESS_KEY_ID }}\",\"secretAccessKey\":\"${{ secrets.AWS_SECRET_ACCESS_KEY }}\"}}" \
+            --yes
 
       - name: Cache node modules
         uses: actions/cache@v3
         with:
           path: unify-front-end/node_modules
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('unify-front-end/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
@@ -76,7 +84,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: unify-back-end/node_modules
-          key: ${{ runner.os }}-npm-backend-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-backend-${{ hashFiles('unify-back-end/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
 
