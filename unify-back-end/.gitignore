@@ -42,3 +42,7 @@ Thumbs.db
 dist/
 build/
 
+# amplify
+.amplify
+amplify_outputs*
+amplifyconfiguration*
