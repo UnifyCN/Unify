@@ -7,7 +7,8 @@ on:
   pull_request:
     branches:
       - main
-
+  workflow_dispatch:
+    
 jobs:
   front-end:
     name: Front End CI Pipeline
@@ -21,6 +22,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Install Amplify CLI
+        run: npm install -g @aws-amplify/cli
+
+      - name: Pull Amplify Environment
+        run: amplify pull --appId ${{ secrets.AMPLIFY_APP_ID }} --envName ${{ secrets.AMPLIFY_ENV_NAME }} --yes --amplify "{\"envName\":\"${{ secrets.AMPLIFY_ENV_NAME }}\"}" --frontend "{\"frontend\":\"javascript\",\"config\":{\"SourceDir\":\"src\",\"DistributionDir\":\"build\",\"BuildCommand\":\"npm run build\",\"StartCommand\":\"npm start\"}}" --providers "{\"awscloudformation\":{\"region\":\"${{ secrets.AWS_REGION }}\",\"useProfile\":false}}"
 
       - name: Cache node modules
         uses: actions/cache@v3

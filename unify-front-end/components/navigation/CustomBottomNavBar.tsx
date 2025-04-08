@@ -1,33 +1,60 @@
-import { View, TouchableOpacity, StyleSheet, Text } from "react-native";
+import { TouchableOpacity, StyleSheet, Text} from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { useScrollContext } from "@/context/ScrollContext";
 import CustomHomeIcon from "../icons/HomePageIcon";
 import CustomlearnIcon from "../icons/LearnPageIcon";
 import CustomProfileIcon from "../icons/ProfilePageIcon";
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-} from "react-native-reanimated";
-import React from "react";
+import Animated, { Easing, useAnimatedStyle, useDerivedValue, withTiming} from "react-native-reanimated";
+import { useScrollVisibility } from "@/hooks/useScrollVisibility";
 
-// For future animation implementations if needed
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
+const NAV_BAR_HEIGHT = 50;
+const OFFSET_BOTTOM = 15;
 
 const CustomNavBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
-  return (
-    <View style={styles.container}>
-      {state.routes.map((route, index) => {
-        // console.log(route);
 
+  const visibilityProgress = useScrollVisibility();
+  // Hide the tab bar by transform it either rise it by the original value or 0 to kill it
+  const animatedStyle = useAnimatedStyle(
+    () => ({
+      transform: [{ translateY: visibilityProgress.value * (NAV_BAR_HEIGHT + OFFSET_BOTTOM)}],
+    })
+  , [visibilityProgress])
+
+  return (
+    <Animated.View 
+      style={[
+        styles.container,
+        animatedStyle,
+        ]} 
+      >
+      {state.routes.map((route, index) => {
         if (
           [
             "_sitemap",
             "+not-found",
+            "Learn/modules",
+            "Learn/journey-map",
+            "Learn/module/in-progress",
+            "Learn/module/lesson-library",
+            "Learn/In-progress",
+            "Learn/Lesson-library",
+            "Learn/Main-lesson",
+            "Learn/moduleComponents/lesson-library",
+            "Learn/moduleComponents/index",
+            "Learn/moduleComponents/in-progress",
+            "Learn/Lessons/path-way-finance",
+            "Learn/moduleComponents/lesson-completed",
+            "Learn/moduleComponents/quiz-screen",
+            "Learn/moduleComponents/quiz-completed",
+            "Learn/moduleComponents/main-lesson",
+            "Learn/Lessons/PathWayFinanceSubTopics/budgeting",
+            "Profile/profile-settings",
+            "Profile/edit-profile",
+            "Profile/profile-suggestions"
           ].includes(route.name)
         )
           return null;
@@ -57,7 +84,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
         const primaryColor = "#2F97C4";
         const whiteColor = "#FFFFFF"
         return (
-          <AnimatedTouchableOpacity
+          <TouchableOpacity
             key={route.key}
             onPress={onPress}
             style={[
@@ -76,15 +103,10 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             <Text style={{color: isFocused? whiteColor : primaryColor}}>
               {label}
             </Text>
-            {/* {isFocused && (
-              <Text style={styles.text}>
-                {label as string}
-              </Text>
-            )} */}
-          </AnimatedTouchableOpacity>
+          </TouchableOpacity>
         );
       })}
-    </View>
+    </Animated.View>
   );
 
   function getIconByRouteName(
@@ -94,7 +116,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   ): React.ReactNode {
     const iconMap: Record<string, React.ReactNode> = {
       index: <CustomHomeIcon name={"Home"} color={color} focused={isFocused} />,
-      learn: (
+      "Learn/index": (
         <CustomlearnIcon name={"Learn"} color={color} focused={isFocused} />
       ),
       profile: (
@@ -119,9 +141,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignSelf: "center",
     flexShrink: 0,
-    bottom: 25,
+    bottom: OFFSET_BOTTOM,
     width: 365,
-    height: 50,
+    height: NAV_BAR_HEIGHT,
     borderRadius: 25,
     borderCurve: "continuous",
     paddingHorizontal: 4,

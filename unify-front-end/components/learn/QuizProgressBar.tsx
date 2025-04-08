@@ -5,13 +5,11 @@ import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
 interface QuizProgressBarProps {
   completed: number;
   total: number;
-  question: string;
 }
 
 const QuizProgressBar: React.FC<QuizProgressBarProps> = ({
   completed,
   total,
-  question,
 }) => {
   const percentage = (completed / total) * 100;
 
@@ -21,7 +19,7 @@ const QuizProgressBar: React.FC<QuizProgressBarProps> = ({
       <View style={styles.progressBarContainer}>
         {/* Gradient Progress Bar */}
         <ExpoLinearGradient
-          colors={["#000000", "#888888"]} // Gradient colors
+          colors={["#888888", "#000000"]} // Gradient colors
           style={[styles.progressBar, { width: `${percentage}%` }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -34,9 +32,6 @@ const QuizProgressBar: React.FC<QuizProgressBarProps> = ({
       {/* Display current question shown */}
       <Text style={styles.questionHeader}>
         Question {completed}
-      </Text>
-      <Text style={styles.questionText}>
-        {question}
       </Text>
     </View>
   );
@@ -56,13 +51,8 @@ const styles = StyleSheet.create({
     fontSize: 25,
     color: "#34343",
     marginBottom: 10,
-    marginTop: 20,
+    marginTop: 30,
     fontWeight: "500",
-  },
-  questionText: {
-    fontSize: 19,
-    color: "#333",
-    marginBottom: 5,
   },
   progressBarContainer: {
     height: 10,

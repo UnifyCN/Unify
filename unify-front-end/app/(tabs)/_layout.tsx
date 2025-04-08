@@ -26,18 +26,30 @@ export default function TabLayout() {
       options={{
         title: "Learn",
       }}
-      />
+      /> 
       <Tabs.Screen
       name="profile"
       options={{
         title: "Profile",
-      }}
+      }}     
       />
       <Tabs.Screen
       name="login"
       options={{
         title: "Login",
       }}
+      />
+      <Tabs.Screen
+        name="loginlogout"
+        options={{
+          title: "Login/Logout",
+        }}
+      />
+      <Tabs.Screen
+        name="testAmplify"
+        options={{
+          title: "test",
+        }}
       />
     </Tabs>
   );
