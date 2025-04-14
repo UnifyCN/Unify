@@ -19,7 +19,10 @@ const SignOutButton = () => {
 const LoginLogout = () => {
   return (
     <Authenticator.Provider>
-      <Authenticator>
+      <Authenticator
+        signUpAttributes={[
+          
+        ]}>
         <SignOutButton />
       </Authenticator>
     </Authenticator.Provider>
