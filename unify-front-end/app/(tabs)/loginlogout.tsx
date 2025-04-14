@@ -21,6 +21,10 @@ const LoginLogout = () => {
     <Authenticator.Provider>
       <Authenticator
         signUpAttributes={[
+          "birthdate",
+          "email",
+          "name",
+          "preferred_username",
           
         ]}>
         <SignOutButton />
