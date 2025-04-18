@@ -23,7 +23,7 @@ import outputs from '../../amplify_outputs.json';
 // import { SetupEmail } from './SetupEmail';
 // import { SetupTotp } from './SetupTotp';
 // import { SignIn } from './SignIn';
-// import { SignUp } from './SignUp';
+import { SignUp } from '../../components/AuthComponents/SignUp';
 // import { VerifyUser } from './VerifyUser';
 import { Container, SignOutButton } from '../../components/AuthComponents/Components';
 
@@ -40,7 +40,7 @@ const components: AuthenticatorProps['components'] = {
   // SetupEmail,
   // SetupTotp,
   // SignIn,
-  // SignUp,
+  SignUp,
   // VerifyUser,
 };
 
@@ -48,7 +48,8 @@ function App() {
   const isDarkMode = useColorScheme() === 'dark';
 
   return (
-    <PaperProvider theme={isDarkMode ? DarkTheme : LightTheme}>
+    // Attributes for dark mode for paper provider: theme={isDarkMode ? DarkTheme : LightTheme}
+    <PaperProvider >
       <Authenticator.Provider>
         <Authenticator Container={Container} components={components}>
           <SignOutButton />
