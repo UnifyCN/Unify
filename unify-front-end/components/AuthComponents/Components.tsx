@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Controller, ControllerProps } from 'react-hook-form';
-import { View, ViewProps, ViewStyle } from 'react-native';
+import { View, ViewProps, ViewStyle, TextInput} from 'react-native';
 import {
   Button,
   ButtonProps,
@@ -10,7 +10,7 @@ import {
   HelperText,
   Text,
   TextProps,
-  TextInput,
+  // TextInput,
   TextInputProps,
   useTheme,
   Divider,
@@ -139,10 +139,10 @@ export function ErrorMessage({ children, style, ...props }: TextProps<string>) {
     <Text
       {...props}
       style={[
-        {
-          backgroundColor: theme.colors.errorContainer,
-          borderRadius: theme.roundness,
-        },
+        // {
+        //   backgroundColor: theme.colors.errorContainer,
+        //   borderRadius: theme.roundness,
+        // },
         styles.errorMessage,
         style,
       ]}

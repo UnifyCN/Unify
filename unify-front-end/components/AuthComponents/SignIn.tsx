@@ -58,11 +58,8 @@ export function SignIn({
             </ProviderButton>
           );
         }) ?? null}
-      </ViewSection>
-
-      <ViewDivider style={styles.divider} />
-
-      <ViewSection>
+      </ViewSection>    
+      <ViewSection style={{ marginTop: 25 }}>
         {fields.map(({ name, label, ...field }) => (
           <View key={name} style={{ marginBottom: 16 }}>
             {/* Label on top of the text field */}
@@ -73,10 +70,15 @@ export function SignIn({
               error={errors?.[name]?.message as string}
               name={name}
               rules={{ required: `${label} is required` }}
-              style={[styles.textField]}
-            />
-          </View>
+              style={[
+                styles.textField,
+                errors?.[name] && { borderColor: '#f00' }, // Red border for error
+              ]}
+            />            
+          </View>          
         ))}
+        {/* Display the error message below the TextField */}
+        <Text style={styles.errorMessage}>{errorMessage}</Text>
       </ViewSection>
 
       <SubmitButton
@@ -91,7 +93,7 @@ export function SignIn({
         Submit
       </SubmitButton>
 
-      <ErrorMessage style={styles.errorMessage}>{errorMessage}</ErrorMessage>
+      
 
       <LinksContainer>
         <LinkButton onPress={toSignUp} style={[styles.link]}>
@@ -135,16 +137,10 @@ const styles = {
     borderWidth: 1,
     borderRadius: 12,
     padding: 8,
-    marginBottom: 16,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: 'black', 
-    marginVertical: 16,
+    height: 60,
   },
   errorMessage: {
     color: '#f00', 
-    marginTop: 8,
   },
   link: {
     color: '#333', 
