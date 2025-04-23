@@ -108,7 +108,7 @@ export function ProviderButton({ children, ...props }: ButtonProps) {
 
 export function ViewHeader({ children, style, ...props }: HeadlineProps) {
   return (
-    <Headline {...props} style={[styles.viewHeader, style]}>
+    <Headline {...props} style={[style]}>
       {children}
     </Headline>
   );
@@ -185,7 +185,7 @@ export function Container({
   return (
     <Authenticator.Container
       {...props}
-      style={[{ backgroundColor: theme.colors.background }, style]}
+      style={[{ backgroundColor: 'white' }, style]}
     />
   );
 }

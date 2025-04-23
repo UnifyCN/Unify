@@ -1,10 +1,7 @@
-/**
- * SignIn.tsx
- */
-
 import React from 'react';
 
 import { useForm } from 'react-hook-form';
+import { View, Text } from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
 
 import {
@@ -67,16 +64,18 @@ export function SignIn({
 
       <ViewSection>
         {fields.map(({ name, label, ...field }) => (
-          <TextField
-            {...field}
-            control={control}
-            error={errors?.[name]?.message as string}
-            key={name}
-            label={label}
-            name={name}
-            rules={{ required: `${label} is required` }}
-            style={[styles.textField]}
-          />
+          <View key={name} style={{ marginBottom: 16 }}>
+            {/* Label on top of the text field */}
+            <Text style={styles.label}>{label}</Text>
+            <TextField
+              {...field}
+              control={control}
+              error={errors?.[name]?.message as string}
+              name={name}
+              rules={{ required: `${label} is required` }}
+              style={[styles.textField]}
+            />
+          </View>
         ))}
       </ViewSection>
 
@@ -113,8 +112,8 @@ const styles = {
     padding: 16,
   },
   header: {
-    fontSize: 24,
-    fontWeight: 700,
+    fontSize: 48,
+    fontWeight: '700',
     color: '#000', // Black text for the header
     marginBottom: 16,
   },
@@ -134,22 +133,28 @@ const styles = {
     color: '#000', // Black text for input
     borderColor: '#ccc', // Light grey border
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 8,
     marginBottom: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: '#ccc', // Light grey divider
+    backgroundColor: 'black', 
     marginVertical: 16,
   },
   errorMessage: {
-    color: '#f00', // Red text for error messages
+    color: '#f00', 
     marginTop: 8,
   },
   link: {
-    color: '#333', // Dark grey text for links
-    textDecorationLine: 'underline',
+    color: '#333', 
+    textDecorationLine: 'none',
     marginVertical: 4,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500' as '500', // Ensure fontWeight is a valid type
+    color: '#000', // Black text for labels
+    marginBottom: 8,
   },
 };
