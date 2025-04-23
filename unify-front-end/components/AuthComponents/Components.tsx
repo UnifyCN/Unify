@@ -21,6 +21,11 @@ const styles = {
   signOutButton: { marginVertical: 32, marginHorizontal: 16 },
   viewHeader: { marginBottom: 16 },
   viewDivider: { marginVertical: 16 },
+  errorMessageBox: {
+    color: '#f00', // Red text for error messages
+    fontSize: 14,
+    marginTop: 4,
+  },
   linksContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -61,9 +66,9 @@ export function TextField({
         )}
         rules={rules}
       />
-      <HelperText type="error" visible={!!error}>
+      <Text style={styles.errorMessageBox}>
         {error || ' '}
-      </HelperText>
+      </Text>
     </React.Fragment>
   );
 }

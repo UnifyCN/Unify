@@ -60,25 +60,27 @@ export function SignIn({
         }) ?? null}
       </ViewSection>    
       <ViewSection style={{ marginTop: 25 }}>
-        {fields.map(({ name, label, ...field }) => (
-          <View key={name} style={{ marginBottom: 16 }}>
-            {/* Label on top of the text field */}
-            <Text style={styles.label}>{label}</Text>
-            <TextField
-              {...field}
-              control={control}
-              error={errors?.[name]?.message as string}
-              name={name}
-              rules={{ required: `${label} is required` }}
-              style={[
-                styles.textField,
-                errors?.[name] && { borderColor: '#f00' }, // Red border for error
-              ]}
-            />            
-          </View>          
-        ))}
-        {/* Display the error message below the TextField */}
-        <Text style={styles.errorMessage}>{errorMessage}</Text>
+          {fields.map(({ name, label, ...field }) => (
+            <View key={name}>
+              {/* Label on top of the text field */}
+              <Text style={styles.label}>{label}</Text>
+              <TextField
+                {...field}
+                control={control}
+                error={errors?.[name]?.message as string}
+                name={name}
+                rules={{ required: `${label} is required` }}
+                style={[
+                  styles.textField,
+                  (errors?.[name]?.message || errorMessage) && { borderColor: '#f00' }, // Red border for error
+                ]}
+              />
+              {/* Display the error message below the TextField */}
+            </View>
+          ))}
+          {(
+            <Text style={styles.errorMessage}>{errorMessage}</Text>
+          )}
       </ViewSection>
 
       <SubmitButton
@@ -140,7 +142,9 @@ const styles = {
     height: 60,
   },
   errorMessage: {
-    color: '#f00', 
+    color: '#f00', // Red text for error messages
+    fontSize: 14,
+    marginTop: 4,
   },
   link: {
     color: '#333', 
@@ -152,5 +156,6 @@ const styles = {
     fontWeight: '500' as '500', // Ensure fontWeight is a valid type
     color: '#000', // Black text for labels
     marginBottom: 8,
+    marginTop: 13,
   },
 };
