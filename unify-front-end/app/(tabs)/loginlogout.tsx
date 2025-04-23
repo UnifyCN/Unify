@@ -22,7 +22,7 @@ import outputs from '../../amplify_outputs.json';
 // import { SelectMfaType } from './SelectMfaType';
 // import { SetupEmail } from './SetupEmail';
 // import { SetupTotp } from './SetupTotp';
-// import { SignIn } from './SignIn';
+import { SignIn } from '../../components/AuthComponents/SignIn';
 import { SignUp } from '../../components/AuthComponents/SignUp';
 // import { VerifyUser } from './VerifyUser';
 import { Container, SignOutButton } from '../../components/AuthComponents/Components';
@@ -39,7 +39,7 @@ const components: AuthenticatorProps['components'] = {
   // SelectMfaType,
   // SetupEmail,
   // SetupTotp,
-  // SignIn,
+  SignIn,
   SignUp,
   // VerifyUser,
 };

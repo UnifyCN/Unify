@@ -43,8 +43,8 @@ export function SignIn({
   } = useForm({ mode: 'onTouched' });
 
   return (
-    <ViewContainer>
-      <ViewHeader>Sign In</ViewHeader>
+    <ViewContainer style={styles.container}>
+      <ViewHeader style={styles.header}>Sign In</ViewHeader>
 
       <ViewSection>
         {socialProviders?.map((name) => {
@@ -54,6 +54,8 @@ export function SignIn({
               icon={name}
               key={provider}
               onPress={() => toFederatedSignIn({ provider })}
+              style={[styles.button]}
+              textStyle={[styles.buttonText]}
             >
               Sign in with {provider}
             </ProviderButton>
@@ -61,7 +63,7 @@ export function SignIn({
         }) ?? null}
       </ViewSection>
 
-      <ViewDivider />
+      <ViewDivider style={styles.divider} />
 
       <ViewSection>
         {fields.map(({ name, label, ...field }) => (
@@ -73,7 +75,7 @@ export function SignIn({
             label={label}
             name={name}
             rules={{ required: `${label} is required` }}
-            style={undefined}
+            style={[styles.textField]}
           />
         ))}
       </ViewSection>
@@ -84,16 +86,70 @@ export function SignIn({
         onPress={() => {
           handleSubmit(getValues());
         }}
+        style={[styles.button]}
+        textStyle={[styles.buttonText]}
       >
         Submit
       </SubmitButton>
 
-      <ErrorMessage>{errorMessage}</ErrorMessage>
+      <ErrorMessage style={styles.errorMessage}>{errorMessage}</ErrorMessage>
 
       <LinksContainer>
-        <LinkButton onPress={toSignUp}>Sign Up</LinkButton>
-        <LinkButton onPress={toForgotPassword}>Forgot Password?</LinkButton>
+        <LinkButton onPress={toSignUp} style={[styles.link]}>
+          Sign Up
+        </LinkButton>
+        <LinkButton onPress={toForgotPassword} style={[styles.link]}>
+          Forgot Password?
+        </LinkButton>
       </LinksContainer>
     </ViewContainer>
   );
 }
+
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: '#fff', // White background for the entire page
+    padding: 16,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 700,
+    color: '#000', // Black text for the header
+    marginBottom: 16,
+  },
+  button: {
+    backgroundColor: '#ccc', // Light grey background for buttons
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  buttonText: {
+    color: '#333', // Dark grey text for buttons
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  textField: {
+    backgroundColor: '#fff', // White background for text fields
+    color: '#000', // Black text for input
+    borderColor: '#ccc', // Light grey border
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#ccc', // Light grey divider
+    marginVertical: 16,
+  },
+  errorMessage: {
+    color: '#f00', // Red text for error messages
+    marginTop: 8,
+  },
+  link: {
+    color: '#333', // Dark grey text for links
+    textDecorationLine: 'underline',
+    marginVertical: 4,
+  },
+};
