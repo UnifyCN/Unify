@@ -41,7 +41,7 @@ export function SignIn({
 
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Sign In</ViewHeader>
+      <ViewHeader style={styles.header}>Log In</ViewHeader>
 
       <ViewSection>
         {socialProviders?.map((name) => {
