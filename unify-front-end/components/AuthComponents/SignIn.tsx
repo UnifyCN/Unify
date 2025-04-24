@@ -1,8 +1,9 @@
 import React from 'react';
 
 import { useForm } from 'react-hook-form';
-import { View, Text } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import {
   ErrorMessage,
@@ -39,6 +40,8 @@ export function SignIn({
     getValues,
   } = useForm({ mode: 'onTouched' });
 
+  const [passwordVisible, setPasswordVisible] = React.useState(false);
+
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Log In</ViewHeader>
@@ -69,13 +72,26 @@ export function SignIn({
                 control={control}
                 error={errors?.[name]?.message as string}
                 name={name}
+                secureTextEntry={field.type === 'password' && !passwordVisible}
                 rules={{ required: `${label} is required` }}
                 style={[
                   styles.textField,
                   (errors?.[name]?.message || errorMessage) && { borderColor: '#f00' }, // Red border for error
                 ]}
               />
-              {/* Display the error message below the TextField */}
+              {field.type === 'password' && (
+                <TouchableOpacity
+                  onPress={() => setPasswordVisible(!passwordVisible)}
+                  style={styles.eyeIcon}
+                >
+                  <MaterialIcons
+                    name={passwordVisible ? 'visibility' : 'visibility-off'} // Toggle icon
+                    size={24}
+                    color="#333"
+                  />
+                </TouchableOpacity>
+              )}
+              
             </View>
           ))}
           {(
@@ -116,10 +132,10 @@ const styles = {
     padding: 16,
   },
   header: {
-    fontSize: 48,
+    fontSize: 34,
     fontWeight: '700',
     color: '#000', // Black text for the header
-    marginBottom: 16,
+    marginBottom: 7,
   },
   button: {
     backgroundColor: '#ccc', // Light grey background for buttons
@@ -144,7 +160,7 @@ const styles = {
   errorMessage: {
     color: '#f00', // Red text for error messages
     fontSize: 14,
-    marginTop: 4,
+    
   },
   link: {
     color: '#333', 
@@ -153,9 +169,14 @@ const styles = {
   },
   label: {
     fontSize: 16,
-    fontWeight: '500' as '500', // Ensure fontWeight is a valid type
+    fontWeight: '400' as '400', // Ensure fontWeight is a valid type
     color: '#000', // Black text for labels
     marginBottom: 8,
     marginTop: 13,
-  },
+  },  
+  eyeIcon: {
+    position: 'absolute' as 'absolute',
+    right: 16,
+    top: 60,
+  },  
 };
