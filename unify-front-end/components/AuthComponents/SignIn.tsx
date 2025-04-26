@@ -3,7 +3,11 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
+
 import { MaterialIcons } from '@expo/vector-icons';
+import Facebook from "../../assets/images/Facebook.svg"
+import Google from "../../assets/images/Google.svg"
+import Apple from "../../assets/images/Apple.svg"
 
 import {
   ErrorMessage,
@@ -51,24 +55,7 @@ export function SignIn({
   };
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Log In</ViewHeader>
-
-      <ViewSection>
-        {socialProviders?.map((name) => {
-          const provider = capitalize(name);
-          return (
-            <ProviderButton
-              icon={name}
-              key={provider}
-              onPress={() => toFederatedSignIn({ provider })}
-              style={[styles.button]}
-              textStyle={[styles.buttonText]}
-            >
-              Sign in with {provider}
-            </ProviderButton>
-          );
-        }) ?? null}
-      </ViewSection>    
+      <ViewHeader style={styles.header}>Log In</ViewHeader>      
       <ViewSection style={{ marginTop: 25 }}>
           {fields.map(({ name, label, ...field }) => (
             <View key={name}>
@@ -127,16 +114,35 @@ export function SignIn({
         labelStyle={[styles.buttonText]}
       >
         Log in
-      </SubmitButton>
-
-      
+      </SubmitButton>     
 
       <LinksContainer>        
-        <LinkButton onPress={toForgotPassword} style={[styles.link]}>
+        <LinkButton onPress={toForgotPassword} style={[styles.link]} labelStyle={[styles.linkText]}>
           Forgot Password?
         </LinkButton>
       </LinksContainer>
-    </ViewContainer>
+
+      <View style={styles.orLogIn}>
+          <View style={styles.lineView}></View>
+          <Text style={styles.orText}>Or Login with</Text>
+          <View style={styles.lineView}></View>
+      </View>
+        <View style={styles.buttonBucket}>
+            <View style={styles.buttonWithIcon}>
+              <Facebook width={20} height={20} />
+            </View>
+            <View style={styles.buttonWithIcon}>
+                <Google width={20} height={20} />
+            </View>
+            <View style={styles.buttonWithIcon}>
+                <Apple width={20} height={20} />
+            </View>
+        </View>
+        <View style={styles.footer}>
+            <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Don't have an account?</Text>
+            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}>Sign up</Text>
+        </View>
+    </ViewContainer>   
   );
 }
 
@@ -151,15 +157,16 @@ const styles = {
     fontWeight: '700' as '700',
     color: '#000', // Black text for the header
     marginBottom: 7,
+    marginTop:20,
   },
   button: {
     backgroundColor: '#343434', // Light grey background for buttons
     padding: 12,
     borderRadius: 40,
     marginVertical: 8,
-    marginTop: 55,
-    width: '24%' as '24%',
-    height: '10%' as '10%',
+    marginTop: 40,
+    width: 100,
+    height: 40,
     alignSelf: 'center' as 'center',   
     justifyContent: 'center' as 'center', 
     alignItems: 'center' as 'center', 
@@ -184,9 +191,14 @@ const styles = {
     
   },
   link: {
-    color: '#000', 
+    color: 'black', 
     textDecorationLine: 'underline' as 'underline',
-    marginVertical: 4,
+    marginVertical: 2,
+  },
+  linkText: {
+    color: 'black', // Black text for links
+    fontSize: 15,
+    fontWeight: '400' as '400',
   },
   label: {
     fontSize: 16,
@@ -205,4 +217,49 @@ const styles = {
     right: 16,
     top: 60,
   },
+  orLogIn: {
+    marginTop: 22,
+    flexDirection: "row" as 'row',
+    alignItems: "center" as 'center',
+  },
+  lineView: {
+    borderStyle: "solid" as 'solid',
+    borderColor: "#d8dadc",
+    borderTopWidth: 1,
+    flex: 1,
+    width: "100%" as '100%',
+    height: 1
+  },
+  orText: {
+    color: 'rgba(0, 0, 0, 0.7)',
+    fontSize: 14,
+    lineHeight: 18,
+    marginHorizontal: 10,
+  },
+  buttonBucket: {
+    marginTop: 22,
+    flexDirection: "row" as 'row',
+    alignItems: "center" as 'center',
+    gap: 15
+  },
+  buttonWithIcon: {
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    borderStyle: "solid" as 'solid',
+    borderColor: "#d8dadc",
+    borderWidth: 1,
+    flex: 1,
+    width: "100%" as '100%',
+    alignItems: "center" as 'center',
+    justifyContent: "center"  as 'center',
+    paddingHorizontal: 45,
+    paddingVertical: 18,
+  },
+  footer: {
+    marginTop: 98,
+    flexDirection: "row"  as 'row',
+    alignItems: "center" as 'center',
+    justifyContent: "center" as 'center',
+    gap: 5
+  }
 };

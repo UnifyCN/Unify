@@ -136,8 +136,8 @@ export function LinksContainer({ children, style, ...props }: ViewProps) {
   );
 }
 
-export function LinkButton(props: ButtonProps) {
-  return <Button {...props} />;
+export function LinkButton({ labelStyle, ...props }: ButtonProps) {
+  return <Button {...props} labelStyle={labelStyle} />;
 }
 
 export function ErrorMessage({ children, style, ...props }: TextProps<string>) {

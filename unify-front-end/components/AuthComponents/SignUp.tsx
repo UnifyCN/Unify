@@ -68,6 +68,7 @@ export function SignUp({
             label={label}
             name={name}
             rules={{ required: `${label} is required` }}
+            style={undefined} // Ensure no conflicting style is passed
           />
         ))}
       </ViewSection>
