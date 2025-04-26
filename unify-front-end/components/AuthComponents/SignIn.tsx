@@ -124,17 +124,14 @@ export function SignIn({
           handleSubmit(getValues());
         }}
         style={[styles.button]}
-        textStyle={[styles.buttonText]}
+        labelStyle={[styles.buttonText]}
       >
-        Submit
+        Log in
       </SubmitButton>
 
       
 
-      <LinksContainer>
-        <LinkButton onPress={toSignUp} style={[styles.link]}>
-          Sign Up
-        </LinkButton>
+      <LinksContainer>        
         <LinkButton onPress={toForgotPassword} style={[styles.link]}>
           Forgot Password?
         </LinkButton>
@@ -156,15 +153,21 @@ const styles = {
     marginBottom: 7,
   },
   button: {
-    backgroundColor: '#ccc', // Light grey background for buttons
+    backgroundColor: '#343434', // Light grey background for buttons
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 40,
     marginVertical: 8,
+    marginTop: 55,
+    width: '24%' as '24%',
+    height: '10%' as '10%',
+    alignSelf: 'center' as 'center',   
+    justifyContent: 'center' as 'center', 
+    alignItems: 'center' as 'center', 
   },
   buttonText: {
-    color: '#333', // Dark grey text for buttons
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: 'white', // Dark grey text for buttons
+    textAlign: 'center' as 'center',
+    fontSize: 16,
   },
   textField: {
     backgroundColor: '#fff', // White background for text fields
@@ -181,8 +184,8 @@ const styles = {
     
   },
   link: {
-    color: '#333', 
-    textDecorationLine: 'none',
+    color: '#000', 
+    textDecorationLine: 'underline' as 'underline',
     marginVertical: 4,
   },
   label: {
