@@ -117,7 +117,7 @@ export function SignIn({
       </SubmitButton>     
 
       <LinksContainer>        
-        <LinkButton onPress={toForgotPassword} style={[styles.link]} labelStyle={[styles.linkText]}>
+        <LinkButton onPress={toForgotPassword} style={undefined} labelStyle={[styles.link, styles.linkText]}>
           Forgot Password?
         </LinkButton>
       </LinksContainer>
@@ -149,117 +149,114 @@ export function SignIn({
 const styles = {
   container: {
     flex: 1,
-    backgroundColor: '#fff', // White background for the entire page
-    padding: 16,
+    backgroundColor: '#fff',
+    padding: 16 * 0.87,
   },
   header: {
-    fontSize: 34,
+    fontSize: 34 * 0.87,
     fontWeight: '700' as '700',
-    color: '#000', // Black text for the header
-    marginBottom: 7,
-    marginTop:20,
+    color: '#000',
+    marginBottom: 7 * 0.87,
+    marginTop: 70 * 0.87,
   },
   button: {
-    backgroundColor: '#343434', // Light grey background for buttons
-    padding: 12,
-    borderRadius: 40,
-    marginVertical: 8,
-    marginTop: 40,
-    width: 100,
-    height: 40,
-    alignSelf: 'center' as 'center',   
-    justifyContent: 'center' as 'center', 
-    alignItems: 'center' as 'center', 
+    backgroundColor: '#343434',
+    padding: 12 * 0.87,
+    borderRadius: 40 * 0.87,
+    marginTop: 37 * 0.87,
+    width: 110 * 0.87,
+    height: 42 * 0.87,
+    alignSelf: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    alignItems: 'center' as 'center',
   },
   buttonText: {
-    color: 'white', // Dark grey text for buttons
+    color: 'white',
     textAlign: 'center' as 'center',
-    fontSize: 16,
+    fontSize: 16 * 0.87,
   },
   textField: {
-    backgroundColor: '#fff', // White background for text fields
-    color: '#000', // Black text for input
-    borderColor: '#ccc', // Light grey border
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 8,
-    height: 60,
+    backgroundColor: '#fff',
+    color: '#000',
+    borderColor: '#ccc',
+    borderWidth: 1 * 0.87,
+    borderRadius: 12 * 0.87,
+    padding: 8 * 0.87,
+    height: 57,
   },
   errorMessage: {
-    color: '#f00', // Red text for error messages
-    fontSize: 14,
-    
+    color: '#f00',
+    fontSize: 14 * 0.87,
   },
   link: {
-    color: 'black', 
+    color: 'black',
     textDecorationLine: 'underline' as 'underline',
-    marginVertical: 2,
   },
   linkText: {
-    color: 'black', // Black text for links
-    fontSize: 15,
+    color: 'black',
+    fontSize: 15 * 0.87,
     fontWeight: '400' as '400',
   },
   label: {
-    fontSize: 16,
-    fontWeight: '400' as '400', // Ensure fontWeight is a valid type
-    color: '#000', // Black text for labels
-    marginBottom: 8,
-    marginTop: 13,
-  },  
+    fontSize: 16 * 0.87,
+    fontWeight: '400' as '400',
+    color: '#000',
+    marginBottom: 8 * 0.87,
+    marginTop: 13 * 0.87,
+  },
   eyeIcon: {
     position: 'absolute' as 'absolute',
-    right: 16,
-    top: 60,
+    right: 16 * 0.87,
+    top: 62 * 0.87,
   },
   tickIcon: {
     position: 'absolute' as 'absolute',
-    right: 16,
-    top: 60,
+    right: 16 * 0.87,
+    top: 60 * 0.87,
   },
   orLogIn: {
-    marginTop: 22,
-    flexDirection: "row" as 'row',
-    alignItems: "center" as 'center',
+    marginTop: 22 * 0.87,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
   },
   lineView: {
-    borderStyle: "solid" as 'solid',
-    borderColor: "#d8dadc",
-    borderTopWidth: 1,
+    borderStyle: 'solid' as 'solid',
+    borderColor: '#d8dadc',
+    borderTopWidth: 1 * 0.87,
     flex: 1,
-    width: "100%" as '100%',
-    height: 1
+    width: '100%' as '100%',
+    height: 1 * 0.87,
   },
   orText: {
     color: 'rgba(0, 0, 0, 0.7)',
-    fontSize: 14,
-    lineHeight: 18,
-    marginHorizontal: 10,
+    fontSize: 14 * 0.87,
+    lineHeight: 18 * 0.87,
+    marginHorizontal: 10 * 0.87,
   },
   buttonBucket: {
-    marginTop: 22,
-    flexDirection: "row" as 'row',
-    alignItems: "center" as 'center',
-    gap: 15
+  marginTop: 22 * 0.87,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    gap: 15 * 0.87,
   },
   buttonWithIcon: {
-    borderRadius: 10,
-    backgroundColor: "#fff",
-    borderStyle: "solid" as 'solid',
-    borderColor: "#d8dadc",
-    borderWidth: 1,
+    borderRadius: 10 * 0.87,
+    backgroundColor: '#fff',
+    borderStyle: 'solid' as 'solid',
+    borderColor: '#d8dadc',
+    borderWidth: 1 * 0.87,
     flex: 1,
-    width: "100%" as '100%',
-    alignItems: "center" as 'center',
-    justifyContent: "center"  as 'center',
-    paddingHorizontal: 45,
-    paddingVertical: 18,
+    width: '100%' as '100%',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    paddingHorizontal: 45 * 0.87,
+    paddingVertical: 18 * 0.87,
   },
   footer: {
-    marginTop: 98,
-    flexDirection: "row"  as 'row',
-    alignItems: "center" as 'center',
-    justifyContent: "center" as 'center',
-    gap: 5
-  }
+    marginTop: 88 * 0.87,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    gap: 5 * 0.87,
+  },
 };
