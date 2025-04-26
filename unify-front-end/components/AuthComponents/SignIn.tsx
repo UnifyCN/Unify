@@ -40,8 +40,15 @@ export function SignIn({
     getValues,
   } = useForm({ mode: 'onTouched' });
 
+  // State for email tick and password eye icon toggle
   const [passwordVisible, setPasswordVisible] = React.useState(false);
+  const [isEmailValid, setIsEmailValid] = React.useState(false);
 
+  const validateEmail = (email: string) => {
+    // Simple email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setIsEmailValid(emailRegex.test(email));
+  };
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Log In</ViewHeader>
@@ -78,6 +85,10 @@ export function SignIn({
                   styles.textField,
                   (errors?.[name]?.message || errorMessage) && { borderColor: '#f00' }, // Red border for error
                 ]}
+                onChangeText={(text) => {
+                  field.onChange?.(text); // Pass the text directly
+                  if (field.type === 'email') validateEmail(text); // Validate email if the field is email
+                }}
               />
               {field.type === 'password' && (
                 <TouchableOpacity
@@ -91,7 +102,14 @@ export function SignIn({
                   />
                 </TouchableOpacity>
               )}
-              
+              {field.type === 'email' && isEmailValid && (
+                <MaterialIcons
+                  name=  "check-circle"
+                  size={24}
+                  color="black"
+                  style={styles.tickIcon}
+                />
+              )}
             </View>
           ))}
           {(
@@ -133,7 +151,7 @@ const styles = {
   },
   header: {
     fontSize: 34,
-    fontWeight: '700',
+    fontWeight: '700' as '700',
     color: '#000', // Black text for the header
     marginBottom: 7,
   },
@@ -178,5 +196,10 @@ const styles = {
     position: 'absolute' as 'absolute',
     right: 16,
     top: 60,
-  },  
+  },
+  tickIcon: {
+    position: 'absolute' as 'absolute',
+    right: 16,
+    top: 60,
+  },
 };

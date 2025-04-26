@@ -49,6 +49,7 @@ export function TextField({
   type = 'default',
   rules,
   secureTextEntry,
+  onChangeText,
   ...props
 }: TextFieldProps) {
   return (
@@ -56,11 +57,15 @@ export function TextField({
       <Controller
         control={control}
         name={name}
-        render={({ field: { onChange: onChangeText, ...renderProps } }) => (
+        render={({ field: { onChange, value,  ...renderProps } }) => (
           <TextInput
             {...(props as TextInputProps)}
             {...renderProps}
-            onChangeText={onChangeText}
+            value={value ?? ''} // Ensure the value is never undefined
+            onChangeText={(text) => {
+              onChange(text); // Update the form state
+              onChangeText?.(text); // Call the external onChangeText if provided
+            }}
             secureTextEntry={secureTextEntry ?? type === 'password'}
           />
         )}
