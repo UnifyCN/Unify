@@ -47,6 +47,7 @@
     "react-native": "0.76.2",
     "react-native-animatable": "^1.4.0",
     "react-native-circular-progress-indicator": "^4.4.2",
+    "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-get-random-values": "^1.11.0",
     "react-native-linear-gradient": "^2.8.3",
