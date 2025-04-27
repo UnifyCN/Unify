@@ -46,6 +46,7 @@ const schema = a.schema({
 
   User: a.model({ 
     id: a.id(), // Primary Key
+    cognitoSub: a.string(), // Cognito sub for user authentication
     username: a.string().required(),
     pronouns: a.string(),
     biography: a.string(),
