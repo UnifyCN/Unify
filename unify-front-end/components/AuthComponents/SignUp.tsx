@@ -52,7 +52,7 @@ export function SignUp({
   };
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Log In</ViewHeader>      
+      <ViewHeader style={styles.header}>Create account</ViewHeader>      
       <ViewSection style={{ marginTop: 25 }}>
           {fields.map(({ name, label, ...field }) => (
             <View key={name}>
@@ -128,7 +128,7 @@ export function SignUp({
       </View>
 
       <SubmitButton
-        disabled={!isValid}
+        disabled={!isValid || !isChecked}
         loading={isPending}
         onPress={() => {
           handleSubmit(getValues());
@@ -140,21 +140,14 @@ export function SignUp({
         labelStyle={[styles.buttonText]}
       >
         Sign Up
-      </SubmitButton>     
-
-      {/* <LinksContainer>        
-        <LinkButton onPress={toForgotPassword} style={undefined} labelStyle={[styles.link, styles.linkText]}>
-          Forgot Password?
-        </LinkButton>
-      </LinksContainer> */}
-
-        <View style={styles.footer}>
-            <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Already have an account?</Text>
-            <Text 
-              style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}           
-            
-            >Log In</Text>
-        </View>
+      </SubmitButton>    
+      <View style={styles.footer}>
+        <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Already have an account?</Text>
+        <Text 
+          style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}           
+          onPress={toSignIn}
+        >Log In</Text>
+      </View>
     </ViewContainer>   
   );
 }
