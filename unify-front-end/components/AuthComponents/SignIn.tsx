@@ -140,7 +140,7 @@ export function SignIn({
         </View>
         <View style={styles.footer}>
             <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Don't have an account?</Text>
-            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}>Sign up</Text>
+            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}} onPress={toSignUp}>Sign up</Text>
         </View>
     </ViewContainer>   
   );
