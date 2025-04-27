@@ -34,12 +34,6 @@ export default function TabLayout() {
       }}     
       />
       <Tabs.Screen
-      name="login"
-      options={{
-        title: "Login",
-      }}
-      />
-      <Tabs.Screen
         name="loginlogout"
         options={{
           title: "Login/Logout",
