@@ -3,11 +3,9 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SignUpProps } from '@aws-amplify/ui-react-native';
+import { CheckBox } from 'react-native-elements';
 
 import { MaterialIcons } from '@expo/vector-icons';
-import Facebook from "../../assets/images/Facebook.svg"
-import Google from "../../assets/images/Google.svg"
-import Apple from "../../assets/images/Apple.svg"
 
 import {
   ErrorMessage,
@@ -42,9 +40,10 @@ export function SignUp({
     getValues,
   } = useForm({ mode: 'onTouched' });
 
-  // State for email tick and password eye icon toggle
+  // State vars
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [isEmailValid, setIsEmailValid] = React.useState(false);
+  const [isChecked, setIsChecked] = React.useState(false);
 
   const validateEmail = (email: string) => {
     // Simple email validation regex
@@ -101,6 +100,32 @@ export function SignUp({
             <Text style={styles.errorMessage}>{errorMessage}</Text>
           )}
       </ViewSection>
+      
+      {/* Terms and conditions checkbox */}
+      <View style={styles.checkboxRow}>
+        <CheckBox
+          checked={isChecked}
+          onPress={() => setIsChecked(!isChecked)}
+          containerStyle={styles.checkboxContainer}
+          iconType="material-community"
+          checkedIcon="checkbox-marked"
+          uncheckedIcon="checkbox-blank-outline"
+          checkedColor='black'
+          uncheckedColor='black'
+          wrapperStyle={styles.checkboxWrapper}
+        />
+        <Text style={styles.checkboxText}>
+          I accept the{' '}
+          <Text
+            style={styles.checkboxLinkText}
+            onPress={() => {
+              // Leave the link empty for now
+            }}
+          >
+            terms and privacy policy
+          </Text>
+        </Text>
+      </View>
 
       <SubmitButton
         disabled={!isValid}
@@ -108,7 +133,10 @@ export function SignUp({
         onPress={() => {
           handleSubmit(getValues());
         }}
-        style={[styles.button]}
+        style={[
+          styles.button,
+          (!isValid || !isChecked) && styles.buttonDisabled, // Button is disabled is privacy poli checkbox not checked
+        ]}
         labelStyle={[styles.buttonText]}
       >
         Sign Up
@@ -205,5 +233,36 @@ const styles = {
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
     gap: 5 * 0.87,
+  },
+  // Terms and conditions checkbox style
+  checkboxContainer: {
+    backgroundColor: 'transparent' as 'transparent',
+    borderWidth: 0,
+    padding: 0,
+    margin: 0,
+    marginVertical: 10 * 0.87,
+    alignSelf: 'flex-start' as 'flex-start',
+  },
+  checkboxText: {
+    fontSize: 16 * 0.87,
+    color: '#000',
+    marginLeft: 0 * 0.87,
+  },
+  checkboxRow: {
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    alignSelf: 'flex-start' as 'flex-start',
+    marginVertical: 10 * 0.87,
+    marginLeft: 0,
+    paddingLeft: 0,
+  },
+  checkboxLinkText: {
+    fontSize: 16 * 0.87,
+    color: 'black' as 'black', // Style the link text
+    textDecorationLine: 'underline' as 'underline',
+  },
+  checkboxWrapper: {
+    margin: 0, // Remove wrapper margin
+    padding: 0, // Remove wrapper padding
   },
 };
