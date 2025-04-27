@@ -265,4 +265,7 @@ const styles = {
     margin: 0, // Remove wrapper margin
     padding: 0, // Remove wrapper padding
   },
+  buttonDisabled: {
+    backgroundColor: '#E7E7E9', 
+  },
 };
