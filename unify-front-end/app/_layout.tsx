@@ -31,6 +31,7 @@ import { SignIn } from '../components/AuthComponents/SignIn';
 import { SignUp } from '../components/AuthComponents/SignUp';
 // import { VerifyUser } from './VerifyUser';
 import { Container, SignOutButton } from '../components/AuthComponents/Components';
+import Onboarding from './onboarding';
 
 Amplify.configure(outputs);
 const components: AuthenticatorProps['components'] = {
@@ -87,13 +88,14 @@ export default function RootLayout() {
           ) : (
             <ScrollContextProvider>
               <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <Stack>
+                {/* <Stack>
                   <Stack.Screen
                     name="onboarding"
-                    options={{ headerShown: false }}
+                    // options={{ headerShown: false }}
                     initialParams={{ setHasCompletedOnboarding }}
                   />
-                </Stack>
+                </Stack> */}
+                <Onboarding route={{ params: { setHasCompletedOnBoarding: setHasCompletedOnboarding } }} />
               </ThemeProvider>
             </ScrollContextProvider>
           )}
