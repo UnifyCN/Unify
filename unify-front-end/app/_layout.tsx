@@ -7,13 +7,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ScrollContextProvider } from '@/context/ScrollContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
-import {
-  MD3LightTheme as LightTheme,
-  PaperProvider,
-} from 'react-native-paper';
-
 import { useColorScheme } from '@/hooks/useColorScheme';
 import {
   Authenticator,
@@ -21,6 +16,7 @@ import {
 } from '@aws-amplify/ui-react-native';
 import { Amplify } from 'aws-amplify';
 import outputs from '../amplify_outputs.json';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // import { ConfirmResetPassword } from './ConfirmResetPassword';
 // import { ConfirmSignIn } from './ConfirmSignIn';
@@ -57,6 +53,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -74,19 +71,32 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView>
       <SafeAreaProvider>
-        <Authenticator.Provider>
-          <Authenticator Container={Container} components={components}>
-            {/* Content shown after the user logs in */}
+        {hasCompletedOnboarding ? (
+            <Authenticator.Provider>
+              <Authenticator Container={Container} components={components}>
+                <ScrollContextProvider>
+                  <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                    <Stack>
+                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="+not-found" />
+                    </Stack>
+                  </ThemeProvider>
+                </ScrollContextProvider>
+              </Authenticator>
+            </Authenticator.Provider>
+          ) : (
             <ScrollContextProvider>
-              <ThemeProvider value={DefaultTheme}>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
                 <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="+not-found" />
+                  <Stack.Screen
+                    name="onboarding"
+                    options={{ headerShown: false }}
+                    initialParams={{ setHasCompletedOnboarding }}
+                  />
                 </Stack>
               </ThemeProvider>
             </ScrollContextProvider>
-          </Authenticator>
-        </Authenticator.Provider>
+          )}
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
