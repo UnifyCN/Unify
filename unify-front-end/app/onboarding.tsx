@@ -25,7 +25,6 @@ const onboardingSteps = [
 ];
 
 export default function Onboarding({ route }: { route: { params: { setHasCompletedOnBoarding: React.Dispatch<React.SetStateAction<boolean>>} } }) {
-  console.log('Route params:', route.params);
   const [screenIndex, setScreenIndex] = useState(0);
   const router = useRouter();
   const data = onboardingSteps[screenIndex];

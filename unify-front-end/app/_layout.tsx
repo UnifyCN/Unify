@@ -62,15 +62,15 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, hasCompletedOnboarding]);
 
   if (!loaded) {
     return null;
   }
-
+  console.log(hasCompletedOnboarding);
   return (
     <GestureHandlerRootView>
-      <SafeAreaProvider>
+      <SafeAreaProvider>        
         {hasCompletedOnboarding ? (
             <Authenticator.Provider>
               <Authenticator Container={Container} components={components}>
