@@ -1,62 +1,31 @@
-import React from 'react';
+import 'react-native-url-polyfill/auto'
+import { useState, useEffect } from 'react'
+import { supabase } from '../../lib/supabase'
+import Auth from '../../components/AuthComponents/SignInSupa'
+import { View, Text } from 'react-native'
+import { Session } from '@supabase/supabase-js'
 
-import { useColorScheme } from 'react-native';
-import {
-  MD3LightTheme as LightTheme,
-  MD3DarkTheme as DarkTheme,
-  PaperProvider,
-} from 'react-native-paper';
-import {
-  Authenticator,
-  AuthenticatorProps,
-} from '@aws-amplify/ui-react-native';
-import { Amplify } from 'aws-amplify';
-import outputs from '../../amplify_outputs.json';
+export default function SupabaseSigningTest(): JSX.Element {
+  const [session, setSession] = useState<Session | null>(null)
 
-// import { ConfirmResetPassword } from './ConfirmResetPassword';
-// import { ConfirmSignIn } from './ConfirmSignIn';
-// import { ConfirmSignUp } from './ConfirmSignUp';
-// import { ConfirmVerifyUser } from './ConfirmVerifyUser';
-// import { ForceNewPassword } from './ForceNewPassword';
-// import { ForgotPassword } from './ForgotPassword';
-// import { SelectMfaType } from './SelectMfaType';
-// import { SetupEmail } from './SetupEmail';
-// import { SetupTotp } from './SetupTotp';
-import { SignIn } from '../../components/AuthComponents/SignIn';
-import { SignUp } from '../../components/AuthComponents/SignUp';
-// import { VerifyUser } from './VerifyUser';
-import { Container, SignOutButton } from '../../components/AuthComponents/Components';
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
 
-Amplify.configure(outputs);
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
 
-const components: AuthenticatorProps['components'] = {
-  // ConfirmResetPassword,
-  // ConfirmSignIn,
-  // ConfirmSignUp,
-  // ConfirmVerifyUser,
-  // ForceNewPassword,
-  // ForgotPassword,
-  // SelectMfaType,
-  // SetupEmail,
-  // SetupTotp,
-  SignIn,
-  SignUp,
-  // VerifyUser,
-};
-
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+    return () => {
+      listener?.subscription.unsubscribe()
+    }
+  }, [])
 
   return (
-    // Attributes for dark mode for paper provider: theme={isDarkMode ? DarkTheme : LightTheme}
-    <PaperProvider >
-      <Authenticator.Provider>
-        <Authenticator Container={Container} components={components}>
-          <SignOutButton />
-        </Authenticator>
-      </Authenticator.Provider>
-    </PaperProvider>
-  );
+    <View>
+      <Auth />
+      {session && session.user && <Text>{session.user.id}</Text>}
+    </View>
+  )
 }
-
-export default App;
