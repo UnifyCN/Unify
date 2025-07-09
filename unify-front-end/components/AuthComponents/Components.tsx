@@ -78,6 +78,29 @@ export function TextField({
   );
 }
 
+export function SimpleTextField({
+  value,
+  onChangeText,
+  error,
+  type = 'default',
+  secureTextEntry,
+  ...props
+}: TextInputProps & { error?: string; type?: 'email' | 'default' | 'password' | 'phone' }) {
+  return (
+    <React.Fragment>
+      <TextInput
+        {...(props as TextInputProps)}
+        value={value ?? ''}
+        onChangeText={onChangeText}
+        secureTextEntry={secureTextEntry ?? type === 'password'}
+      />
+      <Text style={styles.errorMessageBox}>
+        {error || ' '}
+      </Text>
+    </React.Fragment>
+  );
+}
+
 export function SubmitButton({
   children,
   disabled,

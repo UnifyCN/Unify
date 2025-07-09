@@ -2,6 +2,8 @@ import 'react-native-url-polyfill/auto'
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import Auth from '../../components/AuthComponents/SignInSupa'
+import { SignIn } from '../../components/AuthComponents/SignIn'
+import { SignUp } from '../../components/AuthComponents/SignUp'
 import { View, Text } from 'react-native'
 import { Session } from '@supabase/supabase-js'
 
@@ -24,8 +26,8 @@ export default function SupabaseSigningTest(): JSX.Element {
 
   return (
     <View>
-      <Auth />
-      {session && session.user && <Text>{session.user.id}</Text>}
+      <SignIn />
+      {/* {session && session.user && <Text>{session.user.id}</Text>} */}
     </View>
   )
 }

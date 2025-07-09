@@ -3,8 +3,9 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
+import { supabase } from '../../lib/supabase';
 
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
 import Facebook from "../../assets/images/Facebook.svg"
 import Google from "../../assets/images/Google.svg"
 import Apple from "../../assets/images/Apple.svg"
@@ -20,6 +21,7 @@ import {
   ViewContainer,
   ViewSection,
   ViewDivider,
+  SimpleTextField,
 } from './Components';
 
 function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
@@ -28,88 +30,98 @@ function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
     .join('') as Capitalize<T>;
 }
 
-export function SignIn({
-  error: errorMessage,
-  fields,
-  handleSubmit,
-  isPending,
-  socialProviders,
-  toFederatedSignIn,
-  toForgotPassword,
-  toSignUp,
-}: SignInProps): React.JSX.Element {
-  const {
-    control,
-    formState: { errors, isValid },
-    getValues,
-  } = useForm({ mode: 'onTouched' });
+export function SignIn(): React.JSX.Element {
 
   // State for email tick and password eye icon toggle
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [isEmailValid, setIsEmailValid] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
+  // Method to validate if email is in valid format for the tick icon to appear
   const validateEmail = (email: string) => {
     // Simple email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setIsEmailValid(emailRegex.test(email));
   };
+
+  // Supabase sign in
+  const handleSignIn = async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) setErrorMessage(error.message);
+    setLoading(false);
+  };
+
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Log In</ViewHeader>      
-      <ViewSection style={{ marginTop: 25 }}>
-          {fields.map(({ name, label, ...field }) => (
-            <View key={name}>
-              {/* Label on top of the text field */}
-              <Text style={styles.label}>{label}</Text>
-              <TextField
-                {...field}
-                control={control}
-                error={errors?.[name]?.message as string}
-                name={name}
-                secureTextEntry={field.type === 'password' && !passwordVisible}
-                rules={{ required: `${label} is required` }}
-                style={[
-                  styles.textField,
-                  (errors?.[name]?.message || errorMessage) && { borderColor: '#f00' }, // Red border for error
-                ]}
-                onChangeText={(text) => {
-                  field.onChange?.(text); // Pass the text directly
-                  if (field.type === 'email') validateEmail(text); // Validate email if the field is email
-                }}
+        <ViewSection style={{ marginTop: 50 }}>
+            <View style={{ position: 'relative' }}>
+            <Text style={styles.label}>Email</Text>
+            <SimpleTextField
+              value={email}
+              onChangeText={text => {
+                setEmail(text);
+                validateEmail(text);
+              }}
+              // name="email"
+              placeholder="email@address.com"
+              style={[
+                styles.textField,
+                errorMessage && { borderColor: '#f00' },
+              ]}
+              autoCapitalize="none"
+            />
+            {isEmailValid && (
+              <MaterialIcons
+                name="check-circle"
+                size={24}
+                color="black"
+                style={styles.tickIcon}
               />
-              {field.type === 'password' && (
-                <TouchableOpacity
-                  onPress={() => setPasswordVisible(!passwordVisible)}
-                  style={styles.eyeIcon}
-                >
-                  <MaterialIcons
-                    name={passwordVisible ? 'visibility' : 'visibility-off'} // Toggle icon
-                    size={24}
-                    color="#333"
-                  />
-                </TouchableOpacity>
-              )}
-              {field.type === 'email' && isEmailValid && (
-                <MaterialIcons
-                  name=  "check-circle"
-                  size={24}
-                  color="black"
-                  style={styles.tickIcon}
-                />
-              )}
-            </View>
-          ))}
-          {(
+            )}
+          </View>
+          <View>
+            <Text style={styles.label}>Password</Text>
+            <SimpleTextField
+              value={password}
+              onChangeText={setPassword}
+              // name="password"
+              placeholder="Password"
+              style={[
+                styles.textField,
+                errorMessage && { borderColor: '#f00' },
+              ]}
+              secureTextEntry={!passwordVisible}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              style={styles.eyeIcon}
+            >
+              <MaterialIcons
+                name={passwordVisible ? 'visibility' : 'visibility-off'}
+                size={24}
+                color="#333"
+              />
+            </TouchableOpacity>
+          </View>
+        {errorMessage && (
             <Text style={styles.errorMessage}>{errorMessage}</Text>
-          )}
+        )}
       </ViewSection>
 
       <SubmitButton
-        disabled={!isValid}
-        loading={isPending}
-        onPress={() => {
-          handleSubmit(getValues());
-        }}
+        disabled={!isEmailValid || !password}
+        loading={loading}
+        onPress={handleSignIn}
         style={[styles.button]}
         labelStyle={[styles.buttonText]}
       >
@@ -117,7 +129,7 @@ export function SignIn({
       </SubmitButton>     
 
       <LinksContainer>        
-        <LinkButton onPress={toForgotPassword} style={undefined} labelStyle={[styles.link, styles.linkText]}>
+        <LinkButton style={undefined} labelStyle={[styles.link, styles.linkText]}>
           Forgot Password?
         </LinkButton>
       </LinksContainer>
@@ -140,7 +152,7 @@ export function SignIn({
         </View>
         <View style={styles.footer}>
             <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Don't have an account?</Text>
-            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}} onPress={toSignUp}>Sign up</Text>
+            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}>Sign up</Text>
         </View>
     </ViewContainer>   
   );
