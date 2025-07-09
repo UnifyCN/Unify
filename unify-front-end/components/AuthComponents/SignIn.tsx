@@ -126,7 +126,7 @@ export function SignIn(): React.JSX.Element {
         labelStyle={[styles.buttonText]}
       >
         Log in
-      </SubmitButton>     
+      </SubmitButton>
 
       <LinksContainer>        
         <LinkButton style={undefined} labelStyle={[styles.link, styles.linkText]}>

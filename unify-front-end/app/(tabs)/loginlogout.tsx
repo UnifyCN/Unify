@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import Auth from '../../components/AuthComponents/SignInSupa'
 import { SignIn } from '../../components/AuthComponents/SignIn'
 import { SignUp } from '../../components/AuthComponents/SignUp'
+
 import { View, Text } from 'react-native'
 import { Session } from '@supabase/supabase-js'
 
@@ -24,10 +25,7 @@ export default function SupabaseSigningTest(): JSX.Element {
     }
   }, [])
 
-  return (
-    <View>
-      <SignIn />
-      {/* {session && session.user && <Text>{session.user.id}</Text>} */}
-    </View>
+  return (    
+      <SignIn />       
   )
 }
