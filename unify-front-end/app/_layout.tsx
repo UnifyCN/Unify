@@ -7,8 +7,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
+import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Auth from '@/components/AuthComponents/SignInSupa';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -33,14 +34,16 @@ export default function RootLayout() {
     <GestureHandlerRootView>
       <SafeAreaProvider>
         <ScrollContextProvider>
+          <AuthWrapper>
             <ThemeProvider value={DefaultTheme}>
               <Stack>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                 <Stack.Screen name="+not-found" />
               </Stack>
             </ThemeProvider>
-          </ScrollContextProvider>
-        </SafeAreaProvider>
+          </AuthWrapper>
+        </ScrollContextProvider>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

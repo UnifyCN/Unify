@@ -7,6 +7,7 @@ import { SignUp } from '../../components/AuthComponents/SignUp'
 
 import { View, Text } from 'react-native'
 import { Session } from '@supabase/supabase-js'
+import { Button } from 'react-native-paper'
 
 export default function SupabaseSigningTest(): JSX.Element {
   const [session, setSession] = useState<Session | null>(null)
@@ -26,9 +27,15 @@ export default function SupabaseSigningTest(): JSX.Element {
     }
   }, [])
 
-  return showSignIn ? (
-    <SignIn toggleToSignUp={() => setShowSignIn(false)} />
-    ) : (
-    <SignUp toggleToSignIn={() => setShowSignIn(true)} />
-    );    
+  async function signOut() {
+  const { error } = await supabase.auth.signOut()
+}
+
+  return (
+    <View>
+      <SignIn />
+      {session && session.user && <Text>{session.user.id}</Text>}
+      <Button onPress={signOut}>Sign Out</Button>
+    </View>
+  );
 }

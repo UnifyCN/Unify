@@ -28,7 +28,7 @@ function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
     .join('') as Capitalize<T>;
 }
 
-export function SignUp({ toggleToSignIn }: { toggleToSignIn: () => void }): React.JSX.Element {
+export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }): React.JSX.Element {
   const {
     formState: { errors, isValid },
   } = useForm({ mode: 'onTouched' });
@@ -201,7 +201,7 @@ export function SignUp({ toggleToSignIn }: { toggleToSignIn: () => void }): Reac
         <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Already have an account?</Text>
         <Text 
           style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}           
-          onPress={toggleToSignIn}
+          onPress={onSwitchToSignIn}
         >Log In</Text>
       </View>
     </ViewContainer>   
