@@ -73,7 +73,7 @@ export function SignUp({ toggleToSignIn }: { toggleToSignIn: () => void }): Reac
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Create account</ViewHeader>      
-      <ViewSection style={{ marginTop: 25 }}>
+      <ViewSection style={{ marginTop: 30 }}>
          <View style={{ position: 'relative' }}>
           <Text style={styles.label}>Email</Text>
           <SimpleTextField
@@ -213,13 +213,15 @@ const styles = {
     flex: 1,
     backgroundColor: '#fff',
     padding: 16 * 0.87,
+    paddingLeft: 24 * 0.87,
+    paddingRight: 24 * 0.87,
   },
   header: {
     fontSize: 34 * 0.87,
     fontWeight: '700' as '700',
     color: '#000',
     marginBottom: 7 * 0.87,
-    marginTop: 70 * 0.87,
+    marginTop: 110 * 0.87,
   },
   button: {
     backgroundColor: '#343434',
@@ -277,7 +279,7 @@ const styles = {
     top: 60 * 0.87,
   },
   footer: {
-    marginTop: 88 * 0.87,
+    marginTop: 50 * 0.87,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',

@@ -62,31 +62,31 @@ export function SignIn({ toggleToSignUp }: { toggleToSignUp: () => void }): Reac
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Log In</ViewHeader>      
-        <ViewSection style={{ marginTop: 50 }}>
+        <ViewSection style={{ marginTop: 30 }}>
             <View style={{ position: 'relative' }}>
-            <Text style={styles.label}>Email</Text>
-            <SimpleTextField
-              value={email}
-              onChangeText={text => {
-                setEmail(text);
-                validateEmail(text);
-              }}
-              // name="email"
-              placeholder="email@address.com"
-              style={[
-                styles.textField,
-                errorMessage && { borderColor: '#f00' },
-              ]}
-              autoCapitalize="none"
-            />
-            {isEmailValid && (
-              <MaterialIcons
-                name="check-circle"
-                size={24}
-                color="black"
-                style={styles.tickIcon}
+              <Text style={styles.label}>Email Address</Text>
+              <SimpleTextField
+                value={email}
+                onChangeText={text => {
+                  setEmail(text);
+                  validateEmail(text);
+                }}
+                // name="email"
+                placeholder="Email address"
+                style={[
+                  styles.textField,
+                  errorMessage && { borderColor: '#f00' },
+                ]}
+                autoCapitalize="none"
               />
-            )}
+              {isEmailValid && (
+                <MaterialIcons
+                  name="check-circle"
+                  size={24}
+                  color="black"
+                  style={styles.tickIcon}
+                />
+              )}
           </View>
           <View>
             <Text style={styles.label}>Password</Text>
@@ -112,7 +112,7 @@ export function SignIn({ toggleToSignUp }: { toggleToSignUp: () => void }): Reac
                 color="#333"
               />
             </TouchableOpacity>
-          </View>
+        </View>
         {errorMessage && (
             <Text style={styles.errorMessage}>{errorMessage}</Text>
         )}
@@ -163,13 +163,15 @@ const styles = {
     flex: 1,
     backgroundColor: '#fff',
     padding: 16 * 0.87,
+    paddingLeft: 24 * 0.87,
+    paddingRight: 24 * 0.87,
   },
   header: {
     fontSize: 34 * 0.87,
     fontWeight: '700' as '700',
     color: '#000',
     marginBottom: 7 * 0.87,
-    marginTop: 70 * 0.87,
+    marginTop: 110 * 0.87,
   },
   button: {
     backgroundColor: '#343434',
@@ -265,7 +267,7 @@ const styles = {
     paddingVertical: 18 * 0.87,
   },
   footer: {
-    marginTop: 88 * 0.87,
+    marginTop: 50 * 0.87,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
