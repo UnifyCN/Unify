@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,34 +7,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { MaterialIcons, Feather } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 import { ProgressSectionLL } from "@/components/learn/ProgressSectionLL";
 import { ProgressSectionIP } from "@/components/learn/ProgressSectionIP";
 import { ProgressSectionComplete } from "@/components/learn/ProgressSectionComplete";
 
-// Data fetching imports
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from '@/amplify/data/resource';
-import { GraphQLError } from "graphql";
-
-const client = generateClient<Schema>();
 const Modules = () => {
-  //Backend data fetching
-  const [LessonLibraryMainTopic, setLessonLibraryMainTopic] = useState<Schema["MainTopic"]["type"][]>([]);
-  const [errors, setErrors] = useState<GraphQLError>();
-
-  //Fetching Lesson Library data from the backend
-  useEffect(() => {
-    const sub = client.models.MainTopic.observeQuery().subscribe({
-      next: ({ items }) => {
-        setLessonLibraryMainTopic([...items]);
-      },
-    });
-
-    return () => sub.unsubscribe();
-  }, []);
-  
-
   const [selectedTag, setSelectedTag] = useState("All");
 
   const tags = [
@@ -49,9 +27,27 @@ const Modules = () => {
     "Item F",
   ];
 
+  // Mocked lesson library data
+  const LessonLibraryMainTopic = [
+    {
+      id: "1",
+      title: "Introduction to Housing",
+      description: "Learn about renting, leasing, and housing laws.",
+    },
+    {
+      id: "2",
+      title: "Financial Basics",
+      description: "Understanding banking, credit, and budgeting.",
+    },
+    {
+      id: "3",
+      title: "Employment Essentials",
+      description: "Resumes, interviews, and workplace rights.",
+    },
+  ];
+
   return (
     <View>
-      {/*page is vertically scrollable*/}
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.contentBox}>
           {/* Welcome Message */}
@@ -62,14 +58,12 @@ const Modules = () => {
 
           {/* Search Bar */}
           <View style={styles.searchContainer}>
-            {/* I'll fix the size of the icon after */}
             <MaterialIcons
               name="search"
               size={30}
               color="#555"
               style={styles.searchIcon}
             />
-            {/* we can change the placeholder text? this is just my default*/}
             <TextInput
               style={styles.searchInput}
               placeholder="Search something to learn?..."
@@ -100,15 +94,11 @@ const Modules = () => {
             ))}
           </View>
         </View>
-        {/* padding so that navigation doesn't hide lesson cards at bottom */}
+
         <View style={{ paddingBottom: 50 }}>
-          {/* Progress sections holding lessons cards */}
-          {/* NOTE: Currently built on top of the previous design using progress sections, we'll need to update and redesign in to using dynamic progressSectionCards
-          components once we have the backend to implement the data dynamically and for functionalities like liked lessons */}
           <ProgressSectionLL
             header="Lesson Library"
             navigatePage={"/(tabs)/Learn/Lesson-library"}
-            mainTopic={LessonLibraryMainTopic}            
           />
           <ProgressSectionIP
             header="In-Progress"
@@ -126,7 +116,7 @@ const Modules = () => {
 
 const styles = StyleSheet.create({
   contentBox: {
-    backgroundColor: "#EEEEEE", // Grey background for the entire box
+    backgroundColor: "#EEEEEE",
     padding: 20,
     borderRadius: 12,
   },
@@ -163,8 +153,8 @@ const styles = StyleSheet.create({
   },
   tagsContainer: {
     flexDirection: "row",
-    flexWrap: "wrap", // Allows wrapping to the next line
-    gap: 5, // Space between tags
+    flexWrap: "wrap",
+    gap: 5,
   },
   tagButton: {
     backgroundColor: "#fff",

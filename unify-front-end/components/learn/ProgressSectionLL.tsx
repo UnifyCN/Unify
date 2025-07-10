@@ -11,19 +11,14 @@ import { Image } from "expo-image";
 import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
 import React from "react";
 
-// Data fetching imports
-import type { Schema } from '@/amplify/data/resource';
-
 interface ProgressSectionProps {
   header: string;
   navigatePage: Href;
-  mainTopic: Schema["MainTopic"]["type"][];
 }
 
 export function ProgressSectionLL({
   header,
   navigatePage,
-  mainTopic,
 }: ProgressSectionProps) {
   return (
     // wrapping JSX into a singular return element
@@ -42,38 +37,27 @@ export function ProgressSectionLL({
         showsHorizontalScrollIndicator={false}
         style={styles.cardContainer}
       >
+        {/* Commented out for now, but can be used later */}
         {/* <ProgressSectionCard
           title="Pathway to Finance"
           description="Short description"
-          image={require("../../assets/images/Budget101.jpeg")}
-          href="/(tabs)/Learn/Lessons/path-way-finance"
-        />
-
-        <ProgressSectionCard
-          title="Lesson Title"
-          description="Short description"
-          image={require("../../assets/images/placeholderImg.png")}
-          href="./Main-lesson"
-        />
-
-        <ProgressSectionCard
-          title="Lesson Title"
-          description="Short description"
-          image={require("../../assets/images/placeholderImg.png")}
-          href="./Main-lesson"
+          image={require("@/assets/images/Budget101.jpeg")}
+          href="/(tabs)/learn/Lessons/path-way-finance"
         /> */}
 
-        {mainTopic
-          .filter((mainTopic) => mainTopic.linkToLesson) // Filter out undefined links
-          .map((mainTopic) => (
-            <ProgressSectionCard
-              key={mainTopic.id}
-              title={mainTopic.title}
-              description={mainTopic.description ?? "No description"}
-              image={require("../../assets/images/placeholderImg.png")} // Swap later with dynamic image if needed
-              href={mainTopic.linkToLesson as Href} // Type assertion to ensure compatibility
-            />
-          ))}
+        <ProgressSectionCard
+          title="Lesson Title"
+          description="Short description"
+          image={require("@/assets/images/placeholderImg.png")}
+          href="./Main-lesson"
+        />
+
+        <ProgressSectionCard
+          title="Lesson Title"
+          description="Short description"
+          image={require("@/assets/images/placeholderImg.png")}
+          href="./Main-lesson"
+        />
       </ScrollView>
     </>
   );
