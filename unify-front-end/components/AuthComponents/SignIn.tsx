@@ -30,7 +30,7 @@ function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
     .join('') as Capitalize<T>;
 }
 
-export function SignIn(): React.JSX.Element {
+export function SignIn({ toggleToSignUp }: { toggleToSignUp: () => void }): React.JSX.Element {
 
   // State for email tick and password eye icon toggle
   const [email, setEmail] = React.useState('');
@@ -152,7 +152,7 @@ export function SignIn(): React.JSX.Element {
         </View>
         <View style={styles.footer}>
             <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Don't have an account?</Text>
-            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}>Sign up</Text>
+            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}} onPress = {toggleToSignUp}>Sign up</Text>
         </View>
     </ViewContainer>   
   );

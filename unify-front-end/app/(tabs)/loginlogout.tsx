@@ -10,6 +10,7 @@ import { Session } from '@supabase/supabase-js'
 
 export default function SupabaseSigningTest(): JSX.Element {
   const [session, setSession] = useState<Session | null>(null)
+   const [showSignIn, setShowSignIn] = useState(true); // Local routing state, will fix after when we got more auth pages like forgot pass, confirmation code, etc.
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -25,7 +26,9 @@ export default function SupabaseSigningTest(): JSX.Element {
     }
   }, [])
 
-  return (    
-      <SignIn />       
-  )
+  return showSignIn ? (
+    <SignIn toggleToSignUp={() => setShowSignIn(false)} />
+    ) : (
+    <SignUp toggleToSignIn={() => setShowSignIn(true)} />
+    );    
 }
