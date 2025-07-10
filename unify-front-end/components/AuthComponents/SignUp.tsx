@@ -7,6 +7,7 @@ import { CheckBox } from 'react-native-elements';
 
 import { MaterialIcons } from '@expo/vector-icons';
 
+import { supabase } from '../../lib/supabase';
 import {
   ErrorMessage,
   LinkButton,
@@ -44,11 +45,29 @@ export function SignUp({
   const [passwordVisible, setPasswordVisible] = React.useState(false);
   const [isEmailValid, setIsEmailValid] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
-
+  const [loading, setLoading] = React.useState(false);
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
   const validateEmail = (email: string) => {
     // Simple email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setIsEmailValid(emailRegex.test(email));
+  };
+
+  const handleSignUp = async () => {
+    setLoading(true)
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    })
+
+    // if (error) Alert.alert(error.message)
+    // if (!session) Alert.alert('Please check your inbox for email verification!')
+    // if (error) setErrorMessage(error.message);
+    setLoading(false)
   };
   return (
     <ViewContainer style={styles.container}>
@@ -129,7 +148,7 @@ export function SignUp({
 
       <SubmitButton
         disabled={!isValid || !isChecked}
-        loading={isPending}
+        loading={loading}
         onPress={() => {
           handleSubmit(getValues());
         }}
@@ -145,7 +164,7 @@ export function SignUp({
         <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Already have an account?</Text>
         <Text 
           style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}           
-          onPress={toSignIn}
+          // onPress={toSignIn}
         >Log In</Text>
       </View>
     </ViewContainer>   
