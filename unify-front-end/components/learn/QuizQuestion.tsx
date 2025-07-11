@@ -5,9 +5,9 @@ interface QuizQuestionProps {
   question: string;
   answers: string[];
   // function that gets called when an answer is selected
-  selectedAnswer: (answer: string) => void; 
+  selectedAnswer: (answer: string) => void;
   // if an answer is currently selected (optional)
-  currentAnswer?: string; 
+  currentAnswer?: string;
 }
 
 const QuizQuestion: React.FC<QuizQuestionProps> = ({
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     marginBottom: 25,
   },
   correct: {
-    backgroundColor: "#c8e6c9", 
+    backgroundColor: "#c8e6c9",
     borderColor: "#fff",
   },
   wrong: {

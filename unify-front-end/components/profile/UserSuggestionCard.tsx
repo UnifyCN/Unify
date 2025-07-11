@@ -1,12 +1,6 @@
 import React from "react";
-import {Feather } from "@expo/vector-icons";
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 
 interface UserSuggestionCardProps {
   username: string;
@@ -27,10 +21,10 @@ const UserSuggestionCard: React.FC<UserSuggestionCardProps> = ({
     <View style={[horizontalGap && styles.gapWrapper]}>
       <View style={styles.card}>
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <Feather  name='x' size={24} color="#CFCFCF"/>
+          <Feather name="x" size={24} color="#CFCFCF" />
         </TouchableOpacity>
         <View style={styles.infoContainer}>
-          <Image source={{ uri: avatar }} style={styles.avatar}/>
+          <Image source={{ uri: avatar }} style={styles.avatar} />
           <Text style={styles.username}>{username}</Text>
           <TouchableOpacity style={styles.followButton} onPress={onFollow}>
             <Text style={styles.followButtonText}>Follow</Text>

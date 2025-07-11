@@ -7,20 +7,19 @@ import {
   Image,
   Dimensions,
 } from "react-native";
-import { Feather} from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 
-
 const MainLesson = () => {
-
-  const screenWidth = Dimensions.get('window').width;
+  const screenWidth = Dimensions.get("window").width;
   return (
-
     <View style={styles.container}>
-    {/* Header Image */}
-    <Image source={require("../../../assets/images/lessonsImg.png")} 
-    style={[styles.headerImg, {width: screenWidth}]}/>
-    
+      {/* Header Image */}
+      <Image
+        source={require("../../../assets/images/lessonsImg.png")}
+        style={[styles.headerImg, { width: screenWidth }]}
+      />
+
       {/* Header */}
       <View style={styles.headerContainer}>
         {/* Back Button and Learn Text */}
@@ -49,19 +48,22 @@ const MainLesson = () => {
       <View style={styles.headerContent}>
         {/* Title */}
         <Text style={styles.titleText}>Pathway to Finance (?)</Text>
-        <Text style={[styles.titleDetails, {color: "#CECECE"}]}>Relevant information about the lesson</Text>
-        <Text style={[styles.titleDetails, {color: "#9F9D9D"}]}>More details</Text>
+        <Text style={[styles.titleDetails, { color: "#CECECE" }]}>
+          Relevant information about the lesson
+        </Text>
+        <Text style={[styles.titleDetails, { color: "#9F9D9D" }]}>
+          More details
+        </Text>
         {/* Horizontal Divider */}
-        <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3,}}/>
+        <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 3 }} />
         {/* Start of t */}
-        <View style={{marginTop: 25}}>
+        <View style={{ marginTop: 25 }}>
           <Text style={styles.topicText}>Topics</Text>
-
         </View>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -98,7 +100,7 @@ const styles = StyleSheet.create({
     fontSize: 29,
     marginBottom: 13,
     alignSelf: "flex-start",
-    color: "#343434"
+    color: "#343434",
   },
   titleDetails: {
     fontWeight: "500",

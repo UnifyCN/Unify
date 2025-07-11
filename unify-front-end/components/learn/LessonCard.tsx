@@ -22,7 +22,9 @@ const LessonCard: React.FC<LessonCardProps> = ({
   style, // Destructure the `style` prop
 }) => {
   return (
-    <View style={[styles.card, style]}> {/* Apply custom styles */}
+    <View style={[styles.card, style]}>
+      {" "}
+      {/* Apply custom styles */}
       <ImageBackground
         source={imageSource}
         style={styles.cardImage}

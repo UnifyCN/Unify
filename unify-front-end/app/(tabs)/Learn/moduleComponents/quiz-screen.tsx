@@ -24,29 +24,23 @@ const QuizScreen = () => {
         "C. Worked on advertising for an app.",
         "D. Assisted team members with technical tasks.",
       ],
-      correctAnswer: "B. Increased engagement by 35% through targeted social media campaigns.",
+      correctAnswer:
+        "B. Increased engagement by 35% through targeted social media campaigns.",
     },
     {
       question:
         "Resumes for engineering and technical roles should avoid listing specific tools or software to keep the format clean.",
-      options: [
-        "A. True",
-        "B. False",
-      ],
+      options: ["A. True", "B. False"],
       correctAnswer: "B. False",
     },
     {
       question:
         "Tailoring your resume to include keywords and skills from a job description helps avoid disqualification by automated resume-sorting systems.",
-      options: [
-        "A. True",
-        "B. False",
-      ],
+      options: ["A. True", "B. False"],
       correctAnswer: "A. True",
     },
     {
-      question:
-        "Which of the following is not a soft skill?",
+      question: "Which of the following is not a soft skill?",
       options: [
         "A. Communication",
         "B. Leadership",
@@ -83,7 +77,7 @@ const QuizScreen = () => {
       .map((q, index) => {
         // get selected answers
         const selected = selectedAnswers[index];
-         // return values only if its incorrect, otherwise return null, then filter null items
+        // return values only if its incorrect, otherwise return null, then filter null items
         return selected !== q.correctAnswer
           ? {
               question: q.question,
@@ -194,7 +188,10 @@ const QuizScreen = () => {
         confirm={() => {
           router.push({
             pathname: "/Learn/moduleComponents/quiz-completed",
-            params: { wrongAnswers: JSON.stringify(wrongAnswers), totalQuestions: questions.length},
+            params: {
+              wrongAnswers: JSON.stringify(wrongAnswers),
+              totalQuestions: questions.length,
+            },
           });
           changeQuestion(0);
           setWrongAnswers([]);

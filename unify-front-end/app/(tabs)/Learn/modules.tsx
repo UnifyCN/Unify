@@ -14,13 +14,15 @@ import { ProgressSectionComplete } from "@/components/learn/ProgressSectionCompl
 
 // Data fetching imports
 import { generateClient } from "aws-amplify/data";
-import type { Schema } from '@/amplify/data/resource';
+import type { Schema } from "@/amplify/data/resource";
 import { GraphQLError } from "graphql";
 
 const client = generateClient<Schema>();
 const Modules = () => {
   //Backend data fetching
-  const [LessonLibraryMainTopic, setLessonLibraryMainTopic] = useState<Schema["MainTopic"]["type"][]>([]);
+  const [LessonLibraryMainTopic, setLessonLibraryMainTopic] = useState<
+    Schema["MainTopic"]["type"][]
+  >([]);
   const [errors, setErrors] = useState<GraphQLError>();
 
   //Fetching Lesson Library data from the backend
@@ -33,7 +35,6 @@ const Modules = () => {
 
     return () => sub.unsubscribe();
   }, []);
-  
 
   const [selectedTag, setSelectedTag] = useState("All");
 
@@ -108,7 +109,7 @@ const Modules = () => {
           <ProgressSectionLL
             header="Lesson Library"
             navigatePage={"/(tabs)/Learn/Lesson-library"}
-            mainTopic={LessonLibraryMainTopic}            
+            mainTopic={LessonLibraryMainTopic}
           />
           <ProgressSectionIP
             header="In-Progress"

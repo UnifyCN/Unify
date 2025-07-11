@@ -8,23 +8,32 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
-import { Feather} from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import TopicCard from "@/components/learn/TopicCard";
 
 const MainLesson = () => {
-
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
+  const screenWidth = Dimensions.get("window").width;
+  const screenHeight = Dimensions.get("window").height;
   return (
     <ScrollView>
       <View style={styles.container}>
         {/* Header Image */}
-        <Image source={require("../../../../assets/images/lessonsImg.png")} 
-        style={[styles.headerImg, {width: screenWidth, height: screenHeight*.4}]}/>
-      
+        <Image
+          source={require("../../../../assets/images/lessonsImg.png")}
+          style={[
+            styles.headerImg,
+            { width: screenWidth, height: screenHeight * 0.4 },
+          ]}
+        />
+
         {/* Header*/}
-        <View style={[styles.headerContainer,{paddingBottom:screenHeight*.4}]}>
+        <View
+          style={[
+            styles.headerContainer,
+            { paddingBottom: screenHeight * 0.4 },
+          ]}
+        >
           {/* Back Button and Learn Text */}
           <View style={styles.headerContentContainer}>
             <Link href="/(tabs)/Learn/modules" asChild>
@@ -50,34 +59,43 @@ const MainLesson = () => {
         <View style={styles.headerContent}>
           {/* Title */}
           <Text style={styles.titleText}>Pathway to Finance (?)</Text>
-          <Text style={[styles.titleDetails, {color: "#CECECE"}]}>Relevant information about the lesson</Text>
-          <Text style={[styles.titleDetails, {color: "#9F9D9D"}]}>More details</Text>
+          <Text style={[styles.titleDetails, { color: "#CECECE" }]}>
+            Relevant information about the lesson
+          </Text>
+          <Text style={[styles.titleDetails, { color: "#9F9D9D" }]}>
+            More details
+          </Text>
           {/* Horizontal Divider */}
-          <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3,}}/>
-          <View style={{marginTop: 25}}>
+          <View
+            style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 3 }}
+          />
+          <View style={{ marginTop: 25 }}>
             <Text style={styles.topicText}>Topics</Text>
           </View>
 
           {/*Subtopic Cards */}
-          <View style= {styles.scrollContainer}>
+          <View style={styles.scrollContainer}>
             <TopicCard
               icon={require("../../../../assets/images/placeholderImg.png")}
               subTopicTitle="topic"
-              description="description"/>
+              description="description"
+            />
             <TopicCard
               icon={require("../../../../assets/images/placeholderImg.png")}
               subTopicTitle="topic"
-              description="description"/>
+              description="description"
+            />
             <TopicCard
               icon={require("../../../../assets/images/placeholderImg.png")}
               subTopicTitle="topic"
-              description="description"/>
+              description="description"
+            />
           </View>
         </View>
       </View>
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -112,7 +130,7 @@ const styles = StyleSheet.create({
     fontSize: 29,
     marginBottom: 13,
     alignSelf: "flex-start",
-    color: "#343434"
+    color: "#343434",
   },
   titleDetails: {
     fontWeight: "500",
@@ -127,9 +145,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   scrollContainer: {
-    paddingBottom: 20, 
+    paddingBottom: 20,
     borderRadius: 12,
-  }
+  },
 });
 
 export default MainLesson;

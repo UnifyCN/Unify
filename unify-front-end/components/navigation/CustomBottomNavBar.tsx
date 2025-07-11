@@ -1,10 +1,15 @@
-import { TouchableOpacity, StyleSheet, Text} from "react-native";
+import { TouchableOpacity, StyleSheet, Text } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useScrollContext } from "@/context/ScrollContext";
 import CustomHomeIcon from "../icons/HomePageIcon";
 import CustomlearnIcon from "../icons/LearnPageIcon";
 import CustomProfileIcon from "../icons/ProfilePageIcon";
-import Animated, { Easing, useAnimatedStyle, useDerivedValue, withTiming} from "react-native-reanimated";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useDerivedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { useScrollVisibility } from "@/hooks/useScrollVisibility";
 
 const NAV_BAR_HEIGHT = 50;
@@ -15,22 +20,22 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   descriptors,
   navigation,
 }) => {
-
   const visibilityProgress = useScrollVisibility();
   // Hide the tab bar by transform it either rise it by the original value or 0 to kill it
   const animatedStyle = useAnimatedStyle(
     () => ({
-      transform: [{ translateY: visibilityProgress.value * (NAV_BAR_HEIGHT + OFFSET_BOTTOM)}],
-    })
-  , [visibilityProgress])
+      transform: [
+        {
+          translateY:
+            visibilityProgress.value * (NAV_BAR_HEIGHT + OFFSET_BOTTOM),
+        },
+      ],
+    }),
+    [visibilityProgress],
+  );
 
   return (
-    <Animated.View 
-      style={[
-        styles.container,
-        animatedStyle,
-        ]} 
-      >
+    <Animated.View style={[styles.container, animatedStyle]}>
       {state.routes.map((route, index) => {
         if (
           [
@@ -54,7 +59,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             "Learn/Lessons/PathWayFinanceSubTopics/budgeting",
             "Profile/profile-settings",
             "Profile/edit-profile",
-            "Profile/profile-suggestions"
+            "Profile/profile-suggestions",
           ].includes(route.name)
         )
           return null;
@@ -64,8 +69,8 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
-            ? options.title
-            : route.name
+              ? options.title
+              : route.name,
         );
 
         const isFocused = state.index === index;
@@ -82,7 +87,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           }
         };
         const primaryColor = "#2F97C4";
-        const whiteColor = "#FFFFFF"
+        const whiteColor = "#FFFFFF";
         return (
           <TouchableOpacity
             key={route.key}
@@ -94,13 +99,12 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             accessibilityRole="button"
             accessibilityLabel={label}
           >
-
             {getIconByRouteName(
               route.name,
               isFocused ? whiteColor : primaryColor,
-              isFocused
+              isFocused,
             )}
-            <Text style={{color: isFocused? whiteColor : primaryColor}}>
+            <Text style={{ color: isFocused ? whiteColor : primaryColor }}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -112,7 +116,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   function getIconByRouteName(
     routeName: string,
     color: string,
-    isFocused: boolean
+    isFocused: boolean,
   ): React.ReactNode {
     const iconMap: Record<string, React.ReactNode> = {
       index: <CustomHomeIcon name={"Home"} color={color} focused={isFocused} />,
@@ -152,7 +156,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 10,
     elevation: 4,
-    
   },
   tabItem: {
     flexDirection: "row",

@@ -16,7 +16,6 @@ import Save from "@/assets/images/Save.svg";
 import Save_Fill from "@/assets/images/Save_filled.svg";
 import Comment from "@/assets/images/Comment.svg";
 
-
 const { width: screenWidth } = Dimensions.get("window");
 
 export interface User {
@@ -43,101 +42,98 @@ interface FeedProps {
 }
 
 const Feed: React.FC<FeedProps> = ({ posts }) => {
+  const [updatedPosts, setUpdatedPosts] = React.useState(posts);
 
-    const [updatedPosts, setUpdatedPosts] = React.useState(posts);
+  const toggleLike = (postId: number) => {
+    setUpdatedPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              liked: !post.liked,
+              likes: post.liked ? post.likes - 1 : post.likes + 1, // Increment or decrement the likes
+            }
+          : post,
+      ),
+    );
+  };
 
-    const toggleLike = (postId: number) => {
-        setUpdatedPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post.id === postId
-              ? {
-                ...post,
-                liked: !post.liked,
-                likes: post.liked ? post.likes - 1 : post.likes + 1, // Increment or decrement the likes
-              }
-              : post
-          )
-        );
-      };
-    
-      const toggleSave = (postId: number) => {
-        setUpdatedPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post.id === postId
-              ? { ...post, saved: !post.saved }
-              : post
-          )
-        );
-      };
+  const toggleSave = (postId: number) => {
+    setUpdatedPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, saved: !post.saved } : post,
+      ),
+    );
+  };
 
   const renderPost = ({ item }: { item: Post }) => (
     <View>
-        <View style={styles.postContainer}>
+      <View style={styles.postContainer}>
         {/* Head Shot */}
         <View style={styles.headshot}>
           <item.user.headshot />
         </View>
         {/* Post Content */}
         <View style={styles.postContent}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.name}>{item.user.name}</Text>
-                <Text style={styles.time}>{item.time}</Text>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.name}>{item.user.name}</Text>
+            <Text style={styles.time}>{item.time}</Text>
+          </View>
+
+          {item.userReply && (
+            <View style={styles.replyContainer}>
+              <Text style={styles.time}>Replying to </Text>
+              <Text style={styles.replyUser}>{item.userReply}</Text>
             </View>
-            
-            {item.userReply && (
-              <View style={styles.replyContainer}>
-                <Text style={styles.time}>Replying to </Text>
-                <Text style={styles.replyUser}>{item.userReply}</Text>
-              </View>
-            )}
+          )}
 
-            {/* Description */}
-            <Text style={styles.description}>{item.description}</Text>
+          {/* Description */}
+          <Text style={styles.description}>{item.description}</Text>
 
-            {/* Horizontal Scrolling Images */}
-            {item.pictures && item.pictures.length > 0 && (
-                <FlatList
-                data={item.pictures}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(picture, index) => `${item.id}-picture-${index}`}
-                renderItem={({ item: PictureComponent }: { item: React.FC }) => (
-                    <View style={styles.postImage}>
-                      <PictureComponent />
-                    </View>
-                )}
-                contentContainerStyle={styles.imageScrollContainer}
-                />
-            )}
-
-            {/* Footer */}
-            <View style={styles.footer}>
-                <View style={styles.footerItem}>
-                    <TouchableOpacity onPress={() => toggleLike(item.id)}>
-                    {item.liked ? (
-                        <Like_Fill width={20} height={20} />
-                    ) : (
-                        <Like width={20} height={20} />
-                    )}
-                    </TouchableOpacity>
-                    <Text style={styles.footerText}>{item.likes}</Text>
+          {/* Horizontal Scrolling Images */}
+          {item.pictures && item.pictures.length > 0 && (
+            <FlatList
+              data={item.pictures}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(picture, index) => `${item.id}-picture-${index}`}
+              renderItem={({ item: PictureComponent }: { item: React.FC }) => (
+                <View style={styles.postImage}>
+                  <PictureComponent />
                 </View>
-                <View style={styles.footerItem}>
-                    <Comment width={20} height={20} fill="gray" />
-                    <Text style={styles.footerText}>{item.comments}</Text>
-                </View>
-                <TouchableOpacity onPress={() => toggleSave(item.id)}>
-                {item.saved ? (
-                    <Save_Fill width={20} height={20} />
+              )}
+              contentContainerStyle={styles.imageScrollContainer}
+            />
+          )}
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <View style={styles.footerItem}>
+              <TouchableOpacity onPress={() => toggleLike(item.id)}>
+                {item.liked ? (
+                  <Like_Fill width={20} height={20} />
                 ) : (
-                    <Save width={20} height={20} />
+                  <Like width={20} height={20} />
                 )}
-                </TouchableOpacity>
+              </TouchableOpacity>
+              <Text style={styles.footerText}>{item.likes}</Text>
             </View>
+            <View style={styles.footerItem}>
+              <Comment width={20} height={20} fill="gray" />
+              <Text style={styles.footerText}>{item.comments}</Text>
+            </View>
+            <TouchableOpacity onPress={() => toggleSave(item.id)}>
+              {item.saved ? (
+                <Save_Fill width={20} height={20} />
+              ) : (
+                <Save width={20} height={20} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-        </View>
-        <View style={styles.divider} />
+      </View>
+      <View style={styles.divider} />
     </View>
   );
 
@@ -152,9 +148,7 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
 };
 
 const styles = StyleSheet.create({
-  feedContainer: {
-
-  },
+  feedContainer: {},
   postContainer: {
     backgroundColor: "#fff",
     elevation: 3,
@@ -169,7 +163,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8
+    gap: 8,
   },
   headshot: {
     width: 40,
@@ -220,7 +214,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 16,
     flex: 1,
-    gap: 32
+    gap: 32,
   },
   footerItem: {
     flexDirection: "row",
@@ -237,7 +231,7 @@ const styles = StyleSheet.create({
   },
   replyContainer: {
     flexDirection: "row",
-  }
+  },
 });
 
 export default Feed;

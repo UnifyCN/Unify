@@ -30,9 +30,7 @@ const QuizProgressBar: React.FC<QuizProgressBarProps> = ({
         Progress: {completed}/{total} questions completed
       </Text>
       {/* Display current question shown */}
-      <Text style={styles.questionHeader}>
-        Question {completed}
-      </Text>
+      <Text style={styles.questionHeader}>Question {completed}</Text>
     </View>
   );
 };
