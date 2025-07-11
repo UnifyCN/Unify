@@ -61,6 +61,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  // TODO: should probably store a bool in the user's profile or in a table instead of in the route params
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
