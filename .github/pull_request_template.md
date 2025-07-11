@@ -1,5 +1,8 @@
+## Title
+[REPLACE WITH TICKET TITLE]
+
 ## Link
-[Ticket Title](https://your-project-tracker.com/ticket/123)
+[Link](REPLACE THIS WITH TICKET URL)
 
 ## What was done
 [Describe the changes made]
