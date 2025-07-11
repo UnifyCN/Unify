@@ -17,6 +17,3 @@
 
 ## Reminder
 Please assign yourself this PR in the sidebar
-
-## Reviewers
-@UnifyCN/leads @UnifyCN/app-coords
