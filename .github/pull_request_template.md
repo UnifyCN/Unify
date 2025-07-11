@@ -12,7 +12,8 @@
 - [ ] Code builds without errors
 - [ ] No console errors or warnings
 
+## Reminder
+Please assign yourself this PR in the sidebar
+
 ## Reviewers
 @leads @app-coords
-
-/unassign_reviewer @me
