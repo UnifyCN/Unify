@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { Feather} from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import SettingsOption from "@/components/profile/SettingsOption";
 import { supabase } from "@/lib/supabase";
@@ -26,50 +26,52 @@ const ProfileSettings = () => {
           <Text style={styles.headerText}>Settings and activity</Text>
         </View>
       </View>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
+      <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
 
       <View style={styles.contentContainer}>
         <Text style={styles.sectionTitle}>How you use Unify</Text>
         <View style={styles.sectionContainer}>
-          <SettingsOption title="Your activity"/>
-          <SettingsOption title="Notifications"/>
-          <SettingsOption title="Time management"/>
+          <SettingsOption title="Your activity" />
+          <SettingsOption title="Notifications" />
+          <SettingsOption title="Time management" />
         </View>
 
         <Text style={styles.sectionTitle}>Who can see your content</Text>
         <View style={styles.sectionContainer}>
-          <SettingsOption title="Your activity" detail="Private"/>
-          <SettingsOption title="Notifications" detail="0"/>
+          <SettingsOption title="Your activity" detail="Private" />
+          <SettingsOption title="Notifications" detail="0" />
         </View>
 
-        <Text style={styles.sectionTitle}>How others can interact with you</Text>
+        <Text style={styles.sectionTitle}>
+          How others can interact with you
+        </Text>
         <View style={styles.sectionContainer}>
-          <SettingsOption title="Tags and mentions"/>
-          <SettingsOption title="Comments"/>
-          <SettingsOption title="Restricted" detail="0"/>
-          <SettingsOption title="Limit interactions"/>
-          <SettingsOption title="Hidden words"/>
+          <SettingsOption title="Tags and mentions" />
+          <SettingsOption title="Comments" />
+          <SettingsOption title="Restricted" detail="0" />
+          <SettingsOption title="Limit interactions" />
+          <SettingsOption title="Hidden words" />
         </View>
 
         <Text style={styles.sectionTitle}>What you see</Text>
         <View style={styles.sectionContainer}>
-          <SettingsOption title="Muted" detail="0"/>
-          <SettingsOption title="Suggested content"/>
-          <SettingsOption title="Like counts"/>
+          <SettingsOption title="Muted" detail="0" />
+          <SettingsOption title="Suggested content" />
+          <SettingsOption title="Like counts" />
         </View>
 
         <Text style={styles.sectionTitle}>Your app and media</Text>
         <View style={styles.sectionContainer}>
-          <SettingsOption title="Device permission"/>
-          <SettingsOption title="Accessibility and translations"/>
+          <SettingsOption title="Device permission" />
+          <SettingsOption title="Accessibility and translations" />
         </View>
 
         <Text style={styles.sectionTitle}>More info and support</Text>
         <View style={styles.sectionContainer}>
-          <SettingsOption title="Help"/>
-          <SettingsOption title="Privacy centre"/>
-          <SettingsOption title="Account status"/>
-          <SettingsOption title="About"/>
+          <SettingsOption title="Help" />
+          <SettingsOption title="Privacy centre" />
+          <SettingsOption title="Account status" />
+          <SettingsOption title="About" />
         </View>
 
         <TouchableOpacity>
@@ -80,7 +82,6 @@ const ProfileSettings = () => {
         </TouchableOpacity>
       </View>
     </ScrollView>
-
   );
 };
 
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
-    alignItems: "center", 
+    alignItems: "center",
     paddingRight: 10,
   },
   sectionContainer: {
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     paddingBottom: 70,
     fontWeight: "500",
-  }
+  },
 });
 
 export default ProfileSettings;

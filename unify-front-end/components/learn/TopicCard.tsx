@@ -8,22 +8,26 @@ import {
 } from "react-native";
 
 interface TopicCardProps {
-    icon: ImageSourcePropType;
-    subTopicTitle: string;
-    description: string;
+  icon: ImageSourcePropType;
+  subTopicTitle: string;
+  description: string;
 }
 
 const TopicCard: React.FC<TopicCardProps> = ({
   icon,
   subTopicTitle,
   description,
-  }) => {
+}) => {
   return (
     <View style={styles.card}>
-      <Image source={icon} style={styles.cardImage}/>
+      <Image source={icon} style={styles.cardImage} />
       <View>
-        <Text style={[styles.cardText, {color: "#9F9D9D"}]}>{subTopicTitle}</Text>
-        <Text style={[styles.cardText, {color: "#CECECE"}]}>{description}</Text>
+        <Text style={[styles.cardText, { color: "#9F9D9D" }]}>
+          {subTopicTitle}
+        </Text>
+        <Text style={[styles.cardText, { color: "#CECECE" }]}>
+          {description}
+        </Text>
       </View>
     </View>
   );
@@ -52,7 +56,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     color: "#9F9D9D",
     paddingBottom: 10,
-  }
+  },
 });
-  
-  export default TopicCard;
+
+export default TopicCard;

@@ -6,14 +6,13 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { Link, useLocalSearchParams} from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 import QuizFail from "../../../../assets/images/failedQuiz.svg";
 import QuizPass from "../../../../assets/images/passedQuiz.svg";
 
-
 const QuizCompleted = () => {
-  const { wrongAnswers, totalQuestions } = useLocalSearchParams(); 
-  const parsedAnswers = wrongAnswers ? JSON.parse(wrongAnswers as string): [];
+  const { wrongAnswers, totalQuestions } = useLocalSearchParams();
+  const parsedAnswers = wrongAnswers ? JSON.parse(wrongAnswers as string) : [];
   const correctAnswers = Number(totalQuestions) - parsedAnswers.length;
   const percentagePassed = (correctAnswers / Number(totalQuestions)) * 100;
 
@@ -22,54 +21,74 @@ const QuizCompleted = () => {
       <View style={styles.headerContentContainer}>
         <Text style={styles.headerText}>Budgeting Level 1 Quiz</Text>
       </View>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1}}/>
+      <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
 
       {percentagePassed >= 49 ? (
         <View>
           <QuizPass width={170} height={170} style={styles.image} />
-          <Text style={styles.title}>Congratulations! You’ve passed the quiz!</Text>
+          <Text style={styles.title}>
+            Congratulations! You’ve passed the quiz!
+          </Text>
         </View>
-        ) :
-        (
+      ) : (
         <View>
           <QuizFail width={170} height={170} style={styles.image} />
           <Text style={styles.title}>Oops! You did not pass</Text>
         </View>
-        )}
+      )}
 
-      <Text style={styles.quizResultText}>You got {correctAnswers}/{totalQuestions} correct!</Text>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 3, marginLeft: 80, marginRight: 80}}/>
+      <Text style={styles.quizResultText}>
+        You got {correctAnswers}/{totalQuestions} correct!
+      </Text>
+      <View
+        style={{
+          borderBottomColor: "#EEEEEE",
+          borderBottomWidth: 3,
+          marginLeft: 80,
+          marginRight: 80,
+        }}
+      />
       <Text style={styles.subTitle}>Let's Review!</Text>
 
       <View style={styles.textContainer}>
-          {parsedAnswers.length > 0 ? (
-          parsedAnswers.map((item: { question: string; selectedAnswer: string; correctAnswer: string }, index: number) => (
-            <View key={index}>
-              {/* show what the question was first + which number it was */}
-              <Text style={styles.notes}>
-                {index + 1}. {item.question}
-              </Text>
-              {/* show users answer + correct answer */}
-              <Text style={styles.notes}>
-                <Text style={styles.notesBold}>Your Answer: </Text>
-                <Text>{item.selectedAnswer}</Text>
-              </Text>
-              <Text style={styles.notes}>
-                <Text style={styles.notesBold}>Correct Answer: </Text>
-                <Text >{item.correctAnswer}</Text>
-              </Text>
-            </View>
-          )) 
-        ) : ( 
-          //if all answers are right, show a message to indicate this 
-           <Text style={styles.notes}>No incorrect answers to review!</Text> 
-         )} 
+        {parsedAnswers.length > 0 ? (
+          parsedAnswers.map(
+            (
+              item: {
+                question: string;
+                selectedAnswer: string;
+                correctAnswer: string;
+              },
+              index: number,
+            ) => (
+              <View key={index}>
+                {/* show what the question was first + which number it was */}
+                <Text style={styles.notes}>
+                  {index + 1}. {item.question}
+                </Text>
+                {/* show users answer + correct answer */}
+                <Text style={styles.notes}>
+                  <Text style={styles.notesBold}>Your Answer: </Text>
+                  <Text>{item.selectedAnswer}</Text>
+                </Text>
+                <Text style={styles.notes}>
+                  <Text style={styles.notesBold}>Correct Answer: </Text>
+                  <Text>{item.correctAnswer}</Text>
+                </Text>
+              </View>
+            ),
+          )
+        ) : (
+          //if all answers are right, show a message to indicate this
+          <Text style={styles.notes}>No incorrect answers to review!</Text>
+        )}
       </View>
 
       <View style={styles.textContainer}>
         <Text style={styles.subTitle}>What’s the Next Step?</Text>
         <Text style={styles.bottomText}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna.
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna.
         </Text>
       </View>
       <Link href="/Learn/Lessons/PathWayFinanceSubTopics/budgeting" asChild>
@@ -132,8 +151,8 @@ const styles = StyleSheet.create({
   textContainer: {
     paddingHorizontal: 20,
     marginHorizontal: 15,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
+    flexDirection: "column",
+    alignItems: "flex-start",
   },
   notes: {
     fontSize: 17,
@@ -144,7 +163,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: "#000",
     marginBottom: 16,
-    fontWeight: "bold"
+    fontWeight: "bold",
   },
   bottomText: {
     fontSize: 17,
@@ -153,30 +172,29 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   listItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
   },
   backButton: {
     marginBottom: 100,
     borderRadius: 40,
     alignSelf: "center",
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 32,
     backgroundColor: "#343434",
   },
   buttonText: {
-    color: '#000',
-    fontWeight: '600',
+    color: "#000",
+    fontWeight: "600",
     fontSize: 16,
     paddingHorizontal: 25,
   },
   backButtonText: {
-    color: "#fff", 
+    color: "#fff",
     fontSize: 17,
     textAlign: "center",
   },
-  
 });
 
 export default QuizCompleted;

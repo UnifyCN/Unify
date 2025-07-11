@@ -1,19 +1,31 @@
-import { useState, memo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Image, SafeAreaView} from 'react-native';
-import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle} from 'react-native-reanimated'
-import { useScrollContext } from '@/context/ScrollContext';
-import { useScrollVisibility } from '@/hooks/useScrollVisibility';
-import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import Search from '@/assets/images/search.svg';
-import CreatePost from '@/assets/images/create_post_button.svg'
-import Carousel from '@/components/home/Carousel';
-import ForYouFeed from '@/components/home/ForYouFeed';
-import FollowingFeed from '@/components/home/FollowingFeed';
-import GroupsFeed from '@/components/home/GroupsFeed';
+import { useState, memo } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+} from "react-native";
+import Animated, {
+  useAnimatedScrollHandler,
+  useSharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import { useScrollContext } from "@/context/ScrollContext";
+import { useScrollVisibility } from "@/hooks/useScrollVisibility";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import Search from "@/assets/images/search.svg";
+import CreatePost from "@/assets/images/create_post_button.svg";
+import Carousel from "@/components/home/Carousel";
+import ForYouFeed from "@/components/home/ForYouFeed";
+import FollowingFeed from "@/components/home/FollowingFeed";
+import GroupsFeed from "@/components/home/GroupsFeed";
 
 const SCROLL_DISTANCE = 200;
-const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity)
+const AnimatedTouchableOpacity =
+  Animated.createAnimatedComponent(TouchableOpacity);
 
 interface HeaderProps {
   activeTab: string;
@@ -22,7 +34,7 @@ interface HeaderProps {
 
 const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   const router = useRouter();
-  
+
   return (
     <View>
       <View style={styles.headContainer}>
@@ -40,33 +52,41 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
       </View>
 
       <View style={styles.cardContainer}>
-        <TouchableOpacity 
-          style={styles.card} 
-          onPress={() => router.push('/(tabs)/Learn/Lesson-library')}
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => router.push("/(tabs)/Learn/Lesson-library")}
         >
-          <Image 
-            style={styles.cardImage} 
-            source={require('@/assets/images/nationalNews.png')} 
+          <Image
+            style={styles.cardImage}
+            source={require("@/assets/images/nationalNews.png")}
           />
           <Text style={styles.cardDescription}>National News</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.card} 
-          onPress={() => router.push('/(tabs)/Learn/journey-map')}
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => router.push("/(tabs)/Learn/journey-map")}
         >
-          <Image 
-            style={styles.cardImage} 
-            source={require('@/assets/images/journeyMap.png')} 
+          <Image
+            style={styles.cardImage}
+            source={require("@/assets/images/journeyMap.png")}
           />
           <Text style={styles.cardDescription}>Journey Map</Text>
         </TouchableOpacity>
       </View>
-      
-      <Text style= {{fontWeight: 600, fontSize: 24, color: "black", paddingHorizontal: 20, marginTop: 20}}>
+
+      <Text
+        style={{
+          fontWeight: 600,
+          fontSize: 24,
+          color: "black",
+          paddingHorizontal: 20,
+          marginTop: 20,
+        }}
+      >
         Your Feed
       </Text>
       <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map((tab) => (
+        {["For You", "Following", "Groups"].map((tab) => (
           <TouchableOpacity
             key={tab}
             onPress={() => setActiveTab(tab)}
@@ -85,62 +105,61 @@ export default function HomeScreen() {
 
   const renderFeedContent = () => {
     switch (activeTab) {
-      case 'Following':
+      case "Following":
         return <FollowingFeed />;
-      case 'Groups':
+      case "Groups":
         return <GroupsFeed />;
       default:
         return <ForYouFeed />;
     }
-  }
+  };
 
-  const [scrollValue,] = useScrollContext();
+  const [scrollValue] = useScrollContext();
   const previousScrollValue = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
-    // Change this if this cause any error 
+    // Change this if this cause any error
     onScroll: (e) => {
       const offsetY = e.contentOffset.y;
-      if (offsetY < 0 || offsetY > e.contentSize.height)
-        return;
+      if (offsetY < 0 || offsetY > e.contentSize.height) return;
 
       scrollValue.value = Math.max(
-        0, Math.min(1, scrollValue.value + (offsetY - previousScrollValue.value) / SCROLL_DISTANCE)
+        0,
+        Math.min(
+          1,
+          scrollValue.value +
+            (offsetY - previousScrollValue.value) / SCROLL_DISTANCE,
+        ),
       );
 
       previousScrollValue.value = offsetY;
     },
-  }
-);
+  });
 
   const visibilityProgress = useScrollVisibility();
   // Hide the post button, 135 is the combination of the button diameter + 75 offset from the bottom
   const animatedStyle = useAnimatedStyle(
     () => ({
-      transform: [{ translateY: visibilityProgress.value * (135)}],
-    })
-  , [visibilityProgress])
+      transform: [{ translateY: visibilityProgress.value * 135 }],
+    }),
+    [visibilityProgress],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       <Animated.FlatList
-        data={[{ key: 'feed' }]}
+        data={[{ key: "feed" }]}
         renderItem={() => (
-          <View style={styles.feedContainer}>
-            {renderFeedContent()}
-          </View>
+          <View style={styles.feedContainer}>{renderFeedContent()}</View>
         )}
         keyExtractor={(item) => item.key}
         ListHeaderComponent={
-          <Header 
-            activeTab={activeTab} 
-            setActiveTab={setActiveTab}
-          />
+          <Header activeTab={activeTab} setActiveTab={setActiveTab} />
         }
         onScroll={scrollHandler}
       />
       <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
-          <CreatePost />
+        <CreatePost />
       </AnimatedTouchableOpacity>
     </SafeAreaView>
   );
@@ -162,15 +181,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: "row",
     backgroundColor: "#fff",
-    gap: 28
+    gap: 28,
   },
   searchIcon: {
-    overflow: "hidden"
+    overflow: "hidden",
   },
   search: {
     fontSize: 15,
     color: "#9f9d9d",
-    textAlign: "left"
+    textAlign: "left",
   },
   searchBar: {
     flex: 1,
@@ -183,7 +202,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingRight: 124,
     paddingBottom: 8,
-    gap: 8
+    gap: 8,
   },
   divider: {
     width: "100%",
@@ -233,14 +252,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: "60%",
     left: "8%",
-    width: "54%"
+    width: "54%",
   },
   card: {
     borderRadius: 12,
     backgroundColor: "#c7c7c7",
     width: "48%",
     overflow: "hidden",
-    height: 120
+    height: 120,
   },
   feedContainer: {
     paddingBottom: 44,
@@ -248,20 +267,20 @@ const styles = StyleSheet.create({
   },
   tabs: {
     marginTop: 16,
-    backgroundColor: '#F9F9F9', 
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F9F9F9",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   tab: {
     backgroundColor: "transparent",
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     borderColor: "transparent",
     paddingVertical: 8,
   },
   activeTab: {
-    backgroundColor: '#F9F9F9',
+    backgroundColor: "#F9F9F9",
   },
   tabText: {
     fontSize: 14,
@@ -292,5 +311,5 @@ const styles = StyleSheet.create({
   floatingButtonIcon: {
     width: 30,
     height: 30,
-  }
+  },
 });

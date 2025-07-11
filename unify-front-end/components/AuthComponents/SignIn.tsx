@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 import { useForm } from 'react-hook-form';
 import { View, Text, TextInput, TouchableOpacity} from 'react-native';
@@ -26,9 +26,9 @@ import {
 } from './Components';
 
 function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
-  return [first && first.toUpperCase(), rest.join('').toLowerCase()]
+  return [first && first.toUpperCase(), rest.join("").toLowerCase()]
     .filter(Boolean)
-    .join('') as Capitalize<T>;
+    .join("") as Capitalize<T>;
 }
 
 export function SignIn({ onSwitchToSignUp }: { onSwitchToSignUp?: () => void }): React.JSX.Element {
@@ -84,8 +84,7 @@ export function SignIn({ onSwitchToSignUp }: { onSwitchToSignUp?: () => void }):
                 <MaterialIcons
                   name="check-circle"
                   size={24}
-                  color="black"
-                  style={styles.tickIcon}
+                  color="#333"
                 />
               )}
           </View>
@@ -136,41 +135,63 @@ export function SignIn({ onSwitchToSignUp }: { onSwitchToSignUp?: () => void }):
       </LinksContainer>
 
       <View style={styles.orLogIn}>
-          <View style={styles.lineView}></View>
-          <Text style={styles.orText}>Or Login with</Text>
-          <View style={styles.lineView}></View>
+        <View style={styles.lineView}></View>
+        <Text style={styles.orText}>Or Login with</Text>
+        <View style={styles.lineView}></View>
       </View>
-        <View style={styles.buttonBucket}>
-            <View style={styles.buttonWithIcon}>
-              <Facebook width={20} height={20} />
-            </View>
-            <View style={styles.buttonWithIcon}>
-                <Google width={20} height={20} />
-            </View>
-            <View style={styles.buttonWithIcon}>
-                <Apple width={20} height={20} />
-            </View>
+      <View style={styles.buttonBucket}>
+        <View style={styles.buttonWithIcon}>
+          <Facebook width={20} height={20} />
         </View>
         <View style={styles.footer}>
             <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Don't have an account?</Text>
             <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}} onPress = {onSwitchToSignUp}>Sign up</Text>
         </View>
-    </ViewContainer>   
+        <View style={styles.buttonWithIcon}>
+          <Apple width={20} height={20} />
+        </View>
+      </View>
+      <View style={styles.footer}>
+        <Text
+          style={{
+            fontSize: 14,
+            lineHeight: 18,
+            color: "rgba(0, 0, 0, 0.7)",
+            textAlign: "left",
+          }}
+        >
+          Don't have an account?
+        </Text>
+        <Text
+          style={{
+            fontSize: 14,
+            lineHeight: 18,
+            textDecorationLine: "underline",
+            fontWeight: "600",
+            textAlign: "left",
+            color: "#000",
+          }}
+          onPress={onSwitchToSignUp}
+        >
+          Sign up
+        </Text>
+      </View>
+    </ViewContainer>
   );
 }
 
 const styles = {
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16 * 0.87,
     paddingLeft: 24 * 0.87,
     paddingRight: 24 * 0.87,
   },
   header: {
     fontSize: 34 * 0.87,
-    fontWeight: '700' as '700',
-    color: '#000',
+    fontWeight: "700" as "700",
+    color: "#000",
     marginBottom: 7 * 0.87,
     marginTop: 110 * 0.87,
   },
@@ -180,89 +201,89 @@ const styles = {
     marginTop: 37 * 0.87,
     width: 110 * 0.87,
     height: 42 * 0.87,
-    alignSelf: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    alignItems: 'center' as 'center',
+    alignSelf: "center" as "center",
+    justifyContent: "center" as "center",
+    alignItems: "center" as "center",
   },
   buttonText: {
-    color: 'white',
-    textAlign: 'center' as 'center',
+    color: "white",
+    textAlign: "center" as "center",
     fontSize: 16 * 0.87,
   },
   textField: {
-    backgroundColor: '#fff',
-    color: '#000',
-    borderColor: '#ccc',
+    backgroundColor: "#fff",
+    color: "#000",
+    borderColor: "#ccc",
     borderWidth: 1 * 0.87,
     borderRadius: 12 * 0.87,
     padding: 8 * 0.87,
     height: 57,
   },
   errorMessage: {
-    color: '#f00',
+    color: "#f00",
     fontSize: 14 * 0.87,
   },
   link: {
-    color: 'black',
-    textDecorationLine: 'underline' as 'underline',
+    color: "black",
+    textDecorationLine: "underline" as "underline",
   },
   linkText: {
-    color: 'black',
+    color: "black",
     fontSize: 15 * 0.87,
-    fontWeight: '400' as '400',
+    fontWeight: "400" as "400",
   },
   label: {
     fontSize: 16 * 0.87,
-    fontWeight: '400' as '400',
-    color: '#000',
+    fontWeight: "400" as "400",
+    color: "#000",
     marginBottom: 8 * 0.87,
     marginTop: 13 * 0.87,
   },
   eyeIcon: {
-    position: 'absolute' as 'absolute',
+    position: "absolute" as "absolute",
     right: 16 * 0.87,
     top: 62 * 0.87,
   },
   tickIcon: {
-    position: 'absolute' as 'absolute',
+    position: "absolute" as "absolute",
     right: 16 * 0.87,
     top: 60 * 0.87,
   },
   orLogIn: {
     marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    flexDirection: "row" as "row",
+    alignItems: "center" as "center",
   },
   lineView: {
-    borderStyle: 'solid' as 'solid',
-    borderColor: '#d8dadc',
+    borderStyle: "solid" as "solid",
+    borderColor: "#d8dadc",
     borderTopWidth: 1 * 0.87,
     flex: 1,
-    width: '100%' as '100%',
+    width: "100%" as "100%",
     height: 1 * 0.87,
   },
   orText: {
-    color: 'rgba(0, 0, 0, 0.7)',
+    color: "rgba(0, 0, 0, 0.7)",
     fontSize: 14 * 0.87,
     lineHeight: 18 * 0.87,
     marginHorizontal: 10 * 0.87,
   },
   buttonBucket: {
-  marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    marginTop: 22 * 0.87,
+    flexDirection: "row" as "row",
+    alignItems: "center" as "center",
     gap: 15 * 0.87,
   },
   buttonWithIcon: {
     borderRadius: 10 * 0.87,
-    backgroundColor: '#fff',
-    borderStyle: 'solid' as 'solid',
-    borderColor: '#d8dadc',
+    backgroundColor: "#fff",
+    borderStyle: "solid" as "solid",
+    borderColor: "#d8dadc",
     borderWidth: 1 * 0.87,
     flex: 1,
-    width: '100%' as '100%',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
+    width: "100%" as "100%",
+    alignItems: "center" as "center",
+    justifyContent: "center" as "center",
     paddingHorizontal: 45 * 0.87,
     paddingVertical: 18 * 0.87,
   },

@@ -106,7 +106,13 @@ const Carousel: React.FC = () => {
     }, 50);
   };
 
-  const renderItem = ({ item, index }: { item: CarouselItem; index: number }) => (
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: CarouselItem;
+    index: number;
+  }) => (
     <View style={[styles.itemContainer, { width: ITEM_WIDTH }]}>
       <Image source={item.image} style={styles.image} />
       <View style={{ paddingHorizontal: 14 }}>
@@ -114,7 +120,9 @@ const Carousel: React.FC = () => {
         {/* Only show the progress bar for the first item */}
         {index === 1 && (
           <View style={styles.progressContainer}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
               <Text style={styles.progressText}>Completion</Text>
               <Text style={styles.percentageText}>{item.progress}%</Text>
             </View>
@@ -130,13 +138,16 @@ const Carousel: React.FC = () => {
         )}
         {/* Add text for other items */}
         {index !== 1 && (
-          <View style={{ marginTop: 8, flexDirection: "row", justifyContent: "space-between", paddingTop: 10 }}>
-            <Text style={styles.additionalTextLeft}>
-                Last Updated
-            </Text>
-            <Text style={styles.additionalTextRight}>
-                Januarary 5, 2025
-            </Text>
+          <View
+            style={{
+              marginTop: 8,
+              flexDirection: "row",
+              justifyContent: "space-between",
+              paddingTop: 10,
+            }}
+          >
+            <Text style={styles.additionalTextLeft}>Last Updated</Text>
+            <Text style={styles.additionalTextRight}>Januarary 5, 2025</Text>
           </View>
         )}
       </View>
@@ -147,7 +158,7 @@ const Carousel: React.FC = () => {
     return carouselData.map((_, index) => {
       // Adjust the input range to account for the duplicated items
       const inputRange = [
-        (index) * ITEM_WIDTH,
+        index * ITEM_WIDTH,
         (index + 1) * ITEM_WIDTH,
         (index + 2) * ITEM_WIDTH,
       ];
@@ -193,8 +204,8 @@ const Carousel: React.FC = () => {
         snapToInterval={ITEM_WIDTH}
         decelerationRate="fast"
         onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: false, listener: handleScroll }
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: false, listener: handleScroll },
         )}
         scrollEventThrottle={16}
         initialScrollIndex={1} // Start at the first original item
@@ -274,7 +285,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16
+    marginBottom: 16,
   },
   dotIndicator: {
     height: 10,

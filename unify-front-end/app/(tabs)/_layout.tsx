@@ -10,16 +10,16 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-      tabBarActiveTintColor: Colors[colorScheme ?? "dark"].tint,
-      headerShown: false,
+        tabBarActiveTintColor: Colors[colorScheme ?? "dark"].tint,
+        headerShown: false,
       }}
       tabBar={(props) => <CustomNavBar {...props} />}
     >
       <Tabs.Screen
-      name="index"
-      options={{
-        title: "Home",
-      }}
+        name="index"
+        options={{
+          title: "Home",
+        }}
       />
       <Tabs.Screen
       name="Learn/index"
@@ -28,10 +28,10 @@ export default function TabLayout() {
       }}
       /> 
       <Tabs.Screen
-      name="profile"
-      options={{
-        title: "Profile",
-      }}     
+        name="profile"
+        options={{
+          title: "Profile",
+        }}
       />
     </Tabs>
   );

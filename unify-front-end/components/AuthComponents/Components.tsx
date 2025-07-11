@@ -1,7 +1,7 @@
-import React from 'react';
+import React from "react";
 
-import { Controller, ControllerProps } from 'react-hook-form';
-import { View, ViewProps, ViewStyle, TextInput} from 'react-native';
+import { Controller, ControllerProps } from "react-hook-form";
+import { View, ViewProps, ViewStyle, TextInput } from "react-native";
 import {
   Button,
   ButtonProps,
@@ -14,39 +14,39 @@ import {
   TextInputProps,
   useTheme,
   Divider,
-} from 'react-native-paper';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react-native';
+} from "react-native-paper";
+import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react-native";
 
 const styles = {
   signOutButton: { marginVertical: 32, marginHorizontal: 16 },
   viewHeader: { marginBottom: 16 },
   viewDivider: { marginVertical: 16 },
   errorMessageBox: {
-    color: '#f00', // Red text for error messages
+    color: "#f00", // Red text for error messages
     fontSize: 14,
     marginTop: 4,
   },
   linksContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginTop: 16,
   } as ViewStyle,
   errorMessage: { marginTop: 16, padding: 16 },
 };
 
 export interface TextFieldProps
-  extends Omit<TextInputProps, 'error' | 'cursorColor' | 'selectionColor'>,
-    Pick<ControllerProps, 'control' | 'name' | 'rules'> {
-  control: ControllerProps['control'];
+  extends Omit<TextInputProps, "error" | "cursorColor" | "selectionColor">,
+    Pick<ControllerProps, "control" | "name" | "rules"> {
+  control: ControllerProps["control"];
   error?: string;
-  type?: 'email' | 'default' | 'password' | 'phone';
+  type?: "email" | "default" | "password" | "phone";
 }
 
 export function TextField({
   control,
   error,
   name,
-  type = 'default',
+  type = "default",
   rules,
   secureTextEntry,
   onChangeText,
@@ -57,23 +57,21 @@ export function TextField({
       <Controller
         control={control}
         name={name}
-        render={({ field: { onChange, value,  ...renderProps } }) => (
+        render={({ field: { onChange, value, ...renderProps } }) => (
           <TextInput
             {...(props as TextInputProps)}
             {...renderProps}
-            value={value ?? ''} // Ensure the value is never undefined
+            value={value ?? ""} // Ensure the value is never undefined
             onChangeText={(text) => {
               onChange(text); // Update the form state
               onChangeText?.(text); // Call the external onChangeText if provided
             }}
-            secureTextEntry={secureTextEntry ?? type === 'password'}
+            secureTextEntry={secureTextEntry ?? type === "password"}
           />
         )}
         rules={rules}
       />
-      <Text style={styles.errorMessageBox}>
-        {error || ' '}
-      </Text>
+      <Text style={styles.errorMessageBox}>{error || " "}</Text>
     </React.Fragment>
   );
 }
@@ -218,7 +216,7 @@ export function Container({
   return (
     <Authenticator.Container
       {...props}
-      style={[{ backgroundColor: 'white' }, style]}
+      style={[{ backgroundColor: "white" }, style]}
     />
   );
 }
