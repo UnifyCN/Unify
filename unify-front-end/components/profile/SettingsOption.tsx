@@ -7,10 +7,7 @@ interface SettingsOptionProps {
   detail?: string;
 }
 
-const SettingsOption: React.FC<SettingsOptionProps> = ({
-  title,
-  detail,
-}) => {
+const SettingsOption: React.FC<SettingsOptionProps> = ({ title, detail }) => {
   return (
     <TouchableOpacity>
       <View style={styles.optionContainer}>
@@ -24,7 +21,6 @@ const SettingsOption: React.FC<SettingsOptionProps> = ({
         </View>
       </View>
     </TouchableOpacity>
-
   );
 };
 
@@ -50,12 +46,11 @@ const styles = StyleSheet.create({
   detailsContainer: {
     flexDirection: "row",
     alignContent: "flex-end",
-    
   },
   detailText: {
     fontSize: 18,
-    color: "#999999"
-  }
+    color: "#999999",
+  },
 });
 
 export default SettingsOption;

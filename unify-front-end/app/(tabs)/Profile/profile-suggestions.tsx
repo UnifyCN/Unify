@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { Feather} from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import UserSuggestionCard from "@/components/profile/UserSuggestionCard";
 
@@ -22,22 +22,19 @@ const ProfileSuggestions = () => {
           <Text style={styles.headerText}>Discover people</Text>
         </View>
       </View>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
+      <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
 
       <View style={styles.contentContainer}>
-        <UserSuggestionCard username="User_Name"/>
-        <UserSuggestionCard username="User_Name"/>
-        <UserSuggestionCard username="User_Name"/>
-        <UserSuggestionCard username="User_Name"/>
-        <UserSuggestionCard username="User_Name"/>
-        <UserSuggestionCard username="User_Name"/>
-        <UserSuggestionCard username="User_Name"/>
-        <UserSuggestionCard username="User_Name"/>
-        
+        <UserSuggestionCard username="User_Name" />
+        <UserSuggestionCard username="User_Name" />
+        <UserSuggestionCard username="User_Name" />
+        <UserSuggestionCard username="User_Name" />
+        <UserSuggestionCard username="User_Name" />
+        <UserSuggestionCard username="User_Name" />
+        <UserSuggestionCard username="User_Name" />
+        <UserSuggestionCard username="User_Name" />
       </View>
-        
     </ScrollView>
-
   );
 };
 
@@ -72,7 +69,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
-    alignItems: "center", 
+    alignItems: "center",
     paddingRight: 10,
   },
 });

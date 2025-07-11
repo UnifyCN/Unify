@@ -1,16 +1,22 @@
-import { 
-  StyleSheet, Text, View,Image, ScrollView, TouchableOpacity, FlatList,
-} from 'react-native';
-import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import React, { useState } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome, Feather } from "@expo/vector-icons";
-import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
-import PostsFeed from '../../components/profile/PostsFeed';
-import RepliesFeed from '../../components/profile/RepliesFeed';
-import SavedFeed from '../../components/profile/SavedFeed';
+import PostsFeed from "../../components/profile/PostsFeed";
+import RepliesFeed from "../../components/profile/RepliesFeed";
+import SavedFeed from "../../components/profile/SavedFeed";
 import FeedProfile2 from "@/assets/images/Feed_Profile2.svg";
-import UserSuggestionCard from '@/components/profile/UserSuggestionCard';
+import UserSuggestionCard from "@/components/profile/UserSuggestionCard";
 
 export default function TabTwoScreen() {
   const router = useRouter();
@@ -19,11 +25,11 @@ export default function TabTwoScreen() {
 
   const renderFeedContent = () => {
     switch (activeTab) {
-      case 'For You':
+      case "For You":
         return <PostsFeed />;
-      case 'Replies':
+      case "Replies":
         return <RepliesFeed />;
-      case 'Saved':
+      case "Saved":
         return <SavedFeed />;
       default:
         return <PostsFeed />;
@@ -34,9 +40,11 @@ export default function TabTwoScreen() {
     <View style={styles.container}>
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
-          <TouchableOpacity onPress={() => router.push('/Profile/profile-settings')}>
-            <Feather  name='menu' size={26} color="black"/>
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push("/Profile/profile-settings")}
+        >
+          <Feather name="menu" size={26} color="black" />
+        </TouchableOpacity>
       </View>
       <View style={styles.divider} />
       <ScrollView>
@@ -54,7 +62,7 @@ export default function TabTwoScreen() {
                   <Text style={styles.statsText}>60</Text>
                   <Text style={styles.statsLabel}>posts</Text>
                 </View>
-                <View style={styles.statsInfoContainer}> 
+                <View style={styles.statsInfoContainer}>
                   <Text style={styles.statsText}>100</Text>
                   <Text style={styles.statsLabel}>following</Text>
                 </View>
@@ -80,7 +88,10 @@ export default function TabTwoScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.buttonsContainer}>
-            <TouchableOpacity style={styles.button} onPress={() => router.push('/Profile/edit-profile')}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => router.push("/Profile/edit-profile")}
+            >
               <Text style={styles.buttonText}>Edit profile</Text>
             </TouchableOpacity>
 
@@ -88,67 +99,99 @@ export default function TabTwoScreen() {
               <Text style={styles.buttonText}>Share profile</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.button} onPress={() => setShowDropdown(!showDropdown)}>
-              <Feather  name='user-plus' size={20} color="black"/>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setShowDropdown(!showDropdown)}
+            >
+              <Feather name="user-plus" size={20} color="black" />
             </TouchableOpacity>
           </View>
 
           {showDropdown && (
             <View>
               <View style={styles.dropDownDetails}>
-                <Text style={styles.headerTwo} >Discover people</Text>
-                <TouchableOpacity onPress={() => router.push('/Profile/profile-suggestions')}>
+                <Text style={styles.headerTwo}>Discover people</Text>
+                <TouchableOpacity
+                  onPress={() => router.push("/Profile/profile-suggestions")}
+                >
                   <Text style={styles.headerTwoLink}>See all</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestedContainer}>
-                <UserSuggestionCard username="User_Name" horizontalGap={true}/>
-                <UserSuggestionCard username="User_Name" horizontalGap={true}/>
-                <UserSuggestionCard username="User_Name" horizontalGap={true}/>
-                <UserSuggestionCard username="User_Name"/>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.suggestedContainer}
+              >
+                <UserSuggestionCard username="User_Name" horizontalGap={true} />
+                <UserSuggestionCard username="User_Name" horizontalGap={true} />
+                <UserSuggestionCard username="User_Name" horizontalGap={true} />
+                <UserSuggestionCard username="User_Name" />
               </ScrollView>
             </View>
           )}
-
         </View>
 
-         {/* Tabs*/}
-         <View style={styles.tabsContainer}>
-            <TouchableOpacity
-              onPress={() => setActiveTab('Posts')}
-              style={[styles.tab, activeTab === 'Posts' && styles.activeTab]}>
-              <Text style={[styles.tabText, activeTab === 'Posts'  && styles.activeTabText]}>Posts</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab('Replies')}
-              style={[styles.tab, activeTab === 'Replies' && styles.activeTab]}>
-              <Text style={[styles.tabText, activeTab === 'Replies'  && styles.activeTabText]}>Replies</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab('Saved')}
-              style={[styles.tab, activeTab === 'Saved' && styles.activeTab]} >
-              <Text style={[styles.tabText, activeTab === 'Saved' && styles.activeTabText]}>Saved</Text>
-            </TouchableOpacity>
-          </View>
+        {/* Tabs*/}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            onPress={() => setActiveTab("Posts")}
+            style={[styles.tab, activeTab === "Posts" && styles.activeTab]}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "Posts" && styles.activeTabText,
+              ]}
+            >
+              Posts
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveTab("Replies")}
+            style={[styles.tab, activeTab === "Replies" && styles.activeTab]}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "Replies" && styles.activeTabText,
+              ]}
+            >
+              Replies
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveTab("Saved")}
+            style={[styles.tab, activeTab === "Saved" && styles.activeTab]}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "Saved" && styles.activeTabText,
+              ]}
+            >
+              Saved
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
-    );
+  );
 
-    return (
-        <SafeAreaView style={styles.container}>
-          <StatusBar style="dark" />
-          {/* FlatList for the entire scrollable content */}
-          <FlatList
-            data={[{ key: 'feed' }]}  // Simple dummy data to trigger the render method
-            renderItem={() => (
-              <View style={styles.feedContainer}>
-                {renderFeedContent()}
-              </View>)}
-            keyExtractor={(item) => item.key}
-            // Move header and non-scrollable parts here
-            ListHeaderComponent={renderHeader}/>
-        </SafeAreaView>
-      );
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar style="dark" />
+      {/* FlatList for the entire scrollable content */}
+      <FlatList
+        data={[{ key: "feed" }]} // Simple dummy data to trigger the render method
+        renderItem={() => (
+          <View style={styles.feedContainer}>{renderFeedContent()}</View>
+        )}
+        keyExtractor={(item) => item.key}
+        // Move header and non-scrollable parts here
+        ListHeaderComponent={renderHeader}
+      />
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -169,13 +212,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: "row",
     backgroundColor: "#fff",
-    gap: 28
+    gap: 28,
   },
   avatarBorder: {
     width: 110,
     height: 110,
     borderRadius: 55,
-    borderWidth: 2, 
+    borderWidth: 2,
     borderColor: "#EEEEEE",
     justifyContent: "center",
     alignItems: "center",
@@ -271,15 +314,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
   },
-  tabsContainer: { 
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+  tabsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
   tab: {
     backgroundColor: "transparent",
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     borderColor: "transparent",
     paddingVertical: 8,
   },
@@ -290,7 +333,7 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
   },
   activeTab: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   activeTabText: {
     color: "black",
@@ -303,14 +346,13 @@ const styles = StyleSheet.create({
     paddingBottom: 44,
     marginBottom: 36,
   },
-  suggestedContainer: {
-  },
+  suggestedContainer: {},
   dropDownDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingVertical: 20,
   },
   userCard: {
     marginRight: 10,
-  }
+  },
 });

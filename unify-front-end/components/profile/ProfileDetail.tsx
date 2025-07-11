@@ -24,7 +24,9 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({
           <Text style={[styles.detailInfo, !filled && styles.unfilledInfo]}>
             {info}
           </Text>
-          {selectable && <Feather name="chevron-right" size={20} color="#999" />}
+          {selectable && (
+            <Feather name="chevron-right" size={20} color="#999" />
+          )}
         </View>
       </View>
     </View>
@@ -44,14 +46,14 @@ const styles = StyleSheet.create({
     width: "35%",
   },
   infoContainer: {
-    flex: 1, 
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between", 
+    justifyContent: "space-between",
   },
   detailInfo: {
     fontSize: 18,
-    flexShrink: 1, 
+    flexShrink: 1,
   },
   unfilledInfo: {
     fontSize: 18,

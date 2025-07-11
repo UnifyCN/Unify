@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import {
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Modal, 
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
   Image,
 } from "react-native";
 import { Link } from "expo-router";
@@ -26,31 +26,45 @@ const PopupModal: React.FC<PopupModalProps> = ({
   show,
   setShow,
   link = "",
-  confirm
+  confirm,
 }) => {
   return (
-    // Modal that fades in when next button is pressed 
+    // Modal that fades in when next button is pressed
     <Modal transparent visible={show} animationType="fade">
       <View style={styles.modal}>
         <View style={styles.modalContent}>
-          <Image source={require("../../assets/images/warn.png")} style={styles.image}></Image>
+          <Image
+            source={require("../../assets/images/warn.png")}
+            style={styles.image}
+          ></Image>
           <Text style={styles.questionText}>{question}</Text>
           {/* Proceed to quiz*/}
-          {link ? (  // only navigate if link is provided
+          {link ? ( // only navigate if link is provided
             <Link href={link as any} asChild>
-              <TouchableOpacity style={styles.modalButton}
-                onPress={() => { confirm(); }}>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  confirm();
+                }}
+              >
                 <Text style={styles.yesText}>{topResponse}</Text>
               </TouchableOpacity>
             </Link>
           ) : (
-            <TouchableOpacity style={styles.modalButton} onPress={() => { confirm(); }}>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => {
+                confirm();
+              }}
+            >
               <Text style={styles.yesText}>{topResponse}</Text>
             </TouchableOpacity>
           )}
           {/* Go back to key takeaways*/}
-          <TouchableOpacity style={[styles.modalButton, styles.modalBottomButton]}
-            onPress={setShow}>
+          <TouchableOpacity
+            style={[styles.modalButton, styles.modalBottomButton]}
+            onPress={setShow}
+          >
             <Text style={styles.noText}>{bottomResponse}</Text>
           </TouchableOpacity>
         </View>
@@ -62,47 +76,47 @@ const PopupModal: React.FC<PopupModalProps> = ({
 const styles = StyleSheet.create({
   modal: {
     flex: 1,
-    backgroundColor: 'rgba(24, 24, 24, 0.4)', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
+    backgroundColor: "rgba(24, 24, 24, 0.4)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    width: '80%',
+    width: "80%",
     height: 325,
-    backgroundColor: '#fff', 
+    backgroundColor: "#fff",
     borderRadius: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalButton: {
     paddingVertical: 11,
     borderRadius: 20,
     marginVertical: 5,
-    alignItems: 'center',
+    alignItems: "center",
     width: "auto",
-    backgroundColor: '#3FADF2', 
-    marginTop: 22
+    backgroundColor: "#3FADF2",
+    marginTop: 22,
   },
   modalBottomButton: {
-    backgroundColor: '#F5F5F5', 
-    borderWidth: 1, 
-    borderColor: '#000000', 
-    marginTop: 10
+    backgroundColor: "#F5F5F5",
+    borderWidth: 1,
+    borderColor: "#000000",
+    marginTop: 10,
   },
   questionText: {
-    fontWeight: "bold", 
+    fontWeight: "bold",
     fontSize: 17,
     marginHorizontal: 50,
     textAlign: "center",
   },
   noText: {
-    color: '#000',
-    fontWeight: '600',
+    color: "#000",
+    fontWeight: "600",
     fontSize: 16,
     paddingHorizontal: 25,
   },
   yesText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 16,
     paddingHorizontal: 25,
   },

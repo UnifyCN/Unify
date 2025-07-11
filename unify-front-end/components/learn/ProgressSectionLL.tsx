@@ -12,7 +12,7 @@ import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
 import React from "react";
 
 // Data fetching imports
-import type { Schema } from '@/amplify/data/resource';
+import type { Schema } from "@/amplify/data/resource";
 
 interface ProgressSectionProps {
   header: string;

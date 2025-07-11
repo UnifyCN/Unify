@@ -5,7 +5,7 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { Feather} from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import FeedProfile2 from "@/assets/images/Feed_Profile2.svg";
 import ProfileDetail from "@/components/profile/ProfileDetail";
@@ -23,23 +23,32 @@ const EditProfile = () => {
           <Text style={styles.headerText}>Profile</Text>
         </View>
       </View>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
+      <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
 
       <View style={styles.avatarContainer}>
         <View style={styles.avatarBorder}>
           <View style={styles.avatar}>
-            <FeedProfile2 width={100} height={100}/>
+            <FeedProfile2 width={100} height={100} />
           </View>
         </View>
         <Text style={styles.editText}>Edit picture</Text>
       </View>
 
-      <ProfileDetail title="Name" info="Actual_Name" filled={true}/>
-      <ProfileDetail title="Username" info="User_Name" filled={true}/>
-      <ProfileDetail title="Pronouns" info="Prounouns" filled={false}/>
-      <ProfileDetail title="Bio" info="From Taiwan 🇹🇼 • Living in Burnaby 🍁" filled={true}/>
-      <ProfileDetail title="Gender" info="Gender" filled={false} selectable={true}/>
-      <View style={{borderBottomColor: '#EEEEEE', borderBottomWidth: 1,}}/>
+      <ProfileDetail title="Name" info="Actual_Name" filled={true} />
+      <ProfileDetail title="Username" info="User_Name" filled={true} />
+      <ProfileDetail title="Pronouns" info="Prounouns" filled={false} />
+      <ProfileDetail
+        title="Bio"
+        info="From Taiwan 🇹🇼 • Living in Burnaby 🍁"
+        filled={true}
+      />
+      <ProfileDetail
+        title="Gender"
+        info="Gender"
+        filled={false}
+        selectable={true}
+      />
+      <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
     </ScrollView>
   );
 };
@@ -71,7 +80,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
-    alignItems: "center", 
+    alignItems: "center",
     paddingRight: 10,
   },
   avatarContainer: {
@@ -90,7 +99,7 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    borderWidth: 2, 
+    borderWidth: 2,
     borderColor: "#EEEEEE",
     justifyContent: "center",
     alignItems: "center",

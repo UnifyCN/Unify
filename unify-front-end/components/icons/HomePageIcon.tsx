@@ -24,13 +24,17 @@ interface CustomIconProps {
 // Optimize for performance by only render the icon once
 
 export default function CustomProfileIcon({
-  name, 
-  color, 
-  focused
+  name,
+  color,
+  focused,
 }: CustomIconProps) {
   return (
     <>
-      {focused ? <SVGHomePageIconFocused fill={color}/> : <SVGHomePageIcon fill={color}/>}
+      {focused ? (
+        <SVGHomePageIconFocused fill={color} />
+      ) : (
+        <SVGHomePageIcon fill={color} />
+      )}
     </>
-  )
+  );
 }
