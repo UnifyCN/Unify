@@ -1,9 +1,10 @@
 import React from 'react';
 
 import { useForm } from 'react-hook-form';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity} from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
 import { supabase } from '../../lib/supabase';
+import { Button } from "react-native-paper";
 
 import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
 import Facebook from "../../assets/images/Facebook.svg"
@@ -175,7 +176,6 @@ const styles = {
   },
   button: {
     backgroundColor: '#343434',
-    padding: 12 * 0.87,
     borderRadius: 40 * 0.87,
     marginTop: 37 * 0.87,
     width: 110 * 0.87,

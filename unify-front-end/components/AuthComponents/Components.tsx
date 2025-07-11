@@ -124,7 +124,7 @@ export function SubmitButton({
 
         style,
       ]}
-      textColor={theme.colors.inverseOnSurface}
+      
     >
       {children}
     </Button>
