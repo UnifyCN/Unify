@@ -55,14 +55,13 @@ export default function Onboarding({
     if (lastScreen) {
       endOnboarding();
     } else {
-      setCurrentStep(onboardingSteps[currentStep.stepNumber + 1]);
+      setCurrentStep(onboardingSteps[currentStep.stepNumber]);
     }
   };
 
   const onBack = () => {
-    const currentIndex = onboardingSteps.indexOf(currentStep);
-    if (currentIndex > 0) {
-      setCurrentStep(onboardingSteps[currentIndex - 1]);
+    if (currentStep.stepNumber > 1) {
+      setCurrentStep(onboardingSteps[currentStep.stepNumber - 2]);
     }
   };
 
