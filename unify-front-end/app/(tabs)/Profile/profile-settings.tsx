@@ -8,8 +8,12 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Link } from "expo-router";
 import SettingsOption from "@/components/profile/SettingsOption";
+import { supabase } from "@/lib/supabase";
 
 const ProfileSettings = () => {
+  async function signOut() {
+  const { error } = await supabase.auth.signOut()
+  }
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
@@ -74,7 +78,7 @@ const ProfileSettings = () => {
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
         <TouchableOpacity>
-          <Text style={styles.logoutText}>Log out</Text>
+          <Text style={styles.logoutText} onPress={signOut}>Log out</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
