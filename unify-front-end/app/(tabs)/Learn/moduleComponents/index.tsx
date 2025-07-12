@@ -1,29 +1,29 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-} from "react-native";
-import { Stack, useNavigation } from "expo-router";
-import { MaterialIcons, Feather } from "@expo/vector-icons";
-import JourneyMap from "../journey-map";
-import Modules from "../modules";
+} from 'react-native';
+import { Stack, useNavigation } from 'expo-router';
+import { MaterialIcons, Feather } from '@expo/vector-icons';
+import JourneyMap from '../journey-map';
+import Modules from '../modules';
 
 const TabNavigator = () => {
-  const [activeTab, setActiveTab] = useState("Modules");
+  const [activeTab, setActiveTab] = useState('Modules');
   return (
     <>
       <View style={styles.tabs}>
         <TouchableOpacity
-          onPress={() => setActiveTab("Modules")}
-          style={[styles.tab, activeTab === "Modules" && styles.activeTabLeft]}
+          onPress={() => setActiveTab('Modules')}
+          style={[styles.tab, activeTab === 'Modules' && styles.activeTabLeft]}
         >
           <Text
             style={[
               styles.inactiveTabText,
-              activeTab === "Modules" && styles.activeTabText,
+              activeTab === 'Modules' && styles.activeTabText,
             ]}
           >
             Modules
@@ -31,23 +31,23 @@ const TabNavigator = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() => setActiveTab("Journey Map")}
+          onPress={() => setActiveTab('Journey Map')}
           style={[
             styles.tab,
-            activeTab === "Journey Map" && styles.activeTabRight,
+            activeTab === 'Journey Map' && styles.activeTabRight,
           ]}
         >
           <Text
             style={[
               styles.inactiveTabText,
-              activeTab === "Journey Map" && styles.activeTabText,
+              activeTab === 'Journey Map' && styles.activeTabText,
             ]}
           >
             Journey Map
           </Text>
         </TouchableOpacity>
       </View>
-      {activeTab === "Modules" ? <Modules /> : <JourneyMap />}
+      {activeTab === 'Modules' ? <Modules /> : <JourneyMap />}
     </>
   );
 };
@@ -59,7 +59,7 @@ const Learn = () => {
         {/* Header test, we can implement this in details after*/}
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>Unify</Text>
-          <Feather name="bell" size={24} color="black" />
+          <Feather name='bell' size={24} color='black' />
         </View>
         <ScrollView>
           <TabNavigator />
@@ -72,51 +72,51 @@ const Learn = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     padding: 20,
   },
   headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
   },
   headerText: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#343434",
+    fontWeight: 'bold',
+    color: '#343434',
   },
   tabs: {
-    backgroundColor: "#e0e0e0",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#e0e0e0',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
     marginBottom: 20,
   },
   tab: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     flex: 1,
-    alignItems: "center",
+    alignItems: 'center',
     paddingVertical: 4,
     borderRadius: 20,
-    borderColor: "transparent",
+    borderColor: 'transparent',
   },
   activeTabLeft: {
-    backgroundColor: "black",
+    backgroundColor: 'black',
     marginRight: -30,
   },
   activeTabRight: {
-    backgroundColor: "black",
+    backgroundColor: 'black',
     marginLeft: -30,
   },
 
   inactiveTabText: {
-    color: "black",
+    color: 'black',
   },
 
   activeTabText: {
-    color: "white",
+    color: 'white',
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,43 +6,43 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { ProgressSectionLL } from "@/components/learn/ProgressSectionLL";
-import { ProgressSectionIP } from "@/components/learn/ProgressSectionIP";
-import { ProgressSectionComplete } from "@/components/learn/ProgressSectionComplete";
+} from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { ProgressSectionLL } from '@/components/learn/ProgressSectionLL';
+import { ProgressSectionIP } from '@/components/learn/ProgressSectionIP';
+import { ProgressSectionComplete } from '@/components/learn/ProgressSectionComplete';
 
 const Modules = () => {
-  const [selectedTag, setSelectedTag] = useState("All");
+  const [selectedTag, setSelectedTag] = useState('All');
 
   const tags = [
-    "All",
-    "Housing",
-    "Finance",
-    "Employment",
-    "Item B",
-    "Item C",
-    "Item D",
-    "Item E",
-    "Item F",
+    'All',
+    'Housing',
+    'Finance',
+    'Employment',
+    'Item B',
+    'Item C',
+    'Item D',
+    'Item E',
+    'Item F',
   ];
 
   // Mocked lesson library data
   const LessonLibraryMainTopic = [
     {
-      id: "1",
-      title: "Introduction to Housing",
-      description: "Learn about renting, leasing, and housing laws.",
+      id: '1',
+      title: 'Introduction to Housing',
+      description: 'Learn about renting, leasing, and housing laws.',
     },
     {
-      id: "2",
-      title: "Financial Basics",
-      description: "Understanding banking, credit, and budgeting.",
+      id: '2',
+      title: 'Financial Basics',
+      description: 'Understanding banking, credit, and budgeting.',
     },
     {
-      id: "3",
-      title: "Employment Essentials",
-      description: "Resumes, interviews, and workplace rights.",
+      id: '3',
+      title: 'Employment Essentials',
+      description: 'Resumes, interviews, and workplace rights.',
     },
   ];
 
@@ -59,21 +59,21 @@ const Modules = () => {
           {/* Search Bar */}
           <View style={styles.searchContainer}>
             <MaterialIcons
-              name="search"
+              name='search'
               size={30}
-              color="#555"
+              color='#555'
               style={styles.searchIcon}
             />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search something to learn?..."
-              placeholderTextColor="#888"
+              placeholder='Search something to learn?...'
+              placeholderTextColor='#888'
             />
           </View>
 
           {/* Tags search */}
           <View style={styles.tagsContainer}>
-            {tags.map((tag) => (
+            {tags.map(tag => (
               <TouchableOpacity
                 key={tag}
                 style={
@@ -97,16 +97,16 @@ const Modules = () => {
 
         <View style={{ paddingBottom: 50 }}>
           <ProgressSectionLL
-            header="Lesson Library"
-            navigatePage={"/(tabs)/Learn/Lesson-library"}
+            header='Lesson Library'
+            navigatePage={'/(tabs)/Learn/Lesson-library'}
           />
           <ProgressSectionIP
-            header="In-Progress"
-            navigatePage={"/(tabs)/Learn/In-progress"}
+            header='In-Progress'
+            navigatePage={'/(tabs)/Learn/In-progress'}
           />
           <ProgressSectionComplete
-            header="Complete"
-            navigatePage={"/(tabs)/Learn/moduleComponents/lesson-library"}
+            header='Complete'
+            navigatePage={'/(tabs)/Learn/moduleComponents/lesson-library'}
           />
         </View>
       </ScrollView>
@@ -116,7 +116,7 @@ const Modules = () => {
 
 const styles = StyleSheet.create({
   contentBox: {
-    backgroundColor: "#EEEEEE",
+    backgroundColor: '#EEEEEE',
     padding: 20,
     borderRadius: 12,
   },
@@ -125,20 +125,20 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#343434",
+    fontWeight: 'bold',
+    color: '#343434',
   },
   userName: {
     fontSize: 24,
-    fontWeight: "bold",
-    color: "#343434",
+    fontWeight: 'bold',
+    color: '#343434',
   },
   searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 20,
     borderRadius: 15,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     padding: 10,
     height: 70,
   },
@@ -149,15 +149,15 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 40,
     fontSize: 17,
-    color: "#333",
+    color: '#333',
   },
   tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 5,
   },
   tagButton: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tagButtonActive: {
-    backgroundColor: "#343434",
+    backgroundColor: '#343434',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -173,11 +173,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tagText: {
-    color: "#9E9E9E",
+    color: '#9E9E9E',
     fontSize: 14,
   },
   tagTextActive: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 14,
   },
 });

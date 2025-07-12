@@ -1,7 +1,7 @@
-import React from "react";
-import { Image, ImageStyle, StyleProp } from "react-native";
-import SVGProfilePageIcon from "@/assets/images/ProfilePage.svg";
-import SVGProfilePageIconFocused from "@/assets/images/ProfilePageFocused.svg";
+import React from 'react';
+import { Image, ImageStyle, StyleProp } from 'react-native';
+import SVGProfilePageIcon from '@/assets/images/ProfilePage.svg';
+import SVGProfilePageIconFocused from '@/assets/images/ProfilePageFocused.svg';
 
 interface CustomIconProps {
   name: string;

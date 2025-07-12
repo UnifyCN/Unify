@@ -6,30 +6,30 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-} from "react-native";
-import React, { useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { FontAwesome, Feather } from "@expo/vector-icons";
-import { StatusBar } from "expo-status-bar";
-import { useRouter } from "expo-router";
-import PostsFeed from "../../components/profile/PostsFeed";
-import RepliesFeed from "../../components/profile/RepliesFeed";
-import SavedFeed from "../../components/profile/SavedFeed";
-import FeedProfile2 from "@/assets/images/Feed_Profile2.svg";
-import UserSuggestionCard from "@/components/profile/UserSuggestionCard";
+} from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome, Feather } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
+import PostsFeed from '../../components/profile/PostsFeed';
+import RepliesFeed from '../../components/profile/RepliesFeed';
+import SavedFeed from '../../components/profile/SavedFeed';
+import FeedProfile2 from '@/assets/images/Feed_Profile2.svg';
+import UserSuggestionCard from '@/components/profile/UserSuggestionCard';
 
 export default function TabTwoScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("Posts");
+  const [activeTab, setActiveTab] = useState('Posts');
   const [showDropdown, setShowDropdown] = useState(false);
 
   const renderFeedContent = () => {
     switch (activeTab) {
-      case "For You":
+      case 'For You':
         return <PostsFeed />;
-      case "Replies":
+      case 'Replies':
         return <RepliesFeed />;
-      case "Saved":
+      case 'Saved':
         return <SavedFeed />;
       default:
         return <PostsFeed />;
@@ -41,9 +41,9 @@ export default function TabTwoScreen() {
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
         <TouchableOpacity
-          onPress={() => router.push("/Profile/profile-settings")}
+          onPress={() => router.push('/Profile/profile-settings')}
         >
-          <Feather name="menu" size={26} color="black" />
+          <Feather name='menu' size={26} color='black' />
         </TouchableOpacity>
       </View>
       <View style={styles.divider} />
@@ -78,19 +78,19 @@ export default function TabTwoScreen() {
           </View>
           <View style={styles.socialIconsContainer}>
             <TouchableOpacity>
-              <FontAwesome name="instagram" size={24} color="black" />
+              <FontAwesome name='instagram' size={24} color='black' />
             </TouchableOpacity>
             <TouchableOpacity>
-              <Feather name="twitter" size={24} color="black" />
+              <Feather name='twitter' size={24} color='black' />
             </TouchableOpacity>
             <TouchableOpacity>
-              <FontAwesome name="facebook" size={24} color="black" />
+              <FontAwesome name='facebook' size={24} color='black' />
             </TouchableOpacity>
           </View>
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => router.push("/Profile/edit-profile")}
+              onPress={() => router.push('/Profile/edit-profile')}
             >
               <Text style={styles.buttonText}>Edit profile</Text>
             </TouchableOpacity>
@@ -103,7 +103,7 @@ export default function TabTwoScreen() {
               style={styles.button}
               onPress={() => setShowDropdown(!showDropdown)}
             >
-              <Feather name="user-plus" size={20} color="black" />
+              <Feather name='user-plus' size={20} color='black' />
             </TouchableOpacity>
           </View>
 
@@ -112,7 +112,7 @@ export default function TabTwoScreen() {
               <View style={styles.dropDownDetails}>
                 <Text style={styles.headerTwo}>Discover people</Text>
                 <TouchableOpacity
-                  onPress={() => router.push("/Profile/profile-suggestions")}
+                  onPress={() => router.push('/Profile/profile-suggestions')}
                 >
                   <Text style={styles.headerTwoLink}>See all</Text>
                 </TouchableOpacity>
@@ -122,10 +122,10 @@ export default function TabTwoScreen() {
                 showsHorizontalScrollIndicator={false}
                 style={styles.suggestedContainer}
               >
-                <UserSuggestionCard username="User_Name" horizontalGap={true} />
-                <UserSuggestionCard username="User_Name" horizontalGap={true} />
-                <UserSuggestionCard username="User_Name" horizontalGap={true} />
-                <UserSuggestionCard username="User_Name" />
+                <UserSuggestionCard username='User_Name' horizontalGap={true} />
+                <UserSuggestionCard username='User_Name' horizontalGap={true} />
+                <UserSuggestionCard username='User_Name' horizontalGap={true} />
+                <UserSuggestionCard username='User_Name' />
               </ScrollView>
             </View>
           )}
@@ -134,39 +134,39 @@ export default function TabTwoScreen() {
         {/* Tabs*/}
         <View style={styles.tabsContainer}>
           <TouchableOpacity
-            onPress={() => setActiveTab("Posts")}
-            style={[styles.tab, activeTab === "Posts" && styles.activeTab]}
+            onPress={() => setActiveTab('Posts')}
+            style={[styles.tab, activeTab === 'Posts' && styles.activeTab]}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === "Posts" && styles.activeTabText,
+                activeTab === 'Posts' && styles.activeTabText,
               ]}
             >
               Posts
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setActiveTab("Replies")}
-            style={[styles.tab, activeTab === "Replies" && styles.activeTab]}
+            onPress={() => setActiveTab('Replies')}
+            style={[styles.tab, activeTab === 'Replies' && styles.activeTab]}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === "Replies" && styles.activeTabText,
+                activeTab === 'Replies' && styles.activeTabText,
               ]}
             >
               Replies
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => setActiveTab("Saved")}
-            style={[styles.tab, activeTab === "Saved" && styles.activeTab]}
+            onPress={() => setActiveTab('Saved')}
+            style={[styles.tab, activeTab === 'Saved' && styles.activeTab]}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === "Saved" && styles.activeTabText,
+                activeTab === 'Saved' && styles.activeTabText,
               ]}
             >
               Saved
@@ -179,14 +179,14 @@ export default function TabTwoScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style='dark' />
       {/* FlatList for the entire scrollable content */}
       <FlatList
-        data={[{ key: "feed" }]} // Simple dummy data to trigger the render method
+        data={[{ key: 'feed' }]} // Simple dummy data to trigger the render method
         renderItem={() => (
           <View style={styles.feedContainer}>{renderFeedContent()}</View>
         )}
-        keyExtractor={(item) => item.key}
+        keyExtractor={item => item.key}
         // Move header and non-scrollable parts here
         ListHeaderComponent={renderHeader}
       />
@@ -197,21 +197,21 @@ export default function TabTwoScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   contentContainer: {
     padding: 30,
   },
   headContainer: {
-    display: "flex",
-    width: "auto",
-    justifyContent: "space-between",
-    alignItems: "center",
+    display: 'flex',
+    width: 'auto',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     flexShrink: 0,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    flexDirection: "row",
-    backgroundColor: "#fff",
+    flexDirection: 'row',
+    backgroundColor: '#fff',
     gap: 28,
   },
   avatarBorder: {
@@ -219,70 +219,70 @@ const styles = StyleSheet.create({
     height: 110,
     borderRadius: 55,
     borderWidth: 2,
-    borderColor: "#EEEEEE",
-    justifyContent: "center",
-    alignItems: "center",
+    borderColor: '#EEEEEE',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatarContainer: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   divider: {
-    width: "100%",
+    width: '100%',
     height: 1,
-    backgroundColor: "#EEEEEE",
+    backgroundColor: '#EEEEEE',
   },
   titleText: {
     fontSize: 24,
     fontWeight: 700,
-    color: "#343434",
+    color: '#343434',
   },
   profileContainer: {
-    alignItems: "flex-start",
-    flexDirection: "row",
+    alignItems: 'flex-start',
+    flexDirection: 'row',
   },
   profileInfoContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     paddingLeft: 35,
   },
   mainHeader: {
     paddingTop: 3,
     fontSize: 23,
-    fontWeight: "700",
+    fontWeight: '700',
     marginVertical: 4,
   },
   statsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginVertical: 2,
   },
   statsInfoContainer: {
-    flexDirection: "column",
+    flexDirection: 'column',
     paddingRight: 10,
     marginRight: 10,
   },
   statsText: {
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
     marginHorizontal: 8,
-    color: "#343434",
-    textAlign: "center",
+    color: '#343434',
+    textAlign: 'center',
   },
   statsLabel: {
     fontSize: 17,
-    color: "#000",
+    color: '#000',
   },
   headerTwo: {
     fontSize: 17,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   headerTwoLink: {
     fontSize: 17,
-    fontWeight: "600",
-    color: "#3FADF2",
+    fontWeight: '600',
+    color: '#3FADF2',
   },
   locationText: {
     fontSize: 16,
@@ -293,53 +293,53 @@ const styles = StyleSheet.create({
     paddingBottom: 3,
   },
   socialIconsContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
     gap: 16,
     marginVertical: 8,
   },
   buttonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
     marginTop: 10,
   },
   button: {
-    backgroundColor: "#FEFEFE",
+    backgroundColor: '#FEFEFE',
     padding: 8,
     borderRadius: 5,
-    alignItems: "center",
+    alignItems: 'center',
   },
   buttonText: {
     fontSize: 15,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   tabsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tab: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     flex: 1,
-    alignItems: "center",
-    borderColor: "transparent",
+    alignItems: 'center',
+    borderColor: 'transparent',
     paddingVertical: 8,
   },
   tabText: {
     fontSize: 14,
     fontWeight: 600,
-    color: "#9E9E9E",
+    color: '#9E9E9E',
     paddingBottom: 5,
   },
   activeTab: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   activeTabText: {
-    color: "black",
-    fontWeight: "600",
+    color: 'black',
+    fontWeight: '600',
     borderBottomWidth: 2,
-    borderBottomColor: "black",
+    borderBottomColor: 'black',
     paddingHorizontal: 10,
   },
   feedContainer: {
@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
   },
   suggestedContainer: {},
   dropDownDetails: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingVertical: 20,
   },
   userCard: {

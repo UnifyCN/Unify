@@ -3,7 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { SignIn } from './SignIn';
-import {SignUp} from './SignUp';
+import { SignUp } from './SignUp';
 
 type Props = {
   children: React.ReactNode;
@@ -32,11 +32,11 @@ export default function AuthWrapper({ children }: Props) {
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size='large' />
       </View>
     );
   }
-  console.log(session)
+  console.log(session);
   if (!session) {
     return showSignUp ? (
       <SignUp onSwitchToSignIn={() => setShowSignUp(false)} />

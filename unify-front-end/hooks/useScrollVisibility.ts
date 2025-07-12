@@ -1,10 +1,10 @@
-import { useScrollContext } from "@/context/ScrollContext";
+import { useScrollContext } from '@/context/ScrollContext';
 import Animated, {
   Easing,
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
 export const useScrollVisibility = () => {
   const [scrollValue] = useScrollContext();
@@ -15,7 +15,7 @@ export const useScrollVisibility = () => {
         duration: 250,
         easing: Easing.out(Easing.cubic),
       }),
-    [scrollValue],
+    [scrollValue]
   );
 
   return visibilityProgress;

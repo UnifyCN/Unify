@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   StyleSheet,
   ImageSourcePropType,
   TouchableOpacity,
-} from "react-native";
-import { Link } from "expo-router";
+} from 'react-native';
+import { Link } from 'expo-router';
 
 interface SubLessonCardProps {
   imageSource: ImageSourcePropType;
@@ -40,39 +40,39 @@ const SubLessonCard: React.FC<SubLessonCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
+    flexDirection: 'row',
+    backgroundColor: '#fff',
     borderRadius: 20,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 16,
     elevation: 2, // Add shadow for Android
-    shadowColor: "#000", // Add shadow for iOS
+    shadowColor: '#000', // Add shadow for iOS
     shadowOffset: { width: 0, height: 2 }, // Add shadow for iOS
     shadowOpacity: 0.2, // Add shadow for iOS
     shadowRadius: 4, // Add shadow for iOS
     height: 160,
     borderWidth: 1, // Add border width
-    borderColor: "#ccc", // Add grey border color
+    borderColor: '#ccc', // Add grey border color
   },
   image: {
-    width: "45%",
-    height: "100%",
+    width: '45%',
+    height: '100%',
     borderTopLeftRadius: 20,
     borderBottomLeftRadius: 20,
   },
   textContainer: {
     flex: 1,
     padding: 16,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   title: {
     fontSize: 15,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
   },
   description: {
     fontSize: 12,
-    color: "#666",
+    color: '#666',
   },
 });
 

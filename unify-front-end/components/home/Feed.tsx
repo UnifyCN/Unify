@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,16 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-} from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
+} from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 
-import Like from "@/assets/images/Like.svg";
-import Like_Fill from "@/assets/images/Like_filled.svg";
-import Save from "@/assets/images/Save.svg";
-import Save_Fill from "@/assets/images/Save_filled.svg";
-import Comment from "@/assets/images/Comment.svg";
+import Like from '@/assets/images/Like.svg';
+import Like_Fill from '@/assets/images/Like_filled.svg';
+import Save from '@/assets/images/Save.svg';
+import Save_Fill from '@/assets/images/Save_filled.svg';
+import Comment from '@/assets/images/Comment.svg';
 
-const { width: screenWidth } = Dimensions.get("window");
+const { width: screenWidth } = Dimensions.get('window');
 
 export interface User {
   headshot: React.FC;
@@ -45,24 +45,24 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
   const [updatedPosts, setUpdatedPosts] = React.useState(posts);
 
   const toggleLike = (postId: number) => {
-    setUpdatedPosts((prevPosts) =>
-      prevPosts.map((post) =>
+    setUpdatedPosts(prevPosts =>
+      prevPosts.map(post =>
         post.id === postId
           ? {
               ...post,
               liked: !post.liked,
               likes: post.liked ? post.likes - 1 : post.likes + 1, // Increment or decrement the likes
             }
-          : post,
-      ),
+          : post
+      )
     );
   };
 
   const toggleSave = (postId: number) => {
-    setUpdatedPosts((prevPosts) =>
-      prevPosts.map((post) =>
-        post.id === postId ? { ...post, saved: !post.saved } : post,
-      ),
+    setUpdatedPosts(prevPosts =>
+      prevPosts.map(post =>
+        post.id === postId ? { ...post, saved: !post.saved } : post
+      )
     );
   };
 
@@ -120,7 +120,7 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
               <Text style={styles.footerText}>{item.likes}</Text>
             </View>
             <View style={styles.footerItem}>
-              <Comment width={20} height={20} fill="gray" />
+              <Comment width={20} height={20} fill='gray' />
               <Text style={styles.footerText}>{item.comments}</Text>
             </View>
             <TouchableOpacity onPress={() => toggleSave(item.id)}>
@@ -140,7 +140,7 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
   return (
     <FlatList
       data={updatedPosts}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={item => item.id.toString()}
       renderItem={renderPost}
       contentContainerStyle={styles.feedContainer}
     />
@@ -150,9 +150,9 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
 const styles = StyleSheet.create({
   feedContainer: {},
   postContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     elevation: 3,
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   headshot: {
@@ -170,25 +170,25 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 12,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f0f0f0",
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
   },
   name: {
-    fontWeight: "600",
-    textAlign: "left",
+    fontWeight: '600',
+    textAlign: 'left',
     fontSize: 16,
   },
   time: {
     fontSize: 16,
-    textAlign: "left",
-    color: "#999999",
+    textAlign: 'left',
+    color: '#999999',
   },
   replyUser: {
     fontSize: 16,
-    textAlign: "left",
-    color: "#FE0034",
+    textAlign: 'left',
+    color: '#FE0034',
   },
   description: {
     fontSize: 16,
@@ -204,33 +204,33 @@ const styles = StyleSheet.create({
     width: 301,
     height: 301,
     borderRadius: 10,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
   },
   footer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 16,
     flex: 1,
     gap: 32,
   },
   footerItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   footerText: {
     marginLeft: 4,
     fontSize: 14,
   },
   divider: {
-    width: "100%",
+    width: '100%',
     height: 1,
-    backgroundColor: "#E5E5E5",
+    backgroundColor: '#E5E5E5',
   },
   replyContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
 });
 

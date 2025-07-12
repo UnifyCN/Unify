@@ -1,5 +1,5 @@
-import React from "react";
-import { Text, StyleSheet, TouchableOpacity, View } from "react-native";
+import React from 'react';
+import { Text, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 interface QuizQuestionProps {
   question: string;
@@ -29,7 +29,7 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
       {answers.map((answer, index) => {
         const isSelected = currentAnswer === answer;
         // change answer to dark grey if selected
-        const backgroundColor = isSelected ? "#d0d0d0" : "white";
+        const backgroundColor = isSelected ? '#d0d0d0' : 'white';
 
         return (
           <TouchableOpacity
@@ -47,31 +47,31 @@ const QuizQuestion: React.FC<QuizQuestionProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    width: "100%",
-    borderColor: "#000",
+    width: '100%',
+    borderColor: '#000',
     borderWidth: 1,
     borderRadius: 25,
     marginVertical: 10,
   },
   answerText: {
     fontSize: 19,
-    color: "#000",
+    color: '#000',
     margin: 10,
     marginLeft: 25,
-    fontWeight: "400",
+    fontWeight: '400',
   },
   questionText: {
     fontSize: 19,
-    color: "#333",
+    color: '#333',
     marginBottom: 25,
   },
   correct: {
-    backgroundColor: "#c8e6c9",
-    borderColor: "#fff",
+    backgroundColor: '#c8e6c9',
+    borderColor: '#fff',
   },
   wrong: {
-    backgroundColor: "#ffcdd2",
-    borderColor: "#fff",
+    backgroundColor: '#ffcdd2',
+    borderColor: '#fff',
   },
 });
 
