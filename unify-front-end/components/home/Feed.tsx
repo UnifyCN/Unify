@@ -2,56 +2,53 @@ import React from "react";
 import {
   View,
   Text,
-  Image,
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Dimensions,
+  RefreshControl,
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
-
 import Like from "@/assets/images/Like.svg";
 import Like_Fill from "@/assets/images/Like_filled.svg";
 import Save from "@/assets/images/Save.svg";
 import Save_Fill from "@/assets/images/Save_filled.svg";
 import Comment from "@/assets/images/Comment.svg";
+import { Post } from "@/types/post";
 
-const { width: screenWidth } = Dimensions.get("window");
-
-export interface User {
-  headshot: React.FC;
-  name: string;
-}
-
-export interface Post {
-  id: number;
-  user: User;
-  userReply?: string;
-  time: string;
-  description: string;
-  pictures?: React.FC[];
-  likes: number;
-  liked: boolean;
-  comments: number;
-  saved: boolean;
-}
-
-// Props for the Feed component
 interface FeedProps {
-  posts: Post[];
+  data?: any;
+  fetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  isLoading?: boolean;
+  isRefetching?: boolean;
+  refetch?: () => void;
 }
 
-const Feed: React.FC<FeedProps> = ({ posts }) => {
-  const [updatedPosts, setUpdatedPosts] = React.useState(posts);
+const Feed: React.FC<FeedProps> = ({ 
+  data, 
+  fetchNextPage, 
+  hasNextPage, 
+  isFetchingNextPage, 
+  isLoading, 
+  isRefetching, 
+  refetch 
+}) => {
+  const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
+  const [updatedPosts, setUpdatedPosts] = React.useState<Post[]>(allPosts);
+
+  // Update local state when data changes
+  React.useEffect(() => {
+    setUpdatedPosts(allPosts);
+  }, [allPosts]);
 
   const toggleLike = (postId: number) => {
-    setUpdatedPosts((prevPosts) =>
-      prevPosts.map((post) =>
+    setUpdatedPosts((prevPosts: Post[]) =>
+      prevPosts.map((post: Post) =>
         post.id === postId
           ? {
               ...post,
               liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1, // Increment or decrement the likes
+              likes: post.liked ? post.likes - 1 : post.likes + 1,
             }
           : post,
       ),
@@ -59,8 +56,8 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
   };
 
   const toggleSave = (postId: number) => {
-    setUpdatedPosts((prevPosts) =>
-      prevPosts.map((post) =>
+    setUpdatedPosts((prevPosts: Post[]) =>
+      prevPosts.map((post: Post) =>
         post.id === postId ? { ...post, saved: !post.saved } : post,
       ),
     );
@@ -71,7 +68,8 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
       <View style={styles.postContainer}>
         {/* Head Shot */}
         <View style={styles.headshot}>
-          <item.user.headshot />
+          {/* TODO: Have to add default headshot */}
+          {item.user.headshot ? <item.user.headshot /> : <Text>No headshot</Text>} 
         </View>
         {/* Post Content */}
         <View style={styles.postContent}>
@@ -137,12 +135,41 @@ const Feed: React.FC<FeedProps> = ({ posts }) => {
     </View>
   );
 
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage && fetchNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <FlatList
       data={updatedPosts}
       keyExtractor={(item) => item.id.toString()}
       renderItem={renderPost}
       contentContainerStyle={styles.feedContainer}
+      onEndReached={handleLoadMore}
+      onEndReachedThreshold={0.5}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefetching || false}
+          onRefresh={refetch}
+        />
+      }
+      ListFooterComponent={
+        isFetchingNextPage ? (
+          <View style={styles.loadingFooter}>
+            <Text>Loading more...</Text>
+          </View>
+        ) : null
+      }
     />
   );
 };
@@ -231,6 +258,15 @@ const styles = StyleSheet.create({
   },
   replyContainer: {
     flexDirection: "row",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingFooter: {
+    paddingVertical: 20,
+    alignItems: "center",
   },
 });
 
