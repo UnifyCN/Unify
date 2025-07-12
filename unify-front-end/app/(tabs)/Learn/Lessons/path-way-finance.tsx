@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -6,22 +6,22 @@ import {
   StyleSheet,
   ScrollView,
   ImageBackground,
-} from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { Link } from "expo-router";
-import SubLessonCard from "@/components/learn/SubLessonCard";
+} from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { Link } from 'expo-router';
+import SubLessonCard from '@/components/learn/SubLessonCard';
 
 const PathWayFinance = () => {
   return (
     <ScrollView style={styles.container}>
       <ImageBackground
-        source={require("../../../../assets/images/finance.jpg")}
+        source={require('../../../../assets/images/finance.jpg')}
         style={styles.backgroundImage}
       >
         <View style={styles.headerContentContainer}>
-          <Link href="/(tabs)/Learn" asChild>
+          <Link href='/(tabs)/Learn' asChild>
             <TouchableOpacity style={styles.backButton}>
-              <Feather name="chevron-left" size={25} color="#FFFFFF" />
+              <Feather name='chevron-left' size={25} color='#FFFFFF' />
             </TouchableOpacity>
           </Link>
         </View>
@@ -34,39 +34,39 @@ const PathWayFinance = () => {
           Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sapien
           curabitur nec praesent, vel quis.
         </Text>
-        <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 5 }} />
+        <View style={{ borderBottomColor: '#EEEEEE', borderBottomWidth: 5 }} />
         <Text style={styles.topicsTitle}>Topics</Text>
         {/* Topics */}
         <View style={styles.topicsContainer}>
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
-            title="Budgeting 101"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            imageSource={require('../../../../assets/images/piggyBank.png')}
+            title='Budgeting 101'
+            description='Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit.'
+            link='/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting'
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
-            title="Saving Strategies"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            imageSource={require('../../../../assets/images/piggyBank.png')}
+            title='Saving Strategies'
+            description='Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit.'
+            link='/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting'
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
-            title="Budgeting 101"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            imageSource={require('../../../../assets/images/piggyBank.png')}
+            title='Budgeting 101'
+            description='Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit.'
+            link='/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting'
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
-            title="Budgeting 101"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            imageSource={require('../../../../assets/images/piggyBank.png')}
+            title='Budgeting 101'
+            description='Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit.'
+            link='/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting'
           />
           <SubLessonCard
-            imageSource={require("../../../../assets/images/piggyBank.png")}
-            title="Budgeting 101"
-            description="Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit."
-            link="/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting"
+            imageSource={require('../../../../assets/images/piggyBank.png')}
+            title='Budgeting 101'
+            description='Lorem ipsum odor amet, consectetur adipiscing elit,adipiscing elit.'
+            link='/(tabs)/Learn/Lessons/PathWayFinanceSubTopics/budgeting'
           />
         </View>
       </View>
@@ -77,15 +77,15 @@ const PathWayFinance = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   backgroundImage: {
-    width: "100%",
+    width: '100%',
     height: 350, // Fixed height for the background image
   },
   headerContentContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
   },
   backButton: {
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 8,
-    color: "#505152",
+    color: '#505152',
   },
   description: {
     fontSize: 16,
-    color: "#666",
+    color: '#666',
     marginBottom: 16,
   },
   topicsContainer: {
@@ -113,10 +113,10 @@ const styles = StyleSheet.create({
   },
   topicsTitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginTop: 20,
     marginBottom: 10,
-    color: "#505152",
+    color: '#505152',
   },
 });
 

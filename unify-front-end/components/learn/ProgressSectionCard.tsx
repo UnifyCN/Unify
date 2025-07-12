@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   TouchableOpacity,
   Text,
   StyleSheet,
   ImageBackground,
   View,
-} from "react-native";
-import { Href, Link } from "expo-router";
-import { FontAwesome } from "@expo/vector-icons";
+} from 'react-native';
+import { Href, Link } from 'expo-router';
+import { FontAwesome } from '@expo/vector-icons';
 
 interface ProgressSectionCardProps {
   title: string;
@@ -38,9 +38,9 @@ export function ProgressSectionCard({
             onPress={() => setLiked(!liked)}
           >
             <FontAwesome
-              name={liked ? "heart" : "heart-o"}
+              name={liked ? 'heart' : 'heart-o'}
               size={24}
-              color={liked ? "red" : "white"}
+              color={liked ? 'red' : 'white'}
             />
           </TouchableOpacity>
           <Text style={styles.cardTitle}>{title}</Text>
@@ -52,35 +52,35 @@ export function ProgressSectionCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#EEEEEE",
+    backgroundColor: '#EEEEEE',
     width: 200,
     height: 170,
     borderRadius: 12,
     marginRight: 16,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   cardImage: {
     flex: 1,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
     padding: 10,
   },
   imageStyle: {
     borderRadius: 12,
   },
   cardTitle: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 18,
-    color: "#fff",
+    color: '#fff',
     padding: 5,
     borderRadius: 5,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.3)", // Dark cover overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.3)', // Dark cover overlay
     borderRadius: 12,
   },
   heartIcon: {
-    position: "absolute",
+    position: 'absolute',
     top: 10,
     right: 10,
   },

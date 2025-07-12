@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,22 +6,22 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
-} from "react-native";
+} from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
   useAnimatedStyle,
-} from "react-native-reanimated";
-import { useScrollContext } from "@/context/ScrollContext";
-import { useScrollVisibility } from "@/hooks/useScrollVisibility";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import Search from "@/assets/images/search.svg";
-import CreatePost from "@/assets/images/create_post_button.svg";
-import Carousel from "@/components/home/Carousel";
-import ForYouFeed from "@/components/home/ForYouFeed";
-import FollowingFeed from "@/components/home/FollowingFeed";
-import GroupsFeed from "@/components/home/GroupsFeed";
+} from 'react-native-reanimated';
+import { useScrollContext } from '@/context/ScrollContext';
+import { useScrollVisibility } from '@/hooks/useScrollVisibility';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import Search from '@/assets/images/search.svg';
+import CreatePost from '@/assets/images/create_post_button.svg';
+import Carousel from '@/components/home/Carousel';
+import ForYouFeed from '@/components/home/ForYouFeed';
+import FollowingFeed from '@/components/home/FollowingFeed';
+import GroupsFeed from '@/components/home/GroupsFeed';
 
 const SCROLL_DISTANCE = 200;
 const AnimatedTouchableOpacity =
@@ -54,21 +54,21 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
       <View style={styles.cardContainer}>
         <TouchableOpacity
           style={styles.card}
-          onPress={() => router.push("/(tabs)/Learn/Lesson-library")}
+          onPress={() => router.push('/(tabs)/Learn/Lesson-library')}
         >
           <Image
             style={styles.cardImage}
-            source={require("@/assets/images/nationalNews.png")}
+            source={require('@/assets/images/nationalNews.png')}
           />
           <Text style={styles.cardDescription}>National News</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.card}
-          onPress={() => router.push("/(tabs)/Learn/journey-map")}
+          onPress={() => router.push('/(tabs)/Learn/journey-map')}
         >
           <Image
             style={styles.cardImage}
-            source={require("@/assets/images/journeyMap.png")}
+            source={require('@/assets/images/journeyMap.png')}
           />
           <Text style={styles.cardDescription}>Journey Map</Text>
         </TouchableOpacity>
@@ -78,7 +78,7 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
         style={{
           fontWeight: 600,
           fontSize: 24,
-          color: "black",
+          color: 'black',
           paddingHorizontal: 20,
           marginTop: 20,
         }}
@@ -86,7 +86,7 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
         Your Feed
       </Text>
       <View style={styles.tabs}>
-        {["For You", "Following", "Groups"].map((tab) => (
+        {['For You', 'Following', 'Groups'].map(tab => (
           <TouchableOpacity
             key={tab}
             onPress={() => setActiveTab(tab)}
@@ -101,13 +101,13 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 });
 
 export default function HomeScreen() {
-  const [activeTab, setActiveTab] = useState("For You");
+  const [activeTab, setActiveTab] = useState('For You');
 
   const renderFeedContent = () => {
     switch (activeTab) {
-      case "Following":
+      case 'Following':
         return <FollowingFeed />;
-      case "Groups":
+      case 'Groups':
         return <GroupsFeed />;
       default:
         return <ForYouFeed />;
@@ -118,7 +118,7 @@ export default function HomeScreen() {
   const previousScrollValue = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
     // Change this if this cause any error
-    onScroll: (e) => {
+    onScroll: e => {
       const offsetY = e.contentOffset.y;
       if (offsetY < 0 || offsetY > e.contentSize.height) return;
 
@@ -127,8 +127,8 @@ export default function HomeScreen() {
         Math.min(
           1,
           scrollValue.value +
-            (offsetY - previousScrollValue.value) / SCROLL_DISTANCE,
-        ),
+            (offsetY - previousScrollValue.value) / SCROLL_DISTANCE
+        )
       );
 
       previousScrollValue.value = offsetY;
@@ -141,18 +141,18 @@ export default function HomeScreen() {
     () => ({
       transform: [{ translateY: visibilityProgress.value * 135 }],
     }),
-    [visibilityProgress],
+    [visibilityProgress]
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+      <StatusBar style='dark' />
       <Animated.FlatList
-        data={[{ key: "feed" }]}
+        data={[{ key: 'feed' }]}
         renderItem={() => (
           <View style={styles.feedContainer}>{renderFeedContent()}</View>
         )}
-        keyExtractor={(item) => item.key}
+        keyExtractor={item => item.key}
         ListHeaderComponent={
           <Header activeTab={activeTab} setActiveTab={setActiveTab} />
         }
@@ -168,36 +168,36 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1, // Ensure the container takes up the full screen
-    backgroundColor: "#fff",
-    flexDirection: "column",
+    backgroundColor: '#fff',
+    flexDirection: 'column',
   },
   headContainer: {
-    display: "flex",
-    width: "auto",
-    justifyContent: "space-between",
-    alignItems: "center",
+    display: 'flex',
+    width: 'auto',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     flexShrink: 0,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    flexDirection: "row",
-    backgroundColor: "#fff",
+    flexDirection: 'row',
+    backgroundColor: '#fff',
     gap: 28,
   },
   searchIcon: {
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   search: {
     fontSize: 15,
-    color: "#9f9d9d",
-    textAlign: "left",
+    color: '#9f9d9d',
+    textAlign: 'left',
   },
   searchBar: {
     flex: 1,
     borderRadius: 12,
-    backgroundColor: "#eee",
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
+    backgroundColor: '#eee',
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingLeft: 24,
     paddingTop: 8,
     paddingRight: 124,
@@ -205,60 +205,60 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   divider: {
-    width: "100%",
+    width: '100%',
     height: 1,
-    backgroundColor: "#E5E5E5",
+    backgroundColor: '#E5E5E5',
   },
   titleText: {
     fontSize: 24,
     fontWeight: 700,
-    color: "#343434",
+    color: '#343434',
   },
   placeholderText: {
     fontSize: 24,
     lineHeight: 25,
     fontWeight: 600,
-    color: "#000",
-    textAlign: "left",
+    color: '#000',
+    textAlign: 'left',
     marginBottom: 12,
   },
   carouselContainer: {
     paddingTop: 30,
-    width: "100%",
+    width: '100%',
     paddingHorizontal: 20,
   },
   cardContainer: {
-    width: "100%",
-    flexDirection: "row",
-    alignItems: "center",
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
     marginTop: 12,
-    justifyContent: "space-between",
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
   cardImage: {
-    height: "100%",
-    width: "100%",
-    resizeMode: "cover",
+    height: '100%',
+    width: '100%',
+    resizeMode: 'cover',
     borderRadius: 12,
-    position: "absolute",
+    position: 'absolute',
   },
   cardDescription: {
     fontSize: 17,
-    fontWeight: "500",
+    fontWeight: '500',
     lineHeight: 19,
-    color: "#fff",
-    textAlign: "left",
-    position: "absolute",
-    top: "60%",
-    left: "8%",
-    width: "54%",
+    color: '#fff',
+    textAlign: 'left',
+    position: 'absolute',
+    top: '60%',
+    left: '8%',
+    width: '54%',
   },
   card: {
     borderRadius: 12,
-    backgroundColor: "#c7c7c7",
-    width: "48%",
-    overflow: "hidden",
+    backgroundColor: '#c7c7c7',
+    width: '48%',
+    overflow: 'hidden',
     height: 120,
   },
   feedContainer: {
@@ -267,46 +267,46 @@ const styles = StyleSheet.create({
   },
   tabs: {
     marginTop: 16,
-    backgroundColor: "#F9F9F9",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#F9F9F9',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   tab: {
-    backgroundColor: "transparent",
+    backgroundColor: 'transparent',
     flex: 1,
-    alignItems: "center",
-    borderColor: "transparent",
+    alignItems: 'center',
+    borderColor: 'transparent',
     paddingVertical: 8,
   },
   activeTab: {
-    backgroundColor: "#F9F9F9",
+    backgroundColor: '#F9F9F9',
   },
   tabText: {
     fontSize: 14,
     fontWeight: 600,
   },
   floatingButton: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 70,
     right: 20,
     width: 58.75,
     height: 58.75,
     borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
   },
   gradientBackground: {
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
     borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   floatingButtonIcon: {
     width: 30,

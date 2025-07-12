@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
 interface ProfileDetailProps {
   title: string;
@@ -17,7 +17,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({
 }) => {
   return (
     <View>
-      <View style={{ borderBottomColor: "#EEEEEE", borderBottomWidth: 1 }} />
+      <View style={{ borderBottomColor: '#EEEEEE', borderBottomWidth: 1 }} />
       <View style={styles.detailContainer}>
         <Text style={styles.detailTitle}>{title}</Text>
         <View style={styles.infoContainer}>
@@ -25,7 +25,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({
             {info}
           </Text>
           {selectable && (
-            <Feather name="chevron-right" size={20} color="#999" />
+            <Feather name='chevron-right' size={20} color='#999' />
           )}
         </View>
       </View>
@@ -35,21 +35,21 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({
 
 const styles = StyleSheet.create({
   detailContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 30,
     paddingVertical: 13,
-    alignItems: "center",
+    alignItems: 'center',
   },
   detailTitle: {
-    fontWeight: "700",
+    fontWeight: '700',
     fontSize: 18,
-    width: "35%",
+    width: '35%',
   },
   infoContainer: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   detailInfo: {
     fontSize: 18,
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   },
   unfilledInfo: {
     fontSize: 18,
-    color: "#999999",
+    color: '#999999',
   },
 });
 

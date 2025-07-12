@@ -1,29 +1,29 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
-import { useRouter } from "expo-router";
-import { Feather } from "@expo/vector-icons";
-import OnboardingOne from "../assets/images/onboardingSvgOne.svg";
-import OnboardingTwo from "../assets/images/onboardingSvgTwo.svg";
-import OnboardingThree from "../assets/images/onboardingSvgThree.svg";
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
+import OnboardingOne from '../assets/images/onboardingSvgOne.svg';
+import OnboardingTwo from '../assets/images/onboardingSvgTwo.svg';
+import OnboardingThree from '../assets/images/onboardingSvgThree.svg';
 
 const onboardingSteps = [
   {
     graphic: OnboardingOne,
-    title: "Fostering Community",
+    title: 'Fostering Community',
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
   },
   {
     graphic: OnboardingTwo,
-    title: "Empowering Learning",
+    title: 'Empowering Learning',
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
   },
   {
     graphic: OnboardingThree,
-    title: "Providing Resources",
+    title: 'Providing Resources',
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
   },
 ];
 
@@ -77,13 +77,13 @@ export default function Onboarding({
 
       <View style={styles.navContainer}>
         <TouchableOpacity style={styles.navButtonContainer} onPress={onBack}>
-          <Feather name="chevron-left" size={26} color="#343434" />
+          <Feather name='chevron-left' size={26} color='#343434' />
           <Text style={styles.navButton}>Back</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navButtonContainer} onPress={onNext}>
           <Text style={styles.navButton}>Next</Text>
-          <Feather name="chevron-right" size={26} color="#343434" />
+          <Feather name='chevron-right' size={26} color='#343434' />
         </TouchableOpacity>
       </View>
     </View>
@@ -93,48 +93,48 @@ export default function Onboarding({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   contentContainer: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 30,
   },
   title: {
     fontSize: 25,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginTop: 20,
   },
   description: {
     fontSize: 18,
-    color: "#5C5C5C",
-    textAlign: "center",
+    color: '#5C5C5C',
+    textAlign: 'center',
     marginTop: 20,
-    width: "80%",
+    width: '80%',
   },
   navContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     padding: 30,
     paddingBottom: 50,
   },
   navButtonContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   navButton: {
-    fontWeight: "600",
-    color: "#343434",
+    fontWeight: '600',
+    color: '#343434',
     fontSize: 17,
   },
   skipContainer: {
     padding: 30,
     paddingTop: 50,
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
   },
   skipButton: {
-    color: "#5C5C5C",
+    color: '#5C5C5C',
     fontSize: 17,
     marginTop: 20,
   },

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef } from 'react';
 import {
   Animated,
   FlatList,
@@ -7,7 +7,7 @@ import {
   Text,
   Image,
   useWindowDimensions,
-} from "react-native";
+} from 'react-native';
 
 interface CarouselItem {
   id: string;
@@ -25,25 +25,25 @@ const Carousel: React.FC = () => {
 
   const carouselData: CarouselItem[] = [
     {
-      id: "01",
-      image: require("../../assets/images/Carousel1.png"),
-      description: "Learning Progress",
+      id: '01',
+      image: require('../../assets/images/Carousel1.png'),
+      description: 'Learning Progress',
       progress: 20,
     },
     {
-      id: "02",
-      image: require("../../assets/images/Carousel2.png"),
-      description: "Workshops Near Me",
+      id: '02',
+      image: require('../../assets/images/Carousel2.png'),
+      description: 'Workshops Near Me',
     },
     {
-      id: "03",
-      image: require("../../assets/images/Carousel3.png"),
-      description: "News",
+      id: '03',
+      image: require('../../assets/images/Carousel3.png'),
+      description: 'News',
     },
     {
-      id: "04",
-      image: require("../../assets/images/Carousel4.png"),
-      description: "Holiday Calendar",
+      id: '04',
+      image: require('../../assets/images/Carousel4.png'),
+      description: 'Holiday Calendar',
     },
   ];
 
@@ -121,7 +121,7 @@ const Carousel: React.FC = () => {
         {index === 1 && (
           <View style={styles.progressContainer}>
             <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
+              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
             >
               <Text style={styles.progressText}>Completion</Text>
               <Text style={styles.percentageText}>{item.progress}%</Text>
@@ -141,8 +141,8 @@ const Carousel: React.FC = () => {
           <View
             style={{
               marginTop: 8,
-              flexDirection: "row",
-              justifyContent: "space-between",
+              flexDirection: 'row',
+              justifyContent: 'space-between',
               paddingTop: 10,
             }}
           >
@@ -166,13 +166,13 @@ const Carousel: React.FC = () => {
       const scale = scrollX.interpolate({
         inputRange,
         outputRange: [0.8, 1.2, 0.8],
-        extrapolate: "clamp",
+        extrapolate: 'clamp',
       });
 
       const opacity = scrollX.interpolate({
         inputRange,
         outputRange: [0.5, 1, 0.5],
-        extrapolate: "clamp",
+        extrapolate: 'clamp',
       });
 
       return (
@@ -200,12 +200,12 @@ const Carousel: React.FC = () => {
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        snapToAlignment="center"
+        snapToAlignment='center'
         snapToInterval={ITEM_WIDTH}
-        decelerationRate="fast"
+        decelerationRate='fast'
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false, listener: handleScroll },
+          { useNativeDriver: false, listener: handleScroll }
         )}
         scrollEventThrottle={16}
         initialScrollIndex={1} // Start at the first original item
@@ -219,8 +219,8 @@ const Carousel: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    overflow: "hidden",
-    backgroundColor: "#F9F9FB",
+    overflow: 'hidden',
+    backgroundColor: '#F9F9FB',
     borderRadius: 16,
   },
   itemContainer: {
@@ -228,18 +228,18 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   image: {
-    width: "100%",
+    width: '100%',
     height: 120,
-    resizeMode: "cover",
+    resizeMode: 'cover',
     marginBottom: 12,
   },
   description: {
     fontSize: 22,
     lineHeight: 25,
-    fontWeight: "500",
-    color: "#343434",
+    fontWeight: '500',
+    color: '#343434',
     marginBottom: 8,
-    textAlign: "left",
+    textAlign: 'left',
   },
   progressContainer: {
     paddingHorizontal: 12,
@@ -247,44 +247,44 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   progressBarContainer: {
-    width: "100%",
+    width: '100%',
     height: 10,
-    backgroundColor: "#EBEBF9",
+    backgroundColor: '#EBEBF9',
     borderRadius: 5,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginTop: 8,
-    alignSelf: "center",
+    alignSelf: 'center',
   },
   additionalTextLeft: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#5c5c5c",
-    textAlign: "left",
+    fontWeight: '500',
+    color: '#5c5c5c',
+    textAlign: 'left',
   },
   additionalTextRight: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#5c5c5c",
-    textAlign: "right",
+    fontWeight: '500',
+    color: '#5c5c5c',
+    textAlign: 'right',
   },
   progressBar: {
-    height: "100%",
-    backgroundColor: "#21C759",
+    height: '100%',
+    backgroundColor: '#21C759',
     borderRadius: 5,
   },
   progressText: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#000",
-    textAlign: "left",
+    fontWeight: '500',
+    color: '#000',
+    textAlign: 'left',
   },
   percentageText: {
-    textAlign: "right",
+    textAlign: 'right',
   },
   dotContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 16,
   },
   dotIndicator: {
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     width: 10,
     borderRadius: 5,
     marginHorizontal: 4,
-    backgroundColor: "#000",
+    backgroundColor: '#000',
   },
 });
 

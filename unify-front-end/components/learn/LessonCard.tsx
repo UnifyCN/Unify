@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   ImageBackground,
   ImageSourcePropType,
   ViewStyle,
-} from "react-native";
+} from 'react-native';
 
 interface LessonCardProps {
   imageSource: ImageSourcePropType;
@@ -23,7 +23,7 @@ const LessonCard: React.FC<LessonCardProps> = ({
 }) => {
   return (
     <View style={[styles.card, style]}>
-      {" "}
+      {' '}
       {/* Apply custom styles */}
       <ImageBackground
         source={imageSource}
@@ -45,22 +45,22 @@ const LessonCard: React.FC<LessonCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
     borderRadius: 12,
-    overflow: "hidden",
+    overflow: 'hidden',
     marginBottom: 25,
   },
   cardImage: {
-    width: "100%",
+    width: '100%',
     height: 200,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
   },
   imageStyle: {
     borderRadius: 12,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark cover overlay
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark cover overlay
     borderRadius: 12,
   },
   textContainer: {
@@ -70,13 +70,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: 'bold',
+    color: '#fff',
     marginBottom: 5,
   },
   cardDescription: {
     fontSize: 14,
-    color: "#ddd",
+    color: '#ddd',
   },
 });
 
