@@ -15,7 +15,7 @@ import Comment from "@/assets/images/Comment.svg";
 import { Post } from "@/types/post";
 
 interface FeedProps {
-  data?: any;
+  data?: any; // TODO: fix this
   fetchNextPage?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
@@ -24,7 +24,7 @@ interface FeedProps {
   refetch?: () => void;
 }
 
-const Feed: React.FC<FeedProps> = ({ 
+export const Feed = ({ 
   data, 
   fetchNextPage, 
   hasNextPage, 
@@ -32,7 +32,7 @@ const Feed: React.FC<FeedProps> = ({
   isLoading, 
   isRefetching, 
   refetch 
-}) => {
+}: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
   const [updatedPosts, setUpdatedPosts] = React.useState<Post[]>(allPosts);
 
