@@ -143,12 +143,11 @@ export function SignIn({ onSwitchToSignUp }: { onSwitchToSignUp?: () => void }):
         <View style={styles.buttonWithIcon}>
           <Facebook width={20} height={20} />
         </View>
-        <View style={styles.footer}>
-            <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Don't have an account?</Text>
-            <Text style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}} onPress = {onSwitchToSignUp}>Sign up</Text>
-        </View>
         <View style={styles.buttonWithIcon}>
           <Apple width={20} height={20} />
+        </View>
+        <View style={styles.buttonWithIcon}>
+          <Google width={20} height={20} />
         </View>
       </View>
       <View style={styles.footer}>
