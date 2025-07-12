@@ -11,25 +11,25 @@ const onboardingSteps = [
     graphic: OnboardingOne,
     title: "Fostering Community",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
-  },
-  {
-    graphic: OnboardingTwo,
-    title: "Empowering Learning",
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
+      },
+      {
+        graphic: OnboardingTwo,
+        title: "Empowering Learning",
     description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
-  },
-  {
-    graphic: OnboardingThree,
-    title: "Providing Resources",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
-  },
-];
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
+            },
+            {
+              graphic: OnboardingThree,
+              title: "Providing Resources",
+              description:
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.",
+            },
+          ];
 
-export default function Onboarding({
-  route,
-}: {
+          export default function Onboarding({
+            route,
+          }: {
   route: {
     params: {
       setHasCompletedOnBoarding: React.Dispatch<React.SetStateAction<boolean>>;
