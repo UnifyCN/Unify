@@ -34,21 +34,17 @@ export default function AuthWrapper({ children }: Props) {
   }, []);
 
   const handleShowOTP = (email: string, password: string) => {
-    console.log('Showing OTP screen for:', email);
     setOtpEmail(email);
     setOtpPassword(password);
     setShowOTP(true);
   };
 
   const handleVerificationSuccess = () => {
-    console.log('OTP verification successful, hiding OTP screen');
     setShowOTP(false);
     setShowSignUp(false);
-    // User is now authenticated and session will be updated
   };
 
   const handleBackToSignUp = () => {
-    console.log('User going back to signup');
     setShowOTP(false);
   };
 
@@ -60,8 +56,6 @@ export default function AuthWrapper({ children }: Props) {
     );
   }
 
-  console.log(session);
-  
   if (!session) {
     if (showOTP) {
       return (
