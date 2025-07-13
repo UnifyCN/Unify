@@ -30,8 +30,10 @@ function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
 
 export function SignUp({
   onSwitchToSignIn,
+  onShowOTP,
 }: {
   onSwitchToSignIn?: () => void;
+  onShowOTP?: (email: string, password: string) => void;
 }): React.JSX.Element {
   const {
     formState: { errors, isValid },
@@ -62,21 +64,48 @@ export function SignUp({
       setErrorMessage('Passwords do not match');
       return;
     }
+    
+    if (!isEmailValid) {
+      setErrorMessage('Please enter a valid email address');
+      return;
+    }
+
+    if (!isChecked) {
+      setErrorMessage('Please accept the terms and privacy policy');
+      return;
+    }
+
     setLoading(true);
     setErrorMessage(null);
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
 
-    // if (error) Alert.alert(error.message)
-    // if (!session) Alert.alert('Please check your inbox for email verification!')
-    if (error) setErrorMessage(error.message);
+    try {
+      console.log('Starting signup process for:', email);
+      
+      // Send OTP to user's email
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      console.log('Signup response:', { data, error });
+
+      if (error) {
+        console.error('Signup error:', error);
+        setErrorMessage(error.message);
+        setLoading(false);
+        return;
+      }
+
+      console.log('Signup successful, showing OTP screen');
+      
+      // If successful, show OTP verification screen
+      onShowOTP?.(email, password);
+    } catch (error) {
+      console.error('Unexpected error during signup:', error);
+      setErrorMessage('An error occurred during sign up.');
+    }
+    
     setLoading(false);
-    navigation.navigate({ name: 'OTPVerification', params: { email } });
   };
   return (
     <ViewContainer style={styles.container}>
@@ -181,12 +210,12 @@ export function SignUp({
       </View>
 
       <SubmitButton
-        disabled={!isValid || !isChecked}
+        disabled={!isEmailValid || !password || !confirmPassword || !isChecked}
         loading={loading}
         onPress={handleSignUp}
         style={[
           styles.button,
-          (!isValid || !isChecked) && styles.buttonDisabled, // Button is disabled is privacy poli checkbox not checked
+          (!isEmailValid || !password || !confirmPassword || !isChecked) && styles.buttonDisabled,
         ]}
         labelStyle={[styles.buttonText]}
       >
