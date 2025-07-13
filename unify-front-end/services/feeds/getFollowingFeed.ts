@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { FeedResponse } from "@/types/feeds/feedResponse";
 import { Post } from "@/types/feeds/post";
 import { User } from "@/types/user";
@@ -6,53 +7,57 @@ export const getFeedFollowing = async (
   cursor?: string,
   limit = 20
 ): Promise<FeedResponse> => {
-  // const { data, error } = await supabase
-  //   .from('posts')
-  //   .select(`
-  //     *,
-  //     user:profiles(id, username, avatar_url),
-  //     likes:post_likes(count),
-  //     comments:post_comments(count),
-  //     user_like:post_likes!inner(user_id)
-  //   `)
-  //   .in('user_id', followingUserIds)
-  //   .order('time', { ascending: false })
-  //   .range(cursor ? parseInt(cursor) : 0, limit - 1)
-  
-  // if (error) {
-  //   throw new Error(`Failed to fetch following feed: ${error.message}`)
-  // }
-  
-  // return {
-  //   posts: data || [],
-  //   next_cursor: data?.length === limit ? String(cursor ? parseInt(cursor) + limit : limit) : undefined
-  // }
-
-  const mockPosts: Post[] = [
-    {
-      id: 1,
-      user: { id: 1, username: 'john_doe', name: 'John Doe' } as User,
-      time: '2024-01-15T10:30:00Z',
-      description: 'Just had an amazing coffee! ☕',
-      likes: 12,
-      liked: false,
-      comments: 3,
-      saved: false
-    },
-    {
-      id: 2,
-      user: { id: 2, username: 'jane_smith', name: 'Jane Smith' } as User,
-      time: '2024-01-15T09:15:00Z',
-      description: 'Working on a new React Native app 🚀',
-      likes: 24,
-      liked: true,
-      comments: 8,
-      saved: true
+  try {
+    // Get current user's ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
     }
-  ]
 
-  return {
-    posts: mockPosts,
-    next_cursor: mockPosts.length === limit ? '20' : undefined
+    // PLACEHOLDER: For now just getting posts where user_id equals current user's ID
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        users!user_id(
+          id,
+          username
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(cursor ? parseInt(cursor) : 0, (cursor ? parseInt(cursor) : 0) + limit - 1);
+    
+    if (error) {
+      throw new Error(`Failed to fetch following feed: ${error.message}`);
+    }
+
+    // Transform data to match your Post type
+    const transformedPosts: Post[] = (data || []).map((post: any) => ({
+      id: post.id,
+      user: {
+        id: post.users.id,
+        username: post.users.username,
+        name: post.users.username
+      } as User,
+      time: post.created_at,
+      description: post.content,
+      likes: 0, // TODO: Add likes count
+      liked: false, // TODO: Add user like check
+      comments: 0, // TODO: Add comments count
+      saved: false // TODO: Add saved check
+    }));
+
+    return {
+      posts: transformedPosts,
+      next_cursor: transformedPosts.length === limit ? String(cursor ? parseInt(cursor) + limit : limit) : undefined
+    };
+
+  } catch (error) {
+    console.error('Error fetching following feed:', error);
+    throw error;
   }
 }

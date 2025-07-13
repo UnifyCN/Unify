@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { getFeedForYou, type FeedResponse } from '@/services/feeds/getForYouFeed'
+import { getFeedForYou } from '@/services/feeds/getForYouFeed'
+import { FeedResponse } from '@/types/feeds/feedResponse'
 
 export const useForYouFeed = () => {
   return useInfiniteQuery<FeedResponse, Error, FeedResponse, string[], string | undefined>({

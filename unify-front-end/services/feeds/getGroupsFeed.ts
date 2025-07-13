@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { FeedResponse } from "@/types/feeds/feedResponse";
 import { Post } from "@/types/feeds/post";
 import { User } from "@/types/user";
@@ -6,56 +7,57 @@ export const getFeedGroups = async (
   cursor?: string,
   limit = 20
 ): Promise<FeedResponse> => {
-  // TODO: Implement actual API call to get groups feed
-  // This would typically fetch posts from groups the user is a member of
-  // const { data, error } = await supabase
-  //   .from('posts')
-  //   .select(`
-  //     *,
-  //     user:profiles(id, username, avatar_url),
-  //     group:groups(id, name),
-  //     likes:post_likes(count),
-  //     comments:post_comments(count),
-  //     user_like:post_likes!inner(user_id)
-  //   `)
-  //   .in('group_id', userGroupIds)
-  //   .order('time', { ascending: false })
-  //   .range(cursor ? parseInt(cursor) : 0, limit - 1)
-  
-  // if (error) {
-  //   throw new Error(`Failed to fetch groups feed: ${error.message}`)
-  // }
-  
-  // return {
-  //   posts: data || [],
-  //   next_cursor: data?.length === limit ? String(cursor ? parseInt(cursor) + limit : limit) : undefined
-  // }
-
-  const mockPosts: Post[] = [
-    {
-      id: 5,
-      user: { id: 5, username: 'group_member', name: 'Group Member' } as User,
-      time: '2024-01-15T12:30:00Z',
-      description: 'Great discussion in our React Native group today! 💬',
-      likes: 34,
-      liked: false,
-      comments: 12,
-      saved: false
-    },
-    {
-      id: 6,
-      user: { id: 6, username: 'group_admin', name: 'Group Admin' } as User,
-      time: '2024-01-15T12:15:00Z',
-      description: 'New group event coming up! Join us for the meetup 🎉',
-      likes: 67,
-      liked: true,
-      comments: 8,
-      saved: true
+  try {
+    // Get current user's ID
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
     }
-  ]
 
-  return {
-    posts: mockPosts,
-    next_cursor: mockPosts.length === limit ? '20' : undefined
+    // PLACEHOLDER: For now just getting posts where user_id equals current user's ID
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`
+        id,
+        content,
+        created_at,
+        user_id,
+        users!user_id(
+          id,
+          username
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .range(cursor ? parseInt(cursor) : 0, (cursor ? parseInt(cursor) : 0) + limit - 1);
+    
+    if (error) {
+      throw new Error(`Failed to fetch following feed: ${error.message}`);
+    }
+
+    // Transform data to match your Post type
+    const transformedPosts: Post[] = (data || []).map((post: any) => ({
+      id: post.id,
+      user: {
+        id: post.users.id,
+        username: post.users.username,
+        name: post.users.username
+      } as User,
+      time: post.created_at,
+      description: post.content,
+      likes: 0, // TODO: Add likes count
+      liked: false, // TODO: Add user like check
+      comments: 0, // TODO: Add comments count
+      saved: false // TODO: Add saved check
+    }));
+
+    return {
+      posts: transformedPosts,
+      next_cursor: transformedPosts.length === limit ? String(cursor ? parseInt(cursor) + limit : limit) : undefined
+    };
+
+  } catch (error) {
+    console.error('Error fetching following feed:', error);
+    throw error;
   }
 } 

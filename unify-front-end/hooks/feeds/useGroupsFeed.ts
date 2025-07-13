@@ -1,5 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { getFeedGroups, type FeedResponse } from '@/services/feeds/getGroupsFeed'
+import { getFeedGroups } from '@/services/feeds/getGroupsFeed'
+import { FeedResponse } from '@/types/feeds/feedResponse'
 
 export const useGroupsFeed = () => {
   return useInfiniteQuery<FeedResponse, Error, FeedResponse, string[], string | undefined>({

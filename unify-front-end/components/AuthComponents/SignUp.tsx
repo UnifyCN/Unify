@@ -68,7 +68,10 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
     // if (error) Alert.alert(error.message)
     // if (!session) Alert.alert('Please check your inbox for email verification!')
     if (error) setErrorMessage(error.message);
+    console.log(error)
     setLoading(false)
+
+    
   };
   return (
     <ViewContainer style={styles.container}>
