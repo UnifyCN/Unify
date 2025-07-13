@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Auth from '@/components/AuthComponents/SignInSupa';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -19,6 +20,18 @@ export default function RootLayout() {
   // TODO: should probably store a bool in the user's profile or in a table instead of in the route params
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+  });
+
+  // Create a client
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
+        retry: 2,
+        refetchOnWindowFocus: false,
+      },
+    },
   });
 
   useEffect(() => {
@@ -32,19 +45,21 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView>
-      <SafeAreaProvider>
-        <ScrollContextProvider>
-          <AuthWrapper>
-            <ThemeProvider value={DefaultTheme}>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-            </ThemeProvider>
-          </AuthWrapper>
-        </ScrollContextProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+          <ScrollContextProvider>
+            <AuthWrapper>
+              <ThemeProvider value={DefaultTheme}>
+                <Stack>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+              </ThemeProvider>
+            </AuthWrapper>
+          </ScrollContextProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

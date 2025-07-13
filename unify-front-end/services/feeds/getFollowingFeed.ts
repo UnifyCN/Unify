@@ -1,10 +1,6 @@
-import { Post } from "@/types/post";
+import { FeedResponse } from "@/types/feeds/feedResponse";
+import { Post } from "@/types/feeds/post";
 import { User } from "@/types/user";
-
-export interface FeedResponse {
-  posts: Post[]
-  next_cursor?: string
-}
 
 export const getFeedFollowing = async (
   cursor?: string,

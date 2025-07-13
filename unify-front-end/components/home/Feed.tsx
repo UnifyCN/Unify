@@ -12,7 +12,9 @@ import Like_Fill from "@/assets/images/Like_filled.svg";
 import Save from "@/assets/images/Save.svg";
 import Save_Fill from "@/assets/images/Save_filled.svg";
 import Comment from "@/assets/images/Comment.svg";
-import { Post } from "@/types/post";
+import { Post } from "@/types/feeds/post";
+import { useLikePost } from "@/hooks/posts/useLikePost";
+import { formatSmartTime } from "@/utils/dateUtils";
 
 interface FeedProps {
   data?: any; // TODO: fix this
@@ -34,33 +36,17 @@ export const Feed = ({
   refetch 
 }: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
-  const [updatedPosts, setUpdatedPosts] = React.useState<Post[]>(allPosts);
+  const likePostMutation = useLikePost();
 
-  // Update local state when data changes
-  React.useEffect(() => {
-    setUpdatedPosts(allPosts);
-  }, [allPosts]);
-
-  const toggleLike = (postId: number) => {
-    setUpdatedPosts((prevPosts: Post[]) =>
-      prevPosts.map((post: Post) =>
-        post.id === postId
-          ? {
-              ...post,
-              liked: !post.liked,
-              likes: post.liked ? post.likes - 1 : post.likes + 1,
-            }
-          : post,
-      ),
-    );
+  const toggleLike = (postId: number, isLiked: boolean) => {
+    console.log('Toggle like for post:', postId);
+    likePostMutation.mutate({ postId, isLiked });
   };
 
   const toggleSave = (postId: number) => {
-    setUpdatedPosts((prevPosts: Post[]) =>
-      prevPosts.map((post: Post) =>
-        post.id === postId ? { ...post, saved: !post.saved } : post,
-      ),
-    );
+    // TODO: Replace with mutation hook
+    // This will be replaced with useMutation for save/unsave
+    console.log('Toggle save for post:', postId);
   };
 
   const renderPost = ({ item }: { item: Post }) => (
@@ -76,7 +62,7 @@ export const Feed = ({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.name}>{item.user.name}</Text>
-            <Text style={styles.time}>{item.time}</Text>
+            <Text style={styles.time}>{formatSmartTime(item.time)}</Text>
           </View>
 
           {item.userReply && (
@@ -89,7 +75,7 @@ export const Feed = ({
           {/* Description */}
           <Text style={styles.description}>{item.description}</Text>
 
-          {/* Horizontal Scrolling Images */}
+          {/* Horizontal Scrolling Images
           {item.pictures && item.pictures.length > 0 && (
             <FlatList
               data={item.pictures}
@@ -103,12 +89,12 @@ export const Feed = ({
               )}
               contentContainerStyle={styles.imageScrollContainer}
             />
-          )}
+          )} */}
 
           {/* Footer */}
           <View style={styles.footer}>
             <View style={styles.footerItem}>
-              <TouchableOpacity onPress={() => toggleLike(item.id)}>
+              <TouchableOpacity onPress={() => toggleLike(item.id, item.liked)}>
                 {item.liked ? (
                   <Like_Fill width={20} height={20} />
                 ) : (
@@ -151,7 +137,7 @@ export const Feed = ({
 
   return (
     <FlatList
-      data={updatedPosts}
+      data={allPosts}
       keyExtractor={(item) => item.id.toString()}
       renderItem={renderPost}
       contentContainerStyle={styles.feedContainer}
@@ -222,20 +208,20 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
   },
-  imageScrollContainer: {
-    marginTop: 12,
-    height: 301,
-    gap: 10,
-  },
-  postImage: {
-    width: 301,
-    height: 301,
-    borderRadius: 10,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f0f0f0",
-  },
+  // imageScrollContainer: {
+  //   marginTop: 12,
+  //   height: 301,
+  //   gap: 10,
+  // },
+  // postImage: {
+  //   width: 301,
+  //   height: 301,
+  //   borderRadius: 10,
+  //   overflow: "hidden",
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   backgroundColor: "#f0f0f0",
+  // },
   footer: {
     flexDirection: "row",
     alignItems: "center",
