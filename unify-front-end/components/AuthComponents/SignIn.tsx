@@ -81,7 +81,7 @@ export function SignIn({
             autoCapitalize='none'
           />
           {isEmailValid && (
-            <MaterialIcons name='check-circle' size={24} color='#333' />
+            <MaterialIcons name='check-circle' size={24} color='#333' style={styles.tickIcon}/>
           )}
         </View>
         <View>

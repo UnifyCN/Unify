@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "exp://172.29.182.205:8081",
     "newArchEnabled": true,
     "userInterfaceStyle": "automatic",
     "splash": {
