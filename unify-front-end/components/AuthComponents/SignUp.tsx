@@ -78,30 +78,22 @@ export function SignUp({
     setLoading(true);
     setErrorMessage(null);
 
-    try {
-      console.log('Starting signup process for:', email);
-      
-      // Send OTP to user's email
+    try {      
+      // send theOTP to user's email
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
       });
 
-      console.log('Signup response:', { data, error });
-
       if (error) {
-        console.error('Signup error:', error);
         setErrorMessage(error.message);
         setLoading(false);
         return;
       }
 
-      console.log('Signup successful, showing OTP screen');
-      
       // If successful, show OTP verification screen
       onShowOTP?.(email, password);
     } catch (error) {
-      console.error('Unexpected error during signup:', error);
       setErrorMessage('An error occurred during sign up.');
     }
     

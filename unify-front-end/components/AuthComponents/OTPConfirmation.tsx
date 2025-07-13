@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -27,20 +27,26 @@ export default function OTPVerification({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [resendLoading, setResendLoading] = useState(false);
+  const [fullOtp, setFullOtp] = useState('');
+  const hiddenInputRef = useRef<TextInput>(null);
 
-  const handleChange = (index: number, value: string) => {
-    if (/^\d$/.test(value) || value === '') {
-      const newOtp = [...otp];
-      newOtp[index] = value;
-      setOtp(newOtp);
-      
-      // Auto-focus next input
-      if (value && index < 5) {
-        // This would require refs to implement auto-focus
-      }
+  const handleFullOtpChange = (text: string) => {
+    const digitsOnly = text.replace(/[^0-9]/g, '');
+  
+    const truncated = digitsOnly.slice(0, 6);
+    setFullOtp(truncated);
+
+    const newOtp = [...otp];
+    for (let i = 0; i < 6; i++) {
+      newOtp[i] = truncated[i] || '';
     }
+    setOtp(newOtp);
   };
-  // handle the otp length
+
+  const handleBoxPress = () => {
+    hiddenInputRef.current?.focus();
+  };
+
   const handleVerify = async () => {
     const token = otp.join('');
     if (token.length !== 6) {
@@ -51,7 +57,7 @@ export default function OTPVerification({
     setLoading(true);
     setErrorMessage(null);
 
-    try {      
+    try {
       const { data: { session }, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token,
@@ -98,6 +104,9 @@ export default function OTPVerification({
         setErrorMessage(error.message);
       } else {
         Alert.alert('Success', 'OTP resent successfully!');
+        // clear the otp input after resending
+        setOtp(['', '', '', '', '', '']);
+        setFullOtp('');
       }
     } catch (error) {
       setErrorMessage('Failed to resend OTP.');
@@ -116,20 +125,30 @@ export default function OTPVerification({
         </Text>
         <Text style={styles.emailText}>{email}</Text>
         
+        {/* Hidden input for handling paste and continuous typing */}
+        <TextInput
+          ref={hiddenInputRef}
+          value={fullOtp}
+          onChangeText={handleFullOtpChange}
+          style={styles.hiddenInput}
+          keyboardType="number-pad"
+          maxLength={6}
+          autoFocus={true}
+        />
+        
         <View style={styles.otpContainer}>
           {otp.map((digit, index) => (
-            <TextInput
+            <TouchableOpacity
               key={index}
-              value={digit}
-              onChangeText={(val) => handleChange(index, val)}
-              keyboardType="number-pad"
-              maxLength={1}
               style={[
-                styles.otpInput,
-                digit && styles.otpInputFilled
+                styles.otpBox,
+                digit && styles.otpBoxFilled
               ]}
-              textAlign="center"
-            />
+              onPress={handleBoxPress}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.otpDigit}>{digit}</Text>
+            </TouchableOpacity>
           ))}
         </View>
 
@@ -199,25 +218,36 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 32 * 0.87,
   },
+  hiddenInput: {
+    position: 'absolute',
+    opacity: 0,
+    height: 0,
+    width: 0,
+  },
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 32 * 0.87,
     paddingHorizontal: 20 * 0.87,
   },
-  otpInput: {
+  otpBox: {
     width: 45 * 0.87,
     height: 55 * 0.87,
     borderWidth: 1 * 0.87,
     borderColor: '#ccc',
     borderRadius: 8 * 0.87,
-    fontSize: 20 * 0.87,
-    fontWeight: '600' as '600',
     backgroundColor: '#fff',
+    justifyContent: 'center' as 'center',
+    alignItems: 'center' as 'center',
   },
-  otpInputFilled: {
+  otpBoxFilled: {
     borderColor: '#343434',
     backgroundColor: '#f8f8f8',
+  },
+  otpDigit: {
+    fontSize: 20 * 0.87,
+    fontWeight: '600' as '600',
+    color: '#000',
   },
   errorMessage: {
     color: '#f00',
