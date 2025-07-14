@@ -13,22 +13,32 @@ export const getPostLikes = async (postId: number): Promise<PostLikeInfo> => {
       throw new Error('User not authenticated');
     }
 
-    // Get like count and check if user liked
-    const { data, error } = await supabase
-      .from('post_likes')
-      .select('user_id')
-      .eq('post_id', postId);
+    // Get like count from posts table
+    const { data: postData, error: postError } = await supabase
+      .from('posts')
+      .select('like_count')
+      .eq('id', postId)
+      .single();
 
-    if (error) {
-      throw new Error(`Failed to fetch post likes: ${error.message}`);
+    if (postError) {
+      throw new Error(`Failed to fetch post: ${postError}`);
     }
 
-    const likeCount = data?.length || 0;
-    const userLiked = data?.some(like => like.user_id === user.id) || false;
+    // Check if user liked this specific post
+    const { data: userLike, error: likeError } = await supabase
+      .from('post_likes')
+      .select('user_id')
+      .eq('post_id', postId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (likeError) {
+      throw new Error(`Failed to fetch post likes: ${likeError}`);
+    }
 
     return {
-      likeCount,
-      userLiked
+      likeCount: postData?.like_count || 0,
+      userLiked: !!userLike
     };
   } catch (error) {
     console.error('Error fetching post likes:', error);
