@@ -111,7 +111,7 @@ export function SignUp({
               setEmail(text);
               validateEmail(text);
             }}
-            placeholder='email@address.com'
+            placeholder='Your email'
             style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
             autoCapitalize='none'
           />
@@ -131,7 +131,7 @@ export function SignUp({
           <SimpleTextField
             value={password}
             onChangeText={setPassword}
-            placeholder='Password'
+            placeholder='Your password'
             style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
             secureTextEntry={!passwordVisible}
             autoCapitalize='none'
