@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { FeedResponse } from "@/types/feeds/feedResponse";
-import { Post } from "@/types/feeds/post";
+import { PostData } from "@/types/feeds/post";
 import { User } from "@/types/user";
 
 export const getFeedGroups = async (
@@ -36,7 +36,7 @@ export const getFeedGroups = async (
     }
 
     // Transform data to match your Post type
-    const transformedPosts: Post[] = (data || []).map((post: any) => ({
+    const transformedPosts: PostData[] = (data || []).map((post: any) => ({
       id: post.id,
       user: {
         id: post.users.id,
@@ -45,8 +45,6 @@ export const getFeedGroups = async (
       } as User,
       time: post.created_at,
       description: post.content,
-      likes: 0, // TODO: Add likes count
-      liked: false, // TODO: Add user like check
       comments: 0, // TODO: Add comments count
       saved: false // TODO: Add saved check
     }));

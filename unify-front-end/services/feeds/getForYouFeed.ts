@@ -1,9 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import { FeedResponse } from "@/types/feeds/feedResponse";
-import { Post } from "@/types/feeds/post";
+import { PostData } from "@/types/feeds/post";
 import { User } from "@/types/user";
 
-export const getFeedForYou = async (
+export const getForYouFeed = async (
   cursor?: string,
   limit = 20
 ): Promise<FeedResponse> => {
@@ -14,7 +14,7 @@ export const getFeedForYou = async (
       throw new Error('User not authenticated');
     }
 
-    // PLACEHOLDER: For now just getting posts where user_id equals current user's ID
+    // Get posts without like data (likes will be fetched individually)
     const { data, error } = await supabase
       .from('posts')
       .select(`
@@ -35,8 +35,8 @@ export const getFeedForYou = async (
       throw new Error(`Failed to fetch following feed: ${error.message}`);
     }
 
-    // Transform data to match your Post type
-    const transformedPosts: Post[] = (data || []).map((post: any) => ({
+    // Transform data to match your PostData type
+    const transformedPosts: PostData[] = (data || []).map((post: any) => ({
       id: post.id,
       user: {
         id: post.users.id,
@@ -45,8 +45,6 @@ export const getFeedForYou = async (
       } as User,
       time: post.created_at,
       description: post.content,
-      likes: 0, // TODO: Add likes count
-      liked: false, // TODO: Add user like check
       comments: 0, // TODO: Add comments count
       saved: false // TODO: Add saved check
     }));

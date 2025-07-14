@@ -27,6 +27,13 @@ CREATE TABLE post_likes (
     PRIMARY KEY (user_id, post_id)
 );
 
+-- Post Saves table
+CREATE TABLE post_saves (
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    post_id INT REFERENCES posts(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, post_id)
+);
+
 -- Post Comments table
 CREATE TABLE post_comments (
     id SERIAL PRIMARY KEY,

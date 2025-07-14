@@ -1,5 +1,7 @@
-export const formatSocialMediaTime = (diffInDays: number): string => {
-  const diffInSeconds = diffInDays * 24 * 60 * 60;
+export const formatSocialMediaTime = (timestamp: string | Date): string => {
+  const now = new Date();
+  const postDate = new Date(timestamp);
+  const diffInSeconds = Math.floor((now.getTime() - postDate.getTime()) / 1000);
 
   // Less than 1 minute
   if (diffInSeconds < 60) {
@@ -19,6 +21,7 @@ export const formatSocialMediaTime = (diffInDays: number): string => {
   }
 
   // Less than 7 days
+  const diffInDays = Math.floor(diffInSeconds / 86400);
   if (diffInDays < 7) {
     return `${diffInDays}d ago`;
   }
@@ -63,7 +66,7 @@ export const formatSmartTime = (timestamp: string | Date): string => {
 
   // Use relative time for posts less than 365 days old
   if (diffInDays < 365) {
-    return formatSocialMediaTime(diffInDays);
+    return formatSocialMediaTime(timestamp);
   }
 
   // Use absolute date for older posts

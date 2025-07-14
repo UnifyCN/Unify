@@ -10,31 +10,45 @@ import Like_Fill from "@/assets/images/Like_filled.svg";
 import Save from "@/assets/images/Save.svg";
 import Save_Fill from "@/assets/images/Save_filled.svg";
 import Comment from "@/assets/images/Comment.svg";
-import { Post } from "@/types/feeds/post";
-import { useLikePost } from "@/hooks/posts/useLikePost";
-import { usePostLikes } from "@/hooks/posts/usePostLikes";
+import { PostData } from "@/types/feeds/post";
+import { useGetPostLikes } from "@/hooks/posts/useGetPostLikes";
+import { useMutateLikePost } from "@/hooks/posts/useMutateLikePost";
+import { useGetPostSaveStatus } from "@/hooks/posts/useGetPostSaveStatus";
+import { useMutateSavePost } from "@/hooks/posts/useMutateSavePost";
 import { formatSmartTime } from "@/utils/dateUtils";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { Colors } from "@/constants/Colors";
 
 interface PostItemProps {
-  post: Post;
+  post: PostData;
 }
 
 export const PostItem = ({ post }: PostItemProps) => {
-  const likePostMutation = useLikePost();
-  const { data: likeData, isLoading: likesLoading } = usePostLikes(post.id);
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  // Get post likes data
+  const { data: likeData, isLoading: likesLoading } = useGetPostLikes(post.id);
+  const likePostMutation = useMutateLikePost();
+
+  // Get post save status
+  const { data: saveData, isLoading: saveLoading } = useGetPostSaveStatus(post.id);
+  const savePostMutation = useMutateSavePost();
 
   const toggleLike = (postId: number, isLiked: boolean) => {
     likePostMutation.mutate({ postId, isLiked });
   };
 
-  const toggleSave = (postId: number) => {
-    // TODO: Replace with mutation hook
-    console.log('Toggle save for post:', postId);
+  const toggleSave = (postId: number, isSaved: boolean) => {
+    savePostMutation.mutate({ postId, isSaved });
   };
 
-  // Use like data from the hook, fallback to post data if loading
-  const likeCount = likesLoading ? post.likes : (likeData?.likeCount ?? 0);
-  const isLiked = likesLoading ? post.liked : (likeData?.userLiked ?? false);
+  // Use like data from the hook, fallback to 0 if loading
+  const likeCount = likesLoading ? 0 : (likeData?.likeCount ?? 0);
+  const isLiked = likesLoading ? false : (likeData?.userLiked ?? false);
+  
+  // Use save data from the hook, fallback to post data if loading
+  const isSaved = saveLoading ? post.saved : (saveData?.saved ?? false);
 
   return (
     <View>
@@ -78,8 +92,8 @@ export const PostItem = ({ post }: PostItemProps) => {
               <Comment width={20} height={20} fill="gray" />
               <Text style={styles.footerText}>{post.comments}</Text>
             </View>
-            <TouchableOpacity onPress={() => toggleSave(post.id)}>
-              {post.saved ? (
+            <TouchableOpacity onPress={() => toggleSave(post.id, isSaved)}>
+              {isSaved ? (
                 <Save_Fill width={20} height={20} />
               ) : (
                 <Save width={20} height={20} />

@@ -6,7 +6,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from "react-native";
-import { Post } from "@/types/feeds/post";
+import { PostData } from "@/types/feeds/post";
 import { PostItem } from "./PostItem";
 
 interface FeedProps {
@@ -30,7 +30,7 @@ export const Feed = ({
 }: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
 
-  const renderPost = ({ item }: { item: Post }) => (
+  const renderPost = ({ item }: { item: PostData }) => (
     <PostItem post={item} />
   );
 

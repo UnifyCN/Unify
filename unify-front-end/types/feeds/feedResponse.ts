@@ -1,6 +1,6 @@
-import { Post } from "./post"
+import { PostData } from "./post"
 
 export interface FeedResponse {
-  posts: Post[]
+  posts: PostData[]
   next_cursor?: string
 }

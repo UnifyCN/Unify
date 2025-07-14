@@ -30,11 +30,7 @@ export const getPostLikes = async (postId: number): Promise<PostLikeInfo> => {
       .select('user_id')
       .eq('post_id', postId)
       .eq('user_id', user.id)
-      .single();
-
-    if (likeError) {
-      throw new Error(`Failed to fetch post likes: ${likeError}`);
-    }
+      .maybeSingle();
 
     return {
       likeCount: postData?.like_count || 0,

@@ -12,11 +12,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome, Feather } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
-import PostsFeed from "../../components/profile/PostsFeed";
-import RepliesFeed from "../../components/profile/RepliesFeed";
-import SavedFeed from "../../components/profile/SavedFeed";
 import FeedProfile2 from "@/assets/images/Feed_Profile2.svg";
 import UserSuggestionCard from "@/components/profile/UserSuggestionCard";
+import SavedFeed from "@/components/profile/SavedFeed";
 
 export default function TabTwoScreen() {
   const router = useRouter();
@@ -24,16 +22,17 @@ export default function TabTwoScreen() {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const renderFeedContent = () => {
-    switch (activeTab) {
-      case "For You":
-        return <PostsFeed />;
-      case "Replies":
-        return <RepliesFeed />;
-      case "Saved":
-        return <SavedFeed />;
-      default:
-        return <PostsFeed />;
-    }
+    return <SavedFeed />
+    // switch (activeTab) {
+    //   case "For You":
+    //     return <PostsFeed />;
+    //   case "Replies":
+    //     return <RepliesFeed />;
+    //   case "Saved":
+    //     return <SavedFeed />;
+    //   default:
+    //     return <PostsFeed />;
+    // }
   };
 
   const renderHeader = () => (
@@ -184,7 +183,9 @@ export default function TabTwoScreen() {
       <FlatList
         data={[{ key: "feed" }]} // Simple dummy data to trigger the render method
         renderItem={() => (
-          <View style={styles.feedContainer}>{renderFeedContent()}</View>
+          <View style={styles.feedContainer}>
+            {renderFeedContent()}
+          </View>
         )}
         keyExtractor={(item) => item.key}
         // Move header and non-scrollable parts here

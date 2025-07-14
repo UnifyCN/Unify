@@ -1,11 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { getFeedForYou } from '@/services/feeds/getForYouFeed'
-import { FeedResponse } from '@/types/feeds/feedResponse'
+import { getForYouFeed } from '@/services/feeds/getForYouFeed'
 
 export const useForYouFeed = () => {
-  return useInfiniteQuery<FeedResponse, Error, FeedResponse, string[], string | undefined>({
+  return useInfiniteQuery({
     queryKey: ['feed', 'forYou'],
-    queryFn: ({ pageParam }) => getFeedForYou(pageParam),
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) => getForYouFeed(pageParam),
     initialPageParam: undefined,
     getNextPageParam: (lastPage) => lastPage.next_cursor,
     staleTime: 1000 * 60 * 2, // 2 minutes
