@@ -1,5 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
 import {
@@ -17,11 +24,11 @@ interface OTPVerificationProps {
   onBackToSignUp?: () => void;
 }
 
-export default function OTPVerification({ 
-  email, 
-  password, 
+export default function OTPVerification({
+  email,
+  password,
   onVerificationSuccess,
-  onBackToSignUp 
+  onBackToSignUp,
 }: OTPVerificationProps) {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -32,7 +39,7 @@ export default function OTPVerification({
 
   const handleFullOtpChange = (text: string) => {
     const digitsOnly = text.replace(/[^0-9]/g, '');
-  
+
     const truncated = digitsOnly.slice(0, 6);
     setFullOtp(truncated);
 
@@ -58,7 +65,10 @@ export default function OTPVerification({
     setErrorMessage(null);
 
     try {
-      const { data: { session }, error: verifyError } = await supabase.auth.verifyOtp({
+      const {
+        data: { session },
+        error: verifyError,
+      } = await supabase.auth.verifyOtp({
         email,
         token,
         type: 'signup',
@@ -77,8 +87,8 @@ export default function OTPVerification({
             text: 'OK',
             onPress: () => {
               onVerificationSuccess?.();
-            }
-          }
+            },
+          },
         ]);
       } else {
         setErrorMessage('Verification failed. Please try again.');
@@ -86,7 +96,7 @@ export default function OTPVerification({
     } catch (error) {
       setErrorMessage('An error occurred during verification.');
     }
-    
+
     setLoading(false);
   };
 
@@ -118,32 +128,27 @@ export default function OTPVerification({
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Verify Email</ViewHeader>
-      
+
       <ViewSection style={{ marginTop: 30 }}>
-        <Text style={styles.subtitle}>
-          We've sent a verification code to
-        </Text>
+        <Text style={styles.subtitle}>We've sent a verification code to</Text>
         <Text style={styles.emailText}>{email}</Text>
-        
+
         {/* Hidden input for handling paste and continuous typing */}
         <TextInput
           ref={hiddenInputRef}
           value={fullOtp}
           onChangeText={handleFullOtpChange}
           style={styles.hiddenInput}
-          keyboardType="number-pad"
+          keyboardType='number-pad'
           maxLength={6}
           autoFocus={true}
         />
-        
+
         <View style={styles.otpContainer}>
           {otp.map((digit, index) => (
             <TouchableOpacity
               key={index}
-              style={[
-                styles.otpBox,
-                digit && styles.otpBoxFilled
-              ]}
+              style={[styles.otpBox, digit && styles.otpBoxFilled]}
               onPress={handleBoxPress}
               activeOpacity={0.7}
             >
@@ -168,21 +173,15 @@ export default function OTPVerification({
 
         <View style={styles.resendContainer}>
           <Text style={styles.resendText}>Didn't receive the code? </Text>
-          <TouchableOpacity 
-            onPress={handleResendOTP}
-            disabled={resendLoading}
-          >
+          <TouchableOpacity onPress={handleResendOTP} disabled={resendLoading}>
             <Text style={styles.resendLink}>
               {resendLoading ? 'Sending...' : 'Resend'}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={onBackToSignUp}
-        >
-          <MaterialIcons name="arrow-back" size={20} color="#666" />
+        <TouchableOpacity style={styles.backButton} onPress={onBackToSignUp}>
+          <MaterialIcons name='arrow-back' size={20} color='#666' />
           <Text style={styles.backButtonText}>Back to Sign Up</Text>
         </TouchableOpacity>
       </ViewSection>

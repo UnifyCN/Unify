@@ -67,10 +67,10 @@ export default function AuthWrapper({ children }: Props) {
         />
       );
     }
-    
+
     return showSignUp ? (
-      <SignUp 
-        onSwitchToSignIn={() => setShowSignUp(false)} 
+      <SignUp
+        onSwitchToSignIn={() => setShowSignUp(false)}
         onShowOTP={handleShowOTP}
       />
     ) : (

@@ -64,7 +64,7 @@ export function SignUp({
       setErrorMessage('Passwords do not match');
       return;
     }
-    
+
     if (!isEmailValid) {
       setErrorMessage('Please enter a valid email address');
       return;
@@ -78,7 +78,7 @@ export function SignUp({
     setLoading(true);
     setErrorMessage(null);
 
-    try {      
+    try {
       // send theOTP to user's email
       const { data, error } = await supabase.auth.signUp({
         email: email,
@@ -96,7 +96,7 @@ export function SignUp({
     } catch (error) {
       setErrorMessage('An error occurred during sign up.');
     }
-    
+
     setLoading(false);
   };
   return (
@@ -207,7 +207,8 @@ export function SignUp({
         onPress={handleSignUp}
         style={[
           styles.button,
-          (!isEmailValid || !password || !confirmPassword || !isChecked) && styles.buttonDisabled,
+          (!isEmailValid || !password || !confirmPassword || !isChecked) &&
+            styles.buttonDisabled,
         ]}
         labelStyle={[styles.buttonText]}
       >
