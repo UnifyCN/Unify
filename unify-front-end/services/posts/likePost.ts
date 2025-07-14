@@ -8,49 +8,28 @@ export interface LikePostResponse {
 
 export const likePost = async (postId: number): Promise<LikePostResponse> => {
   try {
-    // TODO: Replace with actual Supabase call
-    // const { data: { user } } = await supabase.auth.getUser();
-    // if (!user) throw new Error('User not authenticated');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
 
-    // Check if user already liked the post
-    // const { data: existingLike } = await supabase
-    //   .from('post_likes')
-    //   .select('id')
-    //   .eq('post_id', postId)
-    //   .eq('user_id', user.id)
-    //   .single();
-
-    // if (existingLike) {
-    //   // Unlike the post
-    //   await supabase
-    //     .from('post_likes')
-    //     .delete()
-    //     .eq('post_id', postId)
-    //     .eq('user_id', user.id);
-    // } else {
-    //   // Like the post
-    //   await supabase
-    //     .from('post_likes')
-    //     .insert({
-    //       post_id: postId,
-    //       user_id: user.id,
-    //     });
-    // }
+    // Like the post (add the like)
+    await supabase
+      .from('post_likes')
+      .insert({
+        post_id: postId,
+        user_id: user.id,
+      });
 
     // Get updated likes count
-    // const { count } = await supabase
-    //   .from('post_likes')
-    //   .select('*', { count: 'exact', head: true })
-    //   .eq('post_id', postId);
+    const { count } = await supabase
+      .from('post_likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId);
 
-    // Mock response for now
-    const mockResponse: LikePostResponse = {
+    return {
       success: true,
-      liked: true, // This would be determined by the API response
-      likesCount: 25, // This would come from the count query
+      liked: true,
+      likesCount: count || 0,
     };
-
-    return mockResponse;
   } catch (error) {
     console.error('Error liking post:', error);
     throw new Error('Failed to like post');
@@ -59,31 +38,27 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
 
 export const unlikePost = async (postId: number): Promise<LikePostResponse> => {
   try {
-    // TODO: Replace with actual Supabase call
-    // const { data: { user } } = await supabase.auth.getUser();
-    // if (!user) throw new Error('User not authenticated');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
 
     // Remove the like
-    // await supabase
-    //   .from('post_likes')
-    //   .delete()
-    //   .eq('post_id', postId)
-    //   .eq('user_id', user.id);
+    await supabase
+      .from('post_likes')
+      .delete()
+      .eq('post_id', postId)
+      .eq('user_id', user.id);
 
     // Get updated likes count
-    // const { count } = await supabase
-    //   .from('post_likes')
-    //   .select('*', { count: 'exact', head: true })
-    //   .eq('post_id', postId);
+    const { count } = await supabase
+      .from('post_likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId);
 
-    // Mock response for now
-    const mockResponse: LikePostResponse = {
+    return {
       success: true,
       liked: false,
-      likesCount: 24, // This would come from the count query
+      likesCount: count || 0,
     };
-
-    return mockResponse;
   } catch (error) {
     console.error('Error unliking post:', error);
     throw new Error('Failed to unlike post');

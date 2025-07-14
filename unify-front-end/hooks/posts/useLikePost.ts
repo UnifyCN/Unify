@@ -1,7 +1,9 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { likePost, unlikePost } from '@/services/posts/likePost';
 
 export const useLikePost = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({ postId, isLiked }: { postId: number; isLiked: boolean }) => {
       if (isLiked) {
@@ -10,11 +12,14 @@ export const useLikePost = () => {
         return await likePost(postId);
       }
     },
-    onSuccess: (data, { postId, isLiked }) => {
-      // TODO: Update the specific post in all feed queries
+    onSuccess: (data, { postId }) => {
+      // Invalidate the specific post's like data
+      queryClient.invalidateQueries({
+        queryKey: ['post-likes', postId]
+      });
+      
       console.log('Like post mutation successful:', data);
       console.log('Post ID:', postId);
-      console.log('Is liked:', isLiked);
     },
   });
 };
