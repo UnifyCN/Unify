@@ -15,6 +15,7 @@ CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
+    like_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -164,6 +165,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION public.update_post_like_count()
+RETURNS trigger AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    -- Increment like count when a like is added
+    UPDATE posts 
+    SET like_count = like_count + 1 
+    WHERE id = NEW.post_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    -- Decrement like count when a like is removed
+    UPDATE posts 
+    SET like_count = like_count - 1 
+    WHERE id = OLD.post_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- ============================================
 -- TRIGGERS
 -- ============================================
@@ -171,3 +192,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+CREATE TRIGGER on_post_like_change
+  AFTER INSERT OR DELETE ON post_likes
+  FOR EACH ROW EXECUTE FUNCTION public.update_post_like_count();

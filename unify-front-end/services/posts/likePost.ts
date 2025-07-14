@@ -19,16 +19,17 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
         user_id: user.id,
       });
 
-    // Get updated likes count
-    const { count } = await supabase
-      .from('post_likes')
-      .select('*', { count: 'exact', head: true })
-      .eq('post_id', postId);
+    // Get updated like count from posts table (trigger will have updated it)
+    const { data: postData } = await supabase
+      .from('posts')
+      .select('like_count')
+      .eq('id', postId)
+      .single();
 
     return {
       success: true,
       liked: true,
-      likesCount: count || 0,
+      likesCount: postData?.like_count || 0,
     };
   } catch (error) {
     console.error('Error liking post:', error);
@@ -48,16 +49,17 @@ export const unlikePost = async (postId: number): Promise<LikePostResponse> => {
       .eq('post_id', postId)
       .eq('user_id', user.id);
 
-    // Get updated likes count
-    const { count } = await supabase
-      .from('post_likes')
-      .select('*', { count: 'exact', head: true })
-      .eq('post_id', postId);
+    // Get updated like count from posts table (trigger will have updated it)
+    const { data: postData } = await supabase
+      .from('posts')
+      .select('like_count')
+      .eq('id', postId)
+      .single();
 
     return {
       success: true,
       liked: false,
-      likesCount: count || 0,
+      likesCount: postData?.like_count || 0,
     };
   } catch (error) {
     console.error('Error unliking post:', error);
