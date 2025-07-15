@@ -1,4 +1,4 @@
-import { User } from "@/types/user";
+import { User } from '@/types/user';
 
 // Base post data (from feed queries)
 export type PostData = {

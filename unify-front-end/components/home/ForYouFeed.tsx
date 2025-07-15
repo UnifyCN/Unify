@@ -1,16 +1,16 @@
-import React from "react";
-import Feed from "./Feed";
-import { useForYouFeed } from "@/hooks/feeds/useForYouFeed";
+import React from 'react';
+import Feed from './Feed';
+import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
 
 const ForYouFeed = () => {
-  const { 
-    data, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage, 
-    isLoading, 
-    isRefetching, 
-    refetch 
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isRefetching,
+    refetch,
   } = useForYouFeed();
 
   return (

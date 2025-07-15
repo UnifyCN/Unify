@@ -13,7 +13,6 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import Auth from '@/components/AuthComponents/SignInSupa';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -23,7 +22,7 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
   // TODO: should probably store a bool in the user's profile or in a table instead of in the route params
   const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   // Create a client
@@ -56,8 +55,11 @@ export default function RootLayout() {
             <AuthWrapper>
               <ThemeProvider value={DefaultTheme}>
                 <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="+not-found" />
+                  <Stack.Screen
+                    name='(tabs)'
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen name='+not-found' />
                 </Stack>
               </ThemeProvider>
             </AuthWrapper>

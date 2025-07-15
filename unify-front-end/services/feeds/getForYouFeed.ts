@@ -1,7 +1,7 @@
-import { supabase } from "@/lib/supabase";
-import { FeedResponse } from "@/types/feeds/feedResponse";
-import { PostData } from "@/types/feeds/post";
-import { User } from "@/types/user";
+import { supabase } from '@/lib/supabase';
+import { FeedResponse } from '@/types/feeds/feedResponse';
+import { PostData } from '@/types/feeds/post';
+import { User } from '@/types/user';
 
 export const getForYouFeed = async (
   cursor?: string,
@@ -9,7 +9,9 @@ export const getForYouFeed = async (
 ): Promise<FeedResponse> => {
   try {
     // Get current user's ID
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -17,7 +19,8 @@ export const getForYouFeed = async (
     // Get posts without like data (likes will be fetched individually)
     const { data, error } = await supabase
       .from('posts')
-      .select(`
+      .select(
+        `
         id,
         content,
         created_at,
@@ -26,11 +29,15 @@ export const getForYouFeed = async (
           id,
           username
         )
-      `)
+      `
+      )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .range(cursor ? parseInt(cursor) : 0, (cursor ? parseInt(cursor) : 0) + limit - 1);
-    
+      .range(
+        cursor ? parseInt(cursor) : 0,
+        (cursor ? parseInt(cursor) : 0) + limit - 1
+      );
+
     if (error) {
       throw new Error(`Failed to fetch following feed: ${error.message}`);
     }
@@ -41,21 +48,23 @@ export const getForYouFeed = async (
       user: {
         id: post.users.id,
         username: post.users.username,
-        name: post.users.username
+        name: post.users.username,
       } as User,
       time: post.created_at,
       description: post.content,
       comments: 0, // TODO: Add comments count
-      saved: false // TODO: Add saved check
+      saved: false, // TODO: Add saved check
     }));
 
     return {
       posts: transformedPosts,
-      next_cursor: transformedPosts.length === limit ? String(cursor ? parseInt(cursor) + limit : limit) : undefined
+      next_cursor:
+        transformedPosts.length === limit
+          ? String(cursor ? parseInt(cursor) + limit : limit)
+          : undefined,
     };
-
   } catch (error) {
     console.error('Error fetching following feed:', error);
     throw error;
   }
-} 
+};

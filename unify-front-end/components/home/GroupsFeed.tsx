@@ -1,16 +1,16 @@
-import React from "react";
-import Feed from "./Feed";
-import { useGroupsFeed } from "@/hooks/feeds/useGroupsFeed";
+import React from 'react';
+import Feed from './Feed';
+import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 
 const GroupsFeed = () => {
-  const { 
-    data, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage, 
-    isLoading, 
-    isRefetching, 
-    refetch 
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isRefetching,
+    refetch,
   } = useGroupsFeed();
 
   return (

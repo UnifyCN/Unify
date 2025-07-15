@@ -1,13 +1,7 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-} from "react-native";
-import { PostData } from "@/types/feeds/post";
-import { PostItem } from "./PostItem";
+import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { PostData } from '@/types/feeds/post';
+import { PostItem } from './PostItem';
 
 interface FeedProps {
   data?: any; // TODO: fix this
@@ -19,20 +13,18 @@ interface FeedProps {
   refetch?: () => void;
 }
 
-export const Feed = ({ 
-  data, 
-  fetchNextPage, 
-  hasNextPage, 
-  isFetchingNextPage, 
-  isLoading, 
-  isRefetching, 
-  refetch 
+export const Feed = ({
+  data,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+  isLoading,
+  isRefetching,
+  refetch,
 }: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
 
-  const renderPost = ({ item }: { item: PostData }) => (
-    <PostItem post={item} />
-  );
+  const renderPost = ({ item }: { item: PostData }) => <PostItem post={item} />;
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage && fetchNextPage) {
@@ -50,8 +42,8 @@ export const Feed = ({
 
   return (
     <FlatList
-      data={updatedPosts}
-      keyExtractor={(item) => item.id.toString()}
+      data={allPosts}
+      keyExtractor={item => item.id.toString()}
       renderItem={renderPost}
       contentContainerStyle={styles.feedContainer}
       onEndReached={handleLoadMore}
@@ -77,12 +69,12 @@ const styles = StyleSheet.create({
   feedContainer: {},
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingFooter: {
     padding: 20,
-    alignItems: "center",
+    alignItems: 'center',
   },
 });
 

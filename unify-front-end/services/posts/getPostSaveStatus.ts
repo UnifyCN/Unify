@@ -1,13 +1,17 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from '@/lib/supabase';
 
 export interface PostSaveInfo {
   saved: boolean;
 }
 
-export const getPostSaveStatus = async (postId: number): Promise<PostSaveInfo> => {
+export const getPostSaveStatus = async (
+  postId: number
+): Promise<PostSaveInfo> => {
   try {
     // Get current user's ID
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -25,10 +29,10 @@ export const getPostSaveStatus = async (postId: number): Promise<PostSaveInfo> =
     }
 
     return {
-      saved: !!userSave
+      saved: !!userSave,
     };
   } catch (error) {
     console.error('Error fetching post save status:', error);
     throw error;
   }
-}; 
+};

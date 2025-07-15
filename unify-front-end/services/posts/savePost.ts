@@ -7,16 +7,16 @@ export interface SavePostResponse {
 
 export const savePost = async (postId: number): Promise<SavePostResponse> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     // Save the post
-    await supabase
-      .from('post_saves')
-      .insert({
-        post_id: postId,
-        user_id: user.id,
-      });
+    await supabase.from('post_saves').insert({
+      post_id: postId,
+      user_id: user.id,
+    });
 
     return {
       success: true,
@@ -30,7 +30,9 @@ export const savePost = async (postId: number): Promise<SavePostResponse> => {
 
 export const unsavePost = async (postId: number): Promise<SavePostResponse> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     // Remove the save
@@ -48,4 +50,4 @@ export const unsavePost = async (postId: number): Promise<SavePostResponse> => {
     console.error('Error unsaving post:', error);
     throw new Error('Failed to unsave post');
   }
-}; 
+};

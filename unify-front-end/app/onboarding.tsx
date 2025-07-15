@@ -17,14 +17,12 @@ const onboardingSteps: OnboardingStep[] = [
   {
     graphic: OnboardingTwo,
     title: 'Empowering Learning',
-    title: 'Empowering Learning',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
     stepNumber: 2,
   },
   {
     graphic: OnboardingThree,
-    title: 'Providing Resources',
     title: 'Providing Resources',
     description:
       'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',

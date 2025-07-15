@@ -8,16 +8,16 @@ export interface LikePostResponse {
 
 export const likePost = async (postId: number): Promise<LikePostResponse> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     // Like the post (add the like)
-    await supabase
-      .from('post_likes')
-      .insert({
-        post_id: postId,
-        user_id: user.id,
-      });
+    await supabase.from('post_likes').insert({
+      post_id: postId,
+      user_id: user.id,
+    });
 
     // Get updated like count from posts table (trigger will have updated it)
     const { data: postData } = await supabase
@@ -39,7 +39,9 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
 
 export const unlikePost = async (postId: number): Promise<LikePostResponse> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
     // Remove the like
@@ -65,4 +67,4 @@ export const unlikePost = async (postId: number): Promise<LikePostResponse> => {
     console.error('Error unliking post:', error);
     throw new Error('Failed to unlike post');
   }
-}; 
+};

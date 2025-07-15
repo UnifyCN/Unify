@@ -1,4 +1,4 @@
-import { useState, memo, useMemo } from "react";
+import { useState, memo, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -150,9 +150,7 @@ export default function HomeScreen() {
       <Animated.FlatList
         data={[{ key: 'feed' }]}
         renderItem={() => (
-          <View style={styles.feedContainer}>
-            {renderFeedContent}
-          </View>
+          <View style={styles.feedContainer}>{renderFeedContent}</View>
         )}
         keyExtractor={item => item.key}
         ListHeaderComponent={
@@ -316,14 +314,14 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 40,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: "#666",
-    textAlign: "center",
+    color: '#666',
+    textAlign: 'center',
   },
 });

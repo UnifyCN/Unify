@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from '@/lib/supabase';
 
 export interface PostLikeInfo {
   likeCount: number;
@@ -8,7 +8,9 @@ export interface PostLikeInfo {
 export const getPostLikes = async (postId: number): Promise<PostLikeInfo> => {
   try {
     // Get current user's ID
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       throw new Error('User not authenticated');
     }
@@ -34,10 +36,10 @@ export const getPostLikes = async (postId: number): Promise<PostLikeInfo> => {
 
     return {
       likeCount: postData?.like_count || 0,
-      userLiked: !!userLike
+      userLiked: !!userLike,
     };
   } catch (error) {
     console.error('Error fetching post likes:', error);
     throw error;
   }
-}; 
+};

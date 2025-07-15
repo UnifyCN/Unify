@@ -1,23 +1,18 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-import Like from "@/assets/images/Like.svg";
-import Like_Fill from "@/assets/images/Like_filled.svg";
-import Save from "@/assets/images/Save.svg";
-import Save_Fill from "@/assets/images/Save_filled.svg";
-import Comment from "@/assets/images/Comment.svg";
-import { PostData } from "@/types/feeds/post";
-import { useGetPostLikes } from "@/hooks/posts/useGetPostLikes";
-import { useMutateLikePost } from "@/hooks/posts/useMutateLikePost";
-import { useGetPostSaveStatus } from "@/hooks/posts/useGetPostSaveStatus";
-import { useMutateSavePost } from "@/hooks/posts/useMutateSavePost";
-import { formatSmartTime } from "@/utils/dateUtils";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Like from '@/assets/images/Like.svg';
+import Like_Fill from '@/assets/images/Like_filled.svg';
+import Save from '@/assets/images/Save.svg';
+import Save_Fill from '@/assets/images/Save_filled.svg';
+import Comment from '@/assets/images/Comment.svg';
+import { PostData } from '@/types/feeds/post';
+import { useGetPostLikes } from '@/hooks/posts/useGetPostLikes';
+import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
+import { useGetPostSaveStatus } from '@/hooks/posts/useGetPostSaveStatus';
+import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
+import { formatSmartTime } from '@/utils/dateUtils';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/constants/Colors';
 
 interface PostItemProps {
   post: PostData;
@@ -32,7 +27,9 @@ export const PostItem = ({ post }: PostItemProps) => {
   const likePostMutation = useMutateLikePost();
 
   // Get post save status
-  const { data: saveData, isLoading: saveLoading } = useGetPostSaveStatus(post.id);
+  const { data: saveData, isLoading: saveLoading } = useGetPostSaveStatus(
+    post.id
+  );
   const savePostMutation = useMutateSavePost();
 
   const toggleLike = (postId: number, isLiked: boolean) => {
@@ -46,7 +43,7 @@ export const PostItem = ({ post }: PostItemProps) => {
   // Use like data from the hook, fallback to 0 if loading
   const likeCount = likesLoading ? 0 : (likeData?.likeCount ?? 0);
   const isLiked = likesLoading ? false : (likeData?.userLiked ?? false);
-  
+
   // Use save data from the hook, fallback to post data if loading
   const isSaved = saveLoading ? post.saved : (saveData?.saved ?? false);
 
@@ -56,7 +53,11 @@ export const PostItem = ({ post }: PostItemProps) => {
         {/* Head Shot */}
         <View style={styles.headshot}>
           {/* TODO: Have to add default headshot */}
-          {post.user.headshot ? <post.user.headshot /> : <Text>No headshot</Text>} 
+          {post.user.headshot ? (
+            <post.user.headshot />
+          ) : (
+            <Text>No headshot</Text>
+          )}
         </View>
         {/* Post Content */}
         <View style={styles.postContent}>
@@ -89,7 +90,7 @@ export const PostItem = ({ post }: PostItemProps) => {
               <Text style={styles.footerText}>{likeCount}</Text>
             </View>
             <View style={styles.footerItem}>
-              <Comment width={20} height={20} fill="gray" />
+              <Comment width={20} height={20} fill='gray' />
               <Text style={styles.footerText}>{post.comments}</Text>
             </View>
             <TouchableOpacity onPress={() => toggleSave(post.id, isSaved)}>
@@ -109,9 +110,9 @@ export const PostItem = ({ post }: PostItemProps) => {
 
 const styles = StyleSheet.create({
   postContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     elevation: 3,
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
@@ -120,8 +121,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   headshot: {
@@ -129,25 +130,25 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 12,
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f0f0f0",
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
   },
   name: {
-    fontWeight: "600",
-    textAlign: "left",
+    fontWeight: '600',
+    textAlign: 'left',
     fontSize: 16,
   },
   time: {
     fontSize: 16,
-    textAlign: "left",
-    color: "#999999",
+    textAlign: 'left',
+    color: '#999999',
   },
   replyUser: {
     fontSize: 16,
-    textAlign: "left",
-    color: "#FE0034",
+    textAlign: 'left',
+    color: '#FE0034',
   },
   description: {
     fontSize: 16,
@@ -155,26 +156,26 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   footer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 16,
     flex: 1,
     gap: 32,
   },
   footerItem: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   footerText: {
     marginLeft: 4,
     fontSize: 14,
   },
   divider: {
-    width: "100%",
+    width: '100%',
     height: 1,
-    backgroundColor: "#E5E5E5",
+    backgroundColor: '#E5E5E5',
   },
   replyContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
   },
-}); 
+});

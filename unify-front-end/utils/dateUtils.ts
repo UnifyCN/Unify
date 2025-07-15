@@ -44,17 +44,17 @@ export const formatAbsoluteDate = (timestamp: string | Date): string => {
 
   // If it's this year, show month and day
   if (postDate.getFullYear() === now.getFullYear()) {
-    return postDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
+    return postDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
     });
   }
 
   // If it's a different year, show month, day, and year
-  return postDate.toLocaleDateString('en-US', { 
-    month: 'short', 
+  return postDate.toLocaleDateString('en-US', {
+    month: 'short',
     day: 'numeric',
-    year: 'numeric'
+    year: 'numeric',
   });
 };
 
@@ -62,7 +62,9 @@ export const formatAbsoluteDate = (timestamp: string | Date): string => {
 export const formatSmartTime = (timestamp: string | Date): string => {
   const now = new Date();
   const postDate = new Date(timestamp);
-  const diffInDays = Math.floor((now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24));
+  const diffInDays = Math.floor(
+    (now.getTime() - postDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
   // Use relative time for posts less than 365 days old
   if (diffInDays < 365) {
@@ -71,4 +73,4 @@ export const formatSmartTime = (timestamp: string | Date): string => {
 
   // Use absolute date for older posts
   return formatAbsoluteDate(timestamp);
-}; 
+};
