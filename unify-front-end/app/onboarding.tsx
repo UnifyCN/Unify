@@ -1,55 +1,25 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import { Feather } from '@expo/vector-icons';
-import OnboardingOne from '../assets/images/onboardingSvgOne.svg';
-import OnboardingTwo from '../assets/images/onboardingSvgTwo.svg';
-import OnboardingThree from '../assets/images/onboardingSvgThree.svg';
+import onboardingSteps from './data/onboardingSteps';
 import { OnboardingStep } from '../types/onboarding';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const onboardingSteps: OnboardingStep[] = [
-  {
-    graphic: OnboardingOne,
-    title: 'Fostering Community',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
-    stepNumber: 1,
-  },
-  {
-    graphic: OnboardingTwo,
-    title: 'Empowering Learning',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
-    stepNumber: 2,
-  },
-  {
-    graphic: OnboardingThree,
-    title: 'Providing Resources',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
-    stepNumber: 3,
-  },
-];
+interface OnboardingProps {
+  onFinish: () => void;
+}
 
-export default function Onboarding({
-  route,
-}: {
-  route: {
-    params: {
-      setHasCompletedOnBoarding: React.Dispatch<React.SetStateAction<boolean>>;
-    };
-  };
-}) {
+export default function Onboarding({ onFinish }: OnboardingProps) {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>(
     onboardingSteps[0]
   );
 
-  // TODO: should probably store a bool in the user's profile or in a table instead of in the route params
-  const { setHasCompletedOnBoarding } = route.params;
-  const endOnboarding = () => {
-    setHasCompletedOnBoarding(true);
+  const endOnboarding = async () => {
+    await AsyncStorage.setItem('onboardingCompleted', 'true');
+    onFinish();
   };
 
-  const onNext = () => {
+  const onNext = async () => {
     const lastScreen = currentStep.stepNumber === onboardingSteps.length;
 
     if (lastScreen) {
