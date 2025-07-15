@@ -4,12 +4,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-} from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { Href, Link } from "expo-router";
-import { Image } from "expo-image";
-import { ProgressSectionCard } from "@/components/learn/ProgressSectionCard";
-import React from "react";
+} from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { Href, Link } from 'expo-router';
+import { Image } from 'expo-image';
+import { ProgressSectionCard } from '@/components/learn/ProgressSectionCard';
+import React from 'react';
 
 interface ProgressSectionProps {
   header: string;
@@ -27,7 +27,7 @@ export function ProgressSectionComplete({
         <Text style={styles.lessonText}>{header}</Text>
         <Link href={navigatePage} asChild>
           <TouchableOpacity>
-            <Feather name="chevron-right" size={28} color="#343434" />
+            <Feather name='chevron-right' size={28} color='#343434' />
           </TouchableOpacity>
         </Link>
       </View>
@@ -38,24 +38,24 @@ export function ProgressSectionComplete({
         style={styles.cardContainer}
       >
         <ProgressSectionCard
-          title="Pathway to finance"
-          description="Short description"
-          image={require("../../assets/images/finance.jpg")}
-          href="/(tabs)/Learn/Lessons/path-way-finance"
+          title='Pathway to finance'
+          description='Short description'
+          image={require('../../assets/images/finance.jpg')}
+          href='/(tabs)/Learn/Lessons/path-way-finance'
         />
 
         <ProgressSectionCard
-          title="Lesson Title"
-          description="Short description"
-          image={require("../../assets/images/placeholderImg.png")}
-          href="./Main-lesson"
+          title='Lesson Title'
+          description='Short description'
+          image={require('../../assets/images/placeholderImg.png')}
+          href='./Main-lesson'
         />
 
         <ProgressSectionCard
-          title="Lesson Title"
-          description="Short description"
-          image={require("../../assets/images/placeholderImg.png")}
-          href="./Main-lesson"
+          title='Lesson Title'
+          description='Short description'
+          image={require('../../assets/images/placeholderImg.png')}
+          href='./Main-lesson'
         />
       </ScrollView>
     </>
@@ -65,49 +65,49 @@ export function ProgressSectionComplete({
 const styles = StyleSheet.create({
   lessonHeader: {
     // Formats header+arrow for each lesson section
-    flexDirection: "row",
+    flexDirection: 'row',
     marginTop: 20,
   },
   lessonText: {
     fontSize: 20,
-    fontWeight: "500",
-    color: "#343434",
+    fontWeight: '500',
+    color: '#343434',
   },
   cardContainer: {
     // Container holding all the lesson cards
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingTop: 20,
     paddingRight: 20,
   },
   card: {
     // Each card as a light grey square
-    backgroundColor: "#EEEEEE",
+    backgroundColor: '#EEEEEE',
     width: 170,
     height: 170,
     borderRadius: 12,
     marginRight: 16,
-    alignItems: "center",
+    alignItems: 'center',
   },
   cardImage: {
     width: 50,
     height: 50,
-    alignSelf: "baseline",
+    alignSelf: 'baseline',
     marginLeft: 18,
     marginBottom: 30,
     marginTop: 25,
   },
   cardTitle: {
-    alignSelf: "baseline",
+    alignSelf: 'baseline',
     marginLeft: 18,
     marginBottom: 5,
-    color: "#9F9D9D",
-    fontWeight: "600",
+    color: '#9F9D9D',
+    fontWeight: '600',
   },
   cardDescription: {
-    alignSelf: "baseline",
+    alignSelf: 'baseline',
     marginLeft: 18,
     marginBottom: 6,
-    color: "#CECECE",
-    fontWeight: "600",
+    color: '#CECECE',
+    fontWeight: '600',
   },
 });

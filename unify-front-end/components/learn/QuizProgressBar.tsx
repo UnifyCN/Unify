@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 
 interface QuizProgressBarProps {
   completed: number;
@@ -19,7 +19,7 @@ const QuizProgressBar: React.FC<QuizProgressBarProps> = ({
       <View style={styles.progressBarContainer}>
         {/* Gradient Progress Bar */}
         <ExpoLinearGradient
-          colors={["#888888", "#000000"]} // Gradient colors
+          colors={['#888888', '#000000']} // Gradient colors
           style={[styles.progressBar, { width: `${percentage}%` }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -41,27 +41,27 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 19,
-    color: "#333",
+    color: '#333',
     marginBottom: 5,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   questionHeader: {
     fontSize: 25,
-    color: "#34343",
+    color: '#34343',
     marginBottom: 10,
     marginTop: 30,
-    fontWeight: "500",
+    fontWeight: '500',
   },
   progressBarContainer: {
     height: 10,
-    width: "100%",
-    backgroundColor: "#e0e0e0",
+    width: '100%',
+    backgroundColor: '#e0e0e0',
     marginBottom: 10,
     borderRadius: 5,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   progressBar: {
-    height: "100%",
+    height: '100%',
     borderRadius: 5,
   },
 });

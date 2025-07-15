@@ -11,7 +11,7 @@
 [Add screenshots or videos of UI changes]
 
 ## Please make sure you did these
-- Code has been formatted with Prettier
+- Run 'npm run format' to prettier your changes (seriously please run it - bq)
 - Code builds without errors
 - No console errors
 

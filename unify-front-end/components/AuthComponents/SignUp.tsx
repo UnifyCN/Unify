@@ -1,11 +1,11 @@
-import React from "react";
+import React from 'react';
 
-import { useForm } from "react-hook-form";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { SignUpProps } from "@aws-amplify/ui-react-native";
-import { CheckBox } from "react-native-elements";
+import { useForm } from 'react-hook-form';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { SignUpProps } from '@aws-amplify/ui-react-native';
+import { CheckBox } from 'react-native-elements';
 
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { supabase } from '../../lib/supabase';
 import {
@@ -20,15 +20,21 @@ import {
   ViewContainer,
   ViewSection,
   ViewDivider,
-} from "./Components";
-
+} from './Components';
+import { useNavigation } from '@react-navigation/native'; // Adjust the import based on your project structure
 function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
-  return [first && first.toUpperCase(), rest.join("").toLowerCase()]
+  return [first && first.toUpperCase(), rest.join('').toLowerCase()]
     .filter(Boolean)
-    .join("") as Capitalize<T>;
+    .join('') as Capitalize<T>;
 }
 
-export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }): React.JSX.Element {
+export function SignUp({
+  onSwitchToSignIn,
+  onShowOTP,
+}: {
+  onSwitchToSignIn?: () => void;
+  onShowOTP?: (email: string, password: string) => void;
+}): React.JSX.Element {
   const {
     formState: { errors, isValid },
   } = useForm({ mode: 'onTouched' });
@@ -38,11 +44,14 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = React.useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] =
+    React.useState(false);
   const [isEmailValid, setIsEmailValid] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
+
+  const navigation = useNavigation();
 
   const validateEmail = (email: string) => {
     // Simple email validation regex
@@ -55,29 +64,46 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
       setErrorMessage('Passwords do not match');
       return;
     }
-    setLoading(true)
+
+    if (!isEmailValid) {
+      setErrorMessage('Please enter a valid email address');
+      return;
+    }
+
+    if (!isChecked) {
+      setErrorMessage('Please accept the terms and privacy policy');
+      return;
+    }
+
+    setLoading(true);
     setErrorMessage(null);
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    })
 
-    // if (error) Alert.alert(error.message)
-    // if (!session) Alert.alert('Please check your inbox for email verification!')
-    if (error) setErrorMessage(error.message);
-    console.log(error)
-    setLoading(false)
+    try {
+      // send theOTP to user's email
+      const { data, error } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
 
-    
+      if (error) {
+        setErrorMessage(error.message);
+        setLoading(false);
+        return;
+      }
+
+      // If successful, show OTP verification screen
+      onShowOTP?.(email, password);
+    } catch (error) {
+      setErrorMessage('An error occurred during sign up.');
+    }
+
+    setLoading(false);
   };
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Create account</ViewHeader>      
+      <ViewHeader style={styles.header}>Create account</ViewHeader>
       <ViewSection style={{ marginTop: 30 }}>
-         <View style={{ position: 'relative' }}>
+        <View style={{ position: 'relative' }}>
           <Text style={styles.label}>Email</Text>
           <SimpleTextField
             value={email}
@@ -85,18 +111,15 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
               setEmail(text);
               validateEmail(text);
             }}
-            placeholder="email@address.com"
-            style={[
-              styles.textField,
-              errorMessage && { borderColor: '#f00' },
-            ]}
-            autoCapitalize="none"
+            placeholder='Your email'
+            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
+            autoCapitalize='none'
           />
           {isEmailValid && (
             <MaterialIcons
-              name="check-circle"
+              name='check-circle'
               size={24}
-              color="black"
+              color='black'
               style={styles.tickIcon}
             />
           )}
@@ -108,13 +131,10 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
           <SimpleTextField
             value={password}
             onChangeText={setPassword}
-            placeholder="Password"
-            style={[
-              styles.textField,
-              errorMessage && { borderColor: '#f00' },
-            ]}
+            placeholder='Your password'
+            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
             secureTextEntry={!passwordVisible}
-            autoCapitalize="none"
+            autoCapitalize='none'
           />
           <TouchableOpacity
             onPress={() => setPasswordVisible(!passwordVisible)}
@@ -123,7 +143,7 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
             <MaterialIcons
               name={passwordVisible ? 'visibility' : 'visibility-off'}
               size={24}
-              color="#333"
+              color='#333'
             />
           </TouchableOpacity>
         </View>
@@ -134,26 +154,19 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
           <SimpleTextField
             value={confirmPassword}
             onChangeText={setConfirmPassword}
-            placeholder="Confirm Password"
-            style={[
-              styles.textField,
-              errorMessage && { borderColor: '#f00' },
-            ]}
+            placeholder='Confirm Password'
+            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
             secureTextEntry={!confirmPasswordVisible}
-            autoCapitalize="none"
+            autoCapitalize='none'
           />
           <TouchableOpacity
-            onPress={() =>
-              setConfirmPasswordVisible(!confirmPasswordVisible)
-            }
+            onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
             style={styles.eyeIcon}
           >
             <MaterialIcons
-              name={
-                confirmPasswordVisible ? 'visibility' : 'visibility-off'
-              }
+              name={confirmPasswordVisible ? 'visibility' : 'visibility-off'}
               size={24}
-              color="#333"
+              color='#333'
             />
           </TouchableOpacity>
         </View>
@@ -168,15 +181,15 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
           checked={isChecked}
           onPress={() => setIsChecked(!isChecked)}
           containerStyle={styles.checkboxContainer}
-          iconType="material-community"
-          checkedIcon="checkbox-marked"
-          uncheckedIcon="checkbox-blank-outline"
-          checkedColor="black"
-          uncheckedColor="black"
+          iconType='material-community'
+          checkedIcon='checkbox-marked'
+          uncheckedIcon='checkbox-blank-outline'
+          checkedColor='black'
+          uncheckedColor='black'
           wrapperStyle={styles.checkboxWrapper}
         />
         <Text style={styles.checkboxText}>
-          I accept the{" "}
+          I accept the{' '}
           <Text
             style={styles.checkboxLinkText}
             onPress={() => {
@@ -189,23 +202,42 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
       </View>
 
       <SubmitButton
-        disabled={!isValid || !isChecked}
+        disabled={!isEmailValid || !password || !confirmPassword || !isChecked}
         loading={loading}
         onPress={handleSignUp}
         style={[
           styles.button,
-          (!isValid || !isChecked) && styles.buttonDisabled, // Button is disabled is privacy poli checkbox not checked
+          (!isEmailValid || !password || !confirmPassword || !isChecked) &&
+            styles.buttonDisabled,
         ]}
         labelStyle={[styles.buttonText]}
       >
         Sign Up
       </SubmitButton>
       <View style={styles.footer}>
-        <Text style={{fontSize: 14, lineHeight: 18, color: "rgba(0, 0, 0, 0.7)", textAlign: "left"}}>Already have an account?</Text>
-        <Text 
-          style={{fontSize: 14, lineHeight: 18, textDecorationLine: "underline", fontWeight: "600", textAlign: "left", color: "#000"}}           
+        <Text
+          style={{
+            fontSize: 14,
+            lineHeight: 18,
+            color: 'rgba(0, 0, 0, 0.7)',
+            textAlign: 'left',
+          }}
+        >
+          Already have an account?
+        </Text>
+        <Text
+          style={{
+            fontSize: 14,
+            lineHeight: 18,
+            textDecorationLine: 'underline',
+            fontWeight: '600',
+            textAlign: 'left',
+            color: '#000',
+          }}
           onPress={onSwitchToSignIn}
-        >Log In</Text>
+        >
+          Log In
+        </Text>
       </View>
     </ViewContainer>
   );
@@ -214,15 +246,15 @@ export function SignUp({ onSwitchToSignIn }: { onSwitchToSignIn?: () => void }):
 const styles = {
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     padding: 16 * 0.87,
     paddingLeft: 24 * 0.87,
     paddingRight: 24 * 0.87,
   },
   header: {
     fontSize: 34 * 0.87,
-    fontWeight: "700" as "700",
-    color: "#000",
+    fontWeight: '700' as '700',
+    color: '#000',
     marginBottom: 7 * 0.87,
     marginTop: 110 * 0.87,
   },
@@ -232,51 +264,51 @@ const styles = {
     marginTop: 37 * 0.87,
     width: 110 * 0.87,
     height: 42 * 0.87,
-    alignSelf: "center" as "center",
-    justifyContent: "center" as "center",
-    alignItems: "center" as "center",
+    alignSelf: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    alignItems: 'center' as 'center',
   },
   buttonText: {
-    color: "white",
-    textAlign: "center" as "center",
+    color: 'white',
+    textAlign: 'center' as 'center',
     fontSize: 16 * 0.87,
   },
   textField: {
-    backgroundColor: "#fff",
-    color: "#000",
-    borderColor: "#ccc",
+    backgroundColor: '#fff',
+    color: '#000',
+    borderColor: '#ccc',
     borderWidth: 1 * 0.87,
     borderRadius: 12 * 0.87,
     padding: 8 * 0.87,
     height: 57,
   },
   errorMessage: {
-    color: "#f00",
+    color: '#f00',
     fontSize: 14 * 0.87,
   },
   link: {
-    color: "black",
-    textDecorationLine: "underline" as "underline",
+    color: 'black',
+    textDecorationLine: 'underline' as 'underline',
   },
   linkText: {
-    color: "black",
+    color: 'black',
     fontSize: 15 * 0.87,
-    fontWeight: "400" as "400",
+    fontWeight: '400' as '400',
   },
   label: {
     fontSize: 16 * 0.87,
-    fontWeight: "400" as "400",
-    color: "#000",
+    fontWeight: '400' as '400',
+    color: '#000',
     marginBottom: 8 * 0.87,
     marginTop: 13 * 0.87,
   },
   eyeIcon: {
-    position: "absolute" as "absolute",
+    position: 'absolute' as 'absolute',
     right: 16 * 0.87,
     top: 62 * 0.87,
   },
   tickIcon: {
-    position: "absolute" as "absolute",
+    position: 'absolute' as 'absolute',
     right: 16 * 0.87,
     top: 60 * 0.87,
   },
@@ -289,36 +321,36 @@ const styles = {
   },
   // Terms and conditions checkbox style
   checkboxContainer: {
-    backgroundColor: "transparent" as "transparent",
+    backgroundColor: 'transparent' as 'transparent',
     borderWidth: 0,
     padding: 0,
     margin: 0,
     marginVertical: 10 * 0.87,
-    alignSelf: "flex-start" as "flex-start",
+    alignSelf: 'flex-start' as 'flex-start',
   },
   checkboxText: {
     fontSize: 16 * 0.87,
-    color: "#000",
+    color: '#000',
     marginLeft: 0 * 0.87,
   },
   checkboxRow: {
-    flexDirection: "row" as "row",
-    alignItems: "center" as "center",
-    alignSelf: "flex-start" as "flex-start",
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    alignSelf: 'flex-start' as 'flex-start',
     marginVertical: 10 * 0.87,
     marginLeft: 0,
     paddingLeft: 0,
   },
   checkboxLinkText: {
     fontSize: 16 * 0.87,
-    color: "black" as "black", // Style the link text
-    textDecorationLine: "underline" as "underline",
+    color: 'black' as 'black', // Style the link text
+    textDecorationLine: 'underline' as 'underline',
   },
   checkboxWrapper: {
     margin: 0, // Remove wrapper margin
     padding: 0, // Remove wrapper padding
   },
   buttonDisabled: {
-    backgroundColor: "#E7E7E9",
+    backgroundColor: '#E7E7E9',
   },
 };

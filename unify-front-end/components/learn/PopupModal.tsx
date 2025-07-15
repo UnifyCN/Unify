@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   Modal,
   Image,
-} from "react-native";
-import { Link } from "expo-router";
+} from 'react-native';
+import { Link } from 'expo-router';
 
 interface PopupModalProps {
   question: string;
@@ -25,16 +25,16 @@ const PopupModal: React.FC<PopupModalProps> = ({
   bottomResponse,
   show,
   setShow,
-  link = "",
+  link = '',
   confirm,
 }) => {
   return (
     // Modal that fades in when next button is pressed
-    <Modal transparent visible={show} animationType="fade">
+    <Modal transparent visible={show} animationType='fade'>
       <View style={styles.modal}>
         <View style={styles.modalContent}>
           <Image
-            source={require("../../assets/images/warn.png")}
+            source={require('../../assets/images/warn.png')}
             style={styles.image}
           ></Image>
           <Text style={styles.questionText}>{question}</Text>
@@ -76,52 +76,52 @@ const PopupModal: React.FC<PopupModalProps> = ({
 const styles = StyleSheet.create({
   modal: {
     flex: 1,
-    backgroundColor: "rgba(24, 24, 24, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(24, 24, 24, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
-    width: "80%",
+    width: '80%',
     height: 325,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 16,
-    alignItems: "center",
+    alignItems: 'center',
   },
   modalButton: {
     paddingVertical: 11,
     borderRadius: 20,
     marginVertical: 5,
-    alignItems: "center",
-    width: "auto",
-    backgroundColor: "#3FADF2",
+    alignItems: 'center',
+    width: 'auto',
+    backgroundColor: '#3FADF2',
     marginTop: 22,
   },
   modalBottomButton: {
-    backgroundColor: "#F5F5F5",
+    backgroundColor: '#F5F5F5',
     borderWidth: 1,
-    borderColor: "#000000",
+    borderColor: '#000000',
     marginTop: 10,
   },
   questionText: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 17,
     marginHorizontal: 50,
-    textAlign: "center",
+    textAlign: 'center',
   },
   noText: {
-    color: "#000",
-    fontWeight: "600",
+    color: '#000',
+    fontWeight: '600',
     fontSize: 16,
     paddingHorizontal: 25,
   },
   yesText: {
-    color: "#fff",
-    fontWeight: "600",
+    color: '#fff',
+    fontWeight: '600',
     fontSize: 16,
     paddingHorizontal: 25,
   },
   image: {
-    alignSelf: "center",
+    alignSelf: 'center',
     marginTop: 35,
     marginBottom: 20,
   },

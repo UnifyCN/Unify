@@ -1,11 +1,11 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
   Image,
   StyleSheet,
   ImageSourcePropType,
-} from "react-native";
+} from 'react-native';
 
 interface TopicCardProps {
   icon: ImageSourcePropType;
@@ -22,10 +22,10 @@ const TopicCard: React.FC<TopicCardProps> = ({
     <View style={styles.card}>
       <Image source={icon} style={styles.cardImage} />
       <View>
-        <Text style={[styles.cardText, { color: "#9F9D9D" }]}>
+        <Text style={[styles.cardText, { color: '#9F9D9D' }]}>
           {subTopicTitle}
         </Text>
-        <Text style={[styles.cardText, { color: "#CECECE" }]}>
+        <Text style={[styles.cardText, { color: '#CECECE' }]}>
           {description}
         </Text>
       </View>
@@ -35,26 +35,26 @@ const TopicCard: React.FC<TopicCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    width: "100%",
+    width: '100%',
     height: 150,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: '#f0f0f0',
     borderRadius: 12,
     padding: 25,
-    justifyContent: "space-between",
-    alignItems: "center",
-    flexDirection: "row",
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexDirection: 'row',
     marginBottom: 25,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   cardImage: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     marginTop: 10,
     width: 60,
     height: 60,
   },
   cardText: {
-    alignSelf: "flex-end",
-    color: "#9F9D9D",
+    alignSelf: 'flex-end',
+    color: '#9F9D9D',
     paddingBottom: 10,
   },
 });

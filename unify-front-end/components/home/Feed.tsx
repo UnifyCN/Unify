@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -50,7 +50,7 @@ export const Feed = ({
 
   return (
     <FlatList
-      data={allPosts}
+      data={updatedPosts}
       keyExtractor={(item) => item.id.toString()}
       renderItem={renderPost}
       contentContainerStyle={styles.feedContainer}

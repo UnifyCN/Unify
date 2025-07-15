@@ -1,10 +1,10 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext } from 'react';
 import {
   Easing,
   type SharedValue,
   useSharedValue,
   withTiming,
-} from "react-native-reanimated";
+} from 'react-native-reanimated';
 
 type ScrollContextTuple = [SharedValue<number>, () => void];
 // The inital value doesn't do anything since we pretty much always use useContext with the context provider

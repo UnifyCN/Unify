@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,18 @@ import {
   ScrollView,
   Image,
   Dimensions,
-} from "react-native";
-import SubtopicProgressCard from "@/components/learn/SubtopicProgressCard";
-import { Feather } from "@expo/vector-icons";
-import { Link } from "expo-router";
+} from 'react-native';
+import SubtopicProgressCard from '@/components/learn/SubtopicProgressCard';
+import { Feather } from '@expo/vector-icons';
+import { Link } from 'expo-router';
 
 const SubTopic = () => {
-  const screenWidth = Dimensions.get("window").width;
+  const screenWidth = Dimensions.get('window').width;
   return (
     <ScrollView style={styles.container}>
       {/* Header Image */}
       <Image
-        source={require("@/assets/images/lessonsImg.png")}
+        source={require('@/assets/images/lessonsImg.png')}
         style={[styles.headerImg, { width: screenWidth }]}
       />
 
@@ -27,9 +27,9 @@ const SubTopic = () => {
       <View style={styles.headerContainer}>
         {/* Back Button and Learn Text */}
         <View style={styles.headerContentContainer}>
-          <Link href="/(tabs)/learn/modules" asChild>
+          <Link href='/(tabs)/learn/modules' asChild>
             <TouchableOpacity style={styles.backButton}>
-              <Feather name="chevron-left" size={28} color="#343434" />
+              <Feather name='chevron-left' size={28} color='#343434' />
             </TouchableOpacity>
           </Link>
         </View>
@@ -38,31 +38,31 @@ const SubTopic = () => {
         <View style={styles.headerContentContainer}>
           {/* Search Icon */}
           <TouchableOpacity style={styles.iconButton}>
-            <Feather name="search" size={24} color="black" />
+            <Feather name='search' size={24} color='black' />
           </TouchableOpacity>
           {/* Bell Icon */}
           <TouchableOpacity style={styles.iconButton}>
-            <Feather name="bell" size={24} color="black" />
+            <Feather name='bell' size={24} color='black' />
           </TouchableOpacity>
         </View>
       </View>
       <View style={{ gap: 15 }}>
-        <Text style={{ fontWeight: "700", fontSize: 16, fontFamily: "Inter" }}>
+        <Text style={{ fontWeight: '700', fontSize: 16, fontFamily: 'Inter' }}>
           Lessons
         </Text>
         <SubtopicProgressCard
-          imageSource={require("../../assets/images/placeholderImg.png")}
-          title={"Lorem ipsum"}
+          imageSource={require('../../assets/images/placeholderImg.png')}
+          title={'Lorem ipsum'}
           description={
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
           }
           progress={0.3}
         />
         <SubtopicProgressCard
-          imageSource={require("../../assets/images/placeholderImg.png")}
-          title={"Lorem ipsum"}
+          imageSource={require('../../assets/images/placeholderImg.png')}
+          title={'Lorem ipsum'}
           description={
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+            'Lorem ipsum dolor sit amet, consectetur adipiscing elit'
           }
           progress={0.3}
         />
@@ -75,20 +75,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "white",
+    backgroundColor: 'white',
   },
   headerImg: {
-    position: "absolute",
-    alignSelf: "center",
+    position: 'absolute',
+    alignSelf: 'center',
     height: 370,
   },
   headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   headerContentContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingBottom: 335,
   },
   backButton: {

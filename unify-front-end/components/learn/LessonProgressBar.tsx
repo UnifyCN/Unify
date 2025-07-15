@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { LinearGradient as ExpoLinearGradient } from "expo-linear-gradient";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 
 interface LessonProgressBarProps {
   completed: number;
@@ -24,7 +24,7 @@ const LessonProgressBar: React.FC<LessonProgressBarProps> = ({
       <View style={styles.progressBarContainer}>
         {/* Gradient Progress Bar */}
         <ExpoLinearGradient
-          colors={["#000000", "#888888"]} // Gradient colors
+          colors={['#000000', '#888888']} // Gradient colors
           style={[styles.progressBar, { width: `${percentage}%` }]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -40,19 +40,19 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 19,
-    color: "#333",
+    color: '#333',
     marginBottom: 5,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   progressBarContainer: {
     height: 10,
-    width: "100%",
-    backgroundColor: "#e0e0e0",
+    width: '100%',
+    backgroundColor: '#e0e0e0',
     borderRadius: 5,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   progressBar: {
-    height: "100%",
+    height: '100%',
     borderRadius: 5,
   },
 });

@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Image, ImageStyle, StyleProp } from "react-native";
-import SVGHomePageIcon from "@/assets/images/HomePage.svg";
-import SVGHomePageIconFocused from "@/assets/images/HomePageFocused.svg";
+import React from 'react';
+import { View, Image, ImageStyle, StyleProp } from 'react-native';
+import SVGHomePageIcon from '@/assets/images/HomePage.svg';
+import SVGHomePageIconFocused from '@/assets/images/HomePageFocused.svg';
 
 interface CustomIconProps {
   name: string;
