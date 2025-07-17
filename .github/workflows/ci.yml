@@ -38,9 +38,11 @@ jobs:
         working-directory: unify-front-end
         run: npx tsc --noEmit
 
-      - name: Build the project
+      - name: Build the project (Native platforms only)
         working-directory: unify-front-end
-        run: npx expo export
+        env:
+          CI: true
+        run: npx expo export --platform ios --platform android
 
       - name: Deploy
         working-directory: unify-front-end
