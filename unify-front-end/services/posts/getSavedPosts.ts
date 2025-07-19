@@ -24,6 +24,8 @@ export const getSavedPosts = async (
         posts!post_id(
           id,
           content,
+          like_count,
+          comment_count,
           created_at,
           user_id,
           users!user_id(
@@ -45,25 +47,16 @@ export const getSavedPosts = async (
     }
 
     // Transform data to match PostData type
-    const transformedPosts: PostData[] = (data || [])
-      .map((save: any) => {
-        const post = save.posts;
-        if (!post) return null;
-
-        return {
-          id: post.id,
-          user: {
-            id: post.users.id,
-            username: post.users.username,
-            name: post.users.username,
-          } as User,
-          time: post.created_at,
-          description: post.content,
-          comments: 0, // TODO: Add comments count
-          saved: true, // This post is saved by the current user
-        };
-      })
-      .filter(Boolean) as PostData[];
+    const transformedPosts: PostData[] = (data || []).map((save: any) => ({
+      id: save.posts.id,
+      user: {
+        id: save.posts.users.id,
+        username: save.posts.users.username,
+        name: save.posts.users.username,
+      } as User,
+      time: save.posts.created_at,
+      description: save.posts.content,
+    }));
 
     return {
       posts: transformedPosts,

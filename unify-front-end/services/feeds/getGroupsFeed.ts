@@ -52,8 +52,6 @@ export const getFeedGroups = async (
       } as User,
       time: post.created_at,
       description: post.content,
-      comments: 0, // TODO: Add comments count
-      saved: false, // TODO: Add saved check
     }));
 
     return {

@@ -8,19 +8,7 @@ export type PostData = {
   time: string;
   description: string;
   pictures?: React.FC[];
-  comments: number;
-  saved: boolean;
-  // TODO: need to add the like count and rename to comment_count and remove saved check
 };
-
-// Like data (from individual post queries)
-export type PostLikes = {
-  likeCount: number;
-  userLiked: boolean;
-};
-
-// Combined post with like data
-export type Post = PostData & PostLikes;
 
 // Feed response type
 export type PostResponse = {

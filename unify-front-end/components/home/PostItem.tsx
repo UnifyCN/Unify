@@ -23,13 +23,11 @@ export const PostItem = ({ post }: PostItemProps) => {
   const colors = Colors[colorScheme ?? 'light'];
 
   // Get post likes data
-  const { data: likeData, isLoading: likesLoading } = useGetPostLikes(post.id);
+  const { data: likeData } = useGetPostLikes(post.id);
   const likePostMutation = useMutateLikePost();
 
   // Get post save status
-  const { data: saveData, isLoading: saveLoading } = useGetPostSaveStatus(
-    post.id
-  );
+  const { data: saveData } = useGetPostSaveStatus(post.id);
   const savePostMutation = useMutateSavePost();
 
   const toggleLike = (postId: number, isLiked: boolean) => {
@@ -41,11 +39,11 @@ export const PostItem = ({ post }: PostItemProps) => {
   };
 
   // Use like data from the hook, fallback to 0 if loading
-  const likeCount = likesLoading ? 0 : (likeData?.likeCount ?? 0);
-  const isLiked = likesLoading ? false : (likeData?.userLiked ?? false);
+  const likeCount = likeData?.likeCount;
+  const isLiked = likeData?.userLiked;
 
   // Use save data from the hook, fallback to post data if loading
-  const isSaved = saveLoading ? post.saved : (saveData?.saved ?? false);
+  const isSaved = saveData?.saved;
 
   return (
     <View>
@@ -80,7 +78,7 @@ export const PostItem = ({ post }: PostItemProps) => {
           {/* Footer */}
           <View style={styles.footer}>
             <View style={styles.footerItem}>
-              <TouchableOpacity onPress={() => toggleLike(post.id, isLiked)}>
+              <TouchableOpacity onPress={() => toggleLike(post.id, isLiked!)}>
                 {isLiked ? (
                   <Like_Fill width={20} height={20} />
                 ) : (
@@ -91,9 +89,12 @@ export const PostItem = ({ post }: PostItemProps) => {
             </View>
             <View style={styles.footerItem}>
               <Comment width={20} height={20} fill='gray' />
-              <Text style={styles.footerText}>{post.comments}</Text>
+              <Text style={styles.footerText}>
+                {/* TODO: make fetch to get comment_count from posts table */}
+                0
+              </Text>
             </View>
-            <TouchableOpacity onPress={() => toggleSave(post.id, isSaved)}>
+            <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>
               {isSaved ? (
                 <Save_Fill width={20} height={20} />
               ) : (
