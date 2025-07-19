@@ -10,6 +10,7 @@ export type PostData = {
   pictures?: React.FC[];
   comments: number;
   saved: boolean;
+  // TODO: need to add the like count and rename to comment_count and remove saved check
 };
 
 // Like data (from individual post queries)
