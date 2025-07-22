@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -103,7 +103,7 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState('For You');
 
-  const renderFeedContent = () => {
+  const renderFeedContent = useMemo(() => {
     switch (activeTab) {
       case 'Following':
         return <FollowingFeed />;
@@ -112,7 +112,7 @@ export default function HomeScreen() {
       default:
         return <ForYouFeed />;
     }
-  };
+  }, [activeTab]);
 
   const [scrollValue] = useScrollContext();
   const previousScrollValue = useSharedValue(0);
@@ -150,7 +150,7 @@ export default function HomeScreen() {
       <Animated.FlatList
         data={[{ key: 'feed' }]}
         renderItem={() => (
-          <View style={styles.feedContainer}>{renderFeedContent()}</View>
+          <View style={styles.feedContainer}>{renderFeedContent}</View>
         )}
         keyExtractor={item => item.key}
         ListHeaderComponent={
@@ -311,5 +311,17 @@ const styles = StyleSheet.create({
   floatingButtonIcon: {
     width: 30,
     height: 30,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });

@@ -1,63 +1,37 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
-import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import OnboardingOne from '../assets/images/onboardingSvgOne.svg';
-import OnboardingTwo from '../assets/images/onboardingSvgTwo.svg';
-import OnboardingThree from '../assets/images/onboardingSvgThree.svg';
+import onboardingSteps from './data/onboardingSteps';
+import { OnboardingStep } from '../types/onboarding';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const onboardingSteps = [
-  {
-    graphic: OnboardingOne,
-    title: 'Fostering Community',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
-  },
-  {
-    graphic: OnboardingTwo,
-    title: 'Empowering Learning',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
-  },
-  {
-    graphic: OnboardingThree,
-    title: 'Providing Resources',
-    description:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut.',
-  },
-];
+interface OnboardingProps {
+  onFinish: () => void;
+}
 
-export default function Onboarding({
-  route,
-}: {
-  route: {
-    params: {
-      setHasCompletedOnBoarding: React.Dispatch<React.SetStateAction<boolean>>;
-    };
-  };
-}) {
-  const [screenIndex, setScreenIndex] = useState(0);
-  const router = useRouter();
-  const data = onboardingSteps[screenIndex];
-  const Graphic = data.graphic;
+export default function Onboarding({ onFinish }: OnboardingProps) {
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>(
+    onboardingSteps[0]
+  );
 
-  const { setHasCompletedOnBoarding } = route.params;
-  const endOnboarding = () => {
-    setHasCompletedOnBoarding(true);
+  const endOnboarding = async () => {
+    await AsyncStorage.setItem('onboardingCompleted', 'true');
+    onFinish();
   };
 
-  const onNext = () => {
-    const lastScreen = screenIndex === onboardingSteps.length - 1;
+  const onNext = async () => {
+    const lastScreen = currentStep.stepNumber === onboardingSteps.length;
+
     if (lastScreen) {
       endOnboarding();
     } else {
-      setScreenIndex(screenIndex + 1);
+      setCurrentStep(onboardingSteps[currentStep.stepNumber]);
     }
   };
 
   const onBack = () => {
-    if (screenIndex > 0) {
-      setScreenIndex(screenIndex - 1);
+    if (currentStep.stepNumber > 1) {
+      setCurrentStep(onboardingSteps[currentStep.stepNumber - 2]);
     }
   };
 
@@ -70,16 +44,20 @@ export default function Onboarding({
       </View>
 
       <View style={styles.contentContainer}>
-        <Graphic width={150} height={150} />
-        <Text style={styles.title}>{data.title}</Text>
-        <Text style={styles.description}>{data.description}</Text>
+        <currentStep.graphic width={150} height={150} />
+        <Text style={styles.title}>{currentStep.title}</Text>
+        <Text style={styles.description}>{currentStep.description}</Text>
       </View>
 
       <View style={styles.navContainer}>
-        <TouchableOpacity style={styles.navButtonContainer} onPress={onBack}>
-          <Feather name='chevron-left' size={26} color='#343434' />
-          <Text style={styles.navButton}>Back</Text>
-        </TouchableOpacity>
+        {currentStep.stepNumber > 1 ? (
+          <TouchableOpacity style={styles.navButtonContainer} onPress={onBack}>
+            <Feather name='chevron-left' size={26} color='#343434' />
+            <Text style={styles.navButton}>Back</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.navButtonContainer} />
+        )}
 
         <TouchableOpacity style={styles.navButtonContainer} onPress={onNext}>
           <Text style={styles.navButton}>Next</Text>
