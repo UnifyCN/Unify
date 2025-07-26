@@ -84,6 +84,7 @@
     "prettier": "^3.6.2",
     "react-native-svg-transformer": "^1.5.0",
     "react-test-renderer": "18.2.0",
+    "supabase": "^2.31.8",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3"
   },
