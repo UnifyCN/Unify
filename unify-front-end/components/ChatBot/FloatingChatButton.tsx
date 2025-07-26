@@ -25,13 +25,10 @@ export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
         onPress={openChat}
         activeOpacity={0.8}
       >
-        <Ionicons name="chatbubble-ellipses" size={24} color="#fff" />
+        <Ionicons name='chatbubble-ellipses' size={24} color='#fff' />
       </TouchableOpacity>
-      
-      <ChatBotModal
-        visible={isModalVisible}
-        onClose={closeChat}
-      />
+
+      <ChatBotModal visible={isModalVisible} onClose={closeChat} />
     </>
   );
 };
@@ -57,4 +54,4 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 1000,
   },
-}); 
+});

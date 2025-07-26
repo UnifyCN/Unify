@@ -90,8 +90,7 @@ export const PostItem = ({ post }: PostItemProps) => {
             <View style={styles.footerItem}>
               <Comment width={20} height={20} fill='gray' />
               <Text style={styles.footerText}>
-                {/* TODO: make fetch to get comment_count from posts table */}
-                0
+                {/* TODO: make fetch to get comment_count from posts table */}0
               </Text>
             </View>
             <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>

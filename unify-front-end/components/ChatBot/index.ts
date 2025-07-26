@@ -1,2 +1,2 @@
 export { ChatBotModal } from './ChatBotModal';
-export { FloatingChatButton } from './FloatingChatButton'; 
+export { FloatingChatButton } from './FloatingChatButton';

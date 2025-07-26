@@ -36,7 +36,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
   useEffect(() => {
     if (visible && messages.length === 0) {
       const apiAvailable = isGeminiAvailable();
-      
+
       if (!apiAvailable) {
         setIsApiAvailable(false);
         setMessages([
@@ -52,7 +52,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
         setMessages([
           {
             id: '1',
-            text: 'Hello! I\'m here to help you. How can I assist you today?',
+            text: "Hello! I'm here to help you. How can I assist you today?",
             isUser: false,
             timestamp: new Date(),
           },
@@ -122,9 +122,24 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
   };
 
   const renderMessage = ({ item }: { item: Message }) => (
-    <View style={[styles.messageContainer, item.isUser ? styles.userMessage : styles.botMessage]}>
-      <View style={[styles.messageBubble, item.isUser ? styles.userBubble : styles.botBubble]}>
-        <Text style={[styles.messageText, item.isUser ? styles.userText : styles.botText]}>
+    <View
+      style={[
+        styles.messageContainer,
+        item.isUser ? styles.userMessage : styles.botMessage,
+      ]}
+    >
+      <View
+        style={[
+          styles.messageBubble,
+          item.isUser ? styles.userBubble : styles.botBubble,
+        ]}
+      >
+        <Text
+          style={[
+            styles.messageText,
+            item.isUser ? styles.userText : styles.botText,
+          ]}
+        >
           {item.text}
         </Text>
       </View>
@@ -133,7 +148,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
 
   const renderLoadingIndicator = () => {
     if (!isLoading) return null;
-    
+
     return (
       <View style={[styles.messageContainer, styles.botMessage]}>
         <View style={[styles.messageBubble, styles.botBubble]}>
@@ -150,10 +165,10 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      presentationStyle="fullScreen"
+      animationType='slide'
+      presentationStyle='fullScreen'
     >
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
@@ -168,7 +183,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
             )}
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#333" />
+            <Ionicons name='close' size={24} color='#333' />
           </TouchableOpacity>
         </View>
 
@@ -180,7 +195,9 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
           keyExtractor={item => item.id}
           style={styles.messagesList}
           contentContainerStyle={styles.messagesContent}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
           ListFooterComponent={renderLoadingIndicator}
         />
 
@@ -190,21 +207,31 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
             style={[styles.textInput, !isApiAvailable && styles.disabledInput]}
             value={inputText}
             onChangeText={setInputText}
-            placeholder={isApiAvailable ? "Type your message..." : "Chat unavailable"}
-            placeholderTextColor="#999"
+            placeholder={
+              isApiAvailable ? 'Type your message...' : 'Chat unavailable'
+            }
+            placeholderTextColor='#999'
             multiline
             maxLength={500}
             editable={!isLoading && isApiAvailable}
           />
           <TouchableOpacity
-            style={[styles.sendButton, (!inputText.trim() || isLoading || !isApiAvailable) && styles.sendButtonDisabled]}
+            style={[
+              styles.sendButton,
+              (!inputText.trim() || isLoading || !isApiAvailable) &&
+                styles.sendButtonDisabled,
+            ]}
             onPress={sendMessage}
             disabled={!inputText.trim() || isLoading || !isApiAvailable}
           >
-            <Ionicons 
-              name="send" 
-              size={20} 
-              color={(!inputText.trim() || isLoading || !isApiAvailable) ? "#ccc" : "#fff"} 
+            <Ionicons
+              name='send'
+              size={20}
+              color={
+                !inputText.trim() || isLoading || !isApiAvailable
+                  ? '#ccc'
+                  : '#fff'
+              }
             />
           </TouchableOpacity>
         </View>
@@ -341,4 +368,4 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     backgroundColor: '#e0e0e0',
   },
-}); 
+});
