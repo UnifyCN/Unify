@@ -182,8 +182,7 @@ export function SignIn({
                     provider: 'google',
                     token: response.data.idToken,
                   });
-                    console.log(JSON.stringify(data, null, 2));
-                    console.log(JSON.stringify(error, null, 2));
+                    console.log(error, data)
                 } else {throw new Error('No idToken')}
               } catch (error: any) {
                 if (error.code) {
