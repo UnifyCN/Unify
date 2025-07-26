@@ -177,6 +177,14 @@ export function SignIn({
                 await GoogleSignin.hasPlayServices();
                 const response = await GoogleSignin.signIn();
                 console.log(JSON.stringify(response, null, 2));
+                if (response.data?.idToken) {
+                  const { data, error } = await supabase.auth.signInWithIdToken({
+                    provider: 'google',
+                    token: response.data.idToken,
+                  });
+                    console.log(JSON.stringify(data, null, 2));
+                    console.log(JSON.stringify(error, null, 2));
+                } else {throw new Error('No idToken')}
               } catch (error: any) {
                 if (error.code) {
                   switch (error.code) {
