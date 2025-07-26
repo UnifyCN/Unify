@@ -17,7 +17,7 @@ import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Search from '@/assets/images/search.svg';
-import CreatePost from '@/assets/images/create_post_button.svg';
+// import CreatePost from '@/assets/images/create_post_button.svg';
 import Carousel from '@/components/home/Carousel';
 import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
@@ -158,9 +158,9 @@ export default function HomeScreen() {
         }
         onScroll={scrollHandler}
       />
-      <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
+      {/* <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
         <CreatePost />
-      </AnimatedTouchableOpacity>
+      </AnimatedTouchableOpacity> */}
     </SafeAreaView>
   );
 }
