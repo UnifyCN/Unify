@@ -72,7 +72,8 @@ export function SignIn({
   // Google sign in
   if (isExpoGo) {
     GoogleSignin.configure({
-      webClientId: '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com', // client ID of type WEB for your server. Required to get the `idToken` on the user object, and for offline access.
+      webClientId:
+        '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com', // client ID of type WEB for your server. Required to get the `idToken` on the user object, and for offline access.
       scopes: ['https://www.googleapis.com/auth/drive.readonly'], // what API you want to access on behalf of the user, default is email and profile
       // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
       // hostedDomain: '', // specifies a hosted domain restriction
@@ -84,15 +85,17 @@ export function SignIn({
       // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
     });
   }
-  
 
   // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
     if (isExpoGo) {
       console.log('Google Sign-In not available in Expo Go rn');
-      return; 
+      return;
     }
-    const { GoogleSignin, statusCodes } = require('@react-native-google-signin/google-signin');
+    const {
+      GoogleSignin,
+      statusCodes,
+    } = require('@react-native-google-signin/google-signin');
     try {
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
@@ -209,14 +212,9 @@ export function SignIn({
           <Apple width={20} height={20} />
         </View>
 
-        <View style={styles.buttonWithIcon}>          
-            <Google
-              width={20}
-              height={20}
-              onPress={handleGoogleSignIn}
-            />          
+        <View style={styles.buttonWithIcon}>
+          <Google width={20} height={20} onPress={handleGoogleSignIn} />
         </View>
-
       </View>
       <View style={styles.footer}>
         <Text
