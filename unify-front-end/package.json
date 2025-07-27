@@ -35,6 +35,7 @@
     "@tanstack/react-query": "^5.83.0",
     "add": "^2.0.6",
     "aws-amplify": "^6.14.2",
+    "eas": "^0.1.0",
     "expo": "^52.0.7",
     "expo-constants": "~17.0.3",
     "expo-font": "~13.0.1",
@@ -66,7 +67,8 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.10",
     "unify-front-end": "file:",
-    "yarn": "^1.22.22"
+    "yarn": "^1.22.22",
+    "expo-dev-client": "~5.0.20"
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.15.0",

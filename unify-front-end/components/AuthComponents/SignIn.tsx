@@ -1,4 +1,5 @@
 import React from 'react';
+import isExpoGo from '../../utils/isExpoGo'; // see if we are running dev env using expo go or not
 
 import { useForm } from 'react-hook-form';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
@@ -69,18 +70,59 @@ export function SignIn({
   };
 
   // Google sign in
-  GoogleSignin.configure({
-    webClientId: '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com', // client ID of type WEB for your server. Required to get the `idToken` on the user object, and for offline access.
-    scopes: ['https://www.googleapis.com/auth/drive.readonly'], // what API you want to access on behalf of the user, default is email and profile
-    // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-    // hostedDomain: '', // specifies a hosted domain restriction
-    // forceCodeForRefreshToken: false, // [Android] related to `serverAuthCode`, read the docs link below *.
-    // accountName: '', // [Android] specifies an account name on the device that should be used
-    // iosClientId: '<FROM DEVELOPER CONSOLE>', // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
-    // googleServicePlistPath: '', // [iOS] if you renamed your GoogleService-Info file, new name here, e.g. "GoogleService-Info-Staging"
-    // openIdRealm: '', // [iOS] The OpenID2 realm of the home web server. This allows Google to include the user's OpenID Identifier in the OpenID Connect ID token.
-    // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
-  });
+  if (isExpoGo) {
+    GoogleSignin.configure({
+      webClientId: '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com', // client ID of type WEB for your server. Required to get the `idToken` on the user object, and for offline access.
+      scopes: ['https://www.googleapis.com/auth/drive.readonly'], // what API you want to access on behalf of the user, default is email and profile
+      // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+      // hostedDomain: '', // specifies a hosted domain restriction
+      // forceCodeForRefreshToken: false, // [Android] related to `serverAuthCode`, read the docs link below *.
+      // accountName: '', // [Android] specifies an account name on the device that should be used
+      // iosClientId: '<FROM DEVELOPER CONSOLE>', // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
+      // googleServicePlistPath: '', // [iOS] if you renamed your GoogleService-Info file, new name here, e.g. "GoogleService-Info-Staging"
+      // openIdRealm: '', // [iOS] The OpenID2 realm of the home web server. This allows Google to include the user's OpenID Identifier in the OpenID Connect ID token.
+      // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
+    });
+  }
+  
+
+  // Move Google sign-in logic to a separate function
+  const handleGoogleSignIn = async () => {
+    if (isExpoGo) {
+      console.log('Google Sign-In not available in Expo Go rn');
+      return; 
+    }
+    const { GoogleSignin, statusCodes } = require('@react-native-google-signin/google-signin');
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      console.log(JSON.stringify(response, null, 2));
+      if (response.data?.idToken) {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: response.data.idToken,
+        });
+        console.log(error, data);
+      } else {
+        throw new Error('No idToken');
+      }
+    } catch (error: any) {
+      if (error.code) {
+        switch (error.code) {
+          case statusCodes.IN_PROGRESS:
+            // operation (eg. sign in) already in progress
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            // Android only, play services not available or outdated
+            break;
+          default:
+          // some other error happened
+        }
+      } else {
+        // an error that's not related to google sign in occurred
+      }
+    }
+  };
 
   return (
     <ViewContainer style={styles.container}>
@@ -167,40 +209,12 @@ export function SignIn({
           <Apple width={20} height={20} />
         </View>
 
-        <View style={styles.buttonWithIcon}>
-          <Google 
-            width={20} 
-            height={20} 
-            onPress={async () => {
-              try {
-                await GoogleSignin.hasPlayServices();
-                const response = await GoogleSignin.signIn();
-                console.log(JSON.stringify(response, null, 2));
-                if (response.data?.idToken) {
-                  const { data, error } = await supabase.auth.signInWithIdToken({
-                    provider: 'google',
-                    token: response.data.idToken,
-                  });
-                    console.log(error, data)
-                } else {throw new Error('No idToken')}
-              } catch (error: any) {
-                if (error.code) {
-                  switch (error.code) {
-                    case statusCodes.IN_PROGRESS:
-                      // operation (eg. sign in) already in progress
-                      break;
-                    case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-                      // Android only, play services not available or outdated
-                      break;
-                    default:
-                    // some other error happened
-                  }
-                } else {
-                  // an error that's not related to google sign in occurred
-                }
-              }
-            }}
-          />          
+        <View style={styles.buttonWithIcon}>          
+            <Google
+              width={20}
+              height={20}
+              onPress={handleGoogleSignIn}
+            />          
         </View>
 
       </View>
