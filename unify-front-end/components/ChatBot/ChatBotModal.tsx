@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import geminiModel, { isGeminiAvailable } from '@/utils/gemini';
+import { isGeminiAvailable, callGeminiAPI } from '@/utils/gemini';
 
 interface Message {
   id: string;
@@ -76,28 +76,22 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
     setIsLoading(true);
 
     try {
-      // Check if model is available
-      if (!geminiModel) {
-        throw new Error('Gemini model is not available');
+      // Call the Gemini API through Supabase edge function
+      const response = await callGeminiAPI(userMessage.text);
+
+      // Extract the response text from the Gemini API response
+      let botResponse = 'Sorry, I encountered an error. Please try again.';
+
+      if (response && response.candidates && response.candidates[0]) {
+        const candidate = response.candidates[0];
+        if (
+          candidate.content &&
+          candidate.content.parts &&
+          candidate.content.parts[0]
+        ) {
+          botResponse = candidate.content.parts[0].text;
+        }
       }
-
-      // Start a chat session
-      const chat = geminiModel.startChat({
-        history: messages.slice(1).map(msg => ({
-          role: msg.isUser ? 'user' : 'model',
-          parts: [{ text: msg.text }],
-        })),
-        generationConfig: {
-          maxOutputTokens: 150,
-        },
-      });
-
-      // Send the message and get response
-      // TODO: Add tuned system prompt here in the future to prevent any inappropriate responses
-      // TODO: Will need to also change the model and api key and output tokens in the future
-      const result = await chat.sendMessage(userMessage.text);
-      const response = result.response;
-      const botResponse = response.text();
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -176,7 +170,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>
-              Chat Assistant {!isApiAvailable && '⚠️'}
+              AI Companion {!isApiAvailable && '⚠️'}
             </Text>
             {!isApiAvailable && (
               <Text style={styles.headerSubtitle}>Temporarily Unavailable</Text>
