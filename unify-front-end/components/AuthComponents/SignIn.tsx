@@ -168,10 +168,9 @@ export function SignIn({
         </View>
 
         <View style={styles.buttonWithIcon}>
-          <Google width={20} height={20} />
-          <GoogleSigninButton
-            size={GoogleSigninButton.Size.Wide}
-            color={GoogleSigninButton.Color.Dark}
+          <Google 
+            width={20} 
+            height={20} 
             onPress={async () => {
               try {
                 await GoogleSignin.hasPlayServices();
@@ -201,7 +200,7 @@ export function SignIn({
                 }
               }
             }}
-          />
+          />          
         </View>
 
       </View>
