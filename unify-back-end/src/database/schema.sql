@@ -78,7 +78,7 @@ CREATE TABLE chatbot_usage (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     -- might need to add 'premium BOOLEAN' in the future to account for multiple limits but for now assume all have a limit
     message_count INTEGER DEFAULT 0,
-    last_message_at TIMESTAMP DEFAULT NOW() -- Will be UTC times, so usage resets based on UTC midnight
+    last_message_at TIMESTAMPZ DEFAULT NOW() -- Will be UTC times, so usage resets based on UTC midnight
 );
 
 -- Main Topics table
