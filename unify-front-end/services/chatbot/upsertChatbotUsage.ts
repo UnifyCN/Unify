@@ -1,11 +1,9 @@
 import { supabase } from '../../lib/supabase';
-import { UpsertChatbotUsageParams } from '../../types/chatbot';
 
 export const upsertChatbotUsage = async (
-  params: UpsertChatbotUsageParams
+  new_message_count: number
 ): Promise<boolean> => {
   try {
-    const { new_message_count } = params;
     const {
       data: { user },
     } = await supabase.auth.getUser();

@@ -6,7 +6,7 @@ export const useUpdateChatbotUsage = () => {
 
   return useMutation({
     mutationFn: (new_message_count: number) =>
-      upsertChatbotUsage({ new_message_count }),
+      upsertChatbotUsage(new_message_count),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['chatbot-usage'],
