@@ -40,21 +40,21 @@ export function ProgressSectionComplete({
         <ProgressSectionCard
           title='Pathway to finance'
           description='Short description'
-          image={require('../../assets/images/finance.jpg')}
+          image={require('../../../assets/images/finance.jpg')}
           href='/(tabs)/Learn/Lessons/path-way-finance'
         />
 
         <ProgressSectionCard
           title='Lesson Title'
           description='Short description'
-          image={require('../../assets/images/placeholderImg.png')}
+          image={require('../../../assets/images/placeholderImg.png')}
           href='./Main-lesson'
         />
 
         <ProgressSectionCard
           title='Lesson Title'
           description='Short description'
-          image={require('../../assets/images/placeholderImg.png')}
+          image={require('../../../assets/images/placeholderImg.png')}
           href='./Main-lesson'
         />
       </ScrollView>

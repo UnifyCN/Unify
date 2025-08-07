@@ -40,21 +40,21 @@ export function ProgressSectionIP({
         <ProgressSectionCard
           title='Budgeting 101'
           description='Short description'
-          image={require('../../assets/images/BudgetIntro.jpeg')}
+          image={require('../../../assets/images/BudgetIntro.jpeg')}
           href='/(tabs)/Learn/Lessons/path-way-finance'
         />
 
         <ProgressSectionCard
           title='Lesson Title'
           description='Short description'
-          image={require('../../assets/images/placeholderImg.png')}
+          image={require('../../../assets/images/placeholderImg.png')}
           href='./Main-lesson'
         />
 
         <ProgressSectionCard
           title='Lesson Title'
           description='Short description'
-          image={require('../../assets/images/placeholderImg.png')}
+          image={require('../../../assets/images/placeholderImg.png')}
           href='./Main-lesson'
         />
       </ScrollView>
