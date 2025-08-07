@@ -7,8 +7,8 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import { Stack, useNavigation } from 'expo-router';
-import { MaterialIcons, Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 import JourneyMap from './journey-map';
 import Modules from './modules';
 
@@ -73,13 +73,27 @@ const TabNavigator = () => {
 };
 
 const Learn = () => {
+  const router = useRouter();
+
+  const handleQuizPress = () => {
+    router.push('/Learn/moduleComponents/quiz-intro');
+  };
+
   return (
     <>
       <View style={styles.container}>
         {/* Header test, we can implement this in details after*/}
         <View style={styles.headerContainer}>
           <Text style={styles.headerText}>Unify</Text>
-          <Feather name='bell' size={24} color='black' />
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.quizButton}
+              onPress={handleQuizPress}
+            >
+              <Text style={styles.quizButtonText}>Sample Quiz</Text>
+            </TouchableOpacity>
+            <Feather name='bell' size={24} color='black' />
+          </View>
         </View>
         <ScrollView>
           <TabNavigator />
@@ -105,6 +119,22 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#343434',
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  },
+  quizButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  quizButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
   tabs: {
     backgroundColor: '#e0e0e0',

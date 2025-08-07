@@ -1,25 +1,20 @@
 import { TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useScrollContext } from '@/context/ScrollContext';
 import CustomHomeIcon from '../icons/HomePageIcon';
 import CustomlearnIcon from '../icons/LearnPageIcon';
 import CustomProfileIcon from '../icons/ProfilePageIcon';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useDerivedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useScrollVisibility } from '@/hooks/useScrollVisibility';
+import { ALLOWED_ROUTES } from '@/constants/AllowedRoutes';
 
 const NAV_BAR_HEIGHT = 50;
 const OFFSET_BOTTOM = 15;
 
-const CustomNavBar: React.FC<BottomTabBarProps> = ({
+const CustomNavBar = ({
   state,
   descriptors,
   navigation,
-}) => {
+}: BottomTabBarProps) => {
   const visibilityProgress = useScrollVisibility();
   // Hide the tab bar by transform it either rise it by the original value or 0 to kill it
   const animatedStyle = useAnimatedStyle(
@@ -37,32 +32,9 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       {state.routes.map((route, index) => {
-        if (
-          [
-            '_sitemap',
-            '+not-found',
-            'Learn/modules',
-            'Learn/journey-map',
-            'Learn/module/in-progress',
-            'Learn/module/lesson-library',
-            'Learn/In-progress',
-            'Learn/Lesson-library',
-            'Learn/Main-lesson',
-            'Learn/moduleComponents/lesson-library',
-            'Learn/moduleComponents/index',
-            'Learn/moduleComponents/in-progress',
-            'Learn/Lessons/path-way-finance',
-            'Learn/moduleComponents/lesson-completed',
-            'Learn/moduleComponents/quiz-screen',
-            'Learn/moduleComponents/quiz-completed',
-            'Learn/moduleComponents/main-lesson',
-            'Learn/Lessons/PathWayFinanceSubTopics/budgeting',
-            'Profile/profile-settings',
-            'Profile/edit-profile',
-            'Profile/profile-suggestions',
-          ].includes(route.name)
-        )
+        if (!ALLOWED_ROUTES.includes(route.name)) {
           return null;
+        }
 
         const { options } = descriptors[route.key];
         let label = String(

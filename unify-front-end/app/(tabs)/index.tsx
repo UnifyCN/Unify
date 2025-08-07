@@ -12,7 +12,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
 } from 'react-native-reanimated';
-import { useScrollContext } from '@/context/ScrollContext';
 import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -23,7 +22,6 @@ import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
 
-const SCROLL_DISTANCE = 200;
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -114,27 +112,6 @@ export default function HomeScreen() {
     }
   }, [activeTab]);
 
-  const [scrollValue] = useScrollContext();
-  const previousScrollValue = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler({
-    // Change this if this cause any error
-    onScroll: e => {
-      const offsetY = e.contentOffset.y;
-      if (offsetY < 0 || offsetY > e.contentSize.height) return;
-
-      scrollValue.value = Math.max(
-        0,
-        Math.min(
-          1,
-          scrollValue.value +
-            (offsetY - previousScrollValue.value) / SCROLL_DISTANCE
-        )
-      );
-
-      previousScrollValue.value = offsetY;
-    },
-  });
-
   const visibilityProgress = useScrollVisibility();
   // Hide the post button, 135 is the combination of the button diameter + 75 offset from the bottom
   const animatedStyle = useAnimatedStyle(
@@ -156,7 +133,6 @@ export default function HomeScreen() {
         ListHeaderComponent={
           <Header activeTab={activeTab} setActiveTab={setActiveTab} />
         }
-        onScroll={scrollHandler}
       />
       {/* <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
         <CreatePost />

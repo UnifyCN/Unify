@@ -8,7 +8,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import SubtopicProgressCard from '@/components/learn/SubtopicProgressCard';
+import SubtopicProgressCard from '@/components/learn/Sub/SubtopicProgressCard';
 import { Feather } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 

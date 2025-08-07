@@ -7,12 +7,20 @@ import {
 } from 'react-native-reanimated';
 
 type ScrollContextTuple = [SharedValue<number>, () => void];
-// The inital value doesn't do anything since we pretty much always use useContext with the context provider
-// but it's good for reader to understand the type, I suppose
 
-const ScrollContext = createContext<ScrollContextTuple>(null!);
+const ScrollContext = createContext<ScrollContextTuple | undefined>(undefined);
 
-export const useScrollContext = () => useContext(ScrollContext);
+export const useScrollContext = () => {
+  const context = useContext(ScrollContext);
+
+  if (!context) {
+    throw new Error(
+      'useScrollContext must be used within a ScrollContextProvider'
+    );
+  }
+
+  return context;
+};
 
 export const ScrollContextProvider: React.FC<React.PropsWithChildren> = ({
   children,

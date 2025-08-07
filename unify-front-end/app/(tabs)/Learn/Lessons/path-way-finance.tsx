@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Link } from 'expo-router';
-import SubLessonCard from '@/components/learn/SubLessonCard';
+import SubLessonCard from '@/components/learn/Sub/SubLessonCard';
 
 const PathWayFinance = () => {
   return (

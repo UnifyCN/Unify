@@ -10,7 +10,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import LessonProgressBar from '@/components/learn/LessonProgressBar';
-import ProgressCard from '@/components/learn/ProgressCard';
+import ProgressCard from '@/components/learn/Progress/ProgressCard';
 
 const Budgeting = () => {
   return (

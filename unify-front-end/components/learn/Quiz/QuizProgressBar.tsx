@@ -1,3 +1,5 @@
+// Not used - could remove if design doesnt use any progress bars
+
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
