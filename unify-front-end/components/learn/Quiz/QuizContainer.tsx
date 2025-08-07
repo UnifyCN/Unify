@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { QuizContainerProps, QuizResults } from '@/types/quiz';
+import { Quiz, QuizResults } from '@/types/quiz';
+interface QuizContainerProps {
+  quiz: Quiz;
+  onSuccess?: (results: QuizResults) => void;
+  onFailed?: (results: QuizResults) => void;
+}
 
 const QuizContainer = ({ quiz, onSuccess, onFailed }: QuizContainerProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);

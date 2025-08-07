@@ -23,9 +23,3 @@ export interface QuizResults {
     explanation: string;
   }>;
 }
-
-export interface QuizContainerProps {
-  quiz: Quiz;
-  onSuccess?: (results: QuizResults) => void;
-  onFailed?: (results: QuizResults) => void;
-}
