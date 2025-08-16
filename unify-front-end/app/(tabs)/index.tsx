@@ -16,7 +16,7 @@ import { useScrollContext } from '@/context/ScrollContext';
 import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Search from '@/assets/images/search.svg';
+// import Search from '@/assets/images/search.svg';
 // import CreatePost from '@/assets/images/create_post_button.svg';
 import Carousel from '@/components/home/Carousel';
 import ForYouFeed from '@/components/home/ForYouFeed';
@@ -39,10 +39,12 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
     <View>
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
-        <View style={styles.searchBar}>
-          <Search style={styles.searchIcon} width={20} height={20} />
-          <Text style={styles.search}>Search</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.profileButton}
+          onPress={() => router.push('/(tabs)/profile')}
+        >
+          <Text style={styles.profileText}>👤</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.divider} />
 
@@ -181,28 +183,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: 'row',
     backgroundColor: '#fff',
-    gap: 28,
-  },
-  searchIcon: {
-    overflow: 'hidden',
-  },
-  search: {
-    fontSize: 15,
-    color: '#9f9d9d',
-    textAlign: 'left',
-  },
-  searchBar: {
-    flex: 1,
-    borderRadius: 12,
-    backgroundColor: '#eee',
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 24,
-    paddingTop: 8,
-    paddingRight: 124,
-    paddingBottom: 8,
-    gap: 8,
+    marginTop: 35,
   },
   divider: {
     width: '100%',
@@ -322,6 +303,26 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: '#666',
+    textAlign: 'center',
+  },
+  profileButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  profileText: {
+    fontSize: 24,
     textAlign: 'center',
   },
 });

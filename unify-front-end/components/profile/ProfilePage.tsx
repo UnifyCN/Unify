@@ -40,7 +40,7 @@ export default function TabTwoScreen() {
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
         <TouchableOpacity
-                        onPress={() => router.push('/Profile/profile-settings')}
+          onPress={() => router.push('/Profile/profile-settings')}
         >
           <Feather name='menu' size={26} color='black' />
         </TouchableOpacity>
