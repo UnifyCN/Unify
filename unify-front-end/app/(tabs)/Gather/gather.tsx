@@ -41,7 +41,7 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
         <Text style={styles.titleText}>unify</Text>
         <TouchableOpacity
           style={styles.profileButton}
-          onPress={() => router.push('/(tabs)/Gather/gather')}
+          onPress={() => router.push('/(tabs)/Gather/Profile/profile')}
         >
           <Text style={styles.profileText}>👤</Text>
         </TouchableOpacity>

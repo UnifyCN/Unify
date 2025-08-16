@@ -28,6 +28,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name='Gather/gather'
+        options={{
+          title: 'Gather',
+        }}
+      />
+      <Tabs.Screen
         name='profile'
         options={{
           title: 'Profile',
