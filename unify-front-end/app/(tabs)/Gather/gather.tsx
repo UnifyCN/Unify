@@ -16,6 +16,7 @@ import { useScrollContext } from '@/context/ScrollContext';
 import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import Header from '@/components/Header';
 // import Search from '@/assets/images/search.svg';
 // import CreatePost from '@/assets/images/create_post_button.svg';
 import Carousel from '@/components/home/Carousel';
@@ -32,20 +33,11 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
 }
 
-const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
+const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   const router = useRouter();
 
   return (
     <View>
-      <View style={styles.headContainer}>
-        <Text style={styles.titleText}>unify</Text>
-        <TouchableOpacity
-          style={styles.profileButton}
-          onPress={() => router.push('/(tabs)/Gather/Profile/profile')}
-        >
-          <Text style={styles.profileText}>👤</Text>
-        </TouchableOpacity>
-      </View>
       <View style={styles.divider} />
 
       <View style={styles.carouselContainer}>
@@ -102,7 +94,8 @@ const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   );
 });
 
-export default function HomeScreen() {
+export default function GatherScreen() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('For You');
 
   const renderFeedContent = useMemo(() => {
@@ -147,8 +140,9 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar style='dark' />
+      <Header onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')} />
       <Animated.FlatList
         data={[{ key: 'feed' }]}
         renderItem={() => (
@@ -156,14 +150,14 @@ export default function HomeScreen() {
         )}
         keyExtractor={item => item.key}
         ListHeaderComponent={
-          <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+          <GatherHeader activeTab={activeTab} setActiveTab={setActiveTab} />
         }
         onScroll={scrollHandler}
       />
       {/* <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
         <CreatePost />
       </AnimatedTouchableOpacity> */}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -173,28 +167,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'column',
   },
-  headContainer: {
-    display: 'flex',
-    width: 'auto',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexShrink: 0,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginTop: 35,
-  },
+
   divider: {
     width: '100%',
     height: 1,
     backgroundColor: '#E5E5E5',
   },
-  titleText: {
-    fontSize: 24,
-    fontWeight: 700,
-    color: '#343434',
-  },
+
   placeholderText: {
     fontSize: 24,
     lineHeight: 25,
@@ -305,24 +284,5 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  profileText: {
-    fontSize: 24,
-    textAlign: 'center',
-  },
+
 });

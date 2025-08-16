@@ -84,15 +84,15 @@ const GatherEventsSection = () => (
 
 export default function HomeScreen() {
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar style='dark' />
+      <Header />
       <ScrollView style={styles.scrollView}>
-        <Header />
         <WelcomeSection />
         <NewsTipsSection />
         <GatherEventsSection />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -103,37 +103,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  headContainer: {
-    display: 'flex',
-    width: 'auto',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexShrink: 0,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-  },
-  titleText: {
-    fontSize: 24,
-    fontWeight: 700,
-    color: '#343434',
-  },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  profileText: {
-    fontSize: 24,
-    textAlign: 'center',
   },
   welcomeSection: {
     paddingHorizontal: 20,
