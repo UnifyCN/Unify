@@ -33,12 +33,6 @@ export default function TabLayout() {
           title: 'Gather',
         }}
       />
-      <Tabs.Screen
-        name='profile'
-        options={{
-          title: 'Profile',
-        }}
-      />
     </Tabs>
   );
 }

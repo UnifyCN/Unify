@@ -60,6 +60,10 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             'Profile/profile-settings',
             'Profile/edit-profile',
             'Profile/profile-suggestions',
+            'Gather/Profile/profile',
+            'Gather/Profile/profile-settings',
+            'Gather/Profile/edit-profile',
+            'Gather/Profile/profile-suggestions',
           ].includes(route.name)
         )
           return null;

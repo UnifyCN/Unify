@@ -17,7 +17,7 @@ const ProfileSettings = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContentContainer}>
-        <Link href='/(tabs)/profile' asChild>
+        <Link href='../gather' asChild>
           <TouchableOpacity style={styles.backButton}>
             <Feather name='chevron-left' size={25} />
           </TouchableOpacity>
