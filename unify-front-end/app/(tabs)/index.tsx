@@ -6,172 +6,103 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-  useAnimatedStyle,
-} from 'react-native-reanimated';
-import { useScrollContext } from '@/context/ScrollContext';
-import { useScrollVisibility } from '@/hooks/useScrollVisibility';
-import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-// import Search from '@/assets/images/search.svg';
-// import CreatePost from '@/assets/images/create_post_button.svg';
-import Carousel from '@/components/home/Carousel';
-import ForYouFeed from '@/components/home/ForYouFeed';
-import FollowingFeed from '@/components/home/FollowingFeed';
-import GroupsFeed from '@/components/home/GroupsFeed';
+import { Feather } from '@expo/vector-icons';
+import Header from '@/components/Header';
 
-const SCROLL_DISTANCE = 200;
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
-
-interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
-
-const Header = memo(({ activeTab, setActiveTab }: HeaderProps) => {
-  const router = useRouter();
-
-  return (
-    <View>
-      <View style={styles.headContainer}>
-        <Text style={styles.titleText}>unify</Text>
-        <TouchableOpacity
-          style={styles.profileButton}
-          onPress={() => router.push('/(tabs)/Gather/gather')}
-        >
-          <Text style={styles.profileText}>👤</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.divider} />
-
-      <View style={styles.carouselContainer}>
-        <Text style={styles.placeholderText}>Highlights</Text>
-        <Carousel />
-      </View>
-
-      <View style={styles.cardContainer}>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push('/(tabs)/Learn/Lesson-library')}
-        >
-          <Image
-            style={styles.cardImage}
-            source={require('@/assets/images/nationalNews.png')}
-          />
-          <Text style={styles.cardDescription}>National News</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push('/(tabs)/Learn/journey-map')}
-        >
-          <Image
-            style={styles.cardImage}
-            source={require('@/assets/images/journeyMap.png')}
-          />
-          <Text style={styles.cardDescription}>Journey Map</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text
-        style={{
-          fontWeight: 600,
-          fontSize: 24,
-          color: 'black',
-          paddingHorizontal: 20,
-          marginTop: 20,
-        }}
-      >
-        Your Feed
-      </Text>
-      <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map(tab => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
-          >
-            <Text style={styles.tabText}>{tab}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+const WelcomeSection = () => (
+  <View style={styles.welcomeSection}>
+    <Text style={styles.welcomeText}>
+      Welcome Back, <Text style={styles.welcomeName}>Sarah!</Text>
+    </Text>
+    <Text style={styles.progressText}>
+      You have two modules left of <Text style={styles.boldText}>Understanding Canadian Banking</Text>
+    </Text>
+    <Text style={styles.percentageText}>55% Completed</Text>
+    <View style={styles.progressBar}>
+      <View style={styles.progressFill} />
     </View>
-  );
-});
+    <TouchableOpacity style={styles.resumeButton}>
+      <Text style={styles.resumeButtonText}>Resume Lesson</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const NewsTipsSection = () => (
+  <View style={styles.section}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>News & Tips</Text>
+      <Feather name="chevron-right" size={20} color="#666" />
+    </View>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
+      <View style={styles.newsCard}>
+        <View style={styles.newsImagePlaceholder} />
+        <View style={styles.newsContent}>
+          <Text style={styles.newsTitle}>Navigating Winter Roads</Text>
+          <Text style={styles.newsDescription}>
+            New to snow? ICBC article to help you avoid issues on the icy, winter roads.
+          </Text>
+        </View>
+      </View>
+      <View style={styles.newsCard}>
+        <View style={styles.newsImagePlaceholder} />
+        <View style={styles.newsContent}>
+          <Text style={styles.newsTitle}>Financial Planning Tips</Text>
+          <Text style={styles.newsDescription}>
+            Essential tips for managing your finances in Canada.
+          </Text>
+        </View>
+      </View>
+    </ScrollView>
+  </View>
+);
+
+const GatherEventsSection = () => (
+  <View style={styles.section}>
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>Upcoming Gather Events</Text>
+      <Feather name="chevron-right" size={20} color="#666" />
+    </View>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
+      <View style={styles.eventCard}>
+        <View style={styles.eventImagePlaceholder} />
+        <Text style={styles.eventTitle}>Community Meetup</Text>
+      </View>
+      <View style={styles.eventCard}>
+        <View style={styles.eventImagePlaceholder} />
+        <Text style={styles.eventTitle}>Study Group</Text>
+      </View>
+      <View style={styles.eventCard}>
+        <View style={styles.eventImagePlaceholder} />
+        <Text style={styles.eventTitle}>Workshop</Text>
+      </View>
+    </ScrollView>
+  </View>
+);
 
 export default function HomeScreen() {
-  const [activeTab, setActiveTab] = useState('For You');
-
-  const renderFeedContent = useMemo(() => {
-    switch (activeTab) {
-      case 'Following':
-        return <FollowingFeed />;
-      case 'Groups':
-        return <GroupsFeed />;
-      default:
-        return <ForYouFeed />;
-    }
-  }, [activeTab]);
-
-  const [scrollValue] = useScrollContext();
-  const previousScrollValue = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler({
-    // Change this if this cause any error
-    onScroll: e => {
-      const offsetY = e.contentOffset.y;
-      if (offsetY < 0 || offsetY > e.contentSize.height) return;
-
-      scrollValue.value = Math.max(
-        0,
-        Math.min(
-          1,
-          scrollValue.value +
-            (offsetY - previousScrollValue.value) / SCROLL_DISTANCE
-        )
-      );
-
-      previousScrollValue.value = offsetY;
-    },
-  });
-
-  const visibilityProgress = useScrollVisibility();
-  // Hide the post button, 135 is the combination of the button diameter + 75 offset from the bottom
-  const animatedStyle = useAnimatedStyle(
-    () => ({
-      transform: [{ translateY: visibilityProgress.value * 135 }],
-    }),
-    [visibilityProgress]
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style='dark' />
-      <Animated.FlatList
-        data={[{ key: 'feed' }]}
-        renderItem={() => (
-          <View style={styles.feedContainer}>{renderFeedContent}</View>
-        )}
-        keyExtractor={item => item.key}
-        ListHeaderComponent={
-          <Header activeTab={activeTab} setActiveTab={setActiveTab} />
-        }
-        onScroll={scrollHandler}
-      />
-      {/* <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
-        <CreatePost />
-      </AnimatedTouchableOpacity> */}
+      <ScrollView style={styles.scrollView}>
+        <Header />
+        <WelcomeSection />
+        <NewsTipsSection />
+        <GatherEventsSection />
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Ensure the container takes up the full screen
+    flex: 1,
     backgroundColor: '#fff',
-    flexDirection: 'column',
+  },
+  scrollView: {
+    flex: 1,
   },
   headContainer: {
     display: 'flex',
@@ -183,127 +114,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: 'row',
     backgroundColor: '#fff',
-    marginTop: 35,
-  },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#E5E5E5',
   },
   titleText: {
     fontSize: 24,
     fontWeight: 700,
     color: '#343434',
-  },
-  placeholderText: {
-    fontSize: 24,
-    lineHeight: 25,
-    fontWeight: 600,
-    color: '#000',
-    textAlign: 'left',
-    marginBottom: 12,
-  },
-  carouselContainer: {
-    paddingTop: 30,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  cardContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 12,
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  cardImage: {
-    height: '100%',
-    width: '100%',
-    resizeMode: 'cover',
-    borderRadius: 12,
-    position: 'absolute',
-  },
-  cardDescription: {
-    fontSize: 17,
-    fontWeight: '500',
-    lineHeight: 19,
-    color: '#fff',
-    textAlign: 'left',
-    position: 'absolute',
-    top: '60%',
-    left: '8%',
-    width: '54%',
-  },
-  card: {
-    borderRadius: 12,
-    backgroundColor: '#c7c7c7',
-    width: '48%',
-    overflow: 'hidden',
-    height: 120,
-  },
-  feedContainer: {
-    paddingBottom: 44,
-    marginBottom: 36,
-  },
-  tabs: {
-    marginTop: 16,
-    backgroundColor: '#F9F9F9',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  tab: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    alignItems: 'center',
-    borderColor: 'transparent',
-    paddingVertical: 8,
-  },
-  activeTab: {
-    backgroundColor: '#F9F9F9',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: 600,
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 70,
-    right: 20,
-    width: 58.75,
-    height: 58.75,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  gradientBackground: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  floatingButtonIcon: {
-    width: 30,
-    height: 30,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
   },
   profileButton: {
     width: 40,
@@ -316,13 +131,131 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
   },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
   profileText: {
     fontSize: 24,
     textAlign: 'center',
+  },
+  welcomeSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+  },
+  welcomeText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+  },
+  welcomeName: {
+    fontStyle: 'italic',
+  },
+  progressText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 16,
+    lineHeight: 22,
+  },
+  boldText: {
+    fontWeight: '600',
+  },
+  percentageText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 8,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#E5E5E5',
+    borderRadius: 4,
+    marginBottom: 20,
+  },
+  progressFill: {
+    height: '100%',
+    width: '55%',
+    backgroundColor: '#666',
+    borderRadius: 4,
+  },
+  resumeButton: {
+    backgroundColor: '#E5E5E5',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  resumeButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#000',
+  },
+  section: {
+    marginBottom: 30,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+  },
+  carousel: {
+    paddingLeft: 20,
+  },
+  newsCard: {
+    width: 280,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    marginRight: 16,
+    padding: 16,
+    flexDirection: 'row',
+  },
+  newsImagePlaceholder: {
+    width: 60,
+    height: 60,
+    backgroundColor: '#666',
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  newsContent: {
+    flex: 1,
+  },
+  newsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 4,
+  },
+  newsDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 18,
+  },
+  eventCard: {
+    width: 160,
+    height: 120,
+    backgroundColor: '#666',
+    borderRadius: 12,
+    marginRight: 16,
+    justifyContent: 'flex-end',
+    padding: 12,
+  },
+  eventImagePlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#666',
+    borderRadius: 12,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    zIndex: 1,
   },
 });
