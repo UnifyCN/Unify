@@ -6,7 +6,10 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
 import { supabase } from '../../lib/supabase';
 import { Button } from 'react-native-paper';
-import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 
 import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
 import Facebook from '../../assets/images/Facebook.svg';
@@ -186,7 +189,10 @@ export function SignIn({
           <Apple width={20} height={20} />
         </View>
 
-        <TouchableOpacity style={styles.buttonWithIcon} onPress={handleGoogleSignIn}>
+        <TouchableOpacity
+          style={styles.buttonWithIcon}
+          onPress={handleGoogleSignIn}
+        >
           <Google width={20} height={20} />
         </TouchableOpacity>
       </View>

@@ -103,7 +103,9 @@ export default function TabTwoScreen() {
               <View style={styles.dropDownDetails}>
                 <Text style={styles.headerTwo}>Discover people</Text>
                 <TouchableOpacity
-                  onPress={() => router.push('/(tabs)/Gather/Profile/profile-suggestions')}
+                  onPress={() =>
+                    router.push('/(tabs)/Gather/Profile/profile-suggestions')
+                  }
                 >
                   <Text style={styles.headerTwoLink}>See all</Text>
                 </TouchableOpacity>
@@ -171,7 +173,11 @@ export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style='dark' />
-      <Header onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile-settings')} />
+      <Header
+        onProfilePress={() =>
+          router.push('/(tabs)/Gather/Profile/profile-settings')
+        }
+      />
       {/* FlatList for the entire scrollable content */}
       <FlatList
         data={[{ key: 'feed' }]} // Simple dummy data to trigger the render method

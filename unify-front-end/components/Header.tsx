@@ -21,8 +21,11 @@ const Header: React.FC<HeaderProps> = ({ onProfilePress }) => {
   return (
     <View style={styles.header}>
       <Text style={styles.title}>Unify</Text>
-      <TouchableOpacity style={styles.profileButton} onPress={handleProfilePress}>
-        <Feather name="user" size={20} color="#000" />
+      <TouchableOpacity
+        style={styles.profileButton}
+        onPress={handleProfilePress}
+      >
+        <Feather name='user' size={20} color='#000' />
       </TouchableOpacity>
     </View>
   );
@@ -56,4 +59,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Header; 
+export default Header;

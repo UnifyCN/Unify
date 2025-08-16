@@ -12,11 +12,5 @@ export default function CustomGatherIcon({
   color,
   focused,
 }: CustomIconProps) {
-  return (
-    <Feather 
-      name="heart" 
-      size={24} 
-      color={color} 
-    />
-  );
-} 
+  return <Feather name='heart' size={24} color={color} />;
+}

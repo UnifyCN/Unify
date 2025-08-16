@@ -111,7 +111,9 @@ export default function TabTwoScreen() {
               <View style={styles.dropDownDetails}>
                 <Text style={styles.headerTwo}>Discover people</Text>
                 <TouchableOpacity
-                  onPress={() => router.push('/(tabs)/Gather/Profile/profile-suggestions')}
+                  onPress={() =>
+                    router.push('/(tabs)/Gather/Profile/profile-suggestions')
+                  }
                 >
                   <Text style={styles.headerTwoLink}>See all</Text>
                 </TouchableOpacity>

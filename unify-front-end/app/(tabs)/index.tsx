@@ -18,7 +18,8 @@ const WelcomeSection = () => (
       Welcome Back, <Text style={styles.welcomeName}>Sarah!</Text>
     </Text>
     <Text style={styles.progressText}>
-      You have two modules left of <Text style={styles.boldText}>Understanding Canadian Banking</Text>
+      You have two modules left of{' '}
+      <Text style={styles.boldText}>Understanding Canadian Banking</Text>
     </Text>
     <Text style={styles.percentageText}>55% Completed</Text>
     <View style={styles.progressBar}>
@@ -34,15 +35,20 @@ const NewsTipsSection = () => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>News & Tips</Text>
-      <Feather name="chevron-right" size={20} color="#666" />
+      <Feather name='chevron-right' size={20} color='#666' />
     </View>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.carousel}
+    >
       <View style={styles.newsCard}>
         <View style={styles.newsImagePlaceholder} />
         <View style={styles.newsContent}>
           <Text style={styles.newsTitle}>Navigating Winter Roads</Text>
           <Text style={styles.newsDescription}>
-            New to snow? ICBC article to help you avoid issues on the icy, winter roads.
+            New to snow? ICBC article to help you avoid issues on the icy,
+            winter roads.
           </Text>
         </View>
       </View>
@@ -63,9 +69,13 @@ const GatherEventsSection = () => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>Upcoming Gather Events</Text>
-      <Feather name="chevron-right" size={20} color="#666" />
+      <Feather name='chevron-right' size={20} color='#666' />
     </View>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.carousel}
+    >
       <View style={styles.eventCard}>
         <View style={styles.eventImagePlaceholder} />
         <Text style={styles.eventTitle}>Community Meetup</Text>
