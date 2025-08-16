@@ -40,7 +40,7 @@ export default function TabTwoScreen() {
       <View style={styles.headContainer}>
         <Text style={styles.titleText}>unify</Text>
         <TouchableOpacity
-                        onPress={() => router.push('/Profile/profile-settings')}
+          onPress={() => router.push('/(tabs)/Gather/Profile/profile-settings')}
         >
           <Feather name='menu' size={26} color='black' />
         </TouchableOpacity>
@@ -89,7 +89,7 @@ export default function TabTwoScreen() {
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => router.push('/Profile/edit-profile')}
+              onPress={() => router.push('/(tabs)/Gather/Profile/edit-profile')}
             >
               <Text style={styles.buttonText}>Edit profile</Text>
             </TouchableOpacity>
@@ -111,7 +111,7 @@ export default function TabTwoScreen() {
               <View style={styles.dropDownDetails}>
                 <Text style={styles.headerTwo}>Discover people</Text>
                 <TouchableOpacity
-                  onPress={() => router.push('/Profile/profile-suggestions')}
+                  onPress={() => router.push('/(tabs)/Gather/Profile/profile-suggestions')}
                 >
                   <Text style={styles.headerTwoLink}>See all</Text>
                 </TouchableOpacity>
