@@ -7,7 +7,6 @@ import { SignInProps } from '@aws-amplify/ui-react-native';
 import { supabase } from '../../lib/supabase';
 import { Button } from 'react-native-paper';
 import {
-  GoogleSigninButton,
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
@@ -69,61 +68,39 @@ export function SignIn({
     setLoading(false);
   };
 
-  // Google sign in
-  if (isExpoGo) {
+  // Configure Google Sign-In once on mount (must happen BEFORE calling signIn)
+  React.useEffect(() => {
     GoogleSignin.configure({
       webClientId:
-        '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com', // client ID of type WEB for your server. Required to get the `idToken` on the user object, and for offline access.
-      scopes: ['https://www.googleapis.com/auth/drive.readonly'], // what API you want to access on behalf of the user, default is email and profile
-      // offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-      // hostedDomain: '', // specifies a hosted domain restriction
-      // forceCodeForRefreshToken: false, // [Android] related to `serverAuthCode`, read the docs link below *.
-      // accountName: '', // [Android] specifies an account name on the device that should be used
-      // iosClientId: '<FROM DEVELOPER CONSOLE>', // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
-      // googleServicePlistPath: '', // [iOS] if you renamed your GoogleService-Info file, new name here, e.g. "GoogleService-Info-Staging"
-      // openIdRealm: '', // [iOS] The OpenID2 realm of the home web server. This allows Google to include the user's OpenID Identifier in the OpenID Connect ID token.
-      // profileImageSize: 120, // [iOS] The desired height (and width) of the profile image. Defaults to 120px
+        '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
+      scopes: ['email', 'profile'],
+      offlineAccess: true,
+      forceCodeForRefreshToken: false,
     });
-  }
+  }, []);
 
   // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
-    if (isExpoGo) {
-      console.log('Google Sign-In not available in Expo Go rn');
-      return;
-    }
-    const {
-      GoogleSignin,
-      statusCodes,
-    } = require('@react-native-google-signin/google-signin');
+    if (isExpoGo) return; // Not supported in Expo Go
     try {
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
-      console.log(JSON.stringify(response, null, 2));
       if (response.data?.idToken) {
-        const { data, error } = await supabase.auth.signInWithIdToken({
+        const { error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: response.data.idToken,
         });
-        console.log(error, data);
+        if (error) setErrorMessage(error.message);
       } else {
-        throw new Error('No idToken');
+        setErrorMessage('No Google idToken');
       }
     } catch (error: any) {
-      if (error.code) {
-        switch (error.code) {
-          case statusCodes.IN_PROGRESS:
-            // operation (eg. sign in) already in progress
-            break;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            // Android only, play services not available or outdated
-            break;
-          default:
-          // some other error happened
-        }
-      } else {
-        // an error that's not related to google sign in occurred
+      if (error?.code === statusCodes.IN_PROGRESS) return; // already in progress
+      if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        setErrorMessage('Google Play Services not available');
+        return;
       }
+      setErrorMessage(error?.message || 'Google sign-in failed');
     }
   };
 
@@ -212,9 +189,12 @@ export function SignIn({
           <Apple width={20} height={20} />
         </View>
 
-        <View style={styles.buttonWithIcon}>
-          <Google width={20} height={20} onPress={handleGoogleSignIn} />
-        </View>
+        <TouchableOpacity
+          style={styles.buttonWithIcon}
+          onPress={handleGoogleSignIn}
+        >
+          <Google width={20} height={20} />
+        </TouchableOpacity>
       </View>
       <View style={styles.footer}>
         <Text

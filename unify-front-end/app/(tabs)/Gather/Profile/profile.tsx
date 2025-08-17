@@ -8,10 +8,10 @@ import {
   FlatList,
 } from 'react-native';
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { FontAwesome, Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import Header from '@/components/Header';
 import FeedProfile2 from '@/assets/images/Feed_Profile2.svg';
 import UserSuggestionCard from '@/components/profile/UserSuggestionCard';
 import SavedFeed from '@/components/profile/SavedFeed';
@@ -37,14 +37,6 @@ export default function TabTwoScreen() {
 
   const renderHeader = () => (
     <View style={styles.container}>
-      <View style={styles.headContainer}>
-        <Text style={styles.titleText}>unify</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/Profile/profile-settings')}
-        >
-          <Feather name='menu' size={26} color='black' />
-        </TouchableOpacity>
-      </View>
       <View style={styles.divider} />
       <ScrollView>
         <View style={styles.contentContainer}>
@@ -89,7 +81,7 @@ export default function TabTwoScreen() {
           <View style={styles.buttonsContainer}>
             <TouchableOpacity
               style={styles.button}
-              onPress={() => router.push('/Profile/edit-profile')}
+              onPress={() => router.push('/(tabs)/Gather/Profile/edit-profile')}
             >
               <Text style={styles.buttonText}>Edit profile</Text>
             </TouchableOpacity>
@@ -111,7 +103,9 @@ export default function TabTwoScreen() {
               <View style={styles.dropDownDetails}>
                 <Text style={styles.headerTwo}>Discover people</Text>
                 <TouchableOpacity
-                  onPress={() => router.push('/Profile/profile-suggestions')}
+                  onPress={() =>
+                    router.push('/(tabs)/Gather/Profile/profile-suggestions')
+                  }
                 >
                   <Text style={styles.headerTwoLink}>See all</Text>
                 </TouchableOpacity>
@@ -177,8 +171,13 @@ export default function TabTwoScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar style='dark' />
+      <Header
+        onProfilePress={() =>
+          router.push('/(tabs)/Gather/Profile/profile-settings')
+        }
+      />
       {/* FlatList for the entire scrollable content */}
       <FlatList
         data={[{ key: 'feed' }]} // Simple dummy data to trigger the render method
@@ -189,7 +188,7 @@ export default function TabTwoScreen() {
         // Move header and non-scrollable parts here
         ListHeaderComponent={renderHeader}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

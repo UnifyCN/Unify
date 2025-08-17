@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { Stack, useNavigation } from 'expo-router';
 import { MaterialIcons, Feather } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
+import Header from '@/components/Header';
 import JourneyMap from './journey-map';
 import Modules from './modules';
 
@@ -76,11 +78,8 @@ const Learn = () => {
   return (
     <>
       <View style={styles.container}>
-        {/* Header test, we can implement this in details after*/}
-        <View style={styles.headerContainer}>
-          <Text style={styles.headerText}>Unify</Text>
-          <Feather name='bell' size={24} color='black' />
-        </View>
+        <StatusBar style='dark' />
+        <Header />
         <ScrollView>
           <TabNavigator />
         </ScrollView>
@@ -93,18 +92,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-    padding: 20,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#343434',
   },
   tabs: {
     backgroundColor: '#e0e0e0',

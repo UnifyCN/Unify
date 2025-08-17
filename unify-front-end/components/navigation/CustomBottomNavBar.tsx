@@ -4,6 +4,7 @@ import { useScrollContext } from '@/context/ScrollContext';
 import CustomHomeIcon from '../icons/HomePageIcon';
 import CustomlearnIcon from '../icons/LearnPageIcon';
 import CustomProfileIcon from '../icons/ProfilePageIcon';
+import CustomGatherIcon from '../icons/GatherPageIcon';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -60,6 +61,10 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             'Profile/profile-settings',
             'Profile/edit-profile',
             'Profile/profile-suggestions',
+            'Gather/Profile/profile',
+            'Gather/Profile/profile-settings',
+            'Gather/Profile/edit-profile',
+            'Gather/Profile/profile-suggestions',
           ].includes(route.name)
         )
           return null;
@@ -122,6 +127,9 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
       index: <CustomHomeIcon name={'Home'} color={color} focused={isFocused} />,
       'Learn/index': (
         <CustomlearnIcon name={'Learn'} color={color} focused={isFocused} />
+      ),
+      'Gather/gather': (
+        <CustomGatherIcon name={'Gather'} color={color} focused={isFocused} />
       ),
       profile: (
         <CustomProfileIcon name={'Profile'} color={color} focused={isFocused} />
