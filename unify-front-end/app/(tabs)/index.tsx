@@ -11,6 +11,8 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import Header from '@/components/Header';
+import { currentGatherEvents } from '../data/currentGatherEvents';
+import { currentNews } from '../data/currentNews';
 
 const WelcomeSection = () => (
   <View style={styles.welcomeSection}>
@@ -42,25 +44,17 @@ const NewsTipsSection = () => (
       showsHorizontalScrollIndicator={false}
       style={styles.carousel}
     >
-      <View style={styles.newsCard}>
-        <View style={styles.newsImagePlaceholder} />
-        <View style={styles.newsContent}>
-          <Text style={styles.newsTitle}>Navigating Winter Roads</Text>
-          <Text style={styles.newsDescription}>
-            New to snow? ICBC article to help you avoid issues on the icy,
-            winter roads.
-          </Text>
+      {currentNews.map((newsItem) => (
+        <View key={newsItem.id} style={styles.newsCard}>
+          <View style={styles.newsImagePlaceholder} />
+          <View style={styles.newsContent}>
+            <Text style={styles.newsTitle}>{newsItem.title}</Text>
+            <Text style={styles.newsDescription}>
+              {newsItem.description}
+            </Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.newsCard}>
-        <View style={styles.newsImagePlaceholder} />
-        <View style={styles.newsContent}>
-          <Text style={styles.newsTitle}>Financial Planning Tips</Text>
-          <Text style={styles.newsDescription}>
-            Essential tips for managing your finances in Canada.
-          </Text>
-        </View>
-      </View>
+      ))}
     </ScrollView>
   </View>
 );
@@ -76,18 +70,12 @@ const GatherEventsSection = () => (
       showsHorizontalScrollIndicator={false}
       style={styles.carousel}
     >
-      <View style={styles.eventCard}>
-        <View style={styles.eventImagePlaceholder} />
-        <Text style={styles.eventTitle}>Community Meetup</Text>
-      </View>
-      <View style={styles.eventCard}>
-        <View style={styles.eventImagePlaceholder} />
-        <Text style={styles.eventTitle}>Study Group</Text>
-      </View>
-      <View style={styles.eventCard}>
-        <View style={styles.eventImagePlaceholder} />
-        <Text style={styles.eventTitle}>Workshop</Text>
-      </View>
+      {currentGatherEvents.map((event) => (
+        <View key={event.id} style={styles.eventCard}>
+          <View style={styles.eventImagePlaceholder} />
+          <Text style={styles.eventTitle}>{event.title}</Text>
+        </View>
+      ))}
     </ScrollView>
   </View>
 );

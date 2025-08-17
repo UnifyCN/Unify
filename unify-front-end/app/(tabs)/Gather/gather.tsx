@@ -23,6 +23,7 @@ import Carousel from '@/components/home/Carousel';
 import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
+import CreatePostButton from '@/components/CreatePost/CreatePostButton';
 
 const SCROLL_DISTANCE = 200;
 const AnimatedTouchableOpacity =
@@ -79,6 +80,7 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
       >
         Your Feed
       </Text>
+      <CreatePostButton />
       <View style={styles.tabs}>
         {['For You', 'Following', 'Groups'].map(tab => (
           <TouchableOpacity
