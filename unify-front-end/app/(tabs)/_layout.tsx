@@ -13,7 +13,7 @@ export default function TabLayout() {
   return (
     <>
     <Header
-            onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
+      onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
     />
     <Tabs
       screenOptions={{

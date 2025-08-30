@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 
-type Props = { total: number; activeIndex: number };
+type Props = { total: number; activeIndex: number; onDotPress?: (index: number) => void };
 
-export default function CarouselDots({ total, activeIndex }: Props) {
+export default function CarouselDots({ total, activeIndex, onDotPress }: Props) {
   return (
     <View style={styles.container}>
       {Array.from({ length: total }).map((_, i) => (
-        <View
+        <Pressable
           key={i}
+          onPress={() => onDotPress && onDotPress(i)}
+          android_ripple={{ color: '#ddd', borderless: true }}
           style={[styles.dot, i === activeIndex ? styles.dotActive : styles.dotInactive]}
         />
       ))}

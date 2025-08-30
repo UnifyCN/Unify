@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
@@ -8,6 +8,21 @@ import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
 
 export default function Learn() {
+  const [heroIndex, setHeroIndex] = React.useState(0);
+  const heroSlides = [0, 1, 2];
+  const { width } = useWindowDimensions();
+  const sliderRef = React.useRef<ScrollView>(null);
+
+  const onMomentumEnd = (e: any) => {
+    const x = e.nativeEvent?.contentOffset?.x ?? 0;
+    const i = Math.round(x / width);
+    if (i !== heroIndex) setHeroIndex(i);
+  };
+
+  const handleDotPress = (i: number) => {
+    setHeroIndex(i);
+    sliderRef.current?.scrollTo({ x: i * width, animated: true });
+  };
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style='dark' />
@@ -17,10 +32,22 @@ export default function Learn() {
         <SearchBar placeholder='Search for a lesson' />
 
         <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
-        <View style={styles.heroWrapper}>
-          <LessonHeroCard />
+        <View style={[styles.heroWrapper, { width }]}> 
+          <ScrollView
+            ref={sliderRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={onMomentumEnd}
+          >
+            {heroSlides.map(i => (
+              <View key={i} style={{ width, paddingHorizontal: 20 }}>
+                <LessonHeroCard />
+              </View>
+            ))}
+          </ScrollView>
         </View>
-        <CarouselDots total={3} activeIndex={0} />
+        <CarouselDots total={heroSlides.length} activeIndex={heroIndex} onDotPress={handleDotPress} />
 
         <SectionHeader title='Learning Pathways' style={{ marginTop: 24 }} />
         <View style={styles.pathwaysGrid}>
