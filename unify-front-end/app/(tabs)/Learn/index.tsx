@@ -41,7 +41,7 @@ export default function Learn() {
             onMomentumScrollEnd={onMomentumEnd}
           >
             {heroSlides.map(i => (
-              <View key={i} style={{ width, paddingRight: 30 }}>
+              <View key={i} style={{ width, paddingRight: 30, paddingVertical: 10, paddingLeft: 1 }}>
                 <LessonHeroCard />
               </View>
             ))}
@@ -61,7 +61,7 @@ export default function Learn() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { padding: 20, paddingBottom: 40 },
+  scrollContent: { padding: 20, paddingBottom: 100 },
   pageTitle: {
     fontSize: 28,
     fontWeight: '700',
