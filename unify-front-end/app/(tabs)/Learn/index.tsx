@@ -1,138 +1,51 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Animated,
-} from 'react-native';
-import { Stack, useNavigation } from 'expo-router';
-import { MaterialIcons, Feather } from '@expo/vector-icons';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import Header from '@/components/Header';
-import JourneyMap from './journey-map';
-import Modules from './modules';
+import SearchBar from '../../../components/learn/SearchBar';
+import LessonHeroCard from '../../../components/learn/LessonHeroCard';
+import CarouselDots from '../../../components/learn/CarouselDots';
+import SectionHeader from '../../../components/learn/SectionHeader';
+import PathwayCard from '../../../components/learn/PathwayCard';
 
-const TabNavigator = () => {
-  const [activeTab, setActiveTab] = useState('Modules');
-  const slideAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: activeTab === 'Modules' ? 0 : 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [activeTab]);
-
-  const translateX = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-100, 100],
-  });
-
+export default function Learn() {
   return (
-    <>
-      <View style={styles.tabs}>
-        <TouchableOpacity
-          onPress={() => setActiveTab('Modules')}
-          style={[styles.tab, activeTab === 'Modules' && styles.activeTabLeft]}
-        >
-          <Text
-            style={[
-              styles.inactiveTabText,
-              activeTab === 'Modules' && styles.activeTabText,
-            ]}
-          >
-            Modules
-          </Text>
-        </TouchableOpacity>
+    <SafeAreaView style={styles.container}>
+      <StatusBar style='dark' />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.pageTitle}>Let's get started!</Text>
 
-        <TouchableOpacity
-          onPress={() => setActiveTab('Journey Map')}
-          style={[
-            styles.tab,
-            activeTab === 'Journey Map' && styles.activeTabRight,
-          ]}
-        >
-          <Text
-            style={[
-              styles.inactiveTabText,
-              activeTab === 'Journey Map' && styles.activeTabText,
-            ]}
-          >
-            Journey Map
-          </Text>
-        </TouchableOpacity>
+        <SearchBar placeholder='Search for a lesson' />
 
-        <Animated.View
-          style={[styles.slider, { transform: [{ translateX }] }]}
-        />
-      </View>
-      {activeTab === 'Modules' ? <Modules /> : <JourneyMap />}
-    </>
+        <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
+        <View style={styles.heroWrapper}>
+          <LessonHeroCard />
+        </View>
+        <CarouselDots total={3} activeIndex={0} />
+
+        <SectionHeader title='Learning Pathways' style={{ marginTop: 24 }} />
+        <View style={styles.pathwaysGrid}>
+          <PathwayCard title='Finance for Newcomers' modulesLabel='8 Modules' />
+          <PathwayCard title='Employment' modulesLabel='5 Modules' />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
-};
-
-const Learn = () => {
-  return (
-    <>
-      <View style={styles.container}>
-        <StatusBar style='dark' />
-        <Header />
-        <ScrollView>
-          <TabNavigator />
-        </ScrollView>
-      </View>
-    </>
-  );
-};
+}
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'white',
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollContent: { padding: 20, paddingBottom: 40 },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 16,
   },
-  tabs: {
-    backgroundColor: '#e0e0e0',
+  heroWrapper: { marginTop: 8 },
+  pathwaysGrid: {
+    marginTop: 12,
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    marginBottom: 20,
-    position: 'relative',
-  },
-  tab: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 5.5,
-    borderRadius: 20,
-    borderColor: 'transparent',
-    zIndex: 2,
-  },
-  activeTabLeft: {
-    marginRight: -30,
-  },
-  activeTabRight: {
-    marginLeft: -30,
-  },
-  inactiveTabText: {
-    color: '#46A8DA',
-    zIndex: 3,
-  },
-  activeTabText: {
-    color: 'white',
-    zIndex: 3,
-  },
-  slider: {
-    position: 'absolute',
-    width: '51%',
-    height: '100%',
-    backgroundColor: '#46A8DA',
-    borderRadius: 20,
-    zIndex: 1,
+    justifyContent: 'space-between',
+    gap: 12,
   },
 });
-
-export default Learn;

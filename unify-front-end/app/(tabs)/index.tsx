@@ -15,7 +15,7 @@ import Header from '@/components/Header';
 const WelcomeSection = () => (
   <View style={styles.welcomeSection}>
     <Text style={styles.welcomeText}>
-      Welcome Back, <Text style={styles.welcomeName}>Sarah!</Text>
+      Welcome Back, <Text style={styles.welcomeName}>Sarab!</Text>
     </Text>
     <Text style={styles.progressText}>
       You have two modules left of{' '}
