@@ -96,7 +96,6 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style='dark' />
-      <Header />
       <ScrollView style={styles.scrollView}>
         <WelcomeSection />
         <NewsTipsSection />
