@@ -41,7 +41,7 @@ export default function Learn() {
             onMomentumScrollEnd={onMomentumEnd}
           >
             {heroSlides.map(i => (
-              <View key={i} style={{ width, paddingHorizontal: 20 }}>
+              <View key={i} style={{ width, paddingRight: 30 }}>
                 <LessonHeroCard />
               </View>
             ))}
