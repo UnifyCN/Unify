@@ -163,7 +163,7 @@ function ZigZagTrack({ anchors }: { anchors: Anchor[] }) {
       .sort((a, b) => a.y - b.y);
     if (ordered.length === 0) return '';
 
-    // Start on the side of the first anchor, slightly above its Y
+    // Start at first side, above first anchor a bit
     let currentSide: 'left' | 'right' = ordered[0].side;
     let x = currentSide === 'left' ? leftX : rightX;
     let y = ordered[0].y - r;
@@ -174,19 +174,15 @@ function ZigZagTrack({ anchors }: { anchors: Anchor[] }) {
       const anchorY = a.y;
       const targetSide: 'left' | 'right' = a.side === 'left' ? 'right' : 'left';
       const nextX = targetSide === 'left' ? leftX : rightX;
-      const dirX = nextX > x ? 1 : -1;
 
-      // 1) Vertical to just above the anchor Y
-      path += ` L ${x} ${anchorY - r}`;
-      // 2) Turn to horizontal across the top (rounded corner)
-      path += ` Q ${x} ${anchorY}, ${x + dirX * r} ${anchorY}`;
-      // 3) Horizontal across to just before the other side
-      const hx = nextX - dirX * r;
-      path += ` L ${hx} ${anchorY}`;
-      // 4) Turn downward on the other side (rounded corner)
-      path += ` Q ${nextX} ${anchorY}, ${nextX} ${anchorY + r}`;
+      // Go straight down to the icon center (runs through the icon)
+      path += ` L ${x} ${anchorY}`;
+      // Go straight across to the opposite rail at the same Y
+      path += ` L ${nextX} ${anchorY}`;
+      // Drop slightly to continue the vertical leg on the opposite side
+      path += ` L ${nextX} ${anchorY + r}`;
 
-      // Update current side/position for next segment
+      // Update for next loop
       x = nextX;
       y = anchorY + r;
       currentSide = targetSide;
