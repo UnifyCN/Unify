@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import Svg, { Path } from 'react-native-svg';
 import { Link } from 'expo-router';
 
 type Module = {
@@ -55,7 +56,7 @@ export default function FinanceForNewcomers() {
 
         {/* Timeline track */}
         <View style={styles.timelineWrapper}>
-          <View style={styles.timelineTrack} />
+          <ZigZagTrack turns={MOCK_MODULES.length + 2} />
 
           {MOCK_MODULES.map((m, idx) => {
             const isExpanded = expanded === m.id;
@@ -72,7 +73,11 @@ export default function FinanceForNewcomers() {
                 </View>
 
                 {/* Card */}
-                <TouchableOpacity activeOpacity={0.9} onPress={() => handleToggle(m.id)}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => handleToggle(m.id)}
+                  style={[styles.cardBox, leftIcon ? styles.alignRight : styles.alignLeft]}
+                >
                   {isExpanded ? (
                     <View style={styles.cardExpanded}>
                       <View style={styles.badgeRow}>
@@ -122,6 +127,67 @@ export default function FinanceForNewcomers() {
   );
 }
 
+function ZigZagTrack({ turns = 8 }: { turns?: number }) {
+  const [size, setSize] = React.useState({ w: 0, h: 0 });
+  const onLayout = (e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width !== size.w || height !== size.h) setSize({ w: width, h: height });
+  };
+
+  const d = React.useMemo(() => {
+    const { w, h } = size;
+    if (w === 0 || h === 0) return '';
+
+    const inset = 26; // padding from edges
+    const leftX = inset + 30;
+    const rightX = w - inset - 30;
+    const padTop = 12;
+    const padBottom = 24;
+    const segments = Math.max(1, turns);
+    const stepY = (h - padTop - padBottom) / segments;
+
+    const r = 14; // corner radius
+    let path = `M ${leftX} ${padTop}`; // start
+    let x = leftX;
+    let y = padTop;
+    for (let i = 0; i < segments; i++) {
+      const nextX = x === leftX ? rightX : leftX;
+      const nextY = y + stepY;
+      const dir = nextX > x ? 1 : -1;
+
+      // 1) Horizontal toward corner, stop short by r
+      const hx = nextX - dir * r;
+      path += ` L ${hx} ${y}`;
+
+      // 2) Rounded corner to go downward
+      path += ` Q ${nextX} ${y}, ${nextX} ${y + r}`;
+
+      // 3) Vertical down, stop short by r
+      const vy = nextY - r;
+      path += ` L ${nextX} ${vy}`;
+
+      // 4) Rounded corner to go horizontal at next row
+      const afterCornerX = nextX + dir * r;
+      path += ` Q ${nextX} ${nextY}, ${afterCornerX} ${nextY}`;
+
+      // position for next iteration
+      x = afterCornerX;
+      y = nextY;
+    }
+    return path;
+  }, [size, turns]);
+
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents='none' onLayout={onLayout}>
+      {d ? (
+        <Svg width={size.w} height={size.h}>
+          <Path d={d} stroke={'#EAEAEA'} strokeWidth={18} strokeLinecap='round' strokeLinejoin='round' fill='none' />
+        </Svg>
+      ) : null}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F2F2F3' },
   container: { paddingHorizontal: 20, paddingBottom: 40 },
@@ -146,17 +212,8 @@ const styles = StyleSheet.create({
   progressTrack: { height: 8, backgroundColor: '#E9E9EA', borderRadius: 6 },
   progressFill: { height: 8, backgroundColor: '#1d1d1d', borderRadius: 6 },
 
-  timelineWrapper: { marginTop: 20, paddingBottom: 24 },
-  timelineTrack: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 32,
-    width: 10,
-    borderRadius: 5,
-    backgroundColor: '#ECECEC',
-  },
-  timelineItem: { marginBottom: 24, paddingLeft: 48, paddingRight: 24 },
+  timelineWrapper: { marginTop: 20, paddingBottom: 24, minHeight: 600 },
+  timelineItem: { marginBottom: 28, paddingHorizontal: 24, position: 'relative' },
   sideIcon: {
     position: 'absolute',
     top: 18,
@@ -171,9 +228,14 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+    zIndex: 3,
   },
   sideLeft: { left: 10 },
   sideRight: { right: 10 },
+
+  cardBox: { width: '72%' },
+  alignLeft: { alignSelf: 'flex-start' },
+  alignRight: { alignSelf: 'flex-end' },
 
   cardCollapsed: {
     backgroundColor: '#fff',
