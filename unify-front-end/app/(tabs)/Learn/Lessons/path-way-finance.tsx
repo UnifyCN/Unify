@@ -24,9 +24,20 @@ const MOCK_MODULES: Module[] = Array.from({ length: 8 }).map((_, i) => ({
 
 export default function FinanceForNewcomers() {
   const [expanded, setExpanded] = React.useState<string | null>(null);
+  const anchorsRef = React.useRef<{ y: number; side: 'left' | 'right' }[]>([]);
+  const [, forceTick] = React.useState(0);
 
   const handleToggle = (id: string) => {
     setExpanded(prev => (prev === id ? null : id));
+  };
+
+  const updateAnchor = (idx: number, itemY: number, leftIcon: boolean) => {
+    const ICON_TOP = 18; // from styles.sideIcon.top
+    const ICON_RADIUS = 22; // sideIcon height 44 / 2
+    const centerY = itemY + ICON_TOP + ICON_RADIUS;
+    anchorsRef.current[idx] = { y: centerY, side: leftIcon ? 'left' : 'right' };
+    // force re-render to redraw path; batch updates are fine
+    forceTick(t => t + 1);
   };
 
   return (
@@ -56,13 +67,17 @@ export default function FinanceForNewcomers() {
 
         {/* Timeline track */}
         <View style={styles.timelineWrapper}>
-          <ZigZagTrack turns={MOCK_MODULES.length + 2} />
+          <ZigZagTrack anchors={anchorsRef.current} />
 
           {MOCK_MODULES.map((m, idx) => {
             const isExpanded = expanded === m.id;
             const leftIcon = idx % 2 === 0;
             return (
-              <View key={m.id} style={styles.timelineItem}>
+              <View
+                key={m.id}
+                style={styles.timelineItem}
+                onLayout={(e) => updateAnchor(idx, e.nativeEvent.layout.y, leftIcon)}
+              >
                 {/* Side icon */}
                 <View style={[styles.sideIcon, leftIcon ? styles.sideLeft : styles.sideRight]}>
                   {leftIcon ? (
@@ -115,19 +130,19 @@ export default function FinanceForNewcomers() {
             );
           })}
 
-          {/* More modules pill */}
-          <View style={styles.morePillWrapper}>
+          {/* <View style={styles.morePillWrapper}>
             <View style={styles.morePill}>
               <Text style={styles.moreText}>4 more modules ahead</Text>
             </View>
-          </View>
+          </View> */}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function ZigZagTrack({ turns = 8 }: { turns?: number }) {
+type Anchor = { y: number; side: 'left' | 'right' };
+function ZigZagTrack({ anchors }: { anchors: Anchor[] }) {
   const [size, setSize] = React.useState({ w: 0, h: 0 });
   const onLayout = (e: any) => {
     const { width, height } = e.nativeEvent.layout;
@@ -139,43 +154,46 @@ function ZigZagTrack({ turns = 8 }: { turns?: number }) {
     if (w === 0 || h === 0) return '';
 
     const inset = 26; // padding from edges
-    const leftX = inset + 30;
-    const rightX = w - inset - 30;
-    const padTop = 12;
-    const padBottom = 24;
-    const segments = Math.max(1, turns);
-    const stepY = (h - padTop - padBottom) / segments;
+    const leftX = inset + 32; // slightly closer to icons
+    const rightX = w - inset - 32;
+    const r = 12; // corner radius (controls how rounded the square corners are)
 
-    const r = 14; // corner radius
-    let path = `M ${leftX} ${padTop}`; // start
-    let x = leftX;
-    let y = padTop;
-    for (let i = 0; i < segments; i++) {
-      const nextX = x === leftX ? rightX : leftX;
-      const nextY = y + stepY;
-      const dir = nextX > x ? 1 : -1;
+    const ordered = [...anchors]
+      .filter(a => Number.isFinite(a?.y))
+      .sort((a, b) => a.y - b.y);
+    if (ordered.length === 0) return '';
 
-      // 1) Horizontal toward corner, stop short by r
-      const hx = nextX - dir * r;
-      path += ` L ${hx} ${y}`;
+    // Start on the side of the first anchor, slightly above its Y
+    let currentSide: 'left' | 'right' = ordered[0].side;
+    let x = currentSide === 'left' ? leftX : rightX;
+    let y = ordered[0].y - r;
+    let path = `M ${x} ${y}`;
 
-      // 2) Rounded corner to go downward
-      path += ` Q ${nextX} ${y}, ${nextX} ${y + r}`;
+    for (let i = 0; i < ordered.length; i++) {
+      const a = ordered[i];
+      const anchorY = a.y;
+      const targetSide: 'left' | 'right' = a.side === 'left' ? 'right' : 'left';
+      const nextX = targetSide === 'left' ? leftX : rightX;
+      const dirX = nextX > x ? 1 : -1;
 
-      // 3) Vertical down, stop short by r
-      const vy = nextY - r;
-      path += ` L ${nextX} ${vy}`;
+      // 1) Vertical to just above the anchor Y
+      path += ` L ${x} ${anchorY - r}`;
+      // 2) Turn to horizontal across the top (rounded corner)
+      path += ` Q ${x} ${anchorY}, ${x + dirX * r} ${anchorY}`;
+      // 3) Horizontal across to just before the other side
+      const hx = nextX - dirX * r;
+      path += ` L ${hx} ${anchorY}`;
+      // 4) Turn downward on the other side (rounded corner)
+      path += ` Q ${nextX} ${anchorY}, ${nextX} ${anchorY + r}`;
 
-      // 4) Rounded corner to go horizontal at next row
-      const afterCornerX = nextX + dir * r;
-      path += ` Q ${nextX} ${nextY}, ${afterCornerX} ${nextY}`;
-
-      // position for next iteration
-      x = afterCornerX;
-      y = nextY;
+      // Update current side/position for next segment
+      x = nextX;
+      y = anchorY + r;
+      currentSide = targetSide;
     }
+
     return path;
-  }, [size, turns]);
+  }, [size, anchors]);
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents='none' onLayout={onLayout}>
