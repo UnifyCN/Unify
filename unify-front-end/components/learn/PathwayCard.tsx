@@ -1,18 +1,32 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Link } from 'expo-router';
+import type { LinkProps } from 'expo-router';
 
-type Props = { title: string; modulesLabel: string };
+type Props = { title: string; modulesLabel: string; href?: LinkProps['href'] };
 
-export default function PathwayCard({ title, modulesLabel }: Props) {
-  return (
-    <View style={styles.card}>
+export default function PathwayCard({ title, modulesLabel, href }: Props) {
+  const CardInner = (
+    <>
       <View style={styles.thumb} />
       <Text style={styles.title} numberOfLines={2}>
         {title}
       </Text>
       <Text style={styles.meta}>{modulesLabel}</Text>
-    </View>
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} asChild>
+        <TouchableOpacity activeOpacity={0.85} style={styles.card}>
+          {CardInner}
+        </TouchableOpacity>
+      </Link>
+    );
+  }
+
+  return <View style={styles.card}>{CardInner}</View>;
 }
 
 const styles = StyleSheet.create({
