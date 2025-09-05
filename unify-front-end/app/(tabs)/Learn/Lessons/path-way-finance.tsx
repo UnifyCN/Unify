@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router'; // added useRouter to be able to navigate to module-overview
+import { getPathway } from '../../../data/pathways'; // getpathway reads the module data (titles, progress, etc...)
 
 type Module = {
   id: string;
@@ -13,6 +14,8 @@ type Module = {
   status?: 'locked' | 'in-progress' | 'completed';
 };
 
+// NOTE: This was part of the previous code but right now code uses pathways.ts to redirect the data from the submodules
+/* 
 const MOCK_MODULES: Module[] = Array.from({ length: 8 }).map((_, i) => ({
   id: `m-${i + 1}`,
   title: 'Sub-Module Title',
@@ -20,9 +23,14 @@ const MOCK_MODULES: Module[] = Array.from({ length: 8 }).map((_, i) => ({
   lessons: 6,
   progress: i === 0 ? 0.25 : 0,
   status: i === 0 ? 'in-progress' : 'locked',
-}));
+})); 
+*/
+
+const PATH_ID = 'finance' as const;
 
 export default function FinanceForNewcomers() {
+  const router = useRouter(); // this is used to push push to the module overview screen with parameters
+
   const [expanded, setExpanded] = React.useState<string | null>(null);
   const anchorsRef = React.useRef<{ y: number; side: 'left' | 'right' }[]>([]);
   const [, forceTick] = React.useState(0);
@@ -39,6 +47,42 @@ export default function FinanceForNewcomers() {
     // force re-render to redraw path; batch updates are fine
     forceTick(t => t + 1);
   };
+
+  //This reads the pathway object and grabs its modules
+  const pathway = getPathway(PATH_ID);
+  const sourceModules = pathway?.modules ?? [];
+
+  // Builds the 8 objects of the module (subject to change depending of what the value of "i" is)
+  const displayModules: Module[] = Array.from({ length: 8 }).map((_, i) => {
+    const m = sourceModules[i];
+    if (m) {
+      return {
+        id: m.id,                     // e.g., "m1"
+        title: m.subtitle,            // sub-module title from data
+        moduleNumber: i + 1,
+        lessons: m.lessonsCount ?? 0,
+        progress: m.progress ?? 0,
+        status:
+          (m.progress ?? 0) >= 1
+            ? 'completed'
+            : (m.progress ?? 0) > 0
+            ? 'in-progress'
+            : 'locked',
+      };
+    }
+    // placeholder for remaining slots to keep the zig-zag line consistent across 8 items
+    return {
+      id: `placeholder-${i + 1}`,
+      title: 'Sub-Module Title',
+      moduleNumber: i + 1,
+      lessons: 6,
+      progress: 0,
+      status: 'locked',
+    };
+  });
+
+  // Computes completed modules for the header progress text/bar.
+  const completedCount = displayModules.filter(m => (m.progress ?? 0) >= 1).length;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -59,9 +103,11 @@ export default function FinanceForNewcomers() {
 
         {/* Progress Card */}
         <View style={styles.progressCard}>
-          <Text style={styles.progressLabel}>Progress: 1/8 modules completed</Text>
+          {/* ADDED: dynamic numerator; keep your UI text intact */}
+          <Text style={styles.progressLabel}>Progress: {completedCount}/{displayModules.length} modules completed</Text>
           <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${(1 / MOCK_MODULES.length) * 100}%` }]} />
+            {/* ADDED: same visual as before but based on displayModules length */}
+            <View style={[styles.progressFill, { width: `${(Math.max(1, completedCount) / displayModules.length) * 100}%` }]} />
           </View>
         </View>
 
@@ -69,9 +115,14 @@ export default function FinanceForNewcomers() {
         <View style={styles.timelineWrapper}>
           <ZigZagTrack anchors={anchorsRef.current} />
 
-          {MOCK_MODULES.map((m, idx) => {
+          {/*Iterates over displayModules (not the MOCK_MODULES.map)*/}
+          {displayModules.map((m, idx) => {
             const isExpanded = expanded === m.id;
             const leftIcon = idx % 2 === 0;
+
+            // This gives access to details of each module such as the subtitle and progress for each specific card
+            const backing = sourceModules.find(mod => mod.id === m.id);
+
             return (
               <View
                 key={m.id}
@@ -96,24 +147,43 @@ export default function FinanceForNewcomers() {
                   {isExpanded ? (
                     <View style={styles.cardExpanded}>
                       <View style={styles.badgeRow}>
-                        <View style={styles.pill}>
-                          <Text style={styles.pillText}>In Progress</Text>
-                        </View>
+                        {(backing?.progress ?? 0) > 0 && (backing?.progress ?? 0) < 1 ? (
+                          <View style={styles.pill}>
+                            <Text style={styles.pillText}>In Progress</Text>
+                          </View>
+                        ) : null}
                       </View>
-                      <Text style={styles.cardTitle}>Mastering Banking in Canada</Text>
+
+                      {/* ADDED: make title dynamic when backed by real data */}
+                      <Text style={styles.cardTitle}>{backing?.subtitle ?? 'Mastering Banking in Canada'}</Text>
+
                       <Text style={styles.cardBody}>
+                        {/* Keep your placeholder body for now; can be made dynamic later */}
                         Learn about Canadian banking systems, account types, and how to choose the right bank for your individual needs.
                       </Text>
+
                       <View style={styles.expandedFooter}>
                         <View style={{ flex: 1 }}>
-                          <Text style={styles.progressSmall}>Progress: 25%</Text>
+                          <Text style={styles.progressSmall}>
+                            Progress: {Math.round((backing?.progress ?? 0) * 100)}%
+                          </Text>
                           <View style={[styles.progressTrack, { marginTop: 6 }]}>
-                            <View style={[styles.progressFill, { width: '25%' }]} />
+                            <View style={[styles.progressFill, { width: `${(backing?.progress ?? 0) * 100}%` }]} />
                           </View>
                         </View>
-                        <View style={styles.resumePill}>
+
+                        {/* Navigates to a single, reusable Module Overview screen, passing the pathId and moduleId so the screen can render the correct content */}
+                        <TouchableOpacity
+                          style={styles.resumePill}
+                          onPress={() =>
+                            router.push({
+                              pathname: '/(tabs)/Learn/Lessons/module-overview',
+                              params: { pathId: PATH_ID, moduleId: m.id }, // e.g., finance + "m1"
+                            })
+                          }
+                        >
                           <Text style={styles.resumeText}>Resume</Text>
-                        </View>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   ) : (
