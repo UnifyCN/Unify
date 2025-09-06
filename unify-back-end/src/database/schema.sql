@@ -161,6 +161,27 @@ CREATE TABLE quiz_progress (
     PRIMARY KEY (user_id, quiz_id)
 );
 
+CREATE TABLE events (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    event_datetime TIMESTAMPTZ NOT NULL, -- This includes both date and time
+    location TEXT NOT NULL,
+    event_type TEXT CHECK (event_type IN ('in-person', 'online', 'hybrid')) NOT NULL,
+    cover_photo_url TEXT,
+    max_attendees INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE event_rsvps (
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    event_id INT REFERENCES events(id) ON DELETE CASCADE,
+    rsvp_status TEXT CHECK (rsvp_status IN ('interested', 'going', 'not_interested')) NOT NULL,
+    rsvp_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, event_id)
+);
+
 -- ============================================
 -- FUNCTIONS
 -- ============================================
