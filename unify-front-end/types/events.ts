@@ -9,7 +9,7 @@ export type Event = {
   max_attendees: number | null;
   created_at: string;
   updated_at: string;
-}
+};
 
 enum EventType {
   IN_PERSON = 'in-person',
