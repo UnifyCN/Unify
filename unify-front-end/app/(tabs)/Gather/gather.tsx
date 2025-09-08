@@ -7,6 +7,7 @@ import {
   Image,
   SafeAreaView,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
@@ -41,7 +42,7 @@ interface HeaderProps {
 const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   const router = useRouter();
 
-  const { data: events } = useEvents();
+  const { data: events, isLoading } = useEvents();
 
   const displayEvents = events?.slice(0, 3) || [];
 
@@ -60,6 +61,11 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
         style={styles.eventsCarousel}
         contentContainerStyle={styles.eventsCarouselContent}
       >
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size='large' color='#000' />
+          </View>
+        )}
         {displayEvents.map((event) => (
           <EventCard 
             key={event.id} 
@@ -181,6 +187,11 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 16,
     fontWeight: 600,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   eventsCarousel: {
     marginTop: 16,
