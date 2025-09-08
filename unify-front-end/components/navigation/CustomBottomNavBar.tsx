@@ -39,7 +39,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
     [visibilityProgress]
   );
 
-  // Completely hide navbar for certain routes (after hooks)
+  // Completely hide navbar for certain routes (going to have to start using this more and add this into the chatbot button)
   const currentRoute = state.routes[state.index];
   const hiddenRoutes = ['Gather/EventDetailScreen', 'Gather/EventsScreen'];
   if (hiddenRoutes.includes(currentRoute.name)) {
