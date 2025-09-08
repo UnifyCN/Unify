@@ -21,6 +21,7 @@ const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
   return (
     <TouchableOpacity style={[styles.eventCard, { width }]} onPress={onPress}>
       <View style={styles.eventImagePlaceholder}>
+        {/* TODO: Not entirely sure how to handle cover photos but for now its just placeholders */}
         {event.cover_photo_url ? (
           <Image
             source={{ uri: event.cover_photo_url }}

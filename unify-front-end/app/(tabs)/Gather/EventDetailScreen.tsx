@@ -58,11 +58,13 @@ const EventDetailScreen = () => {
         >
           <Feather name='chevron-left' size={24} color='#fff' />
         </TouchableOpacity>
+        {/* TODO: Design has a share button here but no clue how to implement that yet */}
       </View>
 
       <ScrollView style={styles.scrollView}>
         {/* Event Image */}
         <View style={styles.imageContainer}>
+          {/* TODO: Not entirely sure how to handle cover photos but for now its just placeholders */}
           {eventData.cover_photo_url ? (
             <Image
               source={{ uri: eventData.cover_photo_url }}
