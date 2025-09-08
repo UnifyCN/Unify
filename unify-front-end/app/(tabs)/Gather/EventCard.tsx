@@ -52,7 +52,6 @@ const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
 
 const styles = StyleSheet.create({
   eventCard: {
-    width: 248,
     backgroundColor: '#DCDCDC',
     borderRadius: 12,
     overflow: 'hidden',
