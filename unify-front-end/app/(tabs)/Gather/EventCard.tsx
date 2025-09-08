@@ -57,12 +57,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   eventImagePlaceholder: {
-    height: 100,
+    height: 80,
     backgroundColor: '#A6A6A6',
     width: '100%',
   },
   eventImage: {
-    height: 100,
+    height: 80,
     width: '100%',
     resizeMode: 'cover',
   },
