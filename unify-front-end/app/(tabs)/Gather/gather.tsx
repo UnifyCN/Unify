@@ -38,7 +38,6 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
 }
 
-
 const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   const router = useRouter();
 
@@ -50,13 +49,15 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
     <View>
       <View style={styles.header}>
         <Text style={styles.headerText}>Gather Events</Text>
-        <TouchableOpacity onPress={() => router.push('/(tabs)/Gather/EventsScreen')}>
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
+        >
           <Feather name='chevron-right' size={24} color='#000' />
         </TouchableOpacity>
       </View>
-      
-      <ScrollView 
-        horizontal 
+
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.eventsCarousel}
         contentContainerStyle={styles.eventsCarouselContent}
@@ -66,18 +67,22 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
             <ActivityIndicator size='large' color='#000' />
           </View>
         )}
-        {displayEvents.map((event) => (
-          <EventCard 
-            key={event.id} 
-            event={event} 
-            onPress={() => router.push({
-              pathname: '/(tabs)/Gather/EventDetailScreen',
-              params: { event: JSON.stringify(event) }
-            })}
+        {displayEvents.map(event => (
+          <EventCard
+            key={event.id}
+            event={event}
+            onPress={() =>
+              router.push({
+                pathname: '/(tabs)/Gather/EventDetailScreen',
+                params: { event: JSON.stringify(event) },
+              })
+            }
           />
         ))}
         {events && events.length > 3 && (
-          <ViewMoreCard onPress={() => router.push('/(tabs)/Gather/EventsScreen')} />
+          <ViewMoreCard
+            onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
+          />
         )}
       </ScrollView>
 

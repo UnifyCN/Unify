@@ -12,10 +12,12 @@ export const getAllEvents = async (): Promise<Event[]> => {
 
     const { data, error } = await supabase
       .from('events')
-      .select(`
+      .select(
+        `
         *,
         event_rsvps!left(rsvp_status)
-      `)
+      `
+      )
       .eq('event_rsvps.user_id', user.id)
       .order('event_datetime', { ascending: true });
 
@@ -24,10 +26,12 @@ export const getAllEvents = async (): Promise<Event[]> => {
     }
 
     // Transform the data to include user_rsvp_status
-    return data?.map(event => ({
-      ...event,
-      user_rsvp_status: event.event_rsvps?.[0]?.rsvp_status || null
-    })) || [];
+    return (
+      data?.map(event => ({
+        ...event,
+        user_rsvp_status: event.event_rsvps?.[0]?.rsvp_status || null,
+      })) || []
+    );
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;

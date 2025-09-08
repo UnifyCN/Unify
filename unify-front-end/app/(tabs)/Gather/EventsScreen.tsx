@@ -25,8 +25,16 @@ const EventsScreen = () => {
   const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
 
   const tags = ['Upcoming', 'Going', 'Interested', 'Past'];
-  const genreTags = ['All Events', 'Socials', 'Finance', 'Employment', 'Housing', 'Documentation', 'Uncategorized'];
-  
+  const genreTags = [
+    'All Events',
+    'Socials',
+    'Finance',
+    'Employment',
+    'Housing',
+    'Documentation',
+    'Uncategorized',
+  ];
+
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => {
       if (prev.includes(tag)) {
@@ -41,11 +49,13 @@ const EventsScreen = () => {
   };
 
   const handleFilterEvents = useMemo(() => {
-    return events?.filter((event) => {
-      const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase());
-      
+    return events?.filter(event => {
+      const matchesSearch = event.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
       const matchesTag = selectedTags.every(tag => {
-        switch(tag) {
+        switch (tag) {
           case 'Going':
             return event.user_rsvp_status === 'going';
           case 'Interested':
@@ -59,21 +69,24 @@ const EventsScreen = () => {
         }
       });
 
-      const matchesGenre = selectedGenre === 'All Events' || event.genre === selectedGenre;
-      
+      const matchesGenre =
+        selectedGenre === 'All Events' || event.genre === selectedGenre;
+
       return matchesSearch && matchesTag && matchesGenre;
     });
   }, [events, selectedTags, searchQuery, selectedGenre]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <View style={styles.eventItem}>
-      <EventCard 
-        event={item} 
-        width={354} 
-        onPress={() => router.push({
-          pathname: '/(tabs)/Gather/EventDetailScreen',
-          params: { event: JSON.stringify(item) }
-        })}
+      <EventCard
+        event={item}
+        width={354}
+        onPress={() =>
+          router.push({
+            pathname: '/(tabs)/Gather/EventDetailScreen',
+            params: { event: JSON.stringify(item) },
+          })
+        }
       />
     </View>
   );
@@ -101,7 +114,7 @@ const EventsScreen = () => {
         />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load events</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.retryButton}
             onPress={() => router.back()}
           >
@@ -115,10 +128,8 @@ const EventsScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.back()}
-        >
-          <Feather name="chevron-left" size={24} color="#000" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <Feather name='chevron-left' size={24} color='#000' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Gather Events</Text>
         <View style={styles.placeholder} />
@@ -126,35 +137,42 @@ const EventsScreen = () => {
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Feather name="search" size={24} color="#666" style={styles.searchIcon} />
-          <TextInput 
-            value={searchQuery} 
-            onChangeText={setSearchQuery} 
-            style={styles.searchInput} 
+          <Feather
+            name='search'
+            size={24}
+            color='#666'
+            style={styles.searchIcon}
+          />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={styles.searchInput}
             placeholder='Search for events near you'
-            placeholderTextColor="#999"
+            placeholderTextColor='#999'
           />
           {/* This could be removed in the future if we don't do add the additional filter screen */}
           <TouchableOpacity>
-            <ChartNoAxesGantt size={24} color="#666" />
+            <ChartNoAxesGantt size={24} color='#666' />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.tagsContainer}>
-        {tags.map((tag) => (
+        {tags.map(tag => (
           <TouchableOpacity
             key={tag}
             style={[
               styles.tagButton,
-              selectedTags.includes(tag) && styles.tagButtonSelected
+              selectedTags.includes(tag) && styles.tagButtonSelected,
             ]}
             onPress={() => toggleTag(tag)}
           >
-            <Text style={[
-              styles.tagText,
-              selectedTags.includes(tag) && styles.tagTextSelected
-            ]}>
+            <Text
+              style={[
+                styles.tagText,
+                selectedTags.includes(tag) && styles.tagTextSelected,
+              ]}
+            >
               {tag}
             </Text>
           </TouchableOpacity>
@@ -163,25 +181,27 @@ const EventsScreen = () => {
 
       {/* Genre Tags Section - Fixed container */}
       <View style={styles.genreTagsWrapper}>
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.genreTagsContainer}
           contentContainerStyle={styles.genreTagsContent}
         >
-          {genreTags.map((genre) => (
+          {genreTags.map(genre => (
             <TouchableOpacity
               key={genre}
               style={[
                 styles.genreTagItem,
-                selectedGenre === genre && styles.genreTagItemSelected
+                selectedGenre === genre && styles.genreTagItemSelected,
               ]}
               onPress={() => setSelectedGenre(genre)}
             >
-              <Text style={[
-                styles.genreTagText,
-                selectedGenre === genre && styles.genreTagTextSelected
-              ]}>
+              <Text
+                style={[
+                  styles.genreTagText,
+                  selectedGenre === genre && styles.genreTagTextSelected,
+                ]}
+              >
                 {genre}
               </Text>
             </TouchableOpacity>
@@ -192,20 +212,22 @@ const EventsScreen = () => {
       <FlatList
         data={handleFilterEvents}
         renderItem={renderEvent}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.eventsList}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Feather name="calendar" size={48} color="#ccc" />
+            <Feather name='calendar' size={48} color='#ccc' />
             <Text style={styles.emptyText}>No events available</Text>
-            <Text style={styles.emptySubtext}>Check back later for new events</Text>
+            <Text style={styles.emptySubtext}>
+              Check back later for new events
+            </Text>
           </View>
         }
       />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -353,7 +375,7 @@ const styles = StyleSheet.create({
   genreTagItem: {
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 80,
+    paddingHorizontal: 8,
     height: 50,
     marginRight: 12,
   },

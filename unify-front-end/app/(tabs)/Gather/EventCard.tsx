@@ -1,11 +1,5 @@
 import { memo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { formatDate, formatTime } from '@/helpers/dateHelpers';
 import { Event } from '@/types/events';
@@ -28,7 +22,10 @@ const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
     <TouchableOpacity style={[styles.eventCard, { width }]} onPress={onPress}>
       <View style={styles.eventImagePlaceholder}>
         {event.cover_photo_url ? (
-          <Image source={{ uri: event.cover_photo_url }} style={styles.eventImage} />
+          <Image
+            source={{ uri: event.cover_photo_url }}
+            style={styles.eventImage}
+          />
         ) : (
           <View style={styles.eventImagePlaceholder} />
         )}
@@ -38,13 +35,11 @@ const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
           {event.title}
         </Text>
         <View style={styles.eventDetail}>
-          <Feather name="calendar" size={14} color="#666" />
-          <Text style={styles.eventDetailText}>
-            {formatEventTime()}
-          </Text>
+          <Feather name='calendar' size={14} color='#666' />
+          <Text style={styles.eventDetailText}>{formatEventTime()}</Text>
         </View>
         <View style={styles.eventDetail}>
-          <Feather name="map-pin" size={14} color="#666" />
+          <Feather name='map-pin' size={14} color='#666' />
           <Text style={styles.eventDetailText} numberOfLines={1}>
             {event.location}
           </Text>

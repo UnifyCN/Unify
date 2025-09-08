@@ -17,11 +17,7 @@ const NAV_BAR_HEIGHT = 50;
 const OFFSET_BOTTOM = 15;
 
 // Routes that should show the bottom navigation bar
-const ALLOWED_ROUTES = [
-  'index',
-  'Learn/index',
-  'Gather/gather',
-] as const;
+const ALLOWED_ROUTES = ['index', 'Learn/index', 'Gather/gather'] as const;
 
 const CustomNavBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -29,7 +25,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   navigation,
 }) => {
   const visibilityProgress = useScrollVisibility();
-  
+
   // Hide the tab bar by transform it either rise it by the original value or 0 to kill it
   const animatedStyle = useAnimatedStyle(
     () => ({

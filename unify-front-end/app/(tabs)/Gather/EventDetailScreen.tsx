@@ -27,7 +27,11 @@ const EventDetailScreen = () => {
   ];
   const [showRsvpModal, setShowRsvpModal] = useState(false);
 
-  const [rsvpStatus, setRsvpStatus] = useState<string>(() => rsvpOptions.find(option => option.value === eventData.user_rsvp_status)?.label || 'RSVP');
+  const [rsvpStatus, setRsvpStatus] = useState<string>(
+    () =>
+      rsvpOptions.find(option => option.value === eventData.user_rsvp_status)
+        ?.label || 'RSVP'
+  );
 
   const { data: goingCount, isLoading: isGoingCountLoading } = useGoingCount(
     eventData.id
@@ -40,7 +44,9 @@ const EventDetailScreen = () => {
       rsvpStatus,
     });
     setShowRsvpModal(false);
-    setRsvpStatus(rsvpOptions.find(option => option.value === rsvpStatus)?.label || 'RSVP');
+    setRsvpStatus(
+      rsvpOptions.find(option => option.value === rsvpStatus)?.label || 'RSVP'
+    );
   };
 
   return (
@@ -77,38 +83,30 @@ const EventDetailScreen = () => {
             {isGoingCountLoading ? 'Loading...' : `${goingCount} people going`}
           </Text>
 
-            {/* Date and Time */}
-            <View style={styles.detailRow}>
-              <View style={styles.detailIcon}>
-                <Feather
-                  name='calendar'
-                  size={20}
-                  color='#000'
-                />
-              </View>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailTitle}>
-                  {formatEventDate(eventData.event_datetime)}
-                </Text>
-                <Text style={styles.detailSubtitle}>
-                  {formatEventTimeRange(
-                    eventData.event_datetime,
-                    eventData.event_end_datetime || ''
-                  )}
-                </Text>
-              </View>
-              {/* No clue what this is supposed to do but it's in the design */}
-              <Feather name='chevron-right' size={24} color='#000' />
+          {/* Date and Time */}
+          <View style={styles.detailRow}>
+            <View style={styles.detailIcon}>
+              <Feather name='calendar' size={20} color='#000' />
             </View>
+            <View style={styles.detailContent}>
+              <Text style={styles.detailTitle}>
+                {formatEventDate(eventData.event_datetime)}
+              </Text>
+              <Text style={styles.detailSubtitle}>
+                {formatEventTimeRange(
+                  eventData.event_datetime,
+                  eventData.event_end_datetime || ''
+                )}
+              </Text>
+            </View>
+            {/* No clue what this is supposed to do but it's in the design */}
+            <Feather name='chevron-right' size={24} color='#000' />
+          </View>
 
           {/* Location */}
           <View style={styles.detailRow}>
             <View style={styles.detailIcon}>
-              <Feather
-                name='map-pin'
-                size={20}
-                color='#000'
-              />
+              <Feather name='map-pin' size={20} color='#000' />
             </View>
             <View style={styles.detailContent}>
               <Text style={styles.detailTitle}>{eventData.location}</Text>
@@ -163,23 +161,25 @@ const EventDetailScreen = () => {
             {/* RSVP Options */}
             <View style={styles.rsvpOptions}>
               {rsvpOptions.map(option => (
-                 <TouchableOpacity
-                   style={styles.rsvpOption}
-                   key={option.value}
-                   onPress={() =>
-                     handleRsvpSelection(option.value as UserRsvpStatus)
-                   }
-                 >
-                   <View style={[
-                     styles.checkbox,
-                     rsvpStatus === option.label && styles.checkboxSelected
-                   ]}>
-                     {rsvpStatus === option.label && (
-                       <Feather name='check' size={16} color='#fff' />
-                     )}
-                   </View>
-                   <Text style={styles.rsvpOptionText}>{option.label}</Text>
-                 </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.rsvpOption}
+                  key={option.value}
+                  onPress={() =>
+                    handleRsvpSelection(option.value as UserRsvpStatus)
+                  }
+                >
+                  <View
+                    style={[
+                      styles.checkbox,
+                      rsvpStatus === option.label && styles.checkboxSelected,
+                    ]}
+                  >
+                    {rsvpStatus === option.label && (
+                      <Feather name='check' size={16} color='#fff' />
+                    )}
+                  </View>
+                  <Text style={styles.rsvpOptionText}>{option.label}</Text>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
