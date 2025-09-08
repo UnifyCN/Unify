@@ -49,6 +49,13 @@ const EventDetailScreen = () => {
     );
   };
 
+  const getDateToCompare = () => {
+    if (eventData.event_end_datetime) {
+      return new Date(eventData.event_end_datetime);
+    }
+    return new Date(eventData.event_datetime);
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -134,13 +141,19 @@ const EventDetailScreen = () => {
 
       {/* RSVP Button */}
       <View style={styles.rsvpContainer}>
-        <TouchableOpacity
-          style={styles.rsvpButton}
-          onPress={() => setShowRsvpModal(true)}
-        >
-          <Text style={styles.rsvpButtonText}>{rsvpStatus}</Text>
-          <Feather name='chevron-down' size={24} color='#000' />
-        </TouchableOpacity>
+        {getDateToCompare() < new Date() ? (
+          <View style={styles.rsvpButton}>
+            <Text style={styles.rsvpEndedText}>Event ended</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.rsvpButton}
+            onPress={() => setShowRsvpModal(true)}
+          >
+            <Text style={styles.rsvpButtonText}>{rsvpStatus}</Text>
+            <Feather name='chevron-down' size={24} color='#000' />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* RSVP Modal */}
@@ -307,6 +320,12 @@ const styles = StyleSheet.create({
   },
   rsvpButtonText: {
     color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  rsvpEndedText: {
+    color: '#929292',
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
