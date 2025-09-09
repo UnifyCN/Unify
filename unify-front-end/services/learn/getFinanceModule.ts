@@ -108,7 +108,7 @@ export const getFinanceModule = async (): Promise<FinanceModuleData> => {
     const transformedSubmodules: SubmoduleData[] = (submodulesData || []).map((submodule: any) => {
       const progress = submoduleProgress?.find(p => p.submodule_id === submodule.id);
       const totalLessons = lessonsData?.filter(l => l.submodule_id === submodule.id).length || 0;
-      const completedLessons = completedLessons?.filter(
+      const completedLessonsCount = completedLessons?.filter(
         cl => lessonsData?.find(l => l.id === cl.lesson_id && l.submodule_id === submodule.id)
       ).length || 0;
 
@@ -119,7 +119,7 @@ export const getFinanceModule = async (): Promise<FinanceModuleData> => {
         progress_percent: progress?.progress_percent || 0,
         is_completed: progress?.is_completed || false,
         lessons_count: totalLessons,
-        completed_lessons: completedLessons,
+        completed_lessons: completedLessonsCount,
       };
     });
 
