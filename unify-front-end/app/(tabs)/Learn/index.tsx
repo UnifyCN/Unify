@@ -51,7 +51,8 @@ export default function Learn() {
 
         <SectionHeader title='Learning Pathways' style={{ marginTop: 24 }} />
         <View style={styles.pathwaysGrid}>
-          <PathwayCard title='Finance for Newcomers' modulesLabel='8 Modules' href='/(tabs)/Learn/Lessons/path-way-finance' />
+          {/* Updated to route to new Finance module structure */}
+          <PathwayCard title='Finance for Newcomers' modulesLabel='8 Modules' href='/(tabs)/Learn/Finance' />
           <PathwayCard title='Employment' modulesLabel='5 Modules' />
         </View>
       </ScrollView>

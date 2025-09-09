@@ -53,6 +53,10 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
             'Learn/moduleComponents/index',
             'Learn/moduleComponents/in-progress',
             'Learn/Lessons/path-way-finance',
+            // Exclude new Finance module pages from navigation
+            'Learn/Finance',
+            'Learn/Finance/sub-modules',
+            'Learn/Finance/sub-modules/sub-module-presentation',
             'Learn/moduleComponents/lesson-completed',
             'Learn/moduleComponents/quiz-screen',
             'Learn/moduleComponents/quiz-completed',
