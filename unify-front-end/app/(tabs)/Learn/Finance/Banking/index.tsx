@@ -1,22 +1,30 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
-import { getModule } from '../../../../data/pathways';
+import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
 import { Feather } from '@expo/vector-icons';
 
 export default function ModuleOverview() {
   const router = useRouter();
-  // We push these from path-way-finance.tsx: { pathId, moduleId }
-  const { pathId, moduleId } = useLocalSearchParams<{ pathId: string; moduleId: string }>();
-  const { pathway, module } = getModule(pathId || '', moduleId || '');
+  const { submoduleId } = useLocalSearchParams<{ submoduleId: string }>();
+  
+  const { data: submoduleData, isLoading, error } = useSubmoduleLessons(submoduleId || '');
 
-  // Guard: if params or data missing, show a lightweight fallback
-  if (!pathway || !module) {
+  if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={{ padding: 20, gap: 8 }}>
-          <Text style={{ fontWeight: '700' }}>Module not found</Text>
-          <Text>pathId: {String(pathId)} • moduleId: {String(moduleId)}</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading Banking module...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !submoduleData) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Error loading module: {error?.message || 'Unknown error'}</Text>
           <Link href='/(tabs)/Learn'>Go back to Learn</Link>
         </View>
       </SafeAreaView>
@@ -37,8 +45,8 @@ export default function ModuleOverview() {
         </View>
 
         {/* Titles */}
-        <Text style={styles.pathwayTitle}>{pathway.title}</Text>
-        <Text style={styles.moduleTitle}>{module.subtitle}</Text>
+        <Text style={styles.pathwayTitle}>Finance</Text>
+        <Text style={styles.moduleTitle}>{submoduleData.submodule_title}</Text>
 
         {/* Image / video placeholder */}
         <View style={styles.media} />
@@ -46,27 +54,33 @@ export default function ModuleOverview() {
         {/* Objectives */}
         <Text style={styles.sectionLead}>By the end of this module, you will…</Text>
         <View style={{ gap: 12, marginTop: 8 }}>
-          {(module.objectives ?? []).map((obj, i) => (
-            <View key={i} style={styles.bulletRow}>
-              <Feather name='check-circle' size={18} color='#444' />
-              <Text style={styles.bulletText}>{obj}</Text>
-            </View>
-          ))}
+          <View style={styles.bulletRow}>
+            <Feather name='check-circle' size={18} color='#444' />
+            <Text style={styles.bulletText}>Understand how banks work</Text>
+          </View>
+          <View style={styles.bulletRow}>
+            <Feather name='check-circle' size={18} color='#444' />
+            <Text style={styles.bulletText}>Learn about different account types</Text>
+          </View>
+          <View style={styles.bulletRow}>
+            <Feather name='check-circle' size={18} color='#444' />
+            <Text style={styles.bulletText}>Know how to choose the right bank</Text>
+          </View>
         </View>
 
         {/* Big Resume button that goes to lesson/topics screen */}
         <TouchableOpacity
           style={styles.resumeBig}
           onPress={() => {
+            // Navigate to a lesson or placeholder page
             router.push({
-              pathname: '/(tabs)/Learn/Finance/sub-modules/sub-module-presentation',
-              // pass along context if you want the next screen to know which module:
-              params: { pathId, moduleId },
+              pathname: '/(tabs)/Learn/Finance/Banking/sub-module-presentation' as any,
+              params: { lessonId: 'placeholder' },
             });
           }}
         >
           <Text style={styles.resumeBigText}>
-            {`Resume ${module.currentLessonId ? `Lesson ${module.currentLessonId.slice(1)}` : 'Lesson 1'}`}
+            {`Resume Lesson 1`}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -91,4 +105,21 @@ const styles = StyleSheet.create({
 
   resumeBig: { marginTop: 24, backgroundColor: '#777', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
   resumeBigText: { color: '#fff', fontWeight: '700' },
+  
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#FF6B6B',
+    textAlign: 'center',
+  },
 });
