@@ -22,17 +22,7 @@ export default function LessonScreen() {
           <Text style={styles.title}>Lesson Content</Text>
           <Text style={styles.subtitle}>Lesson ID: {lessonId}</Text>
           <Text style={styles.description}>
-            This is a placeholder for the lesson content. Here you would implement:
-            {'\n\n'}
-            • Flashcards
-            {'\n'}
-            • Video content
-            {'\n'}
-            • Interactive exercises
-            {'\n'}
-            • Quizzes
-            {'\n\n'}
-            The lesson content would be fetched from the lesson_contents table based on the lessonId.
+            Lesson will be done after lol
           </Text>
 
           <TouchableOpacity 

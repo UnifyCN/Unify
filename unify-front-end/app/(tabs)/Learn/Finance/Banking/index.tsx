@@ -31,6 +31,27 @@ export default function ModuleOverview() {
     );
   }
 
+  // Derive next (resume) lesson
+  const lessons = submoduleData.lessons || [];
+  const currentLesson = lessons.find(l => !l.is_completed) || lessons[0];
+  const nextLessonId = currentLesson?.id;
+
+  const goToPresentation = () => {
+    if (!submoduleId) return;
+    router.push({
+      pathname: '/(tabs)/Learn/Finance/Banking/sub-module-presentation',
+      params: { submoduleId },
+    });
+  };
+
+  const goToLesson = () => {
+    if (!nextLessonId) return;
+    router.push({
+      pathname: '/(tabs)/Learn/Finance/Banking/lesson',
+      params: { lessonId: nextLessonId },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -69,20 +90,19 @@ export default function ModuleOverview() {
         </View>
 
         {/* Big Resume button that goes to lesson/topics screen */}
-        <TouchableOpacity
-          style={styles.resumeBig}
-          onPress={() => {
-            // Navigate to a lesson or placeholder page
-            router.push({
-              pathname: '/(tabs)/Learn/Finance/Banking/sub-module-presentation' as any,
-              params: { lessonId: 'placeholder' },
-            });
-          }}
-        >
+        <TouchableOpacity style={styles.resumeBig} onPress={goToPresentation}>
           <Text style={styles.resumeBigText}>
-            {`Resume Lesson 1`}
+            {currentLesson ? `Resume Overview (${currentLesson.title})` : 'Open Overview'}
           </Text>
         </TouchableOpacity>
+
+        {nextLessonId && (
+          <TouchableOpacity style={styles.resumeAlt} onPress={goToLesson}>
+            <Text style={styles.resumeAltText}>
+              {currentLesson?.is_completed ? 'Review First Lesson' : 'Jump To Lesson'}
+            </Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -105,6 +125,8 @@ const styles = StyleSheet.create({
 
   resumeBig: { marginTop: 24, backgroundColor: '#777', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
   resumeBigText: { color: '#fff', fontWeight: '700' },
+  resumeAlt: { marginTop: 14, backgroundColor: '#EDEDED', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
+  resumeAltText: { color: '#333', fontWeight: '600' },
   
   loadingContainer: {
     flex: 1,

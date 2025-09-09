@@ -165,7 +165,7 @@ export default function FinanceForNewcomers() {
                           style={styles.resumePill}
                           onPress={() =>
                             router.push({
-                              pathname: '/(tabs)/Learn/Finance/Banking' as any, // just gnna make every submodule use the same route for now, until we make it dynamic routing.
+                              pathname: '/(tabs)/Learn/Finance/Banking', // just gnna make every submodule use the same route for now, until we make it dynamic routing.
                               params: { submoduleId: m.id },
                             })
                           }
