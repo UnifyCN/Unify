@@ -150,10 +150,10 @@ const EventsScreen = () => {
             placeholder='Search for events near you'
             placeholderTextColor='#999'
           />
-          {/* This could be removed in the future if we don't do add the additional filter screen */}
-          <TouchableOpacity>
+          {/* TODO: Implement addtional filter screen later */}
+          {/* <TouchableOpacity>
             <ChartNoAxesGantt size={24} color='#666' />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
 
@@ -179,7 +179,7 @@ const EventsScreen = () => {
         ))}
       </View>
 
-      {/* Genre Tags Section - Fixed container */}
+      {/* Genre Tags Section */}
       <View style={styles.genreTagsWrapper}>
         <ScrollView
           horizontal
