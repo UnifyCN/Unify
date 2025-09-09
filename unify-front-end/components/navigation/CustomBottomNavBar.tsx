@@ -16,12 +16,16 @@ import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 const NAV_BAR_HEIGHT = 50;
 const OFFSET_BOTTOM = 15;
 
+// Routes that should show the bottom navigation bar
+const ALLOWED_ROUTES = ['index', 'Learn/index', 'Gather/gather'] as const;
+
 const CustomNavBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
   const visibilityProgress = useScrollVisibility();
+
   // Hide the tab bar by transform it either rise it by the original value or 0 to kill it
   const animatedStyle = useAnimatedStyle(
     () => ({
@@ -35,39 +39,19 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
     [visibilityProgress]
   );
 
+  // Completely hide navbar for certain routes (going to have to start using this more and add this into the chatbot button)
+  const currentRoute = state.routes[state.index];
+  const hiddenRoutes = ['Gather/EventDetailScreen', 'Gather/EventsScreen'];
+  if (hiddenRoutes.includes(currentRoute.name)) {
+    return null;
+  }
+
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       {state.routes.map((route, index) => {
-        if (
-          [
-            '_sitemap',
-            '+not-found',
-            'Learn/modules',
-            'Learn/journey-map',
-            'Learn/module/in-progress',
-            'Learn/module/lesson-library',
-            'Learn/In-progress',
-            'Learn/Lesson-library',
-            'Learn/Main-lesson',
-            'Learn/moduleComponents/lesson-library',
-            'Learn/moduleComponents/index',
-            'Learn/moduleComponents/in-progress',
-            'Learn/Lessons/path-way-finance',
-            'Learn/moduleComponents/lesson-completed',
-            'Learn/moduleComponents/quiz-screen',
-            'Learn/moduleComponents/quiz-completed',
-            'Learn/moduleComponents/main-lesson',
-            'Learn/Lessons/PathWayFinanceSubTopics/budgeting',
-            'Profile/profile-settings',
-            'Profile/edit-profile',
-            'Profile/profile-suggestions',
-            'Gather/Profile/profile',
-            'Gather/Profile/profile-settings',
-            'Gather/Profile/edit-profile',
-            'Gather/Profile/profile-suggestions',
-          ].includes(route.name)
-        )
+        if (!ALLOWED_ROUTES.includes(route.name as any)) {
           return null;
+        }
 
         const { options } = descriptors[route.key];
         let label = String(

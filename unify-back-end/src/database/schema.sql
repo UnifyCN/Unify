@@ -166,7 +166,9 @@ CREATE TABLE events (
     title TEXT NOT NULL,
     description TEXT,
     event_datetime TIMESTAMPTZ NOT NULL, -- This includes both date and time
+    event_end_datetime TIMESTAMPTZ,
     location TEXT NOT NULL,
+    address TEXT NOT NULL,
     event_type TEXT CHECK (event_type IN ('in-person', 'online', 'hybrid')) NOT NULL,
     cover_photo_url TEXT,
     max_attendees INTEGER,

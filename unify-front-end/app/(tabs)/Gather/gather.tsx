@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
@@ -19,10 +21,13 @@ import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/Header';
 // import Search from '@/assets/images/search.svg';
 // import CreatePost from '@/assets/images/create_post_button.svg';
-import Carousel from '@/components/home/Carousel';
 import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
+import { Feather } from '@expo/vector-icons';
+import { useEvents } from '@/hooks/events/useEvents';
+import EventCard from './EventCard';
+import ViewMoreCard from './ViewMoreCard';
 
 const SCROLL_DISTANCE = 200;
 const AnimatedTouchableOpacity =
@@ -36,37 +41,50 @@ interface HeaderProps {
 const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   const router = useRouter();
 
+  const { data: events, isLoading } = useEvents();
+
+  const displayEvents = events?.slice(0, 3) || [];
+
   return (
     <View>
-      <View style={styles.divider} />
-
-      <View style={styles.carouselContainer}>
-        <Text style={styles.placeholderText}>Highlights</Text>
-        <Carousel />
-      </View>
-
-      <View style={styles.cardContainer}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Gather Events</Text>
         <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push('/(tabs)/Learn/Lesson-library')}
+          onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
         >
-          <Image
-            style={styles.cardImage}
-            source={require('@/assets/images/nationalNews.png')}
-          />
-          <Text style={styles.cardDescription}>National News</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push('/(tabs)/Learn/journey-map')}
-        >
-          <Image
-            style={styles.cardImage}
-            source={require('@/assets/images/journeyMap.png')}
-          />
-          <Text style={styles.cardDescription}>Journey Map</Text>
+          <Feather name='chevron-right' size={24} color='#000' />
         </TouchableOpacity>
       </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.eventsCarousel}
+        contentContainerStyle={styles.eventsCarouselContent}
+      >
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size='large' color='#000' />
+          </View>
+        )}
+        {displayEvents.map(event => (
+          <EventCard
+            key={event.id}
+            event={event}
+            onPress={() =>
+              router.push({
+                pathname: '/(tabs)/Gather/EventDetailScreen',
+                params: { event: JSON.stringify(event) },
+              })
+            }
+          />
+        ))}
+        {events && events.length > 3 && (
+          <ViewMoreCard
+            onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
+          />
+        )}
+      </ScrollView>
 
       <Text
         style={{
@@ -164,64 +182,33 @@ export default function GatherScreen() {
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: 600,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  eventsCarousel: {
+    marginTop: 16,
+  },
+  eventsCarouselContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
   container: {
     flex: 1, // Ensure the container takes up the full screen
     backgroundColor: '#fff',
     flexDirection: 'column',
-  },
-
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#E5E5E5',
-  },
-
-  placeholderText: {
-    fontSize: 24,
-    lineHeight: 25,
-    fontWeight: 600,
-    color: '#000',
-    textAlign: 'left',
-    marginBottom: 12,
-  },
-  carouselContainer: {
-    paddingTop: 30,
-    width: '100%',
-    paddingHorizontal: 20,
-  },
-  cardContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 12,
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  cardImage: {
-    height: '100%',
-    width: '100%',
-    resizeMode: 'cover',
-    borderRadius: 12,
-    position: 'absolute',
-  },
-  cardDescription: {
-    fontSize: 17,
-    fontWeight: '500',
-    lineHeight: 19,
-    color: '#fff',
-    textAlign: 'left',
-    position: 'absolute',
-    top: '60%',
-    left: '8%',
-    width: '54%',
-  },
-  card: {
-    borderRadius: 12,
-    backgroundColor: '#c7c7c7',
-    width: '48%',
-    overflow: 'hidden',
-    height: 120,
   },
   feedContainer: {
     paddingBottom: 44,
@@ -247,43 +234,5 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: 600,
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 70,
-    right: 20,
-    width: 58.75,
-    height: 58.75,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  gradientBackground: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  floatingButtonIcon: {
-    width: 30,
-    height: 30,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
   },
 });
