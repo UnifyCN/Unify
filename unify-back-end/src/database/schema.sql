@@ -13,6 +13,7 @@ CREATE TABLE users (
 -- Posts table
 CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
+    group_id INT REFERENCES groups(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     like_count INTEGER DEFAULT 0,
@@ -61,7 +62,9 @@ CREATE TABLE post_tags (
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
     group_name VARCHAR(100) UNIQUE NOT NULL,
-    groups_description TEXT,
+    group_description TEXT,
+    member_count INTEGER DEFAULT 0,
+    cover_photo_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -223,6 +226,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION public.update_group_member_count()
+RETURNS trigger AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    -- Increment member count when someone joins a group
+    UPDATE groups 
+    SET members_count = members_count + 1 
+    WHERE id = NEW.group_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    -- Decrement member count when someone leaves a group
+    UPDATE groups 
+    SET members_count = members_count - 1 
+    WHERE id = OLD.group_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- ============================================
 -- TRIGGERS
 -- ============================================
@@ -234,3 +257,7 @@ CREATE TRIGGER on_auth_user_created
 CREATE TRIGGER on_post_like_change
   AFTER INSERT OR DELETE ON post_likes
   FOR EACH ROW EXECUTE FUNCTION public.update_post_like_count();
+
+CREATE TRIGGER on_group_member_change
+  AFTER INSERT OR DELETE ON group_members
+  FOR EACH ROW EXECUTE FUNCTION public.update_group_member_count();

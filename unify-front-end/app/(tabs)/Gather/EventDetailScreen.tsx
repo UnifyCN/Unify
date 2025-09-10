@@ -29,7 +29,7 @@ const EventDetailScreen = () => {
 
   const [rsvpStatus, setRsvpStatus] = useState<string>(
     () =>
-      rsvpOptions.find(option => option.value === eventData.user_rsvp_status)
+      rsvpOptions.find(option => option.value === eventData.userRsvpStatus)
         ?.label || 'RSVP'
   );
 
@@ -50,10 +50,10 @@ const EventDetailScreen = () => {
   };
 
   const getDateToCompare = () => {
-    if (eventData.event_end_datetime) {
-      return new Date(eventData.event_end_datetime);
+    if (eventData.eventEndDatetime) {
+      return new Date(eventData.eventEndDatetime);
     }
-    return new Date(eventData.event_datetime);
+    return new Date(eventData.eventDatetime);
   }
 
   return (
@@ -72,9 +72,9 @@ const EventDetailScreen = () => {
         {/* Event Image */}
         <View style={styles.imageContainer}>
           {/* TODO: Not entirely sure how to handle cover photos but for now its just placeholders */}
-          {eventData.cover_photo_url ? (
+          {eventData.coverPhotoUrl ? (
             <Image
-              source={{ uri: eventData.cover_photo_url }}
+              source={{ uri: eventData.coverPhotoUrl }}
               style={styles.eventImage}
             />
           ) : (
@@ -99,12 +99,12 @@ const EventDetailScreen = () => {
             </View>
             <View style={styles.detailContent}>
               <Text style={styles.detailTitle}>
-                {formatEventDate(eventData.event_datetime)}
+                {formatEventDate(eventData.eventDatetime)}
               </Text>
               <Text style={styles.detailSubtitle}>
                 {formatEventTimeRange(
-                  eventData.event_datetime,
-                  eventData.event_end_datetime || ''
+                  eventData.eventDatetime,
+                  eventData.eventEndDatetime || ''
                 )}
               </Text>
             </View>

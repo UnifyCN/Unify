@@ -25,11 +25,23 @@ export const getAllEvents = async (): Promise<Event[]> => {
       throw new Error('Failed to fetch events');
     }
 
-    // Transform the data to include user_rsvp_status
+    // Map the database columns to the Event interface with camelCase
     return (
       data?.map(event => ({
-        ...event,
-        user_rsvp_status: event.event_rsvps?.[0]?.rsvp_status || null,
+        id: event.id,
+        title: event.title,
+        description: event.description,
+        eventDatetime: event.event_datetime,
+        eventEndDatetime: event.event_end_datetime,
+        location: event.location,
+        address: event.address,
+        eventType: event.event_type,
+        genre: event.genre,
+        coverPhotoUrl: event.cover_photo_url,
+        maxAttendees: event.max_attendees,
+        createdAt: event.created_at,
+        updatedAt: event.updated_at,
+        userRsvpStatus: event.event_rsvps?.[0]?.rsvp_status || null,
       })) || []
     );
   } catch (error) {
