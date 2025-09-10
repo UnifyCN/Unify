@@ -90,9 +90,7 @@ export default function ModuleIndex() {
         </View>
 
         {/* Learning Pathway */}
-        <View style={styles.pathwayContainer}>
-          <Text style={styles.pathwayTitle}>Learning Pathway</Text>
-          
+        <View style={styles.pathwayContainer}>          
           {displaySubmodules.map((m, i) => (
             <View key={m.id} style={styles.pathwayItem}>
               {/* Module Card */}
