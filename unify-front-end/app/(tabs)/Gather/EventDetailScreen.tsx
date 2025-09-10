@@ -54,7 +54,7 @@ const EventDetailScreen = () => {
       return new Date(eventData.eventEndDatetime);
     }
     return new Date(eventData.eventDatetime);
-  }
+  };
 
   return (
     <View style={styles.container}>

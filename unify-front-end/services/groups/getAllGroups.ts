@@ -20,14 +20,16 @@ export const getAllGroups = async (): Promise<Group[]> => {
     }
 
     // Map the database columns to the Group interface
-    return data?.map(group => ({
-      id: group.id,
-      name: group.group_name,
-      description: group.group_description,
-      memberCount: group.member_count,
-      coverPhotoUrl: group.cover_photo_url,
-      createdAt: group.created_at,
-    })) || [];
+    return (
+      data?.map(group => ({
+        id: group.id,
+        name: group.group_name,
+        description: group.group_description,
+        memberCount: group.member_count,
+        coverPhotoUrl: group.cover_photo_url,
+        createdAt: group.created_at,
+      })) || []
+    );
   } catch (error) {
     console.error('Error fetching groups:', error);
     throw error;
