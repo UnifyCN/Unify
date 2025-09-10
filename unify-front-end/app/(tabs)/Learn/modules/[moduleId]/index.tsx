@@ -1,14 +1,30 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions, LayoutChangeEvent } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { useModule } from '@/hooks/learn/useModule';
 import { Feather } from '@expo/vector-icons';
+import Svg, { Path } from 'react-native-svg';
 
 export default function ModuleIndex() {
   const router = useRouter();
   const { moduleId } = useLocalSearchParams<{ moduleId: string }>();
   
   const { data: moduleData, isLoading, error } = useModule(moduleId || '');
+
+  // Layout and anchors for the connecting path
+  const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [containerHeight, setContainerHeight] = useState<number>(0);
+  const anchorsRef = useRef<number[]>([]);
+
+  const onContainerLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setContainerWidth(width);
+    setContainerHeight(height);
+  };
+
+  const setAnchor = (index: number, y: number) => {
+    anchorsRef.current[index] = y;
+  };
 
   if (isLoading) {
     return (
@@ -90,55 +106,73 @@ export default function ModuleIndex() {
         </View>
 
         {/* Learning Pathway */}
-        <View style={styles.pathwayContainer}>          
-          {displaySubmodules.map((m, i) => (
-            <View key={m.id} style={styles.pathwayItem}>
-              {/* Module Card */}
-              <TouchableOpacity
-                style={[
-                  styles.moduleCard,
-                  m.status === 'locked' && styles.lockedCard,
-                  m.status === 'completed' && styles.completedCard,
-                ]}
-                onPress={() => {
-                  if (m.status === 'locked') return;
-                  router.push({
-                    pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                    params: { moduleId, submoduleId: m.id },
-                  });
+        <View style={styles.pathwayContainer} onLayout={onContainerLayout}>
+          {/* SVG Connecting Path behind items */}
+          <TrackPath
+            width={containerWidth}
+            height={containerHeight}
+            anchors={anchorsRef.current}
+          />
+
+          {displaySubmodules.map((m, i) => {
+            const iconOnRight = i % 2 === 0; // alternate sides
+            return (
+              <View
+                key={m.id}
+                style={[styles.pathwayItem]}
+                onLayout={e => {
+                  // capture the vertical center for the icon anchor
+                  const { y, height } = e.nativeEvent.layout;
+                  const iconCenterY = y + 20 + ICON_SIZE / 2; // card top + icon top offset + radius
+                  setAnchor(i, iconCenterY);
                 }}
-                disabled={m.status === 'locked'}
               >
-                <View style={styles.moduleContent}>
-                  <Text style={styles.moduleNumberText}>
-                    Module {m.moduleNumber} • {m.stages} lessons
-                  </Text>
-                  <Text style={styles.moduleTitle}>{m.title}</Text>
-                  <View style={styles.moduleProgressLine} />
+                {/* Module Card */}
+                <TouchableOpacity
+                  style={[
+                    styles.moduleCard,
+                    iconOnRight ? styles.cardShiftRight : styles.cardShiftLeft,
+                    m.status === 'locked' && styles.lockedCard,
+                    m.status === 'completed' && styles.completedCard,
+                  ]}
+                  onPress={() => {
+                    if (m.status === 'locked') return;
+                    router.push({
+                      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                      params: { moduleId, submoduleId: m.id },
+                    });
+                  }}
+                  disabled={m.status === 'locked'}
+                >
+                  <View style={styles.moduleContent}>
+                    <Text style={styles.moduleNumberText}>
+                      Module {m.moduleNumber} • {m.stages} lessons
+                    </Text>
+                    <Text style={styles.moduleTitle}>{m.title}</Text>
+                    <View style={styles.moduleProgressLine} />
+                  </View>
+                </TouchableOpacity>
+
+                {/* Module Icon */}
+                <View
+                  style={[
+                    styles.moduleIcon,
+                    iconOnRight ? styles.iconRight : styles.iconLeft,
+                    m.status === 'completed' && styles.completedIcon,
+                    m.status === 'locked' && styles.lockedIcon,
+                  ]}
+                >
+                  {m.status === 'completed' ? (
+                    <Feather name='check' size={20} color='#fff' />
+                  ) : m.status === 'locked' ? (
+                    <Feather name='square' size={20} color='#9E9E9E' />
+                  ) : (
+                    <Text style={styles.iconEmoji}>{getModuleIcon(m.title)}</Text>
+                  )}
                 </View>
-              </TouchableOpacity>
-
-              {/* Module Icon */}
-              <View style={[
-                styles.moduleIcon,
-                m.status === 'completed' && styles.completedIcon,
-                m.status === 'locked' && styles.lockedIcon,
-              ]}>
-                {m.status === 'completed' ? (
-                  <Feather name='check' size={20} color='#fff' />
-                ) : m.status === 'locked' ? (
-                  <Feather name='square' size={20} color='#9E9E9E' />
-                ) : (
-                  <Text style={styles.iconEmoji}>{getModuleIcon(m.title)}</Text>
-                )}
               </View>
-
-              {/* Connecting Path (except for last item) */}
-              {i < displaySubmodules.length - 1 && (
-                <View style={styles.connectingPath} />
-              )}
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -146,6 +180,56 @@ export default function ModuleIndex() {
 }
 
 const { width } = Dimensions.get('window');
+const ICON_SIZE = 48;
+
+// Renders an SVG path that alternates between left and right rails through given anchors
+function TrackPath({ width, height, anchors }: { width: number; height: number; anchors: number[] }) {
+  const path = useMemo(() => {
+    if (!width || !height || !anchors?.length) return '';
+
+    const padding = 20;
+    const railLeft = padding + ICON_SIZE / 2 + 8; // space for icon circle
+    const railRight = width - padding - ICON_SIZE / 2 - 8;
+    const r = 18; // corner radius
+
+    let d = '';
+    let currentX = railRight; // start on right
+    let currentY = anchors[0];
+    d += `M ${currentX} ${currentY}`;
+
+    for (let i = 1; i < anchors.length; i++) {
+      const nextY = anchors[i];
+      const midY = (currentY + nextY) / 2;
+      const targetX = currentX === railRight ? railLeft : railRight;
+
+      // go down to midY with straight line
+      d += ` V ${midY - r}`;
+      // rounded corner to go horizontal
+      const sweep1 = currentX === railRight ? -1 : 1; // direction of horizontal move
+      d += ` Q ${currentX} ${midY} ${currentX - sweep1 * r} ${midY}`;
+      // go horizontal to the other rail minus radius
+      d += ` H ${targetX + (currentX === railRight ? r : -r)}`;
+      // rounded corner to go vertical again
+      d += ` Q ${targetX} ${midY} ${targetX} ${midY + r}`;
+      // go vertical to next anchor
+      d += ` V ${nextY}`;
+
+      currentX = targetX;
+      currentY = nextY;
+    }
+
+    return d;
+  }, [width, height, anchors]);
+
+  if (!path) return null;
+
+  return (
+    <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={width} height={height}>
+      <Path d={path} stroke="#E5E7EB" strokeWidth={10} fill="none" strokeLinecap="round" />
+      <Path d={path} stroke="#FFFFFF" strokeWidth={6} fill="none" strokeLinecap="round" />
+    </Svg>
+  );
+}
 
 const styles = StyleSheet.create({
   safe: { 
@@ -227,7 +311,10 @@ const styles = StyleSheet.create({
 
   // Learning Pathway
   pathwayContainer: {
-    marginTop: 8
+  marginTop: 8,
+  paddingBottom: 24,
+  // Make sure children render above the path
+  // backgroundColor: 'rgba(255,0,0,0.02)'
   },
   pathwayTitle: {
     fontSize: 20,
@@ -237,7 +324,8 @@ const styles = StyleSheet.create({
   },
   pathwayItem: {
     position: 'relative',
-    marginBottom: 16
+  marginBottom: 24,
+  paddingTop: 8,
   },
 
   // Module Card
@@ -245,7 +333,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 20,
-    marginRight: 60,
+    // dynamic horizontal shift via cardShiftRight/Left
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
@@ -253,6 +341,14 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#F3F4F6'
+  },
+  cardShiftRight: {
+    marginRight: ICON_SIZE + 36,
+    marginLeft: 0,
+  },
+  cardShiftLeft: {
+    marginLeft: ICON_SIZE + 36,
+    marginRight: 0,
   },
   lockedCard: {
     backgroundColor: '#F9FAFB',
@@ -289,17 +385,18 @@ const styles = StyleSheet.create({
   // Module Icon
   moduleIcon: {
     position: 'absolute',
-    right: 20,
     top: 20,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    borderRadius: ICON_SIZE / 2,
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#E5E7EB'
   },
+  iconRight: { right: 20 },
+  iconLeft: { left: 20 },
   completedIcon: {
     backgroundColor: '#10B981',
     borderColor: '#059669'
@@ -312,16 +409,7 @@ const styles = StyleSheet.create({
     fontSize: 24
   },
 
-  // Connecting Path
-  connectingPath: {
-    position: 'absolute',
-    right: 44,
-    top: 68,
-    width: 2,
-    height: 32,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 1
-  },
+  // Connecting Path (replaced by SVG TrackPath)
 
   // Loading and Error States
   loadingContainer: {
