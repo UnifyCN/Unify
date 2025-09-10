@@ -15,6 +15,9 @@ export default function ModuleIndex() {
   const [containerWidth, setContainerWidth] = useState<number>(0);
   const [containerHeight, setContainerHeight] = useState<number>(0);
   const anchorsRef = useRef<number[]>([]);
+  const rowTopsRef = useRef<number[]>([]);
+  const cardBoxesRef = useRef<Array<{ relY: number; height: number } | undefined>>([]);
+  const [layoutTick, setLayoutTick] = useState(0);
 
   const onContainerLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -22,8 +25,16 @@ export default function ModuleIndex() {
     setContainerHeight(height);
   };
 
-  const setAnchor = (index: number, y: number) => {
-    anchorsRef.current[index] = y;
+  const setRowTopAndAnchor = (index: number, rowTop: number) => {
+    rowTopsRef.current[index] = rowTop;
+    const iconCenterY = rowTop + 20 + ICON_SIZE / 2;
+    anchorsRef.current[index] = iconCenterY;
+    setLayoutTick(t => t + 1);
+  };
+
+  const setCardBox = (index: number, relY: number, height: number) => {
+    cardBoxesRef.current[index] = { relY, height };
+    setLayoutTick(t => t + 1);
   };
 
   if (isLoading) {
@@ -65,6 +76,7 @@ export default function ModuleIndex() {
 
   // Get module icon based on title
   const getModuleIcon = (title: string) => {
+    // Just emojis for now, will have actual icons after the hifi design
     if (title.toLowerCase().includes('banking') || title.toLowerCase().includes('finance')) {
       return '🏦';
     } else if (title.toLowerCase().includes('investing')) {
@@ -112,6 +124,16 @@ export default function ModuleIndex() {
             width={containerWidth}
             height={containerHeight}
             anchors={anchorsRef.current}
+            frames={displaySubmodules.map((_, i) => {
+              const rowTop = rowTopsRef.current[i];
+              const box = cardBoxesRef.current[i];
+              if (rowTop == null || !box) return undefined;
+              const framePad = 12;
+              const top = rowTop + box.relY - framePad;
+              const bottom = rowTop + box.relY + box.height + framePad;
+              return { top, bottom };
+            })}
+            tick={layoutTick}
           />
 
           {displaySubmodules.map((m, i) => {
@@ -121,10 +143,8 @@ export default function ModuleIndex() {
                 key={m.id}
                 style={[styles.pathwayItem]}
                 onLayout={e => {
-                  // capture the vertical center for the icon anchor
-                  const { y, height } = e.nativeEvent.layout;
-                  const iconCenterY = y + 20 + ICON_SIZE / 2; // card top + icon top offset + radius
-                  setAnchor(i, iconCenterY);
+                  const { y } = e.nativeEvent.layout;
+                  setRowTopAndAnchor(i, y);
                 }}
               >
                 {/* Module Card */}
@@ -135,6 +155,10 @@ export default function ModuleIndex() {
                     m.status === 'locked' && styles.lockedCard,
                     m.status === 'completed' && styles.completedCard,
                   ]}
+                  onLayout={e => {
+                    const { y, height } = e.nativeEvent.layout;
+                    setCardBox(i, y, height);
+                  }}
                   onPress={() => {
                     if (m.status === 'locked') return;
                     router.push({
@@ -183,50 +207,62 @@ const { width } = Dimensions.get('window');
 const ICON_SIZE = 48;
 
 // Renders an SVG path that alternates between left and right rails through given anchors
-function TrackPath({ width, height, anchors }: { width: number; height: number; anchors: number[] }) {
+function TrackPath({ width, height, anchors, frames, tick }: { width: number; height: number; anchors: number[]; frames: Array<{ top: number; bottom: number } | undefined>; tick: number }) {
   const path = useMemo(() => {
     if (!width || !height || !anchors?.length) return '';
 
     const padding = 20;
-    const railLeft = padding + ICON_SIZE / 2 + 8; // space for icon circle
-    const railRight = width - padding - ICON_SIZE / 2 - 8;
-    const r = 18; // corner radius
+    const railLeft = padding + ICON_SIZE / 2 + 8; // icon center left
+    const railRight = width - padding - ICON_SIZE / 2 - 8; // icon center right
 
     let d = '';
-    let currentX = railRight; // start on right
+    let currentX = railRight; // start at first icon on right rail
     let currentY = anchors[0];
     d += `M ${currentX} ${currentY}`;
 
-    for (let i = 1; i < anchors.length; i++) {
-      const nextY = anchors[i];
-      const midY = (currentY + nextY) / 2;
-      const targetX = currentX === railRight ? railLeft : railRight;
+    const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
-      // go down to midY with straight line
-      d += ` V ${midY - r}`;
-      // rounded corner to go horizontal
-      const sweep1 = currentX === railRight ? -1 : 1; // direction of horizontal move
-      d += ` Q ${currentX} ${midY} ${currentX - sweep1 * r} ${midY}`;
-      // go horizontal to the other rail minus radius
-      d += ` H ${targetX + (currentX === railRight ? r : -r)}`;
-      // rounded corner to go vertical again
-      d += ` Q ${targetX} ${midY} ${targetX} ${midY + r}`;
-      // go vertical to next anchor
-      d += ` V ${nextY}`;
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const yi = anchors[i];
+      const yj = anchors[i + 1];
+      const isRight = i % 2 === 0;
+      const railS = isRight ? railRight : railLeft; // current item rail
+      const railT = isRight ? railLeft : railRight; // next item rail
 
-      currentX = targetX;
-      currentY = nextY;
+      // Move to correct rail and the exact anchor for item i
+      if (currentX !== railS) d += ` H ${railS}`;
+      if (currentY !== yi) d += ` V ${yi}`;
+      currentX = railS; currentY = yi;
+
+      // Pick a safe Y to cross horizontally between cards
+      const fCur = frames?.[i];
+      const fNext = frames?.[i + 1];
+      const gap = 12;
+      let crossTop = fCur ? fCur.bottom + gap : Math.min(yi, yj) + Math.abs(yj - yi) * 0.4;
+      let crossBottom = fNext ? fNext.top - gap : Math.max(yi, yj) - Math.abs(yj - yi) * 0.4;
+      if (crossTop > crossBottom) {
+        // fallback to midpoint if overlap
+        const mid = (yi + yj) / 2;
+        crossTop = mid; crossBottom = mid;
+      }
+      let crossY = clamp((crossTop + crossBottom) / 2, Math.min(yi, yj) + 4, Math.max(yi, yj) - 4);
+
+      // Draw orthogonal L: down/up to crossY, across to other rail, down/up to next anchor
+      d += ` V ${crossY}`;
+      d += ` H ${railT}`;
+      d += ` V ${yj}`;
+      currentX = railT; currentY = yj;
     }
 
     return d;
-  }, [width, height, anchors]);
+  }, [width, height, anchors, frames, tick]);
 
   if (!path) return null;
 
   return (
     <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={width} height={height}>
-      <Path d={path} stroke="#E5E7EB" strokeWidth={10} fill="none" strokeLinecap="round" />
-      <Path d={path} stroke="#FFFFFF" strokeWidth={6} fill="none" strokeLinecap="round" />
+      <Path d={path} stroke="#E5E7EB" strokeWidth={10} fill="none" strokeLinejoin="miter" strokeLinecap="butt" />
+      <Path d={path} stroke="#FFFFFF" strokeWidth={6} fill="none" strokeLinejoin="miter" strokeLinecap="butt" />
     </Svg>
   );
 }
