@@ -1,17 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
 import CarouselDots from '../../../components/learn/CarouselDots';
 import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
+import { useAllModules } from '../../../hooks/learn/useAllModules';
 
 export default function Learn() {
   const [heroIndex, setHeroIndex] = React.useState(0);
   const heroSlides = [0, 1, 2];
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
+  
+  // Fetch all modules dynamically
+  const { data: modules, isLoading, error } = useAllModules();
 
   const onMomentumEnd = (e: any) => {
     const x = e.nativeEvent?.contentOffset?.x ?? 0;
@@ -51,9 +55,22 @@ export default function Learn() {
 
         <SectionHeader title='Learning Pathways' style={{ marginTop: 24 }} />
         <View style={styles.pathwaysGrid}>
-          {/* Updated to route to new Finance module structure */}
-          <PathwayCard title='Finance for Newcomers' modulesLabel='8 Modules' href='/(tabs)/Learn/Finance' />
-          <PathwayCard title='Employment' modulesLabel='5 Modules' />
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#007AFF" />
+          ) : error ? (
+            <Text style={styles.errorText}>Error loading modules</Text>
+          ) : modules && modules.length > 0 ? (
+            modules.map((module) => (
+              <PathwayCard
+                key={module.id}
+                title={module.title}
+                modulesLabel={`${module.completed_submodules}/${module.total_submodules} Modules`}
+                href={`/(tabs)/Learn/modules/${module.id}` as any}
+              />
+            ))
+          ) : (
+            <Text style={styles.errorText}>No modules available</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -75,5 +92,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
+  },
+  errorText: {
+    color: '#FF3B30',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

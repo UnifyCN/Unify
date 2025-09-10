@@ -41,7 +41,7 @@ export function ProgressSection({
           title='Pathway to finance'
           description='Short description'
           image={require('../assets/images/placeholderImg.png')}
-          href='/(tabs)/Learn/Finance'
+          href='/(tabs)/Learn/modules/11111111-1111-1111-1111-111111111111'
         />
 
         <Link href='./Main-lesson' asChild style={styles.card}>

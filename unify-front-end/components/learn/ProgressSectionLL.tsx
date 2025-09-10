@@ -38,12 +38,12 @@ export function ProgressSectionLL({
         style={styles.cardContainer}
       >
         {/* Commented out for now, but can be used later */}
-        {/* <ProgressSectionCard
+        <ProgressSectionCard
           title="Pathway to Finance"
           description="Short description"
           image={require("@/assets/images/Budget101.jpeg")}
-          href="/(tabs)/Learn/Finance"
-        /> */}
+          href="/(tabs)/Learn/modules/11111111-1111-1111-1111-111111111111"
+        />
 
         <ProgressSectionCard
           title='Lesson Title'
