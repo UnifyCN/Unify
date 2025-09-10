@@ -8,7 +8,6 @@ export type PostData = {
   time: string;
   description: string;
   pictures?: React.FC[];
-  groupId: number;
 };
 
 // Feed response type
