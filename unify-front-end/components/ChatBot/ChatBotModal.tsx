@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { isGeminiAvailable, callGeminiAPI } from '@/utils/gemini';
+import { useChatbotUsage } from '@/hooks/chatbot/useChatbotUsage';
+import { useUpdateChatbotUsage } from '@/hooks/chatbot/useUpdateChatbotUsage';
 
 interface Message {
   id: string;
@@ -31,6 +33,13 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isApiAvailable, setIsApiAvailable] = useState(true);
   const flatListRef = useRef<FlatList>(null);
+
+  const { data: usage, isLoading: isLoadingUsage } = useChatbotUsage();
+  const updateUsage = useUpdateChatbotUsage();
+
+  const MESSAGE_LIMIT = 3; // Daily message limit, applicable to everyone but could be changed/ignored for premium members in the future
+  const messagesLeft = MESSAGE_LIMIT - usage?.message_count!;
+  const canSendMessage = messagesLeft > 0;
 
   // Check API availability and initialize with appropriate message
   useEffect(() => {
@@ -62,7 +71,8 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
   }, [visible]);
 
   const sendMessage = async () => {
-    if (!inputText.trim() || isLoading || !isApiAvailable) return;
+    if (!inputText.trim() || isLoading || !isApiAvailable || !canSendMessage)
+      return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -78,6 +88,9 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
     try {
       // Call the Gemini API through Supabase edge function
       const response = await callGeminiAPI(userMessage.text);
+
+      const newMessageCount = (usage?.message_count ?? 0) + 1;
+      updateUsage.mutate(newMessageCount);
 
       // Extract the response text from the Gemini API response
       let botResponse = 'Sorry, I encountered an error. Please try again.';
@@ -195,34 +208,66 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
           ListFooterComponent={renderLoadingIndicator}
         />
 
+        {/* Message Count Display */}
+        <View style={styles.messageCountContainer}>
+          <Text
+            style={[
+              styles.messageCountText,
+              messagesLeft <= 0 && styles.messageCountTextWarning,
+            ]}
+          >
+            {isLoadingUsage
+              ? 'Loading...'
+              : `${messagesLeft}/${MESSAGE_LIMIT} messages left today`}
+          </Text>
+        </View>
+
         {/* Input */}
         <View style={styles.inputContainer}>
           <TextInput
-            style={[styles.textInput, !isApiAvailable && styles.disabledInput]}
+            style={[
+              styles.textInput,
+              (!isApiAvailable || !canSendMessage) && styles.disabledInput,
+            ]}
             value={inputText}
             onChangeText={setInputText}
             placeholder={
-              isApiAvailable ? 'Type your message...' : 'Chat unavailable'
+              !isApiAvailable
+                ? 'Chat unavailable'
+                : !canSendMessage
+                  ? 'Daily limit reached'
+                  : 'Type your message...'
             }
             placeholderTextColor='#999'
             multiline
             maxLength={500}
-            editable={!isLoading && isApiAvailable}
+            editable={!isLoading && isApiAvailable && canSendMessage}
           />
           <TouchableOpacity
             style={[
               styles.sendButton,
-              (!inputText.trim() || isLoading || !isApiAvailable) &&
+              (!inputText.trim() ||
+                isLoading ||
+                !isApiAvailable ||
+                !canSendMessage) &&
                 styles.sendButtonDisabled,
             ]}
             onPress={sendMessage}
-            disabled={!inputText.trim() || isLoading || !isApiAvailable}
+            disabled={
+              !inputText.trim() ||
+              isLoading ||
+              !isApiAvailable ||
+              !canSendMessage
+            }
           >
             <Ionicons
               name='send'
               size={20}
               color={
-                !inputText.trim() || isLoading || !isApiAvailable
+                !inputText.trim() ||
+                isLoading ||
+                !isApiAvailable ||
+                !canSendMessage
                   ? '#ccc'
                   : '#fff'
               }
@@ -329,10 +374,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 15,
-    paddingVertical: 40,
+    paddingBottom: 40,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
   },
   textInput: {
     flex: 1,
@@ -361,5 +404,25 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#e0e0e0',
+  },
+  messageCountContainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  messageCountText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  messageCountTextWarning: {
+    color: '#ff6b6b',
+    fontWeight: '600',
+  },
+  inputWrapper: {
+    flex: 1,
+    position: 'relative',
   },
 });

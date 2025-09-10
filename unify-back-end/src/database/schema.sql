@@ -73,6 +73,14 @@ CREATE TABLE group_members (
     PRIMARY KEY (user_id, group_id)
 );
 
+-- Chatbot usage table, to track how many messages in the past day and rate limit (will only be upserting)
+CREATE TABLE chatbot_usage (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    -- might need to add 'premium BOOLEAN' in the future to account for multiple limits but for now assume all have a limit
+    message_count INTEGER DEFAULT 0,
+    last_message_at TIMESTAMPZ DEFAULT NOW() -- Will be UTC times, so usage resets based on UTC midnight
+);
+
 -- Main Topics table
 CREATE TABLE main_topics (
     id SERIAL PRIMARY KEY,
@@ -151,6 +159,29 @@ CREATE TABLE quiz_progress (
     quiz_id INT REFERENCES quizzes(id) ON DELETE CASCADE,
     progress TEXT CHECK (progress IN ('pass', 'fail')) DEFAULT NULL,
     PRIMARY KEY (user_id, quiz_id)
+);
+
+CREATE TABLE events (
+    id SERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    event_datetime TIMESTAMPTZ NOT NULL, -- This includes both date and time
+    event_end_datetime TIMESTAMPTZ,
+    location TEXT NOT NULL,
+    address TEXT NOT NULL,
+    event_type TEXT CHECK (event_type IN ('in-person', 'online', 'hybrid')) NOT NULL,
+    cover_photo_url TEXT,
+    max_attendees INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE event_rsvps (
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    event_id INT REFERENCES events(id) ON DELETE CASCADE,
+    rsvp_status TEXT CHECK (rsvp_status IN ('interested', 'going', 'not_interested')) NOT NULL,
+    rsvp_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, event_id)
 );
 
 -- ============================================
