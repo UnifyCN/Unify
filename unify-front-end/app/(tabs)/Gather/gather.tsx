@@ -160,9 +160,6 @@ export default function GatherScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style='dark' />
-      <Header
-        onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
-      />
       <Animated.FlatList
         data={[{ key: 'feed' }]}
         renderItem={() => (

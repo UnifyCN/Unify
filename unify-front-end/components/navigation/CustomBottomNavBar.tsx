@@ -49,6 +49,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       {state.routes.map((route, index) => {
+
         if (!ALLOWED_ROUTES.includes(route.name as any)) {
           return null;
         }

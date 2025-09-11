@@ -2,12 +2,19 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import Header from '@/components/Header';
+import { useRouter } from 'expo-router';
 
 import CustomNavBar from '@/components/navigation/CustomBottomNavBar';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
   return (
+    <>
+    <Header
+      onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
+    />
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
@@ -34,5 +41,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </>
   );
+  
 }
