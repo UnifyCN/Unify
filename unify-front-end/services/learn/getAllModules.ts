@@ -74,7 +74,7 @@ export async function getAllModules(): Promise<Module[]> {
     const modulesWithProgress = modules.map(module => {
       const progress = userProgress?.find(p => p.module_id === module.id);
       const totalSubmodules = submoduleCounts?.filter(s => s.module_id === module.id).length || 0;
-      const completedSubmodules = completedSubmodules?.filter(cs => 
+      const completedSubmodulesCount = completedSubmodules?.filter(cs => 
         submoduleCounts?.find(s => s.id === cs.submodule_id && s.module_id === module.id)
       ).length || 0;
 
@@ -83,7 +83,7 @@ export async function getAllModules(): Promise<Module[]> {
         title: module.title,
         description: module.description,
         total_submodules: totalSubmodules,
-        completed_submodules: completedSubmodules,
+        completed_submodules: completedSubmodulesCount,
         progress_percent: progress?.progress_percent || 0,
         is_completed: progress?.is_completed || false,
       };

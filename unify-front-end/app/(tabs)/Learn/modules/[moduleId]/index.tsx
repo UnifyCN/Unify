@@ -68,7 +68,7 @@ export default function ModuleIndex() {
       ? 'completed'
       : submodule.progress_percent > 0
       ? 'in-progress'
-      : 'locked',
+      : 'not-started',
   }));
 
   const completedCount = moduleData.completed_submodules;
@@ -152,7 +152,6 @@ export default function ModuleIndex() {
                   style={[
                     styles.moduleCard,
                     iconOnRight ? styles.cardShiftRight : styles.cardShiftLeft,
-                    m.status === 'locked' && styles.lockedCard,
                     m.status === 'completed' && styles.completedCard,
                   ]}
                   onLayout={e => {
@@ -160,13 +159,11 @@ export default function ModuleIndex() {
                     setCardBox(i, y, height);
                   }}
                   onPress={() => {
-                    if (m.status === 'locked') return;
                     router.push({
                       pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                       params: { moduleId, submoduleId: m.id },
                     });
                   }}
-                  disabled={m.status === 'locked'}
                 >
                   <View style={styles.moduleContent}>
                     <Text style={styles.moduleNumberText}>
@@ -183,13 +180,10 @@ export default function ModuleIndex() {
                     styles.moduleIcon,
                     iconOnRight ? styles.iconRight : styles.iconLeft,
                     m.status === 'completed' && styles.completedIcon,
-                    m.status === 'locked' && styles.lockedIcon,
                   ]}
                 >
                   {m.status === 'completed' ? (
                     <Feather name='check' size={20} color='#fff' />
-                  ) : m.status === 'locked' ? (
-                    <Feather name='square' size={20} color='#9E9E9E' />
                   ) : (
                     <Text style={styles.iconEmoji}>{getModuleIcon(m.title)}</Text>
                   )}
@@ -386,11 +380,6 @@ const styles = StyleSheet.create({
     marginLeft: ICON_SIZE + 36,
     marginRight: 0,
   },
-  lockedCard: {
-    backgroundColor: '#F9FAFB',
-    borderColor: '#E5E7EB',
-    opacity: 0.7
-  },
   completedCard: {
     backgroundColor: '#F0FDF4',
     borderColor: '#BBF7D0'
@@ -436,10 +425,6 @@ const styles = StyleSheet.create({
   completedIcon: {
     backgroundColor: '#10B981',
     borderColor: '#059669'
-  },
-  lockedIcon: {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#D1D5DB'
   },
   iconEmoji: {
     fontSize: 24
