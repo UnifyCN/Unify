@@ -31,6 +31,13 @@ export default function SubmoduleMap() {
   }
 
   const nextStage = submoduleData.stages.find((stage: any) => !stage.is_completed) || submoduleData.stages[0];
+  const circles = submoduleData.stages.map((stage: any, index: number) => ({
+    id: stage.id,
+    title: stage.title,
+    index: index + 1,
+    isCompleted: !!stage.is_completed,
+    inProgress: !stage.is_completed && stage.progress_percent > 0,
+  }));
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -48,95 +55,66 @@ export default function SubmoduleMap() {
           <Text style={styles.description}>{submoduleData.submodule_description}</Text>
         </View>
 
-        {/* Progress Card */}
-        <View style={styles.progressCard}>
-          <Text style={styles.progressText}>
-            Progress: {submoduleData.completed_stages}/{submoduleData.total_stages} stages completed
-          </Text>
-          <View style={styles.progressBarContainer}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${submoduleData.progress_percent}%` }]} />
-            </View>
-          </View>
-        </View>
-
-        {/* Stages Section */}
-        <View style={styles.stagesContainer}>
-          <Text style={styles.sectionTitle}>Learning Stages</Text>
-          <Text style={styles.sectionSubtitle}>Complete each stage to progress through the module</Text>
-          
-          <View style={styles.stagesGrid}>
-            {submoduleData.stages.map((stage, index) => (
-              <TouchableOpacity
-                key={stage.id}
-                style={[
-                  styles.stageBubble,
-                  stage.is_completed && styles.completedBubble,
-                  !stage.is_completed && stage.progress_percent > 0 && styles.inProgressBubble,
-                ]}
-                onPress={() => {
-                  // For now, just show stage info - lesson navigation will be implemented later
-                  console.log('Stage clicked:', stage.title);
-                }}
-              >
-                <View style={styles.stageContent}>
-                  <View style={[
-                    styles.stageNumber,
-                    stage.is_completed && styles.completedStageNumber,
-                    !stage.is_completed && stage.progress_percent > 0 && styles.inProgressStageNumber,
-                  ]}>
-                    {stage.is_completed ? (
-                      <Feather name='check' size={20} color='#fff' />
-                    ) : (
-                      <Text style={[
-                        styles.stageNumberText,
-                        stage.is_completed && styles.completedText,
-                      ]}>
-                        {index + 1}
-                      </Text>
-                    )}
-                  </View>
-                  
-                  <Text style={[
-                    styles.stageTitle,
-                    stage.is_completed && styles.completedText,
-                  ]}>
-                    {stage.title}
-                  </Text>
-                  
-                  <Text style={[
-                    styles.stageDescription,
-                    stage.is_completed && styles.completedDescription,
-                  ]}>
-                    {stage.completed_lessons}/{stage.lessons_count} lessons
-                  </Text>
-                  
-                  {stage.progress_percent > 0 && !stage.is_completed && (
-                    <View style={styles.stageProgressBar}>
-                      <View style={[styles.stageProgressFill, { width: `${stage.progress_percent}%` }]} />
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Resume Button */}
+        {/* Optional: focus card for current/next lesson */}
         {nextStage && (
-          <TouchableOpacity
-            style={styles.resumeButton}
-            onPress={() => {
-              // For now, just show stage info - lesson navigation will be implemented later
-              console.log('Resume stage:', nextStage.title);
-            }}
-          >
-            <Text style={styles.resumeButtonText}>
-              {nextStage.is_completed ? 'Review Stage' : 'Resume Stage'} {submoduleData.stages.indexOf(nextStage) + 1}
-            </Text>
-            <Feather name='arrow-right' size={20} color='#fff' style={styles.resumeIcon} />
-          </TouchableOpacity>
+          <View style={styles.focusCard}>
+            <Text style={styles.focusTitle}>Lesson {submoduleData.stages.indexOf(nextStage) + 1}: {nextStage.title}</Text>
+            {nextStage.description ? (
+              <Text style={styles.focusDescription} numberOfLines={3}>{nextStage.description}</Text>
+            ) : null}
+            <TouchableOpacity style={styles.focusCta} onPress={() => { /* navigate to lesson later */ }}>
+              <Text style={styles.focusCtaText}>{nextStage.is_completed ? 'Retake Lesson' : nextStage.progress_percent > 0 ? 'Resume Lesson' : 'Start Lesson'}</Text>
+            </TouchableOpacity>
+          </View>
         )}
+
+        {/* Zig-zag circles */}
+        <View style={styles.zigzagContainer}>
+          {circles.map((c, i) => {
+            const leftSide = i % 2 === 0;
+            return (
+              <View key={c.id}>
+                <View style={styles.zRow}>
+                  <View style={leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge} />
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[styles.circleWrap, c.isCompleted ? styles.circleCompleted : c.inProgress ? styles.circleInProgress : styles.circleDefault]}
+                    onPress={() => console.log('Stage tapped:', c.title)}
+                  >
+                    {c.isCompleted ? (
+                      <Feather name='check' size={28} color='#fff' />
+                    ) : (
+                      <View style={{ alignItems: 'center' }}>
+                        <Text style={styles.circleLabelTop}>Lesson</Text>
+                        <Text style={styles.circleIndex}>{c.index}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <View style={leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall} />
+                </View>
+                {/* Label row centered under the circle */}
+                <View style={styles.zRowLabelRow}>
+                  <View style={leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge} />
+                  <View style={styles.labelBox}>
+                    <Text
+                      style={[
+                        styles.stageTitleText,
+                        c.isCompleted ? styles.titleCompleted : c.inProgress ? styles.titleInProgress : styles.titleDefault,
+                      ]}
+                      numberOfLines={2}
+                    >
+                      {c.title}
+                    </Text>
+                  </View>
+                  <View style={leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall} />
+                </View>
+              </View>
+            );
+          })}
+        </View>
+
+  {/* Footer spacing */}
+  <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -189,182 +167,114 @@ const styles = StyleSheet.create({
     maxWidth: width - 40
   },
   
-  // Progress Card
-  progressCard: {
+  // Focus Card
+  focusCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
+    padding: 16,
+    marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 3
+    elevation: 2,
   },
-  progressText: {
+  focusTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 12
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 6,
   },
-  progressBarContainer: {
-    width: '100%'
+  focusDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 12,
   },
-  progressBar: { 
-    height: 8, 
-    backgroundColor: '#E5E7EB', 
-    borderRadius: 4, 
-    overflow: 'hidden' 
+  focusCta: {
+    backgroundColor: '#4B5563',
+    alignSelf: 'flex-start',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
   },
-  progressFill: { 
-    height: '100%', 
-    backgroundColor: '#10B981', 
-    borderRadius: 4 
+  focusCtaText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 
-  // Stages Section
-  stagesContainer: { 
-    marginTop: 8 
+  // Zig-zag circles
+  zigzagContainer: {
+    marginTop: 8,
   },
-  sectionTitle: { 
-    fontSize: 24, 
-    fontWeight: '700', 
-    color: '#1A1A1A', 
-    marginBottom: 8 
+  zRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  marginVertical: 13,
   },
-  sectionSubtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 24,
-    lineHeight: 22
+  zRowLabel: {
+    marginBottom: 8,
+    paddingHorizontal: 20,
   },
-  stagesGrid: { 
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    gap: 16,
-    justifyContent: 'space-between',
+  zRowLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  marginTop: 12,
+  marginBottom: 22,
   },
-  
-  // Stage Bubbles
-  stageBubble: {
-    width: '48%',
-    aspectRatio: 1,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
+  labelLeft: { alignItems: 'flex-start' },
+  labelRight: { alignItems: 'flex-end' },
+  spacer: { width: 0 },
+  flexGrow: { flex: 1 },
+  spacerGrowLarge: { flex: 1.5 },
+  spacerGrowSmall: { flex: 0.5 },
+  circleWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    backgroundColor: '#F3F4F6',
+    borderColor: '#D1D5DB',
+  },
+  labelBox: {
+    maxWidth: 200,
+    alignItems: 'center',
+  },
+  circleDefault: {
+    backgroundColor: '#F3F4F6',
     borderColor: '#E5E7EB',
-    position: 'relative',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 1
   },
-  completedBubble: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#10B981',
-  },
-  inProgressBubble: {
+  circleInProgress: {
     backgroundColor: '#FFFBEB',
     borderColor: '#F59E0B',
   },
-  
-  stageContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    width: '100%'
-  },
-  
-  stageNumber: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#E5E7EB'
-  },
-  completedStageNumber: {
+  circleCompleted: {
     backgroundColor: '#10B981',
-    borderColor: '#059669'
+    borderColor: '#059669',
   },
-  inProgressStageNumber: {
-    backgroundColor: '#F59E0B',
-    borderColor: '#D97706'
-  },
-  stageNumberText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#374151',
-  },
-  completedText: {
-    color: '#fff',
-  },
-  
-  stageTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 20
-  },
-  stageDescription: {
+  circleLabelTop: {
     fontSize: 14,
     color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 8
+    marginBottom: -4,
   },
-  completedDescription: {
-    color: '#059669'
+  circleIndex: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111827',
   },
-  
-  // Stage Progress Bar
-  stageProgressBar: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    overflow: 'hidden',
-    marginTop: 4
-  },
-  stageProgressFill: {
-    height: '100%',
-    backgroundColor: '#F59E0B',
-    borderRadius: 2
-  },
-  
-  // Resume Button
-  resumeButton: {
-    marginTop: 32,
-    backgroundColor: '#10B981',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 4
-  },
-  resumeButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  stageTitleText: {
+  fontSize: 15,
     fontWeight: '700',
-    marginRight: 8
+    marginHorizontal: 0,
+    textAlign: 'center',
   },
-  resumeIcon: {
-    marginLeft: 4
-  },
+  titleDefault: { color: '#1F2937' },
+  titleInProgress: { color: '#92400E' },
+  titleCompleted: { color: '#065F46' },
+  
+  // (old resume button styles removed)
   
   // Loading and Error States
   loadingContainer: {
