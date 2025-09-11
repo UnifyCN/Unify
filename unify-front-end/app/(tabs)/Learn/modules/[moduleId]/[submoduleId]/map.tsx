@@ -82,7 +82,7 @@ export default function SubmoduleMap() {
                     onPress={() => console.log('Stage tapped:', c.title)}
                   >
                     {c.isCompleted ? (
-                      <Feather name='check' size={28} color='#fff' />
+                      <Feather name='check' size={32} color='#fff' />
                     ) : (
                       <View style={{ alignItems: 'center' }}>
                         <Text style={styles.circleLabelTop}>Lesson</Text>
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   zRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  marginVertical: 13,
+    marginVertical: 13,
   },
   zRowLabel: {
     marginBottom: 8,
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   zRowLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  marginTop: 12,
+  marginTop: 0,
   marginBottom: 22,
   },
   labelLeft: { alignItems: 'flex-start' },
@@ -229,9 +229,9 @@ const styles = StyleSheet.create({
   spacerGrowLarge: { flex: 1.5 },
   spacerGrowSmall: { flex: 0.5 },
   circleWrap: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
+  width: 100,
+  height: 100,
+  borderRadius: 50,
     borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     borderColor: '#D1D5DB',
   },
   labelBox: {
-    maxWidth: 200,
+  width: 100,
     alignItems: 'center',
   },
   circleDefault: {
