@@ -2,17 +2,17 @@ export type Event = {
   id: number;
   title: string;
   description: string | null;
-  event_datetime: string;
-  event_end_datetime: string | null;
+  eventDatetime: string;
+  eventEndDatetime: string | null;
   location: string;
   address: string | null;
-  event_type: EventType;
+  eventType: EventType;
   genre: EventGenre;
-  cover_photo_url: string | null;
-  max_attendees: number | null;
-  created_at: string;
-  updated_at: string;
-  user_rsvp_status: UserRsvpStatus | null;
+  coverPhotoUrl: string | null;
+  maxAttendees: number | null;
+  createdAt: string;
+  updatedAt: string;
+  userRsvpStatus: UserRsvpStatus | null;
 };
 
 enum EventType {

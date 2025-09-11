@@ -1,11 +1,8 @@
-import { useState, memo, useMemo } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  Image,
-  SafeAreaView,
   ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';

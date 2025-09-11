@@ -57,13 +57,13 @@ const EventsScreen = () => {
       const matchesTag = selectedTags.every(tag => {
         switch (tag) {
           case 'Going':
-            return event.user_rsvp_status === 'going';
+            return event.userRsvpStatus === 'going';
           case 'Interested':
-            return event.user_rsvp_status === 'interested';
+            return event.userRsvpStatus === 'interested';
           case 'Past':
-            return new Date(event.event_datetime) < new Date();
+            return new Date(event.eventDatetime) < new Date();
           case 'Upcoming':
-            return new Date(event.event_datetime) >= new Date();
+            return new Date(event.eventDatetime) >= new Date();
           default:
             return false;
         }

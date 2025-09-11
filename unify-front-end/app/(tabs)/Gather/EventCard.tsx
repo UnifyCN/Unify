@@ -12,19 +12,19 @@ interface EventCardProps {
 
 const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
   const formatEventTime = (): string => {
-    if (event.event_end_datetime) {
-      return `${formatDate(event.event_datetime)} • ${formatTime(event.event_datetime)} - ${formatTime(event.event_end_datetime)}`;
+    if (event.eventEndDatetime) {
+      return `${formatDate(event.eventDatetime)} • ${formatTime(event.eventDatetime)} - ${formatTime(event.eventEndDatetime)}`;
     }
-    return `${formatDate(event.event_datetime)} • ${formatTime(event.event_datetime)}`;
+    return `${formatDate(event.eventDatetime)} • ${formatTime(event.eventDatetime)}`;
   };
 
   return (
     <TouchableOpacity style={[styles.eventCard, { width }]} onPress={onPress}>
       <View style={styles.eventImagePlaceholder}>
         {/* TODO: Not entirely sure how to handle cover photos but for now its just placeholders */}
-        {event.cover_photo_url ? (
+        {event.coverPhotoUrl ? (
           <Image
-            source={{ uri: event.cover_photo_url }}
+            source={{ uri: event.coverPhotoUrl }}
             style={styles.eventImage}
           />
         ) : (
