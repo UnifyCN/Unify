@@ -62,7 +62,15 @@ export default function SubmoduleMap() {
             {nextStage.description ? (
               <Text style={styles.focusDescription} numberOfLines={3}>{nextStage.description}</Text>
             ) : null}
-            <TouchableOpacity style={styles.focusCta} onPress={() => { /* navigate to lesson later */ }}>
+            <TouchableOpacity
+              style={styles.focusCta}
+              onPress={() => {
+                router.push({
+                  pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
+                  params: { moduleId, submoduleId, stageId: nextStage.id },
+                });
+              }}
+            >
               <Text style={styles.focusCtaText}>{nextStage.is_completed ? 'Retake Lesson' : nextStage.progress_percent > 0 ? 'Resume Lesson' : 'Start Lesson'}</Text>
             </TouchableOpacity>
           </View>
@@ -79,7 +87,12 @@ export default function SubmoduleMap() {
                   <TouchableOpacity
                     activeOpacity={0.8}
                     style={[styles.circleWrap, c.isCompleted ? styles.circleCompleted : c.inProgress ? styles.circleInProgress : styles.circleDefault]}
-                    onPress={() => console.log('Stage tapped:', c.title)}
+                    onPress={() => {
+                      router.push({
+                        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
+                        params: { moduleId, submoduleId, stageId: c.id },
+                      });
+                    }}
                   >
                     {c.isCompleted ? (
                       <Feather name='check' size={32} color='#fff' />
