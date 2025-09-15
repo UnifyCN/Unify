@@ -76,6 +76,20 @@ export default function StageScreen() {
                 </View>
               );
             })}
+            {/* Next button to go to first lesson */}
+            <TouchableOpacity
+              style={styles.nextBtn}
+              onPress={() => {
+                const first = lessons[0];
+                if (!first) return;
+                 router.push({
+                   pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]/lessons/[lessonId]' as any,
+                   params: { moduleId, submoduleId, stageId: stage.id, lessonId: first.id },
+                 });
+              }}
+            >
+              <Text style={styles.nextBtnText}>Next</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -94,6 +108,8 @@ const styles = StyleSheet.create({
   desc: { fontSize: 14, color: '#6B7280', lineHeight: 20, marginBottom: 20 },
   lessonTitle: { fontSize: 20, fontWeight: '700', color: '#111827', marginBottom: 12 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  nextBtn: { marginTop: 8, backgroundColor: '#374151', paddingVertical: 16, borderRadius: 12, alignItems: 'center' },
+  nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });
 
 
