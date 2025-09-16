@@ -47,19 +47,8 @@ export default function LessonScreen() {
           <Text style={styles.headerTitle}>{`Lesson ${lesson.order_num.toFixed(1)}: ${lesson.title}`}</Text>
         </View>
 
-        {/* Debug: show lesson.contents raw */}
-        <View style={{ marginBottom: 12 }}>
-          <Text style={{ fontSize: 12, color: '#888' }}>Debug: lesson.contents = {JSON.stringify(lesson.contents)}</Text>
-        </View>
-
-        {/* Dynamic renderer with fallback */}
-        {lesson.contents.length === 0 ? (
-          // Debug line, remove after
-          <View style={{ padding: 24, backgroundColor: '#FEE2E2', borderRadius: 8 }}>
-            <Text style={{ color: '#B91C1C', fontWeight: 'bold' }}>No lesson content found for this lesson.</Text>
-            <Text style={{ color: '#B91C1C', marginTop: 4 }}>Check your Supabase lesson_contents table for this lessonId.</Text>
-          </View>
-        ) : lesson.type === 'flashcards' ? (
+        {/* Dynamic renderer only */}
+        {lesson.type === 'flashcards' && (
           <FlashcardsCarousel
             items={lesson.contents.map((c: any, i: number) => ({
               id: `${lesson.id}-${i}`,
@@ -67,7 +56,8 @@ export default function LessonScreen() {
               back: c.content?.back ?? c.content?.definition ?? 'Definition',
             }))}
           />
-        ) : lesson.type === 'dropdown' ? (
+        )}
+        {lesson.type === 'dropdown' && (
           <DropdownAccordion
             items={lesson.contents.map((c: any, i: number) => ({
               id: `${lesson.id}-${i}`,
@@ -75,11 +65,6 @@ export default function LessonScreen() {
               body: c.content?.body ?? c.content?.text ?? '',
             }))}
           />
-        ) : (
-          <View style={{ padding: 24, backgroundColor: '#FEF9C3', borderRadius: 8 }}>
-            <Text style={{ color: '#92400E', fontWeight: 'bold' }}>Unknown lesson type or malformed content.</Text>
-            <Text style={{ color: '#92400E', marginTop: 4 }}>Raw contents: {JSON.stringify(lesson.contents)}</Text>
-          </View>
         )}
 
         <View style={styles.navRow}>

@@ -12,30 +12,51 @@ export default function FlashcardsCarousel({ items }: { items: CardItem[] }) {
   const [index, setIndex] = React.useState(0);
   const scrollRef = React.useRef<any>(null);
 
+  const goTo = (i: number) => {
+    if (i < 0 || i >= items.length) return;
+    setIndex(i);
+    scrollRef.current?.scrollTo({ x: i * width, animated: true });
+  };
+
   const onMomentumEnd = (e: any) => {
     const i = Math.round(e.nativeEvent.contentOffset.x / width);
     setIndex(i);
   };
 
   return (
-    <View>
+    <View style={styles.carouselContainer}>
       <Animated.ScrollView
         ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onMomentumEnd}
+        scrollEnabled={false}
       >
         {items.map((item) => (
-          <View key={item.id} style={{ width, paddingHorizontal: 20 }}>
+          <View key={item.id} style={styles.cardOuterWrap}>
             <FlippableCard front={item.front} back={item.back} />
           </View>
         ))}
       </Animated.ScrollView>
-      <View style={styles.paginationRow}>
-        {items.map((_, i) => (
-          <View key={i} style={[styles.dot, i === index && styles.dotActive]} />)
-        )}
+      <View style={styles.indicatorRow}>
+        <Text style={styles.indicatorText}>{`${index + 1}/${items.length}`}</Text>
+      </View>
+      <View style={styles.arrowRow}>
+        <TouchableOpacity
+          style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
+          disabled={index === 0}
+          onPress={() => goTo(index - 1)}
+        >
+          <View style={styles.arrowCircle}><Text style={styles.arrowIcon}>{'◀'}</Text></View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.arrowBtn, index === items.length - 1 && styles.arrowBtnDisabled]}
+          disabled={index === items.length - 1}
+          onPress={() => goTo(index + 1)}
+        >
+          <View style={styles.arrowCircle}><Text style={styles.arrowIcon}>{'▶'}</Text></View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -73,9 +94,30 @@ function FlippableCard({ front, back }: { front: string; back: string }) {
 }
 
 const styles = StyleSheet.create({
+  carouselContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  cardOuterWrap: {
+    width: Dimensions.get('window').width,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 0,
+  },
   cardWrapper: {
-    height: 220,
-    perspective: 1000,
+    width: 260,
+    height: 200,
+    borderRadius: 16,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    perspective: '1000',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    marginBottom: 12,
   },
   card: {
     position: 'absolute',
@@ -83,7 +125,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 12,
+    borderRadius: 16,
     backgroundColor: '#E5E7EB',
     alignItems: 'center',
     justifyContent: 'center',
@@ -94,24 +136,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D5DB',
   },
   cardText: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
     paddingHorizontal: 16,
+    color: '#222',
   },
-  paginationRow: {
+  indicatorRow: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  indicatorText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#222',
+  },
+  arrowRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6,
-    paddingTop: 12,
+    gap: 24,
+    marginTop: 8,
+    marginBottom: 8,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  arrowBtn: {
+    opacity: 1,
+  },
+  arrowBtnDisabled: {
+    opacity: 0.5,
+  },
+  arrowCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  dotActive: { backgroundColor: '#111827' },
+  arrowIcon: {
+    fontSize: 22,
+    color: '#444',
+    fontWeight: '700',
+  },
 });
 
 
