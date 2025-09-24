@@ -5,10 +5,12 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import Header from '@/components/Header';
 import { useRouter } from 'expo-router';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
 import GatherIcon from '@/components/icons/GatherPageIcon';
+import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon'
+import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
+import ClickedGatherIcon from '@/components/icons/ClickedGatherIcon';
 
 const TabIcon = ({IconComponent, title, focused}: any) => {
   return (
@@ -18,7 +20,7 @@ const TabIcon = ({IconComponent, title, focused}: any) => {
         width = {styles.tabIcon.width}
         color={focused ? styles.activeTab.color : styles.inactiveTab.color} 
       />
-      <Text style={styles.tabText}>
+      <Text style={[styles.tabText, focused ? styles.activeTab: styles.inactiveTab]}>
         {title}
       </Text>
     </View>
@@ -54,7 +56,7 @@ export default function TabLayout() {
             title: 'Home',
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent = {HomeIcon}
+                IconComponent = {focused ? ClickedHomeIcon : HomeIcon}
                 title = 'Home'
                 focused = {focused}
               />
@@ -67,7 +69,7 @@ export default function TabLayout() {
             title: 'Learn',
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent = {LearnIcon}
+                IconComponent = {focused ? ClickedLearnIcon : LearnIcon}
                 title = 'Learn'
                 focused = {focused}
               />
@@ -80,7 +82,7 @@ export default function TabLayout() {
           title: 'Gather',
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
-                IconComponent = {GatherIcon}
+                IconComponent = {focused ? ClickedGatherIcon : GatherIcon}
                 title = 'Gather'
                 focused = {focused}
               />
@@ -110,10 +112,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 10,
-    textAlign: 'center',
-    maxWidth: '100%',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    fontFamily: 'Inter'
   },
   tabIcon: {
     height: 24,

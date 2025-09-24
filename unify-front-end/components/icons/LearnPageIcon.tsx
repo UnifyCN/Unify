@@ -1,8 +1,8 @@
 import React from 'react';
 import { Svg, Path } from 'react-native-svg';
 
-const LearnIcon = ({ width = 19, height = 20, color = "#878787" }) => (
-  <Svg width={width} height={height} viewBox="0 0 19 20" fill={color}>
+const LearnIcon = ({ width = 19, height = 20, color = "#878787", focused = false}) => (
+  <Svg width={width} height={height} viewBox="0 0 19 20" fill='none'>
     <Path 
       fillRule="evenodd" 
       clipRule="evenodd" 

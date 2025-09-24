@@ -1,7 +1,7 @@
 import React from 'react';
 import { Svg, Path } from 'react-native-svg';
 
-const HomeIcon = ({ width = 18, height = 20, color = "#878787" }) => (
+const HomeIcon = ({ width = 18, height = 20, color = "#878787", focused = false}) => (
   <Svg width={width} height={height} viewBox="0 0 18 20" fill="none">
     <Path 
       fillRule="evenodd" 
