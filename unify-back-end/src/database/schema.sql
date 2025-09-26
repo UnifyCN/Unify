@@ -232,13 +232,13 @@ BEGIN
   IF TG_OP = 'INSERT' THEN
     -- Increment member count when someone joins a group
     UPDATE groups 
-    SET members_count = members_count + 1 
+    SET member_count = member_count + 1 
     WHERE id = NEW.group_id;
     RETURN NEW;
   ELSIF TG_OP = 'DELETE' THEN
     -- Decrement member count when someone leaves a group
     UPDATE groups 
-    SET members_count = members_count - 1 
+    SET member_count = member_count - 1 
     WHERE id = OLD.group_id;
     RETURN OLD;
   END IF;
