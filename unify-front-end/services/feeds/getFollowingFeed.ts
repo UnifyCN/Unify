@@ -50,17 +50,17 @@ export const getFeedFollowing = async (
 
     // Transform data to match your Post type
     const transformedPosts: PostData[] = (data || []).map((post: any) => ({
-			id: post.id,
-			user: {
-				id: post.users.id,
-				username: post.users.username,
-				name: post.users.username,
-			} as User,
-			time: post.created_at,
-			title: post.title,
-			content: post.content,
-			group: post.groups?.group_name || null,
-		}));
+      id: post.id,
+      user: {
+        id: post.users.id,
+        username: post.users.username,
+        name: post.users.username,
+      } as User,
+      time: post.created_at,
+      title: post.title,
+      content: post.content,
+      group: post.groups?.group_name || null,
+    }));
 
     return {
       posts: transformedPosts,

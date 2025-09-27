@@ -1,11 +1,19 @@
-import { CreatePost } from "@/services/posts/createPost";
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { CreatePost } from '@/services/posts/createPost';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export const useMutateCreatePost = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ title, content, group_id }: { title: string; content: string; group_id: string }) => {
+    mutationFn: async ({
+      title,
+      content,
+      group_id,
+    }: {
+      title: string;
+      content: string;
+      group_id: string;
+    }) => {
       await CreatePost(title, content, group_id);
     },
     onSuccess: () => {
@@ -14,9 +22,9 @@ export const useMutateCreatePost = () => {
       queryClient.invalidateQueries({ queryKey: ['feed', 'forYou'] });
       queryClient.invalidateQueries({ queryKey: ['feed', 'following'] });
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Failed to create post:', error);
-    }
+    },
   });
 };
 

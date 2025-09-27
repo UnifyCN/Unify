@@ -33,7 +33,7 @@ export default function CreatePostButton() {
 
   return (
     <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
-      <Ionicons name="add" size={24} color="white" />
+      <Ionicons name='add' size={24} color='white' />
     </TouchableOpacity>
   );
 }

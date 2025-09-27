@@ -63,7 +63,7 @@ export const PostItem = ({ post }: PostItemProps) => {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.name}>{post.user.name}</Text>
-            <ChevronRight width={6} height={10}/>
+            <ChevronRight width={6} height={10} />
             <Text style={styles.group}>{post.group}</Text>
             <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
           </View>
@@ -121,11 +121,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 22,
-    gap: 12
+    gap: 12,
   },
   postContent: {
     flex: 1,
-    gap: 10
+    gap: 10,
   },
   header: {
     flexDirection: 'row',
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'left',
     gap: 5,
-    lineHeight: 16
+    lineHeight: 16,
   },
   headshot: {
     width: 29,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
   time: {
     fontSize: 10,
     color: '#9F9D9D',
-    fontWeight: '500'
+    fontWeight: '500',
   },
   title: {
     fontSize: 16,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   footerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4
+    gap: 4,
   },
   footerText: {
     fontSize: 14,

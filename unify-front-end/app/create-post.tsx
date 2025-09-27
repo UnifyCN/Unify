@@ -17,11 +17,13 @@ import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 export default function CreatePostScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  
+
   // Get selected group from route params
   const params = useLocalSearchParams();
-  const selectedGroup = params.selectedGroup ? JSON.parse(params.selectedGroup as string) : null;
-  
+  const selectedGroup = params.selectedGroup
+    ? JSON.parse(params.selectedGroup as string)
+    : null;
+
   const createPostMutation = useMutateCreatePost();
 
   const handleSubmit = () => {
@@ -31,16 +33,20 @@ export default function CreatePostScreen() {
     }
 
     createPostMutation.mutate(
-      { title: title.trim(), content: content.trim(), group_id: selectedGroup.id },
+      {
+        title: title.trim(),
+        content: content.trim(),
+        group_id: selectedGroup.id,
+      },
       {
         onSuccess: () => {
           Alert.alert('Success', 'Post created successfully!', [
-            { text: 'OK', onPress: () => router.back() }
+            { text: 'OK', onPress: () => router.back() },
           ]);
         },
-        onError: (error) => {
+        onError: error => {
           Alert.alert('Error', 'Failed to create post. Please try again.');
-        }
+        },
       }
     );
   };
@@ -57,45 +63,54 @@ export default function CreatePostScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
-          <Feather name="x" size={24} color="black" />
+          <Feather name='x' size={24} color='black' />
         </TouchableOpacity>
-        <TouchableOpacity 
-          onPress={handleSubmit} 
-          style={[styles.postButton, (!title.trim() || !content.trim() || !selectedGroup) && styles.disabledButton]}
-          disabled={!title.trim() || !content.trim() || !selectedGroup || createPostMutation.isPending}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          style={[
+            styles.postButton,
+            (!title.trim() || !content.trim() || !selectedGroup) &&
+              styles.disabledButton,
+          ]}
+          disabled={
+            !title.trim() ||
+            !content.trim() ||
+            !selectedGroup ||
+            createPostMutation.isPending
+          }
         >
           {createPostMutation.isPending ? (
-            <ActivityIndicator size="small" color="white" />
+            <ActivityIndicator size='small' color='white' />
           ) : (
             <Text style={styles.postButtonText}>Post</Text>
           )}
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.groupSelector}
         onPress={handleSelectGroup}
       >
         <View style={styles.groupSelectorContent}>
           {selectedGroup ? (
             <View style={styles.selectedGroupInfo}>
-              <SimpleLineIcons name="magnifier" size={18} color="white" />
+              <SimpleLineIcons name='magnifier' size={18} color='white' />
               <Text style={styles.groupSelectorText}>{selectedGroup.name}</Text>
               <View style={styles.placeholder}></View>
             </View>
           ) : (
             <View style={styles.selectedGroupInfo}>
-              <SimpleLineIcons name="magnifier" size={18} color="white" />
+              <SimpleLineIcons name='magnifier' size={18} color='white' />
               <Text style={styles.groupSelectorText}>Select a group</Text>
               <View style={styles.placeholder}></View>
             </View>
           )}
         </View>
       </TouchableOpacity>
-      
+
       <TextInput
         style={styles.titleInput}
-        placeholder="Title"
+        placeholder='Title'
         value={title}
         onChangeText={setTitle}
         multiline
@@ -103,11 +118,11 @@ export default function CreatePostScreen() {
 
       <TextInput
         style={styles.contentInput}
-        placeholder="Body text"
+        placeholder='Body text'
         value={content}
         onChangeText={setContent}
         multiline
-        textAlignVertical="top"
+        textAlignVertical='top'
       />
     </ScrollView>
   );
@@ -128,7 +143,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     paddingVertical: 15,
-    paddingHorizontal: 15 ,
+    paddingHorizontal: 15,
   },
   postButton: {
     backgroundColor: '#007AFF',
@@ -173,7 +188,6 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     color: '#000',
     paddingTop: 18,
-
   },
   contentInput: {
     paddingTop: 12,

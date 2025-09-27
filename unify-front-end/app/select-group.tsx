@@ -31,50 +31,50 @@ export default function SelectGroupScreen() {
 
   return (
     <>
-      <Stack.Screen 
+      <Stack.Screen
         options={{
           headerShown: false, // This hides the default header
         }}
       />
-        <View style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.header}>
-            <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
-            <Feather name="x" size={24} color="black" />
-            </TouchableOpacity>
-            <Text style={styles.title}>Post to</Text>
-            <View style={styles.placeholder} />
+          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
+            <Feather name='x' size={24} color='black' />
+          </TouchableOpacity>
+          <Text style={styles.title}>Post to</Text>
+          <View style={styles.placeholder} />
         </View>
 
         <ScrollView style={styles.content}>
-            {groupsLoading ? (
+          {groupsLoading ? (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#007AFF" />
-                <Text style={styles.loadingText}>Loading groups...</Text>
+              <ActivityIndicator size='large' color='#007AFF' />
+              <Text style={styles.loadingText}>Loading groups...</Text>
             </View>
-            ) : (
+          ) : (
             <View style={styles.groupsList}>
-                {groups?.map((group) => (
+              {groups?.map(group => (
                 <TouchableOpacity
-                    key={group.id}
-                    style={styles.groupOption}
-                    onPress={() => handleGroupSelect(group)}
+                  key={group.id}
+                  style={styles.groupOption}
+                  onPress={() => handleGroupSelect(group)}
                 >
-                    <View style={styles.groupAvatar}>
+                  <View style={styles.groupAvatar}>
                     {/* You can add an image here later or keep it as a placeholder */}
-                    </View>
-                    
-                    <View style={styles.groupInfo}>
-                        <Text style={styles.groupName}>{group.name}</Text>
-                        <Text style={styles.groupDescription} numberOfLines={2}>
-                            {group.description || 'No description available'}
-                        </Text>
-                    </View>
-              </TouchableOpacity>
-                ))}
+                  </View>
+
+                  <View style={styles.groupInfo}>
+                    <Text style={styles.groupName}>{group.name}</Text>
+                    <Text style={styles.groupDescription} numberOfLines={2}>
+                      {group.description || 'No description available'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-            )}
+          )}
         </ScrollView>
-        </View>
+      </View>
     </>
   );
 }

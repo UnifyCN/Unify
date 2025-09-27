@@ -1,6 +1,10 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from '@/lib/supabase';
 
-export const CreatePost = async (title: string, content: string, group_id: string) => {
+export const CreatePost = async (
+  title: string,
+  content: string,
+  group_id: string
+) => {
   try {
     const {
       data: { user },
@@ -14,7 +18,7 @@ export const CreatePost = async (title: string, content: string, group_id: strin
         title: title,
         content: content,
         user_id: user.id,
-        group_id: group_id
+        group_id: group_id,
       })
       .select()
       .single();
@@ -26,4 +30,4 @@ export const CreatePost = async (title: string, content: string, group_id: strin
     console.error('Error creating post:', error);
     throw new Error('Failed to create post');
   }
-}
+};
