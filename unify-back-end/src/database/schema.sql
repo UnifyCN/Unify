@@ -15,6 +15,7 @@ CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     group_id INT REFERENCES groups(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
     content TEXT NOT NULL,
     like_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
