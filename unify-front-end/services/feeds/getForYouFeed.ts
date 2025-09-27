@@ -22,12 +22,18 @@ export const getForYouFeed = async (
       .select(
         `
         id,
+        title,
         content,
         created_at,
         user_id,
+        group_id,
         users!user_id(
           id,
           username
+        ),
+        groups!group_id(
+          id,
+          group_name
         )
       `
       )
@@ -44,15 +50,17 @@ export const getForYouFeed = async (
 
     // Transform data to match your PostData type
     const transformedPosts: PostData[] = (data || []).map((post: any) => ({
-      id: post.id,
-      user: {
-        id: post.users.id,
-        username: post.users.username,
-        name: post.users.username,
-      } as User,
-      time: post.created_at,
-      description: post.content,
-    }));
+			id: post.id,
+			user: {
+				id: post.users.id,
+				username: post.users.username,
+				name: post.users.username,
+			} as User,
+			time: post.created_at,
+			title: post.title,
+			content: post.content,
+			group: post.groups?.group_name || null,
+		}));
 
     return {
       posts: transformedPosts,
