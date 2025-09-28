@@ -8,7 +8,7 @@ interface FloatingChatButtonProps {
   style?: any;
 }
 
-const DISABLED_ROUTES = ['gather', 'create-post', 'select-group', 'profile'];
+const DISABLED_ROUTES = ['gather', 'EventDetailScreen', 'create-post', 'select-group', 'profile'];
 
 export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -16,7 +16,7 @@ export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
 
   // Hide the button on disabled routes
   const shouldHide = DISABLED_ROUTES.some(
-    route => pathname === `/${route}` || pathname?.includes(route)
+    route => pathname === `/${route}` || pathname?.toLowerCase().includes(route)
   );
 
   if (shouldHide) {
