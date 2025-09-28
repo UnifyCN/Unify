@@ -29,6 +29,7 @@ import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
 import ViewMoreCard from './ViewMoreCard';
 import CreatePostButton from '@/components/posts/CreatePostButton';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 
 const SCROLL_DISTANCE = 200;
 const AnimatedTouchableOpacity =
@@ -114,17 +115,34 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 });
 
 export default function GatherScreen() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState('For You');
 
   const renderFeedContent = useMemo(() => {
     switch (activeTab) {
       case 'Following':
-        return <FollowingFeed />;
+        return (
+          <FollowingFeed
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No one you follow has posted anything yet'
+                submessage='Follow other users to see their posts here'
+              />
+            }
+          />
+        );
       case 'Groups':
         return <GroupsFeed />;
       default:
-        return <ForYouFeed />;
+        return (
+          <ForYouFeed
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No one has posted anything yet'
+                submessage='No posts for you to see'
+              />
+            }
+          />
+        );
     }
   }, [activeTab]);
 

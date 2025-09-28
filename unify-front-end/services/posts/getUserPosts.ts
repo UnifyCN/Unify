@@ -3,20 +3,26 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
 
-export const getForYouFeed = async (
+export const getUserPosts = async (
+  userId?: string,
   cursor?: string,
   limit = 20
 ): Promise<FeedResponse> => {
   try {
-    // Get current user's ID
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
+    let targetUserId = userId;
+
+    // If no userId provided, get current user's ID
+    if (!targetUserId) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      targetUserId = user.id;
     }
 
-    // Get all posts without like data (likes will be fetched individually)
+    // Get posts created by the user
     const { data, error } = await supabase
       .from('posts')
       .select(
@@ -37,6 +43,7 @@ export const getForYouFeed = async (
         )
       `
       )
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false })
       .range(
         cursor ? parseInt(cursor) : 0,
@@ -44,7 +51,7 @@ export const getForYouFeed = async (
       );
 
     if (error) {
-      throw new Error(`Failed to fetch following feed: ${error.message}`);
+      throw new Error(`Failed to fetch user posts: ${error.message}`);
     }
 
     // Transform data to match your PostData type
@@ -69,7 +76,7 @@ export const getForYouFeed = async (
           : undefined,
     };
   } catch (error) {
-    console.error('Error fetching following feed:', error);
+    console.error('Error fetching user posts:', error);
     throw error;
   }
 };

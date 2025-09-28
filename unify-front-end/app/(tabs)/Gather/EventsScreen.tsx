@@ -95,9 +95,7 @@ const EventsScreen = () => {
     return (
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <Header
-          onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
-        />
+        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading events...</Text>
         </View>
@@ -109,9 +107,7 @@ const EventsScreen = () => {
     return (
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <Header
-          onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
-        />
+        <Header />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load events</Text>
           <TouchableOpacity

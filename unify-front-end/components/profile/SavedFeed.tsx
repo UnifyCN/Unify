@@ -2,7 +2,12 @@ import React from 'react';
 import Feed from '../home/Feed';
 import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 
-const SavedFeed = () => {
+interface SavedFeedProps {
+  ListHeaderComponent: React.ReactElement;
+  ListEmptyComponent: React.ReactElement;
+}
+
+const SavedFeed = ({ ListHeaderComponent, ListEmptyComponent }: SavedFeedProps) => {
   const {
     data,
     fetchNextPage,
@@ -22,6 +27,8 @@ const SavedFeed = () => {
       isLoading={isLoading}
       isRefetching={isRefetching}
       refetch={refetch}
+      ListHeaderComponent={ListHeaderComponent}
+      ListEmptyComponent={ListEmptyComponent}
     />
   );
 };

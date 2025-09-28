@@ -1,10 +1,9 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Header from '@/components/Header';
-import { useRouter } from 'expo-router';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
 import GatherIcon from '@/components/icons/GatherPageIcon';
@@ -38,9 +37,7 @@ export default function TabLayout() {
 
   return (
     <>
-      <Header
-        onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
-      />
+      <Header />
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
@@ -52,6 +49,15 @@ export default function TabLayout() {
             paddingBottom: 52,
             borderTopWidth: 1,
             borderTopColor: '#F0F0F0',
+          },
+        }}
+        screenListeners={{
+          tabPress: (e) => {
+            const routeName = e.target?.split('-')[0];
+            if (routeName === 'Gather') {
+              // Reset Gather stack to the main screen
+              router.replace('/(tabs)/Gather/gather');
+            }
           },
         }}
       >
@@ -85,7 +91,7 @@ export default function TabLayout() {
           name='Gather'
           options={{
             title: 'Gather',
-            tabBarIcon: ({ focused, color }) => (
+            tabBarIcon: ({ focused }) => (
               <TabIcon
                 IconComponent={focused ? ClickedGatherIcon : GatherIcon}
                 title='Gather'
@@ -94,9 +100,6 @@ export default function TabLayout() {
             ),
           }}
         />
-        {/* Hide non-tab routes from appearing as tabs */}
-        <Tabs.Screen name='profile' options={{ href: null }} />
-        <Tabs.Screen name='profile-blank' options={{ href: null }} />
       </Tabs>
     </>
   );

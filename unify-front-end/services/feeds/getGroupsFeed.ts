@@ -16,14 +16,12 @@ export const getFeedGroups = async (
       throw new Error('User not authenticated');
     }
 
-    console.log(typeof user.id);
     // 1) Get the list of group IDs the user has joined
     const { data: memberships, error: membershipError } = await supabase
       .from('group_members')
       .select('group_id')
       .eq('user_id', user.id);
 
-    console.log(memberships);
     if (membershipError) {
       throw new Error(
         `Failed to fetch user groups: ${membershipError.message}`
