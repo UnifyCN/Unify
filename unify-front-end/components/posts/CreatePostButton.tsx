@@ -6,8 +6,8 @@ import { router } from 'expo-router';
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    bottom: 100, // Above the bottom navigation
-    right: 20,
+    bottom: 15, // Above the bottom navigation
+    right: 30,
     width: 56,
     height: 56,
     borderRadius: 28,

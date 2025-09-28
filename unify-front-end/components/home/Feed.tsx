@@ -39,7 +39,7 @@ const Feed = ({
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <Text style={styles.loadingMessage}>Loading...</Text>
       </View>
     );
   }
@@ -81,6 +81,12 @@ const styles = StyleSheet.create({
   loadingFooter: {
     padding: 20,
     alignItems: 'center',
+  },
+  loadingMessage: {
+    paddingTop: 20,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
   },
 });
 

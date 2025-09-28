@@ -81,7 +81,11 @@ export default function Profile() {
   const HeaderComponent = useMemo(
     () => (
       <View>
-        <ProfileHeader userId={userId} isCurrentUser={isCurrentUser} />
+        <ProfileHeader
+          key={userId}
+          userId={userId}
+          isCurrentUser={isCurrentUser}
+        />
         <TabHeader
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -95,11 +99,13 @@ export default function Profile() {
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'Comments':
+        // TODO: This will make screen go blank, implement after commenting feature has been adding
         return null;
       case 'Saved':
         if (!isCurrentUser) return null;
         return (
           <SavedFeed
+            key={`saved-${userId}`}
             ListHeaderComponent={HeaderComponent}
             ListEmptyComponent={
               <EmptyFeedMessage
@@ -112,6 +118,7 @@ export default function Profile() {
       default:
         return (
           <UserPostsFeed
+            key={`posts-${userId}`}
             userId={userId}
             ListHeaderComponent={HeaderComponent}
             ListEmptyComponent={
@@ -129,6 +136,7 @@ export default function Profile() {
     }
   }, [
     activeTab,
+    userId,
     data,
     fetchNextPage,
     hasNextPage,
