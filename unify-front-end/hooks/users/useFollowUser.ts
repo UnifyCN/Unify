@@ -9,8 +9,12 @@ export const useFollowUser = () => {
     onSuccess: (_, variables) => {
       const targetUserId = variables.targetUserId;
 
+      queryClient.refetchQueries({
+        queryKey: ['userInfo'],
+      });
+
       // Invalidate *exact* user info query
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: ['userInfo', targetUserId],
       });
 
