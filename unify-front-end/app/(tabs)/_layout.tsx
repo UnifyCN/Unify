@@ -52,7 +52,7 @@ export default function TabLayout() {
           },
         }}
         screenListeners={{
-          tabPress: (e) => {
+          tabPress: e => {
             const routeName = e.target?.split('-')[0];
             if (routeName === 'Gather') {
               // Reset Gather stack to the main screen

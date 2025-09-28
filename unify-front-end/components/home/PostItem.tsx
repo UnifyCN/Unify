@@ -53,7 +53,10 @@ export const PostItem = ({ post }: PostItemProps) => {
     <View>
       <View style={styles.postContainer}>
         {/* Head Shot */}
-        <TouchableOpacity style={styles.headshot} onPress={navigateToUserProfile}>
+        <TouchableOpacity
+          style={styles.headshot}
+          onPress={navigateToUserProfile}
+        >
           {/* TODO: Have to add default headshot */}
           {post.user.headshot ? (
             <post.user.headshot />

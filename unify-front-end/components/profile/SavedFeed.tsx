@@ -7,7 +7,10 @@ interface SavedFeedProps {
   ListEmptyComponent: React.ReactElement;
 }
 
-const SavedFeed = ({ ListHeaderComponent, ListEmptyComponent }: SavedFeedProps) => {
+const SavedFeed = ({
+  ListHeaderComponent,
+  ListEmptyComponent,
+}: SavedFeedProps) => {
   const {
     data,
     fetchNextPage,

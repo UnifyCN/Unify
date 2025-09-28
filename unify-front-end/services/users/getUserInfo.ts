@@ -41,7 +41,9 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       .eq('follower_id', targetUserId);
 
     if (followingError) {
-      throw new Error(`Failed to fetch following count: ${followingError.message}`);
+      throw new Error(
+        `Failed to fetch following count: ${followingError.message}`
+      );
     }
 
     // Get follower count
@@ -51,7 +53,9 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       .eq('following_id', targetUserId);
 
     if (followerError) {
-      throw new Error(`Failed to fetch follower count: ${followerError.message}`);
+      throw new Error(
+        `Failed to fetch follower count: ${followerError.message}`
+      );
     }
 
     return {

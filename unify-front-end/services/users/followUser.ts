@@ -5,7 +5,10 @@ export interface FollowAction {
   isFollowing: boolean;
 }
 
-export const followUser = async ({ targetUserId, isFollowing }: FollowAction): Promise<void> => {
+export const followUser = async ({
+  targetUserId,
+  isFollowing,
+}: FollowAction): Promise<void> => {
   try {
     const {
       data: { user },
@@ -16,12 +19,10 @@ export const followUser = async ({ targetUserId, isFollowing }: FollowAction): P
 
     if (isFollowing) {
       // Follow the user
-      const { error } = await supabase
-        .from('user_followers')
-        .insert({
-          follower_id: user.id,
-          following_id: targetUserId,
-        });
+      const { error } = await supabase.from('user_followers').insert({
+        follower_id: user.id,
+        following_id: targetUserId,
+      });
 
       if (error) {
         throw new Error(`Failed to follow user: ${error.message}`);

@@ -28,7 +28,14 @@ const TabHeader = memo(
             onPress={() => setActiveTab(tab)}
             style={[styles.tab, activeTab === tab && styles.activeTab]}
           >
-            <Text style={styles.tabText}>{tab}</Text>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -88,7 +95,6 @@ export default function Profile() {
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'Comments':
-        // TODO: Implement comments feed
         return null;
       case 'Saved':
         if (!isCurrentUser) return null;
@@ -111,7 +117,11 @@ export default function Profile() {
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No posts to see'
-                submessage={isCurrentUser ? 'You haven\'t posted anything yet' : 'This user hasn\'t posted anything yet'}
+                submessage={
+                  isCurrentUser
+                    ? "You haven't posted anything yet"
+                    : "This user hasn't posted anything yet"
+                }
               />
             }
           />
@@ -147,23 +157,31 @@ const styles = StyleSheet.create({
   },
   tabs: {
     marginTop: 16,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#fff',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
-    borderColor: 'transparent',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: '#F9F9F9',
+    borderBottomColor: '#000',
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#000',
   },
 });

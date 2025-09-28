@@ -23,11 +23,14 @@ export const getFeedFollowing = async (
       .eq('follower_id', user.id);
 
     if (followingError) {
-      throw new Error(`Failed to fetch following list: ${followingError.message}`);
+      throw new Error(
+        `Failed to fetch following list: ${followingError.message}`
+      );
     }
 
     // Extract the user IDs
-    const followingUserIds = followingData?.map(item => item.following_id) || [];
+    const followingUserIds =
+      followingData?.map(item => item.following_id) || [];
 
     // If not following anyone, return empty feed
     if (followingUserIds.length === 0) {

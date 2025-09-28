@@ -8,7 +8,10 @@ interface ProfileHeaderProps {
   isCurrentUser: boolean;
 }
 
-export const ProfileHeader = ({ userId, isCurrentUser }: ProfileHeaderProps) => {
+export const ProfileHeader = ({
+  userId,
+  isCurrentUser,
+}: ProfileHeaderProps) => {
   const { data: userInfo, isLoading, error } = useUserInfo(userId);
 
   if (isLoading) {
@@ -147,5 +150,5 @@ const styles = StyleSheet.create({
   },
   followButtonContainer: {
     marginTop: 20,
-  }
+  },
 });

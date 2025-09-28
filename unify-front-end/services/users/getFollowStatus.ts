@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase';
 
-export const getFollowStatus = async (targetUserId: string): Promise<boolean> => {
+export const getFollowStatus = async (
+  targetUserId: string
+): Promise<boolean> => {
   try {
     const {
       data: { user },
@@ -16,7 +18,8 @@ export const getFollowStatus = async (targetUserId: string): Promise<boolean> =>
       .eq('following_id', targetUserId)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 is "not found" error
       throw new Error(`Failed to check follow status: ${error.message}`);
     }
 

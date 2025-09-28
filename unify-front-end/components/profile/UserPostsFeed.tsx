@@ -8,7 +8,11 @@ interface UserPostsFeedProps {
   ListEmptyComponent: React.ReactElement;
 }
 
-const UserPostsFeed = ({ userId, ListHeaderComponent, ListEmptyComponent }: UserPostsFeedProps) => {
+const UserPostsFeed = ({
+  userId,
+  ListHeaderComponent,
+  ListEmptyComponent,
+}: UserPostsFeedProps) => {
   const {
     data,
     fetchNextPage,
