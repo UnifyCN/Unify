@@ -124,6 +124,7 @@ export default function GatherScreen() {
       case 'Following':
         return (
           <FollowingFeed
+            key={`following-${activeTab}`}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No one you follow has posted anything yet'
@@ -133,10 +134,11 @@ export default function GatherScreen() {
           />
         );
       case 'Groups':
-        return <GroupsFeed />;
+        return <GroupsFeed key={`groups-${activeTab}`} />;
       default:
         return (
           <ForYouFeed
+            key={`foryou-${activeTab}`}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No one has posted anything yet'

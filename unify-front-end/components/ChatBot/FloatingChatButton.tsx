@@ -8,7 +8,7 @@ interface FloatingChatButtonProps {
   style?: any;
 }
 
-const DISABLED_ROUTES = ['gather', 'create-post', 'select-group'];
+const DISABLED_ROUTES = ['gather', 'create-post', 'select-group', 'profile'];
 
 export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
   const [isModalVisible, setIsModalVisible] = useState(false);

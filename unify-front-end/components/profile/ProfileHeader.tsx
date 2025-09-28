@@ -1,36 +1,18 @@
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { useUserInfo } from '@/hooks/users/useUserInfo';
+import { View, Text, StyleSheet } from 'react-native';
 import { FollowButton } from './FollowButton';
+import { UserInfo } from '@/services/users/getUserInfo';
 
 interface ProfileHeaderProps {
-  userId: string;
-  isCurrentUser: boolean;
+  userInfo: UserInfo | undefined;
+  isCurrentUser: boolean | null;
 }
 
 export const ProfileHeader = ({
-  userId,
+  userInfo,
   isCurrentUser,
 }: ProfileHeaderProps) => {
-  const { data: userInfo, isLoading, error } = useUserInfo(userId);
-
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size='large' color='#000' />
-        <Text style={styles.loadingText}>Loading profile...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Failed to load profile</Text>
-      </View>
-    );
-  }
-
+  
   if (!userInfo) {
     return null;
   }
@@ -69,7 +51,7 @@ export const ProfileHeader = ({
       {/* Follow Button */}
       {!isCurrentUser && (
         <View style={styles.followButtonContainer}>
-          <FollowButton targetUserId={userId} />
+          <FollowButton targetUserId={userInfo.id} />
         </View>
       )}
     </View>
@@ -81,25 +63,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     alignItems: 'center',
-  },
-  loadingContainer: {
-    backgroundColor: '#fff',
-    padding: 40,
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
-  errorContainer: {
-    backgroundColor: '#fff',
-    padding: 40,
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#ff4444',
   },
   profilePictureContainer: {
     marginBottom: 20,

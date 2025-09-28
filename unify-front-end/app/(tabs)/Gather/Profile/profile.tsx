@@ -1,4 +1,10 @@
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
@@ -7,6 +13,7 @@ import SavedFeed from '@/components/profile/SavedFeed';
 import UserPostsFeed from '@/components/profile/UserPostsFeed';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
+import { useUserInfo } from '@/hooks/users/useUserInfo';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -45,29 +52,7 @@ const TabHeader = memo(
 
 export default function Profile() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const isCurrentUser = currentUserId === userId;
-
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setCurrentUserId(user.id);
-      }
-    };
-    getCurrentUser();
-  }, []);
-
-  const [activeTab, setActiveTab] = useState('Posts');
-
-  useEffect(() => {
-    if (!isCurrentUser && activeTab === 'Saved') {
-      setActiveTab('Posts');
-    }
-  }, [isCurrentUser, activeTab]);
-
+  const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
   const {
     data,
     fetchNextPage,
@@ -78,22 +63,54 @@ export default function Profile() {
     refetch,
   } = useUserPosts(userId);
 
+  const { data: userInfo, isLoading: userLoading } = useUserInfo(userId);
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setIsCurrentUser(user.id === userId);
+      } else {
+        setIsCurrentUser(false);
+      }
+    };
+    getCurrentUser();
+  }, [userId]);
+
+  const [activeTab, setActiveTab] = useState('Posts');
+
+  useEffect(() => {
+    if (isCurrentUser === false && activeTab === 'Saved') {
+      setActiveTab('Posts');
+    }
+  }, [isCurrentUser, activeTab]);
+
+
   const HeaderComponent = useMemo(
     () => (
       <View>
-        <ProfileHeader
-          key={userId}
-          userId={userId}
-          isCurrentUser={isCurrentUser}
-        />
+        {userLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size='large' color='#000' />
+            <Text style={styles.loadingText}>Loading profile...</Text>
+          </View>
+        ) : (
+          <ProfileHeader
+            key={userId}
+            isCurrentUser={isCurrentUser}
+            userInfo={userInfo}
+          />
+        )}
         <TabHeader
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          isCurrentUser={isCurrentUser}
+          isCurrentUser={isCurrentUser!}
         />
       </View>
     ),
-    [userId, activeTab, setActiveTab, isCurrentUser]
+    [userId, activeTab, setActiveTab, isCurrentUser, userLoading, userInfo]
   );
 
   const renderTabContent = useMemo(() => {
@@ -159,6 +176,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    backgroundColor: '#fff',
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
   },
   feedContainer: {
     flex: 1,

@@ -7,12 +7,11 @@ export const useFollowUser = () => {
   return useMutation<void, Error, FollowAction>({
     mutationFn: followUser,
     onSuccess: (_, variables) => {
-      // Invalidate user info queries to update follower/following counts
-      queryClient.invalidateQueries({ queryKey: ['userInfo'] });
+      const targetUserId = variables.targetUserId;
 
-      // Also invalidate the specific user's info if we have their ID
+      // Invalidate *exact* user info query
       queryClient.invalidateQueries({
-        queryKey: ['userInfo', variables.targetUserId],
+        queryKey: ['userInfo', targetUserId],
       });
 
       // Invalidate follow status cache to update button text immediately
@@ -21,7 +20,7 @@ export const useFollowUser = () => {
       });
 
       // Invalidate following feed to update posts immediately
-      queryClient.invalidateQueries({
+      queryClient.refetchQueries({
         queryKey: ['feed', 'following'],
       });
     },

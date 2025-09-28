@@ -19,7 +19,7 @@ export type Pathway = {
 };
 
 //example (temp data)
-export const PATHWAYS: Pathway[] = [
+const PATHWAYS: Pathway[] = [
   {
     id: 'finance',
     title: 'Finance for Newcomers',
@@ -69,3 +69,5 @@ export function getModule(pathId: string, moduleId: string) {
   const m = p?.modules.find(m => m.id === moduleId);
   return { pathway: p, module: m };
 }
+
+export default PATHWAYS;
