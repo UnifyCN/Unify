@@ -8,6 +8,11 @@ export type PostData = {
   time: string;
   description: string;
   pictures?: React.FC[];
+  title?: string;
+  group?: {
+    id: number;
+    name: string;
+  } | null;
 };
 
 // Feed response type

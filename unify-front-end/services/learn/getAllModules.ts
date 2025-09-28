@@ -13,9 +13,12 @@ export interface Module {
 export async function getAllModules(): Promise<Module[]> {
   try {
     console.log('Fetching all modules...');
-    
+
     // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
     if (userError || !user) {
       console.error('Error getting user:', userError);
       return [];
@@ -53,7 +56,10 @@ export async function getAllModules(): Promise<Module[]> {
     const { data: submoduleCounts, error: submoduleError } = await supabase
       .from('submodules')
       .select('module_id, id')
-      .in('module_id', modules.map(m => m.id));
+      .in(
+        'module_id',
+        modules.map(m => m.id)
+      );
 
     if (submoduleError) {
       console.error('Error fetching submodule counts:', submoduleError);
@@ -73,10 +79,14 @@ export async function getAllModules(): Promise<Module[]> {
     // Process the data
     const modulesWithProgress = modules.map(module => {
       const progress = userProgress?.find(p => p.module_id === module.id);
-      const totalSubmodules = submoduleCounts?.filter(s => s.module_id === module.id).length || 0;
-      const completedSubmodulesCount = completedSubmodules?.filter(cs => 
-        submoduleCounts?.find(s => s.id === cs.submodule_id && s.module_id === module.id)
-      ).length || 0;
+      const totalSubmodules =
+        submoduleCounts?.filter(s => s.module_id === module.id).length || 0;
+      const completedSubmodulesCount =
+        completedSubmodules?.filter(cs =>
+          submoduleCounts?.find(
+            s => s.id === cs.submodule_id && s.module_id === module.id
+          )
+        ).length || 0;
 
       return {
         id: module.id,
@@ -91,7 +101,6 @@ export async function getAllModules(): Promise<Module[]> {
 
     console.log('Processed modules with progress:', modulesWithProgress);
     return modulesWithProgress;
-
   } catch (error) {
     console.error('Error in getAllModules:', error);
     return [];

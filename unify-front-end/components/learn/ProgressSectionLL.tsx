@@ -39,10 +39,10 @@ export function ProgressSectionLL({
       >
         {/* Commented out for now, but can be used later */}
         <ProgressSectionCard
-          title="Pathway to Finance"
-          description="Short description"
-          image={require("@/assets/images/Budget101.jpeg")}
-          href="/(tabs)/Learn/modules/11111111-1111-1111-1111-111111111111"
+          title='Pathway to Finance'
+          description='Short description'
+          image={require('@/assets/images/Budget101.jpeg')}
+          href='/(tabs)/Learn/modules/11111111-1111-1111-1111-111111111111'
         />
 
         <ProgressSectionCard

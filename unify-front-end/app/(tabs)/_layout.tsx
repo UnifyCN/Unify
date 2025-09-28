@@ -12,36 +12,35 @@ export default function TabLayout() {
   const router = useRouter();
   return (
     <>
-    <Header
-      onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
-    />
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
-        headerShown: false,
-      }}
-      tabBar={props => <CustomNavBar {...props} />}
-    >
-      <Tabs.Screen
-        name='index'
-        options={{
-          title: 'Home',
-        }}
+      <Header
+        onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
       />
-      <Tabs.Screen
-        name='Learn/index'
-        options={{
-          title: 'Learn',
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
+          headerShown: false,
         }}
-      />
-      <Tabs.Screen
-        name='Gather/gather'
-        options={{
-          title: 'Gather',
-        }}
-      />
-    </Tabs>
+        tabBar={props => <CustomNavBar {...props} />}
+      >
+        <Tabs.Screen
+          name='index'
+          options={{
+            title: 'Home',
+          }}
+        />
+        <Tabs.Screen
+          name='Learn/index'
+          options={{
+            title: 'Learn',
+          }}
+        />
+        <Tabs.Screen
+          name='Gather/gather'
+          options={{
+            title: 'Gather',
+          }}
+        />
+      </Tabs>
     </>
   );
-  
 }

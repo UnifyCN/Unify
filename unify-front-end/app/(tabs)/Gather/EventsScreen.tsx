@@ -23,6 +23,7 @@ const EventsScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>(['Upcoming']);
   const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
+  const [searchInput, setSearchInput] = useState('');
 
   const tags = ['Upcoming', 'Going', 'Interested', 'Past'];
   const genreTags = [
@@ -144,10 +145,11 @@ const EventsScreen = () => {
             style={styles.searchIcon}
           />
           <TextInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+            value={searchInput}
+            onChangeText={setSearchInput}
             style={styles.searchInput}
             placeholder='Search for events near you'
+            onSubmitEditing={() => setSearchQuery(searchInput)}
             placeholderTextColor='#999'
           />
           {/* TODO: Implement addtional filter screen later */}
