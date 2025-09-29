@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,18 +6,34 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { getUserJoinedGroups } from '@/services/groups/getJoinedGroups';
+import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { useQuery } from '@tanstack/react-query';
 import Feather from '@expo/vector-icons/Feather';
+import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
+import SearchGroupsList from '@/components/groups/SearchGroupsList';
 
 export default function SelectGroupScreen() {
-  // Fetch all available groups
+  const [searchText, setSearchText] = useState('');
+
+  // Fetch user's joined groups
   const { data: groups, isLoading: groupsLoading } = useQuery({
-    queryKey: ['groups'],
+    queryKey: ['joined-groups'],
     queryFn: getUserJoinedGroups,
   });
+
+  // Filter groups based on search text
+  const filteredGroups = useMemo(() => {
+    if (!groups || !searchText.trim()) {
+      return groups || [];
+    }
+
+    return groups.filter(group =>
+      group.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [groups, searchText]);
 
   const handleGroupSelect = (group: any) => {
     // Navigate back to create-post with selected group
@@ -27,6 +43,10 @@ export default function SelectGroupScreen() {
 
   const handleCancel = () => {
     router.back();
+  };
+
+  const clearSearch = () => {
+    setSearchText('');
   };
 
   return (
@@ -45,6 +65,22 @@ export default function SelectGroupScreen() {
           <View style={styles.placeholder} />
         </View>
 
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputWrapper}>
+            <SimpleLineIcons name='magnifier' size={18} color='white' />
+            <TextInput
+              style={styles.searchInput}
+              placeholder='Search for a group'
+              placeholderTextColor='#FFF'
+              value={searchText}
+              onChangeText={setSearchText}
+              autoCapitalize='none'
+              autoCorrect={false}
+            />
+          </View>
+        </View>
+
         <ScrollView style={styles.content}>
           {groupsLoading ? (
             <View style={styles.loadingContainer}>
@@ -52,26 +88,11 @@ export default function SelectGroupScreen() {
               <Text style={styles.loadingText}>Loading groups...</Text>
             </View>
           ) : (
-            <View style={styles.groupsList}>
-              {groups?.map(group => (
-                <TouchableOpacity
-                  key={group.id}
-                  style={styles.groupOption}
-                  onPress={() => handleGroupSelect(group)}
-                >
-                  <View style={styles.groupAvatar}>
-                    {/* You can add an image here later or keep it as a placeholder */}
-                  </View>
-
-                  <View style={styles.groupInfo}>
-                    <Text style={styles.groupName}>{group.name}</Text>
-                    <Text style={styles.groupDescription} numberOfLines={2}>
-                      {group.description || 'No description available'}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <SearchGroupsList
+              groups={filteredGroups}
+              onGroupSelect={handleGroupSelect}
+              searchText={searchText}
+            />
           )}
         </ScrollView>
       </View>
@@ -83,20 +104,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingHorizontal: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 60,
+    marginTop: 60,
     paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
   },
   cancelButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    padding: 15,
   },
   title: {
     fontSize: 16,
@@ -105,11 +123,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   placeholder: {
-    width: 44, // Same width as cancel button for centering
+    width: 54, // Same width as cancel button for centering
+  },
+  searchContainer: {
+    paddingVertical: 10,
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#8F8F8F',
+    gap: 15,
+    borderRadius: 15,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#FFF',
   },
   content: {
     flex: 1,
-    gap: 30,
   },
   loadingContainer: {
     flex: 1,
@@ -123,7 +161,6 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   groupsList: {
-    paddingHorizontal: 20,
     paddingTop: 12,
     gap: 30,
   },
@@ -154,8 +191,13 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
-  memberCount: {
-    fontSize: 12,
-    color: '#999',
+  emptyStateContainer: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });

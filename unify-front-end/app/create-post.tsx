@@ -40,9 +40,13 @@ export default function CreatePostScreen() {
       },
       {
         onSuccess: () => {
-          Alert.alert('Success', 'Post created successfully!', [
-            { text: 'OK', onPress: () => router.back() },
-          ]);
+          // Navigate to success page instead of showing alert
+          router.push({
+            pathname: '/post-success',
+            params: {
+              postTitle: title.trim(),
+            },
+          });
         },
         onError: error => {
           Alert.alert('Error', 'Failed to create post. Please try again.');
@@ -111,6 +115,7 @@ export default function CreatePostScreen() {
       <TextInput
         style={styles.titleInput}
         placeholder='Title'
+        placeholderTextColor='#000'
         value={title}
         onChangeText={setTitle}
         multiline
@@ -119,6 +124,7 @@ export default function CreatePostScreen() {
       <TextInput
         style={styles.contentInput}
         placeholder='Body text'
+        placeholderTextColor='#000'
         value={content}
         onChangeText={setContent}
         multiline
@@ -138,15 +144,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    marginTop: 30,
+    marginTop: 60,
   },
   cancelButton: {
-    paddingVertical: 15,
-    paddingHorizontal: 15,
+    padding: 15,
   },
   postButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2F2F2F',
     paddingVertical: 7,
     paddingHorizontal: 24,
     borderRadius: 15,
@@ -163,7 +167,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 15,
     backgroundColor: '#8F8F8F',
-    marginBottom: 16,
+    marginVertical: 16,
   },
   groupSelectorContent: {
     flexDirection: 'row',
