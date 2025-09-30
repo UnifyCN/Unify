@@ -74,13 +74,6 @@ export default function RootLayout() {
                       name='(tabs)'
                       options={{ headerShown: false }}
                     />
-                    <Stack.Screen
-                      name='create-post'
-                      options={{
-                        headerShown: false,
-                        presentation: 'modal',
-                      }}
-                    />
                     <Stack.Screen name='+not-found' />
                   </Stack>
                   <FloatingChatButton />
