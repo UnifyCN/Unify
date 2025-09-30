@@ -1,13 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import CreatePostModal from './CreatePostModal';
+
+export default function CreatePostButton() {
+  const [showModal, setShowModal] = useState(false);
+
+  const handlePress = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setShowModal(false);
+  };
+
+  return (
+    <>
+      <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
+        <Ionicons name='add' size={24} color='white' />
+      </TouchableOpacity>
+
+      <CreatePostModal visible={showModal} onClose={handleCloseCreateModal} />
+    </>
+  );
+}
 
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    bottom: 15, // Above the bottom navigation
-    right: 30,
+    bottom: 100, // Above the bottom navigation
+    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -17,15 +39,3 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
 });
-
-export default function CreatePostButton() {
-  const handlePress = () => {
-    router.navigate('/create-post');
-  };
-
-  return (
-    <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
-      <Ionicons name='add' size={24} color='white' />
-    </TouchableOpacity>
-  );
-}

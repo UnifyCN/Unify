@@ -83,7 +83,7 @@ export const getFeedFollowing = async (
       time: post.created_at,
       title: post.title,
       content: post.content,
-      group: post.groups?.group_name || null,
+      group: post.groups.group_name,
     }));
 
     return {
