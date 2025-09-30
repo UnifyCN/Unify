@@ -5,39 +5,31 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Modal
 } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 
-export default function PostSuccessScreen() {
-  const params = useLocalSearchParams();
-  const postTitle = params.postTitle as string;
-
-  const handleClose = () => {
-    router.push('/(tabs)/Gather/gather');
-  };
+export default function PostSuccessModal({ visible, onClose, postTitle }: any) {
+  if (!visible) return null;
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
-      <SafeAreaView style={styles.container}>
+    <Modal>
+        <View style={styles.container}>
         <View style={styles.content}>
-          <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <Feather name='x' size={24} color='black' />
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Feather name="x" size={24} color="black" />
           </TouchableOpacity>
-
+          
+          
           <Text style={styles.title}>Your post is up!</Text>
-
+          
           <View style={styles.mascotPlaceholder}>
-            <Text style={styles.mascotText}>mascot graphic</Text>
+            <Text style={styles.mascotText}>🎉 mascot graphic 🎉</Text>
           </View>
+          
         </View>
-      </SafeAreaView>
-    </>
+      </View>
+    </Modal>
   );
 }
 

@@ -7,21 +7,32 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
+  Modal,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { useQuery } from '@tanstack/react-query';
 import Feather from '@expo/vector-icons/Feather';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import SearchGroupsList from '@/components/groups/SearchGroupsList';
 
-export default function SelectGroupScreen() {
+interface SelectGroupModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onGroupSelect: (group: any) => void;
+}
+
+export default function SelectGroupModal({
+  visible,
+  onClose,
+  onGroupSelect,
+}: SelectGroupModalProps) {
   const [searchText, setSearchText] = useState('');
 
   // Fetch user's joined groups
   const { data: groups, isLoading: groupsLoading } = useQuery({
     queryKey: ['joined-groups'],
     queryFn: getUserJoinedGroups,
+    enabled: visible, // Only fetch when modal is visible
   });
 
   // Filter groups based on search text
@@ -36,26 +47,22 @@ export default function SelectGroupScreen() {
   }, [groups, searchText]);
 
   const handleGroupSelect = (group: any) => {
-    // Navigate back to create-post with selected group
-    router.back();
-    router.setParams({ selectedGroup: JSON.stringify(group) });
+    onGroupSelect(group);
+    setSearchText(''); // Clear search when closing
   };
 
   const handleCancel = () => {
-    router.back();
-  };
-
-  const clearSearch = () => {
-    setSearchText('');
+    setSearchText(''); // Clear search when closing
+    onClose();
   };
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          headerShown: false, // This hides the default header
-        }}
-      />
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={false}
+      onRequestClose={handleCancel}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
@@ -96,7 +103,7 @@ export default function SelectGroupScreen() {
           )}
         </ScrollView>
       </View>
-    </>
+    </Modal>
   );
 }
 
@@ -123,7 +130,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   placeholder: {
-    width: 54, // Same width as cancel button for centering
+    width: 54,
   },
   searchContainer: {
     paddingVertical: 10,
@@ -137,9 +144,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#8F8F8F',
     gap: 15,
     borderRadius: 15,
-  },
-  searchIcon: {
-    marginRight: 8,
   },
   searchInput: {
     flex: 1,
@@ -160,44 +164,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
-  groupsList: {
-    paddingTop: 12,
-    gap: 30,
-  },
-  groupOption: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 12,
-    gap: 16,
-  },
-  groupAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#D1D1D6', // Gray placeholder circle
-  },
-  groupInfo: {
-    flex: 1,
-  },
-  groupName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-  groupDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
-  },
-  emptyStateContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
 });
+
+// Usage example:
+// const [showGroupSelector, setShowGroupSelector] = useState(false);
+// const [selectedGroup, setSelectedGroup] = useState(null);
+//
+// <SelectGroupModal
+//   visible={showGroupSelector}
+//   onClose={() => setShowGroupSelector(false)}
+//   onGroupSelect={(group) => {
+//     setSelectedGroup(group);
+//     setShowGroupSelector(false);
+//   }}
+// />
