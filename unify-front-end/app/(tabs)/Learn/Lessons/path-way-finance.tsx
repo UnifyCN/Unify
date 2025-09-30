@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
 import { Link, useRouter } from 'expo-router'; // added useRouter to be able to navigate to module-overview
@@ -57,8 +64,8 @@ export default function FinanceForNewcomers() {
     const m = sourceModules[i];
     if (m) {
       return {
-        id: m.id,                     // e.g., "m1"
-        title: m.subtitle,            // sub-module title from data
+        id: m.id, // e.g., "m1"
+        title: m.subtitle, // sub-module title from data
         moduleNumber: i + 1,
         lessons: m.lessonsCount ?? 0,
         progress: m.progress ?? 0,
@@ -66,8 +73,8 @@ export default function FinanceForNewcomers() {
           (m.progress ?? 0) >= 1
             ? 'completed'
             : (m.progress ?? 0) > 0
-            ? 'in-progress'
-            : 'locked',
+              ? 'in-progress'
+              : 'locked',
       };
     }
     // placeholder for remaining slots to keep the zig-zag line consistent across 8 items
@@ -82,7 +89,9 @@ export default function FinanceForNewcomers() {
   });
 
   // Computes completed modules for the header progress text/bar.
-  const completedCount = displayModules.filter(m => (m.progress ?? 0) >= 1).length;
+  const completedCount = displayModules.filter(
+    m => (m.progress ?? 0) >= 1
+  ).length;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -98,16 +107,26 @@ export default function FinanceForNewcomers() {
 
         <Text style={styles.title}>Finance for Newcomers</Text>
         <Text style={styles.subtitle}>
-          Empower newcomers to confidently manage their money, build financial stability, and grow long-term wealth in Canada.
+          Empower newcomers to confidently manage their money, build financial
+          stability, and grow long-term wealth in Canada.
         </Text>
 
         {/* Progress Card */}
         <View style={styles.progressCard}>
           {/* ADDED: dynamic numerator; keep your UI text intact */}
-          <Text style={styles.progressLabel}>Progress: {completedCount}/{displayModules.length} modules completed</Text>
+          <Text style={styles.progressLabel}>
+            Progress: {completedCount}/{displayModules.length} modules completed
+          </Text>
           <View style={styles.progressTrack}>
             {/* ADDED: same visual as before but based on displayModules length */}
-            <View style={[styles.progressFill, { width: `${(Math.max(1, completedCount) / displayModules.length) * 100}%` }]} />
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${(Math.max(1, completedCount) / displayModules.length) * 100}%`,
+                },
+              ]}
+            />
           </View>
         </View>
 
@@ -127,14 +146,25 @@ export default function FinanceForNewcomers() {
               <View
                 key={m.id}
                 style={styles.timelineItem}
-                onLayout={(e) => updateAnchor(idx, e.nativeEvent.layout.y, leftIcon)}
+                onLayout={e =>
+                  updateAnchor(idx, e.nativeEvent.layout.y, leftIcon)
+                }
               >
                 {/* Side icon */}
-                <View style={[styles.sideIcon, leftIcon ? styles.sideLeft : styles.sideRight]}>
+                <View
+                  style={[
+                    styles.sideIcon,
+                    leftIcon ? styles.sideLeft : styles.sideRight,
+                  ]}
+                >
                   {leftIcon ? (
                     <Feather name='dollar-sign' size={20} color={'#777'} />
                   ) : (
-                    <MaterialCommunityIcons name='bank' size={20} color={'#777'} />
+                    <MaterialCommunityIcons
+                      name='bank'
+                      size={20}
+                      color={'#777'}
+                    />
                   )}
                 </View>
 
@@ -142,12 +172,16 @@ export default function FinanceForNewcomers() {
                 <TouchableOpacity
                   activeOpacity={0.9}
                   onPress={() => handleToggle(m.id)}
-                  style={[styles.cardBox, leftIcon ? styles.alignRight : styles.alignLeft]}
+                  style={[
+                    styles.cardBox,
+                    leftIcon ? styles.alignRight : styles.alignLeft,
+                  ]}
                 >
                   {isExpanded ? (
                     <View style={styles.cardExpanded}>
                       <View style={styles.badgeRow}>
-                        {(backing?.progress ?? 0) > 0 && (backing?.progress ?? 0) < 1 ? (
+                        {(backing?.progress ?? 0) > 0 &&
+                        (backing?.progress ?? 0) < 1 ? (
                           <View style={styles.pill}>
                             <Text style={styles.pillText}>In Progress</Text>
                           </View>
@@ -155,20 +189,31 @@ export default function FinanceForNewcomers() {
                       </View>
 
                       {/* ADDED: make title dynamic when backed by real data */}
-                      <Text style={styles.cardTitle}>{backing?.subtitle ?? 'Mastering Banking in Canada'}</Text>
+                      <Text style={styles.cardTitle}>
+                        {backing?.subtitle ?? 'Mastering Banking in Canada'}
+                      </Text>
 
                       <Text style={styles.cardBody}>
                         {/* Keep your placeholder body for now; can be made dynamic later */}
-                        Learn about Canadian banking systems, account types, and how to choose the right bank for your individual needs.
+                        Learn about Canadian banking systems, account types, and
+                        how to choose the right bank for your individual needs.
                       </Text>
 
                       <View style={styles.expandedFooter}>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.progressSmall}>
-                            Progress: {Math.round((backing?.progress ?? 0) * 100)}%
+                            Progress:{' '}
+                            {Math.round((backing?.progress ?? 0) * 100)}%
                           </Text>
-                          <View style={[styles.progressTrack, { marginTop: 6 }]}>
-                            <View style={[styles.progressFill, { width: `${(backing?.progress ?? 0) * 100}%` }]} />
+                          <View
+                            style={[styles.progressTrack, { marginTop: 6 }]}
+                          >
+                            <View
+                              style={[
+                                styles.progressFill,
+                                { width: `${(backing?.progress ?? 0) * 100}%` },
+                              ]}
+                            />
                           </View>
                         </View>
 
@@ -188,10 +233,17 @@ export default function FinanceForNewcomers() {
                     </View>
                   ) : (
                     <View style={styles.cardCollapsed}>
-                      <Text style={styles.metaText}>Module {m.moduleNumber} • {m.lessons} lessons</Text>
+                      <Text style={styles.metaText}>
+                        Module {m.moduleNumber} • {m.lessons} lessons
+                      </Text>
                       <Text style={styles.collapsedTitle}>{m.title}</Text>
                       <View style={[styles.progressTrack, { marginTop: 8 }]}>
-                        <View style={[styles.progressFill, { width: `${m.progress * 100}%` }]} />
+                        <View
+                          style={[
+                            styles.progressFill,
+                            { width: `${m.progress * 100}%` },
+                          ]}
+                        />
                       </View>
                     </View>
                   )}
@@ -262,10 +314,21 @@ function ZigZagTrack({ anchors }: { anchors: Anchor[] }) {
   }, [size, anchors]);
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents='none' onLayout={onLayout}>
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents='none'
+      onLayout={onLayout}
+    >
       {d ? (
         <Svg width={size.w} height={size.h}>
-          <Path d={d} stroke={'#EAEAEA'} strokeWidth={18} strokeLinecap='round' strokeLinejoin='round' fill='none' />
+          <Path
+            d={d}
+            stroke={'#EAEAEA'}
+            strokeWidth={18}
+            strokeLinecap='round'
+            strokeLinejoin='round'
+            fill='none'
+          />
         </Svg>
       ) : null}
     </View>
@@ -277,8 +340,20 @@ const styles = StyleSheet.create({
   container: { paddingHorizontal: 20, paddingBottom: 40 },
   headerRow: { flexDirection: 'row', alignItems: 'center', paddingTop: 8 },
   backButton: { padding: 8 },
-  title: { fontSize: 28, fontWeight: '700', color: '#333', textAlign: 'center', marginTop: 8 },
-  subtitle: { fontSize: 14, color: '#676767', textAlign: 'center', marginTop: 8, lineHeight: 20 },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#676767',
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20,
+  },
 
   progressCard: {
     marginTop: 16,
@@ -297,7 +372,11 @@ const styles = StyleSheet.create({
   progressFill: { height: 8, backgroundColor: '#1d1d1d', borderRadius: 6 },
 
   timelineWrapper: { marginTop: 20, paddingBottom: 24, minHeight: 600 },
-  timelineItem: { marginBottom: 28, paddingHorizontal: 24, position: 'relative' },
+  timelineItem: {
+    marginBottom: 28,
+    paddingHorizontal: 24,
+    position: 'relative',
+  },
   sideIcon: {
     position: 'absolute',
     top: 18,
@@ -332,7 +411,12 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   metaText: { color: '#8B8B8B', fontSize: 12 },
-  collapsedTitle: { color: '#000', fontSize: 16, fontWeight: '600', marginTop: 6 },
+  collapsedTitle: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 6,
+  },
 
   cardExpanded: {
     backgroundColor: '#fff',
@@ -345,16 +429,41 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   badgeRow: { flexDirection: 'row', justifyContent: 'flex-start' },
-  pill: { backgroundColor: '#EFEFEF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
+  pill: {
+    backgroundColor: '#EFEFEF',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
   pillText: { fontSize: 12, color: '#555' },
   cardTitle: { fontSize: 18, fontWeight: '700', color: '#000', marginTop: 10 },
   cardBody: { fontSize: 14, color: '#5b5b5b', marginTop: 8, lineHeight: 20 },
-  expandedFooter: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 12 },
+  expandedFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+  },
   progressSmall: { fontSize: 12, color: '#6b6b6b' },
-  resumePill: { backgroundColor: '#E7E7E8', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 14 },
+  resumePill: {
+    backgroundColor: '#E7E7E8',
+    borderRadius: 999,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
   resumeText: { fontWeight: '700', color: '#444' },
 
   morePillWrapper: { alignItems: 'center', marginTop: 8 },
-  morePill: { backgroundColor: '#fff', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 999, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
+  morePill: {
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
+  },
   moreText: { color: '#6b6b6b', fontWeight: '600' },
 });

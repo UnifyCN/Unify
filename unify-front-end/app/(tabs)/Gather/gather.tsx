@@ -28,6 +28,7 @@ import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
 import ViewMoreCard from './ViewMoreCard';
+import CreatePostButton from '@/components/posts/CreatePostButton';
 
 const SCROLL_DISTANCE = 200;
 const AnimatedTouchableOpacity =
@@ -171,9 +172,7 @@ export default function GatherScreen() {
         }
         onScroll={scrollHandler}
       />
-      {/* <AnimatedTouchableOpacity style={[styles.floatingButton, animatedStyle]}>
-        <CreatePost />
-      </AnimatedTouchableOpacity> */}
+      <CreatePostButton />
     </View>
   );
 }

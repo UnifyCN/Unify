@@ -4,9 +4,11 @@ import { User } from '@/types/user';
 export type PostData = {
   id: number;
   user: User;
+  group?: string;
   userReply?: string;
   time: string;
-  description: string;
+  title: string;
+  content: string;
   pictures?: React.FC[];
 };
 

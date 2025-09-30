@@ -1,5 +1,10 @@
 import React, { useRef } from 'react';
-import { View, FlatList, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import {
+  View,
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 
 type Props = {
   data: React.ReactNode[];
@@ -9,7 +14,13 @@ type Props = {
   gap?: number;
 };
 
-export default function HorizontalCarousel({ data, index, onIndexChange, itemWidth, gap = 12 }: Props) {
+export default function HorizontalCarousel({
+  data,
+  index,
+  onIndexChange,
+  itemWidth,
+  gap = 12,
+}: Props) {
   const listRef = useRef<FlatList>(null);
 
   const handleMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {

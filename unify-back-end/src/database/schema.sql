@@ -15,6 +15,7 @@ CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     group_id INT REFERENCES groups(id) ON DELETE CASCADE,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
     content TEXT NOT NULL,
     like_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -232,13 +233,13 @@ BEGIN
   IF TG_OP = 'INSERT' THEN
     -- Increment member count when someone joins a group
     UPDATE groups 
-    SET members_count = members_count + 1 
+    SET member_count = member_count + 1 
     WHERE id = NEW.group_id;
     RETURN NEW;
   ELSIF TG_OP = 'DELETE' THEN
     -- Decrement member count when someone leaves a group
     UPDATE groups 
-    SET members_count = members_count - 1 
+    SET member_count = member_count - 1 
     WHERE id = OLD.group_id;
     RETURN OLD;
   END IF;
