@@ -49,7 +49,7 @@ export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    bottom: 100, // Above the bottom navigation
+    bottom: 85, // Above the bottom navigation
     right: 20,
     width: 56,
     height: 56,
