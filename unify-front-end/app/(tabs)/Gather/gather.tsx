@@ -27,7 +27,6 @@ import EventCard from './EventCard';
 import ViewMoreCard from './ViewMoreCard';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
-import CreatePostButton from '@/components/posts/CreatePostButton';
 
 const SCROLL_DISTANCE = 200;
 
