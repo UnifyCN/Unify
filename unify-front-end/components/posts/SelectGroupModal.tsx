@@ -59,7 +59,7 @@ export default function SelectGroupModal({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType='slide'
       transparent={false}
       onRequestClose={handleCancel}
     >
@@ -165,16 +165,3 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 });
-
-// Usage example:
-// const [showGroupSelector, setShowGroupSelector] = useState(false);
-// const [selectedGroup, setSelectedGroup] = useState(null);
-//
-// <SelectGroupModal
-//   visible={showGroupSelector}
-//   onClose={() => setShowGroupSelector(false)}
-//   onGroupSelect={(group) => {
-//     setSelectedGroup(group);
-//     setShowGroupSelector(false);
-//   }}
-// />

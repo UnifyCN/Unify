@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Modal
+  Modal,
 } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 
@@ -14,19 +14,17 @@ export default function PostSuccessModal({ visible, onClose, postTitle }: any) {
 
   return (
     <Modal>
-        <View style={styles.container}>
+      <View style={styles.container}>
         <View style={styles.content}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Feather name="x" size={24} color="black" />
+            <Feather name='x' size={24} color='black' />
           </TouchableOpacity>
-          
-          
+
           <Text style={styles.title}>Your post is up!</Text>
-          
+
           <View style={styles.mascotPlaceholder}>
             <Text style={styles.mascotText}>🎉 mascot graphic 🎉</Text>
           </View>
-          
         </View>
       </View>
     </Modal>

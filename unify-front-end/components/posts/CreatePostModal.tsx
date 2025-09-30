@@ -53,12 +53,9 @@ export default function CreatePostModal({
           setSelectedGroup(null);
           // Close create post modal first, then show success
           onClose();
-          // Small delay to ensure smooth transition
-        //   setTimeout(() => {
-            setShowSuccessModal(true);
-        //   }, 100);
+          setShowSuccessModal(true);
         },
-        onError: error => {
+        onError: _ => {
           Alert.alert('Error', 'Failed to create post. Please try again.');
         },
       }
@@ -85,13 +82,16 @@ export default function CreatePostModal({
     <>
       <Modal
         visible={visible}
-        animationType="slide"
+        animationType='slide'
         transparent={false}
         onRequestClose={handleCancel}
       >
         <ScrollView style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
+            <TouchableOpacity
+              onPress={handleCancel}
+              style={styles.cancelButton}
+            >
               <Feather name='x' size={24} color='black' />
             </TouchableOpacity>
             <TouchableOpacity
@@ -124,7 +124,9 @@ export default function CreatePostModal({
               {selectedGroup ? (
                 <View style={styles.selectedGroupInfo}>
                   <SimpleLineIcons name='magnifier' size={18} color='white' />
-                  <Text style={styles.groupSelectorText}>{selectedGroup.name}</Text>
+                  <Text style={styles.groupSelectorText}>
+                    {selectedGroup.name}
+                  </Text>
                   <View style={styles.placeholder}></View>
                 </View>
               ) : (
@@ -165,9 +167,9 @@ export default function CreatePostModal({
         onGroupSelect={handleGroupSelect}
       />
 
-      <PostSuccessModal 
-        visible={showSuccessModal} 
-        onClose={handleSuccessClose} 
+      <PostSuccessModal
+        visible={showSuccessModal}
+        onClose={handleSuccessClose}
       />
     </>
   );
@@ -237,18 +239,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-// Updated CreatePostButton usage - now much simpler:
-// const [showCreatePostModal, setShowCreatePostModal] = useState(false);
-// 
-// <TouchableOpacity 
-//   style={styles.floatingButton} 
-//   onPress={() => setShowCreatePostModal(true)}
-// >
-//   <Ionicons name='add' size={24} color='white' />
-// </TouchableOpacity>
-//
-// <CreatePostModal
-//   visible={showCreatePostModal}
-//   onClose={() => setShowCreatePostModal(false)}
-// />
