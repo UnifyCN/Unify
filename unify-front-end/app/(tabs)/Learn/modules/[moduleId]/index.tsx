@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,19 +8,35 @@ import {
   ScrollView,
   Dimensions,
   LayoutChangeEvent,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { useModule } from '@/hooks/learn/useModule';
 import { Feather } from '@expo/vector-icons';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+// --- safety helpers ---
+const safeNum = (n: any, fallback = 0) =>
+  Number.isFinite(Number(n)) ? Number(n) : fallback;
+const clampNonNeg = (n: any) => Math.max(0, safeNum(n, 0));
+
+// screen + layout constants
+const { width: RAW_WIDTH } = Dimensions.get('window');
+const SCREEN_WIDTH = Math.max(1, safeNum(RAW_WIDTH, 1));
 
 const EDGE_PAD = 16;
-const CONTENT_W = SCREEN_WIDTH - EDGE_PAD * 2;
-const CARD_RATIO = 0.75;
-const CARD_W = Math.min(420, Math.floor(CONTENT_W * CARD_RATIO));
-const RAIL_W = 4; 
-const RAIL_OFFSET = 30; 
+const CONTENT_W = Math.max(0, SCREEN_WIDTH - EDGE_PAD * 2);
+
+// Card size
+const CARD_RATIO = 0.68;
+const CARD_W = Math.max(1, Math.min(380, Math.floor(CONTENT_W * CARD_RATIO) || 1));
+
+const RAIL_W = 4;
+
+// Bubble sizing + gap (distance from card edge to bubble)
+const BUBBLE_SIZE = 70;                // change to resize circle
+const BUBBLE_RADIUS = BUBBLE_SIZE / 2;
+const BUBBLE_GAP = 25;                 // change to move closer/farther from card
 
 export default function ModuleIndex() {
   const router = useRouter();
@@ -31,22 +47,32 @@ export default function ModuleIndex() {
   const [progressBottom, setProgressBottom] = useState(0);
   const [railEnd, setRailEnd] = useState<number | null>(null);
 
+  // visibility tracking
+  const rowTopsRef = useRef<number[]>([]);
+  const [ahead, setAhead] = useState(0);
+
+  // per-row card layout (for bubble X/Y position)
+  const cardLayoutsRef = useRef<Array<{ x: number; y: number; width: number; height: number }>>([]);
+
   const onProgressLayout = (e: LayoutChangeEvent) => {
-    const { y, height } = e.nativeEvent.layout;
-    setProgressBottom(y + height);
+    const y = clampNonNeg(e.nativeEvent.layout.y);
+    const h = clampNonNeg(e.nativeEvent.layout.height);
+    setProgressBottom(y + h);
   };
 
   const updateRowBottom = (bottom: number) =>
-    setRailEnd(prev => (prev == null ? bottom : Math.max(prev, bottom)));
-
+    setRailEnd(prev => {
+      const b = clampNonNeg(bottom);
+      if (!Number.isFinite(b)) return prev ?? 0;
+      return prev == null ? b : Math.max(prev, b);
+    });
 
   const railHeight = useMemo(() => {
-    if (!railEnd || progressBottom <= 0) return 0;
-    const trim = 18; // stop a bit before the last card
+    if (railEnd == null || progressBottom <= 0) return 0;
+    const trim = 18;
     return Math.max(0, railEnd - progressBottom - trim);
   }, [railEnd, progressBottom]);
 
- 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -66,17 +92,59 @@ export default function ModuleIndex() {
     );
   }
 
-  // Normalize list + gating (unlock i if i==0 or previous completed)
+  // Normalize list + gating
   const submodules = moduleData.submodules.map((s, i, arr) => {
     const status = s.is_completed ? 'completed' : s.progress_percent > 0 ? 'in-progress' : 'not-started';
     const unlocked = i === 0 || !!arr[i - 1]?.is_completed;
     return { ...s, index: i + 1, status, unlocked };
   });
 
+  // compute "ahead" on every scroll
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = clampNonNeg(e.nativeEvent.contentOffset?.y);
+    const vh = clampNonNeg(e.nativeEvent.layoutMeasurement?.height);
+    const visibleBottom = y + vh;
+    const buffer = 4;
+    const below = rowTopsRef.current.filter((v) => Number.isFinite(v) && v > visibleBottom + buffer).length;
+    setAhead(below);
+  };
+
+  // ========== Bubble helpers ==========
+  // Bubble to the LEFT of a card (outside, hugging its left edge)
+  const bubbleOutsideLeftOfCard = (index: number, fallbackLeftEdge: number) => {
+    const entry = cardLayoutsRef.current[index];
+    const cardLeft = (entry && Number.isFinite(entry.x)) ? entry.x : fallbackLeftEdge;
+    return Math.max(0, cardLeft - BUBBLE_GAP - 2 * BUBBLE_RADIUS);
+  };
+
+  // Bubble to the RIGHT of a card (outside, hugging its right edge)
+  const bubbleOutsideRightOfCard = (index: number, fallbackRightEdge: number) => {
+    const entry = cardLayoutsRef.current[index];
+    const cardRight = (entry && Number.isFinite(entry.x) && Number.isFinite(entry.width))
+      ? entry.x + entry.width
+      : fallbackRightEdge;
+    return Math.max(0, cardRight + BUBBLE_GAP);
+  };
+
+  // Vertically center the bubble to the CARD
+  const bubbleTopForCard = (index: number, fallbackRowTop: number, fallbackRowHeight: number) => {
+    const entry = cardLayoutsRef.current[index];
+    if (entry && Number.isFinite(entry.y) && Number.isFinite(entry.height)) {
+      return Math.max(0, entry.y + (entry.height - BUBBLE_SIZE) / 2);
+    }
+    // fallback: center in the row until we get card layout
+    return Math.max(0, fallbackRowTop + (fallbackRowHeight - BUBBLE_SIZE) / 2);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header (no "unify" text here) */}
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
+        {/* Header */}
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <Feather name='arrow-left' size={26} color='#111' />
@@ -104,34 +172,49 @@ export default function ModuleIndex() {
 
         {/* Rail container */}
         <View style={styles.railContainer}>
-          {/* Black rail that starts at the bottom center of the progress card */}
-          <View
-            pointerEvents="none"
-            style={[
-              styles.rail,
-              {
-                top: progressBottom,
-                height: railHeight,
-                left: SCREEN_WIDTH / 2 - RAIL_W / 2,
-              },
-            ]}
-          />
+          {/* Rail */}
+          {railHeight > 0 && (
+            <View
+              pointerEvents="none"
+              style={[
+                styles.rail,
+                {
+                  top: progressBottom,
+                  height: railHeight,
+                  left: SCREEN_WIDTH / 2 - RAIL_W / 2,
+                },
+              ]}
+            />
+          )}
 
           {/* Timeline items */}
           <View style={styles.timelineList}>
             {submodules.map((m, i) => {
-              const leftSide = i % 2 === 0;
+              const leftSide = i % 2 === 0; // card sits on the left?
               const ctaText = m.is_completed ? 'Review' : m.progress_percent > 0 ? 'Resume' : 'Start';
               const disabled = !m.unlocked;
               const bubbleText = m.is_completed ? null : `${Math.round(m.progress_percent)}%`;
+
+              // Fallback edges until card onLayout fires
+              const fallbackLeftEdgeOfRightCard  = SCREEN_WIDTH - EDGE_PAD - CARD_W; // right-aligned card's LEFT
+              const fallbackRightEdgeOfLeftCard  = EDGE_PAD + CARD_W;                 // left-aligned card's RIGHT
+
+              // Row layout (for fallback top)
+              let rowTop = 0;
+              let rowHeight = 0;
 
               return (
                 <View
                   key={m.id}
                   style={styles.timelineRow}
-                  onLayout={e => updateRowBottom(e.nativeEvent.layout.y + e.nativeEvent.layout.height)}
+                  onLayout={e => {
+                    rowTop = clampNonNeg(e.nativeEvent.layout.y);
+                    rowHeight = clampNonNeg(e.nativeEvent.layout.height);
+                    rowTopsRef.current[i] = rowTop;
+                    updateRowBottom(rowTop + rowHeight);
+                  }}
                 >
-                  {/* per-row upward line segment (same thickness as rail) */}
+                  {/* per-row upward line segment */}
                   <View
                     pointerEvents="none"
                     style={[
@@ -153,16 +236,25 @@ export default function ModuleIndex() {
                     style={[
                       styles.card,
                       leftSide ? styles.cardLeft : styles.cardRight,
-                      m.status === 'completed' && styles.cardCompleted,
+                      (m as any).status === 'completed' && styles.cardCompleted,
                     ]}
+                    onLayout={(ev) => {
+                      const { x, y, width, height } = ev.nativeEvent.layout;
+                      cardLayoutsRef.current[i] = {
+                        x: Math.max(0, x),
+                        y: Math.max(0, y),
+                        width: Math.max(0, width),
+                        height: Math.max(0, height),
+                      };
+                    }}
                   >
-                    {/* status pill */}
+                    {/* status chip */}
                     <View
                       style={[
                         styles.pill,
-                        m.status === 'completed'
+                        (m as any).status === 'completed'
                           ? styles.pillCompleted
-                          : m.status === 'in-progress'
+                          : (m as any).status === 'in-progress'
                           ? styles.pillInProgress
                           : styles.pillNotStarted,
                       ]}
@@ -170,16 +262,16 @@ export default function ModuleIndex() {
                       <Text
                         style={[
                           styles.pillText,
-                          m.status === 'completed'
+                          (m as any).status === 'completed'
                             ? styles.pillTextCompleted
-                            : m.status === 'in-progress'
+                            : (m as any).status === 'in-progress'
                             ? styles.pillTextInProgress
                             : styles.pillTextNotStarted,
                         ]}
                       >
-                        {m.status === 'completed'
+                        {(m as any).status === 'completed'
                           ? 'Completed'
-                          : m.status === 'in-progress'
+                          : (m as any).status === 'in-progress'
                           ? 'In Progress'
                           : 'Not Started'}
                       </Text>
@@ -188,7 +280,7 @@ export default function ModuleIndex() {
                     <Text style={styles.cardTitle}>{m.title}</Text>
                     {!!m.description && <Text style={styles.cardDesc}>{m.description}</Text>}
 
-                    {/* Centered, large CTA (shorter height) */}
+                    {/* CTA */}
                     <View style={styles.ctaRow}>
                       <View style={[styles.cta, (!m.is_completed && disabled) && styles.ctaDisabled]}>
                         <Text style={styles.ctaText}>{ctaText}</Text>
@@ -196,31 +288,40 @@ export default function ModuleIndex() {
                     </View>
                   </TouchableOpacity>
 
-                  {/* Bubble: centered vertically, alternating side */}
+                  {/* Bubble: rail-side of each card, centered to the card */}
                   <View
+                    pointerEvents="none"
                     style={[
                       styles.bubbleAbs,
-                      leftSide
-                        ? { left: SCREEN_WIDTH / 2 + RAIL_OFFSET }
-                        : { right: SCREEN_WIDTH / 2 + RAIL_OFFSET - SCREEN_WIDTH },
+                      {
+                        left: leftSide
+                          ? bubbleOutsideRightOfCard(i, fallbackRightEdgeOfLeftCard)
+                          : bubbleOutsideLeftOfCard(i, fallbackLeftEdgeOfRightCard),
+                        top: bubbleTopForCard(
+                          i,
+                          rowTop,
+                          rowHeight
+                        ),
+                        opacity: cardLayoutsRef.current[i] ? 1 : 0, // avoid visible jump before layout
+                      },
                     ]}
                   >
                     <View
                       style={[
                         styles.bubbleOuter,
-                        (m.unlocked ? styles.bubbleOuterActive : styles.bubbleOuterInactive),
+                        (m.unlocked ? styles.bubbleOuterActive : styles.bubbleOuterBlocked),
                         m.is_completed && styles.bubbleDoneOuter,
                       ]}
                     >
                       <View
                         style={[
                           styles.bubbleInner,
-                          (m.unlocked ? styles.bubbleInnerActive : styles.bubbleInnerInactive),
+                          (m.unlocked ? styles.bubbleInnerActive : styles.bubbleInnerBlocked),
                           m.is_completed && styles.bubbleDoneInner,
                         ]}
                       >
                         {m.is_completed ? (
-                          <Feather name="check" size={18} color="#fff" />
+                          <Feather name="check" size={20} color="#fff" />
                         ) : (
                           <Text style={styles.bubbleText}>{bubbleText}</Text>
                         )}
@@ -235,13 +336,26 @@ export default function ModuleIndex() {
 
         <View style={{ height: 28 }} />
       </ScrollView>
+
+      {/* floating "N more modules ahead" pill */}
+      {ahead > 0 && (
+        <View style={styles.morePillWrap} pointerEvents="none">
+          <View style={styles.morePill}>
+            <View style={styles.dots}>
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+            </View>
+            <Text style={styles.moreText}>{ahead} more modules ahead</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
-
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F7F7F9' },
+  safe: { flex: 1, backgroundColor: '#F7F7F9', position: 'relative' },
   container: { paddingHorizontal: EDGE_PAD, paddingBottom: 40 },
 
   headerRow: {
@@ -253,15 +367,16 @@ const styles = StyleSheet.create({
   },
   backButton: { padding: 8 },
 
+  // Header text
   titleWrap: { alignItems: 'center', marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: '800', color: '#151515', marginBottom: 6, textAlign: 'center' },
-  subtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', paddingHorizontal: 12 },
+  title: { fontSize: 40, fontWeight: '900', color: '#151515', marginBottom: 5, textAlign: 'center' },
+  subtitle: { fontSize: 20, color: '#4B5563', textAlign: 'center', paddingHorizontal: 12 },
 
   progressCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     marginTop: 10,
     marginBottom: 12,
     shadowColor: '#000',
@@ -271,7 +386,7 @@ const styles = StyleSheet.create({
     elevation: 1,
     alignItems: 'center',
   },
-  progressCentered: { fontSize: 15, fontWeight: '700', color: '#374151', marginBottom: 10, textAlign: 'center' },
+  progressCentered: { fontSize: 17, fontWeight: '700', color: '#374151', marginBottom: 10, textAlign: 'center' },
   progressBar: { width: '100%', height: 8, backgroundColor: '#E5E7EB', borderRadius: 6, overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: '#111', borderRadius: 6 },
 
@@ -279,27 +394,28 @@ const styles = StyleSheet.create({
   rail: { position: 'absolute', width: RAIL_W, backgroundColor: '#111', borderRadius: 2 },
 
   timelineList: { paddingTop: 6 },
-  timelineRow: { position: 'relative', marginVertical: 22, minHeight: 120 },
+  timelineRow: { position: 'relative', marginVertical: 18, minHeight: 110 },
 
   rowSegment: {
     position: 'absolute',
-    top: -28,
-    height: 28,
+    top: -24,
+    height: 24,
     width: RAIL_W,
     backgroundColor: '#111',
     borderRadius: 2,
   },
 
+  // Card
   card: {
     width: CARD_W,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 18,
+    borderRadius: 14,
+    padding: 14,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 1,
     borderWidth: 1,
     borderColor: '#EEF2F7',
   },
@@ -307,33 +423,95 @@ const styles = StyleSheet.create({
   cardRight: { marginRight: EDGE_PAD, alignSelf: 'flex-end' },
   cardCompleted: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
 
-  pill: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999, marginBottom: 10 },
-  pillCompleted: { backgroundColor: '#DCFCE7' },
-  pillInProgress: { backgroundColor: '#E0E7FF' },
-  pillNotStarted: { backgroundColor: '#F3F4F6' },
-  pillText: { fontSize: 13, fontWeight: '800' },
+  // Status chip
+  pill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  pillCompleted: { backgroundColor: '#ECFDF5', borderColor: '#C7F9DF' },
+  pillInProgress: { backgroundColor: '#F1F5F9', borderColor: '#E5E7EB' },
+  pillNotStarted: { backgroundColor: '#F1F5F9', borderColor: '#E5E7EB' },
+  pillText: { fontSize: 12, fontWeight: '800' },
   pillTextCompleted: { color: '#166534' },
-  pillTextInProgress: { color: '#3730A3' },
+  pillTextInProgress: { color: '#4B5563' },
   pillTextNotStarted: { color: '#6B7280' },
 
-  cardTitle: { fontSize: 18, fontWeight: '800', color: '#111827', marginBottom: 10 },
-  cardDesc: { fontSize: 14, color: '#6B7280', marginBottom: 14 },
+  cardTitle: { fontSize: 17, fontWeight: '800', color: '#111827', marginBottom: 8 },
+  cardDesc: { fontSize: 13, color: '#6B7280', marginBottom: 12 },
 
+  // CTA
   ctaRow: { alignItems: 'center' },
-  cta: { alignSelf: 'stretch', backgroundColor: '#111', paddingVertical: 10, borderRadius: 999, alignItems: 'center' },
-  ctaDisabled: { backgroundColor: '#A9B1BC' },
-  ctaText: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  cta: {
+    alignSelf: 'stretch',
+    backgroundColor: '#111',
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#0f0f0f',
+  },
+  ctaDisabled: { backgroundColor: '#B8BFC9', borderColor: '#B8BFC9' },
+  ctaText: { color: '#fff', fontSize: 15, fontWeight: '800' },
 
-  bubbleAbs: { position: 'absolute', top: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
-  bubbleOuter: { width: 54, height: 54, borderRadius: 27, alignItems: 'center', justifyContent: 'center', borderWidth: 2 },
+  // Bubble — absolute box; we set exact top/left inline per card
+  bubbleAbs: {
+    position: 'absolute',
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+  },
+  bubbleOuter: {
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+    borderRadius: BUBBLE_RADIUS,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+  },
   bubbleOuterActive: { borderColor: '#AAB2BF' },
-  bubbleOuterInactive: { borderColor: '#D1D6DF' },
-  bubbleInner: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  bubbleOuterBlocked: { borderColor: '#9FA7B5' }, // darker blocked ring
+  bubbleInner: {
+    width: BUBBLE_SIZE - 10,
+    height: BUBBLE_SIZE - 10,
+    borderRadius: (BUBBLE_SIZE - 10) / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   bubbleInnerActive: { backgroundColor: '#959DAC' },
-  bubbleInnerInactive: { backgroundColor: '#E2E6EE' },
+  bubbleInnerBlocked: { backgroundColor: '#C9CFDB' }, // darker blocked fill
   bubbleDoneOuter: { borderColor: '#059669' },
   bubbleDoneInner: { backgroundColor: '#10B981' },
-  bubbleText: { fontSize: 13, fontWeight: '800', color: '#fff' },
+  bubbleText: { fontSize: 20, fontWeight: '800', color: '#fff' },
+
+  // floating pill styles
+  morePillWrap: {
+    position: 'absolute',
+    bottom: 90,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  morePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderColor: '#D7DDE7',
+    borderWidth: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  dots: { flexDirection: 'row', marginRight: 10 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#C7CDD8', marginHorizontal: 2 },
+  moreText: { fontSize: 14, color: '#6B7280', fontWeight: '700' },
 
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   muted: { fontSize: 16, color: '#6B7280' },
