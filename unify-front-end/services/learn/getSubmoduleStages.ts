@@ -36,7 +36,7 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
     .from('submodules')
     .select('id, title, description')
     .eq('id', submoduleId)
-    .single();
+    .maybeSingle();
 
   if (submoduleError) {
     console.error('Error fetching submodule info:', submoduleError);
@@ -146,6 +146,10 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
 
   const completedStages = stages.filter(s => s.is_completed).length;
   const totalStages = stages.length;
+
+  if (!submoduleData) {
+    throw new Error('Submodule not found');
+  }
 
   return {
     submodule_id: submoduleData.id,

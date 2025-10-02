@@ -42,7 +42,7 @@ export default function StageScreen() {
 
         {!loadingLessons && lessons && lessons.length > 0 && (
           <View style={{ gap: 20 }}>
-            {lessons.map((lesson: any) => {
+            {/* {lessons.map((lesson: any) => {
               if (lesson.type === 'flashcards') {
                 const items = lesson.contents.map((c: any, i: number) => ({
                   id: `${lesson.id}-${i}`,
@@ -75,7 +75,7 @@ export default function StageScreen() {
                   <Text style={{ color: '#6B7280' }}>Unsupported lesson type</Text>
                 </View>
               );
-            })}
+            })} */}
             {/* Next button to go to first lesson */}
             <TouchableOpacity
               style={styles.nextBtn}
