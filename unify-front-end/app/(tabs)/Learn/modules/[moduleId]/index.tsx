@@ -15,13 +15,12 @@ import { Feather } from '@expo/vector-icons';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/** layout constants */
 const EDGE_PAD = 16;
 const CONTENT_W = SCREEN_WIDTH - EDGE_PAD * 2;
-const CARD_RATIO = 0.75; // 75% width cards
+const CARD_RATIO = 0.75;
 const CARD_W = Math.min(420, Math.floor(CONTENT_W * CARD_RATIO));
-const RAIL_W = 4;        // unified thickness
-const RAIL_OFFSET = 30;  // distance from rail to bubble
+const RAIL_W = 4; 
+const RAIL_OFFSET = 30; 
 
 export default function ModuleIndex() {
   const router = useRouter();
@@ -40,14 +39,14 @@ export default function ModuleIndex() {
   const updateRowBottom = (bottom: number) =>
     setRailEnd(prev => (prev == null ? bottom : Math.max(prev, bottom)));
 
-  /** IMPORTANT: call hooks BEFORE any early returns */
+
   const railHeight = useMemo(() => {
     if (!railEnd || progressBottom <= 0) return 0;
     const trim = 18; // stop a bit before the last card
     return Math.max(0, railEnd - progressBottom - trim);
   }, [railEnd, progressBottom]);
 
-  // ---------------- early returns (after hooks) ----------------
+ 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -66,7 +65,6 @@ export default function ModuleIndex() {
       </SafeAreaView>
     );
   }
-  // --------------------------------------------------------------
 
   // Normalize list + gating (unlock i if i==0 or previous completed)
   const submodules = moduleData.submodules.map((s, i, arr) => {
@@ -241,7 +239,6 @@ export default function ModuleIndex() {
   );
 }
 
-/* ===================== styles ===================== */
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F7F7F9' },
