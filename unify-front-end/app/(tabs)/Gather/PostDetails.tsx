@@ -1,27 +1,34 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import Save from '@/assets/images/Save.svg';
 import Save_Fill from '@/assets/images/Save_filled.svg';
 import Comment from '@/assets/images/Comment.svg';
-import { PostData } from '@/types/feeds/post';
 import { useGetPostLikes } from '@/hooks/posts/useGetPostLikes';
 import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useGetPostSaveStatus } from '@/hooks/posts/useGetPostSaveStatus';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
+import { PostItemProps } from '@/components/home/PostItem';
 import { formatSmartTime } from '@/utils/dateUtils';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
-import { useRouter } from 'expo-router';
+import { PostData } from '@/types/feeds/post';
 
-export interface PostItemProps {
-  post: PostData;
-}
+export default function PostDetails() {
+  // Get passed data
+  const { post: postParam } = useLocalSearchParams();
 
-export const PostItem = ({ post }: PostItemProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  if (!postParam) {
+    return (
+      <View>
+        <Text>Post not found.</Text>
+      </View>
+    );
+  }
+
+  // Parse the post string and type it as PostData
+  const post: PostData = JSON.parse(postParam as string);
 
   // Router for navigation
   const router = useRouter();
@@ -50,44 +57,45 @@ export const PostItem = ({ post }: PostItemProps) => {
   const isSaved = saveData?.saved;
 
   return (
-    <View>
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <Link href='/(tabs)/Gather/gather' asChild>
+          <TouchableOpacity style={styles.backButton}>
+            <Feather name='chevron-left' size={28} color='#343434' />
+          </TouchableOpacity>
+        </Link>
+        <Text style={styles.headerTitle}>Post</Text>
+      </View>
+
+      {/* Post Content */}
       <View style={styles.postContainer}>
-        {/* Head Shot */}
+        {/* Headshot */}
         <View style={styles.headshot}>
-          {/* TODO: Have to add default headshot */}
           {post.user.headshot ? (
             <post.user.headshot />
           ) : (
             <Text>No headshot</Text>
           )}
         </View>
-        {/* Post Content */}
-        <TouchableOpacity
-          style={styles.postContent}
-          onPress={() =>
-            router.push({
-              pathname: '/(tabs)/Gather/PostDetails',
-              params: { post: JSON.stringify(post) },
-            })
-          }
-        >
-          <View style={styles.postContent}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.name}>{post.user.name}</Text>
-              <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
-            </View>
 
-            {post.userReply && (
-              <View style={styles.replyContainer}>
-                <Text style={styles.time}>Replying to </Text>
-                <Text style={styles.replyUser}>{post.userReply}</Text>
-              </View>
-            )}
-
-            {/* Description */}
-            <Text style={styles.description}>{post.description}</Text>
+        <View style={styles.postContent}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.name}>{post.user.name}</Text>
+            <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
           </View>
+
+          {/* Reply */}
+          {post.userReply && (
+            <View style={styles.replyContainer}>
+              <Text style={styles.time}>Replying to </Text>
+              <Text style={styles.replyUser}>{post.userReply}</Text>
+            </View>
+          )}
+
+          {/* Description */}
+          <Text style={styles.description}>{post.description}</Text>
 
           {/* Footer */}
           <View style={styles.footer}>
@@ -103,9 +111,7 @@ export const PostItem = ({ post }: PostItemProps) => {
             </View>
             <View style={styles.footerItem}>
               <Comment width={20} height={20} fill='gray' />
-              <Text style={styles.footerText}>
-                {/* TODO: make fetch to get comment_count from posts table */}0
-              </Text>
+              <Text style={styles.footerText}>0</Text>
             </View>
             <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>
               {isSaved ? (
@@ -115,29 +121,36 @@ export const PostItem = ({ post }: PostItemProps) => {
               )}
             </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
+
       <View style={styles.divider} />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  postContainer: {
-    backgroundColor: '#fff',
-    elevation: 3,
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  postContent: {
+  container: {
     flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
   },
-  header: {
+  headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 20,
+  },
+  backButton: {
+    marginRight: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#343434',
+  },
+  postContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   headshot: {
     width: 40,
@@ -149,31 +162,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#f0f0f0',
   },
+  postContent: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   name: {
     fontWeight: '600',
-    textAlign: 'left',
     fontSize: 16,
   },
   time: {
-    fontSize: 16,
-    textAlign: 'left',
-    color: '#999999',
+    fontSize: 14,
+    color: '#999',
+  },
+  replyContainer: {
+    flexDirection: 'row',
+    marginTop: 4,
   },
   replyUser: {
-    fontSize: 16,
-    textAlign: 'left',
+    fontSize: 14,
     color: '#FE0034',
   },
   description: {
     fontSize: 16,
     lineHeight: 20,
-    marginTop: 4,
+    marginTop: 8,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 16,
-    flex: 1,
     gap: 32,
   },
   footerItem: {
@@ -186,10 +207,8 @@ const styles = StyleSheet.create({
   },
   divider: {
     width: '100%',
-    height: 1,
+    height: 5,
     backgroundColor: '#E5E5E5',
-  },
-  replyContainer: {
-    flexDirection: 'row',
+    marginTop: 24,
   },
 });

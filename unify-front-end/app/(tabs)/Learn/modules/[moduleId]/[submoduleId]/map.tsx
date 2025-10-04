@@ -1,14 +1,29 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSubmoduleStages } from '@/hooks/learn/useSubmoduleStages';
 import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleMap() {
   const router = useRouter();
-  const { moduleId, submoduleId } = useLocalSearchParams<{ moduleId: string; submoduleId: string }>();
-  
-  const { data: submoduleData, isLoading, error } = useSubmoduleStages(submoduleId || '');
+  const { moduleId, submoduleId } = useLocalSearchParams<{
+    moduleId: string;
+    submoduleId: string;
+  }>();
+
+  const {
+    data: submoduleData,
+    isLoading,
+    error,
+  } = useSubmoduleStages(submoduleId || '');
 
   if (isLoading) {
     return (
@@ -24,13 +39,17 @@ export default function SubmoduleMap() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Error loading submodule: {error?.message || 'Unknown error'}</Text>
+          <Text style={styles.errorText}>
+            Error loading submodule: {error?.message || 'Unknown error'}
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  const nextStage = submoduleData.stages.find((stage: any) => !stage.is_completed) || submoduleData.stages[0];
+  const nextStage =
+    submoduleData.stages.find((stage: any) => !stage.is_completed) ||
+    submoduleData.stages[0];
   const circles = submoduleData.stages.map((stage: any, index: number) => ({
     id: stage.id,
     title: stage.title,
@@ -41,10 +60,16 @@ export default function SubmoduleMap() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Feather name='arrow-left' size={24} color='#000' />
           </TouchableOpacity>
         </View>
@@ -52,18 +77,36 @@ export default function SubmoduleMap() {
         {/* Submodule Title Section */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>{submoduleData.submodule_title}</Text>
-          <Text style={styles.description}>{submoduleData.submodule_description}</Text>
+          <Text style={styles.description}>
+            {submoduleData.submodule_description}
+          </Text>
         </View>
 
         {/* Optional: focus card for current/next lesson */}
         {nextStage && (
           <View style={styles.focusCard}>
-            <Text style={styles.focusTitle}>Lesson {submoduleData.stages.indexOf(nextStage) + 1}: {nextStage.title}</Text>
+            <Text style={styles.focusTitle}>
+              Lesson {submoduleData.stages.indexOf(nextStage) + 1}:{' '}
+              {nextStage.title}
+            </Text>
             {nextStage.description ? (
-              <Text style={styles.focusDescription} numberOfLines={3}>{nextStage.description}</Text>
+              <Text style={styles.focusDescription} numberOfLines={3}>
+                {nextStage.description}
+              </Text>
             ) : null}
-            <TouchableOpacity style={styles.focusCta} onPress={() => { /* navigate to lesson later */ }}>
-              <Text style={styles.focusCtaText}>{nextStage.is_completed ? 'Retake Lesson' : nextStage.progress_percent > 0 ? 'Resume Lesson' : 'Start Lesson'}</Text>
+            <TouchableOpacity
+              style={styles.focusCta}
+              onPress={() => {
+                /* navigate to lesson later */
+              }}
+            >
+              <Text style={styles.focusCtaText}>
+                {nextStage.is_completed
+                  ? 'Retake Lesson'
+                  : nextStage.progress_percent > 0
+                    ? 'Resume Lesson'
+                    : 'Start Lesson'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -75,10 +118,21 @@ export default function SubmoduleMap() {
             return (
               <View key={c.id}>
                 <View style={styles.zRow}>
-                  <View style={leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge
+                    }
+                  />
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    style={[styles.circleWrap, c.isCompleted ? styles.circleCompleted : c.inProgress ? styles.circleInProgress : styles.circleDefault]}
+                    style={[
+                      styles.circleWrap,
+                      c.isCompleted
+                        ? styles.circleCompleted
+                        : c.inProgress
+                          ? styles.circleInProgress
+                          : styles.circleDefault,
+                    ]}
                     onPress={() => console.log('Stage tapped:', c.title)}
                   >
                     {c.isCompleted ? (
@@ -90,31 +144,47 @@ export default function SubmoduleMap() {
                       </View>
                     )}
                   </TouchableOpacity>
-                  <View style={leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall
+                    }
+                  />
                 </View>
                 {/* Label row centered under the circle */}
                 <View style={styles.zRowLabelRow}>
-                  <View style={leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge
+                    }
+                  />
                   <View style={styles.labelBox}>
                     <Text
                       style={[
                         styles.stageTitleText,
-                        c.isCompleted ? styles.titleCompleted : c.inProgress ? styles.titleInProgress : styles.titleDefault,
+                        c.isCompleted
+                          ? styles.titleCompleted
+                          : c.inProgress
+                            ? styles.titleInProgress
+                            : styles.titleDefault,
                       ]}
                       numberOfLines={2}
                     >
                       {c.title}
                     </Text>
                   </View>
-                  <View style={leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall
+                    }
+                  />
                 </View>
               </View>
             );
           })}
         </View>
 
-  {/* Footer spacing */}
-  <View style={{ height: 24 }} />
+        {/* Footer spacing */}
+        <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -123,50 +193,50 @@ export default function SubmoduleMap() {
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  safe: { 
-    flex: 1, 
-    backgroundColor: '#F8F9FA' 
+  safe: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
   },
-  container: { 
-    paddingHorizontal: 20, 
+  container: {
+    paddingHorizontal: 20,
     paddingBottom: 40,
-    minHeight: '100%'
+    minHeight: '100%',
   },
-  
+
   // Header
-  headerRow: { 
-    flexDirection: 'row', 
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 20
+    marginBottom: 20,
   },
-  backButton: { 
+  backButton: {
     padding: 8,
-    marginLeft: -8
+    marginLeft: -8,
   },
 
   // Title Section
   titleSection: {
     alignItems: 'center',
-    marginBottom: 24
+    marginBottom: 24,
   },
-  title: { 
-    fontSize: 32, 
-    fontWeight: '700', 
-    textAlign: 'center', 
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    textAlign: 'center',
     color: '#1A1A1A',
     marginBottom: 12,
-    lineHeight: 38
+    lineHeight: 38,
   },
-  description: { 
-    fontSize: 16, 
-    textAlign: 'center', 
-    color: '#6B7280', 
+  description: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#6B7280',
     lineHeight: 24,
     paddingHorizontal: 20,
-    maxWidth: width - 40
+    maxWidth: width - 40,
   },
-  
+
   // Focus Card
   focusCard: {
     backgroundColor: '#fff',
@@ -219,8 +289,8 @@ const styles = StyleSheet.create({
   zRowLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  marginTop: 0,
-  marginBottom: 22,
+    marginTop: 0,
+    marginBottom: 22,
   },
   labelLeft: { alignItems: 'flex-start' },
   labelRight: { alignItems: 'flex-end' },
@@ -229,9 +299,9 @@ const styles = StyleSheet.create({
   spacerGrowLarge: { flex: 1.5 },
   spacerGrowSmall: { flex: 0.5 },
   circleWrap: {
-  width: 100,
-  height: 100,
-  borderRadius: 50,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
@@ -239,7 +309,7 @@ const styles = StyleSheet.create({
     borderColor: '#D1D5DB',
   },
   labelBox: {
-  width: 100,
+    width: 100,
     alignItems: 'center',
   },
   circleDefault: {
@@ -265,7 +335,7 @@ const styles = StyleSheet.create({
     color: '#111827',
   },
   stageTitleText: {
-  fontSize: 15,
+    fontSize: 15,
     fontWeight: '700',
     marginHorizontal: 0,
     textAlign: 'center',
@@ -273,9 +343,9 @@ const styles = StyleSheet.create({
   titleDefault: { color: '#1F2937' },
   titleInProgress: { color: '#92400E' },
   titleCompleted: { color: '#065F46' },
-  
+
   // (old resume button styles removed)
-  
+
   // Loading and Error States
   loadingContainer: {
     flex: 1,

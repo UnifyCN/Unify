@@ -1,9 +1,17 @@
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 
-type Props = { total: number; activeIndex: number; onDotPress?: (index: number) => void };
+type Props = {
+  total: number;
+  activeIndex: number;
+  onDotPress?: (index: number) => void;
+};
 
-export default function CarouselDots({ total, activeIndex, onDotPress }: Props) {
+export default function CarouselDots({
+  total,
+  activeIndex,
+  onDotPress,
+}: Props) {
   return (
     <View style={styles.container}>
       {Array.from({ length: total }).map((_, i) => (
@@ -11,7 +19,10 @@ export default function CarouselDots({ total, activeIndex, onDotPress }: Props) 
           key={i}
           onPress={() => onDotPress && onDotPress(i)}
           android_ripple={{ color: '#ddd', borderless: true }}
-          style={[styles.dot, i === activeIndex ? styles.dotActive : styles.dotInactive]}
+          style={[
+            styles.dot,
+            i === activeIndex ? styles.dotActive : styles.dotInactive,
+          ]}
         />
       ))}
     </View>

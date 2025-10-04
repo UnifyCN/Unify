@@ -10,4 +10,3 @@ export const useModule = (moduleId: string) => {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };
-
