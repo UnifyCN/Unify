@@ -49,7 +49,7 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
     .select('progress_percent, is_completed')
     .eq('user_id', user.id)
     .eq('submodule_id', submoduleId)
-    .single();
+    .maybeSingle();
 
   if (subProgressError) {
     console.error('Error fetching submodule progress:', subProgressError);
