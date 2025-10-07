@@ -42,40 +42,7 @@ export default function StageScreen() {
 
         {!loadingLessons && lessons && lessons.length > 0 && (
           <View style={{ gap: 20 }}>
-            {/* {lessons.map((lesson: any) => {
-              if (lesson.type === 'flashcards') {
-                const items = lesson.contents.map((c: any, i: number) => ({
-                  id: `${lesson.id}-${i}`,
-                  front: c.content?.front ?? c.content?.term ?? 'Card',
-                  back: c.content?.back ?? c.content?.definition ?? 'Definition',
-                }));
-                return (
-                  <View key={lesson.id}>
-                    <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                    <FlashcardsCarousel items={items} />
-                  </View>
-                );
-              }
-              if (lesson.type === 'dropdown') {
-                const items = lesson.contents.map((c: any, i: number) => ({
-                  id: `${lesson.id}-${i}`,
-                  title: c.content?.title ?? `Item ${i + 1}`,
-                  body: c.content?.body ?? c.content?.text ?? '',
-                }));
-                return (
-                  <View key={lesson.id}>
-                    <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                    <DropdownAccordion items={items} />
-                  </View>
-                );
-              }
-              return (
-                <View key={lesson.id}>
-                  <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                  <Text style={{ color: '#6B7280' }}>Unsupported lesson type</Text>
-                </View>
-              );
-            })} */}
+            
             {/* Next button to go to first lesson */}
             <TouchableOpacity
               style={styles.nextBtn}

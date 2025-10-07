@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSubmoduleStages } from '@/hooks/learn/useSubmoduleStages';
+import { useModule } from '@/hooks/learn/useModule';
 import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleIndex() {
@@ -9,6 +10,7 @@ export default function SubmoduleIndex() {
   const { moduleId, submoduleId } = useLocalSearchParams<{ moduleId: string; submoduleId: string }>();
   
   const { data: submoduleData, isLoading, error } = useSubmoduleStages(submoduleId || '');
+  const { data: moduleData } = useModule(moduleId || '');
 
   if (isLoading) {
     return (
@@ -54,11 +56,11 @@ export default function SubmoduleIndex() {
         </View>
 
         {/* Stage Header */}
-        <Text style={styles.moduleLabel}>{`Stage ${nextStage?.order_num}: ${nextStage?.title}`}</Text>
-        <Text style={styles.title}>{`Welcome Back to Your ${submoduleData.submodule_title} Journey in Canada!`}</Text>
+        <Text style={styles.moduleLabel}>{moduleData?.title || 'Module'}</Text>
+        <Text style={styles.title}>{`${submoduleData.submodule_title}`}</Text>
         <View style={styles.mediaPlaceholder} />
         <Text style={styles.stageDesc}>
-          {`Now that you've started ${submoduleData.submodule_title}, let's continue with ${nextStage?.title}.`} 
+          {`By the end of this section, you will ${submoduleData.submodule_description}`} 
         </Text>
 
         {/* CTA to Stage Screen */}
@@ -72,7 +74,9 @@ export default function SubmoduleIndex() {
             });
           }}
         >
-          <Text style={styles.resumeButtonText}>Resume Stage {nextStage?.order_num || 1}</Text>
+          <Text style={styles.resumeButtonText}>
+            {nextStage?.progress_percent === 0 ? 'Start' : 'Resume'} Stage {nextStage?.order_num || 1}
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -125,7 +129,9 @@ const styles = StyleSheet.create({
     textAlign: 'center', 
     color: '#000',
     marginBottom: 32,
-    lineHeight: 38
+    lineHeight: 38,
+    maxWidth: width * 0.75,
+    alignSelf: 'center'
   },
   stageDesc: {
     fontSize: 14,
