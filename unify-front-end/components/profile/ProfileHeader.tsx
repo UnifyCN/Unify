@@ -170,12 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     marginBottom: 2,
-    color: '#333',
-  },
-  memberSince: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 8,
+    color: '#000',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -184,16 +179,15 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
+    color: '#000',
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#000',
   },
   bullet: {
     fontSize: 12,
-    color: '#666',
+    color: '#000',
     marginHorizontal: 4,
   },
   followButtonContainer: {
