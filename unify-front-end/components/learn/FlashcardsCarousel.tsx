@@ -8,40 +8,26 @@ type CardItem = {
 };
 
 export default function FlashcardsCarousel({ items }: { items: CardItem[] }) {
-  const { width } = Dimensions.get('window');
   const [index, setIndex] = React.useState(0);
-  const scrollRef = React.useRef<any>(null);
 
   const goTo = (i: number) => {
     if (i < 0 || i >= items.length) return;
     setIndex(i);
-    scrollRef.current?.scrollTo({ x: i * width, animated: true });
   };
 
-  const onMomentumEnd = (e: any) => {
-    const i = Math.round(e.nativeEvent.contentOffset.x / width);
-    setIndex(i);
-  };
+  const currentItem = items[index];
 
   return (
     <View style={styles.carouselContainer}>
-      <Animated.ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onMomentumEnd}
-        scrollEnabled={false}
-      >
-        {items.map((item) => (
-          <View key={item.id} style={styles.cardOuterWrap}>
-            <FlippableCard front={item.front} back={item.back} />
-          </View>
-        ))}
-      </Animated.ScrollView>
+      {/* Display only the current card */}
+      <View style={styles.cardOuterWrap}>
+        <FlippableCard front={currentItem.front} back={currentItem.back} />
+      </View>
+      
       <View style={styles.indicatorRow}>
         <Text style={styles.indicatorText}>{`${index + 1}/${items.length}`}</Text>
       </View>
+      
       <View style={styles.arrowRow}>
         <TouchableOpacity
           style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
@@ -97,16 +83,19 @@ const styles = StyleSheet.create({
   carouselContainer: {
     alignItems: 'center',
     marginTop: 16,
+    width: '100%',
+  },
+  scrollContent: {
+    alignItems: 'center',
   },
   cardOuterWrap: {
-    width: Dimensions.get('window').width,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 0,
+    width: '100%',
   },
   cardWrapper: {
-    width: 260,
-    height: 200,
+    width: Dimensions.get('window').width - 40,
+    height: 280,
     borderRadius: 16,
     backgroundColor: '#E5E7EB',
     alignItems: 'center',
@@ -136,10 +125,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D5DB',
   },
   cardText: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     textAlign: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     color: '#222',
   },
   indicatorRow: {
