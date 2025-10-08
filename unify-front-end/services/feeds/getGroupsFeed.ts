@@ -76,8 +76,10 @@ export const getFeedGroups = async (
       } as User,
       time: post.created_at,
       title: post.title,
-      content: post.content,
-      group: post.groups.group_name,
+      description: post.content,
+      group: post.groups?
+      { id: post.groups.id, name: post.groups.group_name }
+      : null,
     }));
 
     return {
