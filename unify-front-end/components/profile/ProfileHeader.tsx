@@ -12,7 +12,6 @@ export const ProfileHeader = ({
   userInfo,
   isCurrentUser,
 }: ProfileHeaderProps) => {
-  
   if (!userInfo) {
     return null;
   }
