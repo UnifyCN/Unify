@@ -15,8 +15,5 @@ const usernameConfig: Config = {
 };
 
 export const generateUsername = (): string => {
-  console.log('Generating username...');
-  const username = uniqueUsernameGenerator(usernameConfig);
-  console.log('Generated username:', username);
-  return username;
+  return uniqueUsernameGenerator(usernameConfig);
 };
