@@ -70,6 +70,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.10",
     "unify-front-end": "file:",
+    "unique-username-generator": "^1.5.1",
     "yarn": "^1.22.22"
   },
   "devDependencies": {

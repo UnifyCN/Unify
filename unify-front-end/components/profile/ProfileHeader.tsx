@@ -102,16 +102,9 @@ export const ProfileHeader = ({
         </View>
 
         {/* Follow Button or Edit Button */}
-        {!isCurrentUser ? (
+        {!isCurrentUser && (
           <View style={styles.followButtonContainer}>
             <FollowButton targetUserId={userInfo.id} />
-          </View>
-        ) : (
-          // TODO: Add edit display name functionality
-          <View style={styles.followButtonContainer}>
-            <TouchableOpacity style={styles.followButton}>
-              <Text style={styles.followButtonText}>Edit Display Name</Text>
-            </TouchableOpacity>
           </View>
         )}
       </View>
