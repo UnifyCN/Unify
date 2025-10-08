@@ -61,7 +61,7 @@ const EventDetailScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
+          onPress={() => router.back()}
         >
           <Feather name='chevron-left' size={24} color='#fff' />
         </TouchableOpacity>

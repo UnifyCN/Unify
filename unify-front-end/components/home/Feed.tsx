@@ -11,9 +11,11 @@ interface FeedProps {
   isLoading?: boolean;
   isRefetching?: boolean;
   refetch?: () => void;
+  ListHeaderComponent?: React.ReactElement;
+  ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
 }
 
-export const Feed = ({
+const Feed = ({
   data,
   fetchNextPage,
   hasNextPage,
@@ -21,6 +23,8 @@ export const Feed = ({
   isLoading,
   isRefetching,
   refetch,
+  ListHeaderComponent,
+  ListEmptyComponent,
 }: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
 
@@ -35,7 +39,7 @@ export const Feed = ({
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+        <Text style={styles.loadingMessage}>Loading...</Text>
       </View>
     );
   }
@@ -54,6 +58,8 @@ export const Feed = ({
           onRefresh={refetch}
         />
       }
+      ListHeaderComponent={ListHeaderComponent}
+      ListEmptyComponent={ListEmptyComponent}
       ListFooterComponent={
         isFetchingNextPage ? (
           <View style={styles.loadingFooter}>
@@ -75,6 +81,12 @@ const styles = StyleSheet.create({
   loadingFooter: {
     padding: 20,
     alignItems: 'center',
+  },
+  loadingMessage: {
+    paddingTop: 20,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
   },
 });
 

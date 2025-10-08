@@ -4,8 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
@@ -18,7 +16,6 @@ import { useScrollContext } from '@/context/ScrollContext';
 import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Header from '@/components/Header';
 // import Search from '@/assets/images/search.svg';
 // import CreatePost from '@/assets/images/create_post_button.svg';
 import ForYouFeed from '@/components/home/ForYouFeed';
@@ -29,11 +26,10 @@ import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
 import ViewMoreCard from './ViewMoreCard';
 import CreatePostButton from '@/components/posts/CreatePostButton';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { TextInput } from 'react-native-gesture-handler';
 
 const SCROLL_DISTANCE = 200;
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
 
 interface HeaderProps {
   activeTab: string;
@@ -123,7 +119,14 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
             onPress={() => setActiveTab(tab)}
             style={[styles.tab, activeTab === tab && styles.activeTab]}
           >
-            <Text style={styles.tabText}>{tab}</Text>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -132,7 +135,6 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 });
 
 export default function GatherScreen() {
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState('For You');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,11 +142,31 @@ export default function GatherScreen() {
   const renderFeedContent = useMemo(() => {
     switch (activeTab) {
       case 'Following':
-        return <FollowingFeed />;
+        return (
+          <FollowingFeed
+            key={`following-${activeTab}`}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No one you follow has posted anything yet'
+                submessage='Follow other users to see their posts here'
+              />
+            }
+          />
+        );
       case 'Groups':
-        return <GroupsFeed />;
+        return <GroupsFeed key={`groups-${activeTab}`} />;
       default:
-        return <ForYouFeed />;
+        return (
+          <ForYouFeed
+            key={`foryou-${activeTab}`}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No one has posted anything yet'
+                submessage='No posts for you to see'
+              />
+            }
+          />
+        );
     }
   }, [activeTab]);
 
@@ -222,7 +244,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   container: {
-    flex: 1, // Ensure the container takes up the full screen
+    flex: 1,
     backgroundColor: '#fff',
     flexDirection: 'column',
   },
@@ -232,24 +254,32 @@ const styles = StyleSheet.create({
   },
   tabs: {
     marginTop: 16,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#fff',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
-    borderColor: 'transparent',
-    paddingVertical: 8,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: '#F9F9F9',
+    borderBottomColor: '#000',
   },
   tabText: {
     fontSize: 14,
-    fontWeight: 600,
+    fontWeight: '600',
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#000',
   },
   searchContainer: {
     paddingHorizontal: 20,

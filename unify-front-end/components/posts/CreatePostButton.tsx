@@ -28,7 +28,7 @@ export default function CreatePostButton() {
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    bottom: 100, // Above the bottom navigation
+    bottom: 20, // Above the bottom navigation
     right: 20,
     width: 56,
     height: 56,

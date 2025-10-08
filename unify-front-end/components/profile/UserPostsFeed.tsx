@@ -1,12 +1,18 @@
 import React from 'react';
-import Feed from './Feed';
-import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
+import Feed from '@/components/home/Feed';
+import { useUserPosts } from '@/hooks/posts/useUserPosts';
 
-interface FollowingFeedProps {
+interface UserPostsFeedProps {
+  userId: string;
+  ListHeaderComponent: React.ReactElement;
   ListEmptyComponent: React.ReactElement;
 }
 
-const FollowingFeed = ({ ListEmptyComponent }: FollowingFeedProps) => {
+const UserPostsFeed = ({
+  userId,
+  ListHeaderComponent,
+  ListEmptyComponent,
+}: UserPostsFeedProps) => {
   const {
     data,
     fetchNextPage,
@@ -15,7 +21,7 @@ const FollowingFeed = ({ ListEmptyComponent }: FollowingFeedProps) => {
     isLoading,
     isRefetching,
     refetch,
-  } = useFollowingFeed();
+  } = useUserPosts(userId);
 
   return (
     <Feed
@@ -26,9 +32,10 @@ const FollowingFeed = ({ ListEmptyComponent }: FollowingFeedProps) => {
       isLoading={isLoading}
       isRefetching={isRefetching}
       refetch={refetch}
+      ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={ListEmptyComponent}
     />
   );
 };
 
-export default FollowingFeed;
+export default UserPostsFeed;

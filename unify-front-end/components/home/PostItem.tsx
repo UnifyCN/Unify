@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import Save from '@/assets/images/Save.svg';
@@ -11,8 +12,6 @@ import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useGetPostSaveStatus } from '@/hooks/posts/useGetPostSaveStatus';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 
 interface PostItemProps {
@@ -20,8 +19,7 @@ interface PostItemProps {
 }
 
 export const PostItem = ({ post }: PostItemProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const router = useRouter();
 
   // Get post likes data
   const { data: likeData } = useGetPostLikes(post.id);
@@ -39,6 +37,10 @@ export const PostItem = ({ post }: PostItemProps) => {
     savePostMutation.mutate({ postId, isSaved });
   };
 
+  const navigateToUserProfile = () => {
+    router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
+  };
+
   // Use like data from the hook, fallback to 0 if loading
   const likeCount = likeData?.likeCount;
   const isLiked = likeData?.userLiked;
@@ -50,19 +52,24 @@ export const PostItem = ({ post }: PostItemProps) => {
     <View>
       <View style={styles.postContainer}>
         {/* Head Shot */}
-        <View style={styles.headshot}>
+        <TouchableOpacity
+          style={styles.headshot}
+          onPress={navigateToUserProfile}
+        >
           {/* TODO: Have to add default headshot */}
           {post.user.headshot ? (
             <post.user.headshot />
           ) : (
             <Text>No headshot</Text>
           )}
-        </View>
+        </TouchableOpacity>
         {/* Post Content */}
         <View style={styles.postContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.name}>{post.user.name}</Text>
+            <TouchableOpacity onPress={navigateToUserProfile}>
+              <Text style={styles.name}>{post.user.name}</Text>
+            </TouchableOpacity>
             <ChevronRight width={6} height={10} />
             <Text style={styles.group}>{post.group?.name}</Text>
             <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
