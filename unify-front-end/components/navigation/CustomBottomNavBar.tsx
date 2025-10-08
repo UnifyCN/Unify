@@ -109,21 +109,15 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   ): React.ReactNode {
     const iconMap: Record<string, React.ReactNode> = {
       index: <CustomHomeIcon color={color} focused={isFocused} />,
-      'Learn/index': (
-        <CustomlearnIcon  color={color} focused={isFocused} />
-      ),
-      'Gather/gather': (
-        <CustomGatherIcon color={color} />
-      ),
+      'Learn/index': <CustomlearnIcon color={color} focused={isFocused} />,
+      'Gather/gather': <CustomGatherIcon color={color} />,
       profile: (
         <CustomProfileIcon name={'Profile'} color={color} focused={isFocused} />
       ),
     };
 
     return (
-      iconMap[routeName] || (
-        <CustomHomeIcon color={color} focused={isFocused} />
-      )
+      iconMap[routeName] || <CustomHomeIcon color={color} focused={isFocused} />
     );
   }
 };

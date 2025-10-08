@@ -39,12 +39,12 @@ const SearchScreen = () => {
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
   //const { data: allPosts } = useAllPosts();
   const { data: searchResults, isLoading: searchLoading } = useQuery({
-      queryKey: ['searchPosts', searchQuery],
-      queryFn: () => getAllPosts(undefined, 50, searchQuery),
-      enabled: !!searchQuery,
-    });
+    queryKey: ['searchPosts', searchQuery],
+    queryFn: () => getAllPosts(undefined, 50, searchQuery),
+    enabled: !!searchQuery,
+  });
   //const posts = allPosts?.pages?.flatMap(page => page.posts) ?? [];
-  const postsToShow = searchResults?.posts ?? []; 
+  const postsToShow = searchResults?.posts ?? [];
   //const initialSearch = params.search as string | undefined;
   let searchHistory = null;
   let groupsHistory = null;
@@ -72,7 +72,7 @@ const SearchScreen = () => {
       return matchesSearch;
     });
   }, [groups, searchQuery]);
-/*
+  /*
   const filterPosts = useMemo(() => {
     
     return posts.filter(post =>
@@ -82,7 +82,9 @@ const SearchScreen = () => {
   }, [posts, searchQuery]);
 */
   let foundGroup = filterGroups && filterGroups.length > 0;
-  let foundPost = searchQuery? (searchResults?.posts?.length ?? 0) > 0 : postsToShow.length > 0;
+  let foundPost = searchQuery
+    ? (searchResults?.posts?.length ?? 0) > 0
+    : postsToShow.length > 0;
 
   const groupPress = (group: Group) => {
     setRecentGroups(prev => {
@@ -185,7 +187,14 @@ const SearchScreen = () => {
           borderColor: '#E0E0E0',
         }}
       >
-        <Text style={{ fontSize: 16, color: '#454545ff', textAlign: 'center', borderColor:'#333' }}>
+        <Text
+          style={{
+            fontSize: 16,
+            color: '#454545ff',
+            textAlign: 'center',
+            borderColor: '#333',
+          }}
+        >
           What do you want to discover today? Press 'enter' or 'go' to see
           relevant
         </Text>
@@ -211,7 +220,12 @@ const SearchScreen = () => {
   }
 
   return (
-    <View style={[styles.searchContainer, {backgroundColor: '#ffffffff', paddingTop: 0}]}>
+    <View
+      style={[
+        styles.searchContainer,
+        { backgroundColor: '#ffffffff', paddingTop: 0 },
+      ]}
+    >
       <View style={[styles.header, { paddingTop: 0 }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Feather name='chevron-left' size={24} color='#000' />

@@ -10,10 +10,8 @@ export const getAllPosts = async (
 ): Promise<{ posts: PostData[]; next_cursor?: string }> => {
   try {
     // Get saved posts with user data
-    let query = supabase
-      .from('posts')
-      .select(
-        `
+    let query = supabase.from('posts').select(
+      `
           id,
           content,
           like_count,
@@ -31,17 +29,17 @@ export const getAllPosts = async (
             group_name
           )
       `
-      );
-      if (searchQuery){
-        query = query.or(
+    );
+    if (searchQuery) {
+      query = query.or(
         `title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`
       );
-      }
-      // .order('posts.created_at', { ascending: false }) // this doesn't work
-      query = query.range(
-        cursor ? parseInt(cursor) : 0,
-        (cursor ? parseInt(cursor) : 0) + limit - 1
-      );
+    }
+    // .order('posts.created_at', { ascending: false }) // this doesn't work
+    query = query.range(
+      cursor ? parseInt(cursor) : 0,
+      (cursor ? parseInt(cursor) : 0) + limit - 1
+    );
 
     const { data, error } = await query;
 

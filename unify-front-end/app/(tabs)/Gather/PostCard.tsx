@@ -23,7 +23,6 @@ interface PostCardProps {
 }
 
 const PostCard = memo(({ post, width = 248, onPress }: PostCardProps) => {
-
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -59,15 +58,19 @@ const PostCard = memo(({ post, width = 248, onPress }: PostCardProps) => {
         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
           <Text style={styles.eventDetailText}>
             {post.user.username}
-            <Icon name="chevron-right" size={12} color="#666" />
+            <Icon name='chevron-right' size={12} color='#666' />
             <Text style={styles.eventTitle}>{' /'}</Text>
             <Text style={styles.eventTitle}>{post.group?.name}</Text>
           </Text>
 
-          <Text style={[styles.eventDetailText, { flex: 0, marginLeft: 8 , color: '#666', fontWeight: 'bold'}]}>
+          <Text
+            style={[
+              styles.eventDetailText,
+              { flex: 0, marginLeft: 8, color: '#666', fontWeight: 'bold' },
+            ]}
+          >
             {formatSmartTime(post.time)}
           </Text>
-
         </View>
         <View style={styles.eventDetail}>
           {/*<Feather size={14} color='#666' />*/}
