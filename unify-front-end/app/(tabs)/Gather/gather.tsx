@@ -29,6 +29,7 @@ import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
 import ViewMoreCard from './ViewMoreCard';
 import CreatePostButton from '@/components/posts/CreatePostButton';
+import { TextInput } from 'react-native-gesture-handler';
 
 const SCROLL_DISTANCE = 200;
 const AnimatedTouchableOpacity =
@@ -48,6 +49,23 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 
   return (
     <View>
+      <View style={styles.searchContainer}>
+        <TouchableOpacity
+          style={styles.searchInputContainer}
+          onPress={() => router.push('/(tabs)/Gather/SearchScreen')}
+        >
+          <Feather
+            name='search'
+            size={24}
+            color='#666'
+            style={styles.searchIcon}
+          />
+          <Text style={[styles.searchInput, { color: '#999' }]}>
+            Search for events near you
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.header}>
         <Text style={styles.headerText}>Gather Events</Text>
         <TouchableOpacity
@@ -116,6 +134,8 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 export default function GatherScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('For You');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const renderFeedContent = useMemo(() => {
     switch (activeTab) {
@@ -230,5 +250,25 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: 600,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8E8E8',
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
   },
 });

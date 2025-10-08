@@ -4,12 +4,17 @@ import { User } from '@/types/user';
 export type PostData = {
   id: number;
   user: User;
-  group?: string;
+  //group?: string;
   userReply?: string;
   time: string;
-  title: string;
-  content: string;
+  //title: string;
+  description: string;
   pictures?: React.FC[];
+  title?: string;
+  group?: {
+    id: number;
+    name: string;
+  } | null;
 };
 
 // Feed response type

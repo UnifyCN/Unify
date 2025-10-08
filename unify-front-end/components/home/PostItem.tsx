@@ -64,7 +64,7 @@ export const PostItem = ({ post }: PostItemProps) => {
           <View style={styles.header}>
             <Text style={styles.name}>{post.user.name}</Text>
             <ChevronRight width={6} height={10} />
-            <Text style={styles.group}>{post.group}</Text>
+            <Text style={styles.group}>{post.group?.name}</Text>
             <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
           </View>
 
@@ -80,7 +80,7 @@ export const PostItem = ({ post }: PostItemProps) => {
           )}  */}
 
           {/* Content */}
-          <Text style={styles.description}>{post.content}</Text>
+          <Text style={styles.description}>{post.description}</Text>
 
           {/* Footer */}
           <View style={styles.footer}>

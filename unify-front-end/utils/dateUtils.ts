@@ -29,12 +29,12 @@ export const formatSocialMediaTime = (timestamp: string | Date): string => {
   // Less than 30 days
   if (diffInDays < 30) {
     const weeks = Math.floor(diffInDays / 7);
-    return `${weeks}w ago`;
+    return `${weeks}week ago`;
   }
 
   // Less than 365 days
   const months = Math.floor(diffInDays / 30);
-  return `${months}mo ago`;
+  return `${months}month ago`;
 };
 
 // Alternative: Format as absolute date (e.g., "Dec 15, 2023")
