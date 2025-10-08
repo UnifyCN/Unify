@@ -110,7 +110,7 @@ export const ProfileHeader = ({
           // TODO: Add edit display name functionality
           <View style={styles.followButtonContainer}>
             <TouchableOpacity style={styles.followButton}>
-              <Text style={styles.followButtonText}>Edit display name</Text>
+              <Text style={styles.followButtonText}>Edit Display Name</Text>
             </TouchableOpacity>
           </View>
         )}
