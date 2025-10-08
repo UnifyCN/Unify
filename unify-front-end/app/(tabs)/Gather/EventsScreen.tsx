@@ -95,9 +95,7 @@ const EventsScreen = () => {
     return (
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <Header
-          onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
-        />
+        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading events...</Text>
         </View>
@@ -109,9 +107,7 @@ const EventsScreen = () => {
     return (
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <Header
-          onProfilePress={() => router.push('/(tabs)/Gather/Profile/profile')}
-        />
+        <Header />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load events</Text>
           <TouchableOpacity
@@ -239,7 +235,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 32,
+    paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',

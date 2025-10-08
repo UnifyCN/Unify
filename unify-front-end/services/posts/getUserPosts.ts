@@ -3,44 +3,26 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
 
-export const getFeedFollowing = async (
+export const getUserPosts = async (
+  userId?: string,
   cursor?: string,
   limit = 20
 ): Promise<FeedResponse> => {
   try {
-    // Get current user's ID
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
+    let targetUserId = userId;
+
+    // If no userId provided, get current user's ID
+    if (!targetUserId) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      targetUserId = user.id;
     }
 
-    // First, get the list of user IDs that the current user is following
-    const { data: followingData, error: followingError } = await supabase
-      .from('user_followers')
-      .select('following_id')
-      .eq('follower_id', user.id);
-
-    if (followingError) {
-      throw new Error(
-        `Failed to fetch following list: ${followingError.message}`
-      );
-    }
-
-    // Extract the user IDs
-    const followingUserIds =
-      followingData?.map(item => item.following_id) || [];
-
-    // If not following anyone, return empty feed
-    if (followingUserIds.length === 0) {
-      return {
-        posts: [],
-        next_cursor: undefined,
-      };
-    }
-
-    // Get posts from users that the current user is following
+    // Get posts created by the user
     const { data, error } = await supabase
       .from('posts')
       .select(
@@ -61,7 +43,7 @@ export const getFeedFollowing = async (
         )
       `
       )
-      .in('user_id', followingUserIds)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false })
       .range(
         cursor ? parseInt(cursor) : 0,
@@ -69,10 +51,10 @@ export const getFeedFollowing = async (
       );
 
     if (error) {
-      throw new Error(`Failed to fetch following feed: ${error.message}`);
+      throw new Error(`Failed to fetch user posts: ${error.message}`);
     }
 
-    // Transform data to match your Post type
+    // Transform data to match your PostData type
     const transformedPosts: PostData[] = (data || []).map((post: any) => ({
       id: post.id,
       user: {
@@ -83,7 +65,7 @@ export const getFeedFollowing = async (
       time: post.created_at,
       title: post.title,
       content: post.content,
-      group: post.groups.group_name,
+      group: post.groups?.group_name || null,
     }));
 
     return {
@@ -94,7 +76,7 @@ export const getFeedFollowing = async (
           : undefined,
     };
   } catch (error) {
-    console.error('Error fetching following feed:', error);
+    console.error('Error fetching user posts:', error);
     throw error;
   }
 };

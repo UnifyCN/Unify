@@ -2,7 +2,11 @@ import React from 'react';
 import Feed from './Feed';
 import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
 
-const ForYouFeed = () => {
+interface ForYouFeedProps {
+  ListEmptyComponent: React.ReactElement;
+}
+
+const ForYouFeed = ({ ListEmptyComponent }: ForYouFeedProps) => {
   const {
     data,
     fetchNextPage,
@@ -22,6 +26,7 @@ const ForYouFeed = () => {
       isLoading={isLoading}
       isRefetching={isRefetching}
       refetch={refetch}
+      ListEmptyComponent={ListEmptyComponent}
     />
   );
 };

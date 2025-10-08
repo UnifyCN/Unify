@@ -1,0 +1,117 @@
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { FollowButton } from './FollowButton';
+import { UserInfo } from '@/services/users/getUserInfo';
+
+interface ProfileHeaderProps {
+  userInfo: UserInfo | undefined;
+  isCurrentUser: boolean | null;
+}
+
+export const ProfileHeader = ({
+  userInfo,
+  isCurrentUser,
+}: ProfileHeaderProps) => {
+  
+  if (!userInfo) {
+    return null;
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* Profile Picture Placeholder */}
+      <View style={styles.profilePictureContainer}>
+        <View style={styles.profilePicture}>
+          <Text style={styles.profilePictureText}>
+            {userInfo.username.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+      </View>
+
+      {/* User Info */}
+      <View style={styles.userInfoContainer}>
+        <Text style={styles.username}>{userInfo.username}</Text>
+        <Text style={styles.memberSince}>
+          Member since {new Date(userInfo.createdAt).toLocaleDateString()}
+        </Text>
+      </View>
+
+      {/* Stats */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
+          <Text style={styles.statLabel}>Followers</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{userInfo.followingCount}</Text>
+          <Text style={styles.statLabel}>Following</Text>
+        </View>
+      </View>
+
+      {/* Follow Button */}
+      {!isCurrentUser && (
+        <View style={styles.followButtonContainer}>
+          <FollowButton targetUserId={userInfo.id} />
+        </View>
+      )}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    padding: 20,
+    alignItems: 'center',
+  },
+  profilePictureContainer: {
+    marginBottom: 20,
+  },
+  profilePicture: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#E5E5E5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#D0D0D0',
+  },
+  profilePictureText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#666',
+  },
+  userInfoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  username: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  memberSince: {
+    fontSize: 14,
+    color: '#666',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 40,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  followButtonContainer: {
+    marginTop: 20,
+  },
+});
