@@ -53,10 +53,11 @@ export default function Learn() {
         </View>
         <CarouselDots total={heroSlides.length} activeIndex={heroIndex} onDotPress={handleDotPress} />
 
-        <SectionHeader title='Learning Pathways' style={{ marginTop: 24 }} />
+        <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
         <View style={styles.pathwaysGrid}>
           {isLoading ? (
-            <ActivityIndicator size="large" color="#007AFF" />
+            // Loading indicator to be waited for design
+            <ActivityIndicator size="large" color="#575757" />
           ) : error ? (
             <Text style={styles.errorText}>Error loading modules</Text>
           ) : modules && modules.length > 0 ? (
@@ -64,7 +65,7 @@ export default function Learn() {
               <PathwayCard
                 key={module.id}
                 title={module.title}
-                modulesLabel={`${module.completed_submodules}/${module.total_submodules} Modules`}
+                modulesLabel={`${module.total_submodules} section${module.total_submodules === 1 ? '' : 's'}`}
                 href={`/(tabs)/Learn/modules/${module.id}` as any}
               />
             ))

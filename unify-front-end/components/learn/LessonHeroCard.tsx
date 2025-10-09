@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function LessonHeroCard() {
   return (
+    // This component is hard coded for now
     <View style={styles.card}>
       <View style={styles.banner}>
         <View style={styles.bannerTextWrap}>
@@ -18,7 +19,7 @@ export default function LessonHeroCard() {
           <Text style={styles.subtitle}>Types of Banks & Credit Unions</Text>
         </View>
         <View style={styles.playButton}>
-          <Feather name='play' size={18} color='#fff' />
+          <MaterialIcons name="play-arrow" size={28} color="#fff" />
         </View>
       </View>
     </View>
@@ -29,7 +30,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 16,
+    paddingTop: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -40,8 +43,7 @@ const styles = StyleSheet.create({
     height: 160,
     // make banner flush with card edges
     marginHorizontal: -16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderRadius: 16,
     backgroundColor: '#bdbdbd',
     marginBottom: 12,
     overflow: 'hidden',
@@ -61,12 +63,11 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   footerRow: {
-    marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
     backgroundColor: '#fff',
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
@@ -76,20 +77,31 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: -2 },
   },
-  caption: { color: '#7a7a7a', fontSize: 12 },
-  subtitle: { color: '#000', fontSize: 16, fontWeight: '700', maxWidth: 240 },
+  caption: { color: '#7a7a7a', fontSize: 14 },
+  subtitle: { color: '#000', fontSize: 18, fontWeight: '700', maxWidth: 290 },
   playButton: {
-    width: 44,
-    height: 44,
+    width: 38,
+    height: 38,
     borderRadius: 12,
-    backgroundColor: '#4B5563',
+    backgroundColor: '#575757',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 12,
+    marginLeft: 8,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+  },
+  playTriangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderLeftColor: '#fff',
+    borderTopWidth: 7,
+    borderTopColor: 'transparent',
+    borderBottomWidth: 7,
+    borderBottomColor: 'transparent',
+    marginLeft: 2,
   },
 });
