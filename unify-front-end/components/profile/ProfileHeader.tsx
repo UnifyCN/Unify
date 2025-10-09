@@ -1,5 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 
@@ -13,46 +18,106 @@ export const ProfileHeader = ({
   isCurrentUser,
 }: ProfileHeaderProps) => {
   if (!userInfo) {
-    return null;
+    return (
+      <View style={styles.container}>
+        {/* Left Section - Loading User Info */}
+        <View style={styles.leftSection}>
+          {/* Loading Username */}
+          <View
+            style={[
+              styles.loadingText,
+              { width: 50, height: 24, marginBottom: 8 },
+            ]}
+          />
+
+          {/* Loading Stats */}
+          <View style={[styles.statsContainer, { marginBottom: 8 }]}>
+            <View
+              style={[
+                styles.loadingText,
+                { width: 15, height: 12, marginRight: 4, flexShrink: 0 },
+              ]}
+            />
+            <View
+              style={[
+                styles.loadingText,
+                { width: 40, height: 12, flexShrink: 0 },
+              ]}
+            />
+            <View
+              style={[
+                styles.loadingText,
+                { width: 8, height: 12, marginHorizontal: 4, flexShrink: 0 },
+              ]}
+            />
+            <View
+              style={[
+                styles.loadingText,
+                { width: 15, height: 12, marginRight: 4, flexShrink: 0 },
+              ]}
+            />
+            <View
+              style={[
+                styles.loadingText,
+                { width: 40, height: 12, flexShrink: 0 },
+              ]}
+            />
+          </View>
+
+          {/* Loading Follow/Edit Button */}
+          <View
+            style={[
+              styles.loadingText,
+              { width: 80, height: 24, marginTop: 8 },
+            ]}
+          />
+        </View>
+
+        {/* Right Section - Loading Profile Picture */}
+        <View style={styles.rightSection}>
+          <View style={styles.profilePictureContainer}>
+            <View style={[styles.profilePicture, styles.loadingPlaceholder]}>
+              <ActivityIndicator size='large' color='#666' />
+            </View>
+          </View>
+        </View>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      {/* Profile Picture Placeholder */}
-      <View style={styles.profilePictureContainer}>
-        <View style={styles.profilePicture}>
-          <Text style={styles.profilePictureText}>
-            {userInfo.username.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-      </View>
-
-      {/* User Info */}
-      <View style={styles.userInfoContainer}>
+      {/* Left Section - User Info */}
+      <View style={styles.leftSection}>
         <Text style={styles.username}>{userInfo.username}</Text>
-        <Text style={styles.memberSince}>
-          Member since {new Date(userInfo.createdAt).toLocaleDateString()}
-        </Text>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <Text style={styles.statNumber}>{userInfo.followerCount} </Text>
+          <Text style={styles.statLabel}>followers</Text>
+          <Text style={styles.bullet}> • </Text>
+          <Text style={styles.statNumber}>{userInfo.followingCount} </Text>
+          <Text style={styles.statLabel}>following</Text>
+        </View>
+
+        {/* Follow Button or Edit Button */}
+        {!isCurrentUser && (
+          <View style={styles.followButtonContainer}>
+            <FollowButton targetUserId={userInfo.id} />
+          </View>
+        )}
       </View>
 
-      {/* Stats */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
-          <Text style={styles.statLabel}>Followers</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{userInfo.followingCount}</Text>
-          <Text style={styles.statLabel}>Following</Text>
+      {/* Right Section - Profile Picture */}
+      <View style={styles.rightSection}>
+        <View style={styles.profilePictureContainer}>
+          <View style={styles.profilePicture}>
+            <Text style={styles.profilePictureText}>
+              {userInfo.username.charAt(0).toUpperCase()}
+            </Text>
+          </View>
         </View>
       </View>
-
-      {/* Follow Button */}
-      {!isCurrentUser && (
-        <View style={styles.followButtonContainer}>
-          <FollowButton targetUserId={userInfo.id} />
-        </View>
-      )}
     </View>
   );
 };
@@ -60,16 +125,24 @@ export const ProfileHeader = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  leftSection: {
+    flex: 1,
+  },
+  rightSection: {
     alignItems: 'center',
   },
   profilePictureContainer: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   profilePicture: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 93,
+    height: 93,
+    borderRadius: 46.5,
     backgroundColor: '#E5E5E5',
     justifyContent: 'center',
     alignItems: 'center',
@@ -82,35 +155,56 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   userInfoContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
+    alignItems: 'flex-start',
+    marginBottom: 0,
   },
   username: {
     fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  memberSince: {
-    fontSize: 14,
-    color: '#666',
+    fontWeight: '600',
+    marginBottom: 2,
+    color: '#000',
   },
   statsContainer: {
     flexDirection: 'row',
-    gap: 40,
-  },
-  statItem: {
     alignItems: 'center',
+    marginBottom: 8,
   },
   statNumber: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 2,
+    fontSize: 12,
+    color: '#000',
   },
   statLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 12,
+    color: '#000',
+  },
+  bullet: {
+    fontSize: 12,
+    color: '#000',
+    marginHorizontal: 4,
   },
   followButtonContainer: {
-    marginTop: 20,
+    alignSelf: 'flex-start',
+    marginTop: 'auto',
+  },
+  followButton: {
+    backgroundColor: '#333',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  followButtonText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  loadingPlaceholder: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E0E0E0',
+  },
+  loadingText: {
+    backgroundColor: '#E5E5E5',
+    borderRadius: 4,
   },
 });

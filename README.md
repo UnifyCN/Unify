@@ -1,6 +1,8 @@
 # UNIFY
 Enactus SFU Social Media App!
 
+A React Native app built with Expo, connecting directly to Supabase for backend services.
+
 ## Setup Instructions
 
 ### Prerequisites
