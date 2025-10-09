@@ -44,7 +44,12 @@ export default function SubmoduleMap() {
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.replace({
+            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]',
+            params:{moduleId, submoduleId},
+          }
+
+          )} style={styles.backButton}>
             <Feather name='arrow-left' size={24} color='#000' />
           </TouchableOpacity>
         </View>
