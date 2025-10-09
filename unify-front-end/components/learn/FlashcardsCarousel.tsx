@@ -10,12 +10,26 @@ type CardItem = {
 export default function FlashcardsCarousel({ items }: { items: CardItem[] }) {
   const [index, setIndex] = React.useState(0);
 
+  // If the items array changes (new lesson or contents), keep the index in-sync
+  React.useEffect(() => {
+    if (!items || items.length === 0) {
+      setIndex(0);
+      return;
+    }
+    // clamp index if it's out of range after items change
+    if (index >= items.length) {
+      setIndex(items.length - 1);
+    }
+  }, [items, index]);
+
   const goTo = (i: number) => {
-    if (i < 0 || i >= items.length) return;
-    setIndex(i);
+    if (!items || items.length === 0) return;
+    const next = Math.max(0, Math.min(i, items.length - 1));
+    setIndex(next);
   };
 
-  const currentItem = items[index];
+  // Defensive: currentItem may be undefined if items is empty; provide a safe fallback
+  const currentItem = (items && items.length > 0) ? items[index] : { id: 'empty', front: '', back: '' };
 
   return (
     <View style={styles.carouselContainer}>
