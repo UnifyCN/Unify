@@ -9,10 +9,10 @@ export type Event = {
   eventType: EventType;
   genre: EventGenre;
   coverPhotoUrl: string | null;
+  externalLink: string;
   maxAttendees: number | null;
   createdAt: string;
   updatedAt: string;
-  userRsvpStatus: UserRsvpStatus | null;
 };
 
 enum EventType {
@@ -30,8 +30,3 @@ export enum EventGenre {
   UNCATEGORIZED = 'Uncategorized',
 }
 
-export enum UserRsvpStatus {
-  INTERESTED = 'interested',
-  GOING = 'going',
-  NOT_INTERESTED = 'not_interested',
-}

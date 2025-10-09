@@ -21,10 +21,10 @@ const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>(['Upcoming']);
+  const [selectedTag, setSelectedTag] = useState<string>('All');
   const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
 
-  const tags = ['Upcoming', 'Going', 'Interested', 'Past'];
+  const tags = ['All', 'Upcoming', 'Past'];
   const genreTags = [
     'All Events',
     'Socials',
@@ -35,17 +35,8 @@ const EventsScreen = () => {
     'Uncategorized',
   ];
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => {
-      if (prev.includes(tag)) {
-        if (prev.length === 1) {
-          return prev;
-        }
-        return prev.filter(t => t !== tag);
-      } else {
-        return [...prev, tag];
-      }
-    });
+  const selectTag = (tag: string) => {
+    setSelectedTag(tag);
   };
 
   const handleFilterEvents = useMemo(() => {
@@ -54,12 +45,10 @@ const EventsScreen = () => {
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
-      const matchesTag = selectedTags.every(tag => {
-        switch (tag) {
-          case 'Going':
-            return event.userRsvpStatus === 'going';
-          case 'Interested':
-            return event.userRsvpStatus === 'interested';
+      const matchesTag = (() => {
+        switch (selectedTag) {
+          case 'All':
+            return true;
           case 'Past':
             return new Date(event.eventDatetime) < new Date();
           case 'Upcoming':
@@ -67,14 +56,14 @@ const EventsScreen = () => {
           default:
             return false;
         }
-      });
+      })();
 
       const matchesGenre =
         selectedGenre === 'All Events' || event.genre === selectedGenre;
 
       return matchesSearch && matchesTag && matchesGenre;
     });
-  }, [events, selectedTags, searchQuery, selectedGenre]);
+    }, [events, selectedTag, searchQuery, selectedGenre]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <View style={styles.eventItem}>
@@ -159,14 +148,14 @@ const EventsScreen = () => {
             key={tag}
             style={[
               styles.tagButton,
-              selectedTags.includes(tag) && styles.tagButtonSelected,
+              selectedTag === tag && styles.tagButtonSelected,
             ]}
-            onPress={() => toggleTag(tag)}
+            onPress={() => selectTag(tag)}
           >
             <Text
               style={[
                 styles.tagText,
-                selectedTags.includes(tag) && styles.tagTextSelected,
+                selectedTag === tag && styles.tagTextSelected,
               ]}
             >
               {tag}
@@ -329,7 +318,7 @@ const styles = StyleSheet.create({
   },
   tagsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: 20,
     marginTop: 16,
     gap: 10,
