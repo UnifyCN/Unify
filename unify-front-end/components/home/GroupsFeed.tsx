@@ -2,7 +2,11 @@ import React from 'react';
 import Feed from './Feed';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 
-const GroupsFeed = () => {
+interface GroupsFeedProps {
+  ListEmptyComponent: React.ReactElement;
+}
+
+const GroupsFeed = ({ ListEmptyComponent }: GroupsFeedProps) => {
   const {
     data,
     fetchNextPage,
@@ -22,6 +26,7 @@ const GroupsFeed = () => {
       isLoading={isLoading}
       isRefetching={isRefetching}
       refetch={refetch}
+      ListEmptyComponent={ListEmptyComponent}
     />
   );
 };

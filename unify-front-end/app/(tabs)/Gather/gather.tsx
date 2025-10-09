@@ -10,14 +10,10 @@ import {
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
-  useAnimatedStyle,
 } from 'react-native-reanimated';
 import { useScrollContext } from '@/context/ScrollContext';
-import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-// import Search from '@/assets/images/search.svg';
-// import CreatePost from '@/assets/images/create_post_button.svg';
 import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
@@ -57,11 +53,22 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.eventsCarousel}
-        contentContainerStyle={styles.eventsCarouselContent}
+        contentContainerStyle={[
+          styles.eventsCarouselContent,
+          events && events.length === 0 && styles.eventsCarouselContentEmpty,
+        ]}
       >
         {isLoading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size='large' color='#000' />
+          </View>
+        )}
+        {!isLoading && events && events.length === 0 && (
+          <View style={styles.emptyEventsContainer}>
+            <Text style={styles.emptyEventsText}>No events available</Text>
+            <Text style={styles.emptyEventsSubtext}>
+              Check back later for new events
+            </Text>
           </View>
         )}
         {displayEvents.map(event => (
@@ -134,7 +141,17 @@ export default function GatherScreen() {
           />
         );
       case 'Groups':
-        return <GroupsFeed key={`groups-${activeTab}`} />;
+        return (
+          <GroupsFeed
+            key={`groups-${activeTab}`}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No posts in any of your groups yet'
+                submessage='Join a group to see their posts here'
+              />
+            }
+          />
+        );
       default:
         return (
           <ForYouFeed
@@ -170,15 +187,6 @@ export default function GatherScreen() {
       previousScrollValue.value = offsetY;
     },
   });
-
-  const visibilityProgress = useScrollVisibility();
-  // Hide the post button, 135 is the combination of the button diameter + 75 offset from the bottom
-  const animatedStyle = useAnimatedStyle(
-    () => ({
-      transform: [{ translateY: visibilityProgress.value * 135 }],
-    }),
-    [visibilityProgress]
-  );
 
   return (
     <View style={styles.container}>
@@ -223,6 +231,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 12,
   },
+  eventsCarouselContentEmpty: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -260,5 +273,26 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#000',
+  },
+  emptyEventsContainer: {
+    backgroundColor: '#e5e5e5',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flex: 1,
+  },
+  emptyEventsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyEventsSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });
