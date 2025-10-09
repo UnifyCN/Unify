@@ -11,9 +11,7 @@ export interface Module {
 }
 
 export async function getAllModules(): Promise<Module[]> {
-  try {
-    console.log('Fetching all modules...');
-    
+  try {    
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {

@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   nextBtn: { 
     marginTop: 8, 
-    backgroundColor: '#4B5563', 
+    backgroundColor: '#575757', 
     paddingVertical: 14, 
     borderRadius: 12, 
     alignItems: 'center' 

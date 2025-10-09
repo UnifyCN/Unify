@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff' 
   },
   container: { 
-    paddingHorizontal: 20, 
+    paddingHorizontal: 30, 
     paddingBottom: 40,
     minHeight: '100%'
   },
@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
 
   // Resume Button
   resumeButton: {
-    backgroundColor: '#374151',
+    backgroundColor: '#575757',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
