@@ -1,7 +1,7 @@
 -- Users table
 CREATE TABLE users (
     id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
-    username VARCHAR(8) UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9]{8}$'),
+    username TEXT UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9]{1,20}$'),
     pronouns TEXT,
     biography TEXT,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -192,21 +192,6 @@ CREATE TABLE event_rsvps (
 -- FUNCTIONS
 -- ============================================
 
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
-BEGIN
-  INSERT INTO public.users (id, email, username, created_at, updated_at)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    substr(md5(random()::text), 1, 8), -- PLACEHOLDER: Generate a random 8-character username
-    NEW.created_at,
-    NEW.updated_at
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
 CREATE OR REPLACE FUNCTION public.update_post_like_count()
 RETURNS trigger AS $$
 BEGIN
@@ -250,10 +235,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 -- TRIGGERS
 -- ============================================
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 CREATE TRIGGER on_post_like_change
   AFTER INSERT OR DELETE ON post_likes

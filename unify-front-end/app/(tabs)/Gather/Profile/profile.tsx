@@ -87,22 +87,14 @@ export default function Profile() {
     }
   }, [isCurrentUser, activeTab]);
 
-
   const HeaderComponent = useMemo(
     () => (
       <View>
-        {userLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#000' />
-            <Text style={styles.loadingText}>Loading profile...</Text>
-          </View>
-        ) : (
-          <ProfileHeader
-            key={userId}
-            isCurrentUser={isCurrentUser}
-            userInfo={userInfo}
-          />
-        )}
+        <ProfileHeader
+          key={userId}
+          isCurrentUser={isCurrentUser}
+          userInfo={userInfo}
+        />
         <TabHeader
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -110,7 +102,7 @@ export default function Profile() {
         />
       </View>
     ),
-    [userId, activeTab, setActiveTab, isCurrentUser, userLoading, userInfo]
+    [userId, activeTab, setActiveTab, isCurrentUser, userInfo]
   );
 
   const renderTabContent = useMemo(() => {
@@ -187,6 +179,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  feedLoadingContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedLoadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
   feedContainer: {
     flex: 1,
   },
@@ -203,7 +207,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingBottom: 12,
     marginHorizontal: 20,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -34,6 +34,7 @@ const TabIcon = ({ IconComponent, title, focused }: any) => {
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const [currentTab, setCurrentTab] = useState('index');
 
   return (
     <>
@@ -55,8 +56,15 @@ export default function TabLayout() {
           tabPress: e => {
             const routeName = e.target?.split('-')[0];
             if (routeName === 'Gather') {
-              // Reset Gather stack to the main screen
-              router.replace('/(tabs)/Gather/gather');
+              // If already on Gather tab, replace to main screen
+              if (currentTab === 'Gather') {
+                router.replace('/(tabs)/Gather/gather');
+              }
+              // Update current tab state
+              setCurrentTab('Gather');
+            } else {
+              // Update current tab state for other tabs
+              setCurrentTab(routeName || 'index');
             }
           },
         }}
