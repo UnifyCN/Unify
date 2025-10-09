@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { usePathname } from 'expo-router';
 import { ChatBotModal } from './ChatBotModal';
 
 interface FloatingChatButtonProps {
   style?: any;
 }
 
+const DISABLED_ROUTES = ['gather', 'EventDetailScreen', 'profile'];
+
 export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const pathname = usePathname();
+
+  // Hide the button on disabled routes
+  const shouldHide = DISABLED_ROUTES.some(
+    route => pathname === `/${route}` || pathname?.toLowerCase().includes(route)
+  );
+
+  if (shouldHide) {
+    return null;
+  }
 
   const openChat = () => {
     setIsModalVisible(true);
@@ -36,7 +49,7 @@ export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
 const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
-    bottom: 100, // Above the bottom navigation
+    bottom: 85, // Above the bottom navigation
     right: 20,
     width: 56,
     height: 56,

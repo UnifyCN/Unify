@@ -16,22 +16,52 @@ export const getFeedFollowing = async (
       throw new Error('User not authenticated');
     }
 
-    // PLACEHOLDER: For now just getting posts where user_id equals current user's ID
+    // First, get the list of user IDs that the current user is following
+    const { data: followingData, error: followingError } = await supabase
+      .from('user_followers')
+      .select('following_id')
+      .eq('follower_id', user.id);
+
+    if (followingError) {
+      throw new Error(
+        `Failed to fetch following list: ${followingError.message}`
+      );
+    }
+
+    // Extract the user IDs
+    const followingUserIds =
+      followingData?.map(item => item.following_id) || [];
+
+    // If not following anyone, return empty feed
+    if (followingUserIds.length === 0) {
+      return {
+        posts: [],
+        next_cursor: undefined,
+      };
+    }
+
+    // Get posts from users that the current user is following
     const { data, error } = await supabase
       .from('posts')
       .select(
         `
         id,
+        title,
         content,
         created_at,
         user_id,
+        group_id,
         users!user_id(
           id,
           username
+        ),
+        groups!group_id(
+          id,
+          group_name
         )
       `
       )
-      .eq('user_id', user.id)
+      .in('user_id', followingUserIds)
       .order('created_at', { ascending: false })
       .range(
         cursor ? parseInt(cursor) : 0,
@@ -51,7 +81,9 @@ export const getFeedFollowing = async (
         name: post.users.username,
       } as User,
       time: post.created_at,
-      description: post.content,
+      title: post.title,
+      content: post.content,
+      group: post.groups.group_name,
     }));
 
     return {
