@@ -63,7 +63,7 @@ const EventsScreen = () => {
 
       return matchesSearch && matchesTag && matchesGenre;
     });
-    }, [events, selectedTag, searchQuery, selectedGenre]);
+  }, [events, selectedTag, searchQuery, selectedGenre]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <View style={styles.eventItem}>

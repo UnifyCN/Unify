@@ -27,9 +27,7 @@ const EventDetailScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-        >
+        <TouchableOpacity onPress={() => router.back()}>
           <Feather name='chevron-left' size={24} color='#fff' />
         </TouchableOpacity>
         {/* TODO: Design has a share button here but no clue how to implement that yet */}

@@ -55,7 +55,7 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
         style={styles.eventsCarousel}
         contentContainerStyle={[
           styles.eventsCarouselContent,
-          events && events.length === 0 && styles.eventsCarouselContentEmpty
+          events && events.length === 0 && styles.eventsCarouselContentEmpty,
         ]}
       >
         {isLoading && (
@@ -141,14 +141,17 @@ export default function GatherScreen() {
           />
         );
       case 'Groups':
-        return <GroupsFeed
-         key={`groups-${activeTab}`}
-         ListEmptyComponent={
-          <EmptyFeedMessage
-            message='No posts in any of your groups yet'
-            submessage='Join a group to see their posts here'
+        return (
+          <GroupsFeed
+            key={`groups-${activeTab}`}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No posts in any of your groups yet'
+                submessage='Join a group to see their posts here'
+              />
+            }
           />
-        } />;
+        );
       default:
         return (
           <ForYouFeed

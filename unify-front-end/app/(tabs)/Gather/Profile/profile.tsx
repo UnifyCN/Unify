@@ -87,7 +87,6 @@ export default function Profile() {
     }
   }, [isCurrentUser, activeTab]);
 
-
   const HeaderComponent = useMemo(
     () => (
       <View>
