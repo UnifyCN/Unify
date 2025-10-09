@@ -14,7 +14,7 @@ import {
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { useModule } from '@/hooks/learn/useModule';
 import { Feather } from '@expo/vector-icons';
-
+// NOTE: THIS FILE IS TO BE DIVIDED TO COMPONENTS AFTER LEARN COMPONENTS CLEAN UP
 // --- safety helpers ---
 const safeNum = (n: any, fallback = 0) =>
   Number.isFinite(Number(n)) ? Number(n) : fallback;
@@ -28,7 +28,7 @@ const EDGE_PAD = 16;
 const CONTENT_W = Math.max(0, SCREEN_WIDTH - EDGE_PAD * 2);
 
 // Card size
-const CARD_RATIO = 0.68;
+const CARD_RATIO = 0.75;
 const CARD_W = Math.max(1, Math.min(380, Math.floor(CONTENT_W * CARD_RATIO) || 1));
 
 const RAIL_W = 4;
@@ -36,7 +36,7 @@ const RAIL_W = 4;
 // Bubble sizing + gap (distance from card edge to bubble)
 const BUBBLE_SIZE = 70;                // change to resize circle
 const BUBBLE_RADIUS = BUBBLE_SIZE / 2;
-const BUBBLE_GAP = 25;                 // change to move closer/farther from card
+const BUBBLE_GAP = 16;                 // change to move closer/farther from card
 
 export default function ModuleIndex() {
   const router = useRouter();
@@ -135,6 +135,11 @@ export default function ModuleIndex() {
     // fallback: center in the row until we get card layout
     return Math.max(0, fallbackRowTop + (fallbackRowHeight - BUBBLE_SIZE) / 2);
   };
+
+  // Add this logic before the return statement
+  const latestUncompletedIndex = useMemo(() => {
+    return submodules.findIndex(s => !s.is_completed);
+  }, [submodules]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -248,6 +253,13 @@ export default function ModuleIndex() {
                       };
                     }}
                   >
+                    {/* Small circle indicator for latest uncompleted */}
+                    {i === latestUncompletedIndex && latestUncompletedIndex !== -1 && (
+                      <View style={styles.latestIndicator}>
+                        <View style={styles.latestIndicatorInner} />
+                      </View>
+                    )}
+
                     {/* status chip */}
                     <View
                       style={[
@@ -369,7 +381,7 @@ const styles = StyleSheet.create({
 
   // Header text
   titleWrap: { alignItems: 'center', marginBottom: 8 },
-  title: { fontSize: 40, fontWeight: '900', color: '#151515', marginBottom: 5, textAlign: 'center' },
+  title: { fontSize: 30, fontWeight: '600', color: '#2B2B2B', marginBottom: 5, textAlign: 'center' },
   subtitle: { fontSize: 20, color: '#4B5563', textAlign: 'center', paddingHorizontal: 12 },
 
   progressCard: {
@@ -447,14 +459,15 @@ const styles = StyleSheet.create({
   ctaRow: { alignItems: 'center' },
   cta: {
     alignSelf: 'stretch',
-    backgroundColor: '#111',
+    backgroundColor: '#575757',
     paddingVertical: 9,
-    borderRadius: 10,
+    borderRadius: 15,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#0f0f0f',
+    height: 40
   },
-  ctaDisabled: { backgroundColor: '#B8BFC9', borderColor: '#B8BFC9' },
+  ctaDisabled: { backgroundColor: '#B7B7B7', borderColor: '#B8BFC9' },
   ctaText: { color: '#fff', fontSize: 15, fontWeight: '800' },
 
   // Bubble — absolute box; we set exact top/left inline per card
@@ -469,10 +482,10 @@ const styles = StyleSheet.create({
     borderRadius: BUBBLE_RADIUS,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    borderWidth: 3,
   },
-  bubbleOuterActive: { borderColor: '#AAB2BF' },
-  bubbleOuterBlocked: { borderColor: '#9FA7B5' }, // darker blocked ring
+  bubbleOuterActive: { borderColor: '#BABABA' },
+  bubbleOuterBlocked: { borderColor: '#d8d8d8' }, // darker blocked ring
   bubbleInner: {
     width: BUBBLE_SIZE - 10,
     height: BUBBLE_SIZE - 10,
@@ -480,8 +493,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bubbleInnerActive: { backgroundColor: '#959DAC' },
-  bubbleInnerBlocked: { backgroundColor: '#C9CFDB' }, // darker blocked fill
+  bubbleInnerActive: { backgroundColor: '#A6A6A6' },
+  bubbleInnerBlocked: { backgroundColor: '#c8c8c8' }, // darker blocked fill
   bubbleDoneOuter: { borderColor: '#059669' },
   bubbleDoneInner: { backgroundColor: '#10B981' },
   bubbleText: { fontSize: 20, fontWeight: '800', color: '#fff' },
@@ -516,4 +529,28 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   muted: { fontSize: 16, color: '#6B7280' },
   error: { fontSize: 16, color: '#EF4444' },
+
+  latestIndicator: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 10,
+    backgroundColor: '#707070', // outer grey circle
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+
+  latestIndicatorInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF', // inner white circle
+  },
 });
