@@ -5,11 +5,12 @@ import { Feather } from '@expo/vector-icons';
 export default function LessonHeroCard() {
   return (
     <View style={styles.card}>
-      <View style={styles.banner} />
-      <View style={styles.metaRow}>
-        <Text style={styles.metaText}>Finance • 6 Lessons</Text>
+      <View style={styles.banner}>
+        <View style={styles.bannerTextWrap}>
+          <Text style={styles.metaText}>Finance • 6 Sections</Text>
+          <Text style={styles.title}>Mastering Banking in Canada</Text>
+        </View>
       </View>
-      <Text style={styles.title}>Mastering Banking in Canada</Text>
 
       <View style={styles.footerRow}>
         <View>
@@ -37,32 +38,58 @@ const styles = StyleSheet.create({
   },
   banner: {
     height: 160,
-    borderRadius: 12,
-    backgroundColor: '#c7c7c7',
+    // make banner flush with card edges
+    marginHorizontal: -16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    backgroundColor: '#bdbdbd',
     marginBottom: 12,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  bannerTextWrap: {
+    // place text at the bottom-left inside the banner
+    alignSelf: 'flex-start',
   },
   metaRow: { flexDirection: 'row', alignItems: 'center' },
-  metaText: { color: '#7a7a7a', fontSize: 12 },
+  metaText: { color: 'rgba(255,255,255,0.95)', fontSize: 13, marginBottom: 6 },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-    marginTop: 6,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 28,
   },
   footerRow: {
-    marginTop: 12,
+    marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    // subtle top shadow to separate from banner
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: -2 },
   },
   caption: { color: '#7a7a7a', fontSize: 12 },
-  subtitle: { color: '#000', fontSize: 14, fontWeight: '600', maxWidth: 220 },
+  subtitle: { color: '#000', fontSize: 16, fontWeight: '700', maxWidth: 240 },
   playButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#3a3a3a',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#4B5563',
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
 });
