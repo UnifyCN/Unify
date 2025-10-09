@@ -54,6 +54,12 @@ export default function ModuleIndex() {
   // per-row card layout (for bubble X/Y position)
   const cardLayoutsRef = useRef<Array<{ x: number; y: number; width: number; height: number }>>([]);
 
+  // Move this BEFORE early returns
+  const latestUncompletedIndex = useMemo(() => {
+    if (!moduleData?.submodules) return -1;
+    return moduleData.submodules.findIndex(s => !s.is_completed);
+  }, [moduleData?.submodules]);
+
   const onProgressLayout = (e: LayoutChangeEvent) => {
     const y = clampNonNeg(e.nativeEvent.layout.y);
     const h = clampNonNeg(e.nativeEvent.layout.height);
@@ -135,11 +141,6 @@ export default function ModuleIndex() {
     // fallback: center in the row until we get card layout
     return Math.max(0, fallbackRowTop + (fallbackRowHeight - BUBBLE_SIZE) / 2);
   };
-
-  // Add this logic before the return statement
-  const latestUncompletedIndex = useMemo(() => {
-    return submodules.findIndex(s => !s.is_completed);
-  }, [submodules]);
 
   return (
     <SafeAreaView style={styles.safe}>
