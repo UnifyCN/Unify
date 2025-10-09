@@ -14,7 +14,7 @@ import { getModule } from '../../../data/pathways';
 
 /**
  * Sub-Module Presentation
- * 
+ *
  * - Reads { pathId, moduleId } so it can render ANY module.
  * - If module.lessons isn't provided, auto-creates 6 generic lessons: "Title 1..6".
  * - Persists progress per (pathId,moduleId) so every module keeps its own state.
@@ -22,7 +22,6 @@ import { getModule } from '../../../data/pathways';
  * - Next times: CTA says "Retake Lesson".
  * - Completed lessons show a checkmark in their bubble.
  */
-
 
 type StoredProgress = { currentIndex: number; completed: number[] };
 
@@ -37,12 +36,17 @@ const buildFallbackLessons = (count = 6) =>
 
 export default function SubModulePresentation() {
   const router = useRouter();
-  const { pathId, moduleId } = useLocalSearchParams<{ pathId: string; moduleId: string }>();
+  const { pathId, moduleId } = useLocalSearchParams<{
+    pathId: string;
+    moduleId: string;
+  }>();
   const { pathway, module } = getModule(pathId || '', moduleId || '');
 
   if (!pathway || !module) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+      >
         <Text>Missing module data.</Text>
       </SafeAreaView>
     );
@@ -67,16 +71,20 @@ export default function SubModulePresentation() {
     (async () => {
       try {
         if (!pathId || !moduleId) return;
-        const raw = await AsyncStorage.getItem(storageKey(String(pathId), String(moduleId)));
+        const raw = await AsyncStorage.getItem(
+          storageKey(String(pathId), String(moduleId))
+        );
         if (raw && mounted) {
           const parsed: StoredProgress = JSON.parse(raw);
           setProgress({
-            currentIndex: Math.min(Math.max(parsed.currentIndex ?? 0, 0), total - 1),
+            currentIndex: Math.min(
+              Math.max(parsed.currentIndex ?? 0, 0),
+              total - 1
+            ),
             completed: Array.isArray(parsed.completed) ? parsed.completed : [],
           });
         }
-      } catch {
-      }
+      } catch {}
     })();
     return () => {
       mounted = false;
@@ -92,8 +100,7 @@ export default function SubModulePresentation() {
           storageKey(String(pathId), String(moduleId)),
           JSON.stringify(next)
         );
-      } catch {
-      }
+      } catch {}
     },
     [pathId, moduleId]
   );
@@ -102,7 +109,6 @@ export default function SubModulePresentation() {
   const currentLesson = lessons[currentIndex];
   const isCurrentCompleted = completed.includes(currentIndex);
 
-  
   const selectLesson = (i: number) => {
     if (i < 0 || i >= total) return;
     if (i === currentIndex) return;
@@ -116,7 +122,9 @@ export default function SubModulePresentation() {
    */
   const onPressCTA = () => {
     if (!isCurrentCompleted) {
-      const nextCompleted = Array.from(new Set([...completed, currentIndex])).sort((a, b) => a - b);
+      const nextCompleted = Array.from(
+        new Set([...completed, currentIndex])
+      ).sort((a, b) => a - b);
       const nextIndex = Math.min(currentIndex + 1, total - 1);
       persist({ currentIndex: nextIndex, completed: nextCompleted });
     } else {
@@ -133,12 +141,12 @@ export default function SubModulePresentation() {
 
   // Layout positions to mimic your design (alternating sides)
   const bubblePositions = [
-    { top: 100, left: 28 },   // 1
-    { top: 200, right: 28 },  // 2
-    { top: 330, left: 28 },   // 3
-    { top: 460, right: 28 },  // 4
-    { top: 590, left: 28 },   // 5
-    { top: 720, right: 28 },  // 6
+    { top: 100, left: 28 }, // 1
+    { top: 200, right: 28 }, // 2
+    { top: 330, left: 28 }, // 3
+    { top: 460, right: 28 }, // 4
+    { top: 590, left: 28 }, // 5
+    { top: 720, right: 28 }, // 6
   ];
 
   // Optional: overall module progress % for the copy
@@ -150,7 +158,10 @@ export default function SubModulePresentation() {
       <ScrollView contentContainerStyle={styles.container}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.iconBtn}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.iconBtn}
+          >
             <Feather name='chevron-left' size={24} color='#333' />
           </TouchableOpacity>
         </View>
@@ -167,8 +178,14 @@ export default function SubModulePresentation() {
               : 'Start this lesson to begin. Lessons you finish will show a checkmark.'}
           </Text>
 
-          <TouchableOpacity style={styles.cta} onPress={onPressCTA} activeOpacity={0.9}>
-            <Text style={styles.ctaText}>{isCurrentCompleted ? 'Retake Lesson' : 'Start Lesson'}</Text>
+          <TouchableOpacity
+            style={styles.cta}
+            onPress={onPressCTA}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.ctaText}>
+              {isCurrentCompleted ? 'Retake Lesson' : 'Start Lesson'}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -233,7 +250,6 @@ function Bubble({
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },

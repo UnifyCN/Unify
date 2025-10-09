@@ -4,13 +4,20 @@ import { Feather } from '@expo/vector-icons';
 
 type Props = { placeholder?: string; onFilterPress?: () => void };
 
-export default function SearchBar({ placeholder = 'Search', onFilterPress }: Props) {
+export default function SearchBar({
+  placeholder = 'Search',
+  onFilterPress,
+}: Props) {
   return (
     <View style={styles.container}>
       <Feather name='search' size={18} color='#9f9d9d' />
       <Text style={styles.placeholder}>{placeholder}</Text>
       <View style={{ flex: 1 }} />
-      <Pressable onPress={onFilterPress} style={styles.filterButton} android_ripple={{ color: '#e6e6e6' }}>
+      <Pressable
+        onPress={onFilterPress}
+        style={styles.filterButton}
+        android_ripple={{ color: '#e6e6e6' }}
+      >
         <View style={styles.barLong} />
         <View style={styles.barMid} />
         <View style={styles.barShort} />

@@ -19,7 +19,7 @@ export default function LessonHeroCard() {
           <Text style={styles.subtitle}>Types of Banks & Credit Unions</Text>
         </View>
         <View style={styles.playButton}>
-          <MaterialIcons name="play-arrow" size={28} color="#fff" />
+          <MaterialIcons name='play-arrow' size={28} color='#fff' />
         </View>
       </View>
     </View>

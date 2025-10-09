@@ -1,8 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, LayoutAnimation, Platform, UIManager } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
@@ -12,7 +23,11 @@ type AccordionItem = {
   body: string;
 };
 
-export default function DropdownAccordion({ items }: { items: AccordionItem[] }) {
+export default function DropdownAccordion({
+  items,
+}: {
+  items: AccordionItem[];
+}) {
   const [openId, setOpenId] = React.useState<string | null>(null);
 
   const toggle = (id: string) => {
@@ -26,12 +41,19 @@ export default function DropdownAccordion({ items }: { items: AccordionItem[] })
         const open = item.id === openId;
         return (
           <View key={item.id} style={styles.card}>
-            <TouchableOpacity style={styles.header} onPress={() => toggle(item.id)}>
+            <TouchableOpacity
+              style={styles.header}
+              onPress={() => toggle(item.id)}
+            >
               <Text style={styles.headerText}>{item.title}</Text>
-              <Feather name={open ? 'chevron-up' : 'chevron-down'} size={18} color='#111827' />
+              <Feather
+                name={open ? 'chevron-up' : 'chevron-down'}
+                size={18}
+                color='#111827'
+              />
             </TouchableOpacity>
             {open && (
-              <View style={styles.body}> 
+              <View style={styles.body}>
                 <Text style={styles.bodyText}>{item.body}</Text>
               </View>
             )}
@@ -72,5 +94,3 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 });
-
-

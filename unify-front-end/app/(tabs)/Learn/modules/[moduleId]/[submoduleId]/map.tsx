@@ -1,17 +1,34 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSubmoduleStages } from '@/hooks/learn/useSubmoduleStages';
 import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleMap() {
   const router = useRouter();
-  const { moduleId, submoduleId } = useLocalSearchParams<{ moduleId: string; submoduleId: string }>();
-  
-  const { data: submoduleData, isLoading, error } = useSubmoduleStages(submoduleId || '');
+  const { moduleId, submoduleId } = useLocalSearchParams<{
+    moduleId: string;
+    submoduleId: string;
+  }>();
+
+  const {
+    data: submoduleData,
+    isLoading,
+    error,
+  } = useSubmoduleStages(submoduleId || '');
 
   // Add state for selected stage
-  const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(null);
+  const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(
+    null
+  );
 
   if (isLoading) {
     return (
@@ -27,39 +44,54 @@ export default function SubmoduleMap() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Error loading submodule: {error?.message || 'Unknown error'}</Text>
+          <Text style={styles.errorText}>
+            Error loading submodule: {error?.message || 'Unknown error'}
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
   // Determine blocked/next/in-progress/completed
-  const circles = submoduleData.stages.map((stage: any, index: number, arr: any[]) => {
-    const blocked = index > 0 && !arr[index - 1].is_completed;
-    const isCompleted = !!stage.is_completed;
-    // Next is first not completed and not blocked
-    const nextIndex = arr.findIndex((s: any, idx: number) => !s.is_completed && (idx === 0 || arr[idx - 1].is_completed));
-    const isNext = index === nextIndex && !blocked;
-    const inProgress = !isCompleted && stage.progress_percent > 0 && !blocked;
-    return {
-      id: stage.id,
-      title: stage.title,
-      index: index + 1,
-      isCompleted,
-      isNext,
-      inProgress,
-      blocked,
-    };
-  });
+  const circles = submoduleData.stages.map(
+    (stage: any, index: number, arr: any[]) => {
+      const blocked = index > 0 && !arr[index - 1].is_completed;
+      const isCompleted = !!stage.is_completed;
+      // Next is first not completed and not blocked
+      const nextIndex = arr.findIndex(
+        (s: any, idx: number) =>
+          !s.is_completed && (idx === 0 || arr[idx - 1].is_completed)
+      );
+      const isNext = index === nextIndex && !blocked;
+      const inProgress = !isCompleted && stage.progress_percent > 0 && !blocked;
+      return {
+        id: stage.id,
+        title: stage.title,
+        index: index + 1,
+        isCompleted,
+        isNext,
+        inProgress,
+        blocked,
+      };
+    }
+  );
 
-  const nextStage = submoduleData.stages.find((stage: any) => !stage.is_completed) || submoduleData.stages[0];
+  const nextStage =
+    submoduleData.stages.find((stage: any) => !stage.is_completed) ||
+    submoduleData.stages[0];
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
             <Feather name='arrow-left' size={24} color='#000' />
           </TouchableOpacity>
         </View>
@@ -74,7 +106,8 @@ export default function SubmoduleMap() {
         {selectedStageIndex !== null && (
           <View style={styles.focusCard}>
             <Text style={styles.focusTitle}>
-              Lesson {selectedStageIndex + 1}: {submoduleData.stages[selectedStageIndex].title}
+              Lesson {selectedStageIndex + 1}:{' '}
+              {submoduleData.stages[selectedStageIndex].title}
             </Text>
             {submoduleData.stages[selectedStageIndex].description ? (
               <Text style={styles.focusDescription} numberOfLines={3}>
@@ -85,7 +118,8 @@ export default function SubmoduleMap() {
               style={styles.focusCta}
               onPress={() => {
                 router.push({
-                  pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
                   params: {
                     moduleId,
                     submoduleId,
@@ -95,15 +129,18 @@ export default function SubmoduleMap() {
               }}
               disabled={circles[selectedStageIndex].blocked}
             >
-              <Text style={[
-                styles.focusCtaText,
-                circles[selectedStageIndex].blocked && styles.textBlocked
-              ]}>
+              <Text
+                style={[
+                  styles.focusCtaText,
+                  circles[selectedStageIndex].blocked && styles.textBlocked,
+                ]}
+              >
                 {submoduleData.stages[selectedStageIndex].is_completed
                   ? 'Retake Lesson'
-                  : submoduleData.stages[selectedStageIndex].progress_percent > 0
-                  ? 'Resume Lesson'
-                  : 'Start Lesson'}
+                  : submoduleData.stages[selectedStageIndex].progress_percent >
+                      0
+                    ? 'Resume Lesson'
+                    : 'Start Lesson'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -117,7 +154,11 @@ export default function SubmoduleMap() {
             return (
               <View key={c.id}>
                 <View style={styles.zRow}>
-                  <View style={leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge
+                    }
+                  />
                   <TouchableOpacity
                     activeOpacity={c.blocked ? 1 : 0.8}
                     style={[
@@ -125,10 +166,10 @@ export default function SubmoduleMap() {
                       c.isCompleted
                         ? styles.circleCompleted
                         : c.blocked
-                        ? styles.circleBlocked
-                        : isActive
-                        ? styles.circleActive
-                        : styles.circleNormal,
+                          ? styles.circleBlocked
+                          : isActive
+                            ? styles.circleActive
+                            : styles.circleNormal,
                     ]}
                     onPress={() => {
                       if (!c.blocked) setSelectedStageIndex(i);
@@ -137,7 +178,7 @@ export default function SubmoduleMap() {
                   >
                     {c.isCompleted ? (
                       <View style={styles.circleCompletedInner}>
-                        <Feather name='check' size={60} color="#fff" />
+                        <Feather name='check' size={60} color='#fff' />
                       </View>
                     ) : c.blocked ? (
                       <View style={styles.circleBlockedInner}>
@@ -156,23 +197,35 @@ export default function SubmoduleMap() {
                       </View>
                     )}
                   </TouchableOpacity>
-                  <View style={leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall
+                    }
+                  />
                 </View>
                 {/* Label row centered under the circle */}
                 <View style={styles.zRowLabelRow}>
-                  <View style={leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge
+                    }
+                  />
                   <View style={styles.labelBox}>
                     <Text
                       style={[
                         styles.stageTitleText,
-                        c.blocked && styles.textBlocked
+                        c.blocked && styles.textBlocked,
                       ]}
                       numberOfLines={2}
                     >
                       {c.title}
                     </Text>
                   </View>
-                  <View style={leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall} />
+                  <View
+                    style={
+                      leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall
+                    }
+                  />
                 </View>
               </View>
             );
@@ -189,50 +242,50 @@ export default function SubmoduleMap() {
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  safe: { 
-    flex: 1, 
-    backgroundColor: '#F4F4F4' 
+  safe: {
+    flex: 1,
+    backgroundColor: '#F4F4F4',
   },
-  container: { 
-    paddingHorizontal: 20, 
+  container: {
+    paddingHorizontal: 20,
     paddingBottom: 40,
-    minHeight: '100%'
+    minHeight: '100%',
   },
-  
+
   // Header
-  headerRow: { 
-    flexDirection: 'row', 
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 20
+    marginBottom: 20,
   },
-  backButton: { 
+  backButton: {
     padding: 8,
-    marginLeft: -8
+    marginLeft: -8,
   },
 
   // Title Section
   titleSection: {
     alignItems: 'center',
-    marginBottom: 24
+    marginBottom: 24,
   },
-  title: { 
-    fontSize: 32, 
-    fontWeight: '700', 
-    textAlign: 'center', 
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    textAlign: 'center',
     color: '#1A1A1A',
     marginBottom: 12,
-    lineHeight: 38
+    lineHeight: 38,
   },
-  description: { 
-    fontSize: 16, 
-    textAlign: 'center', 
-    color: '#6B7280', 
+  description: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#6B7280',
     lineHeight: 24,
     paddingHorizontal: 20,
-    maxWidth: width - 40
+    maxWidth: width - 40,
   },
-  
+
   // Focus Card
   focusCard: {
     backgroundColor: '#fff',
@@ -289,8 +342,8 @@ const styles = StyleSheet.create({
   zRowLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  marginTop: 0,
-  marginBottom: 10,
+    marginTop: 0,
+    marginBottom: 10,
   },
   labelLeft: { alignItems: 'flex-start' },
   labelRight: { alignItems: 'flex-end' },
@@ -299,14 +352,14 @@ const styles = StyleSheet.create({
   spacerGrowLarge: { flex: 1.5 },
   spacerGrowSmall: { flex: 0.5 },
   circleWrap: {
-  width: 110,
-  height: 110,
-  borderRadius: 60,
-  borderWidth: 4,
-  alignItems: 'center',
-  justifyContent: 'center',
-  backgroundColor: '#fff',
-  borderColor: '#E5E5E5',
+    width: 110,
+    height: 110,
+    borderRadius: 60,
+    borderWidth: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderColor: '#E5E5E5',
   },
   circleNormal: {
     backgroundColor: '#fff',
@@ -386,7 +439,7 @@ const styles = StyleSheet.create({
     color: '#222',
   },
   stageTitleText: {
-  fontSize: 15,
+    fontSize: 15,
     fontWeight: '700',
     marginHorizontal: 0,
     textAlign: 'center',
@@ -402,7 +455,7 @@ const styles = StyleSheet.create({
   textBlocked: {
     color: '#BDBDBD',
   },
-    
+
   // Loading and Error States
   loadingContainer: {
     flex: 1,

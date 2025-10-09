@@ -34,8 +34,11 @@ export interface StageData {
 }
 
 export const getModule = async (moduleId: string): Promise<ModuleData> => {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
   if (userError || !user) {
     throw new Error('User not authenticated');
   }
@@ -85,7 +88,9 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
 
   if (subProgressError) {
     console.error('Error fetching submodule progress:', subProgressError);
-    throw new Error(`Failed to fetch submodule progress: ${subProgressError.message}`);
+    throw new Error(
+      `Failed to fetch submodule progress: ${subProgressError.message}`
+    );
   }
 
   // Get all stages for all submodules
@@ -111,7 +116,9 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
 
   if (stageProgressError) {
     console.error('Error fetching stage progress:', stageProgressError);
-    throw new Error(`Failed to fetch stage progress: ${stageProgressError.message}`);
+    throw new Error(
+      `Failed to fetch stage progress: ${stageProgressError.message}`
+    );
   }
 
   // Get lesson counts for each stage
@@ -136,7 +143,9 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
 
   if (completedError) {
     console.error('Error fetching completed lessons:', completedError);
-    throw new Error(`Failed to fetch completed lessons: ${completedError.message}`);
+    throw new Error(
+      `Failed to fetch completed lessons: ${completedError.message}`
+    );
   }
 
   // Transform data
@@ -167,12 +176,14 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
     if (!stagesBySubmodule.has(stage.submodule_id)) {
       stagesBySubmodule.set(stage.submodule_id, []);
     }
-    
+
     const stageLessons = lessonsByStage.get(stage.id) || [];
-    const completedStageLessons = stageLessons.filter(l => completedLessonsSet.has(l.id)).length;
-    
+    const completedStageLessons = stageLessons.filter(l =>
+      completedLessonsSet.has(l.id)
+    ).length;
+
     const stageProgressData = stageProgressMap.get(stage.id);
-    
+
     stagesBySubmodule.get(stage.submodule_id)!.push({
       id: stage.id,
       title: stage.title,
@@ -186,24 +197,27 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
   });
 
   // Build submodules with stages
-  const submodules: SubmoduleData[] = submodulesData?.map(submodule => {
-    const progressData = submoduleProgressMap.get(submodule.id);
-    const submoduleStages = stagesBySubmodule.get(submodule.id) || [];
-    
-    const completedStages = submoduleStages.filter(s => s.is_completed).length;
-    const totalStages = submoduleStages.length;
+  const submodules: SubmoduleData[] =
+    submodulesData?.map(submodule => {
+      const progressData = submoduleProgressMap.get(submodule.id);
+      const submoduleStages = stagesBySubmodule.get(submodule.id) || [];
 
-    return {
-      id: submodule.id,
-      title: submodule.title,
-      description: submodule.description || '',
-      progress_percent: progressData?.progress_percent || 0,
-      is_completed: progressData?.is_completed || false,
-      total_stages: totalStages,
-      completed_stages: completedStages,
-      stages: submoduleStages.sort((a, b) => a.order_num - b.order_num),
-    };
-  }) || [];
+      const completedStages = submoduleStages.filter(
+        s => s.is_completed
+      ).length;
+      const totalStages = submoduleStages.length;
+
+      return {
+        id: submodule.id,
+        title: submodule.title,
+        description: submodule.description || '',
+        progress_percent: progressData?.progress_percent || 0,
+        is_completed: progressData?.is_completed || false,
+        total_stages: totalStages,
+        completed_stages: completedStages,
+        stages: submoduleStages.sort((a, b) => a.order_num - b.order_num),
+      };
+    }) || [];
 
   const completedSubmodules = submodules.filter(s => s.is_completed).length;
   const totalSubmodules = submodules.length;
@@ -219,4 +233,3 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
     submodules: submodules.sort((a, b) => a.title.localeCompare(b.title)),
   };
 };
-

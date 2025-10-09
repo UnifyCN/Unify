@@ -1,5 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Animated,
+} from 'react-native';
 
 type CardItem = {
   id: string;
@@ -29,7 +36,10 @@ export default function FlashcardsCarousel({ items }: { items: CardItem[] }) {
   };
 
   // Defensive: currentItem may be undefined if items is empty; provide a safe fallback
-  const currentItem = (items && items.length > 0) ? items[index] : { id: 'empty', front: '', back: '' };
+  const currentItem =
+    items && items.length > 0
+      ? items[index]
+      : { id: 'empty', front: '', back: '' };
 
   return (
     <View style={styles.carouselContainer}>
@@ -37,25 +47,34 @@ export default function FlashcardsCarousel({ items }: { items: CardItem[] }) {
       <View style={styles.cardOuterWrap}>
         <FlippableCard front={currentItem.front} back={currentItem.back} />
       </View>
-      
+
       <View style={styles.indicatorRow}>
-        <Text style={styles.indicatorText}>{`${index + 1}/${items.length}`}</Text>
+        <Text
+          style={styles.indicatorText}
+        >{`${index + 1}/${items.length}`}</Text>
       </View>
-      
+
       <View style={styles.arrowRow}>
         <TouchableOpacity
           style={[styles.arrowBtn, index === 0 && styles.arrowBtnDisabled]}
           disabled={index === 0}
           onPress={() => goTo(index - 1)}
         >
-          <View style={styles.arrowCircle}><Text style={styles.arrowIcon}>{'◀'}</Text></View>
+          <View style={styles.arrowCircle}>
+            <Text style={styles.arrowIcon}>{'◀'}</Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.arrowBtn, index === items.length - 1 && styles.arrowBtnDisabled]}
+          style={[
+            styles.arrowBtn,
+            index === items.length - 1 && styles.arrowBtnDisabled,
+          ]}
           disabled={index === items.length - 1}
           onPress={() => goTo(index + 1)}
         >
-          <View style={styles.arrowCircle}><Text style={styles.arrowIcon}>{'▶'}</Text></View>
+          <View style={styles.arrowCircle}>
+            <Text style={styles.arrowIcon}>{'▶'}</Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -67,7 +86,12 @@ function FlippableCard({ front, back }: { front: string; back: string }) {
   const [flipped, setFlipped] = React.useState(false);
 
   const flipTo = (to: number) => {
-    Animated.spring(animated, { toValue: to, useNativeDriver: true, friction: 8, tension: 10 }).start();
+    Animated.spring(animated, {
+      toValue: to,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 10,
+    }).start();
   };
 
   const onPress = () => {
@@ -76,16 +100,30 @@ function FlippableCard({ front, back }: { front: string; back: string }) {
     flipTo(next ? 1 : 0);
   };
 
-  const rotateY = animated.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
-  const rotateYBack = animated.interpolate({ inputRange: [0, 1], outputRange: ['180deg', '360deg'] });
+  const rotateY = animated.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+  const rotateYBack = animated.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['180deg', '360deg'],
+  });
 
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
       <View style={styles.cardWrapper}>
-        <Animated.View style={[styles.card, styles.cardFront, { transform: [{ rotateY }] }]}> 
+        <Animated.View
+          style={[styles.card, styles.cardFront, { transform: [{ rotateY }] }]}
+        >
           <Text style={styles.cardText}>{front}</Text>
         </Animated.View>
-        <Animated.View style={[styles.card, styles.cardBack, { transform: [{ rotateY: rotateYBack }] }]}> 
+        <Animated.View
+          style={[
+            styles.card,
+            styles.cardBack,
+            { transform: [{ rotateY: rotateYBack }] },
+          ]}
+        >
           <Text style={styles.cardText}>{back}</Text>
         </Animated.View>
       </View>
@@ -186,5 +224,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-
-

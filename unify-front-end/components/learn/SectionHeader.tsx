@@ -5,7 +5,7 @@ type Props = { title: string; style?: ViewStyle };
 
 export default function SectionHeader({ title, style }: Props) {
   return (
-    <View style={[styles.container, style]}> 
+    <View style={[styles.container, style]}>
       <Text style={styles.title}>{title}</Text>
     </View>
   );

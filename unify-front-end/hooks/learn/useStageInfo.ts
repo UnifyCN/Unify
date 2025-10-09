@@ -10,5 +10,3 @@ export const useStageInfo = (stageId: string) => {
     gcTime: 10 * 60 * 1000,
   });
 };
-
-
