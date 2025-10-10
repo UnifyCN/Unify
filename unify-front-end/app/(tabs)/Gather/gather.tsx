@@ -31,7 +31,7 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
 }
 
-const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
+const GatherHeader = memo(() => {
   const router = useRouter();
 
   const { data: events, isLoading } = useEvents();
@@ -101,24 +101,26 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
       >
         Your Feed
       </Text>
-      <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map(tab => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+    </View>
+  );
+});
+
+const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
+  return (
+    <View style={styles.tabs}>
+      {['For You', 'Following', 'Groups'].map(tab => (
+        <TouchableOpacity
+          key={tab}
+          onPress={() => setActiveTab(tab)}
+          style={[styles.tab, activeTab === tab && styles.activeTab]}
+        >
+          <Text
+            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
           >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
-              ]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            {tab}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 });
@@ -167,40 +169,34 @@ export default function GatherScreen() {
     }
   }, [activeTab]);
 
-  const [scrollValue] = useScrollContext();
-  const previousScrollValue = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler({
-    // Change this if this cause any error
-    onScroll: e => {
-      const offsetY = e.contentOffset.y;
-      if (offsetY < 0 || offsetY > e.contentSize.height) return;
+  // Easiest way to make the header sticky
+  const data = [
+    { key: 'header', type: 'header' },
+    { key: 'tabs', type: 'tabs' },
+    { key: 'feed', type: 'feed' },
+  ];
 
-      scrollValue.value = Math.max(
-        0,
-        Math.min(
-          1,
-          scrollValue.value +
-            (offsetY - previousScrollValue.value) / SCROLL_DISTANCE
-        )
-      );
-
-      previousScrollValue.value = offsetY;
-    },
-  });
+  const renderItem = ({ item }: { item: { key: string; type: string } }) => {
+    switch (item.type) {
+      case 'header':
+        return <GatherHeader />;
+      case 'tabs':
+        return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+      case 'feed':
+        return <View style={styles.feedContainer}>{renderFeedContent}</View>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar style='dark' />
       <Animated.FlatList
-        data={[{ key: 'feed' }]}
-        renderItem={() => (
-          <View style={styles.feedContainer}>{renderFeedContent}</View>
-        )}
+        data={data}
+        renderItem={renderItem}
         keyExtractor={item => item.key}
-        ListHeaderComponent={
-          <GatherHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-        }
-        onScroll={scrollHandler}
+        stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
       />
       <CreatePostButton />
     </View>
@@ -246,13 +242,13 @@ const styles = StyleSheet.create({
     marginBottom: 36,
   },
   tabs: {
-    marginTop: 16,
     backgroundColor: '#fff',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
+    zIndex: 1000,
   },
   tab: {
     backgroundColor: 'transparent',
