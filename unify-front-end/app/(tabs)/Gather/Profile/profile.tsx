@@ -3,12 +3,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   FlatList,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
-import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import SavedFeed from '@/components/profile/SavedFeed';
 import UserPostsFeed from '@/components/profile/UserPostsFeed';
@@ -54,15 +52,6 @@ const TabHeader = memo(
 export default function Profile() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
-  const {
-    data: userPostsData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useUserPosts(userId);
 
   const { data: userInfo, isLoading: userLoading } = useUserInfo(userId);
 
@@ -88,7 +77,7 @@ export default function Profile() {
     }
   }, [isCurrentUser, activeTab]);
 
-  // Create data array with header, tabs, and feed content
+  // Create data array with header, tabs, and feed content to be used to do sticky header
   const data = [
     { key: 'header', type: 'header' },
     { key: 'tabs', type: 'tabs' },
@@ -159,13 +148,6 @@ export default function Profile() {
   }, [
     activeTab,
     userId,
-    userPostsData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isRefetching,
-    refetch,
     isCurrentUser,
   ]);
 
