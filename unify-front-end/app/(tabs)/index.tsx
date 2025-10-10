@@ -71,7 +71,6 @@ const NewsTipsSection = () => (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={styles.carousel}
     >
       <View style={styles.newsCard}>
         <View style={styles.newsImagePlaceholder} />
@@ -131,7 +130,6 @@ const GatherEventsSection = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.carousel}
         contentContainerStyle={[
           styles.carouselContent,
           upcomingEvents.length === 0 && styles.carouselContentEmpty,
@@ -252,11 +250,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: 500,
   },
-  carousel: {
-    paddingHorizontal: 20,
-  },
   carouselContent: {
     gap: 12,
+    paddingHorizontal: 20,
   },
   carouselContentEmpty: {
     flexGrow: 1,
@@ -275,7 +271,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    flex: 1,
+    width: '100%',
+    minWidth: '100%',
   },
   emptyEventsText: {
     fontSize: 16,
