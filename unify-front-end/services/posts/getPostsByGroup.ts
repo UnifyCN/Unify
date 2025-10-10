@@ -52,7 +52,8 @@ export const getPostsByGroup = async (
 
     return {
       posts: transformed,
-      next_cursor: transformed.length === limit ? String(offset + limit) : undefined,
+      next_cursor:
+        transformed.length === limit ? String(offset + limit) : undefined,
     };
   } catch (err) {
     console.error('getPostsByGroup error', err);

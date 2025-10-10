@@ -5,11 +5,15 @@ type HeaderVisibilityContextValue = {
   setVisible: (v: boolean) => void;
 };
 
-const HeaderVisibilityContext = createContext<HeaderVisibilityContextValue | undefined>(
-  undefined
-);
+const HeaderVisibilityContext = createContext<
+  HeaderVisibilityContextValue | undefined
+>(undefined);
 
-export const HeaderVisibilityProvider = ({ children }: { children: React.ReactNode }) => {
+export const HeaderVisibilityProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [visible, setVisible] = useState(true);
 
   return (
@@ -22,7 +26,9 @@ export const HeaderVisibilityProvider = ({ children }: { children: React.ReactNo
 export const useHeaderVisibility = () => {
   const ctx = useContext(HeaderVisibilityContext);
   if (!ctx) {
-    throw new Error('useHeaderVisibility must be used within HeaderVisibilityProvider');
+    throw new Error(
+      'useHeaderVisibility must be used within HeaderVisibilityProvider'
+    );
   }
   return ctx;
 };

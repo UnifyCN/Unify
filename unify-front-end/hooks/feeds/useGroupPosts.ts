@@ -5,7 +5,8 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 export const useGroupPosts = (groupId?: number | string) => {
   return useInfiniteQuery<FeedResponse, Error, FeedResponse, string[]>({
     queryKey: ['group', 'posts', String(groupId)],
-    queryFn: ({ pageParam }) => getPostsByGroup(groupId as any, pageParam as string | undefined),
+    queryFn: ({ pageParam }) =>
+      getPostsByGroup(groupId as any, pageParam as string | undefined),
     enabled: Boolean(groupId),
     initialPageParam: undefined,
     getNextPageParam: lastPage => lastPage.next_cursor,

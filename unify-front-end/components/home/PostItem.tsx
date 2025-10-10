@@ -76,7 +76,7 @@ export const PostItem = ({ post }: PostItemProps) => {
                 onPress={() =>
                   router.push({
                     // cast pathname to any to avoid strict router typing issues
-                    pathname: ('/(tabs)/Gather/GroupDetailScreen' as any),
+                    pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
                     params: { groupName: post.group },
                   })
                 }

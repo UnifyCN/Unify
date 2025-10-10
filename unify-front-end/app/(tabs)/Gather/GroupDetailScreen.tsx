@@ -76,7 +76,9 @@ const GroupDetailScreen = () => {
         const found = groups.find(g => g.name === name);
         if (found) setGroupData(found);
       })
-      .catch(err => console.error('Failed to load groups for detail screen', err))
+      .catch(err =>
+        console.error('Failed to load groups for detail screen', err)
+      )
       .finally(() => mounted && setLoading(false));
 
     return () => {
@@ -137,7 +139,10 @@ const GroupDetailScreen = () => {
       {/* header image area */}
       <View style={styles.imageContainer}>
         {groupData.coverPhotoUrl ? (
-          <Image source={{ uri: groupData.coverPhotoUrl }} style={styles.eventImage} />
+          <Image
+            source={{ uri: groupData.coverPhotoUrl }}
+            style={styles.eventImage}
+          />
         ) : (
           <View style={styles.imagePlaceholder} />
         )}
@@ -176,11 +181,11 @@ const GroupDetailScreen = () => {
 
         {/* Join button on image */}
         <TouchableOpacity
-            style={styles.joinButton}
-            onPress={handleJoinToggle}
-            disabled={joining}
-          >
-            <Text style={styles.joinText}>{isMember ? 'Joined' : 'Join'}</Text>
+          style={styles.joinButton}
+          onPress={handleJoinToggle}
+          disabled={joining}
+        >
+          <Text style={styles.joinText}>{isMember ? 'Joined' : 'Join'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -285,7 +290,7 @@ const styles = StyleSheet.create({
   joinText: {
     color: '#fff',
     fontSize: 16,
-    lineHeight:25,
+    lineHeight: 25,
   },
   card: {
     backgroundColor: '#fff',
