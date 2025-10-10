@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
@@ -24,7 +24,7 @@ interface PostItemProps {
   isLoading?: boolean;
 }
 
-export const PostItem = ({ post, metadata, isLoading }: PostItemProps) => {
+export const PostItem = memo(({ post, metadata, isLoading }: PostItemProps) => {
   const router = useRouter();
 
   // Use batch-loaded metadata (no individual queries needed)
@@ -141,7 +141,7 @@ export const PostItem = ({ post, metadata, isLoading }: PostItemProps) => {
       <View style={styles.divider} />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   postContainer: {

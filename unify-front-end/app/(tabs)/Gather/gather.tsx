@@ -183,7 +183,7 @@ export default function GatherScreen() {
       case 'tabs':
         return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
       case 'feed':
-        return <View style={styles.feedContainer}>{renderFeedContent}</View>;
+        return <View>{renderFeedContent}</View>;
       default:
         return null;
     }
@@ -236,10 +236,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     flexDirection: 'column',
-  },
-  feedContainer: {
-    paddingBottom: 44,
-    marginBottom: 36,
   },
   tabs: {
     backgroundColor: '#fff',

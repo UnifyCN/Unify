@@ -53,7 +53,7 @@ export default function Profile() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
 
-  const { data: userInfo, isLoading: userLoading } = useUserInfo(userId);
+  const { data: userInfo } = useUserInfo(userId);
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -145,11 +145,7 @@ export default function Profile() {
           />
         );
     }
-  }, [
-    activeTab,
-    userId,
-    isCurrentUser,
-  ]);
+  }, [activeTab, userId, isCurrentUser]);
 
   return (
     <View style={styles.container}>

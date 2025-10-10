@@ -68,10 +68,7 @@ const NewsTipsSection = () => (
       <Text style={styles.sectionTitle}>News & Tips</Text>
       <Feather name='chevron-right' size={20} color='#666' />
     </View>
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-    >
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <View style={styles.newsCard}>
         <View style={styles.newsImagePlaceholder} />
         <View style={styles.newsContent}>

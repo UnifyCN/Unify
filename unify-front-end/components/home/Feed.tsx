@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
@@ -34,12 +34,15 @@ const Feed = ({
   const { data: metadata, isLoading: metadataLoading } =
     usePostMetadata(postIds);
 
-  const renderPost = ({ item }: { item: PostData }) => (
-    <PostItem
-      post={item}
-      metadata={metadata?.[item.id]}
-      isLoading={metadataLoading}
-    />
+  const renderPost = useCallback(
+    ({ item }: { item: PostData }) => (
+      <PostItem
+        post={item}
+        metadata={metadata?.[item.id]}
+        isLoading={metadataLoading}
+      />
+    ),
+    [metadata, metadataLoading]
   );
 
   const handleLoadMore = () => {
@@ -64,7 +67,6 @@ const Feed = ({
       data={allPosts}
       keyExtractor={item => item.id.toString()}
       renderItem={renderPost}
-      contentContainerStyle={styles.feedContainer}
       onEndReached={handleLoadMore}
       onEndReachedThreshold={0.5}
       refreshControl={
@@ -90,7 +92,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  feedContainer: {},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
