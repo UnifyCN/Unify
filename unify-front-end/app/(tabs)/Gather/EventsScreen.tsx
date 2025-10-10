@@ -224,10 +224,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    paddingVertical: 16,
   },
   headerTitle: {
     fontSize: 24,
