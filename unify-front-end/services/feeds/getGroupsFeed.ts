@@ -16,30 +16,54 @@ export const getFeedGroups = async (
       throw new Error('User not authenticated');
     }
 
-    // PLACEHOLDER: For now just getting posts where user_id equals current user's ID
+    // 1) Get the list of group IDs the user has joined
+    const { data: memberships, error: membershipError } = await supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', user.id);
+
+    if (membershipError) {
+      throw new Error(
+        `Failed to fetch user groups: ${membershipError.message}`
+      );
+    }
+
+    const groupIds = (memberships || []).map(
+      (m: { group_id: number }) => m.group_id
+    );
+    // If user is not in any groups, return empty feed
+    if (groupIds.length === 0) {
+      return { posts: [], next_cursor: undefined };
+    }
+
+    // 2) Fetch posts from those groups
+    const offset = cursor ? parseInt(cursor) : 0;
     const { data, error } = await supabase
       .from('posts')
       .select(
         `
-        id,
-        content,
-        created_at,
-        user_id,
-        users!user_id(
-          id,
-          username
-        )
-      `
+				id,
+				title,
+				content,
+				created_at,
+				user_id,
+				group_id,
+				users!user_id(
+					id,
+					username
+				),
+				groups!group_id(
+					id,
+					group_name
+				)
+			`
       )
-      .eq('user_id', user.id)
+      .in('group_id', groupIds)
       .order('created_at', { ascending: false })
-      .range(
-        cursor ? parseInt(cursor) : 0,
-        (cursor ? parseInt(cursor) : 0) + limit - 1
-      );
+      .range(offset, offset + limit - 1);
 
     if (error) {
-      throw new Error(`Failed to fetch following feed: ${error.message}`);
+      throw new Error(`Failed to fetch groups feed: ${error.message}`);
     }
 
     // Transform data to match your Post type
@@ -51,18 +75,18 @@ export const getFeedGroups = async (
         name: post.users.username,
       } as User,
       time: post.created_at,
-      description: post.content,
+      title: post.title,
+      content: post.content,
+      group: post.groups.group_name,
     }));
 
     return {
       posts: transformedPosts,
       next_cursor:
-        transformedPosts.length === limit
-          ? String(cursor ? parseInt(cursor) + limit : limit)
-          : undefined,
+        transformedPosts.length === limit ? String(offset + limit) : undefined,
     };
   } catch (error) {
-    console.error('Error fetching following feed:', error);
+    console.error('Error fetching groups feed:', error);
     throw error;
   }
 };

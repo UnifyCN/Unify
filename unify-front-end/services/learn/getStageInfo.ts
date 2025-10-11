@@ -35,5 +35,3 @@ export const getStageInfo = async (stageId: string): Promise<StageInfo> => {
     submodule: { id: sub.id, title: sub.title },
   };
 };
-
-

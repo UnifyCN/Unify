@@ -10,6 +10,3 @@ export const useLesson = (lessonId: string) => {
     gcTime: 10 * 60 * 1000,
   });
 };
-
-
-

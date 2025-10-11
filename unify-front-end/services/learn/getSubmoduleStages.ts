@@ -22,9 +22,14 @@ export interface StageData {
   completed_lessons: number;
 }
 
-export const getSubmoduleStages = async (submoduleId: string): Promise<SubmoduleStagesData> => {
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  
+export const getSubmoduleStages = async (
+  submoduleId: string
+): Promise<SubmoduleStagesData> => {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
   if (userError || !user) {
     throw new Error('User not authenticated');
   }
@@ -53,7 +58,9 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
 
   if (subProgressError) {
     console.error('Error fetching submodule progress:', subProgressError);
-    throw new Error(`Failed to fetch submodule progress: ${subProgressError.message}`);
+    throw new Error(
+      `Failed to fetch submodule progress: ${subProgressError.message}`
+    );
   }
 
   // Get all stages for this submodule
@@ -79,7 +86,9 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
 
   if (stageProgressError) {
     console.error('Error fetching stage progress:', stageProgressError);
-    throw new Error(`Failed to fetch stage progress: ${stageProgressError.message}`);
+    throw new Error(
+      `Failed to fetch stage progress: ${stageProgressError.message}`
+    );
   }
 
   // Get lesson counts for each stage
@@ -104,7 +113,9 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
 
   if (completedError) {
     console.error('Error fetching completed lessons:', completedError);
-    throw new Error(`Failed to fetch completed lessons: ${completedError.message}`);
+    throw new Error(
+      `Failed to fetch completed lessons: ${completedError.message}`
+    );
   }
 
   // Transform data
@@ -126,23 +137,28 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
   });
 
   // Build stages data
-  const stages: StageData[] = stagesData?.map(stage => {
-    const stageLessons = lessonsByStage.get(stage.id) || [];
-    const completedStageLessons = stageLessons.filter(l => completedLessonsSet.has(l.id)).length;
-    
-    const stageProgressData = stageProgressMap.get(stage.id);
+  const stages: StageData[] =
+    stagesData
+      ?.map(stage => {
+        const stageLessons = lessonsByStage.get(stage.id) || [];
+        const completedStageLessons = stageLessons.filter(l =>
+          completedLessonsSet.has(l.id)
+        ).length;
 
-    return {
-      id: stage.id,
-      title: stage.title,
-      description: stage.description || '',
-      order_num: stage.order_num,
-      progress_percent: stageProgressData?.progress_percent || 0,
-      is_completed: stageProgressData?.is_completed || false,
-      lessons_count: stageLessons.length,
-      completed_lessons: completedStageLessons,
-    };
-  }).sort((a, b) => a.order_num - b.order_num) || [];
+        const stageProgressData = stageProgressMap.get(stage.id);
+
+        return {
+          id: stage.id,
+          title: stage.title,
+          description: stage.description || '',
+          order_num: stage.order_num,
+          progress_percent: stageProgressData?.progress_percent || 0,
+          is_completed: stageProgressData?.is_completed || false,
+          lessons_count: stageLessons.length,
+          completed_lessons: completedStageLessons,
+        };
+      })
+      .sort((a, b) => a.order_num - b.order_num) || [];
 
   const completedStages = stages.filter(s => s.is_completed).length;
   const totalStages = stages.length;
@@ -162,4 +178,3 @@ export const getSubmoduleStages = async (submoduleId: string): Promise<Submodule
     stages,
   };
 };
-

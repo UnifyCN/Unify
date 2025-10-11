@@ -16,22 +16,27 @@ export const getForYouFeed = async (
       throw new Error('User not authenticated');
     }
 
-    // Get posts without like data (likes will be fetched individually)
+    // Get all posts without like data (likes will be fetched individually)
     const { data, error } = await supabase
       .from('posts')
       .select(
         `
         id,
+        title,
         content,
         created_at,
         user_id,
+        group_id,
         users!user_id(
           id,
           username
+        ),
+        groups!group_id(
+          id,
+          group_name
         )
       `
       )
-      .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .range(
         cursor ? parseInt(cursor) : 0,
@@ -51,7 +56,9 @@ export const getForYouFeed = async (
         name: post.users.username,
       } as User,
       time: post.created_at,
-      description: post.content,
+      title: post.title,
+      content: post.content,
+      group: post.groups.group_name,
     }));
 
     return {

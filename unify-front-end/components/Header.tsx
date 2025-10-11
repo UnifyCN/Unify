@@ -1,21 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { supabase } from '@/lib/supabase';
 
-interface HeaderProps {
-  onProfilePress?: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ onProfilePress }) => {
+const Header = () => {
   const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      }
+    };
+    getCurrentUser();
+  }, []);
 
   const handleProfilePress = () => {
-    if (onProfilePress) {
-      onProfilePress();
-    } else {
-      router.push('/(tabs)/Gather/Profile/profile');
-    }
+    router.push(`/(tabs)/Gather/Profile/profile?userId=${userId}`);
   };
 
   return (

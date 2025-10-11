@@ -18,7 +18,9 @@ export interface LessonItem {
   contents: LessonContent[];
 }
 
-export const getStageLessons = async (stageId: string): Promise<LessonItem[]> => {
+export const getStageLessons = async (
+  stageId: string
+): Promise<LessonItem[]> => {
   if (!stageId) throw new Error('Missing stageId');
 
   // Fetch lessons for the stage
@@ -43,13 +45,20 @@ export const getStageLessons = async (stageId: string): Promise<LessonItem[]> =>
     .order('order_num');
 
   if (contentsError) {
-    throw new Error(`Failed to fetch lesson contents: ${contentsError.message}`);
+    throw new Error(
+      `Failed to fetch lesson contents: ${contentsError.message}`
+    );
   }
 
   const contentsByLesson = new Map<string, LessonContent[]>();
   (contents ?? []).forEach(c => {
     const arr = contentsByLesson.get(c.lesson_id) ?? [];
-    arr.push({ id: c.id, order_num: c.order_num, content_type: c.content_type, content: c.content });
+    arr.push({
+      id: c.id,
+      order_num: c.order_num,
+      content_type: c.content_type,
+      content: c.content,
+    });
     contentsByLesson.set(c.lesson_id, arr);
   });
 
@@ -62,5 +71,3 @@ export const getStageLessons = async (stageId: string): Promise<LessonItem[]> =>
     contents: contentsByLesson.get(l.id) ?? [],
   }));
 };
-
-

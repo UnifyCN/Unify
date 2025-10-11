@@ -1,32 +1,15 @@
 import React from 'react';
-
-import { useForm } from 'react-hook-form';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { SignUpProps } from '@aws-amplify/ui-react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { CheckBox } from 'react-native-elements';
-
 import { MaterialIcons } from '@expo/vector-icons';
-
 import { supabase } from '../../lib/supabase';
 import {
-  ErrorMessage,
-  LinkButton,
-  LinksContainer,
-  ProviderButton,
   SubmitButton,
-  TextField,
   SimpleTextField,
   ViewHeader,
   ViewContainer,
   ViewSection,
-  ViewDivider,
 } from './Components';
-import { useNavigation } from '@react-navigation/native'; // Adjust the import based on your project structure
-function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
-  return [first && first.toUpperCase(), rest.join('').toLowerCase()]
-    .filter(Boolean)
-    .join('') as Capitalize<T>;
-}
 
 export function SignUp({
   onSwitchToSignIn,
@@ -35,23 +18,16 @@ export function SignUp({
   onSwitchToSignIn?: () => void;
   onShowOTP?: (email: string, password: string) => void;
 }): React.JSX.Element {
-  const {
-    formState: { errors, isValid },
-  } = useForm({ mode: 'onTouched' });
-
   // State vars
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [passwordVisible, setPasswordVisible] = React.useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] =
-    React.useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = React.useState(false);
   const [isEmailValid, setIsEmailValid] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
-
-  const navigation = useNavigation();
 
   const validateEmail = (email: string) => {
     // Simple email validation regex
@@ -79,7 +55,7 @@ export function SignUp({
     setErrorMessage(null);
 
     try {
-      // send theOTP to user's email
+      // Send OTP to user's email
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,

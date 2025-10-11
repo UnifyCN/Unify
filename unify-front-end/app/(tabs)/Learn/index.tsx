@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, useWindowDimensions, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+  useWindowDimensions,
+  ActivityIndicator,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
@@ -13,7 +21,7 @@ export default function Learn() {
   const heroSlides = [0, 1, 2];
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
-  
+
   // Fetch all modules dynamically
   const { data: modules, isLoading, error } = useAllModules();
 
@@ -36,7 +44,7 @@ export default function Learn() {
         <SearchBar placeholder='Search for a lesson' />
 
         <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
-        <View style={[styles.heroWrapper, { width }]}> 
+        <View style={[styles.heroWrapper, { width }]}>
           <ScrollView
             ref={sliderRef}
             horizontal
@@ -45,26 +53,39 @@ export default function Learn() {
             onMomentumScrollEnd={onMomentumEnd}
           >
             {heroSlides.map(i => (
-              <View key={i} style={{ width, paddingRight: 30, paddingVertical: 10, paddingLeft: 1 }}>
+              <View
+                key={i}
+                style={{
+                  width,
+                  paddingRight: 30,
+                  paddingVertical: 10,
+                  paddingLeft: 1,
+                }}
+              >
                 <LessonHeroCard />
               </View>
             ))}
           </ScrollView>
         </View>
-        <CarouselDots total={heroSlides.length} activeIndex={heroIndex} onDotPress={handleDotPress} />
+        <CarouselDots
+          total={heroSlides.length}
+          activeIndex={heroIndex}
+          onDotPress={handleDotPress}
+        />
 
-        <SectionHeader title='Learning Pathways' style={{ marginTop: 24 }} />
+        <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
         <View style={styles.pathwaysGrid}>
           {isLoading ? (
-            <ActivityIndicator size="large" color="#007AFF" />
+            // Loading indicator to be waited for design
+            <ActivityIndicator size='large' color='#575757' />
           ) : error ? (
             <Text style={styles.errorText}>Error loading modules</Text>
           ) : modules && modules.length > 0 ? (
-            modules.map((module) => (
+            modules.map(module => (
               <PathwayCard
                 key={module.id}
                 title={module.title}
-                modulesLabel={`${module.completed_submodules}/${module.total_submodules} Modules`}
+                modulesLabel={`${module.total_submodules} section${module.total_submodules === 1 ? '' : 's'}`}
                 href={`/(tabs)/Learn/modules/${module.id}` as any}
               />
             ))

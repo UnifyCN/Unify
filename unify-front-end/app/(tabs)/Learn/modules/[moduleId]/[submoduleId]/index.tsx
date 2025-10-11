@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+  Dimensions,
+} from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSubmoduleStages } from '@/hooks/learn/useSubmoduleStages';
 import { useModule } from '@/hooks/learn/useModule';
@@ -7,9 +15,16 @@ import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleIndex() {
   const router = useRouter();
-  const { moduleId, submoduleId } = useLocalSearchParams<{ moduleId: string; submoduleId: string }>();
-  
-  const { data: submoduleData, isLoading, error } = useSubmoduleStages(submoduleId || '');
+  const { moduleId, submoduleId } = useLocalSearchParams<{
+    moduleId: string;
+    submoduleId: string;
+  }>();
+
+  const {
+    data: submoduleData,
+    isLoading,
+    error,
+  } = useSubmoduleStages(submoduleId || '');
   const { data: moduleData } = useModule(moduleId || '');
 
   if (isLoading) {
@@ -26,17 +41,24 @@ export default function SubmoduleIndex() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.errorText}>Error loading submodule: {error?.message || 'Unknown error'}</Text>
+          <Text style={styles.errorText}>
+            Error loading submodule: {error?.message || 'Unknown error'}
+          </Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  const nextStage = submoduleData.stages.find((stage: any) => !stage.is_completed) || submoduleData.stages[0];
+  const nextStage =
+    submoduleData.stages.find((stage: any) => !stage.is_completed) ||
+    submoduleData.stages[0];
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.replace({
@@ -45,13 +67,14 @@ export default function SubmoduleIndex() {
             })} style={styles.backButton}>
             <Feather name='chevron-left' size={24} color='#000' />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
                 params: { moduleId, submoduleId },
               });
-            }} 
+            }}
             style={styles.menuButton}
           >
             <Feather name='menu' size={20} color='#000' />
@@ -63,7 +86,7 @@ export default function SubmoduleIndex() {
         <Text style={styles.title}>{`${submoduleData.submodule_title}`}</Text>
         <View style={styles.mediaPlaceholder} />
         <Text style={styles.stageDesc}>
-          {`By the end of this section, you will ${submoduleData.submodule_description}`} 
+          {`By the end of this section, you will ${submoduleData.submodule_description}`}
         </Text>
 
         {/* CTA to Stage Screen */}
@@ -72,13 +95,15 @@ export default function SubmoduleIndex() {
           onPress={() => {
             if (!nextStage) return;
             router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
+              pathname:
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
               params: { moduleId, submoduleId, stageId: nextStage.id },
             });
           }}
         >
           <Text style={styles.resumeButtonText}>
-            {nextStage?.progress_percent === 0 ? 'Start' : 'Resume'} Stage {nextStage?.order_num || 1}
+            {nextStage?.progress_percent === 0 ? 'Start' : 'Resume'} Stage{' '}
+            {nextStage?.order_num || 1}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -89,31 +114,31 @@ export default function SubmoduleIndex() {
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-  safe: { 
-    flex: 1, 
-    backgroundColor: '#fff' 
+  safe: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  container: { 
-    paddingHorizontal: 20, 
+  container: {
+    paddingHorizontal: 30,
     paddingBottom: 40,
-    minHeight: '100%'
+    minHeight: '100%',
   },
-  
+
   // Header
-  headerRow: { 
-    flexDirection: 'row', 
+  headerRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 20
+    marginBottom: 20,
   },
-  backButton: { 
+  backButton: {
     padding: 8,
-    marginLeft: -8
+    marginLeft: -8,
   },
   menuButton: {
     padding: 8,
-    marginRight: -8
+    marginRight: -8,
   },
 
   // Module Label
@@ -122,19 +147,19 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     textAlign: 'center',
     marginBottom: 8,
-    fontWeight: '500'
+    fontWeight: '500',
   },
 
   // Title
-  title: { 
-    fontSize: 32, 
-    fontWeight: '700', 
-    textAlign: 'center', 
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    textAlign: 'center',
     color: '#000',
     marginBottom: 32,
     lineHeight: 38,
     maxWidth: width * 0.75,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   stageDesc: {
     fontSize: 14,
@@ -154,32 +179,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB'
+    borderColor: '#E5E7EB',
   },
   mediaPlaceholderText: {
     fontSize: 16,
     color: '#9CA3AF',
-    fontWeight: '500'
+    fontWeight: '500',
   },
 
   // Objectives Section
   objectivesSection: {
-    marginBottom: 40
+    marginBottom: 40,
   },
   objectivesTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: '#000',
     marginBottom: 20,
-    lineHeight: 26
+    lineHeight: 26,
   },
   objectivesList: {
-    gap: 16
+    gap: 16,
   },
   objectiveItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12
+    gap: 12,
   },
   checkIcon: {
     width: 24,
@@ -188,18 +213,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#10B981',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2
+    marginTop: 2,
   },
   objectiveText: {
     flex: 1,
     fontSize: 16,
     color: '#000',
-    lineHeight: 24
+    lineHeight: 24,
   },
 
   // Resume Button
   resumeButton: {
-    backgroundColor: '#374151',
+    backgroundColor: '#575757',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -208,12 +233,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2
+    elevation: 2,
   },
   resumeButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600'
+    fontWeight: '600',
   },
   lessonTitle: {
     fontSize: 20,
