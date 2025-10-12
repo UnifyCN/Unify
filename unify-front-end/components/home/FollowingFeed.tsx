@@ -2,7 +2,11 @@ import React from 'react';
 import Feed from './Feed';
 import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
 
-const FollowingFeed = () => {
+interface FollowingFeedProps {
+  ListEmptyComponent: React.ReactElement;
+}
+
+const FollowingFeed = ({ ListEmptyComponent }: FollowingFeedProps) => {
   const {
     data,
     fetchNextPage,
@@ -22,6 +26,7 @@ const FollowingFeed = () => {
       isLoading={isLoading}
       isRefetching={isRefetching}
       refetch={refetch}
+      ListEmptyComponent={ListEmptyComponent}
     />
   );
 };

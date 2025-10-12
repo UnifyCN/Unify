@@ -23,14 +23,20 @@ export const getSavedPosts = async (
         post_id,
         posts!post_id(
           id,
+          title,
           content,
           like_count,
           comment_count,
           created_at,
           user_id,
+          group_id,
           users!user_id(
             id,
             username
+          ),
+          groups!group_id(
+            id,
+            group_name
           )
         )
       `
@@ -55,7 +61,9 @@ export const getSavedPosts = async (
         name: save.posts.users.username,
       } as User,
       time: save.posts.created_at,
-      description: save.posts.content,
+      title: save.posts.title,
+      content: save.posts.content,
+      group: save.posts.groups?.group_name || null,
     }));
 
     return {
