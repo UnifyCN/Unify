@@ -6,9 +6,11 @@ export interface LikeCommentResponse {
   likesCount: number;
 }
 
-export const likeComment = async (commentId: number): Promise<LikeCommentResponse> => {
+export const likeComment = async (
+  commentId: number
+): Promise<LikeCommentResponse> => {
   try {
-    const { 
+    const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
@@ -37,9 +39,11 @@ export const likeComment = async (commentId: number): Promise<LikeCommentRespons
   }
 };
 
-export const unlikeComment = async (commentId: number): Promise<LikeCommentResponse> => {
+export const unlikeComment = async (
+  commentId: number
+): Promise<LikeCommentResponse> => {
   try {
-    const { 
+    const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');

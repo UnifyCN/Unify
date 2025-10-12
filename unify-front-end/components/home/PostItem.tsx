@@ -16,7 +16,6 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 
-
 export interface PostItemProps {
   post: PostData;
 }
@@ -43,7 +42,7 @@ export const PostItem = ({ post }: PostItemProps) => {
 
   const navigateToUserProfile = () => {
     router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
-  }
+  };
 
   // Use like data from the hook, fallback to 0 if loading
   const likeCount = likeData?.likeCount;
@@ -88,11 +87,11 @@ export const PostItem = ({ post }: PostItemProps) => {
               <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
             </View>
 
-          {/* Title */}
-          <View>
-            <Text style={styles.title}>{post.title}</Text>
-          </View>
-          {/* {post.userReply && (
+            {/* Title */}
+            <View>
+              <Text style={styles.title}>{post.title}</Text>
+            </View>
+            {/* {post.userReply && (
             <View style={styles.replyContainer}>
               <Text style={styles.time}>Replying to </Text>
               <Text style={styles.replyUser}>{post.userReply}</Text>

@@ -1,4 +1,13 @@
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Platform, KeyboardAvoidingView, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Platform,
+  KeyboardAvoidingView,
+  TextInput,
+} from 'react-native';
 import { router, useLocalSearchParams, useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
@@ -29,7 +38,7 @@ export default function PostCommentItem({ comment }: PostCommentItemProps) {
 
   const toggleLike = (commentId: number, isLiked: boolean) => {
     likeCommentMutation.mutate({ commentId, isLiked });
-    console.log("CLICKED LIKE COMMENT")
+    console.log('CLICKED LIKE COMMENT');
   };
 
   const navigateToUserProfile = () => {
@@ -38,53 +47,52 @@ export default function PostCommentItem({ comment }: PostCommentItemProps) {
 
   return (
     <View style={styles.postContainer}>
-        {/* Headshot */}
-        <TouchableOpacity
-            style={styles.headshot}
-            onPress={navigateToUserProfile}
-            >
-            {/* TODO: Get headshot image */}
-            <Text>No headshot</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.postContent}>
-            {/* Header */}
-            <View style={styles.header}>
-            <TouchableOpacity onPress={navigateToUserProfile}>
-                {/* TODO: display username not user_id */}
-                <Text style={styles.name}>{comment.username || comment.user_id}</Text>
+      {/* Headshot */}
+      <TouchableOpacity style={styles.headshot} onPress={navigateToUserProfile}>
+        {/* TODO: Get headshot image */}
+        <Text>No headshot</Text>
+      </TouchableOpacity>
+
+      <View style={styles.postContent}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={navigateToUserProfile}>
+            {/* TODO: display username not user_id */}
+            <Text style={styles.name}>
+              {comment.username || comment.user_id}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.time}>{formatSmartTime(comment.created_at)}</Text>
+        </View>
+
+        {/* Description */}
+        <Text style={styles.description}>{comment.content}</Text>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.footerItem}>
+            <TouchableOpacity onPress={() => toggleLike(comment.id, isLiked!)}>
+              {isLiked ? (
+                <Like_Fill width={20} height={20} />
+              ) : (
+                <Like width={20} height={20} />
+              )}
             </TouchableOpacity>
-            <Text style={styles.time}>{formatSmartTime(comment.created_at)}</Text>
-            </View>
-
-            {/* Description */}
-            <Text style={styles.description}>{comment.content}</Text>
-
-            {/* Footer */}
-            <View style={styles.footer}>
-                <View style={styles.footerItem}>
-                <TouchableOpacity onPress={() => toggleLike(comment.id, isLiked!)}>
-                    {isLiked ? (
-                    <Like_Fill width={20} height={20} />
-                    ) : (
-                    <Like width={20} height={20} />
-                    )}
-                </TouchableOpacity>
-                <Text style={styles.footerText}>{likeCount}</Text>
-                </View>
-                <View style={styles.footerItem}>
-                <Comment width={20} height={20} fill='gray' />
-                <Text style={styles.footerText}>0</Text>
-                </View>
-                {/* <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>
+            <Text style={styles.footerText}>{likeCount}</Text>
+          </View>
+          <View style={styles.footerItem}>
+            <Comment width={20} height={20} fill='gray' />
+            <Text style={styles.footerText}>0</Text>
+          </View>
+          {/* <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>
                 {isSaved ? (
                     <Save_Fill width={20} height={20} />
                 ) : (
                     <Save width={20} height={20} />
                 )}
                 </TouchableOpacity> */}
-            </View>
         </View>
+      </View>
     </View>
   );
 }

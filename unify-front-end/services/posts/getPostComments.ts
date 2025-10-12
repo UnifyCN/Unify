@@ -12,11 +12,14 @@ export interface PostComment {
   like_count: number;
 }
 
-export const getPostComments = async (postId: number): Promise<PostComment[]> => {
+export const getPostComments = async (
+  postId: number
+): Promise<PostComment[]> => {
   try {
     const { data, error } = await supabase
-        .from('post_comments')
-        .select(`
+      .from('post_comments')
+      .select(
+        `
             id,
             user_id,
             post_id,
@@ -24,10 +27,10 @@ export const getPostComments = async (postId: number): Promise<PostComment[]> =>
             parent_comment_id,
             created_at,
             like_count
-        `)
-        .eq('post_id', Number(postId))
-        .order('created_at', { ascending: true });
-
+        `
+      )
+      .eq('post_id', Number(postId))
+      .order('created_at', { ascending: true });
 
     if (error) throw error;
 
@@ -39,7 +42,7 @@ export const getPostComments = async (postId: number): Promise<PostComment[]> =>
       parent_comment_id: comment.parent_comment_id,
       created_at: comment.created_at,
       username: comment.username,
-      like_count: comment.like_count
+      like_count: comment.like_count,
     }));
   } catch (err) {
     console.error('Error fetching comments:', err);

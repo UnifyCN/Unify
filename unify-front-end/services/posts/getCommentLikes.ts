@@ -5,7 +5,9 @@ export interface CommentLikeInfo {
   userLiked: boolean;
 }
 
-export const getCommentLikes = async (commentId: number): Promise<CommentLikeInfo> => {
+export const getCommentLikes = async (
+  commentId: number
+): Promise<CommentLikeInfo> => {
   try {
     // Get current commenter's ID
     const {

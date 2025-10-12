@@ -49,14 +49,14 @@ export default function TabLayout() {
           tabBarShowLabel: false,
           headerShown: false,
           tabBarStyle: hideHeaderAndTabs
-          ? { display: 'none' } // conditionally render tabs
-          : {
-              flexDirection: 'row',
-              paddingTop: 12,
-              paddingBottom: 52,
-              borderTopWidth: 1,
-              borderTopColor: '#F0F0F0',
-            },
+            ? { display: 'none' } // conditionally render tabs
+            : {
+                flexDirection: 'row',
+                paddingTop: 12,
+                paddingBottom: 52,
+                borderTopWidth: 1,
+                borderTopColor: '#F0F0F0',
+              },
         }}
         screenListeners={{
           tabPress: e => {

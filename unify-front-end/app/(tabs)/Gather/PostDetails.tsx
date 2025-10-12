@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, KeyboardAvoidingView, TextInput, Platform, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  KeyboardAvoidingView,
+  TextInput,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
@@ -74,15 +84,18 @@ export default function PostDetails() {
 
   const handleCreateComment = () => {
     if (commentTextBox.trim() === '') return;
-    createCommentMutation.mutate({
-      postId: post.id,
-      content: commentTextBox,
-    },
-    { onSuccess: () => {
-        setCommentTextBox('');
-        Keyboard.dismiss();
+    createCommentMutation.mutate(
+      {
+        postId: post.id,
+        content: commentTextBox,
       },
-    });
+      {
+        onSuccess: () => {
+          setCommentTextBox('');
+          Keyboard.dismiss();
+        },
+      }
+    );
   };
 
   return (
@@ -91,10 +104,10 @@ export default function PostDetails() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
-        keyboardShouldPersistTaps="handled"   
+        keyboardShouldPersistTaps='handled'
       >
         {/* Header */}
         <View style={styles.headerContainer}>
@@ -191,15 +204,18 @@ export default function PostDetails() {
 
       {/* Comment reply box */}
       <View style={styles.commentInputContainer}>
-          <TextInput
-              style={styles.commentInput}
-              placeholder={`Reply to ${post.user.name}`}
-              value={commentTextBox}
-              onChangeText={setCommentTextBox}
-          />
-          <TouchableOpacity style={styles.postMessageButton} onPress={handleCreateComment}>
-          <Feather name="send" size={20} color="white" />
-          </TouchableOpacity>
+        <TextInput
+          style={styles.commentInput}
+          placeholder={`Reply to ${post.user.name}`}
+          value={commentTextBox}
+          onChangeText={setCommentTextBox}
+        />
+        <TouchableOpacity
+          style={styles.postMessageButton}
+          onPress={handleCreateComment}
+        >
+          <Feather name='send' size={20} color='white' />
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
