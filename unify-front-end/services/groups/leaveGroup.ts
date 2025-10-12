@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-export const leaveGroup = async (group_id: string | number) => {
+export const leaveGroup = async (group_id: number) => {
   try {
     const {
       data: { user },

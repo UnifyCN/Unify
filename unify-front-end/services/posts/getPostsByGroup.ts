@@ -4,7 +4,7 @@ import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
 
 export const getPostsByGroup = async (
-  groupId: number | string,
+  group_id: number,
   cursor?: string,
   limit = 20
 ): Promise<FeedResponse> => {
@@ -31,7 +31,7 @@ export const getPostsByGroup = async (
         )
       `
       )
-      .eq('group_id', groupId)
+      .eq('group_id', group_id)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 

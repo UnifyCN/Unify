@@ -14,15 +14,15 @@ import { Share, Alert } from 'react-native';
 import * as Linking from 'expo-linking';
 import { Group } from '@/types/groups';
 import { useEffect, useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { getAllGroups } from '@/services/groups/getAllGroups';
 import { PostItem } from '@/components/home/PostItem';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import { useGroupPosts } from '@/hooks/feeds/useGroupPosts';
-import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { joinGroup } from '@/services/groups/joinGroup';
 import { leaveGroup } from '@/services/groups/leaveGroup';
-import { supabase } from '@/lib/supabase';
+import { checkUserGroupMembership } from '@/services/groups/checkUserGroupMembership';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -36,59 +36,61 @@ const GroupDetailScreen = () => {
 
   const { setVisible } = useHeaderVisibility();
 
+  const queryClient = useQueryClient();
+
   useEffect(() => {
     setVisible(false);
     return () => setVisible(true);
   }, [setVisible]);
 
-  // load membership status
   useEffect(() => {
     let mounted = true;
-    if (!groupData) return;
-    (async () => {
+
+    const init = async () => {
       try {
-        const joined = await getUserJoinedGroups();
-        if (!mounted) return;
-        setIsMember(Boolean(joined.find(g => g.id === groupData.id)));
+        // If we don't have groupData but have a groupName, try to fetch and set it
+        if (!groupData) {
+          const name = groupName as string | undefined;
+          if (!name) return;
+
+          setLoading(true);
+          const groups = await getAllGroups();
+          if (!mounted) return;
+          const found = groups.find(g => g.name === name);
+          if (found) {
+            setGroupData(found);
+            // Check membership for the found group
+            const member = await checkUserGroupMembership(found.id);
+            if (!mounted) return;
+            setIsMember(member);
+          }
+          return;
+        }
+
+        // We have groupData: check membership (only if isMember is still null)
+        if (isMember === null) {
+          setLoading(true);
+          const member = await checkUserGroupMembership(groupData.id);
+          if (!mounted) return;
+          setIsMember(member);
+        }
       } catch (err) {
-        console.error('failed to check membership', err);
+        console.error('Group detail init error', err);
+      } finally {
+        if (mounted) setLoading(false);
       }
-    })();
+    };
+
+    init();
 
     return () => {
       mounted = false;
     };
-  }, [groupData]);
-
-  useEffect(() => {
-    // If we already have group data from params, nothing to do
-    if (groupData) return;
-
-    // If groupName provided, try to fetch groups and find by name
-    const name = groupName as string | undefined;
-    if (!name) return;
-
-    let mounted = true;
-    setLoading(true);
-    getAllGroups()
-      .then(groups => {
-        if (!mounted) return;
-        const found = groups.find(g => g.name === name);
-        if (found) setGroupData(found);
-      })
-      .catch(err =>
-        console.error('Failed to load groups for detail screen', err)
-      )
-      .finally(() => mounted && setLoading(false));
-
-    return () => {
-      mounted = false;
-    };
-  }, [groupData, groupName]);
+  }, [groupName]);
 
   // posts for this group
-  const groupId = groupData?.id;
-  const postsQuery = useGroupPosts(groupId);
+  const group_id = groupData?.id;
+  const postsQuery = useGroupPosts(group_id);
   const posts = useMemo(() => {
     const d: any = postsQuery.data;
     if (!d) return [];
@@ -98,22 +100,60 @@ const GroupDetailScreen = () => {
 
   const handleJoinToggle = async () => {
     if (!groupData) return;
+    if (joining) return;
     setJoining(true);
+
+    // Store original values for rollback
+    const originalIsMember = isMember;
+    const originalMemberCount = groupData.memberCount;
+
     try {
       if (isMember) {
+        // Optimistically update UI for leaving
         await leaveGroup(groupData.id);
         setIsMember(false);
-        const user = await supabase.auth.getUser();
-        console.log(user.data.user?.id);
-        console.log(groupData.id);
+        setGroupData(prev =>
+          prev
+            ? {
+                ...prev,
+                memberCount: Math.max(0, prev.memberCount - 1),
+              }
+            : prev
+        );
       } else {
+        // Optimistically update UI for joining
+
         await joinGroup(groupData.id);
         setIsMember(true);
+        setGroupData(prev =>
+          prev
+            ? {
+                ...prev,
+                memberCount: prev.memberCount + 1,
+              }
+            : prev
+        );
       }
-      // refresh posts or group data if needed
     } catch (err) {
       console.error('Join toggle failed', err);
+      // Rollback optimistic updates on error
+      setIsMember(originalIsMember);
+      setGroupData(prev =>
+        prev
+          ? {
+              ...prev,
+              memberCount: originalMemberCount,
+            }
+          : prev
+      );
     } finally {
+      // invalidate group detail and groups feed so lists refresh
+      queryClient.invalidateQueries({ queryKey: ['group', groupData.id] });
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      // also invalidate feed caches so the feed reflects membership changes
+      queryClient.invalidateQueries({ queryKey: ['feed', 'groups'] });
+      queryClient.invalidateQueries({ queryKey: ['feed', 'forYou'] });
+      queryClient.invalidateQueries({ queryKey: ['feed', 'following'] });
       setJoining(false);
     }
   };
@@ -152,7 +192,8 @@ const GroupDetailScreen = () => {
             <Feather name='chevron-left' size={24} color='#fff' />
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
-          <TouchableOpacity
+          {/* TODO: SHARE BUTTON */}
+          {/* <TouchableOpacity
             accessibilityLabel='Share group'
             accessibilityRole='button'
             onPress={async () => {
@@ -176,7 +217,7 @@ const GroupDetailScreen = () => {
             style={styles.shareButton}
           >
             <Feather name='share' size={20} color='#fff' />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Join button on image */}
