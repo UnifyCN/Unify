@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSubmoduleStages } from '@/hooks/learn/useSubmoduleStages';
+import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
 import { useModule } from '@/hooks/learn/useModule';
 import { Feather } from '@expo/vector-icons';
 
@@ -24,7 +24,7 @@ export default function SubmoduleIndex() {
     data: submoduleData,
     isLoading,
     error,
-  } = useSubmoduleStages(submoduleId || '');
+  } = useSubmoduleLessons(submoduleId || '');
   const { data: moduleData } = useModule(moduleId || '');
 
   if (isLoading) {
@@ -49,9 +49,9 @@ export default function SubmoduleIndex() {
     );
   }
 
-  const nextStage =
-    submoduleData.stages.find((stage: any) => !stage.is_completed) ||
-    submoduleData.stages[0];
+  const nextLesson =
+    submoduleData?.lessons.find((lesson: any) => !lesson.is_completed) ||
+    submoduleData?.lessons[0];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -85,25 +85,23 @@ export default function SubmoduleIndex() {
         <Text style={styles.moduleLabel}>{moduleData?.title || 'Module'}</Text>
         <Text style={styles.title}>{`${submoduleData.submodule_title}`}</Text>
         <View style={styles.mediaPlaceholder} />
-        <Text style={styles.stageDesc}>
+        <Text style={styles.submoduleDesc}>
           {`By the end of this section, you will ${submoduleData.submodule_description}`}
         </Text>
 
-        {/* CTA to Stage Screen */}
+        {/* CTA to Intro Screen */}
         <TouchableOpacity
           style={styles.resumeButton}
           onPress={() => {
-            if (!nextStage) return;
             router.push({
               pathname:
-                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
-              params: { moduleId, submoduleId, stageId: nextStage.id },
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+              params: { moduleId, submoduleId, pageNum: '1' },
             });
           }}
         >
           <Text style={styles.resumeButtonText}>
-            {nextStage?.progress_percent === 0 ? 'Start' : 'Resume'} Stage{' '}
-            {nextStage?.order_num || 1}
+            Start Submodule
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -161,7 +159,7 @@ const styles = StyleSheet.create({
     maxWidth: width * 0.75,
     alignSelf: 'center',
   },
-  stageDesc: {
+  submoduleDesc: {
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,

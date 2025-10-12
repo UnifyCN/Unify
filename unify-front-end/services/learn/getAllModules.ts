@@ -1,14 +1,5 @@
 import { supabase } from '../../lib/supabase';
-
-export interface Module {
-  id: string;
-  title: string;
-  description: string;
-  total_submodules: number;
-  completed_submodules: number;
-  progress_percent: number;
-  is_completed: boolean;
-}
+import { Module } from '../../types/learn';
 
 export async function getAllModules(): Promise<Module[]> {
   try {

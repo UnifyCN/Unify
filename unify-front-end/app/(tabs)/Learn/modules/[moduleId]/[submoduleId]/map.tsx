@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSubmoduleStages } from '@/hooks/learn/useSubmoduleStages';
+import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
 import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleMap() {
@@ -23,10 +23,10 @@ export default function SubmoduleMap() {
     data: submoduleData,
     isLoading,
     error,
-  } = useSubmoduleStages(submoduleId || '');
+  } = useSubmoduleLessons(submoduleId || '');
 
-  // Add state for selected stage
-  const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(
+  // Add state for selected lesson
+  const [selectedLessonIndex, setSelectedLessonIndex] = useState<number | null>(
     null
   );
 
@@ -53,20 +53,16 @@ export default function SubmoduleMap() {
   }
 
   // Determine blocked/next/in-progress/completed
-  const circles = submoduleData.stages.map(
-    (stage: any, index: number, arr: any[]) => {
-      const blocked = index > 0 && !arr[index - 1].is_completed;
-      const isCompleted = !!stage.is_completed;
-      // Next is first not completed and not blocked
-      const nextIndex = arr.findIndex(
-        (s: any, idx: number) =>
-          !s.is_completed && (idx === 0 || arr[idx - 1].is_completed)
-      );
-      const isNext = index === nextIndex && !blocked;
-      const inProgress = !isCompleted && stage.progress_percent > 0 && !blocked;
+  const circles = submoduleData.lessons.map(
+    (lesson: any, index: number, arr: any[]) => {
+      const blocked = false; // No blocking for now since no progress tracking
+      const isCompleted = false; // No completion tracking for now
+      const isNext = index === 0; // First lesson is always next
+      const inProgress = false; // No progress tracking for now
       return {
-        id: stage.id,
-        title: stage.title,
+        id: lesson.lesson_id,
+        title: lesson.title,
+        orderNumber: lesson.order_number,
         index: index + 1,
         isCompleted,
         isNext,
@@ -76,9 +72,7 @@ export default function SubmoduleMap() {
     }
   );
 
-  const nextStage =
-    submoduleData.stages.find((stage: any) => !stage.is_completed) ||
-    submoduleData.stages[0];
+  const nextLesson = submoduleData.lessons[0]; // First lesson is always next
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -105,44 +99,34 @@ export default function SubmoduleMap() {
         </View> */}
 
         {/* Focus Card: only show if a circle is selected */}
-        {selectedStageIndex !== null && (
+        {selectedLessonIndex !== null && (
           <View style={styles.focusCard}>
             <Text style={styles.focusTitle}>
-              Lesson {selectedStageIndex + 1}:{' '}
-              {submoduleData.stages[selectedStageIndex].title}
+              Lesson {circles[selectedLessonIndex].orderNumber}:{' '}
+              {submoduleData.lessons[selectedLessonIndex].title}
             </Text>
-            {submoduleData.stages[selectedStageIndex].description ? (
-              <Text style={styles.focusDescription} numberOfLines={3}>
-                {submoduleData.stages[selectedStageIndex].description}
-              </Text>
-            ) : null}
             <TouchableOpacity
               style={styles.focusCta}
               onPress={() => {
                 router.push({
                   pathname:
-                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
                   params: {
                     moduleId,
                     submoduleId,
-                    stageId: submoduleData.stages[selectedStageIndex].id,
+                    lessonId: submoduleData.lessons[selectedLessonIndex].lesson_id,
                   },
                 });
               }}
-              disabled={circles[selectedStageIndex].blocked}
+              disabled={circles[selectedLessonIndex].blocked}
             >
               <Text
                 style={[
                   styles.focusCtaText,
-                  circles[selectedStageIndex].blocked && styles.textBlocked,
+                  circles[selectedLessonIndex].blocked && styles.textBlocked,
                 ]}
               >
-                {submoduleData.stages[selectedStageIndex].is_completed
-                  ? 'Retake Lesson'
-                  : submoduleData.stages[selectedStageIndex].progress_percent >
-                      0
-                    ? 'Resume Lesson'
-                    : 'Start Lesson'}
+                Start Lesson
               </Text>
             </TouchableOpacity>
           </View>
@@ -174,7 +158,7 @@ export default function SubmoduleMap() {
                             : styles.circleNormal,
                     ]}
                     onPress={() => {
-                      if (!c.blocked) setSelectedStageIndex(i);
+                      if (!c.blocked) setSelectedLessonIndex(i);
                     }}
                     disabled={c.blocked}
                   >
@@ -185,17 +169,17 @@ export default function SubmoduleMap() {
                     ) : c.blocked ? (
                       <View style={styles.circleBlockedInner}>
                         <Text style={styles.circleBlockedLabel}>Lesson</Text>
-                        <Text style={styles.circleBlockedIndex}>{c.index}</Text>
+                        <Text style={styles.circleBlockedIndex}>{c.orderNumber}</Text>
                       </View>
                     ) : isActive ? (
                       <View style={styles.circleActiveInner}>
                         <Text style={styles.circleActiveLabel}>Lesson</Text>
-                        <Text style={styles.circleActiveIndex}>{c.index}</Text>
+                        <Text style={styles.circleActiveIndex}>{c.orderNumber}</Text>
                       </View>
                     ) : (
                       <View style={{ alignItems: 'center' }}>
                         <Text style={styles.circleLabelTop}>Lesson</Text>
-                        <Text style={styles.circleIndex}>{c.index}</Text>
+                        <Text style={styles.circleIndex}>{c.orderNumber}</Text>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -215,7 +199,7 @@ export default function SubmoduleMap() {
                   <View style={styles.labelBox}>
                     <Text
                       style={[
-                        styles.stageTitleText,
+                        styles.lessonTitleText,
                         c.blocked && styles.textBlocked,
                       ]}
                       numberOfLines={2}
@@ -440,7 +424,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#222',
   },
-  stageTitleText: {
+  lessonTitleText: {
     fontSize: 15,
     fontWeight: '700',
     marginHorizontal: 0,
