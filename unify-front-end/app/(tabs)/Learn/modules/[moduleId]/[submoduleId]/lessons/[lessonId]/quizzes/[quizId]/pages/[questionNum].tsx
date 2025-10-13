@@ -93,7 +93,7 @@ export default function QuizQuestionPage() {
   const handleNext = () => {
     if (!hasSubmitted) {
       // First submission - check if answer is correct
-      const correctAnswerId = currentQuestion.correct_answer?.correctOptionId;
+      const correctAnswerId = currentQuestion.correct_answer?.correctOptionId || currentQuestion.correct_answer;
       const isAnswerCorrect = selectedAnswer === correctAnswerId;
       
       setIsCorrect(isAnswerCorrect);
@@ -230,8 +230,9 @@ export default function QuizQuestionPage() {
             </View>
 
             <View style={styles.optionsContainer}>
-              {(Array.isArray(currentQuestion.options?.options) ? currentQuestion.options.options : []).map((option) => {
-                const correctAnswerId = currentQuestion.correct_answer?.correctOptionId;
+              {(Array.isArray(currentQuestion.options) ? currentQuestion.options : 
+                Array.isArray(currentQuestion.options?.options) ? currentQuestion.options.options : []).map((option) => {
+                const correctAnswerId = currentQuestion.correct_answer?.correctOptionId || currentQuestion.correct_answer;
                 const isSelected = selectedAnswer === option.id;
                 const isCorrectOption = option.id === correctAnswerId;
                 const showFeedback = hasSubmitted;
