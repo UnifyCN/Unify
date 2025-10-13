@@ -21,7 +21,7 @@ const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string>('All');
+  const [selectedTag, setSelectedTag] = useState<string>('Upcoming');
   const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
 
   const tags = ['All', 'Upcoming', 'Past'];
@@ -225,9 +225,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   headerTitle: {
     fontSize: 24,

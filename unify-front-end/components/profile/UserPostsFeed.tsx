@@ -4,8 +4,8 @@ import { useUserPosts } from '@/hooks/posts/useUserPosts';
 
 interface UserPostsFeedProps {
   userId: string;
-  ListHeaderComponent: React.ReactElement;
-  ListEmptyComponent: React.ReactElement;
+  ListHeaderComponent?: React.ReactElement;
+  ListEmptyComponent?: React.ReactElement;
 }
 
 const UserPostsFeed = ({
