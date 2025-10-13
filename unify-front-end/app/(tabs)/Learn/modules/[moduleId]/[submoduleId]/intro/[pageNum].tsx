@@ -77,17 +77,18 @@ export default function SubmoduleIntroScreen() {
       case 'text':
         return (
           <View key={index} style={styles.textSection}>
-            {section.content?.map((textContent, textIndex) => (
-              <Text
-                key={textIndex}
-                style={[
-                  styles.textContent,
-                  textContent.bold && styles.boldText,
-                ]}
-              >
-                {textContent.text}
-              </Text>
-            ))}
+            <Text style={styles.textContent}>
+              {section.content?.map((textContent, textIndex) => (
+                <Text
+                  key={textIndex}
+                  style={[
+                    textContent.bold && styles.boldText,
+                  ]}
+                >
+                  {textContent.text}
+                </Text>
+              ))}
+            </Text>
           </View>
         );
 
@@ -103,6 +104,18 @@ export default function SubmoduleIntroScreen() {
                   <Text key={itemIndex} style={styles.listItem}>
                     • {item}
                   </Text>
+                );
+              } else if (item.term && item.definition) {
+                // Terms and definitions format
+                return (
+                  <View key={itemIndex} style={styles.definitionItem}>
+                    <View style={styles.bulletPoint} />
+                    <Text style={styles.definitionText}>
+                      <Text style={styles.term}>{item.term}</Text>
+                      <Text style={styles.separator}> = </Text>
+                      <Text style={styles.definition}>{item.definition}</Text>
+                    </Text>
+                  </View>
                 );
               } else {
                 return (
@@ -310,13 +323,31 @@ const styles = StyleSheet.create({
 
   // Definition items
   definitionItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginBottom: 12,
+  },
+  bulletPoint: {
+    width: 6,
+    height: 6,
+    backgroundColor: '#000',
+    borderRadius: 3,
+    marginTop: 8,
+    marginRight: 8,
+  },
+  definitionText: {
+    flex: 1,
+    fontSize: 16,
+    lineHeight: 24,
   },
   term: {
     fontSize: 16,
     fontWeight: '700',
     color: '#000',
-    marginBottom: 4,
+  },
+  separator: {
+    fontSize: 16,
+    color: '#000',
   },
   definition: {
     fontSize: 16,

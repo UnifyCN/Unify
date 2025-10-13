@@ -162,11 +162,20 @@ export default function LessonPageScreen() {
           </View>
         );
       
-      case 'example_box':
+      case 'example_block':
         return (
           <View key={index} style={styles.exampleBox}>
-            <Text style={styles.exampleBoxTitle}>Example</Text>
-            {renderRichText(content.content, index)}
+            <Text style={styles.exampleBoxTitle}>EXAMPLE</Text>
+            {content.content?.sections?.map((section: any, sectionIndex: number) => {
+              if (section.type === 'text') {
+                return (
+                  <Text key={sectionIndex} style={styles.exampleText}>
+                    {section.content?.text || section.content}
+                  </Text>
+                );
+              }
+              return null;
+            })}
           </View>
         );
       
@@ -651,17 +660,29 @@ const styles = StyleSheet.create({
   },
   exampleBox: {
     backgroundColor: '#F3F4F6',
-    borderRadius: 12,
+    borderRadius: 8,
     padding: 16,
     marginVertical: 10,
-    borderLeftWidth: 4,
-    borderLeftColor: '#3B82F6',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   exampleBoxTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 12,
+    color: '#374151',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  exampleText: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
   },
   unknownContent: {
     backgroundColor: '#FEF3C7',
