@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
   KeyboardAvoidingView,
   TextInput,
   Platform,
@@ -25,7 +24,7 @@ import { formatSmartTime } from '@/utils/dateUtils';
 import { PostData } from '@/types/feeds/post';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
-import PostCommentItem from '@/components/posts/PostCommentItem';
+import PostCommentItem from '@/app/(tabs)/Gather/PostCommentItem';
 import { useMutateCreateComment } from '@/hooks/posts/useMutateCreateComment';
 import { Keyboard } from 'react-native';
 
@@ -104,21 +103,20 @@ export default function PostDetails() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
+      {/* Header */}
+      <View style={styles.headerContainer}>
+        <Link href='/(tabs)/Gather/gather' asChild>
+          <TouchableOpacity style={styles.backButton}>
+            <Feather name='chevron-left' size={28} color='#343434' />
+          </TouchableOpacity>
+        </Link>
+      </View>
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
         keyboardShouldPersistTaps='handled'
       >
-        {/* Header */}
-        <View style={styles.headerContainer}>
-          <Link href='/(tabs)/Gather/gather' asChild>
-            <TouchableOpacity style={styles.backButton}>
-              <Feather name='chevron-left' size={28} color='#343434' />
-            </TouchableOpacity>
-          </Link>
-        </View>
-        <View style={styles.divider} />
-
         {/* Post Content */}
         <View style={styles.postContainer}>
           {/* Head Shot */}
@@ -226,7 +224,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 22,
+    paddingTop: 60,
+    paddingBottom: 20,
     gap: 12,
   },
   postContent: {
@@ -283,10 +282,19 @@ const styles = StyleSheet.create({
     paddingTop: 60, // same as paddingTop defined in <Header> component
   },
   headerContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: '#fff',
+    paddingTop: 60, // matches your safe area/header spacing
+    paddingHorizontal: 20,
+    paddingBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
   },
   backButton: {
     marginRight: 8,

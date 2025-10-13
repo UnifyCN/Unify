@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { router, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import Save from '@/assets/images/Save.svg';
@@ -12,8 +12,6 @@ import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useGetPostSaveStatus } from '@/hooks/posts/useGetPostSaveStatus';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/constants/Colors';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 
 export interface PostItemProps {

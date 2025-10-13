@@ -1,27 +1,12 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Platform,
-  KeyboardAvoidingView,
-  TextInput,
-} from 'react-native';
-import { router, useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import Comment from '@/assets/images/Comment.svg';
-import { useGetPostLikes } from '@/hooks/posts/useGetPostLikes';
-import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { formatSmartTime } from '@/utils/dateUtils';
-import { PostData } from '@/types/feeds/post';
-import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostComment } from '@/services/posts/getPostComments';
 import { useMutateLikeComment } from '@/hooks/posts/useMutateLikeComment';
 import { useGetCommentLikes } from '@/hooks/posts/useGetCommentLikes';
-import { useState } from 'react';
-import { User } from '@supabase/supabase-js';
 
 interface PostCommentItemProps {
   comment: PostComment;
