@@ -38,8 +38,11 @@ const Feed = ({
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingMessage}>Loading...</Text>
+      <View style={styles.container}>
+        {ListHeaderComponent}
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingMessage}>Loading...</Text>
+        </View>
       </View>
     );
   }
@@ -72,6 +75,9 @@ const Feed = ({
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   feedContainer: {},
   loadingContainer: {
     flex: 1,

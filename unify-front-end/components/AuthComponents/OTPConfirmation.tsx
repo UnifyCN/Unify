@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
+import { generateUsername } from '../../utils/usernameGenerator';
 import {
   ViewHeader,
   ViewContainer,
@@ -81,6 +82,28 @@ export default function OTPVerification({
       }
 
       if (session) {
+        // Create user record and set username after successful verification
+        try {
+          const username = generateUsername();
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: session.user.id,
+              email: session.user.email,
+              username: username,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+
+          if (insertError) {
+            console.error('Error creating user record:', insertError);
+            // Continue anyway - user is verified, just database record failed
+          }
+        } catch (error) {
+          console.error('Error creating user record:', error);
+          // Continue anyway - user is verified
+        }
+
         // NOTE: just alert for now, until we have a UI designed for thos
         Alert.alert('Success', 'Email verified successfully!', [
           {
@@ -220,8 +243,10 @@ const styles = StyleSheet.create({
   hiddenInput: {
     position: 'absolute',
     opacity: 0,
-    height: 0,
-    width: 0,
+    height: 1,
+    width: 1,
+    top: -1000,
+    left: -1000,
   },
   otpContainer: {
     flexDirection: 'row',

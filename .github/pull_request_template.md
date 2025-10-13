@@ -1,6 +1,3 @@
-## Title
-- 
-
 ## Link
 [Link](replaceThisWithLink)
 

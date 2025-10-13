@@ -54,22 +54,21 @@ export const FollowButton = ({ targetUserId }: FollowButtonProps) => {
 
 const styles = StyleSheet.create({
   button: {
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 100,
   },
   followButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#333',
   },
   followingButton: {
     backgroundColor: '#FF3B30',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '600',
   },
 });

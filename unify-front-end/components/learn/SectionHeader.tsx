@@ -13,5 +13,5 @@ export default function SectionHeader({ title, style }: Props) {
 
 const styles = StyleSheet.create({
   container: { width: '100%' },
-  title: { fontSize: 22, fontWeight: '700', color: '#222' },
+  title: { fontSize: 22, fontWeight: '500', color: '#343434' },
 });

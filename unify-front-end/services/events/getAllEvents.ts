@@ -12,13 +12,7 @@ export const getAllEvents = async (): Promise<Event[]> => {
 
     const { data, error } = await supabase
       .from('events')
-      .select(
-        `
-        *,
-        event_rsvps!left(rsvp_status)
-      `
-      )
-      .eq('event_rsvps.user_id', user.id)
+      .select('*')
       .order('event_datetime', { ascending: true });
 
     if (error) {
@@ -38,10 +32,10 @@ export const getAllEvents = async (): Promise<Event[]> => {
         eventType: event.event_type,
         genre: event.genre,
         coverPhotoUrl: event.cover_photo_url,
+        externalLink: event.external_link,
         maxAttendees: event.max_attendees,
         createdAt: event.created_at,
         updatedAt: event.updated_at,
-        userRsvpStatus: event.event_rsvps?.[0]?.rsvp_status || null,
       })) || []
     );
   } catch (error) {

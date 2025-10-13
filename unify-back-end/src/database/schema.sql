@@ -1,12 +1,12 @@
 -- Users table
 CREATE TABLE users (
     id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
-    username VARCHAR(8) UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9]{8}$'),
+    username TEXT UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9]{1,20}$'),
     pronouns TEXT,
     biography TEXT,
     email VARCHAR(100) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (id)
 );
 
@@ -18,8 +18,8 @@ CREATE TABLE posts (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     like_count INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
 -- Post Likes table
@@ -43,7 +43,7 @@ CREATE TABLE post_comments (
     post_id INT REFERENCES posts(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     parent_comment_id INT REFERENCES post_comments(id) ON DELETE SET NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
 -- Tags table
@@ -66,14 +66,14 @@ CREATE TABLE groups (
     group_description TEXT,
     member_count INTEGER DEFAULT 0,
     cover_photo_url TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
 -- Group Members table (Many-to-Many relationship between users and groups)
 CREATE TABLE group_members (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     group_id INT REFERENCES groups(id) ON DELETE CASCADE,
-    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (user_id, group_id)
 );
 
@@ -82,7 +82,7 @@ CREATE TABLE chatbot_usage (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     -- might need to add 'premium BOOLEAN' in the future to account for multiple limits but for now assume all have a limit
     message_count INTEGER DEFAULT 0,
-    last_message_at TIMESTAMPZ DEFAULT NOW() -- Will be UTC times, so usage resets based on UTC midnight
+    last_message_at TIMESTAMPTZZ DEFAULT NOW() -- Will be UTC times, so usage resets based on UTC midnight
 );
 
 -- Main Topics table
@@ -90,7 +90,7 @@ CREATE TABLE main_topics (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     main_topic_description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
 -- Main topics tags
@@ -106,7 +106,7 @@ CREATE TABLE sub_topics (
     main_topic_id INT REFERENCES main_topics(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     sub_topic_description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
 -- Sub topics progress table
@@ -115,7 +115,7 @@ CREATE TABLE sub_topic_progress (
     sub_topic_id INT REFERENCES sub_topics(id) ON DELETE CASCADE,
     progress INT CHECK (progress BETWEEN 0 AND 3) DEFAULT 0,
     sub_topic_completed BOOLEAN DEFAULT FALSE,
-    last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_accessed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (user_id, sub_topic_id)
 );
 
@@ -126,7 +126,7 @@ CREATE TABLE lessons (
     title TEXT NOT NULL,
     lesson_description TEXT,
     content JSONB NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
 -- Lesson Progress table
@@ -136,7 +136,7 @@ CREATE TABLE lesson_progress (
     progress INT CHECK (progress BETWEEN 0 AND 100) DEFAULT 0,
     lesson_completed BOOLEAN DEFAULT FALSE,
     quiz_completed BOOLEAN DEFAULT FALSE,
-    last_accessed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_accessed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (user_id, lesson_id)
 );
 
@@ -144,7 +144,7 @@ CREATE TABLE lesson_progress (
 CREATE TABLE user_followers (
     follower_id UUID REFERENCES users(id) ON DELETE CASCADE,
     following_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (follower_id, following_id)
 );
 
@@ -154,7 +154,7 @@ CREATE TABLE quizzes (
     lesson_id INT REFERENCES lessons(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     questions JSONB NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
 -- Quiz progress table
@@ -175,37 +175,16 @@ CREATE TABLE events (
     address TEXT NOT NULL,
     event_type TEXT CHECK (event_type IN ('in-person', 'online', 'hybrid')) NOT NULL,
     cover_photo_url TEXT,
+    external_link TEXT,
     max_attendees INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
 );
 
-CREATE TABLE event_rsvps (
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-    event_id INT REFERENCES events(id) ON DELETE CASCADE,
-    rsvp_status TEXT CHECK (rsvp_status IN ('interested', 'going', 'not_interested')) NOT NULL,
-    rsvp_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, event_id)
-);
 
 -- ============================================
 -- FUNCTIONS
 -- ============================================
-
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger AS $$
-BEGIN
-  INSERT INTO public.users (id, email, username, created_at, updated_at)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    substr(md5(random()::text), 1, 8), -- PLACEHOLDER: Generate a random 8-character username
-    NEW.created_at,
-    NEW.updated_at
-  );
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION public.update_post_like_count()
 RETURNS trigger AS $$
@@ -250,10 +229,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- ============================================
 -- TRIGGERS
 -- ============================================
-
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 CREATE TRIGGER on_post_like_change
   AFTER INSERT OR DELETE ON post_likes
