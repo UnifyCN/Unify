@@ -1,0 +1,246 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
+import { useLocalSearchParams, router } from 'expo-router';
+import { useLessonQuizzes } from '@/hooks/useLessonQuizzes';
+
+export default function QuizzesPage() {
+  const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
+    moduleId: string;
+    submoduleId: string;
+    lessonId: string;
+  }>();
+
+  const { data: quizzes, isLoading, error } = useLessonQuizzes(lessonId);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+        <Text style={styles.loadingText}>Loading quizzes...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
+          Error loading quizzes: {error.message}
+        </Text>
+      </View>
+    );
+  }
+
+  if (!quizzes || quizzes.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyTitle}>No Quizzes Available</Text>
+        <Text style={styles.emptyText}>
+          This lesson doesn't have any quizzes yet.
+        </Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>Back to Lesson</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Quizzes</Text>
+        <Text style={styles.subtitle}>
+          Test your knowledge with these quizzes
+        </Text>
+      </View>
+
+      <View style={styles.quizzesList}>
+        {quizzes.map((quiz, index) => (
+          <TouchableOpacity
+            key={quiz.quiz_id}
+            style={styles.quizCard}
+            onPress={() => {
+              router.push({
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  lessonId,
+                  quizId: quiz.quiz_id,
+                },
+              });
+            }}
+          >
+            <View style={styles.quizHeader}>
+              <Text style={styles.quizNumber}>Quiz {quiz.order_number}</Text>
+              <Text style={styles.quizTitle}>{quiz.title}</Text>
+            </View>
+            
+            {quiz.description && (
+              <Text style={styles.quizDescription}>{quiz.description}</Text>
+            )}
+            
+            <View style={styles.quizFooter}>
+              <Text style={styles.passingScore}>
+                Passing Score: {quiz.passing_score}%
+              </Text>
+              <Text style={styles.startQuiz}>Start Quiz →</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>Back to Lesson</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#DC2626',
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  header: {
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+  },
+  quizzesList: {
+    padding: 20,
+    gap: 16,
+  },
+  quizCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  quizHeader: {
+    marginBottom: 12,
+  },
+  quizNumber: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+    marginBottom: 4,
+  },
+  quizTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+  },
+  quizDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  quizFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  passingScore: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  startQuiz: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3B82F6',
+  },
+  footer: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  backButton: {
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

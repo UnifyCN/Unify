@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useLesson } from '@/hooks/learn/useLesson';
 import { useModule } from '@/hooks/learn/useModule';
+import { useLessonQuizzes } from '@/hooks/useLessonQuizzes';
 import DropdownAccordion from '@/components/learn/DropdownAccordion';
 import { LessonPageContent } from '@/types/learn';
 
@@ -30,6 +31,13 @@ export default function LessonPageScreen() {
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useLesson(lessonId || '');
   const { data: moduleData } = useModule(moduleId || '');
+  const { data: quizzes, isLoading: quizzesLoading, error: quizzesError } = useLessonQuizzes(lessonId || '');
+
+  // Debug logging
+  console.log('Lesson ID:', lessonId);
+  console.log('Quizzes data:', quizzes);
+  console.log('Quizzes loading:', quizzesLoading);
+  console.log('Quizzes error:', quizzesError);
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
@@ -55,11 +63,22 @@ export default function LessonPageScreen() {
         params: { moduleId, submoduleId, lessonId, pageNum: (currentPage + 1).toString() },
       });
     } else {
-      // Lesson completed, go to next lesson or back to map
-      router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-        params: { moduleId, submoduleId },
-      });
+      // Lesson completed, check if there are quizzes
+      if (quizzes && quizzes.length > 0) {
+        // Navigate to first quiz (sorted by order_number)
+        const sortedQuizzes = quizzes.sort((a, b) => a.order_number - b.order_number);
+        const firstQuiz = sortedQuizzes[0];
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
+          params: { moduleId, submoduleId, lessonId, quizId: firstQuiz.quiz_id },
+        });
+      } else {
+        // No quizzes, go back to map
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+          params: { moduleId, submoduleId },
+        });
+      }
     }
   };
 
@@ -141,111 +160,170 @@ export default function LessonPageScreen() {
 
     return (
       <View key={index} style={styles.textContainer}>
-        {content.sections.map((section: any, sectionIndex: number) => (
-          <View key={sectionIndex} style={styles.section}>
-            {section.type === 'text' && (
-              <View style={styles.textSection}>
-                {section.content?.map((textContent: any, textIndex: number) => (
-                  <Text
-                    key={textIndex}
-                    style={[
-                      styles.textContent,
-                      textContent.bold && styles.boldText,
-                      textContent.italic && styles.italicText,
-                    ]}
-                  >
-                    {textContent.text}
-                  </Text>
-                ))}
-              </View>
-            )}
-            
-            {section.type === 'list' && (
-              <View style={styles.listSection}>
-                {section.items?.map((item: any, itemIndex: number) => (
-                  <View key={itemIndex} style={styles.listItem}>
-                    <Text style={styles.bulletPoint}>•</Text>
-                    <View style={styles.listItemContent}>
-                      {typeof item === 'string' ? (
-                        <Text style={styles.listText}>{item}</Text>
-                      ) : (
-                        <>
-                          {item.content?.map((textContent: any, textIndex: number) => (
-                            <Text
-                              key={textIndex}
-                              style={[
-                                styles.listText,
-                                textContent.bold && styles.boldText,
-                                textContent.italic && styles.italicText,
-                              ]}
-                            >
-                              {textContent.text}
-                            </Text>
-                          ))}
-                          {item.children && (
-                            <View style={styles.nestedList}>
-                              {item.children.map((child: any, childIndex: number) => (
-                                <View key={childIndex} style={styles.nestedItem}>
-                                  {child.type === 'text' && (
-                                    <View style={styles.nestedTextSection}>
-                                      {child.content?.map((textContent: any, textIndex: number) => (
-                                        <Text
-                                          key={textIndex}
-                                          style={[
-                                            styles.nestedText,
-                                            textContent.bold && styles.boldText,
-                                            textContent.italic && styles.italicText,
-                                          ]}
-                                        >
-                                          {textContent.text}
-                                        </Text>
-                                      ))}
-                                    </View>
-                                  )}
-                                  {child.type === 'list' && (
-                                    <View style={styles.nestedListSection}>
-                                      {child.items?.map((nestedItem: any, nestedIndex: number) => (
-                                        <View key={nestedIndex} style={styles.nestedListItem}>
-                                          <Text style={styles.nestedBulletPoint}>◦</Text>
-                                          <View style={styles.nestedListItemContent}>
-                                            {nestedItem.content?.map((textContent: any, textIndex: number) => (
-                                              <Text
-                                                key={textIndex}
-                                                style={[
-                                                  styles.nestedListText,
-                                                  textContent.bold && styles.boldText,
-                                                  textContent.italic && styles.italicText,
-                                                ]}
-                                              >
-                                                {textContent.text}
-                                              </Text>
-                                            ))}
-                                          </View>
-                                        </View>
-                                      ))}
-                                    </View>
-                                  )}
-                                </View>
-                              ))}
-                            </View>
-                          )}
-                        </>
-                      )}
-                    </View>
-                  </View>
-                ))}
-              </View>
-            )}
-            
-            {section.type === 'image' && (
-              <View style={styles.imageContainer}>
-                <Text style={styles.imagePlaceholder}>
-                  {section.placeholder ? `Image: ${section.alt || 'Image'}` : 'Image'}
+        {content.sections.map((section: any, sectionIndex: number) => {
+          // precise spacer detection:
+          // - explicit spacer type => skip
+          // - text section with no meaningful text in any nested field => skip
+          const isExplicitSpacer = section.type === 'spacer';
+
+          const isEmptyTextSection = (() => {
+            if (section.type !== 'text') return false;
+            const items = section.content;
+            if (!items || items.length === 0) return true;
+
+            // walk all content items and nested content to find any non-empty text
+            for (const item of items) {
+              if (item == null) continue;
+              if (typeof item === 'string') {
+                if (String(item).trim() !== '') return false;
+                continue;
+              }
+              if (typeof item === 'object') {
+                // direct text field
+                if (typeof item.text === 'string' && String(item.text).trim() !== '') {
+                  return false;
+                }
+                // nested content array
+                if (Array.isArray(item.content)) {
+                  for (const sub of item.content) {
+                    if (sub && typeof sub.text === 'string' && String(sub.text).trim() !== '') {
+                      return false;
+                    }
+                  }
+                }
+                // list-like structure: check items fields (if any)
+                if (Array.isArray(item.items)) {
+                  for (const it of item.items) {
+                    if (typeof it === 'string') {
+                      if (String(it).trim() !== '') return false;
+                    } else if (it && typeof it.content === 'object') {
+                      const subarr = it.content;
+                      if (Array.isArray(subarr)) {
+                        for (const sub of subarr) {
+                          if (sub && typeof sub.text === 'string' && String(sub.text).trim() !== '') {
+                            return false;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            // found no non-empty text
+            return true;
+          })();
+
+          if (isExplicitSpacer || isEmptyTextSection) {
+            return <View key={sectionIndex} style={styles.sectionSpacer} />;
+          }
+
+          return (
+            <View key={sectionIndex} style={styles.section}>
+              {section.type === 'text' && (
+                <Text style={styles.textContent}>
+                  {section.content?.map((textContent: any, textIndex: number) => (
+                    <Text
+                      key={textIndex}
+                      style={[
+                        textContent.bold && styles.boldText,
+                        textContent.italic && styles.italicText,
+                      ]}
+                    >
+                      {textContent.text}
+                    </Text>
+                  ))}
                 </Text>
-              </View>
-            )}
-          </View>
-        ))}
+              )}
+              
+              {section.type === 'list' && (
+                <View style={styles.listSection}>
+                  {section.items?.map((item: any, itemIndex: number) => (
+                    <View key={itemIndex} style={styles.listItem}>
+                      <Text style={styles.bulletPoint}>•</Text>
+                      <View style={styles.listItemContent}>
+                        {typeof item === 'string' ? (
+                          <Text style={styles.listText}>{item}</Text>
+                        ) : (
+                          <>
+                            <Text style={styles.listText}>
+                              {item.content?.map((textContent: any, textIndex: number) => (
+                                <Text
+                                  key={textIndex}
+                                  style={[
+                                    textContent.bold && styles.boldText,
+                                    textContent.italic && styles.italicText,
+                                  ]}
+                                >
+                                  {textContent.text}
+                                </Text>
+                              ))}
+                            </Text>
+                            {item.children && (
+                              <View style={styles.nestedList}>
+                                {item.children.map((child: any, childIndex: number) => (
+                                  <View key={childIndex} style={styles.nestedItem}>
+                                    {child.type === 'text' && (
+                                      <Text style={styles.nestedText}>
+                                        {child.content?.map((textContent: any, textIndex: number) => (
+                                          <Text
+                                            key={textIndex}
+                                            style={[
+                                              textContent.bold && styles.boldText,
+                                              textContent.italic && styles.italicText,
+                                            ]}
+                                          >
+                                            {textContent.text}
+                                          </Text>
+                                        ))}
+                                      </Text>
+                                    )}
+                                    {child.type === 'list' && (
+                                      <View style={styles.nestedListSection}>
+                                        {child.items?.map((nestedItem: any, nestedIndex: number) => (
+                                          <View key={nestedIndex} style={styles.nestedListItem}>
+                                            <Text style={styles.nestedBulletPoint}>◦</Text>
+                                            <View style={styles.nestedListItemContent}>
+                                              <Text style={styles.nestedListText}>
+                                                {nestedItem.content?.map((textContent: any, textIndex: number) => (
+                                                  <Text
+                                                    key={textIndex}
+                                                    style={[
+                                                      textContent.bold && styles.boldText,
+                                                      textContent.italic && styles.italicText,
+                                                    ]}
+                                                  >
+                                                    {textContent.text}
+                                                  </Text>
+                                                ))}
+                                              </Text>
+                                            </View>
+                                          </View>
+                                        ))}
+                                      </View>
+                                    )}
+                                  </View>
+                                ))}
+                              </View>
+                            )}
+                          </>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+              
+              {section.type === 'image' && (
+                <View style={styles.imageContainer}>
+                  <Text style={styles.imagePlaceholder}>
+                    {section.placeholder ? `Image: ${section.alt || 'Image'}` : 'Image'}
+                  </Text>
+                </View>
+              )}
+            </View>
+          );
+        })}
       </View>
     );
   };
@@ -317,7 +395,12 @@ export default function LessonPageScreen() {
         {/* Next button */}
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
           <Text style={styles.nextBtnText}>
-            {currentPage < totalPages ? 'Next' : 'Complete Lesson'}
+            {currentPage < totalPages 
+              ? 'Next' 
+              : quizzes && quizzes.length > 0 
+                ? `Take Quiz (${quizzes.length} available)` 
+                : 'Complete Lesson'
+            }
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -381,11 +464,13 @@ const styles = StyleSheet.create({
   },
 
   pageTitle: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '700',
     color: '#000',
     marginBottom: 20,
-    lineHeight: 30,
+    lineHeight: 38,
+    textAlign: 'center',
+    marginTop: 20,
   },
 
   content: {
@@ -612,5 +697,9 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  sectionSpacer: {
+    height: 16,
   },
 });

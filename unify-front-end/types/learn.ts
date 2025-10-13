@@ -92,3 +92,44 @@ export interface Module {
   progress_percent: number;
   is_completed: boolean;
 }
+
+// Quiz types
+export interface Quiz {
+  quiz_id: string;
+  lesson_id: string;
+  title: string;
+  description?: string;
+  passing_score: number;
+  order_number: number;
+}
+
+export interface QuizQuestion {
+  id: string;
+  quiz_id: string;
+  question_type: 'mcq_single';
+  question_text: string;
+  options: QuizOption[];
+  correct_answer: string;
+  order_num: number;
+}
+
+export interface QuizOption {
+  id: string;
+  content: QuizOptionContent[];
+}
+
+export interface QuizOptionContent {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+}
+
+export interface QuizQuestionContent {
+  type: 'text';
+  content: QuizOptionContent[];
+}
+
+export interface QuizData {
+  quiz: Quiz;
+  questions: QuizQuestion[];
+}
