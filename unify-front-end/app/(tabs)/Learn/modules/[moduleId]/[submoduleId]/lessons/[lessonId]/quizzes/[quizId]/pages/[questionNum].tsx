@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useQuizQuestions } from '@/hooks/useQuizQuestions';
+import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
 import { useLessonQuizzes } from '@/hooks/useLessonQuizzes';
 
 export default function QuizQuestionPage() {
@@ -23,6 +24,7 @@ export default function QuizQuestionPage() {
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: questions, isLoading, error } = useQuizQuestions(quizId);
   const { data: quizzes } = useLessonQuizzes(lessonId);
+  const { data: submoduleData } = useSubmoduleLessons(submoduleId);
 
   // Debug logging
   console.log('Quiz ID:', quizId);
@@ -58,6 +60,24 @@ export default function QuizQuestionPage() {
   const totalQuestions = questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
+  // Helper functions for sequential navigation
+  const getCurrentLessonIndex = () => {
+    if (!submoduleData?.lessons) return -1;
+    return submoduleData.lessons.findIndex(l => l.lesson_id === lessonId);
+  };
+
+  const getNextLesson = () => {
+    const currentIndex = getCurrentLessonIndex();
+    if (currentIndex === -1 || !submoduleData?.lessons) return null;
+    return submoduleData.lessons[currentIndex + 1] || null;
+  };
+
+  const getPreviousLesson = () => {
+    const currentIndex = getCurrentLessonIndex();
+    if (currentIndex === -1 || !submoduleData?.lessons) return null;
+    return submoduleData.lessons[currentIndex - 1] || null;
+  };
+
   if (!currentQuestion) {
     return (
       <View style={styles.errorContainer}>
@@ -81,11 +101,39 @@ export default function QuizQuestionPage() {
     } else {
       // Already submitted and correct - proceed to next
       if (isLastQuestion) {
-        // Quiz completed, go back to lesson map
-        router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-          params: { moduleId, submoduleId },
-        });
+        // Quiz completed, check if there are more quizzes or go to next lesson
+        const sortedQuizzes = quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
+        const currentQuizIndex = sortedQuizzes.findIndex(q => q.quiz_id === quizId);
+        const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
+        
+        if (nextQuiz) {
+          // Go to next quiz
+          router.push({
+            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+            params: { 
+              moduleId, 
+              submoduleId, 
+              lessonId, 
+              quizId: nextQuiz.quiz_id, 
+              questionNum: '1' 
+            },
+          });
+        } else {
+          // All quizzes completed, go to next lesson or map
+          const nextLesson = getNextLesson();
+          if (nextLesson) {
+            router.push({
+              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+              params: { moduleId, submoduleId, lessonId: nextLesson.lesson_id, pageNum: '1' },
+            });
+          } else {
+            // Last lesson completed, go back to map
+            router.push({
+              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+              params: { moduleId, submoduleId },
+            });
+          }
+        }
       } else {
         // Go to next question
         router.push({
@@ -99,6 +147,28 @@ export default function QuizQuestionPage() {
           },
         });
       }
+    }
+  };
+
+  const handleBack = () => {
+    if (currentQuestionIndex > 0) {
+      // Go to previous question
+      router.push({
+        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+        params: { 
+          moduleId, 
+          submoduleId, 
+          lessonId, 
+          quizId, 
+          questionNum: currentQuestionIndex.toString() 
+        },
+      });
+    } else {
+      // First question, go back to lesson
+      router.push({
+        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+        params: { moduleId, submoduleId, lessonId, pageNum: '1' },
+      });
     }
   };
 
@@ -212,7 +282,7 @@ export default function QuizQuestionPage() {
 
         {/* Footer Buttons */}
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
           <TouchableOpacity

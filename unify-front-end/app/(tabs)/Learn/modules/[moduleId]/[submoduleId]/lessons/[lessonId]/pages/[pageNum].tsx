@@ -15,6 +15,7 @@ import { Feather } from '@expo/vector-icons';
 import { useLesson } from '@/hooks/learn/useLesson';
 import { useModule } from '@/hooks/learn/useModule';
 import { useLessonQuizzes } from '@/hooks/useLessonQuizzes';
+import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
 import DropdownAccordion from '@/components/learn/DropdownAccordion';
 import { LessonPageContent } from '@/types/learn';
 
@@ -32,6 +33,7 @@ export default function LessonPageScreen() {
   const { data: lesson, isLoading: loadingLesson } = useLesson(lessonId || '');
   const { data: moduleData } = useModule(moduleId || '');
   const { data: quizzes, isLoading: quizzesLoading, error: quizzesError } = useLessonQuizzes(lessonId || '');
+  const { data: submoduleData } = useSubmoduleLessons(submoduleId || '');
 
   // Debug logging
   console.log('Lesson ID:', lessonId);
@@ -41,6 +43,30 @@ export default function LessonPageScreen() {
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
+
+  // Helper functions for sequential navigation
+  const getCurrentLessonIndex = () => {
+    if (!submoduleData?.lessons) return -1;
+    return submoduleData.lessons.findIndex(l => l.lesson_id === lessonId);
+  };
+
+  const getNextLesson = () => {
+    const currentIndex = getCurrentLessonIndex();
+    if (currentIndex === -1 || !submoduleData?.lessons) return null;
+    return submoduleData.lessons[currentIndex + 1] || null;
+  };
+
+  const getPreviousLesson = () => {
+    const currentIndex = getCurrentLessonIndex();
+    if (currentIndex === -1 || !submoduleData?.lessons) return null;
+    return submoduleData.lessons[currentIndex - 1] || null;
+  };
+
+  const isFirstLesson = () => getCurrentLessonIndex() === 0;
+  const isLastLesson = () => {
+    const currentIndex = getCurrentLessonIndex();
+    return currentIndex === (submoduleData?.lessons?.length || 0) - 1;
+  };
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
@@ -73,7 +99,42 @@ export default function LessonPageScreen() {
           params: { moduleId, submoduleId, lessonId, quizId: firstQuiz.quiz_id },
         });
       } else {
-        // No quizzes, go back to map
+        // No quizzes, go to next lesson or back to map if last lesson
+        const nextLesson = getNextLesson();
+        if (nextLesson) {
+          router.push({
+            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+            params: { moduleId, submoduleId, lessonId: nextLesson.lesson_id, pageNum: '1' },
+          });
+        } else {
+          // Last lesson completed, go back to map
+          router.push({
+            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+            params: { moduleId, submoduleId },
+          });
+        }
+      }
+    }
+  };
+
+  const handleBack = () => {
+    if (currentPage > 1) {
+      // Go to previous page
+      router.push({
+        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+        params: { moduleId, submoduleId, lessonId, pageNum: (currentPage - 1).toString() },
+      });
+    } else {
+      // First page, go to previous lesson or map
+      const previousLesson = getPreviousLesson();
+      if (previousLesson) {
+        // Get the last page of the previous lesson
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+          params: { moduleId, submoduleId, lessonId: previousLesson.lesson_id, pageNum: '1' },
+        });
+      } else {
+        // First lesson, go back to map
         router.push({
           pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
           params: { moduleId, submoduleId },
@@ -171,6 +232,35 @@ export default function LessonPageScreen() {
                 return (
                   <Text key={sectionIndex} style={styles.exampleText}>
                     {section.content?.text || section.content}
+                  </Text>
+                );
+              }
+              return null;
+            })}
+          </View>
+        );
+      
+      case 'tip_box':
+        return (
+          <View key={index} style={styles.tipBox}>
+            {content.content?.sections?.map((section: any, sectionIndex: number) => {
+              if (section.type === 'text') {
+                return (
+                  <Text key={sectionIndex} style={styles.tipText}>
+                    {Array.isArray(section.content) 
+                      ? section.content.map((textItem: any, textIndex: number) => (
+                          <Text
+                            key={textIndex}
+                            style={[
+                              textItem.bold && styles.boldText,
+                              textItem.italic && styles.italicText,
+                            ]}
+                          >
+                            {textItem.text}
+                          </Text>
+                        ))
+                      : section.content?.text || section.content
+                    }
                   </Text>
                 );
               }
@@ -437,17 +527,23 @@ export default function LessonPageScreen() {
             .map((content, index) => renderContent(content, index))}
         </View>
 
-        {/* Next button */}
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-          <Text style={styles.nextBtnText}>
-            {currentPage < totalPages 
-              ? 'Next' 
-              : quizzes && quizzes.length > 0 
-                ? `Take Quiz (${quizzes.length} available)` 
-                : 'Complete Lesson'
-            }
-          </Text>
-        </TouchableOpacity>
+        {/* Navigation buttons */}
+        <View style={styles.navigationContainer}>
+          <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+            <Text style={styles.backBtnText}>Back</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+            <Text style={styles.nextBtnText}>
+              {currentPage < totalPages 
+                ? 'Next' 
+                : quizzes && quizzes.length > 0 
+                  ? `Take Quiz` 
+                  : 'Complete Lesson'
+              }
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Exit Confirmation Modal */}
@@ -684,6 +780,19 @@ const styles = StyleSheet.create({
     color: '#374151',
     lineHeight: 24,
   },
+  tipBox: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#6B7280',
+  },
+  tipText: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
+  },
   unknownContent: {
     backgroundColor: '#FEF3C7',
     borderRadius: 8,
@@ -692,11 +801,30 @@ const styles = StyleSheet.create({
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  
+  // Navigation styles
+  navigationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    gap: 12,
+  },
+  backBtn: {
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    flex: 1,
+  },
+  backBtnText: { color: '#374151', fontSize: 16, fontWeight: '600' },
   nextBtn: {
     backgroundColor: '#575757',
     paddingVertical: 14,
+    paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: 'center',
+    flex: 1,
   },
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 

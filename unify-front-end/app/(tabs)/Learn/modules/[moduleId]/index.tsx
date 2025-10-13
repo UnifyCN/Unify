@@ -114,7 +114,7 @@ export default function ModuleIndex() {
       : s.progress_percent > 0
         ? 'in-progress'
         : 'not-started';
-    const unlocked = i === 0 || !!arr[i - 1]?.is_completed;
+    const unlocked = true; // Temporarily make all submodules clickable
     return { ...s, index: i + 1, status, unlocked };
   });
 
