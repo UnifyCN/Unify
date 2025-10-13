@@ -8,7 +8,7 @@ type Props = { title: string; modulesLabel: string; href?: LinkProps['href'] };
 export default function PathwayCard({ title, modulesLabel, href }: Props) {
   const CardInner = (
     <>
-      <View style={styles.thumb} />
+      <View style={styles.banner} />
       <Text style={styles.title} numberOfLines={2}>
         {title}
       </Text>
@@ -34,20 +34,27 @@ const styles = StyleSheet.create({
     width: '48%',
     borderRadius: 12,
     backgroundColor: '#fff',
-    padding: 12,
-    shadowColor: '#000',
+    paddingTop: 0,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    shadowColor: '#575757',
     shadowOpacity: 0.06,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
-  thumb: {
-    width: '100%',
+  banner: {
     height: 100,
+    // make banner flush with card edges
+    marginHorizontal: -12,
     backgroundColor: '#d9d9d9',
-    borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 12,
+    overflow: 'hidden',
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
   },
-  title: { fontSize: 16, fontWeight: '600', color: '#000' },
-  meta: { marginTop: 6, fontSize: 12, color: '#666' },
+  title: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 6 },
+  meta: { fontSize: 12, color: '#666' },
 });

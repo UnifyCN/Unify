@@ -1,15 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function LessonHeroCard() {
   return (
+    // This component is hard coded for now
     <View style={styles.card}>
-      <View style={styles.banner} />
-      <View style={styles.metaRow}>
-        <Text style={styles.metaText}>Finance • 6 Lessons</Text>
+      <View style={styles.banner}>
+        <View style={styles.bannerTextWrap}>
+          <Text style={styles.metaText}>Finance • 6 Sections</Text>
+          <Text style={styles.title}>Mastering Banking in Canada</Text>
+        </View>
       </View>
-      <Text style={styles.title}>Mastering Banking in Canada</Text>
 
       <View style={styles.footerRow}>
         <View>
@@ -17,7 +19,7 @@ export default function LessonHeroCard() {
           <Text style={styles.subtitle}>Types of Banks & Credit Unions</Text>
         </View>
         <View style={styles.playButton}>
-          <Feather name='play' size={18} color='#fff' />
+          <MaterialIcons name='play-arrow' size={28} color='#fff' />
         </View>
       </View>
     </View>
@@ -28,7 +30,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 16,
+    paddingTop: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -37,32 +41,67 @@ const styles = StyleSheet.create({
   },
   banner: {
     height: 160,
-    borderRadius: 12,
-    backgroundColor: '#c7c7c7',
+    // make banner flush with card edges
+    marginHorizontal: -16,
+    borderRadius: 16,
+    backgroundColor: '#bdbdbd',
     marginBottom: 12,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  bannerTextWrap: {
+    // place text at the bottom-left inside the banner
+    alignSelf: 'flex-start',
   },
   metaRow: { flexDirection: 'row', alignItems: 'center' },
-  metaText: { color: '#7a7a7a', fontSize: 12 },
+  metaText: { color: 'rgba(255,255,255,0.95)', fontSize: 13, marginBottom: 6 },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-    marginTop: 6,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    lineHeight: 28,
   },
   footerRow: {
-    marginTop: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    // subtle top shadow to separate from banner
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: -2 },
   },
-  caption: { color: '#7a7a7a', fontSize: 12 },
-  subtitle: { color: '#000', fontSize: 14, fontWeight: '600', maxWidth: 220 },
+  caption: { color: '#7a7a7a', fontSize: 14 },
+  subtitle: { color: '#000', fontSize: 18, fontWeight: '700', maxWidth: 290 },
   playButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#3a3a3a',
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: '#575757',
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  playTriangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 10,
+    borderLeftColor: '#fff',
+    borderTopWidth: 7,
+    borderTopColor: 'transparent',
+    borderBottomWidth: 7,
+    borderBottomColor: 'transparent',
+    marginLeft: 2,
   },
 });

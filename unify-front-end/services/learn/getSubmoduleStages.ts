@@ -41,7 +41,7 @@ export const getSubmoduleStages = async (
     .from('submodules')
     .select('id, title, description')
     .eq('id', submoduleId)
-    .single();
+    .maybeSingle();
 
   if (submoduleError) {
     console.error('Error fetching submodule info:', submoduleError);
@@ -54,7 +54,7 @@ export const getSubmoduleStages = async (
     .select('progress_percent, is_completed')
     .eq('user_id', user.id)
     .eq('submodule_id', submoduleId)
-    .single();
+    .maybeSingle();
 
   if (subProgressError) {
     console.error('Error fetching submodule progress:', subProgressError);
@@ -162,6 +162,10 @@ export const getSubmoduleStages = async (
 
   const completedStages = stages.filter(s => s.is_completed).length;
   const totalStages = stages.length;
+
+  if (!submoduleData) {
+    throw new Error('Submodule not found');
+  }
 
   return {
     submodule_id: submoduleData.id,

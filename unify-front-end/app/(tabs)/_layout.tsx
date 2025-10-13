@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tabs, usePathname, useRouter } from 'expo-router';
+import { Tabs, useRouter, usePathname } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Header from '@/components/Header';
