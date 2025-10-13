@@ -85,13 +85,15 @@ export default function OTPVerification({
         // Create user record and set username after successful verification
         try {
           const username = generateUsername();
-          const { error: insertError } = await supabase.from('users').insert({
-            id: session.user.id,
-            email: session.user.email,
-            username: username,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: session.user.id,
+              email: session.user.email,
+              username: username,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
 
           if (insertError) {
             console.error('Error creating user record:', insertError);
@@ -241,8 +243,10 @@ const styles = StyleSheet.create({
   hiddenInput: {
     position: 'absolute',
     opacity: 0,
-    height: 0,
-    width: 0,
+    height: 1,
+    width: 1,
+    top: -1000,
+    left: -1000,
   },
   otpContainer: {
     flexDirection: 'row',
