@@ -16,8 +16,6 @@ import { useScrollContext } from '@/context/ScrollContext';
 import { useScrollVisibility } from '@/hooks/useScrollVisibility';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-// import Search from '@/assets/images/search.svg';
-// import CreatePost from '@/assets/images/create_post_button.svg';
 import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
@@ -27,7 +25,6 @@ import EventCard from './EventCard';
 import ViewMoreCard from './ViewMoreCard';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
-import { TextInput } from 'react-native-gesture-handler';
 
 const SCROLL_DISTANCE = 200;
 
@@ -57,7 +54,7 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
             style={styles.searchIcon}
           />
           <Text style={[styles.searchInput, { color: '#999' }]}>
-            Search for events near you
+            Search for groups near you or related posts
           </Text>
         </TouchableOpacity>
       </View>
@@ -136,8 +133,6 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 
 export default function GatherScreen() {
   const [activeTab, setActiveTab] = useState('For You');
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
 
   const renderFeedContent = useMemo(() => {
     switch (activeTab) {

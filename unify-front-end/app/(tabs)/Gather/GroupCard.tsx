@@ -1,8 +1,5 @@
 import { memo } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { formatDate, formatTime } from '@/helpers/dateHelpers';
-import { Event } from '@/types/events';
 import { Group } from '@/types/groups';
 
 interface GroupCardProps {
@@ -12,34 +9,24 @@ interface GroupCardProps {
 }
 
 const GroupCard = memo(({ group, width = 248, onPress }: GroupCardProps) => {
-  /*
-    const formatEventTime = (): string => {
-    if (event.eventEndDatetime) {
-      return `${formatDate(event.eventDatetime)} • ${formatTime(event.eventDatetime)} - ${formatTime(event.eventEndDatetime)}`;
-    }
-    return `${formatDate(event.eventDatetime)} • ${formatTime(event.eventDatetime)}`;
-  };
-*/
   return (
-    <TouchableOpacity style={[styles.eventCard, { width }]} onPress={onPress}>
+    <TouchableOpacity style={[styles.groupCard, { width }]} onPress={onPress}>
       <View style={styles.imageContainer}>
-        {/* TODO: Not entirely sure how to handle cover photos but for now its just placeholders */}
         {group.coverPhotoUrl ? (
           <Image
             source={{ uri: group.coverPhotoUrl }}
-            style={styles.eventImage}
+            style={styles.groupImage}
           />
         ) : (
-          <View style={styles.eventImagePlaceholder} />
+          <View style={styles.groupImagePlaceholder} />
         )}
       </View>
-      <View style={styles.eventContent}>
-        <Text style={styles.eventTitle} numberOfLines={2}>
+      <View style={styles.groupContent}>
+        <Text style={styles.groupTitle} numberOfLines={2}>
           {group.name}
         </Text>
-        <View style={styles.eventDetail}>
-          {/*<Feather size={14} color='#666' />*/}
-          <Text style={styles.eventDetailText} numberOfLines={2}>
+        <View style={styles.groupDetail}>
+          <Text style={styles.groupDetailText} numberOfLines={2}>
             {group.description}
           </Text>
         </View>
@@ -49,8 +36,7 @@ const GroupCard = memo(({ group, width = 248, onPress }: GroupCardProps) => {
 });
 
 const styles = StyleSheet.create({
-  eventCard: {
-    //backgroundColor: '#DCDCDC',
+  groupCard: {
     borderRadius: 12,
     overflow: 'hidden',
     flexDirection: 'row',
@@ -60,41 +46,38 @@ const styles = StyleSheet.create({
     width: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    //paddingTop: 13,
-    //marginLeft: 8,
-    //marginRight: 8,
   },
-  eventImagePlaceholder: {
+  groupImagePlaceholder: {
     height: 80,
     backgroundColor: '#A6A6A6',
-    width: 80, //'100%'
+    width: 80,
     borderRadius: 40,
   },
-  eventImage: {
+  groupImage: {
     height: 70,
-    width: 70, //'100%'
+    width: 70,
     borderRadius: 35,
     resizeMode: 'cover',
   },
-  eventContent: {
-    padding: 12,
+  groupContent: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  groupTitle: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#000000ff',
-    //marginBottom: 8,
     lineHeight: 20,
   },
-  eventDetail: {
+  groupDetail: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 4,
     gap: 6,
   },
-  eventDetailText: {
+  groupDetailText: {
     fontSize: 14,
     color: '#000000ff',
     flex: 1,

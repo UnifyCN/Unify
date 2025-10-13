@@ -49,36 +49,28 @@ const PostCard = memo(({ post, width = 248, onPress }: PostCardProps) => {
   // Use save data from the hook, fallback to post data if loading
   const isSaved = saveData?.saved;
   return (
-    <TouchableOpacity style={[styles.eventCard, { width }]} onPress={onPress}>
+    <TouchableOpacity style={[styles.postCard, { width }]} onPress={onPress}>
       <View style={styles.headshot}>
         {/* TODO: Have to add default headshot */}
         {post.user.headshot ? <post.user.headshot /> : <Text>No headshot</Text>}
       </View>
-      <View style={styles.eventContent}>
+      <View style={styles.postCardContent}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-          <Text style={styles.eventDetailText}>
+          <Text style={styles.postDetailText}>
             {post.user.username}
             <Icon name='chevron-right' size={12} color='#666' />
-            <Text style={styles.eventTitle}>{' /'}</Text>
-            <Text style={styles.eventTitle}>{post.group?.name}</Text>
+            <Text style={styles.postTitle}>{' /'}</Text>
+            <Text style={styles.postTitle}>{post.group?.name}</Text>
           </Text>
 
-          <Text
-            style={[
-              styles.eventDetailText,
-              { flex: 0, marginLeft: 8, color: '#666', fontWeight: 'bold' },
-            ]}
-          >
+          <Text style={[styles.postTimeText,]}>
             {formatSmartTime(post.time)}
           </Text>
         </View>
-        <View style={styles.eventDetail}>
+        <View style={styles.postDetail}>
           {/*<Feather size={14} color='#666' />*/}
           <Text
-            style={[
-              styles.eventTitle,
-              { fontSize: 20, fontWeight: 500, paddingTop: 5 },
-            ]}
+            style={[ styles.postTitle, { paddingTop: 5 }]}
             numberOfLines={2}
           >
             {post.title}
@@ -116,7 +108,7 @@ const PostCard = memo(({ post, width = 248, onPress }: PostCardProps) => {
 });
 
 const styles = StyleSheet.create({
-  eventCard: {
+  postCard: {
     //backgroundColor: '#DCDCDC',
     borderRadius: 12,
     overflow: 'hidden',
@@ -131,41 +123,46 @@ const styles = StyleSheet.create({
     //marginLeft: 8,
     //marginRight: 8,
   },
-  eventImagePlaceholder: {
+  postImagePlaceholder: {
     height: 80,
     backgroundColor: '#A6A6A6',
-    width: 80, //'100%'
+    width: 80, 
     borderRadius: 40,
   },
-  eventImage: {
+  postImage: {
     height: 70,
-    width: 70, //'100%'
+    width: 70, 
     borderRadius: 35,
     resizeMode: 'cover',
   },
-  eventContent: {
-    //padding: 12,
+  postCardContent: {
     flex: 1,
     justifyContent: 'center',
     flexDirection: 'column',
   },
-  eventTitle: {
+  postTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '400',
     color: '#000000ff',
-    //marginBottom: 8,
     lineHeight: 20,
   },
-  eventDetail: {
-    //flexDirection: 'row',
+  postDetail: {
     alignItems: 'flex-start',
     marginBottom: 4,
     gap: 6,
   },
-  eventDetailText: {
-    fontSize: 12,
+  postDetailText: {
+    fontSize: 14,
     color: '#000000ff',
-    //flex: 1,
+  },
+  postTimeText: {
+    fontSize: 10,
+    flex: 0, 
+    marginLeft: 8, 
+    color: '#666', 
+    fontWeight: 'semibold',
+    lineHeight: 14,
+    alignSelf: 'center'
   },
   headshot: {
     width: 40,

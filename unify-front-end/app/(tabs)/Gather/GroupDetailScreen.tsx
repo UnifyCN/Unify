@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     height: 250,
     backgroundColor: '#C4C4C4',
   },
-  eventImage: {
+  groupImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
@@ -73,37 +73,22 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#C4C4C4',
   },
-  eventContent: {
+  groupContent: {
     backgroundColor: '#fff',
     padding: 20,
     marginTop: -20,
     height: '100%',
   },
-  eventTitle: {
+  groupTitle: {
     fontSize: 24,
     fontWeight: '600',
     color: '#343434',
     marginBottom: 8,
   },
-  attendeesText: {
-    fontSize: 14,
-    color: '#979797',
-    marginBottom: 24,
-  },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
-  },
-  detailIcon: {
-    marginRight: 16,
-    borderWidth: 0.5,
-    borderColor: '#979797',
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 5,
   },
   detailContent: {
     flex: 1,
@@ -140,20 +125,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
-  rsvpButton: {
-    backgroundColor: '#E3E3E3',
-    borderRadius: 12,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rsvpButtonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
-  },
+
   rsvpEndedText: {
     color: '#929292',
     fontSize: 16,
