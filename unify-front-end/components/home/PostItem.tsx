@@ -44,10 +44,6 @@ export const PostItem = ({ post }: PostItemProps) => {
     router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
   };
 
-  const navigateToUserProfile = () => {
-    router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
-  };
-
   // Use like data from the hook, fallback to 0 if loading
   const likeCount = likeData?.likeCount;
   const isLiked = likeData?.userLiked;
@@ -63,17 +59,12 @@ export const PostItem = ({ post }: PostItemProps) => {
           style={styles.headshot}
           onPress={navigateToUserProfile}
         >
-        <TouchableOpacity
-          style={styles.headshot}
-          onPress={navigateToUserProfile}
-        >
           {/* TODO: Have to add default headshot */}
           {post.user.headshot ? (
             <post.user.headshot />
           ) : (
             <Text>No headshot</Text>
           )}
-        </TouchableOpacity>
         </TouchableOpacity>
         {/* Post Content */}
         <TouchableOpacity
@@ -105,7 +96,6 @@ export const PostItem = ({ post }: PostItemProps) => {
               <Text style={styles.time}>Replying to </Text>
               <Text style={styles.replyUser}>{post.userReply}</Text>
             </View>
-          )}  */}
           )}  */}
 
             {/* Content */}
@@ -152,12 +142,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 22,
     gap: 12,
-    paddingVertical: 22,
-    gap: 12,
   },
   postContent: {
     flex: 1,
-    gap: 10,
     gap: 10,
   },
   header: {
@@ -168,15 +155,8 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     gap: 5,
     lineHeight: 16,
-    fontSize: 12,
-    color: '#000',
-    textAlign: 'left',
-    gap: 5,
-    lineHeight: 16,
   },
   headshot: {
-    width: 29,
-    height: 29,
     width: 29,
     height: 29,
     borderRadius: 20,
@@ -184,9 +164,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   name: {
-    fontWeight: '400',
-  },
-  group: {
     fontWeight: '400',
   },
   group: {
@@ -198,14 +175,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   title: {
-    fontSize: 10,
-    color: '#9F9D9D',
-    fontWeight: '500',
-  },
-  title: {
     fontSize: 16,
-    fontWeight: 600,
-    lineHeight: 22,
     fontWeight: 600,
     lineHeight: 22,
   },
@@ -216,7 +186,6 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    fontSize: 14,
     lineHeight: 20,
   },
   footer: {
@@ -224,12 +193,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     gap: 25,
-    gap: 25,
   },
   footerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     gap: 4,
   },
   footerText: {
