@@ -6,7 +6,7 @@ import {
   FlatList,
   TextInput,
   Animated,
-  ScrollView
+  ScrollView,
 } from 'react-native';
 import { useMemo, useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
@@ -18,9 +18,15 @@ import { PostData } from '@/types/feeds/post';
 import PostCard from './PostCard';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPosts } from '@/services/posts/getAllPosts';
-import { saveRecentSearch, getRecentSearches } from '@/services/users/recentSearches';
-import { saveRecentGroups, getRecentGroups } from '@/services/users/recentGroups';
-import {supabase} from '@/lib/supabase'
+import {
+  saveRecentSearch,
+  getRecentSearches,
+} from '@/services/users/recentSearches';
+import {
+  saveRecentGroups,
+  getRecentGroups,
+} from '@/services/users/recentGroups';
+import { supabase } from '@/lib/supabase';
 
 export const navigationOptions = {
   headerShown: false,
@@ -45,16 +51,15 @@ const SearchScreen = () => {
 
   useEffect(() => {
     const loadRecent = async () => {
-      const {data: userData } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
-      if(!userId)
-        return
-      const {searches} = await getRecentSearches(userId);
+      if (!userId) return;
+      const { searches } = await getRecentSearches(userId);
       setRecentSearches(searches);
-      const {groups: recentGroupIds} = await getRecentGroups(userId);
+      const { groups: recentGroupIds } = await getRecentGroups(userId);
       if (recentGroupIds && groups) {
         const mapped = (recentGroupIds as number[])
-          .map((id) => groups.find((group) => Number(group.id) === Number(id)))
+          .map(id => groups.find(group => Number(group.id) === Number(id)))
           .filter(Boolean) as Group[];
         setRecentGroups(mapped.slice(0, 3));
       }
@@ -64,9 +69,9 @@ const SearchScreen = () => {
 
   const handleSend = async (value?: string) => {
     const rawInput = (typeof value === 'string' ? value : searchInput) ?? '';
-    const input = rawInput.trim()
-    
-    if(!input){
+    const input = rawInput.trim();
+
+    if (!input) {
       setSearchQuery('');
       return;
     }
@@ -74,8 +79,7 @@ const SearchScreen = () => {
     setSearchQuery(input);
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
-    if(!userId)
-      return;
+    if (!userId) return;
 
     const res = await saveRecentSearch(userId, input);
     if (res?.error) {
@@ -83,8 +87,8 @@ const SearchScreen = () => {
       return;
     }
 
-    setRecentSearches((prev) =>{
-      const updated = [input, ...prev.filter((s) => s !== input)];
+    setRecentSearches(prev => {
+      const updated = [input, ...prev.filter(s => s !== input)];
       return updated.slice(0, 3);
     });
   };
@@ -104,7 +108,12 @@ const SearchScreen = () => {
     : postsToShow.length > 0;
 
   const groupPress = async (group: Group) => {
-    setRecentGroups(prev => [group, ...prev.filter(tempGroup => tempGroup.id !== group.id)].slice(0, 3));
+    setRecentGroups(prev =>
+      [group, ...prev.filter(tempGroup => tempGroup.id !== group.id)].slice(
+        0,
+        3
+      )
+    );
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
@@ -137,7 +146,7 @@ const SearchScreen = () => {
       <GroupCard group={item} width={354} onPress={() => groupPress(item)} />
     </View>
   );
-  
+
   if (recentSearches.length > 0) {
     searchHistory = (
       <View style={{ marginTop: 10 }}>
@@ -145,16 +154,27 @@ const SearchScreen = () => {
         {recentSearches.map((recentSearch, index) => (
           <TouchableOpacity
             key={index}
-            onPress={() => {setSearchInput(recentSearch); handleSend(recentSearch)}}
+            onPress={() => {
+              setSearchInput(recentSearch);
+              handleSend(recentSearch);
+            }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6,}}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 6,
+              }}
+            >
               <Feather
                 name='search'
                 size={16}
                 color='#666'
                 style={{ marginRight: 8 }}
               />
-              <Text style={{ color: '#333', fontSize: 14 }}>{recentSearch}</Text>
+              <Text style={{ color: '#333', fontSize: 14 }}>
+                {recentSearch}
+              </Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -164,7 +184,8 @@ const SearchScreen = () => {
     searchHistory = (
       <View style={styles.searchFrame}>
         <Text style={styles.containerText}>
-          What do you want to discover today? Press 'enter' or 'go' to see relevant groups or posts
+          What do you want to discover today? Press 'enter' or 'go' to see
+          relevant groups or posts
         </Text>
       </View>
     );
@@ -174,7 +195,7 @@ const SearchScreen = () => {
     groupsHistory = (
       <View>
         <Text style={styles.emptyHeadline}>RECENTLY VIEWED GROUPS</Text>
-        {recentGroups.map((group) => (
+        {recentGroups.map(group => (
           <View style={styles.cardItem} key={group.id}>
             <GroupCard
               group={group}
@@ -188,8 +209,12 @@ const SearchScreen = () => {
   }
 
   return (
-    <View style={[styles.searchContainer, { backgroundColor: '#ffffffff', paddingTop: 0 },]}>
-      
+    <View
+      style={[
+        styles.searchContainer,
+        { backgroundColor: '#ffffffff', paddingTop: 0 },
+      ]}
+    >
       <View style={[styles.header, { paddingTop: 0 }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Feather name='chevron-left' size={24} color='#000' />
@@ -197,7 +222,7 @@ const SearchScreen = () => {
         <Text style={styles.headerTitle}>Search</Text>
         <View style={styles.placeholder} />
       </View>
-      
+
       <View style={styles.searchInputContainer}>
         <Feather
           name='search'
@@ -223,11 +248,24 @@ const SearchScreen = () => {
 
         {searchQuery && foundPost && (
           <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <Text style={styles.emptyHeadline}>POSTS</Text>
               <Text />
               {postsToShow.length > 3 && (
-                <TouchableOpacity onPress={() => router.push({ pathname: '/(tabs)/Gather/seeMorePosts', params: { q: searchQuery } })}>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(tabs)/Gather/seeMorePosts',
+                      params: { q: searchQuery },
+                    })
+                  }
+                >
                   <Text style={styles.emptyHeadline}>see more</Text>
                 </TouchableOpacity>
               )}
@@ -245,11 +283,24 @@ const SearchScreen = () => {
 
         {searchQuery && foundGroup && (
           <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <Text style={styles.emptyHeadline}>GROUPS</Text>
               <Text />
               {(filterGroups?.length ?? 0) > 3 && (
-                <TouchableOpacity onPress={() => router.push({ pathname: '/(tabs)/Gather/seeMoreGroups', params: { q: searchQuery } })}>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(tabs)/Gather/seeMoreGroups',
+                      params: { q: searchQuery },
+                    })
+                  }
+                >
                   <Text style={styles.emptyHeadline}>see more</Text>
                 </TouchableOpacity>
               )}
@@ -273,7 +324,7 @@ const SearchScreen = () => {
             </Text>
           </View>
         )}
-        </ScrollView>
+      </ScrollView>
     </View>
   );
 };
@@ -285,9 +336,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    //paddingHorizontal: 20,
     paddingBottom: 16,
-
   },
   headerTitle: {
     fontSize: 24,
@@ -310,7 +359,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     paddingVertical: 20,
-    paddingTop: 15, //TEST
+    paddingTop: 15,
   },
   containerText: {
     fontSize: 14,
@@ -336,7 +385,6 @@ const styles = StyleSheet.create({
   },
   emptySubtext: {
     fontSize: 14,
-    //color: '#666',
     textAlign: 'center',
   },
   searchContainer: {
@@ -362,16 +410,16 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   searchFrame: {
-    marginTop: 15,            
-    alignSelf: 'center',  
-    width: '100%',    
-    maxWidth: 349,               
-    height: 72,               
-    paddingHorizontal: 20,    
-    paddingVertical: 15,      
+    marginTop: 15,
+    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 349,
+    height: 72,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     backgroundColor: '#f5f5f5',
     borderRadius: 5,
-    alignItems: 'flex-start', 
+    alignItems: 'flex-start',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#E0E0E0',

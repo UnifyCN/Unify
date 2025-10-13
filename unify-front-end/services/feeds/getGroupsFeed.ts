@@ -77,9 +77,9 @@ export const getFeedGroups = async (
       time: post.created_at,
       title: post.title,
       description: post.content,
-      group: post.groups?
-      { id: post.groups.id, name: post.groups.group_name }
-      : null,
+      group: post.groups
+        ? { id: post.groups.id, name: post.groups.group_name }
+        : null,
     }));
 
     return {

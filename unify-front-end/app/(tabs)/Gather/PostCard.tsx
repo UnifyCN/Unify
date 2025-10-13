@@ -63,16 +63,13 @@ const PostCard = memo(({ post, width = 248, onPress }: PostCardProps) => {
             <Text style={styles.postTitle}>{post.group?.name}</Text>
           </Text>
 
-          <Text style={[styles.postTimeText,]}>
+          <Text style={[styles.postTimeText]}>
             {formatSmartTime(post.time)}
           </Text>
         </View>
         <View style={styles.postDetail}>
           {/*<Feather size={14} color='#666' />*/}
-          <Text
-            style={[ styles.postTitle, { paddingTop: 5 }]}
-            numberOfLines={2}
-          >
+          <Text style={[styles.postTitle, { paddingTop: 5 }]} numberOfLines={2}>
             {post.title}
           </Text>
         </View>
@@ -126,12 +123,12 @@ const styles = StyleSheet.create({
   postImagePlaceholder: {
     height: 80,
     backgroundColor: '#A6A6A6',
-    width: 80, 
+    width: 80,
     borderRadius: 40,
   },
   postImage: {
     height: 70,
-    width: 70, 
+    width: 70,
     borderRadius: 35,
     resizeMode: 'cover',
   },
@@ -157,12 +154,12 @@ const styles = StyleSheet.create({
   },
   postTimeText: {
     fontSize: 10,
-    flex: 0, 
-    marginLeft: 8, 
-    color: '#666', 
+    flex: 0,
+    marginLeft: 8,
+    color: '#666',
     fontWeight: 'semibold',
     lineHeight: 14,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   headshot: {
     width: 40,
