@@ -98,9 +98,45 @@ export default function LessonPageScreen() {
         );
       
       case 'dropdown':
+        console.log('Dropdown content:', content.content);
+        // Transform the content structure to match DropdownAccordion expected format
+        const dropdownItems = content.content?.content?.map((item: any, itemIndex: number) => {
+          console.log('Processing dropdown item:', item);
+          
+          // Render the content properly
+          const renderDropdownContent = (contentArray: any[]) => {
+            return contentArray.map((contentItem: any, contentIndex: number) => {
+              if (contentItem.type === 'list') {
+                return contentItem.items.map((listItem: any, listIndex: number) => {
+                  // Handle nested array structure
+                  const text = Array.isArray(listItem) 
+                    ? listItem.map((nestedItem: any) => nestedItem.text || nestedItem).join(' ')
+                    : listItem.text || listItem;
+                  return `• ${text}`;
+                }).join('\n');
+              } else if (contentItem.type === 'text') {
+                return Array.isArray(contentItem.content)
+                  ? contentItem.content.map((textItem: any) => textItem.text || textItem).join('')
+                  : contentItem.text || contentItem;
+              }
+              return contentItem.text || contentItem;
+            }).join('\n\n');
+          };
+          
+          return {
+            id: `dropdown-${index}-${itemIndex}`,
+            title: item.title || '',
+            body: Array.isArray(item.content) 
+              ? renderDropdownContent(item.content)
+              : item.content || ''
+          };
+        }) || [];
+        
+        console.log('Transformed dropdown items:', dropdownItems);
+        
         return (
           <View key={index} style={styles.dropdownContainer}>
-            <DropdownAccordion items={[{ id: `dropdown-${index}`, title: content.content?.title || '', body: content.content?.body || '' }]} />
+            <DropdownAccordion items={dropdownItems} />
           </View>
         );
       
