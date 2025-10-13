@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSubmoduleStages } from '@/hooks/learn/useSubmoduleStages';
+import { useModule } from '@/hooks/learn/useModule';
 import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleIndex() {
@@ -24,6 +25,7 @@ export default function SubmoduleIndex() {
     isLoading,
     error,
   } = useSubmoduleStages(submoduleId || '');
+  const { data: moduleData } = useModule(moduleId || '');
 
   if (isLoading) {
     return (
@@ -59,10 +61,10 @@ export default function SubmoduleIndex() {
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.backButton}
-          >
+          <TouchableOpacity onPress={() => router.replace({
+            pathname: '/(tabs)/Learn/modules/[moduleId]',
+            params:{moduleId},
+            })} style={styles.backButton}>
             <Feather name='chevron-left' size={24} color='#000' />
           </TouchableOpacity>
           <TouchableOpacity
@@ -79,69 +81,29 @@ export default function SubmoduleIndex() {
           </TouchableOpacity>
         </View>
 
-        {/* Module Label */}
-        <Text style={styles.moduleLabel}>Finance for Newcomers</Text>
+        {/* Stage Header */}
+        <Text style={styles.moduleLabel}>{moduleData?.title || 'Module'}</Text>
+        <Text style={styles.title}>{`${submoduleData.submodule_title}`}</Text>
+        <View style={styles.mediaPlaceholder} />
+        <Text style={styles.stageDesc}>
+          {`By the end of this section, you will ${submoduleData.submodule_description}`}
+        </Text>
 
-        {/* Submodule Title */}
-        <Text style={styles.title}>{submoduleData.submodule_title}</Text>
-
-        {/* Media Placeholder */}
-        <View style={styles.mediaPlaceholder}>
-          <Text style={styles.mediaPlaceholderText}>Video/Media Content</Text>
-        </View>
-
-        {/* Learning Objectives */}
-        <View style={styles.objectivesSection}>
-          <Text style={styles.objectivesTitle}>
-            By the end of this module, you will...
-          </Text>
-
-          <View style={styles.objectivesList}>
-            <View style={styles.objectiveItem}>
-              <View style={styles.checkIcon}>
-                <Feather name='check' size={16} color='#fff' />
-              </View>
-              <Text style={styles.objectiveText}>
-                Know information about the major banking institutions available
-                in Canada
-              </Text>
-            </View>
-
-            <View style={styles.objectiveItem}>
-              <View style={styles.checkIcon}>
-                <Feather name='check' size={16} color='#fff' />
-              </View>
-              <Text style={styles.objectiveText}>
-                Know how to navigate various financial accounts you will need to
-                settle in
-              </Text>
-            </View>
-
-            <View style={styles.objectiveItem}>
-              <View style={styles.checkIcon}>
-                <Feather name='check' size={16} color='#fff' />
-              </View>
-              <Text style={styles.objectiveText}>
-                Know how to take action and open or close certain financial
-                accounts
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Resume Button */}
+        {/* CTA to Stage Screen */}
         <TouchableOpacity
           style={styles.resumeButton}
           onPress={() => {
-            // TODO: Add navigation to lesson when implemented
-            console.log('Resume lesson clicked');
+            if (!nextStage) return;
+            router.push({
+              pathname:
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
+              params: { moduleId, submoduleId, stageId: nextStage.id },
+            });
           }}
         >
           <Text style={styles.resumeButtonText}>
-            Resume Lesson{' '}
-            {submoduleData.stages.findIndex(
-              (stage: any) => !stage.is_completed
-            ) + 1 || 1}
+            {nextStage?.progress_percent === 0 ? 'Start' : 'Resume'} Stage{' '}
+            {nextStage?.order_num || 1}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -157,7 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
     paddingBottom: 40,
     minHeight: '100%',
   },
@@ -196,6 +158,15 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 32,
     lineHeight: 38,
+    maxWidth: width * 0.75,
+    alignSelf: 'center',
+  },
+  stageDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    marginTop: 12,
+    marginBottom: 16,
   },
 
   // Media Placeholder
@@ -253,7 +224,7 @@ const styles = StyleSheet.create({
 
   // Resume Button
   resumeButton: {
-    backgroundColor: '#374151',
+    backgroundColor: '#575757',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -268,6 +239,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  lessonTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 12,
   },
 
   // Loading and Error States

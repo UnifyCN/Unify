@@ -5,55 +5,22 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Modal,
+  Linking,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { Event, UserRsvpStatus } from '@/types/events';
-import { useState } from 'react';
+import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
-import { useGoingCount } from '@/hooks/events/useGoingCount';
-import { useUpsertRsvpStatus } from '@/hooks/events/useUpsertRsvpStatus';
 
 const EventDetailScreen = () => {
   const router = useRouter();
   const { event } = useLocalSearchParams();
   const eventData: Event = JSON.parse(event as string);
 
-  const rsvpOptions = [
-    { label: 'Interested', value: UserRsvpStatus.INTERESTED },
-    { label: 'Going', value: UserRsvpStatus.GOING },
-    { label: 'Not Interested', value: UserRsvpStatus.NOT_INTERESTED },
-  ];
-  const [showRsvpModal, setShowRsvpModal] = useState(false);
-
-  const [rsvpStatus, setRsvpStatus] = useState<string>(
-    () =>
-      rsvpOptions.find(option => option.value === eventData.userRsvpStatus)
-        ?.label || 'RSVP'
-  );
-
-  const { data: goingCount, isLoading: isGoingCountLoading } = useGoingCount(
-    eventData.id
-  );
-  const upsertRsvpMutation = useUpsertRsvpStatus();
-
-  const handleRsvpSelection = (rsvpStatus: UserRsvpStatus) => {
-    upsertRsvpMutation.mutate({
-      eventId: eventData.id,
-      rsvpStatus,
-    });
-    setShowRsvpModal(false);
-    setRsvpStatus(
-      rsvpOptions.find(option => option.value === rsvpStatus)?.label || 'RSVP'
-    );
-  };
-
-  const getDateToCompare = () => {
-    if (eventData.eventEndDatetime) {
-      return new Date(eventData.eventEndDatetime);
+  const handleExternalLink = () => {
+    if (eventData.externalLink) {
+      Linking.openURL(eventData.externalLink);
     }
-    return new Date(eventData.eventDatetime);
   };
 
   return (
@@ -84,11 +51,6 @@ const EventDetailScreen = () => {
         <View style={styles.eventContent}>
           {/* Title */}
           <Text style={styles.eventTitle}>{eventData.title}</Text>
-
-          {/* Going Count */}
-          <Text style={styles.attendeesText}>
-            {isGoingCountLoading ? 'Loading...' : `${goingCount} people going`}
-          </Text>
 
           {/* Date and Time */}
           <View style={styles.detailRow}>
@@ -137,67 +99,16 @@ const EventDetailScreen = () => {
         </View>
       </ScrollView>
 
-      {/* RSVP Button */}
-      <View style={styles.rsvpContainer}>
-        {getDateToCompare() < new Date() ? (
-          <View style={styles.rsvpButton}>
-            <Text style={styles.rsvpEndedText}>Event ended</Text>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.rsvpButton}
-            onPress={() => setShowRsvpModal(true)}
-          >
-            <Text style={styles.rsvpButtonText}>{rsvpStatus}</Text>
-            <Feather name='chevron-down' size={24} color='#000' />
-          </TouchableOpacity>
-        )}
+      {/* External Link Button */}
+      <View style={styles.externalLinkContainer}>
+        <TouchableOpacity
+          style={styles.externalLinkButton}
+          onPress={handleExternalLink}
+        >
+          <Text style={styles.externalLinkButtonText}>View Event Details</Text>
+          <Feather name='external-link' size={20} color='#fff' />
+        </TouchableOpacity>
       </View>
-
-      {/* RSVP Modal */}
-      <Modal
-        visible={showRsvpModal}
-        transparent={true}
-        onRequestClose={() => setShowRsvpModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setShowRsvpModal(false)}>
-                <Text style={styles.cancelButton}>Cancel</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Your Response</Text>
-              <View style={styles.placeholder} />
-            </View>
-
-            {/* RSVP Options */}
-            <View style={styles.rsvpOptions}>
-              {rsvpOptions.map(option => (
-                <TouchableOpacity
-                  style={styles.rsvpOption}
-                  key={option.value}
-                  onPress={() =>
-                    handleRsvpSelection(option.value as UserRsvpStatus)
-                  }
-                >
-                  <View
-                    style={[
-                      styles.checkbox,
-                      rsvpStatus === option.label && styles.checkboxSelected,
-                    ]}
-                  >
-                    {rsvpStatus === option.label && (
-                      <Feather name='check' size={16} color='#fff' />
-                    )}
-                  </View>
-                  <Text style={styles.rsvpOptionText}>{option.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -253,11 +164,6 @@ const styles = StyleSheet.create({
     color: '#343434',
     marginBottom: 8,
   },
-  attendeesText: {
-    fontSize: 14,
-    color: '#979797',
-    marginBottom: 24,
-  },
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -301,89 +207,26 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 12,
   },
-  rsvpContainer: {
+  externalLinkContainer: {
     backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
-  rsvpButton: {
-    backgroundColor: '#E3E3E3',
+  externalLinkButton: {
+    backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  rsvpButtonText: {
-    color: '#000',
+  externalLinkButtonText: {
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
-  },
-  rsvpEndedText: {
-    color: '#929292',
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    width: '100%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  cancelButton: {
-    fontSize: 18,
-    fontWeight: '400',
-    color: '#343434',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
-  rsvpOptions: {
-    padding: 20,
-  },
-  rsvpOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#d1d5db',
-    borderRadius: 4,
-    backgroundColor: '#fff',
-    marginRight: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxSelected: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  rsvpOptionText: {
-    fontSize: 16,
-    color: '#000',
   },
 });
 

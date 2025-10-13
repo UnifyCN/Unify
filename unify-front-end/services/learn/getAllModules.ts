@@ -12,8 +12,6 @@ export interface Module {
 
 export async function getAllModules(): Promise<Module[]> {
   try {
-    console.log('Fetching all modules...');
-
     // Get current user
     const {
       data: { user },

@@ -63,7 +63,7 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
     .select('progress_percent, is_completed')
     .eq('user_id', user.id)
     .eq('module_id', moduleId)
-    .single();
+    .maybeSingle();
 
   // Get all submodules for this module
   const { data: submodulesData, error: submodulesError } = await supabase
