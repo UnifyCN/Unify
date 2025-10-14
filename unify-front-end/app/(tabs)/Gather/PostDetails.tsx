@@ -46,10 +46,8 @@ const PostDetails = ({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
-  isLoading,
   isRefetching,
   refetch,
-  ListHeaderComponent,
   ListEmptyComponent,
 }: PostDetailsProps) => {
   // Get passed data
@@ -76,14 +74,16 @@ const PostDetails = ({
   // Reply text box
   const [commentTextBox, setCommentTextBox] = useState('');
 
-  // Get likeCount, isLikedCount, and isSaved as a parameter
+  // Get likeCount, isLikedCount, commentCount, and isSaved as a parameter
   const {
     likeCount: likeCountParam,
     isLiked: isLikedParam,
+    commentCount: commentCountParam,
     isSaved: isSavedParam,
   } = useLocalSearchParams<{
     likeCount: string;
     isLiked: string;
+    commentCount: string;
     isSaved: string;
   }>();
 
@@ -126,6 +126,9 @@ const PostDetails = ({
   const [optimisticIsLiked, setOptimisticIsLiked] = useState(
     isLikedParam === 'true'
   );
+  const [optimisticCommentCount, setOptimisticCommentCount] = useState(
+    commentCountParam ? parseInt(commentCountParam) : 0
+  );
   const [optimisticIsSaved, setOptimisticIsSaved] = useState(
     isSavedParam === 'true'
   );
@@ -133,6 +136,7 @@ const PostDetails = ({
   // Use optimistic state for display
   const likeCount = optimisticLikeCount;
   const isLiked = optimisticIsLiked;
+  const commentCount = optimisticCommentCount;
   const isSaved = optimisticIsSaved;
 
   // Comment ID's for batch loading
@@ -143,14 +147,6 @@ const PostDetails = ({
   // Batch load metadata for those comments
   const { data: metadata, isLoading: metadataLoading } =
     useCommentMetadata(commentIds);
-
-  const renderComment = ({ item }: { item: PostCommentData }) => (
-    <PostCommentItem
-      comment={item}
-      metadata={metadata?.[item.id]}
-      isLoading={metadataLoading}
-    />
-  );
 
   const createCommentMutation = useMutateCreateComment();
 
@@ -163,6 +159,7 @@ const PostDetails = ({
       },
       {
         onSuccess: () => {
+          setOptimisticCommentCount(prev => prev + 1);
           setCommentTextBox('');
           Keyboard.dismiss();
         },
@@ -286,7 +283,7 @@ const PostDetails = ({
                   </View>
                   <View style={styles.footerItem}>
                     <Comment width={20} height={20} fill='gray' />
-                    <Text style={styles.footerText}>0</Text>
+                    <Text style={styles.footerText}>{commentCount}</Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => toggleSave(post.id, isSaved!)}

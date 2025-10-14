@@ -7,6 +7,7 @@ import { formatSmartTime } from '@/utils/dateUtils';
 import { useMutateLikeComment } from '@/hooks/posts/useMutateLikeComment';
 import { memo } from 'react';
 import { PostCommentData } from '@/types/feeds/postcomment';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -19,73 +20,85 @@ interface PostCommentItemProps {
   isLoading?: boolean;
 }
 
-const PostCommentItem = memo(({ comment, metadata }: PostCommentItemProps) => {
-  // Hook for liking and unliking comments
-  const likeCommentMutation = useMutateLikeComment();
+const PostCommentItem = memo(
+  ({ comment, metadata, isLoading }: PostCommentItemProps) => {
+    // Hook for liking and unliking comments
+    const likeCommentMutation = useMutateLikeComment();
 
-  const toggleLike = (commentId: number, isLiked: boolean) => {
-    likeCommentMutation.mutate({ commentId, isLiked });
-  };
+    const toggleLike = (commentId: number, isLiked: boolean) => {
+      likeCommentMutation.mutate({ commentId, isLiked });
+    };
 
-  const navigateToUserProfile = () => {
-    router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
-  };
+    const navigateToUserProfile = () => {
+      router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
+    };
 
-  // Use batch-loaded metadata
-  const likeCount = metadata?.likeCount ?? 0;
-  const isLiked = metadata?.isLiked;
+    // Use batch-loaded metadata
+    const likeCount = metadata?.likeCount ?? 0;
+    const isLiked = metadata?.isLiked;
 
-  return (
-    <View>
-      <View style={styles.postContainer}>
-        {/* Headshot */}
-        <TouchableOpacity
-          style={styles.headshot}
-          onPress={navigateToUserProfile}
-        >
-          {/* TODO: Get headshot image */}
-          <Text>No headshot</Text>
-        </TouchableOpacity>
+    return (
+      <View>
+        <View style={styles.postContainer}>
+          {/* Headshot */}
+          <TouchableOpacity
+            style={styles.headshot}
+            onPress={navigateToUserProfile}
+          >
+            {/* TODO: Get headshot image */}
+            <Text>No headshot</Text>
+          </TouchableOpacity>
 
-        <View style={styles.postContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={navigateToUserProfile}>
-              <Text style={styles.name}>{comment.username}</Text>
-            </TouchableOpacity>
-            <Text style={styles.time}>
-              {formatSmartTime(comment.created_at)}
-            </Text>
-          </View>
-
-          {/* Description */}
-          <Text style={styles.description}>{comment.content}</Text>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <View style={styles.footerItem}>
-              <TouchableOpacity
-                onPress={() => toggleLike(comment.id, isLiked!)}
-              >
-                {isLiked ? (
-                  <Like_Fill width={20} height={20} />
-                ) : (
-                  <Like width={20} height={20} />
-                )}
+          <View style={styles.postContent}>
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={navigateToUserProfile}>
+                <Text style={styles.name}>{comment.username}</Text>
               </TouchableOpacity>
-              <Text style={styles.footerText}>{likeCount}</Text>
+              <Text style={styles.time}>
+                {formatSmartTime(comment.created_at)}
+              </Text>
             </View>
-            <View style={styles.footerItem}>
-              <Comment width={20} height={20} fill='gray' />
-              <Text style={styles.footerText}>0</Text>
+
+            {/* Description */}
+            <Text style={styles.description}>{comment.content}</Text>
+
+            {/* Footer */}
+            <View style={styles.footer}>
+              {isLoading ? (
+                <SkeletonLoader
+                  width='100%'
+                  height={20}
+                  style={{ marginTop: 8 }}
+                />
+              ) : (
+                <>
+                  <View style={styles.footerItem}>
+                    <TouchableOpacity
+                      onPress={() => toggleLike(comment.id, isLiked!)}
+                    >
+                      {isLiked ? (
+                        <Like_Fill width={20} height={20} />
+                      ) : (
+                        <Like width={20} height={20} />
+                      )}
+                    </TouchableOpacity>
+                    <Text style={styles.footerText}>{likeCount}</Text>
+                  </View>
+                  <View style={styles.footerItem}>
+                    <Comment width={20} height={20} fill='gray' />
+                    <Text style={styles.footerText}>0</Text>
+                  </View>
+                </>
+              )}
             </View>
           </View>
         </View>
+        <View style={styles.divider} />
       </View>
-      <View style={styles.divider} />
-    </View>
-  );
-});
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   postContainer: {
