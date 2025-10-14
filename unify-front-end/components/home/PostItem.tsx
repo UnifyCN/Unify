@@ -16,9 +16,10 @@ import ChevronRight from '@/components/icons/PostHeaderIcon';
 
 interface PostItemProps {
   post: PostData;
+  shouldHideContent?: boolean;
 }
 
-export const PostItem = ({ post }: PostItemProps) => {
+export const PostItem = ({ post, shouldHideContent }: PostItemProps) => {
   const router = useRouter();
 
   // Get post likes data
@@ -28,6 +29,7 @@ export const PostItem = ({ post }: PostItemProps) => {
   // Get post save status
   const { data: saveData } = useGetPostSaveStatus(post.id);
   const savePostMutation = useMutateSavePost();
+  const groupName = post.group?.replace;
 
   const toggleLike = (postId: number, isLiked: boolean) => {
     likePostMutation.mutate({ postId, isLiked });
@@ -50,7 +52,12 @@ export const PostItem = ({ post }: PostItemProps) => {
 
   return (
     <View>
-      <View style={styles.postContainer}>
+      <View
+        style={[
+          styles.postContainer,
+          { paddingHorizontal: shouldHideContent ? 0 : 20 },
+        ]}
+      >
         {/* Head Shot */}
         <TouchableOpacity
           style={styles.headshot}
@@ -71,7 +78,7 @@ export const PostItem = ({ post }: PostItemProps) => {
               <Text style={styles.name}>{post.user.name}</Text>
             </TouchableOpacity>
             <ChevronRight width={6} height={10} />
-            <Text style={styles.group}>{post.group?.name}</Text>
+            <Text style={styles.group}>{'/' + post.group}</Text>
             <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
           </View>
 
@@ -87,7 +94,9 @@ export const PostItem = ({ post }: PostItemProps) => {
           )}  */}
 
           {/* Content */}
-          <Text style={styles.description}>{post.description}</Text>
+          {!shouldHideContent && (
+            <Text style={styles.description}>{post.content}</Text>
+          )}
 
           {/* Footer */}
           <View style={styles.footer}>

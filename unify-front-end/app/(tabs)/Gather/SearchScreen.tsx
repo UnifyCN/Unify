@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
   TextInput,
-  Animated,
+  ActivityIndicator,
   ScrollView,
 } from 'react-native';
 import { useMemo, useState, useEffect } from 'react';
@@ -15,7 +15,7 @@ import { Group } from '@/types/groups';
 import { useGroups } from '@/hooks/groups/useGroups';
 import GroupCard from './GroupCard';
 import { PostData } from '@/types/feeds/post';
-import PostCard from './PostCard';
+import { PostItem } from '@/components/home/PostItem';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPosts } from '@/services/posts/getAllPosts';
 import {
@@ -38,6 +38,7 @@ const SearchScreen = () => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { data: groups } = useGroups();
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   const { data: searchResults } = useQuery({
     queryKey: ['searchPosts', searchQuery],
@@ -51,17 +52,24 @@ const SearchScreen = () => {
 
   useEffect(() => {
     const loadRecent = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      const userId = userData.user?.id;
-      if (!userId) return;
-      const { searches } = await getRecentSearches(userId);
-      setRecentSearches(searches);
-      const { groups: recentGroupIds } = await getRecentGroups(userId);
-      if (recentGroupIds && groups) {
-        const mapped = (recentGroupIds as number[])
-          .map(id => groups.find(group => Number(group.id) === Number(id)))
-          .filter(Boolean) as Group[];
-        setRecentGroups(mapped.slice(0, 3));
+      setLoadingData(true);
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData.user?.id;
+        if (!userId) return;
+        const { searches } = await getRecentSearches(userId);
+        setRecentSearches(searches);
+        const { groups: recentGroupIds } = await getRecentGroups(userId);
+        if (recentGroupIds && groups) {
+          const mapped = (recentGroupIds as number[])
+            .map(id => groups.find(group => Number(group.id) === Number(id)))
+            .filter(Boolean) as Group[];
+          setRecentGroups(mapped);
+        }
+      } catch (err) {
+        console.error('loading error', err);
+      } finally {
+        setLoadingData(false);
       }
     };
     loadRecent();
@@ -124,18 +132,12 @@ const SearchScreen = () => {
     } catch (e) {
       console.error('saveRecentGroups exception', e);
     }
-
-    router.push({
-      pathname: '/Gather/GroupDetailScreen',
-      params: { group: JSON.stringify(group) },
-    });
   };
 
   const renderPosts = ({ item }: { item: PostData }) => (
     <View style={styles.cardItem}>
-      <PostCard
+      <PostItem
         post={item}
-        width={354}
         //TODO: CREATION OF A POST SCREEN
         //onPress={() => groupPress(item)}
       />
@@ -143,14 +145,24 @@ const SearchScreen = () => {
   );
   const renderGroup = ({ item }: { item: Group }) => (
     <View style={styles.cardItem}>
-      <GroupCard group={item} width={354} onPress={() => groupPress(item)} />
+      <GroupCard group={item} onPress={() => groupPress(item)} />
     </View>
   );
 
-  if (recentSearches.length > 0) {
+  if (searchInput.trim().length > 0 && !searchQuery) {
+    // user is typing but hasn't submitted yet — show the helper frame
+    searchHistory = (
+      <View style={styles.searchFrame}>
+        <Text style={styles.containerText}>
+          What do you want to discover today? Press 'enter' or 'go' to see
+          relevant groups or posts
+        </Text>
+      </View>
+    );
+  } else if (recentSearches.length > 0) {
     searchHistory = (
       <View style={{ marginTop: 10 }}>
-        <Text style={styles.emptyHeadline}> RECENT SEARCHES </Text>
+        <Text style={styles.emptyHeadline}>RECENT SEARCHES</Text>
         {recentSearches.map((recentSearch, index) => (
           <TouchableOpacity
             key={index}
@@ -191,17 +203,13 @@ const SearchScreen = () => {
     );
   }
 
-  if (recentGroups.length > 0) {
+  if (recentGroups.length > 0 && searchInput.trim().length === 0) {
     groupsHistory = (
       <View>
         <Text style={styles.emptyHeadline}>RECENTLY VIEWED GROUPS</Text>
         {recentGroups.map(group => (
           <View style={styles.cardItem} key={group.id}>
-            <GroupCard
-              group={group}
-              width={354}
-              onPress={() => groupPress(group)}
-            />
+            <GroupCard group={group} onPress={() => groupPress(group)} />
           </View>
         ))}
       </View>
@@ -242,9 +250,23 @@ const SearchScreen = () => {
           placeholderTextColor='#999'
         />
       </View>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {!searchQuery && searchHistory}
-        {!searchQuery && groupsHistory}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+      >
+        {!searchQuery && loadingData ? (
+          <View
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <ActivityIndicator size='small' color='#666' />
+            <Text style={{ marginTop: 8, color: '#666' }}>Loading...</Text>
+          </View>
+        ) : (
+          <>
+            {!searchQuery && searchHistory}
+            {!searchQuery && groupsHistory}
+          </>
+        )}
 
         {searchQuery && foundPost && (
           <View>
@@ -256,7 +278,6 @@ const SearchScreen = () => {
               }}
             >
               <Text style={styles.emptyHeadline}>POSTS</Text>
-              <Text />
               {postsToShow.length > 3 && (
                 <TouchableOpacity
                   onPress={() =>
@@ -274,9 +295,7 @@ const SearchScreen = () => {
               data={postsToShow.slice(0, 3)}
               renderItem={renderPosts}
               keyExtractor={item => item.id.toString()}
-              contentContainerStyle={styles.cardList}
               scrollEnabled={false}
-              ListEmptyComponent={<View />}
             />
           </View>
         )}
@@ -291,7 +310,6 @@ const SearchScreen = () => {
               }}
             >
               <Text style={styles.emptyHeadline}>GROUPS</Text>
-              <Text />
               {(filterGroups?.length ?? 0) > 3 && (
                 <TouchableOpacity
                   onPress={() =>
@@ -309,9 +327,7 @@ const SearchScreen = () => {
               data={(filterGroups ?? []).slice(0, 3)}
               renderItem={renderGroup}
               keyExtractor={item => item.id.toString()}
-              contentContainerStyle={styles.cardList}
               scrollEnabled={false}
-              ListEmptyComponent={<View />}
             />
           </View>
         )}
@@ -346,13 +362,9 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
   },
-  cardList: {
-    paddingTop: 8,
-    paddingBottom: 20,
-    gap: 16,
-  },
   cardItem: {
     width: '100%',
+    //marginBottom: 12
   },
   emptyContainer: {
     flex: 1,
@@ -410,7 +422,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   searchFrame: {
-    marginTop: 15,
+    marginTop: 30,
     alignSelf: 'center',
     width: '100%',
     maxWidth: 349,

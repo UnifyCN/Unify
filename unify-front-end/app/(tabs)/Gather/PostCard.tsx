@@ -24,6 +24,7 @@ interface PostCardProps {
 
 const PostCard = memo(({ post, width = 248, onPress }: PostCardProps) => {
   const colorScheme = useColorScheme();
+  console.log('PostCard post:', post);
   const colors = Colors[colorScheme ?? 'light'];
 
   // Get post likes data
@@ -60,7 +61,7 @@ const PostCard = memo(({ post, width = 248, onPress }: PostCardProps) => {
             {post.user.username}
             <Icon name='chevron-right' size={12} color='#666' />
             <Text style={styles.postTitle}>{' /'}</Text>
-            <Text style={styles.postTitle}>{post.group?.name}</Text>
+            <Text style={styles.postTitle}>{post.group ?? 'No group'}</Text>
           </Text>
 
           <Text style={[styles.postTimeText]}>

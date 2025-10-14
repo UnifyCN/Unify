@@ -12,6 +12,7 @@ import { getAllPosts } from '@/services/posts/getAllPosts';
 import PostCard from './PostCard';
 import { PostData } from '@/types/feeds/post';
 import { Feather } from '@expo/vector-icons';
+import { PostItem } from '@/components/home/PostItem';
 
 export default function MorePostsScreen() {
   const { q } = useLocalSearchParams();
@@ -28,9 +29,7 @@ export default function MorePostsScreen() {
   const renderPosts = ({ item }: { item: PostData }) => {
     return (
       <View style={styles.cardWrapper}>
-        <View style={styles.post}>
-          <PostCard post={item} width={353} />
-        </View>
+        <PostItem post={item} shouldHideContent={true} />
       </View>
     );
   };
@@ -56,9 +55,9 @@ export default function MorePostsScreen() {
         keyExtractor={(i: PostData) => String(i.id)}
         contentContainerStyle={[
           styles.feedContainer,
-          { paddingTop: 12, paddingHorizontal: 0, alignItems: 'stretch' },
+          { paddingHorizontal: 0, alignItems: 'stretch' },
         ]}
-        ItemSeparatorComponent={() => <View style={styles.divider} />}
+        //ItemSeparatorComponent={() => <View style={styles.divider} />}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -81,8 +80,6 @@ const styles = StyleSheet.create({
     width: 40,
   },
   cardWrapper: {
-    alignItems: 'center',
-    paddingVertical: 16,
     width: '100%',
   },
   feedContainer: {

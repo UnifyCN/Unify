@@ -11,6 +11,8 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useGroups } from '@/hooks/groups/useGroups';
 import GroupCard from './GroupCard';
 import { Group } from '@/types/groups';
+import { saveRecentGroups } from '@/services/users/recentGroups';
+import { supabase } from '@/lib/supabase';
 
 export default function MoreGroupsScreen() {
   const { q } = useLocalSearchParams();
@@ -23,23 +25,22 @@ export default function MoreGroupsScreen() {
       : g.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleGroupPress = async (group: Group) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      if (!userId) return;
+      const res = await saveRecentGroups(userId, Number(group.id));
+      if (res?.error) console.error('saveRecentGroups failed', res.error);
+    } catch (e) {
+      console.error('saveRecentGroups exception', e);
+    }
+  };
+
   const renderGroup = ({ item }: { item: Group }) => {
-    const displayGroup: Group = {
-      ...item,
-      name: `/${item.name.replace(/\s+/g, '')}`,
-    };
     return (
       <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
-        <GroupCard
-          group={displayGroup}
-          width={354}
-          onPress={() => {
-            router.push({
-              pathname: '/Gather/GroupDetailScreen',
-              params: { group: JSON.stringify(item) },
-            });
-          }}
-        />
+        <GroupCard group={item} onPress={() => handleGroupPress(item)} />
       </View>
     );
   };

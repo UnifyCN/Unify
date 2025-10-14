@@ -8,9 +8,9 @@ interface GroupCardProps {
   onPress?: () => void;
 }
 
-const GroupCard = memo(({ group, width = 248, onPress }: GroupCardProps) => {
+const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
   return (
-    <TouchableOpacity style={[styles.groupCard, { width }]} onPress={onPress}>
+    <TouchableOpacity style={[styles.groupCard]} onPress={onPress}>
       <View style={styles.imageContainer}>
         {group.coverPhotoUrl ? (
           <Image
@@ -37,31 +37,35 @@ const GroupCard = memo(({ group, width = 248, onPress }: GroupCardProps) => {
 
 const styles = StyleSheet.create({
   groupCard: {
-    borderRadius: 12,
     overflow: 'hidden',
     flexDirection: 'row',
+    width: '100%',
+    minHeight: 58,
+    alignItems: 'flex-start',
+    marginTop: 5,
+    paddingVertical: 6,
   },
   imageContainer: {
-    height: 80,
-    width: 80,
+    height: 58,
+    width: 58,
     alignItems: 'center',
     justifyContent: 'center',
   },
   groupImagePlaceholder: {
-    height: 80,
+    height: 48,
     backgroundColor: '#A6A6A6',
-    width: 80,
-    borderRadius: 40,
+    width: 48,
+    borderRadius: 24,
   },
   groupImage: {
-    height: 70,
-    width: 70,
-    borderRadius: 35,
+    height: 48,
+    width: 48,
+    borderRadius: 24,
     resizeMode: 'cover',
   },
   groupContent: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    //paddingVertical: 8,
     flex: 1,
     justifyContent: 'flex-start',
   },

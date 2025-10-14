@@ -12,23 +12,21 @@ export const getAllPosts = async (
     // Get saved posts with user data
     let query = supabase.from('posts').select(
       `
-          id,
-          content,
-          like_count,
-          comment_count,
-          created_at,
-          title,
-          user_id,
-          users:user_id (
-            id,
-            username
-          ),
-          group_id,
-          groups:group_id (
-            id,
-            group_name
-          )
-      `
+				id,
+				title,
+				content,
+				created_at,
+				user_id,
+				group_id,
+				users!user_id(
+					id,
+					username
+				),
+				groups!group_id(
+					id,
+					group_name
+				)
+			`
     );
     if (searchQuery) {
       query = query.or(
@@ -57,15 +55,10 @@ export const getAllPosts = async (
           username: row.users.username,
           name: row.users.username,
         } as User,
-        group: row.groups
-          ? {
-              id: row.groups.id,
-              name: row.groups.group_name,
-            }
-          : null,
+        content: row.content,
+        group: row.groups.group_name,
         title: row.title ?? 'No-Title',
         time: row.created_at,
-        description: row.content,
       }));
 
     return {

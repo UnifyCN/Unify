@@ -176,7 +176,10 @@ export default function ModuleIndex() {
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.replace('/(tabs)/Learn')} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.replace('/(tabs)/Learn')}
+            style={styles.backButton}
+          >
             <Feather name='arrow-left' size={26} color='#111' />
           </TouchableOpacity>
           <View style={{ width: 26 }} />
