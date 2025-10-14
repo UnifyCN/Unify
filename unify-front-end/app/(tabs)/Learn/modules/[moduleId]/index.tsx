@@ -235,7 +235,19 @@ export default function ModuleIndex() {
               const disabled = !m.unlocked;
               const bubbleText = m.is_completed
                 ? null
-                : `${Math.round(m.progress_percent)}%`;
+                : `${Math.round(m.progress_percent || 0)}%`;
+              
+              // Debug logging for last element
+              if (i === submodules.length - 1) {
+                console.log('Last element debug:', {
+                  index: i,
+                  title: m.title,
+                  is_completed: m.is_completed,
+                  progress_percent: m.progress_percent,
+                  bubbleText,
+                  hasCardLayout: !!cardLayoutsRef.current[i]
+                });
+              }
 
               // Fallback edges until card onLayout fires
               const fallbackLeftEdgeOfRightCard =
@@ -290,6 +302,14 @@ export default function ModuleIndex() {
                         width: Math.max(0, width),
                         height: Math.max(0, height),
                       };
+                      
+                      // Debug logging for last element layout
+                      if (i === submodules.length - 1) {
+                        console.log('Last element layout captured:', {
+                          index: i,
+                          layout: cardLayoutsRef.current[i]
+                        });
+                      }
                     }}
                   >
                     {/* Small circle indicator for latest uncompleted */}
@@ -363,7 +383,7 @@ export default function ModuleIndex() {
                               fallbackLeftEdgeOfRightCard
                             ),
                         top: bubbleTopForCard(i, rowTop, rowHeight),
-                        opacity: cardLayoutsRef.current[i] ? 1 : 0, // avoid visible jump before layout
+                        opacity: 1, // Always show bubble, let positioning handle it
                       },
                     ]}
                   >
