@@ -231,7 +231,20 @@ export default function LessonPageScreen() {
               if (section.type === 'text') {
                 return (
                   <Text key={sectionIndex} style={styles.exampleText}>
-                    {section.content?.text || section.content}
+                    {Array.isArray(section.content) 
+                      ? section.content.map((textContent: any, textIndex: number) => (
+                          <Text
+                            key={textIndex}
+                            style={[
+                              textContent.bold && styles.boldText,
+                              textContent.italic && styles.italicText,
+                            ]}
+                          >
+                            {textContent.text}
+                          </Text>
+                        ))
+                      : section.content?.text || section.content
+                    }
                   </Text>
                 );
               }
@@ -261,6 +274,32 @@ export default function LessonPageScreen() {
                         ))
                       : section.content?.text || section.content
                     }
+                  </Text>
+                );
+              }
+              return null;
+            })}
+          </View>
+        );
+      
+      case 'extra_box':
+        return (
+          <View key={index} style={styles.extraBox}>
+            {content.content?.sections?.map((section: any, sectionIndex: number) => {
+              if (section.type === 'text') {
+                return (
+                  <Text key={sectionIndex} style={styles.extraBoxText}>
+                    {section.content?.map((textContent: any, textIndex: number) => (
+                      <Text
+                        key={textIndex}
+                        style={[
+                          textContent.bold && styles.boldText,
+                          textContent.italic && styles.italicText,
+                        ]}
+                      >
+                        {textContent.text}
+                      </Text>
+                    ))}
                   </Text>
                 );
               }
@@ -789,6 +828,27 @@ const styles = StyleSheet.create({
     borderLeftColor: '#6B7280',
   },
   tipText: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 24,
+  },
+  extraBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 16,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  extraBoxText: {
     fontSize: 16,
     color: '#374151',
     lineHeight: 24,

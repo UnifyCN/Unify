@@ -59,6 +59,9 @@ export default function QuizQuestionPage() {
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
+  
+  // Get current quiz data
+  const currentQuiz = quizzes?.find(q => q.quiz_id === quizId);
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
@@ -220,6 +223,11 @@ export default function QuizQuestionPage() {
 
         {/* Question Content */}
         <View style={styles.content}>
+          {/* Quiz Title */}
+          {currentQuiz?.title && (
+            <Text style={styles.quizTitle}>{currentQuiz.title}</Text>
+          )}
+          
           <View style={styles.questionContainer}>
             <View style={styles.questionContent}>
               {renderQuestionContent(
@@ -374,6 +382,13 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     flex: 1,
+  },
+  quizTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   questionContainer: {
     gap: 24,
