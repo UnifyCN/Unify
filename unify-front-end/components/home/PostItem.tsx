@@ -70,7 +70,12 @@ export const PostItem = ({ post }: PostItemProps) => {
           onPress={() =>
             router.push({
               pathname: '/(tabs)/Gather/PostDetails',
-              params: { post: JSON.stringify(post) },
+              params: {
+                post: JSON.stringify(post),
+                likeCount: String(likeCount),
+                isLiked: String(isLiked),
+                isSaved: String(isSaved),
+              },
             })
           }
         >

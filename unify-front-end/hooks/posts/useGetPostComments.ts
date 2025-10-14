@@ -1,8 +1,9 @@
+import { getPostComments } from '@/services/posts/getPostComments';
+import { PostCommentData } from '@/types/feeds/postcomment';
 import { useQuery } from '@tanstack/react-query';
-import { getPostComments, PostComment } from '@/services/posts/getPostComments';
 
 export const useGetPostComments = (postId: number) => {
-  return useQuery<PostComment[]>({
+  return useQuery<PostCommentData[]>({
     queryKey: ['post-comments', postId],
     queryFn: () => getPostComments(postId),
     staleTime: 1000 * 60 * 2, // 2 minutes

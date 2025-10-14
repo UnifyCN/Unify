@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,8 @@ import {
   KeyboardAvoidingView,
   TextInput,
   Platform,
-  ScrollView,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
@@ -16,19 +17,41 @@ import Like_Fill from '@/assets/images/Like_filled.svg';
 import Save from '@/assets/images/Save.svg';
 import Save_Fill from '@/assets/images/Save_filled.svg';
 import Comment from '@/assets/images/Comment.svg';
-import { useGetPostLikes } from '@/hooks/posts/useGetPostLikes';
 import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
-import { useGetPostSaveStatus } from '@/hooks/posts/useGetPostSaveStatus';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import { PostData } from '@/types/feeds/post';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
-import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
-import PostCommentItem from '@/app/(tabs)/Gather/PostCommentItem';
 import { useMutateCreateComment } from '@/hooks/posts/useMutateCreateComment';
 import { Keyboard } from 'react-native';
+import { PostCommentData } from '@/types/feeds/postcomment';
+import { useCommentMetadata } from '@/hooks/useCommentMetadata';
+import PostCommentItem from './PostCommentItem';
+import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 
-export default function PostDetails() {
+interface PostDetailsProps {
+  data?: any; // TODO: fix this
+  fetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  isLoading?: boolean;
+  isRefetching?: boolean;
+  refetch?: () => void;
+  ListHeaderComponent?: React.ReactElement;
+  ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
+}
+
+const PostDetails = ({
+  data,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+  isLoading,
+  isRefetching,
+  refetch,
+  ListHeaderComponent,
+  ListEmptyComponent,
+}: PostDetailsProps) => {
   // Get passed data
   const { post: postParam } = useLocalSearchParams();
 
@@ -46,38 +69,88 @@ export default function PostDetails() {
   // Router for navigation
   const router = useRouter();
 
-  // Get post likes data
-  const { data: likeData } = useGetPostLikes(post.id);
+  // Hooks for liking and saving posts
   const likePostMutation = useMutateLikePost();
-
-  // Get post save status
-  const { data: saveData } = useGetPostSaveStatus(post.id);
   const savePostMutation = useMutateSavePost();
-
-  // Fetch comments
-  const { data: comments, isLoading, isError } = useGetPostComments(post.id);
 
   // Reply text box
   const [commentTextBox, setCommentTextBox] = useState('');
 
+  // Get likeCount, isLikedCount, and isSaved as a parameter
+  const {
+    likeCount: likeCountParam,
+    isLiked: isLikedParam,
+    isSaved: isSavedParam,
+  } = useLocalSearchParams<{
+    likeCount: string;
+    isLiked: string;
+    isSaved: string;
+  }>();
+
+  // Optimistic updates for likes
   const toggleLike = (postId: number, isLiked: boolean) => {
-    likePostMutation.mutate({ postId, isLiked });
+    setOptimisticIsLiked(!isLiked);
+    setOptimisticLikeCount(prev => (isLiked ? prev - 1 : prev + 1));
+
+    likePostMutation.mutate(
+      { postId, isLiked },
+      {
+        onError: () => {
+          // Revert optimistic update on error
+          setOptimisticIsLiked(isLiked);
+          setOptimisticLikeCount(prev => (isLiked ? prev + 1 : prev - 1));
+        },
+      }
+    );
   };
 
+  // Optimistic updates for saves
   const toggleSave = (postId: number, isSaved: boolean) => {
-    savePostMutation.mutate({ postId, isSaved });
+    setOptimisticIsSaved(!isSaved);
+
+    savePostMutation.mutate(
+      { postId, isSaved },
+      {
+        onError: () => {
+          // Revert optimistic update on error
+          setOptimisticIsSaved(isSaved);
+        },
+      }
+    );
   };
 
-  // Use like data from the hook, fallback to 0 if loading
-  const likeCount = likeData?.likeCount;
-  const isLiked = likeData?.userLiked;
+  // Use passed parameters as initial state, then manage optimistic updates
+  const [optimisticLikeCount, setOptimisticLikeCount] = useState(
+    likeCountParam ? parseInt(likeCountParam) : 0
+  );
+  const [optimisticIsLiked, setOptimisticIsLiked] = useState(
+    isLikedParam === 'true'
+  );
+  const [optimisticIsSaved, setOptimisticIsSaved] = useState(
+    isSavedParam === 'true'
+  );
 
-  // Use save data from the hook, fallback to post data if loading
-  const isSaved = saveData?.saved;
+  // Use optimistic state for display
+  const likeCount = optimisticLikeCount;
+  const isLiked = optimisticIsLiked;
+  const isSaved = optimisticIsSaved;
 
-  const navigateToUserProfile = () => {
-    router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
-  };
+  // Comment ID's for batch loading
+  const { data: commentsData } = useGetPostComments(post.id);
+  const commentIds =
+    commentsData?.map((comment: PostCommentData) => comment.id) ?? [];
+
+  // Batch load metadata for those comments
+  const { data: metadata, isLoading: metadataLoading } =
+    useCommentMetadata(commentIds);
+
+  const renderComment = ({ item }: { item: PostCommentData }) => (
+    <PostCommentItem
+      comment={item}
+      metadata={metadata?.[item.id]}
+      isLoading={metadataLoading}
+    />
+  );
 
   const createCommentMutation = useMutateCreateComment();
 
@@ -97,9 +170,30 @@ export default function PostDetails() {
     );
   };
 
+  const handleLoadMore = () => {
+    if (hasNextPage && !isFetchingNextPage && fetchNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  const navigateToUserProfile = () => {
+    router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
+  };
+
+  const renderPost = useCallback(
+    ({ item }: { item: PostCommentData }) => (
+      <PostCommentItem
+        comment={item}
+        metadata={metadata?.[item.id]}
+        isLoading={metadataLoading}
+      />
+    ),
+    [metadata, metadataLoading]
+  );
+
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, paddingBottom: 60 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
@@ -112,93 +206,105 @@ export default function PostDetails() {
         </Link>
       </View>
 
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
-        keyboardShouldPersistTaps='handled'
-      >
-        {/* Post Content */}
-        <View style={styles.postContainer}>
-          {/* Head Shot */}
-          <TouchableOpacity
-            style={styles.headshot}
-            onPress={navigateToUserProfile}
-          >
-            {/* TODO: Have to add default headshot */}
-            {post.user.headshot ? (
-              <post.user.headshot />
-            ) : (
-              <Text>No headshot</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.postContent}>
-            {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity onPress={navigateToUserProfile}>
-                <Text style={styles.name}>{post.user.name}</Text>
-              </TouchableOpacity>
-              <ChevronRight width={6} height={10} />
-              <Text style={styles.group}>{post.group}</Text>
-              <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+      <FlatList
+        data={commentsData}
+        keyExtractor={item => item.id.toString()}
+        renderItem={renderPost}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching || false}
+            onRefresh={refetch}
+          />
+        }
+        ListEmptyComponent={ListEmptyComponent}
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={styles.loadingFooter}>
+              <Text>Loading more...</Text>
             </View>
-
-            {/* Title */}
-            <View>
-              <Text style={styles.title}>{post.title}</Text>
-            </View>
-
-            {/* Reply */}
-            {post.userReply && (
-              <View style={styles.replyContainer}>
-                <Text style={styles.time}>Replying to </Text>
-                <Text style={styles.replyUser}>{post.userReply}</Text>
-              </View>
-            )}
-
-            {/* Description */}
-            <Text style={styles.description}>{post.content}</Text>
-
-            {/* Footer */}
-            <View style={styles.footer}>
-              <View style={styles.footerItem}>
-                <TouchableOpacity onPress={() => toggleLike(post.id, isLiked!)}>
-                  {isLiked ? (
-                    <Like_Fill width={20} height={20} />
-                  ) : (
-                    <Like width={20} height={20} />
-                  )}
-                </TouchableOpacity>
-                <Text style={styles.footerText}>{likeCount}</Text>
-              </View>
-              <View style={styles.footerItem}>
-                <Comment width={20} height={20} fill='gray' />
-                <Text style={styles.footerText}>0</Text>
-              </View>
-              <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>
-                {isSaved ? (
-                  <Save_Fill width={20} height={20} />
+          ) : null
+        }
+        ListHeaderComponent={
+          <>
+            {/* Post Content */}
+            <View style={styles.postContainer}>
+              {/* Head Shot */}
+              <TouchableOpacity
+                style={styles.headshot}
+                onPress={navigateToUserProfile}
+              >
+                {/* TODO: Have to add default headshot */}
+                {post.user.headshot ? (
+                  <post.user.headshot />
                 ) : (
-                  <Save width={20} height={20} />
+                  <Text>No headshot</Text>
                 )}
               </TouchableOpacity>
+
+              <View style={styles.postContent}>
+                {/* Header */}
+                <View style={styles.header}>
+                  <TouchableOpacity onPress={navigateToUserProfile}>
+                    <Text style={styles.name}>{post.user.name}</Text>
+                  </TouchableOpacity>
+                  <ChevronRight width={6} height={10} />
+                  <Text style={styles.group}>{post.group}</Text>
+                  <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+                </View>
+
+                {/* Title */}
+                <View>
+                  <Text style={styles.title}>{post.title}</Text>
+                </View>
+
+                {/* Reply */}
+                {post.userReply && (
+                  <View style={styles.replyContainer}>
+                    <Text style={styles.time}>Replying to </Text>
+                    <Text style={styles.replyUser}>{post.userReply}</Text>
+                  </View>
+                )}
+
+                {/* Description */}
+                <Text style={styles.description}>{post.content}</Text>
+
+                {/* Footer */}
+                <View style={styles.footer}>
+                  <View style={styles.footerItem}>
+                    <TouchableOpacity
+                      onPress={() => toggleLike(post.id, isLiked!)}
+                    >
+                      {isLiked ? (
+                        <Like_Fill width={20} height={20} />
+                      ) : (
+                        <Like width={20} height={20} />
+                      )}
+                    </TouchableOpacity>
+                    <Text style={styles.footerText}>{likeCount}</Text>
+                  </View>
+                  <View style={styles.footerItem}>
+                    <Comment width={20} height={20} fill='gray' />
+                    <Text style={styles.footerText}>0</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => toggleSave(post.id, isSaved!)}
+                  >
+                    {isSaved ? (
+                      <Save_Fill width={20} height={20} />
+                    ) : (
+                      <Save width={20} height={20} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
 
-        <View style={styles.largeDivider} />
-
-        {comments?.length ? (
-          comments.map(comment => (
-            <React.Fragment key={comment.id}>
-              <PostCommentItem comment={comment} />
-              <View style={styles.divider} />
-            </React.Fragment>
-          ))
-        ) : (
-          <Text>No comments</Text>
-        )}
-      </ScrollView>
+            <View style={styles.largeDivider} />
+          </>
+        }
+      />
 
       {/* Comment reply box */}
       <View style={styles.commentInputContainer}>
@@ -217,14 +323,14 @@ export default function PostDetails() {
       </View>
     </KeyboardAvoidingView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   postContainer: {
     backgroundColor: '#fff',
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 120,
     paddingBottom: 20,
     gap: 12,
   },
@@ -279,7 +385,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: 60, // same as paddingTop defined in <Header> component
   },
   headerContainer: {
     position: 'absolute',
@@ -288,7 +393,7 @@ const styles = StyleSheet.create({
     right: 0,
     zIndex: 10,
     backgroundColor: '#fff',
-    paddingTop: 60, // matches your safe area/header spacing
+    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 10,
     flexDirection: 'row',
@@ -356,4 +461,10 @@ const styles = StyleSheet.create({
     padding: 10,
     marginLeft: 8,
   },
+  loadingFooter: {
+    padding: 20,
+    alignItems: 'center',
+  },
 });
+
+export default PostDetails;
