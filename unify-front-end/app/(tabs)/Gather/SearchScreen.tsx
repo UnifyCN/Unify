@@ -57,8 +57,10 @@ const SearchScreen = () => {
         const { data: userData } = await supabase.auth.getUser();
         const userId = userData.user?.id;
         if (!userId) return;
+        
         const { searches } = await getRecentSearches(userId);
         setRecentSearches(searches);
+
         const { groups: recentGroupIds } = await getRecentGroups(userId);
         if (recentGroupIds && groups) {
           const mapped = (recentGroupIds as number[])
@@ -66,6 +68,7 @@ const SearchScreen = () => {
             .filter(Boolean) as Group[];
           setRecentGroups(mapped);
         }
+
       } catch (err) {
         console.error('loading error', err);
       } finally {
@@ -97,7 +100,7 @@ const SearchScreen = () => {
 
     setRecentSearches(prev => {
       const updated = [input, ...prev.filter(s => s !== input)];
-      return updated.slice(0, 3);
+      return updated;
     });
   };
 
@@ -117,10 +120,7 @@ const SearchScreen = () => {
 
   const groupPress = async (group: Group) => {
     setRecentGroups(prev =>
-      [group, ...prev.filter(tempGroup => tempGroup.id !== group.id)].slice(
-        0,
-        3
-      )
+      [group, ...prev.filter(tempGroup => tempGroup.id !== group.id)]
     );
     try {
       const { data: userData } = await supabase.auth.getUser();
