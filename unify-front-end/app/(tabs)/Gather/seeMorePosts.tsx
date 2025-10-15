@@ -9,7 +9,6 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPosts } from '@/services/posts/getAllPosts';
-import PostCard from './PostCard';
 import { PostData } from '@/types/feeds/post';
 import { Feather } from '@expo/vector-icons';
 import { PostItem } from '@/components/home/PostItem';

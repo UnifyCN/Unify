@@ -84,10 +84,10 @@ export const getFeedFollowing = async (
       } as User,
       time: post.created_at,
       title: post.title,
-      description: post.content,
+      content: post.content,
       group: post.groups
-        ? { id: post.groups.id, name: post.groups.group_name }
-        : null,
+        ? post.groups.group_name
+        : undefined,
     }));
 
     return {
