@@ -12,6 +12,7 @@ import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Avatar } from '@/components/Avatar';
 
 interface PostItemProps {
   post: PostData;
@@ -52,17 +53,16 @@ export const PostItem = memo(({ post, metadata, isLoading }: PostItemProps) => {
   return (
     <View>
       <View style={styles.postContainer}>
-        {/* Head Shot */}
+        {/* Avatar */}
         <TouchableOpacity
           style={styles.headshot}
           onPress={navigateToUserProfile}
         >
-          {/* TODO: Have to add default headshot */}
-          {post.user.headshot ? (
-            <post.user.headshot />
-          ) : (
-            <Text>No headshot</Text>
-          )}
+          <Avatar
+            profilePictureUrl={post.user.profilePictureUrl}
+            username={post.user.username}
+            size={29}
+          />
         </TouchableOpacity>
         {/* Post Content */}
         <View style={styles.postContent}>
