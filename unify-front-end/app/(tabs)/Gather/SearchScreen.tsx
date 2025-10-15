@@ -40,7 +40,7 @@ const SearchScreen = () => {
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
-  const { data: searchResults } = useQuery({
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ['searchPosts', searchQuery],
     queryFn: () => getAllPosts(undefined, 50, searchQuery),
     enabled: !!searchQuery,
@@ -254,6 +254,7 @@ const SearchScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
+        {/*Show history/recent*/}
         {!searchQuery && loadingData ? (
           <View
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
@@ -268,69 +269,81 @@ const SearchScreen = () => {
           </>
         )}
 
-        {searchQuery && foundPost && (
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={styles.emptyHeadline}>POSTS</Text>
-              {postsToShow.length > 3 && (
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: '/(tabs)/Gather/seeMorePosts',
-                      params: { q: searchQuery },
-                    })
-                  }
-                >
-                  <Text style={styles.emptyHeadline}>see more</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            <FlatList
-              data={postsToShow.slice(0, 3)}
-              renderItem={renderPosts}
-              keyExtractor={item => item.id.toString()}
-              scrollEnabled={false}
-            />
+        {searchQuery && searchLoading ? (
+          <View
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <ActivityIndicator size='small' color='#666' />
+            <Text style={{ marginTop: 8, color: '#666' }}>Loading...</Text>
           </View>
-        )}
+        ):(
+        <>
+          {searchQuery && foundPost && (
+            <View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={styles.emptyHeadline}>POSTS</Text>
+                {postsToShow.length > 3 && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: '/(tabs)/Gather/seeMorePosts',
+                        params: { q: searchQuery },
+                      })
+                    }
+                  >
+                    <Text style={styles.emptyHeadline}>see more</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <FlatList
+                data={postsToShow.slice(0, 3)}
+                renderItem={renderPosts}
+                keyExtractor={item => item.id.toString()}
+                scrollEnabled={false}
+              />
+            </View>
+          )}
 
-        {searchQuery && foundGroup && (
-          <View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <Text style={styles.emptyHeadline}>GROUPS</Text>
-              {(filterGroups?.length ?? 0) > 3 && (
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: '/(tabs)/Gather/seeMoreGroups',
-                      params: { q: searchQuery },
-                    })
-                  }
-                >
-                  <Text style={styles.emptyHeadline}>see more</Text>
-                </TouchableOpacity>
-              )}
+          {searchQuery && foundGroup && (
+            <View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={styles.emptyHeadline}>GROUPS</Text>
+                {(filterGroups?.length ?? 0) > 3 && (
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: '/(tabs)/Gather/seeMoreGroups',
+                        params: { q: searchQuery },
+                      })
+                    }
+                  >
+                    <Text style={styles.emptyHeadline}>see more</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <FlatList
+                data={(filterGroups ?? []).slice(0, 3)}
+                renderItem={renderGroup}
+                keyExtractor={item => item.id.toString()}
+                scrollEnabled={false}
+              />
             </View>
-            <FlatList
-              data={(filterGroups ?? []).slice(0, 3)}
-              renderItem={renderGroup}
-              keyExtractor={item => item.id.toString()}
-              scrollEnabled={false}
-            />
-          </View>
+          )}
+        </>
         )}
+        
         {searchQuery && !foundGroup && !foundPost && (
           <View style={styles.emptyContainer}>
             <Feather name='calendar' size={48} color='#ccc' />
