@@ -109,7 +109,7 @@ const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 
       <Text
         style={{
-          fontWeight: 600,
+          fontWeight: '600',
           fontSize: 24,
           color: 'black',
           paddingHorizontal: 20,
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

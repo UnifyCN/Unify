@@ -4,7 +4,6 @@ import { Group } from '@/types/groups';
 
 interface GroupCardProps {
   group: Group;
-  width?: number;
   onPress?: () => void;
 }
 
@@ -27,7 +26,7 @@ const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
         </Text>
         <View style={styles.groupDetail}>
           <Text style={styles.groupDetailText} numberOfLines={2}>
-            {group.description}
+            {group.description ?? ''}
           </Text>
         </View>
       </View>
@@ -65,7 +64,6 @@ const styles = StyleSheet.create({
   },
   groupContent: {
     paddingHorizontal: 12,
-    //paddingVertical: 8,
     flex: 1,
     justifyContent: 'flex-start',
   },

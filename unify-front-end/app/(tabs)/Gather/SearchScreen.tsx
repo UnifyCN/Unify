@@ -388,14 +388,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    fontWeight: 'semibold',
+    fontWeight: '600',
     color: '#464646ff',
     marginTop: 16,
     marginBottom: 8,
   },
   emptyHeadline: {
     fontSize: 12,
-    fontWeight: 'semibold',
+    fontWeight: '600',
     color: '#464646ff',
     marginTop: 16,
     marginBottom: 8,

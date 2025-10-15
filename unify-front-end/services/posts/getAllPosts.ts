@@ -56,7 +56,7 @@ export const getAllPosts = async (
           name: row.users.username,
         } as User,
         content: row.content,
-        group: row.groups.group_name,
+        group: row.groups ? row.groups.group_name : undefined,
         title: row.title ?? 'No-Title',
         time: row.created_at,
       }));
