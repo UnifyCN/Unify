@@ -25,9 +25,8 @@ interface PostItemProps {
   };
   isLoading?: boolean;
 }
-
 export const PostItem = memo(({ post, metadata, isLoading, shouldHideContent }: PostItemProps) => {
-  
+
   const router = useRouter();
 
   // Use batch-loaded metadata (no individual queries needed)

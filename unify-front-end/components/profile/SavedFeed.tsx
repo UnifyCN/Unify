@@ -3,8 +3,8 @@ import Feed from '../home/Feed';
 import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 
 interface SavedFeedProps {
-  ListHeaderComponent: React.ReactElement;
-  ListEmptyComponent: React.ReactElement;
+  ListHeaderComponent?: React.ReactElement;
+  ListEmptyComponent?: React.ReactElement;
 }
 
 const SavedFeed = ({

@@ -46,6 +46,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingTop: 60, // Account for status bar and safe area
     backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
   },
   title: {
     fontSize: 24,

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
+import { usePostMetadata } from '@/hooks/usePostMetadata';
 
 interface FeedProps {
   data?: any; // TODO: fix this
@@ -27,8 +28,22 @@ const Feed = ({
   ListEmptyComponent,
 }: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
+  const postIds = allPosts.map((post: PostData) => post.id);
 
-  const renderPost = ({ item }: { item: PostData }) => <PostItem post={item} />;
+  // Batch load all metadata at once
+  const { data: metadata, isLoading: metadataLoading } =
+    usePostMetadata(postIds);
+
+  const renderPost = useCallback(
+    ({ item }: { item: PostData }) => (
+      <PostItem
+        post={item}
+        metadata={metadata?.[item.id]}
+        isLoading={metadataLoading}
+      />
+    ),
+    [metadata, metadataLoading]
+  );
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage && fetchNextPage) {
@@ -52,7 +67,6 @@ const Feed = ({
       data={allPosts}
       keyExtractor={item => item.id.toString()}
       renderItem={renderPost}
-      contentContainerStyle={styles.feedContainer}
       onEndReached={handleLoadMore}
       onEndReachedThreshold={0.5}
       refreshControl={
@@ -78,7 +92,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  feedContainer: {},
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
