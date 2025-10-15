@@ -78,7 +78,7 @@ export const PostItem = memo(({ post, metadata, isLoading, shouldHideContent }: 
               <Text style={styles.name}>{post.user.name}</Text>
             </TouchableOpacity>
             <ChevronRight width={6} height={10} />
-            <Text style={styles.group}>{'/' + post.group}</Text>
+            {!!post.group && <Text style={styles.group}>{`/${post.group}`}</Text>}            
             <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
           </View>
 
