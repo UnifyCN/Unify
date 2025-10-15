@@ -149,17 +149,11 @@ const SearchScreen = () => {
     </View>
   );
 
-  if (searchInput.trim().length > 0 && !searchQuery) {
+  if (
+    recentSearches.length > 0 &&
+    !(searchInput.trim().length > 0 && !searchQuery)
+  ) {
     // user is typing but hasn't submitted yet — show the helper frame
-    searchHistory = (
-      <View style={styles.searchFrame}>
-        <Text style={styles.containerText}>
-          What do you want to discover today? Press 'enter' or 'go' to see
-          relevant groups or posts
-        </Text>
-      </View>
-    );
-  } else if (recentSearches.length > 0) {
     searchHistory = (
       <View style={{ marginTop: 10 }}>
         <Text style={styles.emptyHeadline}>RECENT SEARCHES</Text>
@@ -377,7 +371,6 @@ const styles = StyleSheet.create({
   },
   cardItem: {
     width: '100%',
-    //marginBottom: 12
   },
   emptyContainer: {
     flex: 1,

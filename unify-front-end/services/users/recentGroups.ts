@@ -4,31 +4,16 @@ export const saveRecentGroups = async (userId: string, groupId: number) => {
   // Call 1: Upsert the new search
   const { data: upsertData, error: upsertError } = await supabase
     .from('user_recent_groups')
-    .upsert({
-      user_id: userId,
-      group_id: groupId,
-      created_at: new Date().toISOString(),
-    });
-
-  if (upsertError) return { error: upsertError };
-
-  // Call 2: Delete old searches using a single query with subquery
-  const { error: deleteError } = await supabase
-    .from('user_recent_groups')
-    .delete()
-    .eq('user_id', userId)
-    .not(
-      'id',
-      'in',
-      `(
-      SELECT id FROM user_recent_groups 
-      WHERE user_id = '${userId}' 
-      ORDER BY created_at DESC 
-      LIMIT 3
-    )`
+    .upsert(
+      {
+        user_id: userId,
+        group_id: groupId,
+        created_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,group_id' }
     );
 
-  return { data: upsertData, error: deleteError };
+  if (upsertError) return { error: upsertError };
 };
 
 export async function getRecentGroups(userId: string) {
