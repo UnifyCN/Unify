@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
@@ -7,27 +7,40 @@ import Save from '@/assets/images/Save.svg';
 import Save_Fill from '@/assets/images/Save_filled.svg';
 import Comment from '@/assets/images/Comment.svg';
 import { PostData } from '@/types/feeds/post';
-import { useGetPostLikes } from '@/hooks/posts/useGetPostLikes';
 import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
-import { useGetPostSaveStatus } from '@/hooks/posts/useGetPostSaveStatus';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Avatar } from '@/components/Avatar';
 
 interface PostItemProps {
   post: PostData;
   shouldHideContent?: boolean;
+  metadata?: {
+    isLiked: boolean;
+    isSaved: boolean;
+    likeCount: number;
+    commentCount: number;
+  };
+  isLoading?: boolean;
 }
 
-export const PostItem = ({ post, shouldHideContent }: PostItemProps) => {
+export const PostItem = ({ post, metadata, isLoading, shouldHideContent }: PostItemProps) => {
+  metadata?: {
+    isLiked: boolean;
+    isSaved: boolean;
+    likeCount: number;
+    commentCount: number;
+  };
+  isLoading?: boolean;
+}
+
+export const PostItem = memo(({ post, metadata, isLoading }: PostItemProps) => {
   const router = useRouter();
 
-  // Get post likes data
-  const { data: likeData } = useGetPostLikes(post.id);
+  // Use batch-loaded metadata (no individual queries needed)
   const likePostMutation = useMutateLikePost();
-
-  // Get post save status
-  const { data: saveData } = useGetPostSaveStatus(post.id);
   const savePostMutation = useMutateSavePost();
   const groupName = post.group?.replace;
 
@@ -43,12 +56,11 @@ export const PostItem = ({ post, shouldHideContent }: PostItemProps) => {
     router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
   };
 
-  // Use like data from the hook, fallback to 0 if loading
-  const likeCount = likeData?.likeCount;
-  const isLiked = likeData?.userLiked;
-
-  // Use save data from the hook, fallback to post data if loading
-  const isSaved = saveData?.saved;
+  // Use batch-loaded metadata
+  const likeCount = metadata?.likeCount ?? 0;
+  const isLiked = metadata?.isLiked;
+  const isSaved = metadata?.isSaved;
+  const commentCount = metadata?.commentCount ?? 0;
 
   return (
     <View>
@@ -63,12 +75,11 @@ export const PostItem = ({ post, shouldHideContent }: PostItemProps) => {
           style={styles.headshot}
           onPress={navigateToUserProfile}
         >
-          {/* TODO: Have to add default headshot */}
-          {post.user.headshot ? (
-            <post.user.headshot />
-          ) : (
-            <Text>No headshot</Text>
-          )}
+          <Avatar
+            profilePictureUrl={post.user.profilePictureUrl}
+            username={post.user.username}
+            size={29}
+          />
         </TouchableOpacity>
         {/* Post Content */}
         <View style={styles.postContent}>
@@ -100,36 +111,56 @@ export const PostItem = ({ post, shouldHideContent }: PostItemProps) => {
 
           {/* Footer */}
           <View style={styles.footer}>
-            <View style={styles.footerItem}>
-              <TouchableOpacity onPress={() => toggleLike(post.id, isLiked!)}>
-                {isLiked ? (
-                  <Like_Fill width={20} height={20} />
-                ) : (
-                  <Like width={20} height={20} />
-                )}
-              </TouchableOpacity>
-              <Text style={styles.footerText}>{likeCount}</Text>
-            </View>
-            <View style={styles.footerItem}>
-              <Comment width={20} height={20} fill='gray' />
-              <Text style={styles.footerText}>
-                {/* TODO: make fetch to get comment_count from posts table */}0
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>
-              {isSaved ? (
-                <Save_Fill width={20} height={20} />
-              ) : (
-                <Save width={20} height={20} />
-              )}
-            </TouchableOpacity>
+            {isLoading ? (
+              <SkeletonLoader
+                width='100%'
+                height={20}
+                style={{ marginTop: 8 }}
+              />
+            ) : (
+              <>
+                <View style={styles.footerItem}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (isLiked !== undefined) {
+                        toggleLike(post.id, isLiked);
+                      }
+                    }}
+                  >
+                    {isLiked ? (
+                      <Like_Fill width={20} height={20} />
+                    ) : (
+                      <Like width={20} height={20} />
+                    )}
+                  </TouchableOpacity>
+                  <Text style={styles.footerText}>{likeCount}</Text>
+                </View>
+                <View style={styles.footerItem}>
+                  <Comment width={20} height={20} fill='gray' />
+                  <Text style={styles.footerText}>{commentCount}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isSaved !== undefined) {
+                      toggleSave(post.id, isSaved);
+                    }
+                  }}
+                >
+                  {isSaved ? (
+                    <Save_Fill width={20} height={20} />
+                  ) : (
+                    <Save width={20} height={20} />
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </View>
       <View style={styles.divider} />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   postContainer: {

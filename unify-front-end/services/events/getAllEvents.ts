@@ -13,7 +13,7 @@ export const getAllEvents = async (): Promise<Event[]> => {
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .order('event_datetime', { ascending: true });
+      .order('event_datetime', { ascending: false });
 
     if (error) {
       throw new Error('Failed to fetch events');
