@@ -1,11 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { Group } from '@/types/groups';
 
-interface RecentGroupRow {
-  group_id: number;
-  groups: Group | null;
-}
-
 export const saveRecentGroups = async (userId: string, groupId: number) => {
   const { error } = await supabase.from('user_recent_groups').upsert(
     {
@@ -19,16 +14,6 @@ export const saveRecentGroups = async (userId: string, groupId: number) => {
   if (error) return { error };
   return { error: null };
 };
-
-export async function getRecentGroups(userId: string) {
-  const { data, error } = await supabase
-    .from('user_recent_groups')
-    .select('group_id')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(3);
-  return { groups: data?.map(row => row.group_id) ?? [], error };
-}
 
 export async function getRecentGroupsWithData(userId: string) {
   const { data, error } = await supabase
