@@ -8,11 +8,11 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Group } from '@/types/groups';
-import { useGroups } from '@/hooks/groups/useGroups';
+import { useSearchGroups } from '@/hooks/groups/useSearchGroups';
 import GroupCard from './GroupCard';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from '@/components/home/PostItem';
@@ -24,7 +24,7 @@ import {
 } from '@/services/users/recentSearches';
 import {
   saveRecentGroups,
-  getRecentGroups,
+  getRecentGroupsWithData,
 } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
 import { SearchHeader } from '@/components/SearchHeader';
@@ -37,7 +37,7 @@ const SearchScreen = () => {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const { data: groups } = useGroups();
+  const { data: searchGroups, isLoading: searchGroupsLoading } = useSearchGroups(searchQuery);
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -62,13 +62,8 @@ const SearchScreen = () => {
         const { searches } = await getRecentSearches(userId);
         setRecentSearches(searches);
 
-        const { groups: recentGroupIds } = await getRecentGroups(userId);
-        if (recentGroupIds && groups) {
-          const mapped = (recentGroupIds as number[])
-            .map(id => groups.find(group => Number(group.id) === Number(id)))
-            .filter(Boolean) as Group[];
-          setRecentGroups(mapped);
-        }
+        const { groups: recentGroupsData } = await getRecentGroupsWithData(userId);
+        setRecentGroups(recentGroupsData);
       } catch (err) {
         console.error('loading error', err);
       } finally {
@@ -76,7 +71,7 @@ const SearchScreen = () => {
       }
     };
     loadRecent();
-  }, [groups]);
+  }, []);
 
   const handleSend = async (value?: string) => {
     const rawInput = (typeof value === 'string' ? value : searchInput) ?? '';
@@ -104,14 +99,7 @@ const SearchScreen = () => {
     });
   };
 
-  const filterGroups = useMemo(() => {
-    return groups?.filter(group => {
-      const matchesSearch = group.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      return matchesSearch;
-    });
-  }, [groups, searchQuery]);
+  const filterGroups = searchGroups || [];
 
   let foundGroup = filterGroups && filterGroups.length > 0;
   let foundPost = searchQuery
@@ -249,7 +237,7 @@ const SearchScreen = () => {
           </>
         )}
 
-        {searchQuery && searchLoading ? (
+        {searchQuery && (searchLoading || searchGroupsLoading) ? (
           <View
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
@@ -324,7 +312,7 @@ const SearchScreen = () => {
           </>
         )}
 
-        {searchQuery && !foundGroup && !foundPost && (
+        {searchQuery && !foundGroup && !foundPost && !searchGroupsLoading && !searchLoading && (
           <View style={styles.emptyContainer}>
             <Feather name='calendar' size={48} color='#ccc' />
             <Text style={styles.emptyText}>No Posts or Groups available</Text>

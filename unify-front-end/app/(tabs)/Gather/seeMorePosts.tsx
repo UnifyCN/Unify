@@ -20,27 +20,17 @@ export default function MorePostsScreen() {
   const posts: PostData[] = searchResults?.posts ?? [];
 
   const renderPosts = ({ item }: { item: PostData }) => {
-    return (
-      <View style={styles.cardWrapper}>
-        <PostItem post={item} shouldHideContent={true} />
-      </View>
-    );
+    return <PostItem post={item} shouldHideContent={true} />;
   };
 
   return (
-    <View
-      style={[
-        styles.searchContainer,
-        { backgroundColor: '#ffffffff', paddingTop: 0 },
-      ]}
-    >
+    <View style={styles.searchContainer}>
       <SearchHeader />
 
       <FlatList
         data={posts}
         renderItem={renderPosts}
         keyExtractor={(i: PostData) => String(i.id)}
-        contentContainerStyle={styles.feedContainer}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -48,29 +38,10 @@ export default function MorePostsScreen() {
 }
 
 const styles = StyleSheet.create({
-  cardWrapper: {
-    width: '100%',
-  },
-  feedContainer: {
-    paddingBottom: 44,
-    marginBottom: 36,
-    paddingHorizontal: 0,
-    alignItems: 'stretch',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E5E5E5',
-    marginHorizontal: 0,
-    width: '100%',
-    alignSelf: 'stretch',
-  },
   searchContainer: {
+    paddingTop: 20,
     paddingHorizontal: 20,
-    marginTop: 0,
     flex: 1,
-  },
-  post: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    backgroundColor: '#ffffffff',
   },
 });

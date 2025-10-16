@@ -36,7 +36,7 @@ export const EventsCarousel = ({
   const now = new Date();
   const upcomingEvents = events?.filter(event => {
     const eventDate = new Date(event.eventDatetime);
-    return eventDate > now;
+    return eventDate >= now;
   }) || [];
 
   const displayEvents = upcomingEvents.slice(0, maxEvents);

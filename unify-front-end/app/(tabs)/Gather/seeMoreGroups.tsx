@@ -24,7 +24,7 @@ export default function MoreGroupsScreen() {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
       if (!userId) return;
-      const res = await saveRecentGroups(userId, Number(group.id));
+      const res = await saveRecentGroups(userId, group.id);
       if (res?.error) console.error('saveRecentGroups failed', res.error);
     } catch (e) {
       console.error('saveRecentGroups exception', e);
@@ -40,12 +40,7 @@ export default function MoreGroupsScreen() {
   };
 
   return (
-    <View
-      style={[
-        styles.searchContainer,
-        { backgroundColor: '#ffffffff', paddingTop: 0 },
-      ]}
-    >
+    <View style={styles.searchContainer}>
       <SearchHeader />
 
       <FlatList
@@ -61,8 +56,9 @@ export default function MoreGroupsScreen() {
 
 const styles = StyleSheet.create({
   searchContainer: {
+    paddingTop: 20,
     paddingHorizontal: 20,
-    marginTop: 0,
     flex: 1,
+    backgroundColor: '#ffffffff',
   },
 });
