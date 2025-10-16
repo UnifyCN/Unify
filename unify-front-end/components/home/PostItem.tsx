@@ -12,9 +12,11 @@ import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Avatar } from '@/components/Avatar';
 
 export interface PostItemProps {
   post: PostData;
+  shouldHideContent?: boolean;
   metadata?: {
     isLiked: boolean;
     isSaved: boolean;
@@ -23,71 +25,87 @@ export interface PostItemProps {
   };
   isLoading?: boolean;
 }
+export const PostItem = memo(
+  ({ post, metadata, isLoading, shouldHideContent }: PostItemProps) => {
+    const router = useRouter();
 
-export const PostItem = memo(({ post, metadata, isLoading }: PostItemProps) => {
-  const router = useRouter();
+    // Use batch-loaded metadata (no individual queries needed)
+    const likePostMutation = useMutateLikePost();
+    const savePostMutation = useMutateSavePost();
 
-  // Use batch-loaded metadata (no individual queries needed)
-  const likePostMutation = useMutateLikePost();
-  const savePostMutation = useMutateSavePost();
+    const toggleLike = (postId: number, isLiked: boolean) => {
+      likePostMutation.mutate({ postId, isLiked });
+    };
 
-  const toggleLike = (postId: number, isLiked: boolean) => {
-    likePostMutation.mutate({ postId, isLiked });
-  };
+    const toggleSave = (postId: number, isSaved: boolean) => {
+      savePostMutation.mutate({ postId, isSaved });
+    };
 
-  const toggleSave = (postId: number, isSaved: boolean) => {
-    savePostMutation.mutate({ postId, isSaved });
-  };
+    const navigateToUserProfile = () => {
+      router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
+    };
 
-  const navigateToUserProfile = () => {
-    router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
-  };
+    // Use batch-loaded metadata
+    const likeCount = metadata?.likeCount ?? 0;
+    const isLiked = metadata?.isLiked;
+    const isSaved = metadata?.isSaved;
+    const commentCount = metadata?.commentCount ?? 0;
 
-  // Use batch-loaded metadata
-  const likeCount = metadata?.likeCount ?? 0;
-  const isLiked = metadata?.isLiked;
-  const isSaved = metadata?.isSaved;
-  const commentCount = metadata?.commentCount ?? 0;
-
-  return (
-    <View>
-      <View style={styles.postContainer}>
-        {/* Head Shot */}
-        <TouchableOpacity
-          style={styles.headshot}
-          onPress={navigateToUserProfile}
+    return (
+      <View>
+        <View
+          style={[
+            styles.postContainer,
+            { paddingHorizontal: shouldHideContent ? 0 : 20 },
+          ]}
         >
-          {/* TODO: Have to add default headshot */}
-          {post.user.headshot ? (
-            <post.user.headshot />
-          ) : (
-            <Text>No headshot</Text>
-          )}
-        </TouchableOpacity>
-        {/* Post Content */}
-        <TouchableOpacity
-          style={styles.postContent}
-          onPress={() =>
-            router.push({
-              pathname: '/(tabs)/Gather/PostDetails',
-              params: {
-                post: JSON.stringify(post),
-                likeCount: String(likeCount),
-                isLiked: String(isLiked),
-                commentCount: String(commentCount),
-                isSaved: String(isSaved),
-              },
-            })
-          }
-        >
-          <View style={styles.postContent}>
+          {/* Head Shot */}
+          <TouchableOpacity
+            style={styles.headshot}
+            onPress={navigateToUserProfile}
+          >
+            <Avatar
+              profilePictureUrl={post.user.profilePictureUrl}
+              username={post.user.username}
+              size={29}
+            />
+          </TouchableOpacity>
+          {/* Post Content */}
+          <TouchableOpacity
+            style={styles.postContent}
+            onPress={() =>
+              router.push({
+                pathname: '/Gather/PostDetails' as any,
+                params: {
+                  post: JSON.stringify(post),
+                  likeCount: String(likeCount),
+                  isLiked: String(isLiked),
+                  commentCount: String(commentCount),
+                  isSaved: String(isSaved),
+                },
+              })
+            }
+          >
             {/* Header */}
             <View style={styles.header}>
               <TouchableOpacity onPress={navigateToUserProfile}>
                 <Text style={styles.name}>{post.user.name}</Text>
               </TouchableOpacity>
               <ChevronRight width={6} height={10} />
-              <Text style={styles.group}>{post.group}</Text>
+              {post.group ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+                      params: { groupName: post.group },
+                    })
+                  }
+                >
+                  <Text style={styles.group}>{post.group}</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.group}>No group</Text>
+              )}
               <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
             </View>
 
@@ -103,61 +121,63 @@ export const PostItem = memo(({ post, metadata, isLoading }: PostItemProps) => {
           )}  */}
 
             {/* Content */}
-            <Text style={styles.description}>{post.content}</Text>
-          </View>
+            {!shouldHideContent && (
+              <Text style={styles.description}>{post.content}</Text>
+            )}
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            {isLoading ? (
-              <SkeletonLoader
-                width='100%'
-                height={20}
-                style={{ marginTop: 8 }}
-              />
-            ) : (
-              <>
-                <View style={styles.footerItem}>
+            {/* Footer */}
+            <View style={styles.footer}>
+              {isLoading ? (
+                <SkeletonLoader
+                  width='100%'
+                  height={20}
+                  style={{ marginTop: 8 }}
+                />
+              ) : (
+                <>
+                  <View style={styles.footerItem}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (isLiked !== undefined) {
+                          toggleLike(post.id, isLiked);
+                        }
+                      }}
+                    >
+                      {isLiked ? (
+                        <Like_Fill width={20} height={20} />
+                      ) : (
+                        <Like width={20} height={20} />
+                      )}
+                    </TouchableOpacity>
+                    <Text style={styles.footerText}>{likeCount}</Text>
+                  </View>
+                  <View style={styles.footerItem}>
+                    <Comment width={20} height={20} fill='gray' />
+                    <Text style={styles.footerText}>{commentCount}</Text>
+                  </View>
                   <TouchableOpacity
                     onPress={() => {
-                      if (isLiked !== undefined) {
-                        toggleLike(post.id, isLiked);
+                      if (isSaved !== undefined) {
+                        toggleSave(post.id, isSaved);
                       }
                     }}
                   >
-                    {isLiked ? (
-                      <Like_Fill width={20} height={20} />
+                    {isSaved ? (
+                      <Save_Fill width={20} height={20} />
                     ) : (
-                      <Like width={20} height={20} />
+                      <Save width={20} height={20} />
                     )}
                   </TouchableOpacity>
-                  <Text style={styles.footerText}>{likeCount}</Text>
-                </View>
-                <View style={styles.footerItem}>
-                  <Comment width={20} height={20} fill='gray' />
-                  <Text style={styles.footerText}>{commentCount}</Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (isSaved !== undefined) {
-                      toggleSave(post.id, isSaved);
-                    }
-                  }}
-                >
-                  {isSaved ? (
-                    <Save_Fill width={20} height={20} />
-                  ) : (
-                    <Save width={20} height={20} />
-                  )}
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.divider} />
       </View>
-      <View style={styles.divider} />
-    </View>
-  );
-});
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   postContainer: {

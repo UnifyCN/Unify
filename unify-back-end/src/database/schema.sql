@@ -5,6 +5,7 @@ CREATE TABLE users (
     pronouns TEXT,
     biography TEXT,
     email VARCHAR(100) UNIQUE NOT NULL,
+    profile_picture_url TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (id)

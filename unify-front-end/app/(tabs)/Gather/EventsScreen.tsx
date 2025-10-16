@@ -10,16 +10,23 @@ import {
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
-import Header from '@/components/Header';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
 import { useMemo, useState } from 'react';
 import { ChartNoAxesGantt } from 'lucide-react-native';
 import { Event } from '@/types/events';
+import { useEffect } from 'react';
+import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 
 const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
+  const { setVisible } = useHeaderVisibility();
+
+  useEffect(() => {
+    setVisible(false);
+    return () => setVisible(true);
+  }, [setVisible]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('Upcoming');
   const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
@@ -84,7 +91,6 @@ const EventsScreen = () => {
     return (
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading events...</Text>
         </View>
@@ -96,7 +102,6 @@ const EventsScreen = () => {
     return (
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <Header />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load events</Text>
           <TouchableOpacity
@@ -224,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 60,
   },
   headerTitle: {
     fontSize: 24,

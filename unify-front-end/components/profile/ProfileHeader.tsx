@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { ProfilePictureUpload } from './ProfilePictureUpload';
+import { Avatar } from '@/components/Avatar';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -75,12 +77,21 @@ export const ProfileHeader = ({
       {/* Right Section - Profile Picture */}
       <View style={styles.rightSection}>
         <View style={styles.profilePictureContainer}>
-          <View style={styles.profilePicture}>
-            <Text style={styles.profilePictureText}>
-              {userInfo.username.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <Avatar
+            profilePictureUrl={userInfo.profilePictureUrl}
+            username={userInfo.username}
+            size={93}
+            style={styles.profilePicture}
+          />
         </View>
+
+        {/* Profile Picture Upload Component for Current User */}
+        {isCurrentUser && (
+          <ProfilePictureUpload
+            currentPictureUrl={userInfo.profilePictureUrl}
+            userId={userInfo.id}
+          />
+        )}
       </View>
     </View>
   );

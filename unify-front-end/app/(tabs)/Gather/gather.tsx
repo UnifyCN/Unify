@@ -1,30 +1,13 @@
 import { useState, memo, useMemo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
-import { useScrollContext } from '@/context/ScrollContext';
-import { useRouter } from 'expo-router';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
-import { Feather } from '@expo/vector-icons';
-import { useEvents } from '@/hooks/events/useEvents';
-import EventCard from './EventCard';
-import ViewMoreCard from './ViewMoreCard';
+import { EventsCarousel } from '@/components/EventsCarousel';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
-
-const SCROLL_DISTANCE = 200;
 
 interface HeaderProps {
   activeTab: string;
@@ -32,63 +15,11 @@ interface HeaderProps {
 }
 
 const GatherHeader = memo(() => {
-  const router = useRouter();
-
-  const { data: events, isLoading } = useEvents();
-
-  const displayEvents = events?.slice(0, 3) || [];
-
   return (
     <View>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Gather Events</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
-        >
-          <Feather name='chevron-right' size={24} color='#000' />
-        </TouchableOpacity>
+      <View style={styles.eventsCarousel}>
+        <EventsCarousel title='Gather Events' titleStyle={styles.headerText} />
       </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.eventsCarousel}
-        contentContainerStyle={[
-          styles.eventsCarouselContent,
-          events && events.length === 0 && styles.eventsCarouselContentEmpty,
-        ]}
-      >
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#000' />
-          </View>
-        )}
-        {!isLoading && events && events.length === 0 && (
-          <View style={styles.emptyEventsContainer}>
-            <Text style={styles.emptyEventsText}>No events available</Text>
-            <Text style={styles.emptyEventsSubtext}>
-              Check back later for new events
-            </Text>
-          </View>
-        )}
-        {displayEvents.map(event => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onPress={() =>
-              router.push({
-                pathname: '/(tabs)/Gather/EventDetailScreen',
-                params: { event: JSON.stringify(event) },
-              })
-            }
-          />
-        ))}
-        {events && events.length > 3 && (
-          <ViewMoreCard
-            onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
-          />
-        )}
-      </ScrollView>
 
       <Text
         style={{
@@ -204,33 +135,13 @@ export default function GatherScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginTop: 20,
-  },
   headerText: {
     fontSize: 16,
     fontWeight: 600,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   eventsCarousel: {
     marginTop: 16,
-  },
-  eventsCarouselContent: {
     paddingHorizontal: 20,
-    gap: 12,
-  },
-  eventsCarouselContentEmpty: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   container: {
     flex: 1,
@@ -265,26 +176,5 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#000',
-  },
-  emptyEventsContainer: {
-    backgroundColor: '#e5e5e5',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flex: 1,
-  },
-  emptyEventsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyEventsSubtext: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
   },
 });

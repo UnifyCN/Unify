@@ -12,9 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEvents } from '@/hooks/events/useEvents';
-import EventCard from '@/app/(tabs)/Gather/EventCard';
-import ViewMoreCard from '@/app/(tabs)/Gather/ViewMoreCard';
+import { EventsCarousel } from '@/components/EventsCarousel';
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
 
@@ -93,67 +91,12 @@ const NewsTipsSection = () => (
 );
 
 const GatherEventsSection = () => {
-  const router = useRouter();
-  const { data: events, isLoading } = useEvents();
-
-  const now = new Date();
-  const upcomingEvents =
-    events?.filter(event => {
-      const eventDate = new Date(event.eventDatetime);
-      return eventDate > now;
-    }) || [];
-
-  const displayEvents = upcomingEvents.slice(0, 3);
-
-  const handleEventPress = (event: any) => {
-    router.push({
-      pathname: '/(tabs)/Gather/EventDetailScreen',
-      params: { event: JSON.stringify(event) },
-    });
-  };
-
-  const handleViewMore = () => {
-    router.push('/(tabs)/Gather/EventsScreen');
-  };
-
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Upcoming Gather Events</Text>
-        <TouchableOpacity onPress={handleViewMore}>
-          <Feather name='chevron-right' size={20} color='#666' />
-        </TouchableOpacity>
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.carouselContent,
-          upcomingEvents.length === 0 && styles.carouselContentEmpty,
-        ]}
-      >
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#000' />
-          </View>
-        )}
-        {!isLoading && upcomingEvents.length === 0 && (
-          <View style={styles.emptyEventsContainer}>
-            <Text style={styles.emptyEventsText}>No upcoming events</Text>
-            <Text style={styles.emptyEventsSubtext}>
-              Check back later for new events
-            </Text>
-          </View>
-        )}
-        {displayEvents.map(event => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onPress={() => handleEventPress(event)}
-          />
-        ))}
-        {upcomingEvents.length > 3 && <ViewMoreCard onPress={handleViewMore} />}
-      </ScrollView>
+    <View style={[styles.section, { paddingHorizontal: 20 }]}>
+      <EventsCarousel
+        title='Upcoming Gather Events'
+        titleStyle={styles.sectionTitle}
+      />
     </View>
   );
 };
