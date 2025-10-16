@@ -18,9 +18,7 @@ import ForYouFeed from '@/components/home/ForYouFeed';
 import FollowingFeed from '@/components/home/FollowingFeed';
 import GroupsFeed from '@/components/home/GroupsFeed';
 import { Feather } from '@expo/vector-icons';
-import { useEvents } from '@/hooks/events/useEvents';
-import EventCard from './EventCard';
-import ViewMoreCard from './ViewMoreCard';
+import { EventsCarousel } from '@/components/EventsCarousel';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 
@@ -34,65 +32,32 @@ interface HeaderProps {
 const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   const router = useRouter();
 
-  const { data: events, isLoading } = useEvents();
-
-  const displayEvents = events?.slice(0, 3) || [];
-
   return (
     <View>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Gather Events</Text>
+      <View style={styles.searchContainer}>
         <TouchableOpacity
-          onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
+          style={styles.searchInputContainer}
+          onPress={() => router.push('/(tabs)/Gather/SearchScreen')}
         >
-          <Feather name='chevron-right' size={24} color='#000' />
+          <Feather
+            name='search'
+            size={24}
+            color='#666'
+            style={styles.searchIcon}
+          />
+          <Text style={[styles.searchInput, { color: '#999' }]}>
+            Search for groups near you or related posts
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.eventsCarousel}
-        contentContainerStyle={[
-          styles.eventsCarouselContent,
-          events && events.length === 0 && styles.eventsCarouselContentEmpty,
-        ]}
-      >
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#000' />
-          </View>
-        )}
-        {!isLoading && events && events.length === 0 && (
-          <View style={styles.emptyEventsContainer}>
-            <Text style={styles.emptyEventsText}>No events available</Text>
-            <Text style={styles.emptyEventsSubtext}>
-              Check back later for new events
-            </Text>
-          </View>
-        )}
-        {displayEvents.map(event => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onPress={() =>
-              router.push({
-                pathname: '/(tabs)/Gather/EventDetailScreen',
-                params: { event: JSON.stringify(event) },
-              })
-            }
-          />
-        ))}
-        {events && events.length > 3 && (
-          <ViewMoreCard
-            onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
-          />
-        )}
-      </ScrollView>
+      <View style={styles.eventsCarousel}>
+        <EventsCarousel title='Gather Events' titleStyle={styles.headerText} />
+      </View>
 
       <Text
         style={{
-          fontWeight: 600,
+          fontWeight: '600',
           fontSize: 24,
           color: 'black',
           paddingHorizontal: 20,
@@ -217,7 +182,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
@@ -226,6 +191,7 @@ const styles = StyleSheet.create({
   },
   eventsCarousel: {
     marginTop: 16,
+    paddingHorizontal: 20,
   },
   eventsCarouselContent: {
     paddingHorizontal: 20,
@@ -273,6 +239,26 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: '#000',
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E8E8E8',
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
   },
   emptyEventsContainer: {
     backgroundColor: '#e5e5e5',

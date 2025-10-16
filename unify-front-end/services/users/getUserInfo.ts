@@ -6,6 +6,7 @@ export interface UserInfo {
   createdAt: string;
   followingCount: number;
   followerCount: number;
+  profilePictureUrl?: string;
 }
 
 export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
@@ -26,7 +27,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     // Get user info
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, username, created_at')
+      .select('id, username, created_at, profile_picture_url')
       .eq('id', targetUserId)
       .single();
 
@@ -64,6 +65,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       createdAt: userData.created_at,
       followingCount: followingCount || 0,
       followerCount: followerCount || 0,
+      profilePictureUrl: userData.profile_picture_url,
     };
   } catch (error) {
     console.error('Error fetching user info:', error);

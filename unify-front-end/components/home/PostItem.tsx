@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
@@ -7,134 +7,152 @@ import Save from '@/assets/images/Save.svg';
 import Save_Fill from '@/assets/images/Save_filled.svg';
 import Comment from '@/assets/images/Comment.svg';
 import { PostData } from '@/types/feeds/post';
-import { useGetPostLikes } from '@/hooks/posts/useGetPostLikes';
 import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
-import { useGetPostSaveStatus } from '@/hooks/posts/useGetPostSaveStatus';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Avatar } from '@/components/Avatar';
 
 interface PostItemProps {
   post: PostData;
+  shouldHideContent?: boolean;
+  metadata?: {
+    isLiked: boolean;
+    isSaved: boolean;
+    likeCount: number;
+    commentCount: number;
+  };
+  isLoading?: boolean;
 }
+export const PostItem = memo(
+  ({ post, metadata, isLoading, shouldHideContent }: PostItemProps) => {
+    const router = useRouter();
 
-export const PostItem = ({ post }: PostItemProps) => {
-  const router = useRouter();
+    // Use batch-loaded metadata (no individual queries needed)
+    const likePostMutation = useMutateLikePost();
+    const savePostMutation = useMutateSavePost();
 
-  // Get post likes data
-  const { data: likeData } = useGetPostLikes(post.id);
-  const likePostMutation = useMutateLikePost();
+    const toggleLike = (postId: number, isLiked: boolean) => {
+      likePostMutation.mutate({ postId, isLiked });
+    };
 
-  // Get post save status
-  const { data: saveData } = useGetPostSaveStatus(post.id);
-  const savePostMutation = useMutateSavePost();
+    const toggleSave = (postId: number, isSaved: boolean) => {
+      savePostMutation.mutate({ postId, isSaved });
+    };
 
-  const toggleLike = (postId: number, isLiked: boolean) => {
-    likePostMutation.mutate({ postId, isLiked });
-  };
+    const navigateToUserProfile = () => {
+      router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
+    };
 
-  const toggleSave = (postId: number, isSaved: boolean) => {
-    savePostMutation.mutate({ postId, isSaved });
-  };
+    // Use batch-loaded metadata
+    const likeCount = metadata?.likeCount ?? 0;
+    const isLiked = metadata?.isLiked;
+    const isSaved = metadata?.isSaved;
+    const commentCount = metadata?.commentCount ?? 0;
 
-  const navigateToUserProfile = () => {
-    router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
-  };
-
-  // Use like data from the hook, fallback to 0 if loading
-  const likeCount = likeData?.likeCount;
-  const isLiked = likeData?.userLiked;
-
-  // Use save data from the hook, fallback to post data if loading
-  const isSaved = saveData?.saved;
-
-  return (
-    <View>
-      <View style={styles.postContainer}>
-        {/* Head Shot */}
-        <TouchableOpacity
-          style={styles.headshot}
-          onPress={navigateToUserProfile}
+    return (
+      <View>
+        <View
+          style={[
+            styles.postContainer,
+            { paddingHorizontal: shouldHideContent ? 0 : 20 },
+          ]}
         >
-          {/* TODO: Have to add default headshot */}
-          {post.user.headshot ? (
-            <post.user.headshot />
-          ) : (
-            <Text>No headshot</Text>
-          )}
-        </TouchableOpacity>
-        {/* Post Content */}
-        <View style={styles.postContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity onPress={navigateToUserProfile}>
-              <Text style={styles.name}>{post.user.name}</Text>
-            </TouchableOpacity>
-            <ChevronRight width={6} height={10} />
-            {post.group ? (
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    // cast pathname to any to avoid strict router typing issues
-                    pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
-                    params: { groupName: post.group },
-                  })
-                }
-              >
-                <Text style={styles.group}>{post.group}</Text>
+          {/* Head Shot */}
+          <TouchableOpacity
+            style={styles.headshot}
+            onPress={navigateToUserProfile}
+          >
+            <Avatar
+              profilePictureUrl={post.user.profilePictureUrl}
+              username={post.user.username}
+              size={29}
+            />
+          </TouchableOpacity>
+          {/* Post Content */}
+          <View style={styles.postContent}>
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={navigateToUserProfile}>
+                <Text style={styles.name}>{post.user.name}</Text>
               </TouchableOpacity>
-            ) : (
-              <Text style={styles.group}>No group</Text>
-            )}
-            <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
-          </View>
+              <ChevronRight width={6} height={10} />
+              {!!post.group && (
+                <Text style={styles.group}>{`/${post.group}`}</Text>
+              )}
+              <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+            </View>
 
-          {/* Title */}
-          <View>
-            <Text style={styles.title}>{post.title}</Text>
-          </View>
-          {/* {post.userReply && (
+            {/* Title */}
+            <View>
+              <Text style={styles.title}>{post.title}</Text>
+            </View>
+            {/* {post.userReply && (
             <View style={styles.replyContainer}>
               <Text style={styles.time}>Replying to </Text>
               <Text style={styles.replyUser}>{post.userReply}</Text>
             </View>
           )}  */}
 
-          {/* Content */}
-          <Text style={styles.description}>{post.content}</Text>
+            {/* Content */}
+            {!shouldHideContent && (
+              <Text style={styles.description}>{post.content}</Text>
+            )}
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <View style={styles.footerItem}>
-              <TouchableOpacity onPress={() => toggleLike(post.id, isLiked!)}>
-                {isLiked ? (
-                  <Like_Fill width={20} height={20} />
-                ) : (
-                  <Like width={20} height={20} />
-                )}
-              </TouchableOpacity>
-              <Text style={styles.footerText}>{likeCount}</Text>
-            </View>
-            <View style={styles.footerItem}>
-              <Comment width={20} height={20} fill='gray' />
-              <Text style={styles.footerText}>
-                {/* TODO: make fetch to get comment_count from posts table */}0
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => toggleSave(post.id, isSaved!)}>
-              {isSaved ? (
-                <Save_Fill width={20} height={20} />
+            {/* Footer */}
+            <View style={styles.footer}>
+              {isLoading ? (
+                <SkeletonLoader
+                  width='100%'
+                  height={20}
+                  style={{ marginTop: 8 }}
+                />
               ) : (
-                <Save width={20} height={20} />
+                <>
+                  <View style={styles.footerItem}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (isLiked !== undefined) {
+                          toggleLike(post.id, isLiked);
+                        }
+                      }}
+                    >
+                      {isLiked ? (
+                        <Like_Fill width={20} height={20} />
+                      ) : (
+                        <Like width={20} height={20} />
+                      )}
+                    </TouchableOpacity>
+                    <Text style={styles.footerText}>{likeCount}</Text>
+                  </View>
+                  <View style={styles.footerItem}>
+                    <Comment width={20} height={20} fill='gray' />
+                    <Text style={styles.footerText}>{commentCount}</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (isSaved !== undefined) {
+                        toggleSave(post.id, isSaved);
+                      }
+                    }}
+                  >
+                    {isSaved ? (
+                      <Save_Fill width={20} height={20} />
+                    ) : (
+                      <Save width={20} height={20} />
+                    )}
+                  </TouchableOpacity>
+                </>
               )}
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
+        <View style={styles.divider} />
       </View>
-      <View style={styles.divider} />
-    </View>
-  );
-};
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   postContainer: {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,11 @@ export default function SubmoduleMap() {
     error,
   } = useSubmoduleStages(submoduleId || '');
 
+  // Add state for selected stage
+  const [selectedStageIndex, setSelectedStageIndex] = useState<number | null>(
+    null
+  );
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -47,16 +52,33 @@ export default function SubmoduleMap() {
     );
   }
 
+  // Determine blocked/next/in-progress/completed
+  const circles = submoduleData.stages.map(
+    (stage: any, index: number, arr: any[]) => {
+      const blocked = index > 0 && !arr[index - 1].is_completed;
+      const isCompleted = !!stage.is_completed;
+      // Next is first not completed and not blocked
+      const nextIndex = arr.findIndex(
+        (s: any, idx: number) =>
+          !s.is_completed && (idx === 0 || arr[idx - 1].is_completed)
+      );
+      const isNext = index === nextIndex && !blocked;
+      const inProgress = !isCompleted && stage.progress_percent > 0 && !blocked;
+      return {
+        id: stage.id,
+        title: stage.title,
+        index: index + 1,
+        isCompleted,
+        isNext,
+        inProgress,
+        blocked,
+      };
+    }
+  );
+
   const nextStage =
     submoduleData.stages.find((stage: any) => !stage.is_completed) ||
     submoduleData.stages[0];
-  const circles = submoduleData.stages.map((stage: any, index: number) => ({
-    id: stage.id,
-    title: stage.title,
-    index: index + 1,
-    isCompleted: !!stage.is_completed,
-    inProgress: !stage.is_completed && stage.progress_percent > 0,
-  }));
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -67,43 +89,61 @@ export default function SubmoduleMap() {
         {/* Header */}
         <View style={styles.headerRow}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() =>
+              router.replace({
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]',
+                params: { moduleId, submoduleId },
+              })
+            }
             style={styles.backButton}
           >
             <Feather name='arrow-left' size={24} color='#000' />
           </TouchableOpacity>
         </View>
 
-        {/* Submodule Title Section */}
-        <View style={styles.titleSection}>
+        {/* Submodule Title Section, keeping this commented out incase design changes */}
+        {/* <View style={styles.titleSection}>
           <Text style={styles.title}>{submoduleData.submodule_title}</Text>
-          <Text style={styles.description}>
-            {submoduleData.submodule_description}
-          </Text>
-        </View>
+          <Text style={styles.description}>{submoduleData.submodule_description}</Text>
+        </View> */}
 
-        {/* Optional: focus card for current/next lesson */}
-        {nextStage && (
+        {/* Focus Card: only show if a circle is selected */}
+        {selectedStageIndex !== null && (
           <View style={styles.focusCard}>
             <Text style={styles.focusTitle}>
-              Lesson {submoduleData.stages.indexOf(nextStage) + 1}:{' '}
-              {nextStage.title}
+              Lesson {selectedStageIndex + 1}:{' '}
+              {submoduleData.stages[selectedStageIndex].title}
             </Text>
-            {nextStage.description ? (
+            {submoduleData.stages[selectedStageIndex].description ? (
               <Text style={styles.focusDescription} numberOfLines={3}>
-                {nextStage.description}
+                {submoduleData.stages[selectedStageIndex].description}
               </Text>
             ) : null}
             <TouchableOpacity
               style={styles.focusCta}
               onPress={() => {
-                /* navigate to lesson later */
+                router.push({
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/stages/[stageId]' as any,
+                  params: {
+                    moduleId,
+                    submoduleId,
+                    stageId: submoduleData.stages[selectedStageIndex].id,
+                  },
+                });
               }}
+              disabled={circles[selectedStageIndex].blocked}
             >
-              <Text style={styles.focusCtaText}>
-                {nextStage.is_completed
+              <Text
+                style={[
+                  styles.focusCtaText,
+                  circles[selectedStageIndex].blocked && styles.textBlocked,
+                ]}
+              >
+                {submoduleData.stages[selectedStageIndex].is_completed
                   ? 'Retake Lesson'
-                  : nextStage.progress_percent > 0
+                  : submoduleData.stages[selectedStageIndex].progress_percent >
+                      0
                     ? 'Resume Lesson'
                     : 'Start Lesson'}
               </Text>
@@ -115,6 +155,7 @@ export default function SubmoduleMap() {
         <View style={styles.zigzagContainer}>
           {circles.map((c, i) => {
             const leftSide = i % 2 === 0;
+            const isActive = c.isNext || c.inProgress;
             return (
               <View key={c.id}>
                 <View style={styles.zRow}>
@@ -124,19 +165,36 @@ export default function SubmoduleMap() {
                     }
                   />
                   <TouchableOpacity
-                    activeOpacity={0.8}
+                    activeOpacity={c.blocked ? 1 : 0.8}
                     style={[
                       styles.circleWrap,
                       c.isCompleted
                         ? styles.circleCompleted
-                        : c.inProgress
-                          ? styles.circleInProgress
-                          : styles.circleDefault,
+                        : c.blocked
+                          ? styles.circleBlocked
+                          : isActive
+                            ? styles.circleActive
+                            : styles.circleNormal,
                     ]}
-                    onPress={() => console.log('Stage tapped:', c.title)}
+                    onPress={() => {
+                      if (!c.blocked) setSelectedStageIndex(i);
+                    }}
+                    disabled={c.blocked}
                   >
                     {c.isCompleted ? (
-                      <Feather name='check' size={32} color='#fff' />
+                      <View style={styles.circleCompletedInner}>
+                        <Feather name='check' size={60} color='#fff' />
+                      </View>
+                    ) : c.blocked ? (
+                      <View style={styles.circleBlockedInner}>
+                        <Text style={styles.circleBlockedLabel}>Lesson</Text>
+                        <Text style={styles.circleBlockedIndex}>{c.index}</Text>
+                      </View>
+                    ) : isActive ? (
+                      <View style={styles.circleActiveInner}>
+                        <Text style={styles.circleActiveLabel}>Lesson</Text>
+                        <Text style={styles.circleActiveIndex}>{c.index}</Text>
+                      </View>
                     ) : (
                       <View style={{ alignItems: 'center' }}>
                         <Text style={styles.circleLabelTop}>Lesson</Text>
@@ -161,11 +219,7 @@ export default function SubmoduleMap() {
                     <Text
                       style={[
                         styles.stageTitleText,
-                        c.isCompleted
-                          ? styles.titleCompleted
-                          : c.inProgress
-                            ? styles.titleInProgress
-                            : styles.titleDefault,
+                        c.blocked && styles.textBlocked,
                       ]}
                       numberOfLines={2}
                     >
@@ -195,7 +249,7 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F4F4F4',
   },
   container: {
     paddingHorizontal: 20,
@@ -261,11 +315,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   focusCta: {
-    backgroundColor: '#4B5563',
-    alignSelf: 'flex-start',
+    backgroundColor: '#575757',
+    alignSelf: 'stretch',
+    width: '100%',
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     borderRadius: 12,
+    marginTop: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   focusCtaText: {
     color: '#fff',
@@ -280,17 +338,17 @@ const styles = StyleSheet.create({
   zRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 13,
+    marginVertical: 9,
   },
   zRowLabel: {
     marginBottom: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
   },
   zRowLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 0,
-    marginBottom: 22,
+    marginBottom: 10,
   },
   labelLeft: { alignItems: 'flex-start' },
   labelRight: { alignItems: 'flex-end' },
@@ -299,52 +357,109 @@ const styles = StyleSheet.create({
   spacerGrowLarge: { flex: 1.5 },
   spacerGrowSmall: { flex: 0.5 },
   circleWrap: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 110,
+    height: 110,
+    borderRadius: 60,
     borderWidth: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F3F4F6',
-    borderColor: '#D1D5DB',
+    backgroundColor: '#fff',
+    borderColor: '#E5E5E5',
   },
-  labelBox: {
-    width: 100,
-    alignItems: 'center',
+  circleNormal: {
+    backgroundColor: '#fff',
+    borderColor: '#E5E5E5',
   },
-  circleDefault: {
-    backgroundColor: '#F3F4F6',
-    borderColor: '#E5E7EB',
-  },
-  circleInProgress: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#F59E0B',
-  },
+  // --- COMPLETED CIRCLE STYLES ---
   circleCompleted: {
-    backgroundColor: '#10B981',
-    borderColor: '#059669',
+    backgroundColor: '#fff',
+    borderColor: '#A0A0A0',
   },
+  circleCompletedInner: {
+    width: 91,
+    height: 91,
+    borderRadius: 45.5,
+    backgroundColor: '#A0A0A0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // --- END COMPLETED CIRCLE STYLES ---
+  circleBlocked: {
+    backgroundColor: '#fff',
+    borderColor: '#dcdcdc',
+  },
+  circleBlockedInner: {
+    width: 91,
+    height: 91,
+    borderRadius: 44,
+    backgroundColor: '#E5E5E5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circleBlockedLabel: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    fontWeight: '500',
+    marginBottom: -2,
+  },
+  circleBlockedIndex: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#9CA3AF',
+  },
+  // --- ACTIVE CIRCLE STYLES ---
+  circleActive: {
+    backgroundColor: '#F8F9FA',
+    borderColor: '#A0A0A0',
+  },
+  circleActiveInner: {
+    width: 91,
+    height: 91,
+    borderRadius: 44,
+    backgroundColor: '#A0A0A0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  circleActiveLabel: {
+    fontSize: 16,
+    color: '#222',
+    fontWeight: '600',
+    marginBottom: -2,
+  },
+  circleActiveIndex: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#222',
+  },
+  // --- END ACTIVE CIRCLE STYLES ---
   circleLabelTop: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: -4,
+    fontSize: 16,
+    color: '#222',
+    fontWeight: '500',
+    marginBottom: -2,
   },
   circleIndex: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#111827',
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#222',
   },
   stageTitleText: {
     fontSize: 15,
     fontWeight: '700',
     marginHorizontal: 0,
     textAlign: 'center',
+    color: '#222',
   },
-  titleDefault: { color: '#1F2937' },
-  titleInProgress: { color: '#92400E' },
-  titleCompleted: { color: '#065F46' },
-
-  // (old resume button styles removed)
+  labelBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 0,
+    minHeight: 40,
+  },
+  textBlocked: {
+    color: '#BDBDBD',
+  },
 
   // Loading and Error States
   loadingContainer: {
