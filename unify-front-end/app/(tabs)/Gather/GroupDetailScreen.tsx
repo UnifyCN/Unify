@@ -105,6 +105,7 @@ const GroupDetailScreen = () => {
     data: postsData,
     fetchNextPage,
     isLoading: postsLoading,
+    refetch,
   } = useGroupPosts(groupId);
   const posts =
     (postsData as any)?.pages.flatMap((page: any) => page.posts) ?? [];
@@ -116,7 +117,7 @@ const GroupDetailScreen = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetchNextPage();
+      await refetch();
     } finally {
       setRefreshing(false);
     }

@@ -27,7 +27,6 @@ export default function SearchGroupsList({
               profilePictureUrl={group.coverPhotoUrl || undefined}
               username={group.name}
               size={56}
-              style={styles.groupAvatar}
             />
 
             <View style={styles.groupInfo}>
@@ -62,11 +61,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 12,
     gap: 16,
-  },
-  groupAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
   },
   groupInfo: {
     flex: 1,

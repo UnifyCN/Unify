@@ -35,11 +35,6 @@ const TabIcon = ({ IconComponent, title, focused }: any) => {
 };
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const router = useRouter();
-  const pathname = usePathname();
-  const [currentTab, setCurrentTab] = useState('index');
-
   return (
     <HeaderVisibilityProvider>
       <InnerLayout />
