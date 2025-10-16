@@ -117,8 +117,6 @@ const EventsScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* ensure header hidden on this screen */}
-      <></>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Feather name='chevron-left' size={24} color='#000' />
@@ -231,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 60,
   },
   headerTitle: {
     fontSize: 24,

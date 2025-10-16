@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Group } from '@/types/groups';
+import { Avatar } from '@/components/Avatar';
 
 interface GroupsListProps {
   groups: Group[];
@@ -22,9 +23,12 @@ export default function SearchGroupsList({
             style={styles.groupOption}
             onPress={() => onGroupSelect(group)}
           >
-            <View style={styles.groupAvatar}>
-              {/* You can add an image here later or keep it as a placeholder */}
-            </View>
+            <Avatar
+              profilePictureUrl={group.coverPhotoUrl || undefined}
+              username={group.name}
+              size={56}
+              style={styles.groupAvatar}
+            />
 
             <View style={styles.groupInfo}>
               <Text style={styles.groupName}>{group.name}</Text>
@@ -63,7 +67,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#D1D1D6', // Gray placeholder circle
   },
   groupInfo: {
     flex: 1,

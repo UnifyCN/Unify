@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { getFeedGroups } from '@/services/feeds/getGroupsFeed';
+import { getPostsFromJoinedGroups } from '@/services/feeds/getPostsFromJoinedGroups';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 
 export const useGroupsFeed = () => {
@@ -11,7 +11,7 @@ export const useGroupsFeed = () => {
     string | undefined
   >({
     queryKey: ['feed', 'groups'],
-    queryFn: ({ pageParam }) => getFeedGroups(pageParam),
+    queryFn: ({ pageParam }) => getPostsFromJoinedGroups(pageParam),
     initialPageParam: undefined,
     getNextPageParam: lastPage => lastPage.next_cursor,
     staleTime: 1000 * 60 * 2, // 2 minutes

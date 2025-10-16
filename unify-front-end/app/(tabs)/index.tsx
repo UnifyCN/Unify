@@ -93,8 +93,8 @@ const NewsTipsSection = () => (
 const GatherEventsSection = () => {
   return (
     <View style={[styles.section, { paddingHorizontal: 20 }]}>
-      <EventsCarousel 
-        title="Upcoming Gather Events" 
+      <EventsCarousel
+        title='Upcoming Gather Events'
         titleStyle={styles.sectionTitle}
       />
     </View>

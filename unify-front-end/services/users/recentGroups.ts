@@ -18,7 +18,8 @@ export const saveRecentGroups = async (userId: string, groupId: number) => {
 export async function getRecentGroupsWithData(userId: string) {
   const { data, error } = await supabase
     .from('user_recent_groups')
-    .select(`
+    .select(
+      `
       group_id,
       groups!group_id(
         id,
@@ -28,7 +29,8 @@ export async function getRecentGroupsWithData(userId: string) {
         cover_photo_url,
         created_at
       )
-    `)
+    `
+    )
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(3);

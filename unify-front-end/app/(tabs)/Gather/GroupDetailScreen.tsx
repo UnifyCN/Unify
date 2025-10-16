@@ -4,25 +4,27 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  FlatList,
-  ActivityIndicator,
   SafeAreaView,
+  Animated,
+  Easing,
+  RefreshControl,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { Share, Alert } from 'react-native';
-import * as Linking from 'expo-linking';
 import { Group } from '@/types/groups';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
-import { getAllGroups } from '@/services/groups/getAllGroups';
+import { getGroupByName } from '@/services/groups/getGroupByName';
 import { PostItem } from '@/components/home/PostItem';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import { useGroupPosts } from '@/hooks/feeds/useGroupPosts';
 import { joinGroup } from '@/services/groups/joinGroup';
 import { leaveGroup } from '@/services/groups/leaveGroup';
 import { checkUserGroupMembership } from '@/services/groups/checkUserGroupMembership';
+import { usePostMetadata } from '@/hooks/usePostMetadata';
+import { PostData } from '@/types/feeds/post';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -33,15 +35,25 @@ const GroupDetailScreen = () => {
   const [loading, setLoading] = useState(false);
   const [isMember, setIsMember] = useState<boolean | null>(null);
   const [joining, setJoining] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const headerOpacity = useRef(new Animated.Value(0)).current;
 
   const { setVisible } = useHeaderVisibility();
 
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    // Always hide the main header when this screen is active
     setVisible(false);
     return () => setVisible(true);
-  }, [setVisible]);
+  }, []);
+
+  useEffect(() => {
+    // Reset header opacity when component mounts
+    headerOpacity.setValue(0);
+    setIsAtTop(true);
+  }, [headerOpacity]);
 
   useEffect(() => {
     let mounted = true;
@@ -54,9 +66,8 @@ const GroupDetailScreen = () => {
           if (!name) return;
 
           setLoading(true);
-          const groups = await getAllGroups();
+          const found = await getGroupByName(name);
           if (!mounted) return;
-          const found = groups.find(g => g.name === name);
           if (found) {
             setGroupData(found);
             // Check membership for the found group
@@ -89,14 +100,27 @@ const GroupDetailScreen = () => {
   }, [groupName]);
 
   // posts for this group
-  const group_id = groupData?.id;
-  const postsQuery = useGroupPosts(group_id);
-  const posts = useMemo(() => {
-    const d: any = postsQuery.data;
-    if (!d) return [];
-    if (d.pages) return d.pages.flatMap((p: any) => p.posts ?? []);
-    return d.posts ?? [];
-  }, [postsQuery.data]);
+  const groupId = groupData?.id;
+  const {
+    data: postsData,
+    fetchNextPage,
+    isLoading: postsLoading,
+  } = useGroupPosts(groupId);
+  const posts =
+    (postsData as any)?.pages.flatMap((page: any) => page.posts) ?? [];
+
+  // Get post IDs for metadata fetching
+  const postIds = posts.map((post: PostData) => post.id);
+  const { data: postMetadata } = usePostMetadata(postIds);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchNextPage();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleJoinToggle = async () => {
     if (!groupData) return;
@@ -124,6 +148,7 @@ const GroupDetailScreen = () => {
         // Optimistically update UI for joining
 
         await joinGroup(groupData.id);
+        queryClient.invalidateQueries({ queryKey: ['joined-groups'] });
         setIsMember(true);
         setGroupData(prev =>
           prev
@@ -147,13 +172,7 @@ const GroupDetailScreen = () => {
           : prev
       );
     } finally {
-      // invalidate group detail and groups feed so lists refresh
-      queryClient.invalidateQueries({ queryKey: ['group', groupData.id] });
-      queryClient.invalidateQueries({ queryKey: ['groups'] });
-      // also invalidate feed caches so the feed reflects membership changes
-      queryClient.invalidateQueries({ queryKey: ['feed', 'groups'] });
-      queryClient.invalidateQueries({ queryKey: ['feed', 'forYou'] });
-      queryClient.invalidateQueries({ queryKey: ['feed', 'following'] });
+      queryClient.refetchQueries({ queryKey: ['feed', 'groups'] });
       setJoining(false);
     }
   };
@@ -161,7 +180,68 @@ const GroupDetailScreen = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Loading group...</Text>
+        {/* Cover Image Skeleton */}
+        <SkeletonLoader
+          width='100%'
+          height={330}
+          style={styles.imageContainer}
+        />
+
+        {/* Group Info Skeleton */}
+        <View style={styles.card}>
+          <SkeletonLoader width='60%' height={28} style={{ marginBottom: 8 }} />
+          <SkeletonLoader
+            width='30%'
+            height={16}
+            style={{ marginBottom: 12 }}
+          />
+          <SkeletonLoader
+            width='100%'
+            height={16}
+            style={{ marginBottom: 4 }}
+          />
+          <SkeletonLoader width='80%' height={16} style={{ marginBottom: 4 }} />
+          <SkeletonLoader width='60%' height={16} />
+        </View>
+
+        {/* Posts Skeleton */}
+        <View style={{ backgroundColor: '#fff' }}>
+          {[1, 2, 3].map(i => (
+            <View key={i} style={styles.postSkeleton}>
+              <View style={styles.postSkeletonHeader}>
+                <SkeletonLoader width={40} height={40} borderRadius={20} />
+                <View style={styles.postSkeletonContent}>
+                  <SkeletonLoader
+                    width='40%'
+                    height={16}
+                    style={{ marginBottom: 4 }}
+                  />
+                  <SkeletonLoader width='20%' height={12} />
+                </View>
+              </View>
+              <SkeletonLoader
+                width='100%'
+                height={20}
+                style={{ marginVertical: 8 }}
+              />
+              <SkeletonLoader
+                width='90%'
+                height={16}
+                style={{ marginBottom: 4 }}
+              />
+              <SkeletonLoader
+                width='70%'
+                height={16}
+                style={{ marginBottom: 12 }}
+              />
+              <View style={styles.postSkeletonFooter}>
+                <SkeletonLoader width={60} height={16} />
+                <SkeletonLoader width={40} height={16} />
+                <SkeletonLoader width={30} height={16} />
+              </View>
+            </View>
+          ))}
+        </View>
       </View>
     );
   }
@@ -175,106 +255,160 @@ const GroupDetailScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* header image area */}
-      <View style={styles.imageContainer}>
-        {groupData.coverPhotoUrl ? (
-          <Image
-            source={{ uri: groupData.coverPhotoUrl }}
-            style={styles.eventImage}
-          />
-        ) : (
-          <View style={styles.imagePlaceholder} />
-        )}
+    <View style={styles.container} key={groupData.id}>
+      {/* Header */}
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            backgroundColor: headerOpacity.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['transparent', '#fff'],
+              extrapolate: 'clamp',
+            }),
+          },
+        ]}
+      >
+        <SafeAreaView>
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <View style={styles.backButton}>
+                <Feather
+                  name='chevron-left'
+                  size={24}
+                  color={isAtTop ? '#fff' : '#000'}
+                />
+              </View>
+            </TouchableOpacity>
+            <View style={{ flex: 1 }} />
+          </View>
+        </SafeAreaView>
+      </Animated.View>
 
-        <View style={styles.header} pointerEvents='box-none'>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Feather name='chevron-left' size={24} color='#fff' />
-          </TouchableOpacity>
-          <View style={{ flex: 1 }} />
-          {/* TODO: SHARE BUTTON */}
-          {/* <TouchableOpacity
-            accessibilityLabel='Share group'
-            accessibilityRole='button'
-            onPress={async () => {
-              try {
-                const title = groupData.name;
-                const text = 'Join this group in the Unify App!';
-                // Use expo-linking to build a deep link using the app's configured scheme
-                const deepLink = Linking.createURL(`group/${groupData.id}`);
-
-                // On Android the 'message' should include the link; on iOS the 'url' field may be used
-                await Share.share({
-                  title,
-                  message: `${text}\n\n${deepLink}`,
-                  url: deepLink,
-                });
-              } catch (err) {
-                console.error('Share failed', err);
-                Alert.alert('Error', 'Could not open share dialog');
-              }
-            }}
-            style={styles.shareButton}
-          >
-            <Feather name='share' size={20} color='#fff' />
-          </TouchableOpacity> */}
-        </View>
-
-        {/* Join button on image */}
-        <TouchableOpacity
-          style={styles.joinButton}
-          onPress={handleJoinToggle}
-          disabled={joining}
-        >
-          <Text style={styles.joinText}>{isMember ? 'Joined' : 'Join'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* white card with title/desc */}
-      <View style={styles.card}>
-        <Text style={styles.eventTitle}>{groupData.name}</Text>
-        <Text style={styles.subtitle}>{groupData.memberCount} members</Text>
-        <Text style={styles.aboutText}>{groupData.description}</Text>
-      </View>
-
-      {/* posts list */}
-      <FlatList
+      {/* Single scrollable content */}
+      <Animated.FlatList
         data={posts}
         keyExtractor={item => String(item.id)}
-        renderItem={({ item }) => <PostItem post={item} />}
-        ListEmptyComponent={() => (
-          <View style={{ padding: 20 }}>
-            <Text style={{ color: '#666' }}>No posts yet</Text>
-          </View>
+        renderItem={({ item }) => (
+          <PostItem post={item} metadata={postMetadata?.[item.id]} />
         )}
-        onEndReached={() => postsQuery.fetchNextPage()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListHeaderComponent={() => (
+          <>
+            {/* header image area */}
+            <View style={styles.imageContainer}>
+              {groupData.coverPhotoUrl ? (
+                <Image
+                  source={{ uri: groupData.coverPhotoUrl }}
+                  style={styles.eventImage}
+                />
+              ) : (
+                <View style={styles.imagePlaceholder} />
+              )}
+
+              {/* Join button on image */}
+              <TouchableOpacity
+                style={styles.joinButton}
+                onPress={handleJoinToggle}
+                disabled={joining}
+              >
+                <Text style={styles.joinText}>
+                  {isMember ? 'Joined' : 'Join'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* white card with title/desc */}
+            <View style={styles.card}>
+              <Text style={styles.eventTitle}>{groupData.name}</Text>
+              <Text style={styles.subtitle}>
+                {groupData.memberCount} members
+              </Text>
+              <Text style={styles.aboutText}>{groupData.description}</Text>
+            </View>
+          </>
+        )}
+        ListEmptyComponent={() => {
+          if (postsLoading) return null;
+          return (
+            <View style={styles.emptyState}>
+              <View style={styles.emptyStateContent}>
+                <Feather name='message-circle' size={48} color='#D1D1D6' />
+                <Text style={styles.emptyStateTitle}>No posts yet</Text>
+                <Text style={styles.emptyStateSubtitle}>
+                  Be the first to start the conversation
+                </Text>
+              </View>
+            </View>
+          );
+        }}
+        onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={0.5}
+        onScroll={event => {
+          const offsetY = event.nativeEvent.contentOffset.y;
+          const atTop = offsetY <= 50;
+          setIsAtTop(atTop);
+
+          // Smooth transition with easing
+          Animated.timing(headerOpacity, {
+            toValue: atTop ? 0 : 1,
+            duration: 300,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+          }).start();
+        }}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
       />
 
       {/* floating create post button, prefilled with group */}
       <CreatePostButton />
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#C4C4C4',
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
   header: {
     position: 'absolute',
+    paddingTop: 24,
     top: 0,
     left: 0,
     right: 0,
+    zIndex: 100,
+  },
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 48,
+    paddingTop: 12,
     paddingBottom: 12,
-    backgroundColor: 'transparent',
-    zIndex: 10,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   shareButton: {
     paddingHorizontal: 12,
@@ -342,6 +476,51 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#666',
+  },
+  postSkeleton: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  postSkeletonHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  postSkeletonContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  postSkeletonFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+  emptyState: {
+    backgroundColor: '#fff',
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateContent: {
+    alignItems: 'center',
+    maxWidth: 280,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
 
