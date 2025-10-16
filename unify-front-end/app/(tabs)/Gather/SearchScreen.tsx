@@ -27,6 +27,7 @@ import {
   getRecentGroups,
 } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
+import { SearchHeader } from '@/components/SearchHeader';
 
 export const navigationOptions = {
   headerShown: false,
@@ -136,11 +137,7 @@ const SearchScreen = () => {
 
   const renderPosts = ({ item }: { item: PostData }) => (
     <View style={styles.cardItem}>
-      <PostItem
-        post={item}
-        //TODO: CREATION OF A POST SCREEN
-        //onPress={() => groupPress(item)}
-      />
+      <PostItem post={item} shouldHideContent />
     </View>
   );
   const renderGroup = ({ item }: { item: Group }) => (
@@ -211,19 +208,8 @@ const SearchScreen = () => {
   }
 
   return (
-    <View
-      style={[
-        styles.searchContainer,
-        { backgroundColor: '#ffffffff', paddingTop: 0 },
-      ]}
-    >
-      <View style={[styles.header, { paddingTop: 0 }]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name='chevron-left' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Search</Text>
-        <View style={styles.placeholder} />
-      </View>
+    <View style={styles.searchContainer}>
+      <SearchHeader />
 
       <View style={styles.searchInputContainer}>
         <Feather
@@ -355,20 +341,6 @@ const SearchScreen = () => {
 export default SearchScreen;
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
-  },
-  placeholder: {
-    width: 40,
-  },
   cardItem: {
     width: '100%',
   },
@@ -407,8 +379,9 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 20,
-    marginTop: 0,
+    paddingTop: 20,
     flex: 1,
+    backgroundColor: '#ffffffff',
   },
   searchInputContainer: {
     flexDirection: 'row',

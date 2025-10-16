@@ -1,17 +1,11 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPosts } from '@/services/posts/getAllPosts';
 import { PostData } from '@/types/feeds/post';
-import { Feather } from '@expo/vector-icons';
 import { PostItem } from '@/components/home/PostItem';
+import { SearchHeader } from '@/components/SearchHeader';
 
 export default function MorePostsScreen() {
   const { q } = useLocalSearchParams();
@@ -40,23 +34,13 @@ export default function MorePostsScreen() {
         { backgroundColor: '#ffffffff', paddingTop: 0 },
       ]}
     >
-      <View style={[styles.header, { paddingTop: 0 }]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name='chevron-left' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Search</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <SearchHeader />
 
       <FlatList
         data={posts}
         renderItem={renderPosts}
         keyExtractor={(i: PostData) => String(i.id)}
-        contentContainerStyle={[
-          styles.feedContainer,
-          { paddingHorizontal: 0, alignItems: 'stretch' },
-        ]}
-        //ItemSeparatorComponent={() => <View style={styles.divider} />}
+        contentContainerStyle={styles.feedContainer}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -64,26 +48,14 @@ export default function MorePostsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
-  },
-  placeholder: {
-    width: 40,
-  },
   cardWrapper: {
     width: '100%',
   },
   feedContainer: {
     paddingBottom: 44,
     marginBottom: 36,
+    paddingHorizontal: 0,
+    alignItems: 'stretch',
   },
   divider: {
     height: 1,

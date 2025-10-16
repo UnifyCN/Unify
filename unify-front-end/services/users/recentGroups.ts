@@ -1,19 +1,17 @@
 import { supabase } from '@/lib/supabase';
 
 export const saveRecentGroups = async (userId: string, groupId: number) => {
-  // Call 1: Upsert the new search
-  const { data: upsertData, error: upsertError } = await supabase
-    .from('user_recent_groups')
-    .upsert(
-      {
-        user_id: userId,
-        group_id: groupId,
-        created_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,group_id' }
-    );
+  const { error } = await supabase.from('user_recent_groups').upsert(
+    {
+      user_id: userId,
+      group_id: groupId,
+      created_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id,group_id' }
+  );
 
-  if (upsertError) return { error: upsertError };
+  if (error) return { error };
+  return { error: null };
 };
 
 export async function getRecentGroups(userId: string) {

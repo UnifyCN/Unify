@@ -1,18 +1,12 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { useLocalSearchParams, router } from 'expo-router';
+import { View, FlatList, StyleSheet } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { useGroups } from '@/hooks/groups/useGroups';
 import GroupCard from './GroupCard';
 import { Group } from '@/types/groups';
 import { saveRecentGroups } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
+import { SearchHeader } from '@/components/SearchHeader';
 
 export default function MoreGroupsScreen() {
   const { q } = useLocalSearchParams();
@@ -52,13 +46,7 @@ export default function MoreGroupsScreen() {
         { backgroundColor: '#ffffffff', paddingTop: 0 },
       ]}
     >
-      <View style={[styles.header, { paddingTop: 0 }]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name='chevron-left' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Search</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <SearchHeader />
 
       <FlatList
         data={filtered}
@@ -72,20 +60,6 @@ export default function MoreGroupsScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 16,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
-  },
-  placeholder: {
-    width: 40,
-  },
   searchContainer: {
     paddingHorizontal: 20,
     marginTop: 0,

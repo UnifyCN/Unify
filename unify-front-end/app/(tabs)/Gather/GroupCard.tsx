@@ -1,6 +1,7 @@
 import { memo } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Group } from '@/types/groups';
+import { Avatar } from '@/components/Avatar';
 
 interface GroupCardProps {
   group: Group;
@@ -11,14 +12,11 @@ const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
   return (
     <TouchableOpacity style={[styles.groupCard]} onPress={onPress}>
       <View style={styles.imageContainer}>
-        {group.coverPhotoUrl ? (
-          <Image
-            source={{ uri: group.coverPhotoUrl }}
-            style={styles.groupImage}
-          />
-        ) : (
-          <View style={styles.groupImagePlaceholder} />
-        )}
+        <Avatar
+          profilePictureUrl={group.coverPhotoUrl || undefined}
+          username={group.name}
+          size={48}
+        />
       </View>
       <View style={styles.groupContent}>
         <Text style={styles.groupTitle} numberOfLines={2}>
@@ -49,18 +47,6 @@ const styles = StyleSheet.create({
     width: 58,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  groupImagePlaceholder: {
-    height: 48,
-    backgroundColor: '#A6A6A6',
-    width: 48,
-    borderRadius: 24,
-  },
-  groupImage: {
-    height: 48,
-    width: 48,
-    borderRadius: 24,
-    resizeMode: 'cover',
   },
   groupContent: {
     paddingHorizontal: 12,

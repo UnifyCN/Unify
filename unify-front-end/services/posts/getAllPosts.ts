@@ -1,7 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
-import { Search } from 'lucide-react-native';
 
 export const getAllPosts = async (
   cursor?: string,
@@ -29,9 +28,7 @@ export const getAllPosts = async (
 			`
     );
     if (searchQuery) {
-      query = query.or(
-        `title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`
-      );
+      query = query.or(`title.ilike.%${searchQuery}%`);
     }
     // .order('posts.created_at', { ascending: false }) // this doesn't work
     query = query.range(
@@ -56,8 +53,8 @@ export const getAllPosts = async (
           name: row.users.username,
         } as User,
         content: row.content,
-        group: row.groups ? row.groups.group_name : undefined,
-        title: row.title ?? 'No-Title',
+        group: row.groups.group_name,
+        title: row.title,
         time: row.created_at,
       }));
 
