@@ -44,7 +44,15 @@ CREATE TABLE post_comments (
     post_id INT REFERENCES posts(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     parent_comment_id INT REFERENCES post_comments(id) ON DELETE SET NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
+    like_count INTEGER DEFAULT 0
+);
+
+-- Comment Likes table
+CREATE TABLE comment_likes (
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    comment_id INT REFERENCES post_comments(id) ON DELETE CASCADE,    
+    PRIMARY KEY (user_id, comment_id)
 );
 
 -- Tags table
@@ -207,6 +215,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION public.update_comment_like_count()
+RETURNS trigger AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+  -- Increment like count when a like is removed
+    UPDATE post_comments
+    SET like_count = like_count + 1
+    WHERE id = NEW.comment_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+  -- Decrement like count when a like is removed
+    UPDATE post_comments
+    SET like_count = like_count - 1
+    WHERE id = OLD.comment_id;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
 CREATE OR REPLACE FUNCTION public.update_group_member_count()
 RETURNS trigger AS $$
 BEGIN
@@ -238,3 +267,7 @@ CREATE TRIGGER on_post_like_change
 CREATE TRIGGER on_group_member_change
   AFTER INSERT OR DELETE ON group_members
   FOR EACH ROW EXECUTE FUNCTION public.update_group_member_count();
+
+CREATE TRIGGER on_comment_like_change
+  AFTER INSERT OR DELETE ON comment_likes
+  FOR EACH ROW EXECUTE FUNCTION public.update_comment_like_count();

@@ -35,11 +35,11 @@ export const ProfilePictureUpload = ({
 
   const invalidateAllQueries = () => {
     queryClient.invalidateQueries({ queryKey: ['userInfo', userId] });
-    queryClient.invalidateQueries({ queryKey: ['forYouFeed'] });
-    queryClient.invalidateQueries({ queryKey: ['followingFeed'] });
-    queryClient.invalidateQueries({ queryKey: ['groupsFeed'] });
+    queryClient.invalidateQueries({ queryKey: ['feed', 'forYou'] });
+    queryClient.invalidateQueries({ queryKey: ['feed', 'following'] });
+    queryClient.invalidateQueries({ queryKey: ['feed', 'groups'] });
     queryClient.invalidateQueries({ queryKey: ['userPosts', userId] });
-    queryClient.invalidateQueries({ queryKey: ['savedPosts'] });
+    queryClient.invalidateQueries({ queryKey: ['feed', 'savedPosts'] });
   };
 
   useEffect(() => {

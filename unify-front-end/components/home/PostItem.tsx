@@ -14,7 +14,7 @@ import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Avatar } from '@/components/Avatar';
 
-interface PostItemProps {
+export interface PostItemProps {
   post: PostData;
   shouldHideContent?: boolean;
   metadata?: {
@@ -99,12 +99,6 @@ export const PostItem = memo(
             <View>
               <Text style={styles.title}>{post.title}</Text>
             </View>
-            {/* {post.userReply && (
-            <View style={styles.replyContainer}>
-              <Text style={styles.time}>Replying to </Text>
-              <Text style={styles.replyUser}>{post.userReply}</Text>
-            </View>
-          )}  */}
 
             {/* Content */}
             {!shouldHideContent && (
@@ -137,10 +131,20 @@ export const PostItem = memo(
                     </TouchableOpacity>
                     <Text style={styles.footerText}>{likeCount}</Text>
                   </View>
-                  <View style={styles.footerItem}>
+                  <TouchableOpacity
+                    style={styles.footerItem}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/Gather/PostDetails' as any,
+                        params: {
+                          post: JSON.stringify(post),
+                        },
+                      })
+                    }
+                  >
                     <Comment width={20} height={20} fill='gray' />
                     <Text style={styles.footerText}>{commentCount}</Text>
-                  </View>
+                  </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
                       if (isSaved !== undefined) {
