@@ -34,10 +34,11 @@ export const EventsCarousel = ({
   const { data: events, isLoading } = useEvents();
 
   const now = new Date();
-  const upcomingEvents = events?.filter(event => {
-    const eventDate = new Date(event.eventDatetime);
-    return eventDate >= now;
-  }) || [];
+  const upcomingEvents =
+    events?.filter(event => {
+      const eventDate = new Date(event.eventDatetime);
+      return eventDate >= now;
+    }) || [];
 
   const displayEvents = upcomingEvents.slice(0, maxEvents);
 

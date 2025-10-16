@@ -3,7 +3,7 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
 
-export const getFeedGroups = async (
+export const getPostsFromJoinedGroups = async (
   cursor?: string,
   limit = 20
 ): Promise<FeedResponse> => {
@@ -64,7 +64,9 @@ export const getFeedGroups = async (
       .range(offset, offset + limit - 1);
 
     if (error) {
-      throw new Error(`Failed to fetch groups feed: ${error.message}`);
+      throw new Error(
+        `Failed to fetch posts from joined groups: ${error.message}`
+      );
     }
 
     // Transform data to match your Post type
@@ -88,7 +90,7 @@ export const getFeedGroups = async (
         transformedPosts.length === limit ? String(offset + limit) : undefined,
     };
   } catch (error) {
-    console.error('Error fetching groups feed:', error);
+    console.error('Error fetching posts from joined groups:', error);
     throw error;
   }
 };

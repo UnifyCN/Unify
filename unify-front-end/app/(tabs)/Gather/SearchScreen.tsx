@@ -37,7 +37,8 @@ const SearchScreen = () => {
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const { data: searchGroups, isLoading: searchGroupsLoading } = useSearchGroups(searchQuery);
+  const { data: searchGroups, isLoading: searchGroupsLoading } =
+    useSearchGroups(searchQuery);
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -62,7 +63,8 @@ const SearchScreen = () => {
         const { searches } = await getRecentSearches(userId);
         setRecentSearches(searches);
 
-        const { groups: recentGroupsData } = await getRecentGroupsWithData(userId);
+        const { groups: recentGroupsData } =
+          await getRecentGroupsWithData(userId);
         setRecentGroups(recentGroupsData);
       } catch (err) {
         console.error('loading error', err);
@@ -312,15 +314,19 @@ const SearchScreen = () => {
           </>
         )}
 
-        {searchQuery && !foundGroup && !foundPost && !searchGroupsLoading && !searchLoading && (
-          <View style={styles.emptyContainer}>
-            <Feather name='calendar' size={48} color='#ccc' />
-            <Text style={styles.emptyText}>No Posts or Groups available</Text>
-            <Text style={styles.emptySubtext}>
-              Check back later for new entries!
-            </Text>
-          </View>
-        )}
+        {searchQuery &&
+          !foundGroup &&
+          !foundPost &&
+          !searchGroupsLoading &&
+          !searchLoading && (
+            <View style={styles.emptyContainer}>
+              <Feather name='calendar' size={48} color='#ccc' />
+              <Text style={styles.emptyText}>No Posts or Groups available</Text>
+              <Text style={styles.emptySubtext}>
+                Check back later for new entries!
+              </Text>
+            </View>
+          )}
       </ScrollView>
     </View>
   );
