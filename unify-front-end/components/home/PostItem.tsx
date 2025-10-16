@@ -78,8 +78,19 @@ export const PostItem = memo(
                 <Text style={styles.name}>{post.user.name}</Text>
               </TouchableOpacity>
               <ChevronRight width={6} height={10} />
-              {!!post.group && (
-                <Text style={styles.group}>{`/${post.group}`}</Text>
+              {post.group ? (
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+                      params: { groupName: post.group },
+                    })
+                  }
+                >
+                  <Text style={styles.group}>{post.group}</Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={styles.group}>No group</Text>
               )}
               <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
             </View>
