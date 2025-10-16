@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, useRouter, usePathname } from 'expo-router';
 import { Colors } from '@/constants/Colors';
+import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Header from '@/components/Header';
 import HeaderVisibilityProvider, {
@@ -57,13 +58,17 @@ function InnerLayout() {
           tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
           tabBarShowLabel: false,
           headerShown: false,
-          tabBarStyle: {
-            flexDirection: 'row',
-            paddingTop: 12,
-            paddingBottom: 52,
-            borderTopWidth: 1,
-            borderTopColor: '#F0F0F0',
-          },
+          tabBarStyle: HIDDEN_TAB_BAR_ROUTES.some(route =>
+            pathname.includes(route)
+          )
+            ? { display: 'none' }
+            : {
+                flexDirection: 'row',
+                paddingTop: 12,
+                paddingBottom: 52,
+                borderTopWidth: 1,
+                borderTopColor: '#F0F0F0',
+              },
         }}
         screenListeners={{
           tabPress: e => {

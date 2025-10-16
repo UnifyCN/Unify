@@ -25,6 +25,7 @@ import { checkUserGroupMembership } from '@/services/groups/checkUserGroupMember
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { PostData } from '@/types/feeds/post';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -208,39 +209,7 @@ const GroupDetailScreen = () => {
         {/* Posts Skeleton */}
         <View style={{ backgroundColor: '#fff' }}>
           {[1, 2, 3].map(i => (
-            <View key={i} style={styles.postSkeleton}>
-              <View style={styles.postSkeletonHeader}>
-                <SkeletonLoader width={40} height={40} borderRadius={20} />
-                <View style={styles.postSkeletonContent}>
-                  <SkeletonLoader
-                    width='40%'
-                    height={16}
-                    style={{ marginBottom: 4 }}
-                  />
-                  <SkeletonLoader width='20%' height={12} />
-                </View>
-              </View>
-              <SkeletonLoader
-                width='100%'
-                height={20}
-                style={{ marginVertical: 8 }}
-              />
-              <SkeletonLoader
-                width='90%'
-                height={16}
-                style={{ marginBottom: 4 }}
-              />
-              <SkeletonLoader
-                width='70%'
-                height={16}
-                style={{ marginBottom: 12 }}
-              />
-              <View style={styles.postSkeletonFooter}>
-                <SkeletonLoader width={60} height={16} />
-                <SkeletonLoader width={40} height={16} />
-                <SkeletonLoader width={30} height={16} />
-              </View>
-            </View>
+            <SkeletonLoaderPostItem key={i} />
           ))}
         </View>
       </View>
@@ -477,27 +446,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#666',
-  },
-  postSkeleton: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  postSkeletonHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  postSkeletonContent: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  postSkeletonFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
   },
   emptyState: {
     backgroundColor: '#fff',

@@ -2,12 +2,12 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
-import Comment from '@/assets/images/Comment.svg';
 import { formatSmartTime } from '@/utils/dateUtils';
 import { useMutateLikeComment } from '@/hooks/posts/useMutateLikeComment';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { PostCommentData } from '@/types/feeds/postcomment';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Avatar } from '@/components/Avatar';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -25,13 +25,16 @@ const PostCommentItem = memo(
     // Hook for liking and unliking comments
     const likeCommentMutation = useMutateLikeComment();
 
-    const toggleLike = (commentId: number, isLiked: boolean) => {
-      likeCommentMutation.mutate({ commentId, isLiked });
-    };
+    const toggleLike = useCallback(
+      (commentId: number, isLiked: boolean) => {
+        likeCommentMutation.mutate({ commentId, isLiked });
+      },
+      [likeCommentMutation]
+    );
 
-    const navigateToUserProfile = () => {
+    const navigateToUserProfile = useCallback(() => {
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
-    };
+    }, [comment.user_id]);
 
     // Use batch-loaded metadata
     const likeCount = metadata?.likeCount ?? 0;
@@ -45,8 +48,11 @@ const PostCommentItem = memo(
             style={styles.headshot}
             onPress={navigateToUserProfile}
           >
-            {/* TODO: Get headshot image */}
-            <Text>No headshot</Text>
+            <Avatar
+              profilePictureUrl={comment.profilePictureUrl}
+              username={comment.username}
+              size={29}
+            />
           </TouchableOpacity>
 
           <View style={styles.postContent}>
@@ -84,10 +90,6 @@ const PostCommentItem = memo(
                       )}
                     </TouchableOpacity>
                     <Text style={styles.footerText}>{likeCount}</Text>
-                  </View>
-                  <View style={styles.footerItem}>
-                    <Comment width={20} height={20} fill='gray' />
-                    <Text style={styles.footerText}>0</Text>
                   </View>
                 </>
               )}
@@ -131,49 +133,18 @@ const styles = StyleSheet.create({
   name: {
     fontWeight: '400',
   },
-  group: {
-    fontWeight: '600',
-  },
   time: {
     fontSize: 10,
     color: '#9F9D9D',
     fontWeight: '500',
   },
-  replyUser: {
-    fontSize: 16,
-    textAlign: 'left',
-    color: '#FE0034',
-  },
   description: {
     fontSize: 14,
     lineHeight: 20,
   },
-  replyContainer: {
-    flexDirection: 'row',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 60, // same as paddingTop defined in <Header> component
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  backButton: {
-    marginRight: 8,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#343434',
-  },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 32,
   },
   footerItem: {
     flexDirection: 'row',
@@ -186,11 +157,6 @@ const styles = StyleSheet.create({
   divider: {
     width: '100%',
     height: 1,
-    backgroundColor: '#E5E5E5',
-  },
-  largeDivider: {
-    width: '100%',
-    height: 4,
     backgroundColor: '#E5E5E5',
   },
 });

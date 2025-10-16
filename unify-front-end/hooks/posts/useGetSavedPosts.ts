@@ -3,7 +3,7 @@ import { getSavedPosts } from '@/services/posts/getSavedPosts';
 
 export const useGetSavedPosts = () => {
   return useInfiniteQuery({
-    queryKey: ['saved-posts'],
+    queryKey: ['feed', 'savedPosts'],
     queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
       getSavedPosts(pageParam),
     initialPageParam: undefined,

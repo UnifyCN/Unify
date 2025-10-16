@@ -12,20 +12,33 @@ export const useMutateLikeComment = () => {
       commentId: number;
       isLiked: boolean;
     }) => {
+      // Optimistically update UI immediately
+      queryClient.setQueriesData(
+        { queryKey: ['comment-metadata'] },
+        (oldData: Record<number, any> | undefined) => {
+          if (!oldData) return oldData;
+
+          const updatedData = { ...oldData };
+          if (updatedData[commentId]) {
+            updatedData[commentId] = {
+              ...updatedData[commentId],
+              isLiked: !isLiked,
+              likeCount: updatedData[commentId].likeCount + (isLiked ? -1 : 1),
+            };
+          }
+          return updatedData;
+        }
+      );
+
+      // Then make server request
       if (isLiked) {
         return await unlikeComment(commentId);
       } else {
         return await likeComment(commentId);
       }
     },
-    onSuccess: (_, { commentId }) => {
-      // Invalidate the specific comment's likes query
-      queryClient.invalidateQueries({
-        queryKey: ['comment-likes', commentId],
-      });
-    },
-    onError: error => {
-      console.error('Error liking/unliking comment:', error);
+    onError: err => {
+      console.error('Error liking/unliking comment:', err);
     },
   });
 };

@@ -39,7 +39,7 @@ export const useMutateSavePost = () => {
     onSuccess: () => {
       // Invalidate saved posts list for profile feed
       queryClient.resetQueries({
-        queryKey: ['saved-posts'],
+        queryKey: ['feed', 'savedPosts'],
       });
     },
     onError: error => {

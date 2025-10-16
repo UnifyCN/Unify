@@ -16,7 +16,7 @@ export const getPostComments = async (
             content,
             parent_comment_id,
             created_at,
-            users!user_id(id, username),
+            users!user_id(id, username, profile_picture_url),
             like_count
         `
       )
@@ -33,6 +33,7 @@ export const getPostComments = async (
       parent_comment_id: comment.parent_comment_id,
       created_at: comment.created_at,
       username: comment.users.username,
+      profilePictureUrl: comment.users.profile_picture_url,
       like_count: comment.like_count,
     }));
   } catch (err) {

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
 interface PostMetadata {
@@ -66,4 +66,53 @@ export const usePostMetadata = (postIds: number[]) => {
     enabled: postIds.length > 0,
     staleTime: 1000 * 30, // 30 seconds
   });
+};
+
+// Helper function to invalidate specific post metadata
+export const useInvalidatePostMetadata = () => {
+  const queryClient = useQueryClient();
+
+  const invalidatePostMetadata = (postId: number) => {
+    // Find all queries that contain this postId
+    queryClient.invalidateQueries({
+      predicate: query => {
+        const queryKey = query.queryKey;
+        if (queryKey[0] === 'post-metadata' && Array.isArray(queryKey[1])) {
+          return queryKey[1].includes(postId);
+        }
+        return false;
+      },
+    });
+  };
+
+  const updatePostMetadata = (
+    postId: number,
+    updates: Partial<PostMetadata>
+  ) => {
+    // Update all queries that contain this postId
+    queryClient.setQueriesData(
+      {
+        predicate: query => {
+          const queryKey = query.queryKey;
+          if (queryKey[0] === 'post-metadata' && Array.isArray(queryKey[1])) {
+            return queryKey[1].includes(postId);
+          }
+          return false;
+        },
+      },
+      (oldData: Record<number, PostMetadata> | undefined) => {
+        if (!oldData || !oldData[postId]) return oldData;
+
+        return {
+          ...oldData,
+          [postId]: {
+            ...oldData[postId],
+            ...updates,
+          },
+        };
+      }
+    );
+  };
+
+  return { invalidatePostMetadata, updatePostMetadata };
 };

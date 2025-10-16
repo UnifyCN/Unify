@@ -71,21 +71,7 @@ export const PostItem = memo(
             />
           </TouchableOpacity>
           {/* Post Content */}
-          <TouchableOpacity
-            style={styles.postContent}
-            onPress={() =>
-              router.push({
-                pathname: '/Gather/PostDetails' as any,
-                params: {
-                  post: JSON.stringify(post),
-                  likeCount: String(likeCount),
-                  isLiked: String(isLiked),
-                  commentCount: String(commentCount),
-                  isSaved: String(isSaved),
-                },
-              })
-            }
-          >
+          <View style={styles.postContent}>
             {/* Header */}
             <View style={styles.header}>
               <TouchableOpacity onPress={navigateToUserProfile}>
@@ -113,12 +99,6 @@ export const PostItem = memo(
             <View>
               <Text style={styles.title}>{post.title}</Text>
             </View>
-            {/* {post.userReply && (
-            <View style={styles.replyContainer}>
-              <Text style={styles.time}>Replying to </Text>
-              <Text style={styles.replyUser}>{post.userReply}</Text>
-            </View>
-          )}  */}
 
             {/* Content */}
             {!shouldHideContent && (
@@ -151,10 +131,20 @@ export const PostItem = memo(
                     </TouchableOpacity>
                     <Text style={styles.footerText}>{likeCount}</Text>
                   </View>
-                  <View style={styles.footerItem}>
+                  <TouchableOpacity
+                    style={styles.footerItem}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/Gather/PostDetails' as any,
+                        params: {
+                          post: JSON.stringify(post),
+                        },
+                      })
+                    }
+                  >
                     <Comment width={20} height={20} fill='gray' />
                     <Text style={styles.footerText}>{commentCount}</Text>
-                  </View>
+                  </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => {
                       if (isSaved !== undefined) {
@@ -171,7 +161,7 @@ export const PostItem = memo(
                 </>
               )}
             </View>
-          </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.divider} />
       </View>

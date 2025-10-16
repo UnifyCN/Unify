@@ -7,6 +7,7 @@ export type PostCommentData = {
   parent_comment_id: number | null;
   created_at: string;
   username: string;
+  profilePictureUrl?: string;
   like_count: number;
 };
 
