@@ -12,10 +12,11 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { useLesson } from '@/hooks/learn/useLesson';
-import { useModule } from '@/hooks/learn/useModule';
-import { useLessonQuizzes } from '@/hooks/useLessonQuizzes';
-import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
+import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
+import { useSanityModule } from '@/hooks/sanity/useSanityModules';
+import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
+import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
+import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import DropdownAccordion from '@/components/learn/DropdownAccordion';
 import { LessonPageContent } from '@/types/learn';
 
@@ -30,10 +31,10 @@ export default function LessonPageScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
-  const { data: lesson, isLoading: loadingLesson } = useLesson(lessonId || '');
-  const { data: moduleData } = useModule(moduleId || '');
-  const { data: quizzes, isLoading: quizzesLoading, error: quizzesError } = useLessonQuizzes(lessonId || '');
-  const { data: submoduleData } = useSubmoduleLessons(submoduleId || '');
+  const { data: lesson, isLoading: loadingLesson } = useSanityLesson(lessonId || '');
+  const { data: moduleData } = useSanityModule(moduleId || '');
+  const { data: quizzes, isLoading: quizzesLoading, error: quizzesError } = useSanityLessonQuizzes(lessonId || '');
+  const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Debug logging
   console.log('Lesson ID:', lessonId);
@@ -47,7 +48,7 @@ export default function LessonPageScreen() {
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
     if (!submoduleData?.lessons) return -1;
-    return submoduleData.lessons.findIndex(l => l.lesson_id === lessonId);
+    return submoduleData.lessons.findIndex(l => l._id === lessonId);
   };
 
   const getNextLesson = () => {
@@ -96,7 +97,7 @@ export default function LessonPageScreen() {
         const firstQuiz = sortedQuizzes[0];
         router.push({
           pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
-          params: { moduleId, submoduleId, lessonId, quizId: firstQuiz.quiz_id },
+          params: { moduleId, submoduleId, lessonId, quizId: firstQuiz._id },
         });
       } else {
         // No quizzes, go to next lesson or back to map if last lesson
@@ -104,7 +105,7 @@ export default function LessonPageScreen() {
         if (nextLesson) {
           router.push({
             pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-            params: { moduleId, submoduleId, lessonId: nextLesson.lesson_id, pageNum: '1' },
+            params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
           });
         } else {
           // Last lesson completed, go back to map
@@ -131,7 +132,7 @@ export default function LessonPageScreen() {
         // Get the last page of the previous lesson
         router.push({
           pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-          params: { moduleId, submoduleId, lessonId: previousLesson.lesson_id, pageNum: '1' },
+          params: { moduleId, submoduleId, lessonId: previousLesson._id, pageNum: '1' },
         });
       } else {
         // First lesson, go back to map
@@ -561,9 +562,16 @@ export default function LessonPageScreen() {
 
         {/* Page contents */}
         <View style={styles.content}>
-          {currentPageData.contents
-            .sort((a, b) => a.order_number - b.order_number)
-            .map((content, index) => renderContent(content, index))}
+          {currentPageData.content
+            .sort((a: any, b: any) => a.order - b.order)
+            .map((content: any, index: number) => {
+              // Use RichTextRenderer for Sanity block content
+              if (content._type === 'block' || content._type === 'image') {
+                return <RichTextRenderer key={content._key || index} blocks={[content]} />;
+              }
+              // Handle other content types (dropdowns, etc.)
+              return renderContent(content, index);
+            })}
         </View>
 
         {/* Navigation buttons */}

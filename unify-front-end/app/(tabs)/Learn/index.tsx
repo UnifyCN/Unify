@@ -14,7 +14,8 @@ import LessonHeroCard from '../../../components/learn/LessonHeroCard';
 import CarouselDots from '../../../components/learn/CarouselDots';
 import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
-import { useAllModules } from '../../../hooks/learn/useAllModules';
+import { useSanityModules } from '../../../hooks/sanity/useSanityModules';
+import { SanityModuleWithSubmodules } from '../../../types/sanity';
 
 export default function Learn() {
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -22,8 +23,8 @@ export default function Learn() {
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
 
-  // Fetch all modules dynamically
-  const { data: modules, isLoading, error } = useAllModules();
+  // Fetch all modules dynamically from Sanity
+  const { data: modules, isLoading, error } = useSanityModules() as { data: SanityModuleWithSubmodules[] | undefined; isLoading: boolean; error: any };
 
   const onMomentumEnd = (e: any) => {
     const x = e.nativeEvent?.contentOffset?.x ?? 0;
@@ -83,10 +84,10 @@ export default function Learn() {
           ) : modules && modules.length > 0 ? (
             modules.map(module => (
               <PathwayCard
-                key={module.id}
+                key={module._id}
                 title={module.title}
-                modulesLabel={`${module.total_submodules} section${module.total_submodules === 1 ? '' : 's'}`}
-                href={`/(tabs)/Learn/modules/${module.id}` as any}
+                modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                href={`/(tabs)/Learn/modules/${module._id}` as any}
               />
             ))
           ) : (

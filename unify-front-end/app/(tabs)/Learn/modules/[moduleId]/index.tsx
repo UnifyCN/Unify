@@ -12,7 +12,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
-import { useModule } from '@/hooks/learn/useModule';
+import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
 // NOTE: THIS FILE IS TO BE DIVIDED TO COMPONENTS AFTER LEARN COMPONENTS CLEAN UP
 // --- safety helpers ---
@@ -44,7 +44,7 @@ const BUBBLE_GAP = 16; // change to move closer/farther from card
 export default function ModuleIndex() {
   const router = useRouter();
   const { moduleId } = useLocalSearchParams<{ moduleId: string }>();
-  const { data: moduleData, isLoading, error } = useModule(moduleId || '');
+  const { data: moduleData, isLoading, error } = useSanityModuleWithSubmodules(moduleId || '');
 
   // rail start/end calculations
   const [progressBottom, setProgressBottom] = useState(0);
@@ -62,7 +62,8 @@ export default function ModuleIndex() {
   // Move this BEFORE early returns
   const latestUncompletedIndex = useMemo(() => {
     if (!moduleData?.submodules) return -1;
-    return moduleData.submodules.findIndex(s => !s.is_completed);
+    // For now, assume all submodules are not completed (we'll implement progress tracking later)
+    return moduleData.submodules.findIndex(s => true);
   }, [moduleData?.submodules]);
 
   const onProgressLayout = (e: LayoutChangeEvent) => {
@@ -109,13 +110,17 @@ export default function ModuleIndex() {
 
   // Normalize list + gating
   const submodules = moduleData.submodules.map((s, i, arr) => {
-    const status = s.is_completed
-      ? 'completed'
-      : s.progress_percent > 0
-        ? 'in-progress'
-        : 'not-started';
+    const status = 'not-started'; // For now, all submodules are not started
     const unlocked = true; // Temporarily make all submodules clickable
-    return { ...s, index: i + 1, status, unlocked };
+    return { 
+      ...s, 
+      id: s._id, // Use Sanity _id
+      index: i + 1, 
+      status, 
+      unlocked,
+      is_completed: false, // For now, assume not completed
+      progress_percent: 0 // For now, assume no progress
+    };
   });
 
   // compute "ahead" on every scroll
@@ -193,14 +198,13 @@ export default function ModuleIndex() {
         {/* Progress Card */}
         <View style={styles.progressCard} onLayout={onProgressLayout}>
           <Text style={styles.progressCentered}>
-            Progress: {moduleData.completed_submodules}/
-            {moduleData.total_submodules} modules completed
+            Progress: 0/{moduleData.submodules?.length || 0} modules completed
           </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${moduleData.progress_percent}%` },
+                { width: '0%' }, // For now, assume no progress
               ]}
             />
           </View>

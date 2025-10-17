@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { useLessonQuizzes } from '@/hooks/useLessonQuizzes';
+import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 
 export default function QuizzesPage() {
   const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
@@ -17,7 +17,7 @@ export default function QuizzesPage() {
     lessonId: string;
   }>();
 
-  const { data: quizzes, isLoading, error } = useLessonQuizzes(lessonId);
+  const { data: quizzes, isLoading, error } = useSanityLessonQuizzes(lessonId);
 
   if (isLoading) {
     return (
@@ -67,7 +67,7 @@ export default function QuizzesPage() {
       <View style={styles.quizzesList}>
         {quizzes.map((quiz, index) => (
           <TouchableOpacity
-            key={quiz.quiz_id}
+            key={quiz._id}
             style={styles.quizCard}
             onPress={() => {
               router.push({
@@ -76,7 +76,7 @@ export default function QuizzesPage() {
                   moduleId,
                   submoduleId,
                   lessonId,
-                  quizId: quiz.quiz_id,
+                  quizId: quiz._id,
                 },
               });
             }}
@@ -91,9 +91,6 @@ export default function QuizzesPage() {
             )}
             
             <View style={styles.quizFooter}>
-              <Text style={styles.passingScore}>
-                Passing Score: {quiz.passing_score}%
-              </Text>
               <Text style={styles.startQuiz}>Start Quiz →</Text>
             </View>
           </TouchableOpacity>

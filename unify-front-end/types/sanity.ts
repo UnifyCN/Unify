@@ -1,0 +1,211 @@
+// Sanity.io types based on the provided schemas
+
+// Base Sanity document structure
+export interface SanityDocument {
+  _id: string;
+  _type: string;
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+}
+
+// Sanity block content (for rich text)
+export interface SanityBlock {
+  _type: 'block';
+  _key: string;
+  style: string;
+  children: SanitySpan[];
+  markDefs: any[];
+}
+
+export interface SanitySpan {
+  _type: 'span';
+  _key: string;
+  text: string;
+  marks: string[];
+}
+
+// Sanity image
+export interface SanityImage {
+  _type: 'image';
+  _key: string;
+  asset: {
+    _ref: string;
+    _type: 'reference';
+  };
+  alt?: string;
+}
+
+// Module type
+export interface SanityModule extends SanityDocument {
+  _type: 'module';
+  title: string;
+  description?: string;
+}
+
+// Submodule type
+export interface SanitySubmodule extends SanityDocument {
+  _type: 'submodule';
+  title: string;
+  description?: string;
+  module: {
+    _ref: string;
+    _type: 'reference';
+  };
+  intro_pages?: SanityIntroPage[];
+  order: number;
+}
+
+export interface SanityIntroPage {
+  _key: string;
+  title: string;
+  order: number;
+  content: (SanityBlock | SanityImage)[];
+}
+
+// Lesson type
+export interface SanityLesson extends SanityDocument {
+  _type: 'lesson';
+  title: string;
+  slug: {
+    current: string;
+    _type: 'slug';
+  };
+  description?: string;
+  submodule: {
+    _ref: string;
+    _type: 'reference';
+  };
+  pages?: SanityLessonPage[];
+  activity_pages?: SanityActivityPage[];
+  order: number;
+}
+
+export interface SanityLessonPage {
+  _key: string;
+  title: string;
+  order: number;
+  content: (SanityBlock | SanityImage | SanityDropdown | SanityExampleBox | SanityTipBox | SanityNoteBox)[];
+}
+
+export interface SanityDropdown {
+  _type: 'dropdown';
+  _key: string;
+  label: string;
+  content: string;
+}
+
+export interface SanityExampleBox {
+  _type: 'example_box';
+  _key: string;
+  content: SanityBlock[];
+}
+
+export interface SanityTipBox {
+  _type: 'tip_box';
+  _key: string;
+  content: SanityBlock[];
+}
+
+export interface SanityNoteBox {
+  _type: 'note_box';
+  _key: string;
+  content: SanityBlock[];
+}
+
+export interface SanityActivityPage {
+  _key: string;
+  title: string;
+  order: number;
+  instructions: SanityBlock[];
+  input_fields?: (SanityLargeInputBox | SanityMidInputBox | SanitySmallInputBox)[];
+  answer_box?: SanityAnswerBox;
+}
+
+export interface SanityLargeInputBox {
+  _type: 'large_input_box';
+  _key: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+}
+
+export interface SanityMidInputBox {
+  _type: 'mid_input_box';
+  _key: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+}
+
+export interface SanitySmallInputBox {
+  _type: 'small_input_box';
+  _key: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+}
+
+export interface SanityAnswerBox {
+  title?: string;
+  content: SanityBlock[];
+  showAfterSubmit: boolean;
+}
+
+// Quiz type
+export interface SanityQuiz extends SanityDocument {
+  _type: 'quiz';
+  lesson: {
+    _ref: string;
+    _type: 'reference';
+  };
+  title: string;
+  description?: string;
+  order_number: number;
+  questions: SanityQuizQuestion[];
+}
+
+export interface SanityQuizQuestion {
+  _key: string;
+  question_type: 'multiple_choice_single' | 'multiple_choice_multiple' | 'true_false' | 'fill_blank' | 'short_answer' | 'matching' | 'long_answer';
+  question_text: SanityBlock[];
+  options?: SanityQuizOption[];
+  matching_pairs?: SanityMatchingPair[];
+  correct_answer?: SanityCorrectAnswer;
+  order_number: number;
+}
+
+export interface SanityQuizOption {
+  _key: string;
+  text: SanityBlock[];
+  value: string;
+  is_correct: boolean;
+  explanation?: SanityBlock[];
+}
+
+export interface SanityMatchingPair {
+  _key: string;
+  left_item: string;
+  right_item: string;
+  explanation?: SanityBlock[];
+}
+
+export interface SanityCorrectAnswer {
+  value: string[];
+  explanation: SanityBlock[];
+  points: number;
+}
+
+// Expanded types with references resolved
+export interface SanityModuleWithSubmodules extends SanityModule {
+  submodules?: SanitySubmoduleWithLessons[];
+}
+
+export interface SanitySubmoduleWithLessons extends SanitySubmodule {
+  lessons?: SanityLessonWithQuizzes[];
+}
+
+export interface SanityLessonWithQuizzes extends SanityLesson {
+  quizzes?: SanityQuiz[];
+}
+

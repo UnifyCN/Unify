@@ -9,7 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
+import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleMap() {
@@ -23,7 +23,7 @@ export default function SubmoduleMap() {
     data: submoduleData,
     isLoading,
     error,
-  } = useSubmoduleLessons(submoduleId || '');
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Add state for selected lesson
   const [selectedLessonIndex, setSelectedLessonIndex] = useState<number | null>(
@@ -60,9 +60,9 @@ export default function SubmoduleMap() {
       const isNext = index === 0; // First lesson is always next
       const inProgress = false; // No progress tracking for now
       return {
-        id: lesson.lesson_id,
+        id: lesson._id, // Use Sanity _id
         title: lesson.title,
-        orderNumber: lesson.order_number,
+        orderNumber: lesson.order, // Use Sanity order field
         index: index + 1,
         isCompleted,
         isNext,
@@ -114,7 +114,7 @@ export default function SubmoduleMap() {
                   params: {
                     moduleId,
                     submoduleId,
-                    lessonId: submoduleData.lessons[selectedLessonIndex].lesson_id,
+                    lessonId: submoduleData.lessons[selectedLessonIndex]._id,
                   },
                 });
               }}

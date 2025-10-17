@@ -8,9 +8,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { useQuizQuestions } from '@/hooks/useQuizQuestions';
-import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
-import { useLessonQuizzes } from '@/hooks/useLessonQuizzes';
+import { useSanityQuizQuestions } from '@/hooks/sanity/useSanityQuizzes';
+import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
+import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
+import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } = useLocalSearchParams<{
@@ -22,9 +23,9 @@ export default function QuizQuestionPage() {
   }>();
 
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
-  const { data: questions, isLoading, error } = useQuizQuestions(quizId);
-  const { data: quizzes } = useLessonQuizzes(lessonId);
-  const { data: submoduleData } = useSubmoduleLessons(submoduleId);
+  const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
+  const { data: quizzes } = useSanityLessonQuizzes(lessonId);
+  const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId);
 
   // Debug logging
   console.log('Quiz ID:', quizId);
@@ -61,12 +62,12 @@ export default function QuizQuestionPage() {
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
   
   // Get current quiz data
-  const currentQuiz = quizzes?.find(q => q.quiz_id === quizId);
+  const currentQuiz = quizzes?.find(q => q._id === quizId);
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
     if (!submoduleData?.lessons) return -1;
-    return submoduleData.lessons.findIndex(l => l.lesson_id === lessonId);
+    return submoduleData.lessons.findIndex(l => l._id === lessonId);
   };
 
   const getNextLesson = () => {
@@ -106,7 +107,7 @@ export default function QuizQuestionPage() {
       if (isLastQuestion) {
         // Quiz completed, check if there are more quizzes or go to next lesson
         const sortedQuizzes = quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
-        const currentQuizIndex = sortedQuizzes.findIndex(q => q.quiz_id === quizId);
+        const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
         const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
         
         if (nextQuiz) {
@@ -117,7 +118,7 @@ export default function QuizQuestionPage() {
               moduleId, 
               submoduleId, 
               lessonId, 
-              quizId: nextQuiz.quiz_id, 
+              quizId: nextQuiz._id, 
               questionNum: '1' 
             },
           });
@@ -127,7 +128,7 @@ export default function QuizQuestionPage() {
           if (nextLesson) {
             router.push({
               pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-              params: { moduleId, submoduleId, lessonId: nextLesson.lesson_id, pageNum: '1' },
+              params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
             });
           } else {
             // Last lesson completed, go back to map
@@ -175,35 +176,6 @@ export default function QuizQuestionPage() {
     }
   };
 
-  const renderQuestionContent = (content: any[]) => {
-    return content.map((item, index) => (
-      <Text
-        key={index}
-        style={[
-          styles.questionText,
-          item.bold && styles.boldText,
-          item.italic && styles.italicText,
-        ]}
-      >
-        {item.text}
-      </Text>
-    ));
-  };
-
-  const renderOptionContent = (content: any[]) => {
-    return content.map((item, index) => (
-      <Text
-        key={index}
-        style={[
-          styles.optionText,
-          item.bold && styles.boldText,
-          item.italic && styles.italicText,
-        ]}
-      >
-        {item.text}
-      </Text>
-    ));
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -230,11 +202,7 @@ export default function QuizQuestionPage() {
           
           <View style={styles.questionContainer}>
             <View style={styles.questionContent}>
-              {renderQuestionContent(
-                Array.isArray(currentQuestion.question_text)
-                  ? currentQuestion.question_text
-                  : [{ text: currentQuestion.question_text }]
-              )}
+              <RichTextRenderer blocks={currentQuestion.question_text || []} />
             </View>
 
             <View style={styles.optionsContainer}>
@@ -279,7 +247,7 @@ export default function QuizQuestionPage() {
                         {isSelected && <Text style={styles.checkmark}>✓</Text>}
                       </View>
                       <View style={styles.optionContent}>
-                        {renderOptionContent(option.content)}
+                        <RichTextRenderer blocks={option.content || []} />
                       </View>
                     </View>
                   </TouchableOpacity>

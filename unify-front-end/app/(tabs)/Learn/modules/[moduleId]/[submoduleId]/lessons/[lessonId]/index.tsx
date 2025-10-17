@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useLesson } from '@/hooks/learn/useLesson';
+import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 
 export default function LessonIndex() {
   const router = useRouter();
@@ -11,7 +11,7 @@ export default function LessonIndex() {
     lessonId: string;
   }>();
 
-  const { data: lesson, isLoading } = useLesson(lessonId || '');
+  const { data: lesson, isLoading } = useSanityLesson(lessonId || '');
 
   useEffect(() => {
     if (lesson && lesson.pages && lesson.pages.length > 0) {

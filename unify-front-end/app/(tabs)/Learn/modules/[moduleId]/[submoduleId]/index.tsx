@@ -9,8 +9,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
-import { useModule } from '@/hooks/learn/useModule';
+import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
+import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
 
 export default function SubmoduleIndex() {
@@ -24,8 +24,8 @@ export default function SubmoduleIndex() {
     data: submoduleData,
     isLoading,
     error,
-  } = useSubmoduleLessons(submoduleId || '');
-  const { data: moduleData } = useModule(moduleId || '');
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
+  const { data: moduleData } = useSanityModule(moduleId || '');
 
   if (isLoading) {
     return (
@@ -49,9 +49,7 @@ export default function SubmoduleIndex() {
     );
   }
 
-  const nextLesson =
-    submoduleData?.lessons.find((lesson: any) => !lesson.is_completed) ||
-    submoduleData?.lessons[0];
+  const nextLesson = submoduleData?.lessons?.[0]; // For now, just get the first lesson
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -83,10 +81,10 @@ export default function SubmoduleIndex() {
 
         {/* Stage Header */}
         <Text style={styles.moduleLabel}>{moduleData?.title || 'Module'}</Text>
-        <Text style={styles.title}>{`${submoduleData.submodule_title}`}</Text>
+        <Text style={styles.title}>{`${submoduleData?.title}`}</Text>
         <View style={styles.mediaPlaceholder} />
         <Text style={styles.submoduleDesc}>
-          {`By the end of this section, you will ${submoduleData.submodule_description}`}
+          {`By the end of this section, you will ${submoduleData?.description}`}
         </Text>
 
         {/* CTA to Intro Screen */}

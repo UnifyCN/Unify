@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { useSubmoduleIntro, useSubmoduleIntroPages } from '@/hooks/learn/useSubmoduleIntro';
-import { useSubmoduleLessons } from '@/hooks/learn/useSubmoduleLessons';
-import { useModule } from '@/hooks/learn/useModule';
+import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
+import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { SubmoduleIntroSection } from '@/types/learn';
+import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 
 export default function SubmoduleIntroScreen() {
   const router = useRouter();
@@ -27,13 +27,13 @@ export default function SubmoduleIntroScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
-  const { data: introData, isLoading: loadingIntro } = useSubmoduleIntro(
-    submoduleId || '',
-    currentPage
-  );
-  const { data: totalPages } = useSubmoduleIntroPages(submoduleId || '');
-  const { data: moduleData } = useModule(moduleId || '');
-  const { data: submoduleLessons } = useSubmoduleLessons(submoduleId || '');
+  const { data: submoduleData, isLoading: loadingIntro } = useSanitySubmoduleWithLessons(submoduleId || '');
+  const { data: moduleData } = useSanityModule(moduleId || '');
+  
+  // Get intro pages from Sanity data and sort by order (1-indexed)
+  const introPages = (submoduleData?.intro_pages || []).sort((a: any, b: any) => a.order - b.order);
+  const totalPages = introPages.length;
+  const introData = introPages[currentPage - 1];
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
@@ -56,11 +56,11 @@ export default function SubmoduleIntroScreen() {
       });
     } else {
       // Navigate to first lesson
-      const firstLesson = submoduleLessons?.lessons?.[0];
+      const firstLesson = submoduleData?.lessons?.[0];
       if (firstLesson) {
         router.push({
           pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
-          params: { moduleId, submoduleId, lessonId: firstLesson.lesson_id },
+          params: { moduleId, submoduleId, lessonId: firstLesson._id },
         });
       } else {
         // Fallback to map if no lessons
@@ -70,6 +70,45 @@ export default function SubmoduleIntroScreen() {
         });
       }
     }
+  };
+
+  // Helper function to render Sanity block content
+  const renderBlockContent = (blocks: any[]) => {
+    if (!blocks || !Array.isArray(blocks)) return null;
+    
+    return blocks.map((block, index) => {
+      if (block._type === 'block') {
+        // Render text blocks with proper formatting
+        return (
+          <Text key={block._key || index} style={styles.textContent}>
+            {block.children?.map((child: any, childIndex: number) => {
+              if (child.marks?.includes('strong')) {
+                return <Text key={childIndex} style={styles.boldText}>{child.text}</Text>;
+              }
+              return child.text || '';
+            })}
+          </Text>
+        );
+      } else if (block._type === 'image') {
+        // Render images
+        const imageUrl = block.asset?._ref 
+          ? `https://cdn.sanity.io/images/fercgabp/production/${block.asset._ref.replace('image-', '').replace('-jpg', '.jpg').replace('-png', '.png').replace('-webp', '.webp')}`
+          : null;
+        
+        return (
+          <View key={block._key || index} style={styles.imageSection}>
+            {imageUrl ? (
+              <Image source={{ uri: imageUrl }} style={styles.image} />
+            ) : (
+              <View style={styles.imagePlaceholder}>
+                <Text style={styles.imagePlaceholderText}>Image</Text>
+              </View>
+            )}
+          </View>
+        );
+      }
+      return null;
+    }).filter(Boolean); // Remove null values
   };
 
   const renderSection = (section: SubmoduleIntroSection, index: number) => {
@@ -202,13 +241,19 @@ export default function SubmoduleIntroScreen() {
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>{introData.content.title}</Text>
+        <Text style={styles.title}>{introData?.title}</Text>
 
         {/* Content sections */}
         <View style={styles.content}>
-          {introData.content.sections.map((section, index) =>
-            renderSection(section, index)
-          )}
+          <RichTextRenderer blocks={introData?.content} />
+        </View>
+
+        {/* Debug: Show raw content structure */}
+        <View style={styles.debugContainer}>
+          <Text style={styles.debugTitle}>Debug - Content Structure:</Text>
+          <Text style={styles.debugText}>
+            {JSON.stringify(introData?.content, null, 2)}
+          </Text>
         </View>
 
         {/* Next button */}
@@ -443,5 +488,24 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  // Debug styles
+  debugContainer: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    margin: 10,
+    borderRadius: 5,
+  },
+  debugTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333',
+  },
+  debugText: {
+    fontSize: 10,
+    fontFamily: 'monospace',
+    color: '#666',
   },
 });
