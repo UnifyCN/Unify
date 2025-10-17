@@ -29,10 +29,7 @@ const CONTENT_W = Math.max(0, SCREEN_WIDTH - EDGE_PAD * 2);
 
 // Card size
 const CARD_RATIO = 0.75;
-const CARD_W = Math.max(
-  1,
-  Math.min(380, Math.floor(CONTENT_W * CARD_RATIO) || 1)
-);
+const CARD_W = 269
 
 const RAIL_W = 4;
 
@@ -459,37 +456,42 @@ const styles = StyleSheet.create({
   // Header text
   titleWrap: { alignItems: 'center', marginBottom: 8 },
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: '600',
+    lineHeight: 32,
     color: '#2B2B2B',
-    marginBottom: 5,
+    marginBottom: 18,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 20,
-    color: '#4B5563',
+    fontSize: 14,
+    fontWeight: 400,
+    color: '#000000',
     textAlign: 'center',
-    paddingHorizontal: 12,
+    marginBottom: 10,
   },
 
   progressCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    marginTop: 10,
-    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
     elevation: 1,
     alignItems: 'center',
+    alignSelf: 'center',
+    width: 345,
+    height: 69,
+    justifyContent: 'center',
   },
   progressCentered: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#374151',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#343434',
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -558,10 +560,11 @@ const styles = StyleSheet.create({
   pillTextNotStarted: { color: '#6B7280' },
 
   cardTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#111827',
-    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2B2B2B',
+    lineHeight: 20,
+    marginBottom: 7,
   },
   cardDesc: { fontSize: 13, color: '#6B7280', marginBottom: 12 },
 
