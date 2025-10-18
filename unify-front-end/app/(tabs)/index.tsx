@@ -4,15 +4,14 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
+
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
 
@@ -254,5 +253,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 18,
+  },
+  testContainer: {
+    backgroundColor: '#f0f0f0',
+    padding: 16,
+    marginHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  testText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  testSubtext: {
+    fontSize: 14,
+    color: '#666',
   },
 });

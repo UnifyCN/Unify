@@ -174,7 +174,7 @@ const GroupDetailScreen = () => {
           : prev
       );
     } finally {
-      queryClient.refetchQueries({ queryKey: ['feed', 'groups'] });
+      queryClient.resetQueries({ queryKey: ['feed', 'groups'] });
       setJoining(false);
     }
   };

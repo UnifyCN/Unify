@@ -23,10 +23,9 @@ export interface PostItemProps {
     likeCount: number;
     commentCount: number;
   };
-  isLoading?: boolean;
 }
 export const PostItem = memo(
-  ({ post, metadata, isLoading, shouldHideContent }: PostItemProps) => {
+  ({ post, metadata, shouldHideContent }: PostItemProps) => {
     const router = useRouter();
 
     // Use batch-loaded metadata (no individual queries needed)
@@ -107,59 +106,51 @@ export const PostItem = memo(
 
             {/* Footer */}
             <View style={styles.footer}>
-              {isLoading ? (
-                <SkeletonLoader
-                  width='100%'
-                  height={20}
-                  style={{ marginTop: 8 }}
-                />
-              ) : (
-                <>
-                  <View style={styles.footerItem}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (isLiked !== undefined) {
-                          toggleLike(post.id, isLiked);
-                        }
-                      }}
-                    >
-                      {isLiked ? (
-                        <Like_Fill width={20} height={20} />
-                      ) : (
-                        <Like width={20} height={20} />
-                      )}
-                    </TouchableOpacity>
-                    <Text style={styles.footerText}>{likeCount}</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.footerItem}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/Gather/PostDetails' as any,
-                        params: {
-                          post: JSON.stringify(post),
-                        },
-                      })
-                    }
-                  >
-                    <Comment width={20} height={20} fill='gray' />
-                    <Text style={styles.footerText}>{commentCount}</Text>
-                  </TouchableOpacity>
+              <>
+                <View style={styles.footerItem}>
                   <TouchableOpacity
                     onPress={() => {
-                      if (isSaved !== undefined) {
-                        toggleSave(post.id, isSaved);
+                      if (isLiked !== undefined) {
+                        toggleLike(post.id, isLiked);
                       }
                     }}
                   >
-                    {isSaved ? (
-                      <Save_Fill width={20} height={20} />
+                    {isLiked ? (
+                      <Like_Fill width={20} height={20} />
                     ) : (
-                      <Save width={20} height={20} />
+                      <Like width={20} height={20} />
                     )}
                   </TouchableOpacity>
-                </>
-              )}
+                  <Text style={styles.footerText}>{likeCount}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.footerItem}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/Gather/PostDetails' as any,
+                      params: {
+                        post: JSON.stringify(post),
+                      },
+                    })
+                  }
+                >
+                  <Comment width={20} height={20} fill='gray' />
+                  <Text style={styles.footerText}>{commentCount}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isSaved !== undefined) {
+                      toggleSave(post.id, isSaved);
+                    }
+                  }}
+                >
+                  {isSaved ? (
+                    <Save_Fill width={20} height={20} />
+                  ) : (
+                    <Save width={20} height={20} />
+                  )}
+                </TouchableOpacity>
+              </>
             </View>
           </View>
         </View>

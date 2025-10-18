@@ -38,8 +38,12 @@ const PostDetailsHeader = ({ onBack }: { onBack: () => void }) => (
 // Loading state component
 const CommentsLoadingState = () => (
   <View style={styles.commentsLoadingContainer}>
-    {[1, 2, 3].map(i => (
-      <SkeletonLoaderPostItem key={i} avatarSize={29} showFooter={false} />
+    {Array.from({ length: 3 }, (_, index) => (
+      <SkeletonLoaderPostItem
+        key={index + 1}
+        avatarSize={29}
+        showFooter={false}
+      />
     ))}
   </View>
 );
@@ -126,7 +130,8 @@ const PostDetails = () => {
   const [commentTextBox, setCommentTextBox] = useState('');
 
   // Get post metadata from query cache (supports optimistic updates)
-  const { data: postMetadata } = usePostMetadata([post.id]);
+  const { data: postMetadata, isLoading: postMetadataLoading } =
+    usePostMetadata([post.id]);
   const metadata = postMetadata?.[post.id];
 
   // Use metadata from query cache
@@ -170,11 +175,7 @@ const PostDetails = () => {
 
   const renderPost = useCallback(
     ({ item }: { item: PostCommentData }) => (
-      <PostCommentItem
-        comment={item}
-        metadata={commentMetadata?.[item.id]}
-        isLoading={commentMetadataLoading}
-      />
+      <PostCommentItem comment={item} metadata={commentMetadata?.[item.id]} />
     ),
     [commentMetadata, commentMetadataLoading]
   );
@@ -195,6 +196,9 @@ const PostDetails = () => {
         ListHeaderComponent={
           <>
             {/* Post Content */}
+            {/* {postMetadataLoading ? (
+              <SkeletonLoaderPostItem />
+            ) : ( */}
             <PostItem
               post={post}
               metadata={{
@@ -204,12 +208,13 @@ const PostDetails = () => {
                 commentCount,
               }}
             />
+            {/* )} */}
 
             <View style={styles.largeDivider} />
           </>
         }
         ListEmptyComponent={() => {
-          if (commentsLoading) {
+          if (commentsLoading || commentMetadataLoading) {
             return <CommentsLoadingState />;
           }
           return <CommentsEmptyState />;

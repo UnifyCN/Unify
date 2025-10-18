@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
+import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 
 interface FeedProps {
@@ -36,11 +37,7 @@ const Feed = ({
 
   const renderPost = useCallback(
     ({ item }: { item: PostData }) => (
-      <PostItem
-        post={item}
-        metadata={metadata?.[item.id]}
-        isLoading={metadataLoading}
-      />
+      <PostItem post={item} metadata={metadata?.[item.id]} />
     ),
     [metadata, metadataLoading]
   );
@@ -51,13 +48,16 @@ const Feed = ({
     }
   };
 
-  if (isLoading) {
+  if (isLoading || metadataLoading) {
     return (
       <View style={styles.container}>
         {ListHeaderComponent}
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingMessage}>Loading...</Text>
-        </View>
+        <FlatList
+          data={Array.from({ length: 3 }, (_, index) => index + 1)}
+          keyExtractor={item => `skeleton-${item}`}
+          renderItem={() => <SkeletonLoaderPostItem />}
+          scrollEnabled={false}
+        />
       </View>
     );
   }
@@ -80,7 +80,7 @@ const Feed = ({
       ListFooterComponent={
         isFetchingNextPage ? (
           <View style={styles.loadingFooter}>
-            <Text>Loading more...</Text>
+            <SkeletonLoaderPostItem />
           </View>
         ) : null
       }

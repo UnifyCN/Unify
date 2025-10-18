@@ -13,6 +13,7 @@ import UserPostsFeed from '@/components/profile/UserPostsFeed';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
+import CommentedOnFeed from '@/components/profile/CommentedOnFeed';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -112,8 +113,22 @@ export default function Profile() {
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'Comments':
-        // TODO: This will make screen go blank, implement after commenting feature has been adding
-        return null;
+        return (
+          <CommentedOnFeed
+            key={`comments-${userId}`}
+            userId={userId}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No posts available'
+                submessage={
+                  isCurrentUser
+                    ? "You haven't commented on any posts yet"
+                    : "This user hasn't commented on any posts yet"
+                }
+              />
+            }
+          />
+        );
       case 'Saved':
         if (!isCurrentUser) return null;
         return (
@@ -121,7 +136,7 @@ export default function Profile() {
             key={`saved-${userId}`}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No saved posts'
+                message='No posts available'
                 submessage='Save posts to see them here'
               />
             }
@@ -134,7 +149,7 @@ export default function Profile() {
             userId={userId}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No posts to see'
+                message='No posts available'
                 submessage={
                   isCurrentUser
                     ? "You haven't posted anything yet"
