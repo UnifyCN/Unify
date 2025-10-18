@@ -36,10 +36,13 @@ const EventDetailScreen = () => {
   //using react native built in share
   const handleShare = async () => {
     try {
+      const url = eventData.externalLink?.startsWith('http')
+        ? eventData.externalLink
+        : undefined;
       await Share.share({
-        message: 'Check out this awesome event!',
-        url: eventData.externalLink,
+        message: `Check out this awesome event! ${url}`,
         title: 'Unify Gather',
+        url,
       });
     } catch (error) {
       console.error('Error sharing');
