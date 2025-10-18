@@ -262,7 +262,7 @@ export default function SubmoduleIntroScreen() {
 
         {/* Content sections */}
         <View style={styles.content}>
-          <RichTextRenderer blocks={introData?.content} />
+          <RichTextRenderer blocks={introData?.content} markDefs={introData?.markDefs} />
         </View>
 
         {/* Navigation buttons */}
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   },
   modalPrimaryBtn: {
     width: '100%',
-    backgroundColor: '#4B5563',
+    backgroundColor: '#575757',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',

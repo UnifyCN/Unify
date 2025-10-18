@@ -207,7 +207,7 @@ export default function LessonPageScreen() {
 
         {/* Page contents */}
         <View style={styles.content}>
-          <RichTextRenderer blocks={currentPageData.content || []} />
+          <RichTextRenderer blocks={currentPageData.content || []} markDefs={currentPageData.markDefs} />
         </View>
 
         {/* Navigation buttons */}
@@ -231,7 +231,8 @@ export default function LessonPageScreen() {
         </View>
       </ScrollView>
 
-      {/* Exit Confirmation Modal */}
+      {/* Exit modal, make this into component after in refactoring*/}
+      
       <Modal
         visible={showExitModal}
         transparent
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
   },
   modalPrimaryBtn: {
     width: '100%',
-    backgroundColor: '#4B5563',
+    backgroundColor: '#575757',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',

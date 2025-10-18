@@ -200,7 +200,7 @@ export default function ActivityPageScreen() {
 
         {/* Instructions */}
         <View style={styles.instructionsContainer}>
-          <RichTextRenderer blocks={currentPageData.instructions || []} />
+          <RichTextRenderer blocks={currentPageData.instructions || []} markDefs={currentPageData.instructionsMarkDefs} />
         </View>
 
         {/* Input fields */}
@@ -238,7 +238,7 @@ export default function ActivityPageScreen() {
             {currentPageData.answer_box.title && (
               <Text style={styles.answerBoxTitle}>{currentPageData.answer_box.title}</Text>
             )}
-            <RichTextRenderer blocks={currentPageData.answer_box.content || []} />
+            <RichTextRenderer blocks={currentPageData.answer_box.content || []} markDefs={currentPageData.answer_box.markDefs} />
           </View>
         )}
 

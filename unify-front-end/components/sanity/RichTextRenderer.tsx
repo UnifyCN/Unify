@@ -1,13 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking } from 'react-native';
 import DropdownAccordion from '@/components/learn/DropdownAccordion';
 
 interface RichTextRendererProps {
   blocks: any[];
   styles?: any;
+  markDefs?: any[];
 }
 
-export default function RichTextRenderer({ blocks, styles: customStyles }: RichTextRendererProps) {
+export default function RichTextRenderer({ blocks, styles: customStyles, markDefs }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
   // Create numbering map for ordered lists
@@ -79,14 +80,12 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
       color: '#374151',
       lineHeight: 24,
       marginBottom: 8,
-      marginLeft: 16,
     },
     number: {
       fontSize: 16,
       color: '#374151',
       lineHeight: 24,
       marginBottom: 8,
-      marginLeft: 16,
     },
     // Quote
     blockquote: {
@@ -156,31 +155,60 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
       textTransform: 'uppercase',
     },
     tipBox: {
-      backgroundColor: '#F3F4F6',
-      borderRadius: 8,
-      padding: 16,
+      borderRadius: 0,
+      paddingLeft: 16,
       marginVertical: 16,
       borderLeftWidth: 4,
-      borderLeftColor: '#6B7280',
+      borderLeftColor: '#374151',
     },
     noteBox: {
       backgroundColor: '#FFFFFF',
       borderRadius: 8,
-      padding: 16,
+      paddingHorizontal: 15,
+      paddingVertical: 14,
       marginVertical: 16,
       borderWidth: 1,
-      borderColor: '#D1D5DB',
+      borderColor: '#3F3F3F',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.05,
       shadowRadius: 2,
       elevation: 1,
     },
+    // Links
+    link: {
+      color: '#2563EB',
+      textDecorationLine: 'underline',
+    },
   };
 
   const mergedStyles = { ...defaultStyles, ...customStyles };
 
-  const renderInlineText = (children: any[]) => {
+  // Function to calculate nesting levels for list items
+  const calculateNestingLevels = (blocks: any[]) => {
+    const nestingMap: { [key: string]: number } = {};
+    let currentNesting = 0;
+    let listStack: string[] = [];
+    
+    for (let i = 0; i < blocks.length; i++) {
+      const block = blocks[i];
+      
+      if (block._type === 'block' && block.listItem) {
+        // Check if this is a nested list item by looking at the level property
+        const level = block.level || 0;
+        nestingMap[block._key || i] = level;
+        currentNesting = level;
+      } else {
+        // Non-list item, reset nesting
+        currentNesting = 0;
+        listStack = [];
+      }
+    }
+    
+    return nestingMap;
+  };
+
+  const renderInlineText = (children: any[], markDefs?: any[]) => {
     if (!children || !Array.isArray(children)) return null;
 
     return children.map((child, index) => {
@@ -215,6 +243,20 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
               case 'strike-through':
                 text = <Text key={index} style={{ textDecorationLine: 'line-through' }}>{text}</Text>;
                 break;
+              case 'link':
+                // Handle links - find the markDef for this link
+                const linkDef = markDefs?.find(def => def._key === mark);
+                if (linkDef && linkDef.href) {
+                  const handleLinkPress = () => {
+                    Linking.openURL(linkDef.href);
+                  };
+                  text = (
+                    <TouchableOpacity key={index} onPress={handleLinkPress}>
+                      <Text style={mergedStyles.link}>{text}</Text>
+                    </TouchableOpacity>
+                  );
+                }
+                break;
             }
           });
         }
@@ -226,7 +268,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
     });
   };
 
-  const renderBlock = (block: any, index: number) => {
+  const renderBlock = (block: any, index: number, nestingLevel: number = 0) => {
     if (block._type === 'block') {
       // Handle list items first
       if (block.listItem) {
@@ -235,10 +277,27 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
           ? '•' 
           : `${numberingMap[block._key || index] || 1}.`;
         
+        // Calculate indentation based on nesting level
+        const indentLevel = nestingLevel * 20; // 20px per nesting level
+        
+        // Use different bullet styles for different nesting levels
+        let displayBullet = bullet;
+        if (block.listItem === 'bullet') {
+          if (nestingLevel === 1) {
+            displayBullet = '•';
+          } else if (nestingLevel === 2) {
+            displayBullet = '◦';
+          } else if (nestingLevel === 3) {
+            displayBullet = '▪';
+          } else {
+            displayBullet = '▫';
+          }
+        }
+        
         return (
-          <View key={block._key || index} style={styles.listItemContainer}>
+          <View key={block._key || index} style={[styles.listItemContainer, { marginLeft: indentLevel }]}>
             <Text style={listStyle}>
-              {bullet} {renderInlineText(block.children)}
+              {displayBullet} {renderInlineText(block.children, markDefs)}
             </Text>
           </View>
         );
@@ -251,32 +310,32 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
         case 'h1':
           return (
             <Text key={block._key || index} style={mergedStyles.h1}>
-              {renderInlineText(block.children)}
+              {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'h2':
           return (
             <Text key={block._key || index} style={mergedStyles.h2}>
-              {renderInlineText(block.children)}
+              {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'h3':
           return (
             <Text key={block._key || index} style={mergedStyles.h3}>
-              {renderInlineText(block.children)}
+              {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'h4':
           return (
             <Text key={block._key || index} style={mergedStyles.h4}>
-              {renderInlineText(block.children)}
+              {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'blockquote':
           return (
             <View key={block._key || index} style={mergedStyles.blockquote}>
               <Text>
-                {renderInlineText(block.children)}
+                {renderInlineText(block.children, markDefs)}
               </Text>
             </View>
           );
@@ -284,7 +343,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
           return (
             <View key={block._key || index} style={mergedStyles.code}>
               <Text>
-                {renderInlineText(block.children)}
+                {renderInlineText(block.children, markDefs)}
               </Text>
             </View>
           );
@@ -292,7 +351,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
         default:
           return (
             <Text key={block._key || index} style={mergedStyles.normal}>
-              {renderInlineText(block.children)}
+              {renderInlineText(block.children, markDefs)}
             </Text>
           );
       }
@@ -336,7 +395,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
       return (
         <View key={block._key || index} style={mergedStyles.exampleBox}>
           <Text style={mergedStyles.exampleBoxTitle}>EXAMPLE</Text>
-          <RichTextRenderer blocks={block.content || []} />
+          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} />
         </View>
       );
     }
@@ -344,7 +403,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
     if (block._type === 'tip_box') {
       return (
         <View key={block._key || index} style={mergedStyles.tipBox}>
-          <RichTextRenderer blocks={block.content || []} />
+          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} />
         </View>
       );
     }
@@ -352,7 +411,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
     if (block._type === 'note_box') {
       return (
         <View key={block._key || index} style={mergedStyles.noteBox}>
-          <RichTextRenderer blocks={block.content || []} />
+          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} />
         </View>
       );
     }
@@ -360,9 +419,12 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
     return null;
   };
 
+  // Calculate nesting levels for all blocks
+  const nestingLevels = calculateNestingLevels(blocks);
+
   return (
     <View style={styles.container}>
-      {blocks.map((block, index) => renderBlock(block, index)).filter(Boolean)}
+      {blocks.map((block, index) => renderBlock(block, index, nestingLevels[block._key || index] || 0)).filter(Boolean)}
     </View>
   );
 }

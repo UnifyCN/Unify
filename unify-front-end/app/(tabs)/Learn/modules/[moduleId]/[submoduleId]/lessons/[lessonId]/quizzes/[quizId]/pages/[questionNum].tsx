@@ -211,7 +211,7 @@ export default function QuizQuestionPage() {
           
           <View style={styles.questionContainer}>
             <View style={styles.questionContent}>
-              <RichTextRenderer blocks={currentQuestion.question_text || []} />
+              <RichTextRenderer blocks={currentQuestion.question_text || []} markDefs={currentQuestion.questionMarkDefs} />
             </View>
 
             <View style={styles.optionsContainer}>
@@ -255,7 +255,7 @@ export default function QuizQuestionPage() {
                         {isSelected && <Text style={styles.checkmark}>✓</Text>}
                       </View>
                       <View style={styles.optionContent}>
-                        <RichTextRenderer blocks={option.text || []} />
+                        <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} />
                       </View>
                     </View>
                   </TouchableOpacity>

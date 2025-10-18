@@ -52,8 +52,7 @@ export default function SubmoduleProgressBar({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    marginBottom: 10,
   },
   header: {
     flexDirection: 'row',

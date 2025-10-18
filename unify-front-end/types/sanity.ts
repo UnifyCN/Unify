@@ -61,6 +61,7 @@ export interface SanityIntroPage {
   title: string;
   order: number;
   content: (SanityBlock | SanityImage)[];
+  markDefs?: any[];
 }
 
 // Lesson type
@@ -86,6 +87,7 @@ export interface SanityLessonPage {
   title: string;
   order: number;
   content: (SanityBlock | SanityImage | SanityDropdown | SanityExampleBox | SanityTipBox | SanityNoteBox)[];
+  markDefs?: any[];
 }
 
 export interface SanityDropdown {
@@ -118,6 +120,7 @@ export interface SanityActivityPage {
   title: string;
   order: number;
   instructions: SanityBlock[];
+  instructionsMarkDefs?: any[];
   input_fields?: (SanityLargeInputBox | SanityMidInputBox | SanitySmallInputBox)[];
   answer_box?: SanityAnswerBox;
 }
@@ -149,6 +152,7 @@ export interface SanitySmallInputBox {
 export interface SanityAnswerBox {
   title?: string;
   content: SanityBlock[];
+  markDefs?: any[];
   showAfterSubmit: boolean;
 }
 
@@ -169,6 +173,7 @@ export interface SanityQuizQuestion {
   _key: string;
   question_type: 'multiple_choice_single' | 'multiple_choice_multiple' | 'true_false' | 'fill_blank' | 'short_answer' | 'matching' | 'long_answer';
   question_text: SanityBlock[];
+  questionMarkDefs?: any[];
   options?: SanityQuizOption[];
   matching_pairs?: SanityMatchingPair[];
   correct_answer?: SanityCorrectAnswer;
@@ -178,6 +183,7 @@ export interface SanityQuizQuestion {
 export interface SanityQuizOption {
   _key: string;
   text: SanityBlock[];
+  textMarkDefs?: any[];
   value: string;
   is_correct: boolean;
   explanation?: SanityBlock[];
