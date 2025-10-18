@@ -12,6 +12,7 @@ import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { Avatar } from '@/components/Avatar';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
 
 export interface PostItemProps {
   post: PostData;
@@ -22,9 +23,10 @@ export interface PostItemProps {
     likeCount: number;
     commentCount: number;
   };
+  metadataLoading?: boolean;
 }
 export const PostItem = memo(
-  ({ post, metadata, shouldHideContent }: PostItemProps) => {
+  ({ post, metadata, shouldHideContent, metadataLoading }: PostItemProps) => {
     const router = useRouter();
 
     // Use batch-loaded metadata (no individual queries needed)
@@ -43,11 +45,14 @@ export const PostItem = memo(
       router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
     };
 
-    // Use batch-loaded metadata
+    // Use batch-loaded metadata with loading state
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked;
     const isSaved = metadata?.isSaved;
     const commentCount = metadata?.commentCount ?? 0;
+    
+    // Show loading state for metadata if it's still loading
+    const showMetadataLoading = metadataLoading && !metadata;
 
     return (
       <View>
@@ -109,10 +114,11 @@ export const PostItem = memo(
                 <View style={styles.footerItem}>
                   <TouchableOpacity
                     onPress={() => {
-                      if (isLiked !== undefined) {
+                      if (isLiked !== undefined && !showMetadataLoading) {
                         toggleLike(post.id, isLiked);
                       }
                     }}
+                    disabled={showMetadataLoading}
                   >
                     {isLiked ? (
                       <Like_Fill width={20} height={20} />
@@ -120,7 +126,11 @@ export const PostItem = memo(
                       <Like width={20} height={20} />
                     )}
                   </TouchableOpacity>
-                  <Text style={styles.footerText}>{likeCount}</Text>
+                  {showMetadataLoading ? (
+                    <SkeletonLoader width={20} height={14} />
+                  ) : (
+                    <Text style={styles.footerText}>{likeCount}</Text>
+                  )}
                 </View>
                 <TouchableOpacity
                   style={styles.footerItem}
@@ -134,16 +144,23 @@ export const PostItem = memo(
                   }
                 >
                   <Comment width={20} height={20} fill='gray' />
-                  <Text style={styles.footerText}>{commentCount}</Text>
+                  {showMetadataLoading ? (
+                    <SkeletonLoader width={24} height={20} />
+                  ) : (
+                    <Text style={styles.footerText}>{commentCount}</Text>
+                  )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {
-                    if (isSaved !== undefined) {
+                    if (isSaved !== undefined && !showMetadataLoading) {
                       toggleSave(post.id, isSaved);
                     }
                   }}
+                  disabled={showMetadataLoading}
                 >
-                  {isSaved ? (
+                  {showMetadataLoading ? (
+                    <SkeletonLoader width={20} height={20} borderRadius={4} />
+                  ) : isSaved ? (
                     <Save_Fill width={20} height={20} />
                   ) : (
                     <Save width={20} height={20} />

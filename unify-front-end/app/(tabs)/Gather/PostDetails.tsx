@@ -175,7 +175,7 @@ const PostDetails = () => {
 
   const renderPost = useCallback(
     ({ item }: { item: PostCommentData }) => (
-      <PostCommentItem comment={item} metadata={commentMetadata?.[item.id]} />
+      <PostCommentItem comment={item} metadata={commentMetadata?.[item.id]} metadataLoading={commentMetadataLoading} />
     ),
     [commentMetadata, commentMetadataLoading]
   );
@@ -203,6 +203,7 @@ const PostDetails = () => {
                 likeCount,
                 commentCount,
               }}
+              metadataLoading={commentMetadataLoading}
             />
 
             <View style={styles.largeDivider} />

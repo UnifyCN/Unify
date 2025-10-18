@@ -7,6 +7,7 @@ import { useMutateLikeComment } from '@/hooks/posts/useMutateLikeComment';
 import { memo, useCallback } from 'react';
 import { PostCommentData } from '@/types/feeds/postcomment';
 import { Avatar } from '@/components/Avatar';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -16,9 +17,10 @@ interface PostCommentItemProps {
     // TODO: when replies to comments are implemented
     // replyCount: number
   };
+  metadataLoading?: boolean;
 }
 
-const PostCommentItem = memo(({ comment, metadata }: PostCommentItemProps) => {
+const PostCommentItem = memo(({ comment, metadata, metadataLoading }: PostCommentItemProps) => {
   // Hook for liking and unliking comments
   const likeCommentMutation = useMutateLikeComment();
 
@@ -71,7 +73,12 @@ const PostCommentItem = memo(({ comment, metadata }: PostCommentItemProps) => {
             <>
               <View style={styles.footerItem}>
                 <TouchableOpacity
-                  onPress={() => toggleLike(comment.id, isLiked!)}
+                  onPress={() => {
+                    if (isLiked !== undefined && !metadataLoading) {
+                      toggleLike(comment.id, isLiked);
+                    }
+                  }}
+                  disabled={metadataLoading}
                 >
                   {isLiked ? (
                     <Like_Fill width={20} height={20} />
@@ -79,7 +86,11 @@ const PostCommentItem = memo(({ comment, metadata }: PostCommentItemProps) => {
                     <Like width={20} height={20} />
                   )}
                 </TouchableOpacity>
-                <Text style={styles.footerText}>{likeCount}</Text>
+                {metadataLoading ? (
+                  <SkeletonLoader width={24} height={20} />
+                ) : (
+                  <Text style={styles.footerText}>{likeCount}</Text>
+                )}
               </View>
             </>
           </View>

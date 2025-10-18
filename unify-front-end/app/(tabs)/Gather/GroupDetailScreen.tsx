@@ -150,7 +150,7 @@ const GroupDetailScreen = () => {
         // Optimistically update UI for joining
 
         await joinGroup(groupData.id);
-        queryClient.invalidateQueries({ queryKey: ['joined-groups'] });
+        queryClient.resetQueries({ queryKey: ['joined-groups'] });
         setIsMember(true);
         setGroupData(prev =>
           prev

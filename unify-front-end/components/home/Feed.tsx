@@ -29,17 +29,20 @@ const Feed = ({
   ListEmptyComponent,
 }: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
-  
+
   const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
     allPosts.map((post: PostData) => post.id)
   );
 
   const renderPost = useCallback(
     ({ item }: { item: PostData }) => {
-      if (metadataLoading && !metadata?.[item.id]) {
-        return <SkeletonLoaderPostItem />;
-      }
-      return <PostItem post={item} metadata={metadata?.[item.id]} />;
+      return (
+        <PostItem 
+          post={item} 
+          metadata={metadata?.[item.id]} 
+          metadataLoading={metadataLoading}
+        />
+      );
     },
     [metadata, metadataLoading]
   );
