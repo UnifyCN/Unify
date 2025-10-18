@@ -32,6 +32,13 @@ export default function QuizQuestionPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  
+  // Matching question state
+  const [selectedLeftItem, setSelectedLeftItem] = useState<string | null>(null);
+  const [selectedRightItem, setSelectedRightItem] = useState<string | null>(null);
+  const [matchedPairs, setMatchedPairs] = useState<{[key: string]: string}>({});
+  const [completedPairs, setCompletedPairs] = useState<string[]>([]);
+  const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
 
   // Reset selections when question changes
   useEffect(() => {
@@ -39,6 +46,11 @@ export default function QuizQuestionPage() {
     setSelectedAnswers([]);
     setHasSubmitted(false);
     setIsCorrect(false);
+    setSelectedLeftItem(null);
+    setSelectedRightItem(null);
+    setMatchedPairs({});
+    setCompletedPairs([]);
+    setIncorrectPairs([]);
   }, [currentQuestionIndex]);
 
   // Calculate progress for the progress bar
@@ -111,8 +123,116 @@ export default function QuizQuestionPage() {
     }
   };
 
+  // Matching question handlers
+  const handleMatchingItemSelect = (item: string, side: 'left' | 'right') => {
+    if (completedPairs.includes(item)) return; // Don't allow selection of completed items
+    
+    // Clear incorrect pairs when user selects any new card
+    setIncorrectPairs([]);
+    
+    if (side === 'left') {
+      if (selectedLeftItem === item) {
+        setSelectedLeftItem(null);
+      } else {
+        setSelectedLeftItem(item);
+        // Don't clear right selection - allow both to be selected
+      }
+    } else {
+      if (selectedRightItem === item) {
+        setSelectedRightItem(null);
+      } else {
+        setSelectedRightItem(item);
+        // Don't clear left selection - allow both to be selected
+      }
+    }
+  };
+
+  const handleMatchingCheck = () => {
+    if (!selectedLeftItem || !selectedRightItem) return;
+    
+    // Check if this is a correct match
+    const correctMatch = currentQuestion.matching_pairs?.find(
+      (pair: any) => pair.left_item === selectedLeftItem && pair.right_item === selectedRightItem
+    );
+    
+    if (correctMatch) {
+      // Correct match - add to completed pairs
+      setCompletedPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
+      setMatchedPairs(prev => ({
+        ...prev,
+        [selectedLeftItem]: selectedRightItem
+      }));
+      // Remove from incorrect pairs if it was there
+      setIncorrectPairs(prev => prev.filter(item => 
+        item !== selectedLeftItem && item !== selectedRightItem
+      ));
+    } else {
+      // Incorrect match - add to incorrect pairs for red border feedback
+      setIncorrectPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
+    }
+    
+    // Clear selections
+    setSelectedLeftItem(null);
+    setSelectedRightItem(null);
+  };
+
   const handleNext = () => {
-    if (!hasSubmitted) {
+    if (currentQuestion.question_type === 'matching') {
+      // For matching questions, go directly to next question since all pairs are completed
+      // No need for submission logic - proceed to navigation
+      if (isLastQuestion) {
+        // Quiz completed, check if there are more quizzes or go to next lesson
+        const sortedQuizzes = quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
+        const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
+        const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
+        
+        if (nextQuiz) {
+          // Go to next quiz
+          router.push({
+            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+            params: { 
+              moduleId, 
+              submoduleId, 
+              lessonId, 
+              quizId: nextQuiz._id, 
+              questionNum: '1' 
+            },
+          });
+        } else {
+          // All quizzes completed, go to next lesson or map
+          const nextLesson = getNextLesson();
+          if (nextLesson) {
+            router.push({
+              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+              params: { 
+                moduleId, 
+                submoduleId, 
+                lessonId: nextLesson._id, 
+                pageNum: '1' 
+              },
+            });
+          } else {
+            // Go back to lesson map
+            router.push({
+              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+              params: { moduleId, submoduleId },
+            });
+          }
+        }
+      } else {
+        // Go to next question in same quiz
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+          params: { 
+            moduleId, 
+            submoduleId, 
+            lessonId, 
+            quizId, 
+            questionNum: (currentQuestionIndex + 2).toString() 
+          },
+        });
+      }
+    } else if (!hasSubmitted) {
       // First submission - check if answer is correct
       let isAnswerCorrect = false;
       
@@ -252,56 +372,121 @@ export default function QuizQuestionPage() {
               />
             </View>
 
-            <View style={styles.optionsContainer}>
-              {(currentQuestion.options || []).map((option: any) => {
-                const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
-                const isSelected = currentQuestion.question_type === 'multiple_choice_multiple' 
-                  ? selectedAnswers.includes(option._key)
-                  : selectedAnswer === option._key;
-                const isCorrectOption = option.is_correct || option._key === correctAnswerId;
-                const showFeedback = hasSubmitted;
+            {currentQuestion.question_type === 'matching' ? (
+              <View style={styles.matchingContainer}>
+                <View style={styles.matchingGrid}>
+                  {/* Left Column */}
+                  <View style={styles.matchingColumn}>
+                    {currentQuestion.matching_pairs?.map((pair: any, index: number) => (
+                      <TouchableOpacity
+                        key={`left-${index}`}
+                        style={[
+                          styles.matchingItem,
+                          selectedLeftItem === pair.left_item && styles.matchingItemSelected,
+                          completedPairs.includes(pair.left_item) && styles.matchingItemCompleted,
+                          incorrectPairs.includes(pair.left_item) && styles.matchingItemIncorrect,
+                        ]}
+                        onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
+                        disabled={completedPairs.includes(pair.left_item)}
+                      >
+                        <Text style={styles.matchingItemText}>
+                          {pair.left_item}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  
+                  {/* Right Column */}
+                  <View style={styles.matchingColumn}>
+                    {currentQuestion.matching_pairs?.map((pair: any, index: number) => (
+                      <TouchableOpacity
+                        key={`right-${index}`}
+                        style={[
+                          styles.matchingItem,
+                          selectedRightItem === pair.right_item && styles.matchingItemSelected,
+                          completedPairs.includes(pair.right_item) && styles.matchingItemCompleted,
+                          incorrectPairs.includes(pair.right_item) && styles.matchingItemIncorrect,
+                        ]}
+                        onPress={() => handleMatchingItemSelect(pair.right_item, 'right')}
+                        disabled={completedPairs.includes(pair.right_item)}
+                      >
+                        <Text style={styles.matchingItemText}>
+                          {pair.right_item}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
                 
-                let optionStyle = styles.optionButton;
-                let checkboxStyle = styles.checkbox;
-                
-                // Normal selection behavior
-                if (isSelected) {
-                  optionStyle = styles.optionButtonSelected;
-                  checkboxStyle = styles.checkboxSelected;
-                }
-                
-                // Add color feedback after check
-                if (showFeedback) {
-                  if (isCorrectOption) {
-                    // Correct answer - green border
-                    optionStyle = styles.optionButtonCorrect;
-                    checkboxStyle = styles.checkboxCorrect;
-                  } else if (isSelected && !isCorrectOption) {
-                    // Wrong selected answer - red border
-                    optionStyle = styles.optionButtonIncorrect;
-                    checkboxStyle = styles.checkboxIncorrect;
+                {/* Check Button for Matching */}
+                <TouchableOpacity
+                  style={[
+                    styles.matchingCheckButton,
+                    (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonDisabled,
+                  ]}
+                  onPress={handleMatchingCheck}
+                  disabled={!selectedLeftItem || !selectedRightItem}
+                >
+                  <Text style={[
+                    styles.matchingCheckButtonText,
+                    (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonTextDisabled,
+                  ]}>
+                    Check
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.optionsContainer}>
+                {(currentQuestion.options || []).map((option: any) => {
+                  const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
+                  const isSelected = currentQuestion.question_type === 'multiple_choice_multiple' 
+                    ? selectedAnswers.includes(option._key)
+                    : selectedAnswer === option._key;
+                  const isCorrectOption = option.is_correct || option._key === correctAnswerId;
+                  const showFeedback = hasSubmitted;
+                  
+                  let optionStyle = styles.optionButton;
+                  let checkboxStyle = styles.checkbox;
+                  
+                  // Normal selection behavior
+                  if (isSelected) {
+                    optionStyle = styles.optionButtonSelected;
+                    checkboxStyle = styles.checkboxSelected;
                   }
-                }
-                
-                return (
-                  <TouchableOpacity
-                    key={option._key}
-                    style={optionStyle}
-                    onPress={() => !showFeedback && handleAnswerSelect(option._key)}
-                    disabled={showFeedback}
-                  >
-                    <View style={styles.optionRow}>
-                      <View style={checkboxStyle}>
-                        {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                  
+                  // Add color feedback after check
+                  if (showFeedback) {
+                    if (isCorrectOption) {
+                      // Correct answer - green border
+                      optionStyle = styles.optionButtonCorrect;
+                      checkboxStyle = styles.checkboxCorrect;
+                    } else if (isSelected && !isCorrectOption) {
+                      // Wrong selected answer - red border
+                      optionStyle = styles.optionButtonIncorrect;
+                      checkboxStyle = styles.checkboxIncorrect;
+                    }
+                  }
+                  
+                  return (
+                    <TouchableOpacity
+                      key={option._key}
+                      style={optionStyle}
+                      onPress={() => !showFeedback && handleAnswerSelect(option._key)}
+                      disabled={showFeedback}
+                    >
+                      <View style={styles.optionRow}>
+                        <View style={checkboxStyle}>
+                          {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                        </View>
+                        <View style={styles.optionContent}>
+                          <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} />
+                        </View>
                       </View>
-                      <View style={styles.optionContent}>
-                        <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
           </View>
         </View>
 
@@ -313,22 +498,30 @@ export default function QuizQuestionPage() {
           <TouchableOpacity
             style={[
               styles.checkButton,
-              (currentQuestion.question_type === 'multiple_choice_multiple' 
-                ? selectedAnswers.length === 0 
-                : !selectedAnswer) && styles.checkButtonDisabled,
+              (currentQuestion.question_type === 'matching'
+                ? completedPairs.length !== (currentQuestion.matching_pairs?.length || 0) * 2
+                : currentQuestion.question_type === 'multiple_choice_multiple' 
+                  ? selectedAnswers.length === 0 
+                  : !selectedAnswer) && styles.checkButtonDisabled,
             ]}
             onPress={handleNext}
-            disabled={currentQuestion.question_type === 'multiple_choice_multiple' 
-              ? selectedAnswers.length === 0 
-              : !selectedAnswer}
+            disabled={currentQuestion.question_type === 'matching'
+              ? completedPairs.length !== (currentQuestion.matching_pairs?.length || 0) * 2
+              : currentQuestion.question_type === 'multiple_choice_multiple' 
+                ? selectedAnswers.length === 0 
+                : !selectedAnswer}
           >
             <Text style={[
               styles.checkButtonText,
-              (currentQuestion.question_type === 'multiple_choice_multiple' 
-                ? selectedAnswers.length === 0 
-                : !selectedAnswer) && styles.checkButtonTextDisabled
+              (currentQuestion.question_type === 'matching'
+                ? completedPairs.length !== (currentQuestion.matching_pairs?.length || 0) * 2
+                : currentQuestion.question_type === 'multiple_choice_multiple' 
+                  ? selectedAnswers.length === 0 
+                  : !selectedAnswer) && styles.checkButtonTextDisabled
             ]}>
-              {!hasSubmitted ? 'Check' : 'Next'}
+              {currentQuestion.question_type === 'matching' 
+                ? 'Next' 
+                : !hasSubmitted ? 'Check' : 'Next'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -530,6 +723,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 20,
     gap: 12,
+    marginBottom: 40,
   },
   backButton: {
     backgroundColor: '#E5E7EB',
@@ -566,5 +760,67 @@ const styles = StyleSheet.create({
   },
   italicText: {
     fontStyle: 'italic',
+  },
+  
+  // Matching question styles
+  matchingContainer: {
+    marginTop: 20,
+  },
+  matchingGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 20,
+  },
+  matchingColumn: {
+    flex: 1,
+    gap: 12,
+  },
+  matchingItem: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchingItemSelected: {
+    borderColor: '#575757',
+    backgroundColor: '#F3F4F6',
+  },
+  matchingItemCompleted: {
+    borderColor: '#10B981',
+    backgroundColor: '#ECFDF5',
+    opacity: 0.7,
+  },
+  matchingItemIncorrect: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  matchingItemText: {
+    fontSize: 16,
+    color: '#374151',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  matchingCheckButton: {
+    backgroundColor: '#575757',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  matchingCheckButtonDisabled: {
+    backgroundColor: '#F3F4F6',
+  },
+  matchingCheckButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  matchingCheckButtonTextDisabled: {
+    color: '#9CA3AF',
   },
 });
