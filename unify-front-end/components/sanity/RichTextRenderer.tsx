@@ -136,7 +136,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
       marginVertical: 16,
     },
     exampleBox: {
-      backgroundColor: '#F3F4F6',
+      backgroundColor: '#EAEAEA',
       borderRadius: 8,
       padding: 16,
       marginVertical: 16,
@@ -145,6 +145,8 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
       shadowOpacity: 0.05,
       shadowRadius: 2,
       elevation: 1,
+      borderWidth: 2,
+      borderColor: '#C9C9C9',
     },
     exampleBoxTitle: {
       fontSize: 14,

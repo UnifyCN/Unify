@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
 
   instructionsContainer: {
-    marginBottom: 30,
+    marginBottom: 15,
   },
 
   inputFieldsContainer: {
