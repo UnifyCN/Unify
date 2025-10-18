@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  TextInput,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -27,8 +26,8 @@ export default function ActivityPageScreen() {
     pageNum: string;
   }>();
   const [showExitModal, setShowExitModal] = useState(false);
-  const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(lessonId || '');
@@ -38,6 +37,9 @@ export default function ActivityPageScreen() {
 
   const currentPageData = lesson?.activity_pages?.[currentPage - 1];
   const totalPages = lesson?.activity_pages?.length || 0;
+
+  // Debug logging
+  console.log('Activity instructions:', currentPageData?.instructions);
 
   // Calculate progress for the progress bar
   const progress = calculateActivityProgress(submoduleData || null, lessonId || '', currentPage);
@@ -76,6 +78,7 @@ export default function ActivityPageScreen() {
   const handleInputChange = (fieldKey: string, value: string) => {
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
   };
+
 
   const handleSubmit = () => {
     setIsSubmitted(true);
@@ -198,39 +201,15 @@ export default function ActivityPageScreen() {
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
-        {/* Instructions */}
+        {/* Instructions with embedded input fields */}
         <View style={styles.instructionsContainer}>
-          <RichTextRenderer blocks={currentPageData.instructions || []} markDefs={currentPageData.instructionsMarkDefs} />
+          <RichTextRenderer 
+            blocks={currentPageData.instructions || []} 
+            markDefs={currentPageData.instructionsMarkDefs}
+            inputValues={inputValues}
+            onInputChange={handleInputChange}
+          />
         </View>
-
-        {/* Input fields */}
-        {currentPageData.input_fields && currentPageData.input_fields.length > 0 && (
-          <View style={styles.inputFieldsContainer}>
-            {currentPageData.input_fields.map((field) => {
-              const isLarge = field._type === 'large_input_box';
-              const isMid = field._type === 'mid_input_box';
-              const isSmall = field._type === 'small_input_box';
-              
-              return (
-                <View key={field._key} style={styles.inputFieldContainer}>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      isLarge && styles.largeInput,
-                      isMid && styles.midInput,
-                      isSmall && styles.smallInput,
-                    ]}
-                    placeholder={field.placeholder}
-                    value={inputValues[field._key] || ''}
-                    onChangeText={(value) => handleInputChange(field._key, value)}
-                    multiline={isLarge}
-                    numberOfLines={isLarge ? 4 : 1}                    
-                  />
-                </View>
-              );
-            })}
-          </View>
-        )}
 
         {/* Answer box (if available and submitted) */}
         {currentPageData.answer_box && isSubmitted && (

@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, TextInput } from 'react-native';
 import DropdownAccordion from '@/components/learn/DropdownAccordion';
 
 interface RichTextRendererProps {
   blocks: any[];
   styles?: any;
   markDefs?: any[];
+  inputValues?: { [key: string]: string };
+  onInputChange?: (fieldKey: string, value: string) => void;
 }
 
-export default function RichTextRenderer({ blocks, styles: customStyles, markDefs }: RichTextRendererProps) {
+export default function RichTextRenderer({ blocks, styles: customStyles, markDefs, inputValues = {}, onInputChange }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
   // Create numbering map for ordered lists
@@ -269,6 +271,11 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
   };
 
   const renderBlock = (block: any, index: number, nestingLevel: number = 0) => {
+    // Debug logging for input boxes
+    if (block._type === 'large_input_box' || block._type === 'mid_input_box' || block._type === 'small_input_box') {
+      console.log('Found input box block:', block._type, block);
+    }
+    
     if (block._type === 'block') {
       // Handle list items first
       if (block.listItem) {
@@ -381,7 +388,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
       const dropdownItems = [{
         id: block._key || index,
         title: block.label || 'Dropdown',
-        body: typeof block.content === 'string' ? block.content : ''
+        body: block.content || []
       }];
       
       return (
@@ -416,6 +423,44 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
       );
     }
 
+    // Handle input box types
+    if (block._type === 'large_input_box' || block._type === 'mid_input_box' || block._type === 'small_input_box') {
+      const isLarge = block._type === 'large_input_box';
+      const isMid = block._type === 'mid_input_box';
+      const isSmall = block._type === 'small_input_box';
+      
+      return (
+        <View key={block._key || index} style={mergedStyles.inputFieldContainer}>
+          {block.label && (
+            <Text style={mergedStyles.inputLabel}>{block.label}</Text>
+          )}
+          <TextInput
+            style={[
+              {
+                borderWidth: 1,
+                borderColor: '#9CA3AF',
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                fontSize: 16,
+                backgroundColor: '#fff',
+                minHeight: 44,
+                marginBottom: 30,
+              },
+              isLarge && { height: 300, textAlignVertical: 'top' },
+              isMid && { height: 150, textAlignVertical: 'top' },
+              isSmall && { height: 80 },
+            ]}
+            placeholder={block.placeholder || (isLarge ? 'Enter your response here...' : 'Type here...')}
+            value={inputValues[block._key] || ''}
+            onChangeText={(value) => onInputChange?.(block._key, value)}
+            multiline={isLarge}
+            numberOfLines={isLarge ? 4 : 1}
+          />
+        </View>
+      );
+    }
+
     return null;
   };
 
@@ -435,5 +480,45 @@ const styles = StyleSheet.create({
   },
   listItemContainer: {
     marginBottom: 8,
+  },
+  inputFieldContainer: {
+    marginVertical: 12,
+    borderWidth: 1,
+    borderColor: '#9CA3AF',
+    borderRadius: 8,
+    padding: 12,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    backgroundColor: '#fff',
+    minHeight: 44,
+  },
+  largeInput: {
+    height: 300,
+    textAlignVertical: 'top',
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+  },
+  midInput: {
+    height: 200,
+    textAlignVertical: 'top',
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+  },
+  smallInput: {
+    height: 100,
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
   },
 });
