@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
   Linking,
+  Share,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -32,6 +33,19 @@ const EventDetailScreen = () => {
     return () => setVisible(true);
   }, [setVisible]);
 
+  //using react native built in share
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: 'Check out this awesome event!',
+        url: eventData.externalLink,
+        title: 'Unify Gather',
+      });
+    } catch (error) {
+      console.error('Error sharing');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -39,7 +53,12 @@ const EventDetailScreen = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <Feather name='chevron-left' size={24} color='#fff' />
         </TouchableOpacity>
-        {/* TODO: Design has a share button here but no clue how to implement that yet */}
+        {/* Share Button */}
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={handleShare}>
+            <Feather name='upload' size={24} color='#fff' />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -140,6 +159,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   placeholder: {
     width: 40,
