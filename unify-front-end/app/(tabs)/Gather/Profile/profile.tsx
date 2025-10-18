@@ -8,12 +8,13 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
-import SavedFeed from '@/components/profile/SavedFeed';
-import UserPostsFeed from '@/components/profile/UserPostsFeed';
+import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
-import CommentedOnFeed from '@/components/profile/CommentedOnFeed';
+import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
+import { useUserPosts } from '@/hooks/posts/useUserPosts';
+import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -114,9 +115,9 @@ export default function Profile() {
     switch (activeTab) {
       case 'Comments':
         return (
-          <CommentedOnFeed
+          <FeedWithHook
             key={`comments-${userId}`}
-            userId={userId}
+            useFeedHook={() => useCommentedOnFeed(userId)}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No posts available'
@@ -132,8 +133,9 @@ export default function Profile() {
       case 'Saved':
         if (!isCurrentUser) return null;
         return (
-          <SavedFeed
+          <FeedWithHook
             key={`saved-${userId}`}
+            useFeedHook={useGetSavedPosts}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No posts available'
@@ -144,9 +146,9 @@ export default function Profile() {
         );
       default:
         return (
-          <UserPostsFeed
+          <FeedWithHook
             key={`posts-${userId}`}
-            userId={userId}
+            useFeedHook={() => useUserPosts(userId)}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No posts available'
