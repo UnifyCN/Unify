@@ -38,14 +38,22 @@ const EventDetailScreen = () => {
     try {
       const url = eventData.externalLink?.startsWith('http')
         ? eventData.externalLink
-        : undefined;
+        : '';
+      const shareMessage = [
+        `Check out this event: ${eventData.title}`,
+        `📅 ${formatEventDate(eventData.eventDatetime)}`,
+        `📍 ${eventData.location}`,
+        url && `🔗 ${url}`,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
       await Share.share({
-        message: `Check out this awesome event! ${url}`,
+        message: shareMessage,
         title: 'Unify Gather',
         url,
       });
     } catch (error) {
-      console.error('Error sharing');
+      console.error('Error sharing event', error);
     }
   };
 
