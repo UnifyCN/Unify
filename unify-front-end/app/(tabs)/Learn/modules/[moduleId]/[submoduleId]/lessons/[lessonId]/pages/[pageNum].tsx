@@ -17,6 +17,8 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
+import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import { calculateLessonProgress } from '@/utils/submoduleProgress';
 
 export default function LessonPageScreen() {
   const router = useRouter();
@@ -42,6 +44,9 @@ export default function LessonPageScreen() {
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
+
+  // Calculate progress for the progress bar
+  const progress = calculateLessonProgress(submoduleData || null, lessonId || '', currentPage);
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
@@ -175,24 +180,27 @@ export default function LessonPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      {/* Progress Bar */}
+      <SubmoduleProgressBar 
+        currentProgress={progress.currentPage} 
+        totalPages={progress.totalPages}
+        submoduleTitle={submoduleData?.title || 'Submodule'}
+        submoduleOrder={submoduleData?.order || 1}
+        onClose={() => setShowExitModal(true)}
+      />
+      
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with X button and page indicator */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => setShowExitModal(true)}
-            style={styles.closeBtn}
-          >
-            <Feather name='x' size={24} color='#000' />
-          </TouchableOpacity>
-          {totalPages > 1 && (
+        {/* Page indicator */}
+        {totalPages > 1 && (
+          <View style={styles.pageIndicatorContainer}>
             <Text style={styles.pageIndicator}>
               {currentPage} of {totalPages}
             </Text>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
@@ -266,15 +274,12 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingHorizontal: 20, paddingBottom: 40 },
 
-  // Header
-  header: {
-    flexDirection: 'row',
+  // Page indicator
+  pageIndicatorContainer: {
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 10,
     marginBottom: 12,
   },
-  closeBtn: { padding: 4 },
   pageIndicator: {
     fontSize: 14,
     fontWeight: '600',

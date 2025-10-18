@@ -16,6 +16,8 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { SubmoduleIntroSection } from '@/types/learn';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
+import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import { calculateIntroProgress } from '@/utils/submoduleProgress';
 
 export default function SubmoduleIntroScreen() {
   const router = useRouter();
@@ -35,6 +37,9 @@ export default function SubmoduleIntroScreen() {
   const totalPages = introPages.length;
   const introData = introPages[currentPage - 1];
 
+  // Calculate progress for the progress bar
+  const progress = calculateIntroProgress(submoduleData || null, currentPage);
+
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
     // Navigate to submodule map
@@ -46,6 +51,15 @@ export default function SubmoduleIntroScreen() {
 
   const handleContinue = () => {
     setShowExitModal(false);
+  };
+
+  const handleBack = () => {
+    if (currentPage > 1) {
+      router.push({
+        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+        params: { moduleId, submoduleId, pageNum: (currentPage - 1).toString() },
+      });
+    }
   };
 
   const handleNext = () => {
@@ -221,24 +235,27 @@ export default function SubmoduleIntroScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      {/* Progress Bar */}
+      <SubmoduleProgressBar 
+        currentProgress={progress.currentPage} 
+        totalPages={progress.totalPages}
+        submoduleTitle={submoduleData?.title || 'Submodule'}
+        submoduleOrder={submoduleData?.order || 1}
+        onClose={() => setShowExitModal(true)}
+      />
+      
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with X button and page indicator */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => setShowExitModal(true)}
-            style={styles.closeBtn}
-          >
-            <Feather name='x' size={24} color='#000' />
-          </TouchableOpacity>
-          {totalPages && totalPages > 1 && (
+        {/* Page indicator */}
+        {totalPages && totalPages > 1 && (
+          <View style={styles.pageIndicatorContainer}>
             <Text style={styles.pageIndicator}>
               {currentPage} of {totalPages}
             </Text>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Title */}
         <Text style={styles.title}>{introData?.title}</Text>
@@ -248,12 +265,19 @@ export default function SubmoduleIntroScreen() {
           <RichTextRenderer blocks={introData?.content} />
         </View>
 
-        {/* Next button */}
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-          <Text style={styles.nextBtnText}>
-            {currentPage < (totalPages || 1) ? 'Next' : 'Start Lessons'}
-          </Text>
-        </TouchableOpacity>
+        {/* Navigation buttons */}
+        <View style={styles.buttonContainer}>
+          {currentPage > 1 && (
+            <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+              <Text style={styles.backBtnText}>Back</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+            <Text style={styles.nextBtnText}>
+              {currentPage < (totalPages || 1) ? 'Next' : 'Start Lessons'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Exit Confirmation Modal */}
@@ -299,15 +323,12 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingHorizontal: 20, paddingBottom: 40 },
 
-  // Header
-  header: {
-    flexDirection: 'row',
+  // Page indicator
+  pageIndicatorContainer: {
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 10,
     marginBottom: 12,
   },
-  closeBtn: { padding: 4 },
   pageIndicator: {
     fontSize: 14,
     fontWeight: '600',
@@ -418,7 +439,26 @@ const styles = StyleSheet.create({
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  
+  // Button container and buttons
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  backBtn: {
+    flex: 1,
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  backBtnText: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   nextBtn: {
+    flex: 1,
     backgroundColor: '#575757',
     paddingVertical: 14,
     borderRadius: 12,

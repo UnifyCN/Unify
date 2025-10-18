@@ -12,6 +12,8 @@ import { useSanityQuizQuestions } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
+import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import { calculateQuizProgress } from '@/utils/submoduleProgress';
 
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } = useLocalSearchParams<{
@@ -40,6 +42,9 @@ export default function QuizQuestionPage() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+
+  // Calculate progress for the progress bar
+  const progress = calculateQuizProgress(submoduleData || null, lessonId || '', quizId || '', currentQuestionIndex + 1);
 
   if (isLoading) {
     return (
@@ -180,18 +185,21 @@ export default function QuizQuestionPage() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Progress Bar */}
+      <SubmoduleProgressBar 
+        currentProgress={progress.currentPage} 
+        totalPages={progress.totalPages}
+        submoduleTitle={submoduleData?.title || 'Submodule'}
+        submoduleOrder={submoduleData?.order || 1}
+        onClose={() => router.back()}
+      />
+      
       <ScrollView style={styles.scrollView}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.closeButton}>✕</Text>
-            </TouchableOpacity>
-            <Text style={styles.sectionTitle}>Section 1: Foundations of Budgeting</Text>
-          </View>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }]} />
-          </View>
+        {/* Question counter */}
+        <View style={styles.questionCounterContainer}>
+          <Text style={styles.questionCounter}>
+            Question {currentQuestionIndex + 1} of {totalQuestions}
+          </Text>
         </View>
 
         {/* Question Content */}
@@ -346,6 +354,17 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#000',
     borderRadius: 2,
+  },
+  questionCounterContainer: {
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 12,
+    paddingHorizontal: 20,
+  },
+  questionCounter: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
   },
   content: {
     padding: 20,
