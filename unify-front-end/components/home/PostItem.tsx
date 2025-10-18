@@ -47,8 +47,8 @@ export const PostItem = memo(
 
     // Use batch-loaded metadata with loading state
     const likeCount = metadata?.likeCount ?? 0;
-    const isLiked = metadata?.isLiked;
-    const isSaved = metadata?.isSaved;
+    const isLiked = metadata?.isLiked ?? false;
+    const isSaved = metadata?.isSaved ?? false;
     const commentCount = metadata?.commentCount ?? 0;
     
     // Show loading state for metadata if it's still loading
@@ -110,7 +110,6 @@ export const PostItem = memo(
 
             {/* Footer */}
             <View style={styles.footer}>
-              <>
                 <View style={styles.footerItem}>
                   <TouchableOpacity
                     onPress={() => {
@@ -166,7 +165,6 @@ export const PostItem = memo(
                     <Save width={20} height={20} />
                   )}
                 </TouchableOpacity>
-              </>
             </View>
           </View>
         </View>

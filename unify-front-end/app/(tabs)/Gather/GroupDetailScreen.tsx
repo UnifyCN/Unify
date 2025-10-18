@@ -113,7 +113,7 @@ const GroupDetailScreen = () => {
 
   // Get post IDs for metadata fetching
   const postIds = posts.map((post: PostData) => post.id);
-  const { data: postMetadata } = usePostMetadata(postIds);
+  const { data: postMetadata, isLoading: postMetadataLoading } = usePostMetadata(postIds);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -260,7 +260,7 @@ const GroupDetailScreen = () => {
         data={posts}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => (
-          <PostItem post={item} metadata={postMetadata?.[item.id]} />
+          <PostItem post={item} metadata={postMetadata?.[item.id]} metadataLoading={postMetadataLoading} />
         )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

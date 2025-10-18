@@ -203,14 +203,14 @@ const PostDetails = () => {
                 likeCount,
                 commentCount,
               }}
-              metadataLoading={commentMetadataLoading}
+              metadataLoading={postMetadataLoading}
             />
 
             <View style={styles.largeDivider} />
           </>
         }
         ListEmptyComponent={() => {
-          if (commentsLoading || commentMetadataLoading) {
+          if (commentsLoading) {
             return <CommentsLoadingState />;
           }
           return <CommentsEmptyState />;
