@@ -102,8 +102,11 @@ export default function SubmoduleMap() {
         {selectedLessonIndex !== null && (
           <View style={styles.focusCard}>
             <Text style={styles.focusTitle}>
-              Lesson {circles[selectedLessonIndex].orderNumber}:{' '}
+              {/* Lesson {circles[selectedLessonIndex].orderNumber}:{' '} */}
               {submoduleData.lessons[selectedLessonIndex].title}
+            </Text>
+            <Text style={styles.focusDescription}>
+              {submoduleData.lessons[selectedLessonIndex].description}
             </Text>
             <TouchableOpacity
               style={styles.focusCta}
@@ -202,9 +205,8 @@ export default function SubmoduleMap() {
                         styles.lessonTitleText,
                         c.blocked && styles.textBlocked,
                       ]}
-                      numberOfLines={2}
                     >
-                      {c.title}
+                      {c.title?.substring(12) || c.title}
                     </Text>
                   </View>
                   <View
@@ -293,7 +295,8 @@ const styles = StyleSheet.create({
   focusDescription: {
     fontSize: 14,
     color: '#6B7280',
-    marginBottom: 12,
+    lineHeight: 20,
+    marginBottom: 16,
   },
   focusCta: {
     backgroundColor: '#575757',
