@@ -6,7 +6,7 @@ import { transformPostDto } from '@/utils/postTransform';
 
 interface GetCommentedOnFeedProps {
   cursor?: string;
-  limit?: number;
+  limit: number;
   userId: string;
 }
 

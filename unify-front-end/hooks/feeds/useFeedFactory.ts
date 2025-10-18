@@ -3,21 +3,31 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 
 interface UseFeedOptions {
   queryKey: string[];
-  queryFn: (pageParam?: string) => Promise<FeedResponse>;
+  queryFn: (pageParam?: string, limit?: number) => Promise<FeedResponse>;
+  limit?: number;
 }
 
 interface UseFeedWithParamsOptions<T> {
   queryKey: string[];
-  queryFn: (params: T, pageParam?: string) => Promise<FeedResponse>;
+  queryFn: (
+    params: T,
+    pageParam?: string,
+    limit?: number
+  ) => Promise<FeedResponse>;
   params: T;
   enabled?: boolean;
+  limit?: number;
 }
 
 /**
  * Generic hook factory for feed queries
  * Reduces boilerplate for simple feed hooks
  */
-export const useFeedFactory = ({ queryKey, queryFn }: UseFeedOptions) => {
+export const useFeedFactory = ({
+  queryKey,
+  queryFn,
+  limit = 20,
+}: UseFeedOptions) => {
   return useInfiniteQuery<
     FeedResponse,
     Error,
@@ -26,7 +36,7 @@ export const useFeedFactory = ({ queryKey, queryFn }: UseFeedOptions) => {
     string | undefined
   >({
     queryKey,
-    queryFn: ({ pageParam }) => queryFn(pageParam),
+    queryFn: ({ pageParam }) => queryFn(pageParam, limit),
     initialPageParam: undefined,
     getNextPageParam: lastPage => lastPage.next_cursor,
     staleTime: 1000 * 60 * 2, // 2 minutes
@@ -43,6 +53,7 @@ export const useFeedFactoryWithParams = <T>({
   queryFn,
   params,
   enabled = true,
+  limit = 20,
 }: UseFeedWithParamsOptions<T>) => {
   return useInfiniteQuery<
     FeedResponse,
@@ -52,7 +63,7 @@ export const useFeedFactoryWithParams = <T>({
     string | undefined
   >({
     queryKey: [...queryKey, JSON.stringify(params)],
-    queryFn: ({ pageParam }) => queryFn(params, pageParam),
+    queryFn: ({ pageParam }) => queryFn(params, pageParam, limit),
     enabled,
     initialPageParam: undefined,
     getNextPageParam: lastPage => lastPage.next_cursor,

@@ -1,10 +1,11 @@
 import { getForYouFeed } from '@/services/feeds/getForYouFeed';
 import { useFeedFactory } from './useFeedFactory';
 
-export const useForYouFeed = () => {
+export const useForYouFeed = (limit: number = 20) => {
   return useFeedFactory({
     queryKey: ['feed', 'forYou'],
     queryFn: getForYouFeed,
+    limit,
   });
 };
 

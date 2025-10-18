@@ -1,10 +1,11 @@
 import { getFeedFollowing } from '@/services/feeds/getFollowingFeed';
 import { useFeedFactory } from './useFeedFactory';
 
-export const useFollowingFeed = () => {
+export const useFollowingFeed = (limit: number = 20) => {
   return useFeedFactory({
     queryKey: ['feed', 'following'],
     queryFn: getFeedFollowing,
+    limit,
   });
 };
 

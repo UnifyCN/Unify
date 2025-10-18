@@ -7,10 +7,10 @@ interface SkeletonLoaderPostItemProps {
   showFooter?: boolean;
 }
 
-export const SkeletonLoaderPostItem: React.FC<SkeletonLoaderPostItemProps> = ({
+export const SkeletonLoaderPostItem = ({
   avatarSize = 40,
   showFooter = true,
-}) => {
+}: SkeletonLoaderPostItemProps) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>

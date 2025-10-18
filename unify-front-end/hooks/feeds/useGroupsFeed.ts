@@ -1,10 +1,11 @@
 import { getPostsFromJoinedGroups } from '@/services/feeds/getPostsFromJoinedGroups';
 import { useFeedFactory } from './useFeedFactory';
 
-export const useGroupsFeed = () => {
+export const useGroupsFeed = (limit: number = 20) => {
   return useFeedFactory({
     queryKey: ['feed', 'groups'],
     queryFn: getPostsFromJoinedGroups,
+    limit,
   });
 };
 

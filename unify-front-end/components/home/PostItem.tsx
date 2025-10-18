@@ -11,7 +11,6 @@ import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
-import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Avatar } from '@/components/Avatar';
 
 export interface PostItemProps {

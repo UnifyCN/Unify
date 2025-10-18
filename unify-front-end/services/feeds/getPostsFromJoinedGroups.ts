@@ -6,7 +6,7 @@ import { transformPostDtos } from '@/utils/postTransform';
 
 export const getPostsFromJoinedGroups = async (
   cursor?: string,
-  limit = 20
+  limit: number = 20
 ): Promise<FeedResponse> => {
   try {
     // Get current user's ID

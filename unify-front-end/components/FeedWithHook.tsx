@@ -15,10 +15,10 @@ interface FeedWithHookProps {
   ListHeaderComponent?: React.ReactElement;
 }
 
-const FeedWithHook = ({ 
-  useFeedHook, 
-  ListEmptyComponent, 
-  ListHeaderComponent 
+const FeedWithHook = ({
+  useFeedHook,
+  ListEmptyComponent,
+  ListHeaderComponent,
 }: FeedWithHookProps) => {
   const {
     data,
