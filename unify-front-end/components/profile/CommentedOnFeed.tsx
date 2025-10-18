@@ -1,5 +1,5 @@
 import React from 'react';
-import Feed from '../home/Feed';
+import FeedWithHook from '@/components/FeedWithHook';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 
 interface CommentedOnFeedProps {
@@ -13,27 +13,11 @@ const CommentedOnFeed = ({
   ListEmptyComponent,
   userId,
 }: CommentedOnFeedProps) => {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useCommentedOnFeed(userId);
-
   return (
-    <Feed
-      data={data}
-      fetchNextPage={fetchNextPage}
-      hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      isLoading={isLoading}
-      isRefetching={isRefetching}
-      refetch={refetch}
-      ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={ListEmptyComponent}
+    <FeedWithHook
+      useFeedHook={() => useCommentedOnFeed(userId)}
+      {...(ListEmptyComponent && { ListEmptyComponent })}
+      {...(ListHeaderComponent && { ListHeaderComponent })}
     />
   );
 };

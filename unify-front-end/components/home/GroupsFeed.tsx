@@ -1,5 +1,5 @@
 import React from 'react';
-import Feed from './Feed';
+import FeedWithHook from '@/components/FeedWithHook';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 
 interface GroupsFeedProps {
@@ -7,25 +7,9 @@ interface GroupsFeedProps {
 }
 
 const GroupsFeed = ({ ListEmptyComponent }: GroupsFeedProps) => {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useGroupsFeed();
-
   return (
-    <Feed
-      data={data}
-      fetchNextPage={fetchNextPage}
-      hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      isLoading={isLoading}
-      isRefetching={isRefetching}
-      refetch={refetch}
+    <FeedWithHook
+      useFeedHook={useGroupsFeed}
       ListEmptyComponent={ListEmptyComponent}
     />
   );

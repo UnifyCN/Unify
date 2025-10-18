@@ -1,5 +1,5 @@
 import React from 'react';
-import Feed from '../home/Feed';
+import FeedWithHook from '@/components/FeedWithHook';
 import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 
 interface SavedFeedProps {
@@ -11,27 +11,11 @@ const SavedFeed = ({
   ListHeaderComponent,
   ListEmptyComponent,
 }: SavedFeedProps) => {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useGetSavedPosts();
-
   return (
-    <Feed
-      data={data}
-      fetchNextPage={fetchNextPage}
-      hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      isLoading={isLoading}
-      isRefetching={isRefetching}
-      refetch={refetch}
-      ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={ListEmptyComponent}
+    <FeedWithHook
+      useFeedHook={useGetSavedPosts}
+      {...(ListEmptyComponent && { ListEmptyComponent })}
+      {...(ListHeaderComponent && { ListHeaderComponent })}
     />
   );
 };

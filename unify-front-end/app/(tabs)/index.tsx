@@ -254,22 +254,4 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 18,
   },
-  testContainer: {
-    backgroundColor: '#f0f0f0',
-    padding: 16,
-    marginHorizontal: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  testText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  testSubtext: {
-    fontSize: 14,
-    color: '#666',
-  },
 });

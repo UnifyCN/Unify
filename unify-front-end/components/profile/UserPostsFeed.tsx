@@ -1,5 +1,5 @@
 import React from 'react';
-import Feed from '@/components/home/Feed';
+import FeedWithHook from '@/components/FeedWithHook';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
 
 interface UserPostsFeedProps {
@@ -13,27 +13,11 @@ const UserPostsFeed = ({
   ListHeaderComponent,
   ListEmptyComponent,
 }: UserPostsFeedProps) => {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useUserPosts(userId);
-
   return (
-    <Feed
-      data={data}
-      fetchNextPage={fetchNextPage}
-      hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      isLoading={isLoading}
-      isRefetching={isRefetching}
-      refetch={refetch}
-      ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={ListEmptyComponent}
+    <FeedWithHook
+      useFeedHook={() => useUserPosts(userId)}
+      {...(ListEmptyComponent && { ListEmptyComponent })}
+      {...(ListHeaderComponent && { ListHeaderComponent })}
     />
   );
 };

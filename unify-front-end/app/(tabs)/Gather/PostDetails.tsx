@@ -195,10 +195,6 @@ const PostDetails = () => {
         contentContainerStyle={{ paddingTop: 80, paddingBottom: 25 }}
         ListHeaderComponent={
           <>
-            {/* Post Content */}
-            {/* {postMetadataLoading ? (
-              <SkeletonLoaderPostItem />
-            ) : ( */}
             <PostItem
               post={post}
               metadata={{
@@ -208,7 +204,6 @@ const PostDetails = () => {
                 commentCount,
               }}
             />
-            {/* )} */}
 
             <View style={styles.largeDivider} />
           </>

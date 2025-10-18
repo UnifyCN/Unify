@@ -1,5 +1,5 @@
 import React from 'react';
-import Feed from './Feed';
+import FeedWithHook from '@/components/FeedWithHook';
 import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
 
 interface ForYouFeedProps {
@@ -7,25 +7,9 @@ interface ForYouFeedProps {
 }
 
 const ForYouFeed = ({ ListEmptyComponent }: ForYouFeedProps) => {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-    isRefetching,
-    refetch,
-  } = useForYouFeed();
-
   return (
-    <Feed
-      data={data}
-      fetchNextPage={fetchNextPage}
-      hasNextPage={hasNextPage}
-      isFetchingNextPage={isFetchingNextPage}
-      isLoading={isLoading}
-      isRefetching={isRefetching}
-      refetch={refetch}
+    <FeedWithHook
+      useFeedHook={useForYouFeed}
       ListEmptyComponent={ListEmptyComponent}
     />
   );
