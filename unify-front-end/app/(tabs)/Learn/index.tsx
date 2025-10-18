@@ -15,7 +15,6 @@ import CarouselDots from '../../../components/learn/CarouselDots';
 import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
 import { useSanityModules } from '../../../hooks/sanity/useSanityModules';
-import { SanityModuleWithSubmodules } from '../../../types/sanity';
 
 export default function Learn() {
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -23,8 +22,8 @@ export default function Learn() {
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
 
-  // Fetch all modules dynamically from Sanity
-  const { data: modules, isLoading, error } = useSanityModules() as { data: SanityModuleWithSubmodules[] | undefined; isLoading: boolean; error: any };
+  // Fetch all modules with their submodules to get accurate counts
+  const { data: modules, isLoading, error } = useSanityModules();
 
   const onMomentumEnd = (e: any) => {
     const x = e.nativeEvent?.contentOffset?.x ?? 0;

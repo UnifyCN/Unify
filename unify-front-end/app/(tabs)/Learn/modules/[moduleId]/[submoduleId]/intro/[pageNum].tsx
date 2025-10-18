@@ -248,14 +248,6 @@ export default function SubmoduleIntroScreen() {
           <RichTextRenderer blocks={introData?.content} />
         </View>
 
-        {/* Debug: Show raw content structure */}
-        <View style={styles.debugContainer}>
-          <Text style={styles.debugTitle}>Debug - Content Structure:</Text>
-          <Text style={styles.debugText}>
-            {JSON.stringify(introData?.content, null, 2)}
-          </Text>
-        </View>
-
         {/* Next button */}
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
           <Text style={styles.nextBtnText}>
@@ -488,24 +480,5 @@ const styles = StyleSheet.create({
     color: '#000',
     fontSize: 16,
     fontWeight: '600',
-  },
-
-  // Debug styles
-  debugContainer: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    margin: 10,
-    borderRadius: 5,
-  },
-  debugTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
-  },
-  debugText: {
-    fontSize: 10,
-    fontFamily: 'monospace',
-    color: '#666',
   },
 });

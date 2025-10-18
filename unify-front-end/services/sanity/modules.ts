@@ -1,5 +1,5 @@
 import { sanityClient } from '../../sanity-custom';
-import { SanityModule, SanitySubmoduleWithLessons } from '../../types/sanity';
+import { SanityModule, SanitySubmoduleWithLessons, SanityModuleWithSubmodules } from '../../types/sanity';
 
 // Get all modules
 export async function getAllModules(): Promise<SanityModule[]> {
@@ -15,6 +15,33 @@ export async function getAllModules(): Promise<SanityModule[]> {
     return modules || [];
   } catch (error) {
     console.error('Error fetching modules from Sanity:', error);
+    return [];
+  }
+}
+
+// Get all modules with their submodules
+export async function getAllModulesWithSubmodules(): Promise<SanityModuleWithSubmodules[]> {
+  try {
+    const query = `*[_type == "module"] | order(title) {
+      _id,
+      _type,
+      title,
+      description,
+      "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
+        _id,
+        _type,
+        title,
+        description,
+        module,
+        intro_pages,
+        order
+      }
+    }`;
+    
+    const modules = await sanityClient.fetch(query);
+    return modules || [];
+  } catch (error) {
+    console.error('Error fetching modules with submodules from Sanity:', error);
     return [];
   }
 }

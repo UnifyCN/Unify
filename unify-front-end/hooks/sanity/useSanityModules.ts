@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAllModules, getModule, getModuleWithSubmodules } from '../../services/sanity/modules';
+import { getAllModules, getAllModulesWithSubmodules, getModule, getModuleWithSubmodules } from '../../services/sanity/modules';
 
 export function useSanityModules() {
   return useQuery({
     queryKey: ['sanity', 'modules'],
-    queryFn: getAllModules,
+    queryFn: getAllModulesWithSubmodules,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
   });

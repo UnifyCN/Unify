@@ -97,8 +97,9 @@ export default function QuizQuestionPage() {
   const handleNext = () => {
     if (!hasSubmitted) {
       // First submission - check if answer is correct
-      const correctAnswerId = currentQuestion.correct_answer?.correctOptionId || currentQuestion.correct_answer;
-      const isAnswerCorrect = selectedAnswer === correctAnswerId;
+      const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
+      const isAnswerCorrect = selectedAnswer === correctAnswerId || 
+        (currentQuestion.options?.find(opt => opt._key === selectedAnswer)?.is_correct);
       
       setIsCorrect(isAnswerCorrect);
       setHasSubmitted(true);
@@ -206,11 +207,10 @@ export default function QuizQuestionPage() {
             </View>
 
             <View style={styles.optionsContainer}>
-              {(Array.isArray(currentQuestion.options) ? currentQuestion.options : 
-                Array.isArray(currentQuestion.options?.options) ? currentQuestion.options.options : []).map((option) => {
-                const correctAnswerId = currentQuestion.correct_answer?.correctOptionId || currentQuestion.correct_answer;
-                const isSelected = selectedAnswer === option.id;
-                const isCorrectOption = option.id === correctAnswerId;
+              {(currentQuestion.options || []).map((option) => {
+                const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
+                const isSelected = selectedAnswer === option._key;
+                const isCorrectOption = option.is_correct || option._key === correctAnswerId;
                 const showFeedback = hasSubmitted;
                 
                 let optionStyle = styles.optionButton;
@@ -237,9 +237,9 @@ export default function QuizQuestionPage() {
                 
                 return (
                   <TouchableOpacity
-                    key={option.id}
+                    key={option._key}
                     style={optionStyle}
-                    onPress={() => !showFeedback && handleAnswerSelect(option.id)}
+                    onPress={() => !showFeedback && handleAnswerSelect(option._key)}
                     disabled={showFeedback}
                   >
                     <View style={styles.optionRow}>
@@ -247,7 +247,7 @@ export default function QuizQuestionPage() {
                         {isSelected && <Text style={styles.checkmark}>✓</Text>}
                       </View>
                       <View style={styles.optionContent}>
-                        <RichTextRenderer blocks={option.content || []} />
+                        <RichTextRenderer blocks={option.text || []} />
                       </View>
                     </View>
                   </TouchableOpacity>

@@ -10,6 +10,32 @@ interface RichTextRendererProps {
 export default function RichTextRenderer({ blocks, styles: customStyles }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
+  // Create numbering map for ordered lists
+  const createNumberingMap = (blocks: any[]) => {
+    const numberingMap: { [key: string]: number } = {};
+    let currentNumber = 1;
+    let inOrderedList = false;
+
+    blocks.forEach((block, index) => {
+      if (block._type === 'block' && block.listItem === 'number') {
+        if (!inOrderedList) {
+          currentNumber = 1; // Reset when starting a new ordered list
+          inOrderedList = true;
+        }
+        numberingMap[block._key || index] = currentNumber;
+        currentNumber++;
+      } else if (block._type === 'block' && !block.listItem) {
+        // Reset when we hit a non-list block
+        inOrderedList = false;
+        currentNumber = 1;
+      }
+    });
+
+    return numberingMap;
+  };
+
+  const numberingMap = createNumberingMap(blocks);
+
   const defaultStyles = {
     // Headings
     h1: {
@@ -203,7 +229,9 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
       // Handle list items first
       if (block.listItem) {
         const listStyle = block.listItem === 'bullet' ? mergedStyles.bullet : mergedStyles.number;
-        const bullet = block.listItem === 'bullet' ? '•' : `${block.level || 1}.`;
+        const bullet = block.listItem === 'bullet' 
+          ? '•' 
+          : `${numberingMap[block._key || index] || 1}.`;
         
         return (
           <View key={block._key || index} style={styles.listItemContainer}>
@@ -306,7 +334,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
       return (
         <View key={block._key || index} style={mergedStyles.exampleBox}>
           <Text style={mergedStyles.exampleBoxTitle}>EXAMPLE</Text>
-          <Text>{renderInlineText(block.content)}</Text>
+          <RichTextRenderer blocks={block.content || []} />
         </View>
       );
     }
@@ -314,7 +342,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
     if (block._type === 'tip_box') {
       return (
         <View key={block._key || index} style={mergedStyles.tipBox}>
-          <Text>{renderInlineText(block.content)}</Text>
+          <RichTextRenderer blocks={block.content || []} />
         </View>
       );
     }
@@ -322,7 +350,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles }: RichT
     if (block._type === 'note_box') {
       return (
         <View key={block._key || index} style={mergedStyles.noteBox}>
-          <Text>{renderInlineText(block.content)}</Text>
+          <RichTextRenderer blocks={block.content || []} />
         </View>
       );
     }
