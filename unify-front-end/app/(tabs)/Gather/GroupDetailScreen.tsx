@@ -152,8 +152,6 @@ const GroupDetailScreen = () => {
       queryClient.invalidateQueries({ queryKey: ['groups'] });
       // also invalidate feed caches so the feed reflects membership changes
       queryClient.invalidateQueries({ queryKey: ['feed', 'groups'] });
-      queryClient.invalidateQueries({ queryKey: ['feed', 'forYou'] });
-      queryClient.invalidateQueries({ queryKey: ['feed', 'following'] });
       setJoining(false);
     }
   };
