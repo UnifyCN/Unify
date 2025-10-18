@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -28,20 +28,18 @@ export default function QuizQuestionPage() {
   const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
   const { data: quizzes } = useSanityLessonQuizzes(lessonId);
   const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId);
-
-  // Debug logging
-  console.log('Quiz ID:', quizId);
-  console.log('Questions data:', questions);
-  console.log('Questions loading:', isLoading);
-  console.log('Questions error:', error);
-  if (questions && questions.length > 0) {
-    console.log('First question data:', questions[0]);
-    console.log('First question options:', questions[0].options);
-  }
-
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+
+  // Reset selections when question changes
+  useEffect(() => {
+    setSelectedAnswer(null);
+    setSelectedAnswers([]);
+    setHasSubmitted(false);
+    setIsCorrect(false);
+  }, [currentQuestionIndex]);
 
   // Calculate progress for the progress bar
   const progress = calculateQuizProgress(submoduleData || null, lessonId || '', quizId || '', currentQuestionIndex + 1);
@@ -96,15 +94,44 @@ export default function QuizQuestionPage() {
   }
 
   const handleAnswerSelect = (optionId: string) => {
-    setSelectedAnswer(optionId);
+    if (currentQuestion.question_type === 'multiple_choice_multiple') {
+      // Multiple selection logic
+      setSelectedAnswers(prev => {
+        if (prev.includes(optionId)) {
+          // Remove if already selected
+          return prev.filter(id => id !== optionId);
+        } else {
+          // Add if not selected
+          return [...prev, optionId];
+        }
+      });
+    } else {
+      // Single selection logic
+      setSelectedAnswer(optionId);
+    }
   };
 
   const handleNext = () => {
     if (!hasSubmitted) {
       // First submission - check if answer is correct
-      const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
-      const isAnswerCorrect = selectedAnswer === correctAnswerId || 
-        (currentQuestion.options?.find(opt => opt._key === selectedAnswer)?.is_correct);
+      let isAnswerCorrect = false;
+      
+      if (currentQuestion.question_type === 'multiple_choice_multiple') {
+        // For multiple choice multiple, check if all correct options are selected and no incorrect ones
+        const correctOptions = currentQuestion.options?.filter((opt: any) => opt.is_correct) || [];
+        const correctOptionIds = correctOptions.map((opt: any) => opt._key);
+        
+        // Check if all correct options are selected and no incorrect ones
+        const hasAllCorrect = correctOptionIds.every((id: string) => selectedAnswers.includes(id));
+        const hasNoIncorrect = selectedAnswers.every((id: string) => correctOptionIds.includes(id));
+        
+        isAnswerCorrect = hasAllCorrect && hasNoIncorrect && selectedAnswers.length > 0;
+      } else {
+        // Single choice logic
+        const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
+        isAnswerCorrect = selectedAnswer === correctAnswerId || 
+          (currentQuestion.options?.find((opt: any) => opt._key === selectedAnswer)?.is_correct);
+      }
       
       setIsCorrect(isAnswerCorrect);
       setHasSubmitted(true);
@@ -211,13 +238,26 @@ export default function QuizQuestionPage() {
           
           <View style={styles.questionContainer}>
             <View style={styles.questionContent}>
-              <RichTextRenderer blocks={currentQuestion.question_text || []} markDefs={currentQuestion.questionMarkDefs} />
+              <RichTextRenderer 
+                blocks={currentQuestion.question_text || []} 
+                markDefs={currentQuestion.questionMarkDefs}
+                styles={{
+                  normal: {
+                    fontSize: 17,
+                    color: '#000',
+                    lineHeight: 30,
+                    textAlign: 'center',
+                  }
+                }}
+              />
             </View>
 
             <View style={styles.optionsContainer}>
-              {(currentQuestion.options || []).map((option) => {
+              {(currentQuestion.options || []).map((option: any) => {
                 const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
-                const isSelected = selectedAnswer === option._key;
+                const isSelected = currentQuestion.question_type === 'multiple_choice_multiple' 
+                  ? selectedAnswers.includes(option._key)
+                  : selectedAnswer === option._key;
                 const isCorrectOption = option.is_correct || option._key === correctAnswerId;
                 const showFeedback = hasSubmitted;
                 
@@ -273,14 +313,20 @@ export default function QuizQuestionPage() {
           <TouchableOpacity
             style={[
               styles.checkButton,
-              !selectedAnswer && styles.checkButtonDisabled,
+              (currentQuestion.question_type === 'multiple_choice_multiple' 
+                ? selectedAnswers.length === 0 
+                : !selectedAnswer) && styles.checkButtonDisabled,
             ]}
             onPress={handleNext}
-            disabled={!selectedAnswer}
+            disabled={currentQuestion.question_type === 'multiple_choice_multiple' 
+              ? selectedAnswers.length === 0 
+              : !selectedAnswer}
           >
             <Text style={[
               styles.checkButtonText,
-              !selectedAnswer && styles.checkButtonTextDisabled
+              (currentQuestion.question_type === 'multiple_choice_multiple' 
+                ? selectedAnswers.length === 0 
+                : !selectedAnswer) && styles.checkButtonTextDisabled
             ]}>
               {!hasSubmitted ? 'Check' : 'Next'}
             </Text>
@@ -358,11 +404,10 @@ const styles = StyleSheet.create({
   questionCounterContainer: {
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 12,
     paddingHorizontal: 20,
   },
   questionCounter: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: '#6B7280',
   },
@@ -371,32 +416,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   quizTitle: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: '700',
     color: '#000',
-    marginBottom: 20,
+    marginBottom: 12,
+    lineHeight: 38,
     textAlign: 'center',
   },
   questionContainer: {
-    gap: 24,
+    gap: 15,
   },
   questionContent: {
     marginBottom: 24,
+    alignItems: 'center',
   },
   questionText: {
-    fontSize: 18,
+    fontSize: 25,
     color: '#000',
-    lineHeight: 26,
+    lineHeight: 30,
   },
   optionsContainer: {
     gap: 12,
   },
   optionButton: {
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#DCDCDC',
     borderRadius: 8,
     padding: 16,
-    backgroundColor: '#F9FAFB',
   },
   optionButtonSelected: {
     borderWidth: 1,
@@ -423,12 +469,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginLeft: 5
   },
   checkbox: {
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
+    borderColor: '#000000',
     borderRadius: 4,
     backgroundColor: '#fff',
     justifyContent: 'center',
@@ -442,7 +489,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: 'black',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   checkboxCorrect: {
     width: 20,
@@ -470,6 +517,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   optionContent: {
+    marginTop: 10,
     flex: 1,
   },
   optionText: {
@@ -479,16 +527,15 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    paddingTop: 0,
+    justifyContent: 'center',
+    marginTop: 20,
+    gap: 12,
   },
   backButton: {
-    backgroundColor: '#F3F4F6',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    paddingHorizontal: 70,
     borderRadius: 8,
-    flex: 0.4,
     alignItems: 'center',
   },
   backButtonText: {
@@ -497,11 +544,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   checkButton: {
-    backgroundColor: '#374151',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    backgroundColor: '#575757',
+    paddingVertical: 14,
+    paddingHorizontal: 70,
     borderRadius: 8,
-    flex: 0.4,
     alignItems: 'center',
   },
   checkButtonDisabled: {
