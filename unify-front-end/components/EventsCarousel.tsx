@@ -81,7 +81,7 @@ export const EventsCarousel = ({
   const upcomingEvents =
     events?.filter(event => {
       const eventDate = new Date(event.eventDatetime);
-      return eventDate < now;
+      return eventDate >= now;
     }) || [];
 
   const displayEvents = upcomingEvents.slice(0, maxEvents);
@@ -126,14 +126,14 @@ export const EventsCarousel = ({
             ))}
           </View>
         )}
-        {/* {!isLoading && upcomingEvents.length === 0 && (
+        {!isLoading && upcomingEvents.length === 0 && (
           <View style={styles.emptyEventsContainer}>
             <Text style={styles.emptyEventsText}>No upcoming events</Text>
             <Text style={styles.emptyEventsSubtext}>
               Check back later for new events or view past events.
             </Text>
           </View>
-        )} */}
+        )}
         {displayEvents.map(event => (
           <EventCard
             key={event.id}
