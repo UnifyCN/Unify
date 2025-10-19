@@ -11,8 +11,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
-import { useEffect } from 'react';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+import { useHeader } from '@/components/HeaderManager';
 
 const EventDetailScreen = () => {
   const router = useRouter();
@@ -25,12 +24,6 @@ const EventDetailScreen = () => {
     }
   };
 
-  const { setVisible } = useHeaderVisibility();
-
-  useEffect(() => {
-    setVisible(false);
-    return () => setVisible(true);
-  }, [setVisible]);
 
   return (
     <View style={styles.container}>

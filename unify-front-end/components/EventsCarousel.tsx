@@ -125,7 +125,7 @@ export const EventsCarousel = ({
           <View style={styles.emptyEventsContainer}>
             <Text style={styles.emptyEventsText}>No upcoming events</Text>
             <Text style={styles.emptyEventsSubtext}>
-              Check back later for new events
+              Check back later for new events or view past events.
             </Text>
           </View>
         )}
@@ -165,13 +165,15 @@ const styles = StyleSheet.create({
   eventsCarouselContentEmpty: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    width: '100%',
   },
   emptyEventsContainer: {
-    flex: 1,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
   },
   emptyEventsText: {
     fontSize: 16,

@@ -4,9 +4,7 @@ import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Header from '@/components/Header';
-import HeaderVisibilityProvider, {
-  useHeaderVisibility,
-} from '@/components/HeaderVisibilityProvider';
+import { HeaderManager, useHeader } from '@/components/HeaderManager';
 import { View, Text, StyleSheet } from 'react-native';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
@@ -37,9 +35,9 @@ const TabIcon = ({ IconComponent, title, focused }: any) => {
 
 export default function TabLayout() {
   return (
-    <HeaderVisibilityProvider>
+    <HeaderManager>
       <InnerLayout />
-    </HeaderVisibilityProvider>
+    </HeaderManager>
   );
 }
 
@@ -48,7 +46,7 @@ function InnerLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const [currentTab, setCurrentTab] = useState('index');
-  const { visible } = useHeaderVisibility();
+  const { visible } = useHeader();
 
   return (
     <>
