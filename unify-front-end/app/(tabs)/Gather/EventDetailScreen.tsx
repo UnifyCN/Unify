@@ -33,27 +33,25 @@ const EventDetailScreen = () => {
     return () => setVisible(true);
   }, [setVisible]);
 
-  //using react native built in share
+  // Using react native built in share
   const handleShare = async () => {
     try {
-      const url = eventData.externalLink?.startsWith('http')
-        ? eventData.externalLink
-        : '';
       const shareMessage = [
         `Check out this event: ${eventData.title}`,
         `📅 ${formatEventDate(eventData.eventDatetime)}`,
         `📍 ${eventData.location}`,
-        url && `🔗 ${url}`,
-      ]
-        .filter(Boolean)
-        .join('\n\n');
+        `🔗 ${eventData.externalLink}`,
+      ].join('\n\n');
+      
       await Share.share({
         message: shareMessage,
         title: 'Unify Gather',
-        url,
+        url: eventData.externalLink,
       });
     } catch (error) {
-      console.error('Error sharing event', error);
+      if (error && typeof error === 'object' && 'code' in error && error.code !== 'SHARE_CANCELLED') {
+        console.error('Error sharing event:', error);
+      }
     }
   };
 
