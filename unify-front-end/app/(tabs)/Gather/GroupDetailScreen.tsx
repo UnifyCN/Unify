@@ -12,9 +12,8 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Group } from '@/types/groups';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useHeader } from '@/components/HeaderManager';
 import { getGroupByName } from '@/services/groups/getGroupByName';
 import { PostItem } from '@/components/home/PostItem';
 import CreatePostButton from '@/components/posts/CreatePostButton';

@@ -11,7 +11,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
-import { useHeader } from '@/components/HeaderManager';
 
 const EventDetailScreen = () => {
   const router = useRouter();

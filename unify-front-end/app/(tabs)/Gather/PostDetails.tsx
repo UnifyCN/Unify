@@ -18,7 +18,6 @@ import { useCommentMetadata } from '@/hooks/useCommentMetadata';
 import PostCommentItem from './PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
-import { useHeader } from '@/components/HeaderManager';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
@@ -105,7 +104,6 @@ const PostDetails = () => {
   // Get passed data
   const { post: postParam } = useLocalSearchParams();
 
-  const { forceVisible } = useHeader();
 
   const onBack = () => {
     router.back();

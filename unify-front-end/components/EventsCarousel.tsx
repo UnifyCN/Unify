@@ -33,7 +33,7 @@ const EventSkeletonCard = () => {
 
         <View style={skeletonStyles.detailsContainer}>
           <View style={skeletonStyles.eventDetail}>
-            <SkeletonLoader width={14} height={18} borderRadius={10} />
+            <SkeletonLoader width={14} height={18} borderRadius={10} style={skeletonStyles.iconSkeleton} />
             <SkeletonLoader
               width='75%'
               height={18}
@@ -43,7 +43,7 @@ const EventSkeletonCard = () => {
           </View>
 
           <View style={skeletonStyles.eventDetail}>
-            <SkeletonLoader width={14} height={18} borderRadius={10} />
+            <SkeletonLoader width={14} height={18} borderRadius={10} style={skeletonStyles.iconSkeleton} />
             <SkeletonLoader
               width='50%'
               height={18}
@@ -81,11 +81,10 @@ export const EventsCarousel = ({
   const upcomingEvents =
     events?.filter(event => {
       const eventDate = new Date(event.eventDatetime);
-      return eventDate >= now;
+      return eventDate < now;
     }) || [];
 
   const displayEvents = upcomingEvents.slice(0, maxEvents);
-
   const handleEventPress = (event: any) => {
     router.push({
       pathname: '/(tabs)/Gather/EventDetailScreen',
@@ -120,15 +119,21 @@ export const EventsCarousel = ({
           contentContainerStyle,
         ]}
       >
-        {isLoading && <EventSkeletonCard />}
-        {!isLoading && upcomingEvents.length === 0 && (
+        {isLoading && (
+          <View style={styles.loadingContainer}>
+            {Array.from({ length: 2 }).map((_, index) => (
+              <EventSkeletonCard key={`skeleton-${index}`} />
+            ))}
+          </View>
+        )}
+        {/* {!isLoading && upcomingEvents.length === 0 && (
           <View style={styles.emptyEventsContainer}>
             <Text style={styles.emptyEventsText}>No upcoming events</Text>
             <Text style={styles.emptyEventsSubtext}>
               Check back later for new events or view past events.
             </Text>
           </View>
-        )}
+        )} */}
         {displayEvents.map(event => (
           <EventCard
             key={event.id}
@@ -161,10 +166,17 @@ const styles = StyleSheet.create({
   },
   eventsCarouselContent: {
     paddingHorizontal: 0,
+    gap: 12,
   },
   eventsCarouselContentEmpty: {
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    overflow: 'hidden',
     width: '100%',
   },
   emptyEventsContainer: {
@@ -198,6 +210,7 @@ const skeletonStyles = StyleSheet.create({
   eventImagePlaceholder: {
     height: 80,
     width: '100%',
+    backgroundColor: '#D5D5D5',
   },
   eventContent: {
     padding: 12,
@@ -216,8 +229,13 @@ const skeletonStyles = StyleSheet.create({
   },
   titleSkeleton: {
     marginBottom: 4,
+    backgroundColor: '#D5D5D5',
   },
   detailSkeleton: {
     flex: 1,
+    backgroundColor: '#D5D5D5',
+  },
+  iconSkeleton: {
+    backgroundColor: '#D5D5D5',
   },
 });

@@ -13,9 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
 import { useMemo, useState } from 'react';
-import { ChartNoAxesGantt } from 'lucide-react-native';
 import { Event } from '@/types/events';
-import { useHeader } from '@/components/HeaderManager';
 
 const EventsScreen = () => {
   const router = useRouter();
