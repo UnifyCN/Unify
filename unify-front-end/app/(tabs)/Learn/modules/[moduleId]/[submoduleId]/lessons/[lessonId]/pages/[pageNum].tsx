@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -36,17 +36,14 @@ export default function LessonPageScreen() {
   const { data: quizzes, isLoading: quizzesLoading, error: quizzesError } = useSanityLessonQuizzes(lessonId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
 
-  // Debug logging
-  console.log('Lesson ID:', lessonId);
-  console.log('Quizzes data:', quizzes);
-  console.log('Quizzes loading:', quizzesLoading);
-  console.log('Quizzes error:', quizzesError);
+  // Progress tracking
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
 
-  // Calculate progress for the progress bar
+  // Calculate progress for the progress bar - keep it static/offline
   const progress = calculateLessonProgress(submoduleData || null, lessonId || '', currentPage);
+
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
@@ -85,7 +82,8 @@ export default function LessonPageScreen() {
     setShowExitModal(false);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+
     if (currentPage < totalPages) {
       // Go to next page
       router.push({
@@ -131,7 +129,8 @@ export default function LessonPageScreen() {
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
+
     if (currentPage > 1) {
       // Go to previous page
       router.push({

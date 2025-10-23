@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, TextInput } from 'react-native';
-import DropdownAccordion from '@/components/learn/DropdownAccordion';
+import DropdownBlock from '@/components/sanity/DropdownBlock';
 
 interface RichTextRendererProps {
   blocks: any[];
@@ -273,7 +273,6 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
   const renderBlock = (block: any, index: number, nestingLevel: number = 0) => {
     // Debug logging for input boxes
     if (block._type === 'large_input_box' || block._type === 'mid_input_box' || block._type === 'small_input_box') {
-      console.log('Found input box block:', block._type, block);
     }
     
     if (block._type === 'block') {
@@ -385,16 +384,8 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
 
     // Handle special block types
     if (block._type === 'dropdown') {
-      const dropdownItems = [{
-        id: block._key || index,
-        title: block.label || 'Dropdown',
-        body: block.content || []
-      }];
-      
       return (
-        <View key={block._key || index} style={mergedStyles.dropdown}>
-          <DropdownAccordion items={dropdownItems} />
-        </View>
+        <DropdownBlock block={block} index={index} />
       );
     }
 

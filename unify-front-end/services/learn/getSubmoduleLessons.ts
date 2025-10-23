@@ -13,7 +13,6 @@ export const getSubmoduleLessons = async (
     throw new Error('User not authenticated');
   }
 
-  console.log('Fetching submodule lessons for submoduleId:', submoduleId);
 
   // Get submodule info
   const { data: submoduleData, error: submoduleError } = await supabase

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -35,14 +35,14 @@ export default function ActivityPageScreen() {
   const { data: quizzes, isLoading: quizzesLoading, error: quizzesError } = useSanityLessonQuizzes(lessonId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
 
+  // Progress tracking
   const currentPageData = lesson?.activity_pages?.[currentPage - 1];
   const totalPages = lesson?.activity_pages?.length || 0;
 
-  // Debug logging
-  console.log('Activity instructions:', currentPageData?.instructions);
 
-  // Calculate progress for the progress bar
+  // Calculate progress for the progress bar - keep it static/offline
   const progress = calculateActivityProgress(submoduleData || null, lessonId || '', currentPage);
+
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
@@ -80,11 +80,12 @@ export default function ActivityPageScreen() {
   };
 
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitted(true);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+
     if (currentPage < totalPages) {
       // Go to next activity page
       router.push({

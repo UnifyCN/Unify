@@ -25,11 +25,9 @@ export async function getAllModules(): Promise<Module[]> {
     }
 
     if (!modules || modules.length === 0) {
-      console.log('No modules found');
       return [];
     }
 
-    console.log('Found modules:', modules);
 
     // Get user progress for all modules
     const { data: userProgress, error: progressError } = await supabase
@@ -88,7 +86,6 @@ export async function getAllModules(): Promise<Module[]> {
       };
     });
 
-    console.log('Processed modules with progress:', modulesWithProgress);
     return modulesWithProgress;
   } catch (error) {
     console.error('Error in getAllModules:', error);

@@ -22,7 +22,6 @@ export const getModule = async (moduleId: string): Promise<ModuleData> => {
     throw new Error('User not authenticated');
   }
 
-  console.log('Fetching module data for moduleId:', moduleId);
 
   // Get module info
   const { data: moduleInfo, error: moduleError } = await supabase

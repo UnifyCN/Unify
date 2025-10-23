@@ -238,17 +238,6 @@ export default function ModuleIndex() {
                 ? null
                 : `${Math.round(m.progress_percent || 0)}%`;
               
-              // Debug logging for last element
-              if (i === submodules.length - 1) {
-                console.log('Last element debug:', {
-                  index: i,
-                  title: m.title,
-                  is_completed: m.is_completed,
-                  progress_percent: m.progress_percent,
-                  bubbleText,
-                  hasCardLayout: !!cardLayoutsRef.current[i]
-                });
-              }
 
               // Fallback edges until card onLayout fires
               const fallbackLeftEdgeOfRightCard =
@@ -304,13 +293,6 @@ export default function ModuleIndex() {
                         height: Math.max(0, height),
                       };
                       
-                      // Debug logging for last element layout
-                      if (i === submodules.length - 1) {
-                        console.log('Last element layout captured:', {
-                          index: i,
-                          layout: cardLayoutsRef.current[i]
-                        });
-                      }
                     }}
                   >
                     {/* Small circle indicator for latest uncompleted */}
