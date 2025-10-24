@@ -460,7 +460,11 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
 
   return (
     <View style={styles.container}>
-      {blocks.map((block, index) => renderBlock(block, index, nestingLevels[block._key || index] || 0)).filter(Boolean)}
+      {blocks.map((block, index) => (
+        <React.Fragment key={block._key || index}>
+          {renderBlock(block, index, nestingLevels[block._key || index] || 0)}
+        </React.Fragment>
+      )).filter(Boolean)}
     </View>
   );
 }

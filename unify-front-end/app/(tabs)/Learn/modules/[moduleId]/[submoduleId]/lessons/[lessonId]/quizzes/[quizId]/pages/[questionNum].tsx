@@ -14,6 +14,7 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateQuizProgress } from '@/utils/submoduleProgress';
+import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } = useLocalSearchParams<{
@@ -39,6 +40,9 @@ export default function QuizQuestionPage() {
   const [matchedPairs, setMatchedPairs] = useState<{[key: string]: string}>({});
   const [completedPairs, setCompletedPairs] = useState<string[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
+
+  // Progress tracking
+  const { saveLessonCompletion } = useLessonProgress();
 
   // Reset selections when question changes
   useEffect(() => {
@@ -119,7 +123,7 @@ export default function QuizQuestionPage() {
       });
     } else {
       // Single selection logic
-      setSelectedAnswer(optionId);
+    setSelectedAnswer(optionId);
     }
   };
 
@@ -176,7 +180,7 @@ export default function QuizQuestionPage() {
     setSelectedRightItem(null);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestion.question_type === 'matching') {
       // For matching questions, go directly to next question since all pairs are completed
       // No need for submission logic - proceed to navigation
@@ -199,24 +203,33 @@ export default function QuizQuestionPage() {
             },
           });
         } else {
-          // All quizzes completed, go to next lesson or map
-          const nextLesson = getNextLesson();
-          if (nextLesson) {
-            router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-              params: { 
-                moduleId, 
-                submoduleId, 
-                lessonId: nextLesson._id, 
-                pageNum: '1' 
-              },
-            });
-          } else {
-            // Go back to lesson map
+          // All quizzes completed, save this lesson as completed
+          await saveLessonCompletion(lessonId || '', submoduleId || '', moduleId || '', questions?.length || 1);
+          
+          // Check if this is the last lesson
+          const currentIndex = getCurrentLessonIndex();
+          const isLastLesson = currentIndex === (submoduleData?.lessons?.length || 0) - 1;
+          
+          if (isLastLesson) {
+            // Last lesson completed, go back to map
             router.push({
               pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
               params: { moduleId, submoduleId },
             });
+          } else {
+            // Go to next lesson
+            const nextLesson = getNextLesson();
+            if (nextLesson) {
+              router.push({
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+                params: { 
+                  moduleId, 
+                  submoduleId, 
+                  lessonId: nextLesson._id, 
+                  pageNum: '1' 
+                },
+              });
+            }
           }
         }
       } else {
@@ -276,19 +289,28 @@ export default function QuizQuestionPage() {
             },
           });
         } else {
-          // All quizzes completed, go to next lesson or map
-          const nextLesson = getNextLesson();
-          if (nextLesson) {
-            router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-              params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
-            });
-          } else {
+          // All quizzes completed, save this lesson as completed
+          await saveLessonCompletion(lessonId || '', submoduleId || '', moduleId || '', questions?.length || 1);
+          
+          // Check if this is the last lesson
+          const currentIndex = getCurrentLessonIndex();
+          const isLastLesson = currentIndex === (submoduleData?.lessons?.length || 0) - 1;
+          
+          if (isLastLesson) {
             // Last lesson completed, go back to map
             router.push({
               pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
               params: { moduleId, submoduleId },
             });
+          } else {
+            // Go to next lesson
+            const nextLesson = getNextLesson();
+            if (nextLesson) {
+              router.push({
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+                params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
+              });
+            }
           }
         }
       } else {
@@ -416,8 +438,8 @@ export default function QuizQuestionPage() {
                       </TouchableOpacity>
                     ))}
                   </View>
-                </View>
-                
+            </View>
+
                 {/* Check Button for Matching */}
                 <TouchableOpacity
                   style={[
@@ -436,56 +458,56 @@ export default function QuizQuestionPage() {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.optionsContainer}>
+            <View style={styles.optionsContainer}>
                 {(currentQuestion.options || []).map((option: any) => {
                   const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
                   const isSelected = currentQuestion.question_type === 'multiple_choice_multiple' 
                     ? selectedAnswers.includes(option._key)
                     : selectedAnswer === option._key;
                   const isCorrectOption = option.is_correct || option._key === correctAnswerId;
-                  const showFeedback = hasSubmitted;
-                  
-                  let optionStyle = styles.optionButton;
-                  let checkboxStyle = styles.checkbox;
-                  
-                  // Normal selection behavior
-                  if (isSelected) {
-                    optionStyle = styles.optionButtonSelected;
-                    checkboxStyle = styles.checkboxSelected;
+                const showFeedback = hasSubmitted;
+                
+                let optionStyle = styles.optionButton;
+                let checkboxStyle = styles.checkbox;
+                
+                // Normal selection behavior
+                if (isSelected) {
+                  optionStyle = styles.optionButtonSelected;
+                  checkboxStyle = styles.checkboxSelected;
+                }
+                
+                // Add color feedback after check
+                if (showFeedback) {
+                  if (isCorrectOption) {
+                    // Correct answer - green border
+                    optionStyle = styles.optionButtonCorrect;
+                    checkboxStyle = styles.checkboxCorrect;
+                  } else if (isSelected && !isCorrectOption) {
+                    // Wrong selected answer - red border
+                    optionStyle = styles.optionButtonIncorrect;
+                    checkboxStyle = styles.checkboxIncorrect;
                   }
-                  
-                  // Add color feedback after check
-                  if (showFeedback) {
-                    if (isCorrectOption) {
-                      // Correct answer - green border
-                      optionStyle = styles.optionButtonCorrect;
-                      checkboxStyle = styles.checkboxCorrect;
-                    } else if (isSelected && !isCorrectOption) {
-                      // Wrong selected answer - red border
-                      optionStyle = styles.optionButtonIncorrect;
-                      checkboxStyle = styles.checkboxIncorrect;
-                    }
-                  }
-                  
-                  return (
-                    <TouchableOpacity
+                }
+                
+                return (
+                  <TouchableOpacity
                       key={option._key}
-                      style={optionStyle}
+                    style={optionStyle}
                       onPress={() => !showFeedback && handleAnswerSelect(option._key)}
-                      disabled={showFeedback}
-                    >
-                      <View style={styles.optionRow}>
-                        <View style={checkboxStyle}>
-                          {isSelected && <Text style={styles.checkmark}>✓</Text>}
-                        </View>
-                        <View style={styles.optionContent}>
-                          <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} />
-                        </View>
+                    disabled={showFeedback}
+                  >
+                    <View style={styles.optionRow}>
+                      <View style={checkboxStyle}>
+                        {isSelected && <Text style={styles.checkmark}>✓</Text>}
                       </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+                      <View style={styles.optionContent}>
+                          <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
             )}
           </View>
         </View>

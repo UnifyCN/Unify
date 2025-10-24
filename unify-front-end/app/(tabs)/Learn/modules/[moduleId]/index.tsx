@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,10 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Link } from 'expo-router';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
+import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
+import { useSubmoduleProgress } from '@/hooks/progress/useSubmoduleProgress';
+import { getSubmoduleProgress } from '@/services/progress/progressService';
+import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { Feather } from '@expo/vector-icons';
 // NOTE: THIS FILE IS TO BE DIVIDED TO COMPONENTS AFTER LEARN COMPONENTS CLEAN UP
 // --- safety helpers ---
@@ -42,6 +46,62 @@ export default function ModuleIndex() {
   const router = useRouter();
   const { moduleId } = useLocalSearchParams<{ moduleId: string }>();
   const { data: moduleData, isLoading, error } = useSanityModuleWithSubmodules(moduleId || '');
+  
+  // Progress tracking
+  const { moduleProgress, isLoading: progressLoading } = useModuleProgress(moduleId || '');
+  const [submoduleProgresses, setSubmoduleProgresses] = useState<{[key: string]: any}>({});
+  
+  // Calculate module progress from submodule data
+  const moduleProgressData = useMemo(() => {
+    const submoduleList = Object.values(submoduleProgresses);
+    const completedSubmodules = submoduleList.filter((submodule: any) => submodule.is_completed).length;
+    const totalSubmodules = moduleData?.submodules?.length || 0;
+    const progressPercent = totalSubmodules > 0 ? Math.round((completedSubmodules / totalSubmodules) * 100) : 0;
+    
+    console.log('Module Progress Calculation:', {
+      submoduleProgresses,
+      completedSubmodules,
+      totalSubmodules,
+      progressPercent
+    });
+    
+    return {
+      completed_submodules: completedSubmodules,
+      total_submodules: totalSubmodules,
+      progress_percent: progressPercent
+    };
+  }, [submoduleProgresses, moduleData?.submodules]);
+
+  // Fetch submodule progress data using cached service
+  useEffect(() => {
+    if (moduleData?.submodules) {
+      const fetchSubmoduleProgress = async () => {
+        const progressData: {[key: string]: any} = {};
+        
+        for (const submodule of moduleData.submodules) {
+          try {
+            // Use cached progress service for faster access
+            const progress = await cachedProgressService.getSubmoduleProgress(moduleId || '', submodule._id);
+            console.log(`Cached progress for ${submodule.title}:`, progress);
+            progressData[submodule._id] = progress;
+          } catch (error) {
+            console.error(`Error fetching cached progress for submodule ${submodule._id}:`, error);
+            // Set default values if progress fetching fails
+            progressData[submodule._id] = {
+              is_completed: false,
+              progress_percent: 0,
+              completed_lessons: 0,
+              total_lessons: submodule.lessons?.length || 0
+            };
+          }
+        }
+        
+        setSubmoduleProgresses(progressData);
+      };
+      
+      fetchSubmoduleProgress();
+    }
+  }, [moduleData?.submodules, moduleId]);
 
   // rail start/end calculations
   const [progressBottom, setProgressBottom] = useState(0);
@@ -82,7 +142,7 @@ export default function ModuleIndex() {
     return Math.max(0, railEnd - progressBottom - trim);
   }, [railEnd, progressBottom]);
 
-  if (isLoading) {
+  if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.centered}>
@@ -105,18 +165,31 @@ export default function ModuleIndex() {
     );
   }
 
-  // Normalize list + gating
+  // Normalize list + gating with real progress data
   const submodules = moduleData.submodules.map((s, i, arr) => {
-    const status = 'not-started'; // For now, all submodules are not started
-    const unlocked = true; // Temporarily make all submodules clickable
+    const progress = submoduleProgresses[s._id];
+    const isCompleted = progress?.is_completed || false;
+    const progressPercent = progress?.progress_percent || 0;
+    
+    // Determine status based on progress
+    let status = 'not-started';
+    if (isCompleted) {
+      status = 'completed';
+    } else if (progressPercent > 0) {
+      status = 'in-progress';
+    }
+    
+    // Unlock logic: first submodule is always unlocked, others unlock when previous is completed
+    const unlocked = i === 0 || (i > 0 && submoduleProgresses[moduleData.submodules[i-1]._id]?.is_completed);
+    
     return { 
       ...s, 
       id: s._id, // Use Sanity _id
       index: i + 1, 
       status, 
       unlocked,
-      is_completed: false, // For now, assume not completed
-      progress_percent: 0 // For now, assume no progress
+      is_completed: isCompleted,
+      progress_percent: progressPercent
     };
   });
 
@@ -195,17 +268,18 @@ export default function ModuleIndex() {
         {/* Progress Card */}
         <View style={styles.progressCard} onLayout={onProgressLayout}>
           <Text style={styles.progressCentered}>
-            Progress: 0/{moduleData.submodules?.length || 0} modules completed
+            Progress: {moduleProgressData.completed_submodules}/{moduleProgressData.total_submodules} submodules completed
           </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: '0%' }, // For now, assume no progress
+                { width: `${Math.min(100, Math.max(0, moduleProgressData.progress_percent))}%` },
               ]}
             />
           </View>
         </View>
+
 
         {/* Rail container */}
         <View style={styles.railContainer}>

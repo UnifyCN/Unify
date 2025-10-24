@@ -18,7 +18,10 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import { calculateLessonProgress } from '@/utils/submoduleProgress';
+
+// Progress related imports
+import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
+import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 
 export default function LessonPageScreen() {
   const router = useRouter();
@@ -37,6 +40,7 @@ export default function LessonPageScreen() {
   const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Progress tracking
+  const { saveLessonCompletion } = useLessonProgress();
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
@@ -83,7 +87,6 @@ export default function LessonPageScreen() {
   };
 
   const handleNext = async () => {
-
     if (currentPage < totalPages) {
       // Go to next page
       router.push({
@@ -110,19 +113,25 @@ export default function LessonPageScreen() {
             params: { moduleId, submoduleId, lessonId, quizId: firstQuiz._id },
           });
         } else {
-          // No quizzes, go to next lesson or back to map if last lesson
-          const nextLesson = getNextLesson();
-          if (nextLesson) {
-            router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-              params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
-            });
-          } else {
+          // No quizzes, save this lesson as completed
+          await saveLessonCompletion(lessonId || '', submoduleId || '', moduleId || '', totalPages);
+          
+          // Check if this is the last lesson
+          if (isLastLesson()) {
             // Last lesson completed, go back to map
             router.push({
               pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
               params: { moduleId, submoduleId },
             });
+          } else {
+            // Go to next lesson
+            const nextLesson = getNextLesson();
+            if (nextLesson) {
+              router.push({
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+                params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
+              });
+            }
           }
         }
       }
