@@ -1,22 +1,42 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Link } from 'expo-router';
 
-export default function LessonHeroCard() {
-  return (
-    // This component is hard coded for now
+interface LessonHeroCardProps {
+  title?: string;
+  description?: string;
+  moduleTitle?: string;
+  submoduleTitle?: string;
+  progressPercent?: number;
+  currentPage?: number;
+  totalPages?: number;
+  href?: string;
+}
+
+export default function LessonHeroCard({
+  title = 'Mastering Banking in Canada',
+  description = 'Learn the fundamentals of banking',
+  moduleTitle = 'Finance',
+  submoduleTitle = 'Types of Banks & Credit Unions',
+  progressPercent = 0,
+  currentPage = 1,
+  totalPages = 10,
+  href = '/(tabs)/Learn'
+}: LessonHeroCardProps) {
+  const cardContent = (
     <View style={styles.card}>
       <View style={styles.banner}>
         <View style={styles.bannerTextWrap}>
-          <Text style={styles.metaText}>Finance • 6 Sections</Text>
-          <Text style={styles.title}>Mastering Banking in Canada</Text>
+          <Text style={styles.metaText}>{moduleTitle} • {Math.round(progressPercent)}% Complete</Text>
+          <Text style={styles.title}>{title}</Text>
         </View>
       </View>
 
       <View style={styles.footerRow}>
         <View>
-          <Text style={styles.caption}>Continue from Lesson 2:</Text>
-          <Text style={styles.subtitle}>Types of Banks & Credit Unions</Text>
+          <Text style={styles.caption}>Continue from Page {currentPage}:</Text>
+          <Text style={styles.subtitle}>{submoduleTitle}</Text>
         </View>
         <View style={styles.playButton}>
           <MaterialIcons name='play-arrow' size={28} color='#fff' />
@@ -24,6 +44,18 @@ export default function LessonHeroCard() {
       </View>
     </View>
   );
+
+  if (href) {
+    return (
+      <Link href={href as any} asChild>
+        <TouchableOpacity>
+          {cardContent}
+        </TouchableOpacity>
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 
 const styles = StyleSheet.create({

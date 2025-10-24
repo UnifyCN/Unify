@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -39,6 +39,7 @@ export default function SubmoduleIntroScreen() {
 
   // Calculate progress for the progress bar
   const progress = calculateIntroProgress(submoduleData || null, currentPage);
+
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
