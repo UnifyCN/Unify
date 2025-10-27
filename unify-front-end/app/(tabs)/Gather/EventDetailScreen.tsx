@@ -42,14 +42,19 @@ const EventDetailScreen = () => {
         `📍 ${eventData.location}`,
         `🔗 ${eventData.externalLink}`,
       ].join('\n\n');
-      
+
       await Share.share({
         message: shareMessage,
         title: 'Unify Gather',
         url: eventData.externalLink,
       });
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code !== 'SHARE_CANCELLED') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code !== 'SHARE_CANCELLED'
+      ) {
         console.error('Error sharing event:', error);
       }
     }

@@ -21,7 +21,7 @@ const Header = () => {
   }, []);
 
   const handleProfilePress = () => {
-    router.push("/(tabs)/Gather/Profile/AccountSettings");
+    router.push('/(tabs)/Gather/Profile/AccountSettings');
   };
 
   return (

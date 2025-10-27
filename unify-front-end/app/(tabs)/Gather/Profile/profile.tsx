@@ -58,7 +58,7 @@ export default function Profile() {
   const { data: userInfo } = useUserInfo(userId);
 
   const { setVisible } = useHeaderVisibility();
-  
+
   useFocusEffect(
     React.useCallback(() => {
       setVisible(false);
@@ -160,7 +160,7 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title="" />
+      <BackHeader title='' />
       <FlatList
         data={data}
         renderItem={renderItem}

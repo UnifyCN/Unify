@@ -59,40 +59,40 @@ const AccountSettings = () => {
   };
 
   const handleNavigateToProfile = () => {
-    if (userId) { 
+    if (userId) {
       router.push(`/(tabs)/Gather/Profile/profile?userId=${userId}` as any);
     }
   };
 
   const handleLanguageSettings = () => {
     // Do nothing for now
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <BackHeader title="Account" />
+      <BackHeader title='Account' />
       <View style={styles.content}>
         <View style={styles.rowsContainer}>
-          <View style={styles.settingsCard}>  
+          <View style={styles.settingsCard}>
             <TouchableOpacity
               style={styles.row}
               onPress={handleNavigateToProfile}
             >
               <View style={styles.avatarPlaceholderSmall} />
               <Text style={styles.rowText}>Gather Profile</Text>
-            </TouchableOpacity> 
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.row}
               onPress={handleLanguageSettings}
             >
               <View style={styles.iconContainer}>
-                <LanguageIcon />             
+                <LanguageIcon />
               </View>
               <Text style={styles.rowText}>Languages</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.divider} /> 
+          <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={onLogout}>
             <Text style={[styles.rowText, { color: '#000' }]}>Log out</Text>

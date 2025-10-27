@@ -4,20 +4,20 @@ import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 interface BackHeaderProps {
-    title: string;
+  title: string;
 }
 
-const BackHeader = ({ title = "" }: BackHeaderProps) => {
+const BackHeader = ({ title = '' }: BackHeaderProps) => {
   const router = useRouter();
 
   return (
     <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-            <Feather name='chevron-left' size={24} color='#000' />
-        </TouchableOpacity>
-        {/* Share Button */}
-        <Text style={styles.title}>{title}</Text>
-        <View style={styles.placeholder} />
+      <TouchableOpacity onPress={() => router.back()}>
+        <Feather name='chevron-left' size={24} color='#000' />
+      </TouchableOpacity>
+      {/* Share Button */}
+      <Text style={styles.title}>{title}</Text>
+      <View style={styles.placeholder} />
     </View>
   );
 };
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 24, // To balance the back button size
-  }
+  },
 });
 
 export default BackHeader;
