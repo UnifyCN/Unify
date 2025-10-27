@@ -5,15 +5,17 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
+import React from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import SavedFeed from '@/components/profile/SavedFeed';
 import UserPostsFeed from '@/components/profile/UserPostsFeed';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
-
+import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+import BackHeader from '@/components/BackHeader';
 interface TabHeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -54,6 +56,15 @@ export default function Profile() {
   const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
 
   const { data: userInfo } = useUserInfo(userId);
+
+  const { setVisible } = useHeaderVisibility();
+  
+  useFocusEffect(
+    React.useCallback(() => {
+      setVisible(false);
+      return () => setVisible(true);
+    }, [setVisible])
+  );
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -149,6 +160,7 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
+      <BackHeader title="" />
       <FlatList
         data={data}
         renderItem={renderItem}
