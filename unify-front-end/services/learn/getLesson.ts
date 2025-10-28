@@ -69,13 +69,18 @@ export const getLesson = async (lessonId: string): Promise<LessonDetail> => {
       } else {
         normalized = { content: [] };
       }
-    } else if (content.content_type === 'rich_text' || content.content_type === 'section') {
+    } else if (
+      content.content_type === 'rich_text' ||
+      content.content_type === 'section'
+    ) {
       if (Array.isArray(raw)) {
         normalized = { sections: raw };
       } else if (raw && typeof raw === 'object') {
         if (Array.isArray(raw.sections)) normalized = raw;
-        else if (Array.isArray(raw.content)) normalized = { sections: raw.content };
-        else if (Array.isArray(raw.blocks)) normalized = { sections: raw.blocks };
+        else if (Array.isArray(raw.content))
+          normalized = { sections: raw.content };
+        else if (Array.isArray(raw.blocks))
+          normalized = { sections: raw.blocks };
         else {
           const maybe = (raw as any).sections;
           if (typeof maybe === 'string') {
@@ -119,7 +124,12 @@ export const getLesson = async (lessonId: string): Promise<LessonDetail> => {
           }
 
           // If sec.content is an object with a text field, wrap it
-          if (sec.content && typeof sec.content === 'object' && !Array.isArray(sec.content) && typeof sec.content.text === 'string') {
+          if (
+            sec.content &&
+            typeof sec.content === 'object' &&
+            !Array.isArray(sec.content) &&
+            typeof sec.content.text === 'string'
+          ) {
             sec.content = [{ text: sec.content.text }];
             return sec;
           }
@@ -130,7 +140,10 @@ export const getLesson = async (lessonId: string): Promise<LessonDetail> => {
           }
 
           // For known single-block types like large_text_box or mid_text_box where content may be "value"
-          if ((sec.type === 'large_text_box' || sec.type === 'mid_text_box') && (typeof sec.value === 'string' || typeof sec.default === 'string')) {
+          if (
+            (sec.type === 'large_text_box' || sec.type === 'mid_text_box') &&
+            (typeof sec.value === 'string' || typeof sec.default === 'string')
+          ) {
             const textVal = sec.value ?? sec.default ?? '';
             sec.content = [{ text: String(textVal) }];
             delete sec.value;
@@ -160,13 +173,14 @@ export const getLesson = async (lessonId: string): Promise<LessonDetail> => {
   });
 
   // Build pages with contents
-  const lessonPages: LessonPage[] = pages?.map(page => ({
-    page_id: page.page_id,
-    lesson_id: page.lesson_id,
-    title: page.title,
-    order_number: page.order_number,
-    contents: contentsByPage.get(page.page_id) || [],
-  })) || [];
+  const lessonPages: LessonPage[] =
+    pages?.map(page => ({
+      page_id: page.page_id,
+      lesson_id: page.lesson_id,
+      title: page.title,
+      order_number: page.order_number,
+      contents: contentsByPage.get(page.page_id) || [],
+    })) || [];
 
   return {
     lesson_id: lesson.lesson_id,

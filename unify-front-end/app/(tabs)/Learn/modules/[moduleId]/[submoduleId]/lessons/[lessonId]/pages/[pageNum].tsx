@@ -34,10 +34,18 @@ export default function LessonPageScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
-  const { data: lesson, isLoading: loadingLesson } = useSanityLesson(lessonId || '');
+  const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
+    lessonId || ''
+  );
   const { data: moduleData } = useSanityModule(moduleId || '');
-  const { data: quizzes, isLoading: quizzesLoading, error: quizzesError } = useSanityLessonQuizzes(lessonId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
+  const {
+    data: quizzes,
+    isLoading: quizzesLoading,
+    error: quizzesError,
+  } = useSanityLessonQuizzes(lessonId || '');
+  const { data: submoduleData } = useSanitySubmoduleWithLessons(
+    submoduleId || ''
+  );
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -46,8 +54,11 @@ export default function LessonPageScreen() {
   const totalPages = lesson?.pages?.length || 0;
 
   // Calculate progress for the progress bar - keep it static/offline
-  const progress = calculateLessonProgress(submoduleData || null, lessonId || '', currentPage);
-
+  const progress = calculateLessonProgress(
+    submoduleData || null,
+    lessonId || '',
+    currentPage
+  );
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
@@ -90,8 +101,14 @@ export default function LessonPageScreen() {
     if (currentPage < totalPages) {
       // Go to next page
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-        params: { moduleId, submoduleId, lessonId, pageNum: (currentPage + 1).toString() },
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+        params: {
+          moduleId,
+          submoduleId,
+          lessonId,
+          pageNum: (currentPage + 1).toString(),
+        },
       });
     } else {
       // All lesson pages completed, check if there are activity pages
@@ -99,28 +116,38 @@ export default function LessonPageScreen() {
       if (totalActivityPages > 0) {
         // Navigate to first activity page
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/activities/[pageNum]' as any,
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/activities/[pageNum]' as any,
           params: { moduleId, submoduleId, lessonId, pageNum: '1' },
         });
       } else {
         // No activity pages, check if there are quizzes
         if (quizzes && quizzes.length > 0) {
           // Navigate to first quiz (sorted by order_number)
-          const sortedQuizzes = quizzes.sort((a, b) => a.order_number - b.order_number);
+          const sortedQuizzes = quizzes.sort(
+            (a, b) => a.order_number - b.order_number
+          );
           const firstQuiz = sortedQuizzes[0];
           router.push({
-            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
             params: { moduleId, submoduleId, lessonId, quizId: firstQuiz._id },
           });
         } else {
           // No quizzes, save this lesson as completed
-          await saveLessonCompletion(lessonId || '', submoduleId || '', moduleId || '', totalPages);
-          
+          await saveLessonCompletion(
+            lessonId || '',
+            submoduleId || '',
+            moduleId || '',
+            totalPages
+          );
+
           // Check if this is the last lesson
           if (isLastLesson()) {
             // Last lesson completed, go back to map
             router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+              pathname:
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
               params: { moduleId, submoduleId },
             });
           } else {
@@ -128,8 +155,14 @@ export default function LessonPageScreen() {
             const nextLesson = getNextLesson();
             if (nextLesson) {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-                params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  lessonId: nextLesson._id,
+                  pageNum: '1',
+                },
               });
             }
           }
@@ -139,12 +172,17 @@ export default function LessonPageScreen() {
   };
 
   const handleBack = async () => {
-
     if (currentPage > 1) {
       // Go to previous page
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-        params: { moduleId, submoduleId, lessonId, pageNum: (currentPage - 1).toString() },
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+        params: {
+          moduleId,
+          submoduleId,
+          lessonId,
+          pageNum: (currentPage - 1).toString(),
+        },
       });
     } else {
       // First page, go to previous lesson or map
@@ -152,8 +190,14 @@ export default function LessonPageScreen() {
       if (previousLesson) {
         // Get the last page of the previous lesson
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-          params: { moduleId, submoduleId, lessonId: previousLesson._id, pageNum: '1' },
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+          params: {
+            moduleId,
+            submoduleId,
+            lessonId: previousLesson._id,
+            pageNum: '1',
+          },
         });
       } else {
         // First lesson, go back to map
@@ -164,7 +208,6 @@ export default function LessonPageScreen() {
       }
     }
   };
-
 
   if (loadingLesson) {
     return (
@@ -189,14 +232,14 @@ export default function LessonPageScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       {/* Progress Bar */}
-      <SubmoduleProgressBar 
-        currentProgress={progress.currentPage} 
+      <SubmoduleProgressBar
+        currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
       />
-      
+
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -215,7 +258,11 @@ export default function LessonPageScreen() {
 
         {/* Page contents */}
         <View style={styles.content}>
-          <RichTextRenderer blocks={currentPageData.content || []} markDefs={currentPageData.markDefs} styles={{normal: styles.contentText}} />
+          <RichTextRenderer
+            blocks={currentPageData.content || []}
+            markDefs={currentPageData.markDefs}
+            styles={{ normal: styles.contentText }}
+          />
         </View>
 
         {/* Navigation buttons */}
@@ -223,24 +270,23 @@ export default function LessonPageScreen() {
           <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
             <Text style={styles.backBtnText}>Back</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
             <Text style={styles.nextBtnText}>
-              {currentPage < totalPages 
-                ? 'Next' 
+              {currentPage < totalPages
+                ? 'Next'
                 : lesson?.activity_pages && lesson.activity_pages.length > 0
                   ? 'Start Activity'
-                  : quizzes && quizzes.length > 0 
-                    ? `Take Quiz` 
-                    : 'Complete Lesson'
-              }
+                  : quizzes && quizzes.length > 0
+                    ? `Take Quiz`
+                    : 'Complete Lesson'}
             </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
       {/* Exit modal, make this into component after in refactoring*/}
-      
+
       <Modal
         visible={showExitModal}
         transparent
@@ -309,15 +355,14 @@ const styles = StyleSheet.create({
     gap: 20,
     marginBottom: 30,
   },
-  contentText:{
+  contentText: {
     fontWeight: 600,
     color: '#424242',
     marginBottom: 15,
   },
 
-
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  
+
   // Navigation styles
   navigationContainer: {
     flexDirection: 'row',

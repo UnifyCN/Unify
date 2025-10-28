@@ -17,13 +17,14 @@ import { calculateQuizProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 
 export default function QuizQuestionPage() {
-  const { moduleId, submoduleId, lessonId, quizId, questionNum } = useLocalSearchParams<{
-    moduleId: string;
-    submoduleId: string;
-    lessonId: string;
-    quizId: string;
-    questionNum: string;
-  }>();
+  const { moduleId, submoduleId, lessonId, quizId, questionNum } =
+    useLocalSearchParams<{
+      moduleId: string;
+      submoduleId: string;
+      lessonId: string;
+      quizId: string;
+      questionNum: string;
+    }>();
 
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
@@ -33,11 +34,15 @@ export default function QuizQuestionPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
-  
+
   // Matching question state
   const [selectedLeftItem, setSelectedLeftItem] = useState<string | null>(null);
-  const [selectedRightItem, setSelectedRightItem] = useState<string | null>(null);
-  const [matchedPairs, setMatchedPairs] = useState<{[key: string]: string}>({});
+  const [selectedRightItem, setSelectedRightItem] = useState<string | null>(
+    null
+  );
+  const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>(
+    {}
+  );
   const [completedPairs, setCompletedPairs] = useState<string[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
 
@@ -58,7 +63,12 @@ export default function QuizQuestionPage() {
   }, [currentQuestionIndex]);
 
   // Calculate progress for the progress bar
-  const progress = calculateQuizProgress(submoduleData || null, lessonId || '', quizId || '', currentQuestionIndex + 1);
+  const progress = calculateQuizProgress(
+    submoduleData || null,
+    lessonId || '',
+    quizId || '',
+    currentQuestionIndex + 1
+  );
 
   if (isLoading) {
     return (
@@ -79,7 +89,7 @@ export default function QuizQuestionPage() {
   const currentQuestion = questions[currentQuestionIndex];
   const totalQuestions = questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
-  
+
   // Get current quiz data
   const currentQuiz = quizzes?.find(q => q._id === quizId);
 
@@ -123,17 +133,17 @@ export default function QuizQuestionPage() {
       });
     } else {
       // Single selection logic
-    setSelectedAnswer(optionId);
+      setSelectedAnswer(optionId);
     }
   };
 
   // Matching question handlers
   const handleMatchingItemSelect = (item: string, side: 'left' | 'right') => {
     if (completedPairs.includes(item)) return; // Don't allow selection of completed items
-    
+
     // Clear incorrect pairs when user selects any new card
     setIncorrectPairs([]);
-    
+
     if (side === 'left') {
       if (selectedLeftItem === item) {
         setSelectedLeftItem(null);
@@ -153,28 +163,32 @@ export default function QuizQuestionPage() {
 
   const handleMatchingCheck = () => {
     if (!selectedLeftItem || !selectedRightItem) return;
-    
+
     // Check if this is a correct match
     const correctMatch = currentQuestion.matching_pairs?.find(
-      (pair: any) => pair.left_item === selectedLeftItem && pair.right_item === selectedRightItem
+      (pair: any) =>
+        pair.left_item === selectedLeftItem &&
+        pair.right_item === selectedRightItem
     );
-    
+
     if (correctMatch) {
       // Correct match - add to completed pairs
       setCompletedPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
       setMatchedPairs(prev => ({
         ...prev,
-        [selectedLeftItem]: selectedRightItem
+        [selectedLeftItem]: selectedRightItem,
       }));
       // Remove from incorrect pairs if it was there
-      setIncorrectPairs(prev => prev.filter(item => 
-        item !== selectedLeftItem && item !== selectedRightItem
-      ));
+      setIncorrectPairs(prev =>
+        prev.filter(
+          item => item !== selectedLeftItem && item !== selectedRightItem
+        )
+      );
     } else {
       // Incorrect match - add to incorrect pairs for red border feedback
       setIncorrectPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
     }
-    
+
     // Clear selections
     setSelectedLeftItem(null);
     setSelectedRightItem(null);
@@ -186,34 +200,43 @@ export default function QuizQuestionPage() {
       // No need for submission logic - proceed to navigation
       if (isLastQuestion) {
         // Quiz completed, check if there are more quizzes or go to next lesson
-        const sortedQuizzes = quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
+        const sortedQuizzes =
+          quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
         const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
         const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
-        
+
         if (nextQuiz) {
           // Go to next quiz
           router.push({
-            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
-            params: { 
-              moduleId, 
-              submoduleId, 
-              lessonId, 
-              quizId: nextQuiz._id, 
-              questionNum: '1' 
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+            params: {
+              moduleId,
+              submoduleId,
+              lessonId,
+              quizId: nextQuiz._id,
+              questionNum: '1',
             },
           });
         } else {
           // All quizzes completed, save this lesson as completed
-          await saveLessonCompletion(lessonId || '', submoduleId || '', moduleId || '', questions?.length || 1);
-          
+          await saveLessonCompletion(
+            lessonId || '',
+            submoduleId || '',
+            moduleId || '',
+            questions?.length || 1
+          );
+
           // Check if this is the last lesson
           const currentIndex = getCurrentLessonIndex();
-          const isLastLesson = currentIndex === (submoduleData?.lessons?.length || 0) - 1;
-          
+          const isLastLesson =
+            currentIndex === (submoduleData?.lessons?.length || 0) - 1;
+
           if (isLastLesson) {
             // Last lesson completed, go back to map
             router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+              pathname:
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
               params: { moduleId, submoduleId },
             });
           } else {
@@ -221,12 +244,13 @@ export default function QuizQuestionPage() {
             const nextLesson = getNextLesson();
             if (nextLesson) {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-                params: { 
-                  moduleId, 
-                  submoduleId, 
-                  lessonId: nextLesson._id, 
-                  pageNum: '1' 
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  lessonId: nextLesson._id,
+                  pageNum: '1',
                 },
               });
             }
@@ -235,71 +259,92 @@ export default function QuizQuestionPage() {
       } else {
         // Go to next question in same quiz
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
-          params: { 
-            moduleId, 
-            submoduleId, 
-            lessonId, 
-            quizId, 
-            questionNum: (currentQuestionIndex + 2).toString() 
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+          params: {
+            moduleId,
+            submoduleId,
+            lessonId,
+            quizId,
+            questionNum: (currentQuestionIndex + 2).toString(),
           },
         });
       }
     } else if (!hasSubmitted) {
       // First submission - check if answer is correct
       let isAnswerCorrect = false;
-      
+
       if (currentQuestion.question_type === 'multiple_choice_multiple') {
         // For multiple choice multiple, check if all correct options are selected and no incorrect ones
-        const correctOptions = currentQuestion.options?.filter((opt: any) => opt.is_correct) || [];
+        const correctOptions =
+          currentQuestion.options?.filter((opt: any) => opt.is_correct) || [];
         const correctOptionIds = correctOptions.map((opt: any) => opt._key);
-        
+
         // Check if all correct options are selected and no incorrect ones
-        const hasAllCorrect = correctOptionIds.every((id: string) => selectedAnswers.includes(id));
-        const hasNoIncorrect = selectedAnswers.every((id: string) => correctOptionIds.includes(id));
-        
-        isAnswerCorrect = hasAllCorrect && hasNoIncorrect && selectedAnswers.length > 0;
+        const hasAllCorrect = correctOptionIds.every((id: string) =>
+          selectedAnswers.includes(id)
+        );
+        const hasNoIncorrect = selectedAnswers.every((id: string) =>
+          correctOptionIds.includes(id)
+        );
+
+        isAnswerCorrect =
+          hasAllCorrect && hasNoIncorrect && selectedAnswers.length > 0;
       } else {
         // Single choice logic
-        const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
-        isAnswerCorrect = selectedAnswer === correctAnswerId || 
-          (currentQuestion.options?.find((opt: any) => opt._key === selectedAnswer)?.is_correct);
+        const correctAnswerId =
+          currentQuestion.correct_answer?.value?.[0] ||
+          currentQuestion.correct_answer?.value;
+        isAnswerCorrect =
+          selectedAnswer === correctAnswerId ||
+          currentQuestion.options?.find(
+            (opt: any) => opt._key === selectedAnswer
+          )?.is_correct;
       }
-      
+
       setIsCorrect(isAnswerCorrect);
       setHasSubmitted(true);
     } else {
       // Already submitted and correct - proceed to next
       if (isLastQuestion) {
         // Quiz completed, check if there are more quizzes or go to next lesson
-        const sortedQuizzes = quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
+        const sortedQuizzes =
+          quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
         const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
         const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
-        
+
         if (nextQuiz) {
           // Go to next quiz
           router.push({
-            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
-            params: { 
-              moduleId, 
-              submoduleId, 
-              lessonId, 
-              quizId: nextQuiz._id, 
-              questionNum: '1' 
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+            params: {
+              moduleId,
+              submoduleId,
+              lessonId,
+              quizId: nextQuiz._id,
+              questionNum: '1',
             },
           });
         } else {
           // All quizzes completed, save this lesson as completed
-          await saveLessonCompletion(lessonId || '', submoduleId || '', moduleId || '', questions?.length || 1);
-          
+          await saveLessonCompletion(
+            lessonId || '',
+            submoduleId || '',
+            moduleId || '',
+            questions?.length || 1
+          );
+
           // Check if this is the last lesson
           const currentIndex = getCurrentLessonIndex();
-          const isLastLesson = currentIndex === (submoduleData?.lessons?.length || 0) - 1;
-          
+          const isLastLesson =
+            currentIndex === (submoduleData?.lessons?.length || 0) - 1;
+
           if (isLastLesson) {
             // Last lesson completed, go back to map
             router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+              pathname:
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
               params: { moduleId, submoduleId },
             });
           } else {
@@ -307,8 +352,14 @@ export default function QuizQuestionPage() {
             const nextLesson = getNextLesson();
             if (nextLesson) {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-                params: { moduleId, submoduleId, lessonId: nextLesson._id, pageNum: '1' },
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  lessonId: nextLesson._id,
+                  pageNum: '1',
+                },
               });
             }
           }
@@ -316,13 +367,14 @@ export default function QuizQuestionPage() {
       } else {
         // Go to next question
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
-          params: { 
-            moduleId, 
-            submoduleId, 
-            lessonId, 
-            quizId, 
-            questionNum: (currentQuestionIndex + 2).toString() 
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+          params: {
+            moduleId,
+            submoduleId,
+            lessonId,
+            quizId,
+            questionNum: (currentQuestionIndex + 2).toString(),
           },
         });
       }
@@ -333,36 +385,37 @@ export default function QuizQuestionPage() {
     if (currentQuestionIndex > 0) {
       // Go to previous question
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
-        params: { 
-          moduleId, 
-          submoduleId, 
-          lessonId, 
-          quizId, 
-          questionNum: currentQuestionIndex.toString() 
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]/pages/[questionNum]' as any,
+        params: {
+          moduleId,
+          submoduleId,
+          lessonId,
+          quizId,
+          questionNum: currentQuestionIndex.toString(),
         },
       });
     } else {
       // First question, go back to lesson
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
         params: { moduleId, submoduleId, lessonId, pageNum: '1' },
       });
     }
   };
 
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Progress Bar */}
-      <SubmoduleProgressBar 
-        currentProgress={progress.currentPage} 
+      <SubmoduleProgressBar
+        currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => router.back()}
       />
-      
+
       <ScrollView style={styles.scrollView}>
         {/* Question counter */}
         <View style={styles.questionCounterContainer}>
@@ -377,11 +430,11 @@ export default function QuizQuestionPage() {
           {currentQuiz?.title && (
             <Text style={styles.quizTitle}>{currentQuiz.title}</Text>
           )}
-          
+
           <View style={styles.questionContainer}>
             <View style={styles.questionContent}>
-              <RichTextRenderer 
-                blocks={currentQuestion.question_text || []} 
+              <RichTextRenderer
+                blocks={currentQuestion.question_text || []}
                 markDefs={currentQuestion.questionMarkDefs}
                 styles={{
                   normal: {
@@ -389,7 +442,7 @@ export default function QuizQuestionPage() {
                     color: '#000',
                     lineHeight: 30,
                     textAlign: 'center',
-                  }
+                  },
                 }}
               />
             </View>
@@ -399,115 +452,145 @@ export default function QuizQuestionPage() {
                 <View style={styles.matchingGrid}>
                   {/* Left Column */}
                   <View style={styles.matchingColumn}>
-                    {currentQuestion.matching_pairs?.map((pair: any, index: number) => (
-                      <TouchableOpacity
-                        key={`left-${index}`}
-                        style={[
-                          styles.matchingItem,
-                          selectedLeftItem === pair.left_item && styles.matchingItemSelected,
-                          completedPairs.includes(pair.left_item) && styles.matchingItemCompleted,
-                          incorrectPairs.includes(pair.left_item) && styles.matchingItemIncorrect,
-                        ]}
-                        onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
-                        disabled={completedPairs.includes(pair.left_item)}
-                      >
-                        <Text style={styles.matchingItemText}>
-                          {pair.left_item}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                    {currentQuestion.matching_pairs?.map(
+                      (pair: any, index: number) => (
+                        <TouchableOpacity
+                          key={`left-${index}`}
+                          style={[
+                            styles.matchingItem,
+                            selectedLeftItem === pair.left_item &&
+                              styles.matchingItemSelected,
+                            completedPairs.includes(pair.left_item) &&
+                              styles.matchingItemCompleted,
+                            incorrectPairs.includes(pair.left_item) &&
+                              styles.matchingItemIncorrect,
+                          ]}
+                          onPress={() =>
+                            handleMatchingItemSelect(pair.left_item, 'left')
+                          }
+                          disabled={completedPairs.includes(pair.left_item)}
+                        >
+                          <Text style={styles.matchingItemText}>
+                            {pair.left_item}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    )}
                   </View>
-                  
+
                   {/* Right Column */}
                   <View style={styles.matchingColumn}>
-                    {currentQuestion.matching_pairs?.map((pair: any, index: number) => (
-                      <TouchableOpacity
-                        key={`right-${index}`}
-                        style={[
-                          styles.matchingItem,
-                          selectedRightItem === pair.right_item && styles.matchingItemSelected,
-                          completedPairs.includes(pair.right_item) && styles.matchingItemCompleted,
-                          incorrectPairs.includes(pair.right_item) && styles.matchingItemIncorrect,
-                        ]}
-                        onPress={() => handleMatchingItemSelect(pair.right_item, 'right')}
-                        disabled={completedPairs.includes(pair.right_item)}
-                      >
-                        <Text style={styles.matchingItemText}>
-                          {pair.right_item}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                    {currentQuestion.matching_pairs?.map(
+                      (pair: any, index: number) => (
+                        <TouchableOpacity
+                          key={`right-${index}`}
+                          style={[
+                            styles.matchingItem,
+                            selectedRightItem === pair.right_item &&
+                              styles.matchingItemSelected,
+                            completedPairs.includes(pair.right_item) &&
+                              styles.matchingItemCompleted,
+                            incorrectPairs.includes(pair.right_item) &&
+                              styles.matchingItemIncorrect,
+                          ]}
+                          onPress={() =>
+                            handleMatchingItemSelect(pair.right_item, 'right')
+                          }
+                          disabled={completedPairs.includes(pair.right_item)}
+                        >
+                          <Text style={styles.matchingItemText}>
+                            {pair.right_item}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    )}
                   </View>
-            </View>
+                </View>
 
                 {/* Check Button for Matching */}
                 <TouchableOpacity
                   style={[
                     styles.matchingCheckButton,
-                    (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonDisabled,
+                    (!selectedLeftItem || !selectedRightItem) &&
+                      styles.matchingCheckButtonDisabled,
                   ]}
                   onPress={handleMatchingCheck}
                   disabled={!selectedLeftItem || !selectedRightItem}
                 >
-                  <Text style={[
-                    styles.matchingCheckButtonText,
-                    (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonTextDisabled,
-                  ]}>
+                  <Text
+                    style={[
+                      styles.matchingCheckButtonText,
+                      (!selectedLeftItem || !selectedRightItem) &&
+                        styles.matchingCheckButtonTextDisabled,
+                    ]}
+                  >
                     Check
                   </Text>
                 </TouchableOpacity>
               </View>
             ) : (
-            <View style={styles.optionsContainer}>
+              <View style={styles.optionsContainer}>
                 {(currentQuestion.options || []).map((option: any) => {
-                  const correctAnswerId = currentQuestion.correct_answer?.value?.[0] || currentQuestion.correct_answer?.value;
-                  const isSelected = currentQuestion.question_type === 'multiple_choice_multiple' 
-                    ? selectedAnswers.includes(option._key)
-                    : selectedAnswer === option._key;
-                  const isCorrectOption = option.is_correct || option._key === correctAnswerId;
-                const showFeedback = hasSubmitted;
-                
-                let optionStyle = styles.optionButton;
-                let checkboxStyle = styles.checkbox;
-                
-                // Normal selection behavior
-                if (isSelected) {
-                  optionStyle = styles.optionButtonSelected;
-                  checkboxStyle = styles.checkboxSelected;
-                }
-                
-                // Add color feedback after check
-                if (showFeedback) {
-                  if (isCorrectOption) {
-                    // Correct answer - green border
-                    optionStyle = styles.optionButtonCorrect;
-                    checkboxStyle = styles.checkboxCorrect;
-                  } else if (isSelected && !isCorrectOption) {
-                    // Wrong selected answer - red border
-                    optionStyle = styles.optionButtonIncorrect;
-                    checkboxStyle = styles.checkboxIncorrect;
+                  const correctAnswerId =
+                    currentQuestion.correct_answer?.value?.[0] ||
+                    currentQuestion.correct_answer?.value;
+                  const isSelected =
+                    currentQuestion.question_type === 'multiple_choice_multiple'
+                      ? selectedAnswers.includes(option._key)
+                      : selectedAnswer === option._key;
+                  const isCorrectOption =
+                    option.is_correct || option._key === correctAnswerId;
+                  const showFeedback = hasSubmitted;
+
+                  let optionStyle = styles.optionButton;
+                  let checkboxStyle = styles.checkbox;
+
+                  // Normal selection behavior
+                  if (isSelected) {
+                    optionStyle = styles.optionButtonSelected;
+                    checkboxStyle = styles.checkboxSelected;
                   }
-                }
-                
-                return (
-                  <TouchableOpacity
+
+                  // Add color feedback after check
+                  if (showFeedback) {
+                    if (isCorrectOption) {
+                      // Correct answer - green border
+                      optionStyle = styles.optionButtonCorrect;
+                      checkboxStyle = styles.checkboxCorrect;
+                    } else if (isSelected && !isCorrectOption) {
+                      // Wrong selected answer - red border
+                      optionStyle = styles.optionButtonIncorrect;
+                      checkboxStyle = styles.checkboxIncorrect;
+                    }
+                  }
+
+                  return (
+                    <TouchableOpacity
                       key={option._key}
-                    style={optionStyle}
-                      onPress={() => !showFeedback && handleAnswerSelect(option._key)}
-                    disabled={showFeedback}
-                  >
-                    <View style={styles.optionRow}>
-                      <View style={checkboxStyle}>
-                        {isSelected && <Text style={styles.checkmark}>✓</Text>}
+                      style={optionStyle}
+                      onPress={() =>
+                        !showFeedback && handleAnswerSelect(option._key)
+                      }
+                      disabled={showFeedback}
+                    >
+                      <View style={styles.optionRow}>
+                        <View style={checkboxStyle}>
+                          {isSelected && (
+                            <Text style={styles.checkmark}>✓</Text>
+                          )}
+                        </View>
+                        <View style={styles.optionContent}>
+                          <RichTextRenderer
+                            blocks={option.text || []}
+                            markDefs={option.textMarkDefs}
+                            styles={{ normal: styles.optionText }}
+                          />
+                        </View>
                       </View>
-                      <View style={styles.optionContent}>
-                          <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} styles={{normal: styles.optionText}} />
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             )}
           </View>
         </View>
@@ -521,29 +604,38 @@ export default function QuizQuestionPage() {
             style={[
               styles.checkButton,
               (currentQuestion.question_type === 'matching'
-                ? completedPairs.length !== (currentQuestion.matching_pairs?.length || 0) * 2
-                : currentQuestion.question_type === 'multiple_choice_multiple' 
-                  ? selectedAnswers.length === 0 
+                ? completedPairs.length !==
+                  (currentQuestion.matching_pairs?.length || 0) * 2
+                : currentQuestion.question_type === 'multiple_choice_multiple'
+                  ? selectedAnswers.length === 0
                   : !selectedAnswer) && styles.checkButtonDisabled,
             ]}
             onPress={handleNext}
-            disabled={currentQuestion.question_type === 'matching'
-              ? completedPairs.length !== (currentQuestion.matching_pairs?.length || 0) * 2
-              : currentQuestion.question_type === 'multiple_choice_multiple' 
-                ? selectedAnswers.length === 0 
-                : !selectedAnswer}
+            disabled={
+              currentQuestion.question_type === 'matching'
+                ? completedPairs.length !==
+                  (currentQuestion.matching_pairs?.length || 0) * 2
+                : currentQuestion.question_type === 'multiple_choice_multiple'
+                  ? selectedAnswers.length === 0
+                  : !selectedAnswer
+            }
           >
-            <Text style={[
-              styles.checkButtonText,
-              (currentQuestion.question_type === 'matching'
-                ? completedPairs.length !== (currentQuestion.matching_pairs?.length || 0) * 2
-                : currentQuestion.question_type === 'multiple_choice_multiple' 
-                  ? selectedAnswers.length === 0 
-                  : !selectedAnswer) && styles.checkButtonTextDisabled
-            ]}>
-              {currentQuestion.question_type === 'matching' 
-                ? 'Next' 
-                : !hasSubmitted ? 'Check' : 'Next'}
+            <Text
+              style={[
+                styles.checkButtonText,
+                (currentQuestion.question_type === 'matching'
+                  ? completedPairs.length !==
+                    (currentQuestion.matching_pairs?.length || 0) * 2
+                  : currentQuestion.question_type === 'multiple_choice_multiple'
+                    ? selectedAnswers.length === 0
+                    : !selectedAnswer) && styles.checkButtonTextDisabled,
+              ]}
+            >
+              {currentQuestion.question_type === 'matching'
+                ? 'Next'
+                : !hasSubmitted
+                  ? 'Check'
+                  : 'Next'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -664,7 +756,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'black',
     borderRadius: 8,
-    //padding: 16,
     paddingVertical: 20,
     paddingHorizontal: 24,
     backgroundColor: '#F3F4F6',
@@ -672,7 +763,6 @@ const styles = StyleSheet.create({
   optionButtonCorrect: {
     borderWidth: 1,
     borderRadius: 8,
-    //padding: 16,
     paddingVertical: 20,
     paddingHorizontal: 24,
     borderColor: '#10B981',
@@ -681,7 +771,6 @@ const styles = StyleSheet.create({
   optionButtonIncorrect: {
     borderWidth: 1,
     borderRadius: 8,
-    //padding: 16,
     paddingVertical: 20,
     paddingHorizontal: 20,
     borderColor: '#EF4444',
@@ -691,7 +780,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginLeft: 5
+    marginLeft: 5,
   },
   checkbox: {
     width: 20,
@@ -789,7 +878,7 @@ const styles = StyleSheet.create({
   italicText: {
     fontStyle: 'italic',
   },
-  
+
   // Matching question styles
   matchingContainer: {
     marginTop: 20,

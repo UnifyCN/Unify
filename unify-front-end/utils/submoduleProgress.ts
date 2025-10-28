@@ -17,7 +17,9 @@ export interface CurrentProgress {
 /**
  * Calculate the total number of pages in a submodule
  */
-export function calculateSubmodulePageCounts(submoduleData: SanitySubmoduleWithLessons | null): SubmodulePageCounts {
+export function calculateSubmodulePageCounts(
+  submoduleData: SanitySubmoduleWithLessons | null
+): SubmodulePageCounts {
   if (!submoduleData) {
     return {
       introPages: 0,
@@ -40,10 +42,10 @@ export function calculateSubmodulePageCounts(submoduleData: SanitySubmoduleWithL
     submoduleData.lessons.forEach(lesson => {
       // Count lesson pages
       lessonPages += lesson.pages?.length || 0;
-      
+
       // Count activity pages
       activityPages += lesson.activity_pages?.length || 0;
-      
+
       // Count quiz pages (assuming each quiz has multiple questions/pages)
       if (lesson.quizzes) {
         lesson.quizzes.forEach(quiz => {
@@ -72,14 +74,17 @@ export function calculateIntroProgress(
   currentPage: number
 ): CurrentProgress {
   const pageCounts = calculateSubmodulePageCounts(submoduleData);
-  
+
   // First page shows 1 progress, second page shows 2 progress, etc.
   const progressValue = currentPage;
-  
+
   return {
     currentPage: progressValue,
     totalPages: pageCounts.totalPages,
-    progressPercentage: pageCounts.totalPages > 0 ? (progressValue / pageCounts.totalPages) * 100 : 0,
+    progressPercentage:
+      pageCounts.totalPages > 0
+        ? (progressValue / pageCounts.totalPages) * 100
+        : 0,
   };
 }
 
@@ -92,30 +97,38 @@ export function calculateLessonProgress(
   currentPage: number
 ): CurrentProgress {
   const pageCounts = calculateSubmodulePageCounts(submoduleData);
-  
+
   // Find the current lesson index
-  const currentLessonIndex = submoduleData?.lessons?.findIndex(l => l._id === lessonId) || 0;
-  
+  const currentLessonIndex =
+    submoduleData?.lessons?.findIndex(l => l._id === lessonId) || 0;
+
   // Calculate pages completed before current lesson
   let pagesCompleted = pageCounts.introPages; // Start with intro pages
-  
+
   // Add pages from previous lessons
   if (submoduleData?.lessons && currentLessonIndex > 0) {
     for (let i = 0; i < currentLessonIndex; i++) {
       const lesson = submoduleData.lessons[i];
       pagesCompleted += lesson.pages?.length || 0;
       pagesCompleted += lesson.activity_pages?.length || 0;
-      pagesCompleted += lesson.quizzes?.reduce((acc, quiz) => acc + (quiz.questions?.length || 0), 0) || 0;
+      pagesCompleted +=
+        lesson.quizzes?.reduce(
+          (acc, quiz) => acc + (quiz.questions?.length || 0),
+          0
+        ) || 0;
     }
   }
-  
+
   // Add current lesson progress (currentPage is already 1-indexed)
   const currentProgress = pagesCompleted + currentPage;
-  
+
   return {
     currentPage: currentProgress,
     totalPages: pageCounts.totalPages,
-    progressPercentage: pageCounts.totalPages > 0 ? (currentProgress / pageCounts.totalPages) * 100 : 0,
+    progressPercentage:
+      pageCounts.totalPages > 0
+        ? (currentProgress / pageCounts.totalPages) * 100
+        : 0,
   };
 }
 
@@ -128,13 +141,14 @@ export function calculateActivityProgress(
   currentPage: number
 ): CurrentProgress {
   const pageCounts = calculateSubmodulePageCounts(submoduleData);
-  
+
   // Find the current lesson index
-  const currentLessonIndex = submoduleData?.lessons?.findIndex(l => l._id === lessonId) || 0;
-  
+  const currentLessonIndex =
+    submoduleData?.lessons?.findIndex(l => l._id === lessonId) || 0;
+
   // Calculate pages completed before current lesson activities
   let pagesCompleted = pageCounts.introPages; // Start with intro pages
-  
+
   // Add pages from previous lessons
   if (submoduleData?.lessons && currentLessonIndex >= 0) {
     for (let i = 0; i <= currentLessonIndex; i++) {
@@ -143,7 +157,11 @@ export function calculateActivityProgress(
         // Previous lessons - add all pages
         pagesCompleted += lesson.pages?.length || 0;
         pagesCompleted += lesson.activity_pages?.length || 0;
-        pagesCompleted += lesson.quizzes?.reduce((acc, quiz) => acc + (quiz.questions?.length || 0), 0) || 0;
+        pagesCompleted +=
+          lesson.quizzes?.reduce(
+            (acc, quiz) => acc + (quiz.questions?.length || 0),
+            0
+          ) || 0;
       } else {
         // Current lesson - add lesson pages, then activity pages
         pagesCompleted += lesson.pages?.length || 0;
@@ -151,11 +169,14 @@ export function calculateActivityProgress(
       }
     }
   }
-  
+
   return {
     currentPage: pagesCompleted,
     totalPages: pageCounts.totalPages,
-    progressPercentage: pageCounts.totalPages > 0 ? (pagesCompleted / pageCounts.totalPages) * 100 : 0,
+    progressPercentage:
+      pageCounts.totalPages > 0
+        ? (pagesCompleted / pageCounts.totalPages) * 100
+        : 0,
   };
 }
 
@@ -169,13 +190,14 @@ export function calculateQuizProgress(
   currentQuestion: number
 ): CurrentProgress {
   const pageCounts = calculateSubmodulePageCounts(submoduleData);
-  
+
   // Find the current lesson index
-  const currentLessonIndex = submoduleData?.lessons?.findIndex(l => l._id === lessonId) || 0;
-  
+  const currentLessonIndex =
+    submoduleData?.lessons?.findIndex(l => l._id === lessonId) || 0;
+
   // Calculate pages completed before current quiz
   let pagesCompleted = pageCounts.introPages; // Start with intro pages
-  
+
   // Add pages from previous lessons
   if (submoduleData?.lessons && currentLessonIndex >= 0) {
     for (let i = 0; i <= currentLessonIndex; i++) {
@@ -184,15 +206,21 @@ export function calculateQuizProgress(
         // Previous lessons - add all pages
         pagesCompleted += lesson.pages?.length || 0;
         pagesCompleted += lesson.activity_pages?.length || 0;
-        pagesCompleted += lesson.quizzes?.reduce((acc, quiz) => acc + (quiz.questions?.length || 0), 0) || 0;
+        pagesCompleted +=
+          lesson.quizzes?.reduce(
+            (acc, quiz) => acc + (quiz.questions?.length || 0),
+            0
+          ) || 0;
       } else {
         // Current lesson - add lesson pages and activity pages
         pagesCompleted += lesson.pages?.length || 0;
         pagesCompleted += lesson.activity_pages?.length || 0;
-        
+
         // Add quiz pages from current lesson up to current quiz
         if (lesson.quizzes) {
-          const currentQuizIndex = lesson.quizzes.findIndex(q => q._id === quizId);
+          const currentQuizIndex = lesson.quizzes.findIndex(
+            q => q._id === quizId
+          );
           for (let j = 0; j <= currentQuizIndex; j++) {
             const quiz = lesson.quizzes[j];
             if (j < currentQuizIndex) {
@@ -207,10 +235,13 @@ export function calculateQuizProgress(
       }
     }
   }
-  
+
   return {
     currentPage: pagesCompleted,
     totalPages: pageCounts.totalPages,
-    progressPercentage: pageCounts.totalPages > 0 ? (pagesCompleted / pageCounts.totalPages) * 100 : 0,
+    progressPercentage:
+      pageCounts.totalPages > 0
+        ? (pagesCompleted / pageCounts.totalPages) * 100
+        : 0,
   };
 }

@@ -27,8 +27,9 @@ export default function ProgressCacheStatus() {
   }
 
   const totalModules = Object.keys(cacheStatus).length;
-  const totalSubmodules = Object.values(cacheStatus).reduce((acc: number, module: any) => 
-    acc + Object.keys(module).length, 0
+  const totalSubmodules = Object.values(cacheStatus).reduce(
+    (acc: number, module: any) => acc + Object.keys(module).length,
+    0
   );
 
   return (

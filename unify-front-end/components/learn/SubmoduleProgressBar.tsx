@@ -11,15 +11,16 @@ interface SubmoduleProgressBarProps {
   showLabel?: boolean;
 }
 
-export default function SubmoduleProgressBar({ 
-  currentProgress, 
-  totalPages, 
+export default function SubmoduleProgressBar({
+  currentProgress,
+  totalPages,
   submoduleTitle,
   submoduleOrder,
   onClose,
-  showLabel = true 
+  showLabel = true,
 }: SubmoduleProgressBarProps) {
-  const progressPercentage = totalPages > 0 ? (currentProgress / totalPages) * 100 : 0;
+  const progressPercentage =
+    totalPages > 0 ? (currentProgress / totalPages) * 100 : 0;
 
   return (
     <View style={styles.container}>
@@ -32,19 +33,18 @@ export default function SubmoduleProgressBar({
           Section {submoduleOrder}: {submoduleTitle}
         </Text>
       </View>
-      
+
       {/* Progress bar */}
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
-          <View 
+          <View
             style={[
-              styles.progressBarFill, 
-              { width: `${Math.min(progressPercentage, 100)}%` }
-            ]} 
+              styles.progressBarFill,
+              { width: `${Math.min(progressPercentage, 100)}%` },
+            ]}
           />
         </View>
       </View>
-      
     </View>
   );
 }

@@ -53,7 +53,18 @@ export interface LessonPage {
 export interface LessonPageContent {
   content_id: string;
   page_id: string;
-  content_type: 'rich_text' | 'bullet_points' | 'image' | 'dropdown' | 'input' | 'large_text_box' | 'mid_text_box' | 'example_box' | 'example_block' | 'tip_box' | 'extra_box';
+  content_type:
+    | 'rich_text'
+    | 'bullet_points'
+    | 'image'
+    | 'dropdown'
+    | 'input'
+    | 'large_text_box'
+    | 'mid_text_box'
+    | 'example_box'
+    | 'example_block'
+    | 'tip_box'
+    | 'extra_box';
   order_number: number;
   content: any;
 }

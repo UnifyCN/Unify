@@ -85,15 +85,13 @@ export default function OTPVerification({
         // Create user record and set username after successful verification
         try {
           const username = generateUsername();
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert({
-              id: session.user.id,
-              email: session.user.email,
-              username: username,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
+          const { error: insertError } = await supabase.from('users').insert({
+            id: session.user.id,
+            email: session.user.email,
+            username: username,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
 
           if (insertError) {
             console.error('Error creating user record:', insertError);

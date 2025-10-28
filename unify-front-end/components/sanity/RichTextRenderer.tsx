@@ -1,5 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  Linking,
+  TextInput,
+} from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 
@@ -11,7 +19,13 @@ interface RichTextRendererProps {
   onInputChange?: (fieldKey: string, value: string) => void;
 }
 
-export default function RichTextRenderer({ blocks, styles: customStyles, markDefs, inputValues = {}, onInputChange }: RichTextRendererProps) {
+export default function RichTextRenderer({
+  blocks,
+  styles: customStyles,
+  markDefs,
+  inputValues = {},
+  onInputChange,
+}: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
   // Create numbering map for ordered lists
@@ -180,7 +194,6 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
       elevation: 1,
     },
     noteBoxText: {
-      //fontsize is not the actual one from the figma but 14 looks to small
       fontSize: 15,
       color: '#3F3F3F',
       lineHeight: 22,
@@ -199,10 +212,10 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
     const nestingMap: { [key: string]: number } = {};
     let currentNesting = 0;
     let listStack: string[] = [];
-    
+
     for (let i = 0; i < blocks.length; i++) {
       const block = blocks[i];
-      
+
       if (block._type === 'block' && block.listItem) {
         // Check if this is a nested list item by looking at the level property
         const level = block.level || 0;
@@ -214,7 +227,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
         listStack = [];
       }
     }
-    
+
     return nestingMap;
   };
 
@@ -228,30 +241,56 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
 
       if (child._type === 'span') {
         let text = child.text || '';
-        
+
         // Apply text marks
         if (child.marks) {
           child.marks.forEach((mark: string) => {
             switch (mark) {
               case 'strong':
-                text = <Text key={index} style={{ fontWeight: '700' }}>{text}</Text>;
+                text = (
+                  <Text key={index} style={{ fontWeight: '700' }}>
+                    {text}
+                  </Text>
+                );
                 break;
               case 'em':
-                text = <Text key={index} style={{ fontStyle: 'italic' }}>{text}</Text>;
+                text = (
+                  <Text key={index} style={{ fontStyle: 'italic' }}>
+                    {text}
+                  </Text>
+                );
                 break;
               case 'code':
-                text = <Text key={index} style={{ 
-                  fontFamily: 'monospace', 
-                  backgroundColor: '#F3F4F6', 
-                  paddingHorizontal: 4,
-                  borderRadius: 2 
-                }}>{text}</Text>;
+                text = (
+                  <Text
+                    key={index}
+                    style={{
+                      fontFamily: 'monospace',
+                      backgroundColor: '#F3F4F6',
+                      paddingHorizontal: 4,
+                      borderRadius: 2,
+                    }}
+                  >
+                    {text}
+                  </Text>
+                );
                 break;
               case 'underline':
-                text = <Text key={index} style={{ textDecorationLine: 'underline' }}>{text}</Text>;
+                text = (
+                  <Text key={index} style={{ textDecorationLine: 'underline' }}>
+                    {text}
+                  </Text>
+                );
                 break;
               case 'strike-through':
-                text = <Text key={index} style={{ textDecorationLine: 'line-through' }}>{text}</Text>;
+                text = (
+                  <Text
+                    key={index}
+                    style={{ textDecorationLine: 'line-through' }}
+                  >
+                    {text}
+                  </Text>
+                );
                 break;
               case 'link':
                 // Handle links - find the markDef for this link
@@ -270,7 +309,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
             }
           });
         }
-        
+
         return text;
       }
 
@@ -280,20 +319,28 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
 
   const renderBlock = (block: any, index: number, nestingLevel: number = 0) => {
     // Debug logging for input boxes
-    if (block._type === 'large_input_box' || block._type === 'mid_input_box' || block._type === 'small_input_box') {
+    if (
+      block._type === 'large_input_box' ||
+      block._type === 'mid_input_box' ||
+      block._type === 'small_input_box'
+    ) {
     }
-    
+
     if (block._type === 'block') {
       // Handle list items first
       if (block.listItem) {
-        const listStyle = block.listItem === 'bullet' ? mergedStyles.bullet : mergedStyles.number;
-        const bullet = block.listItem === 'bullet' 
-          ? '•' 
-          : `${numberingMap[block._key || index] || 1}.`;
-        
+        const listStyle =
+          block.listItem === 'bullet'
+            ? mergedStyles.bullet
+            : mergedStyles.number;
+        const bullet =
+          block.listItem === 'bullet'
+            ? '•'
+            : `${numberingMap[block._key || index] || 1}.`;
+
         // Calculate indentation based on nesting level
         const indentLevel = nestingLevel * 20; // 20px per nesting level
-        
+
         // Use different bullet styles for different nesting levels
         let displayBullet = bullet;
         if (block.listItem === 'bullet') {
@@ -307,7 +354,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
             displayBullet = '▫';
           }
         }
-        
+
         return (
           <View key={block._key || index} style={[styles.listItemContainer]}>
             <Text style={listStyle}>
@@ -318,7 +365,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
       }
 
       const style = block.style || 'normal';
-      
+
       // Handle different block styles
       switch (style) {
         case 'h1':
@@ -348,17 +395,13 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
         case 'blockquote':
           return (
             <View key={block._key || index} style={mergedStyles.blockquote}>
-              <Text>
-                {renderInlineText(block.children, markDefs)}
-              </Text>
+              <Text>{renderInlineText(block.children, markDefs)}</Text>
             </View>
           );
         case 'code':
           return (
             <View key={block._key || index} style={mergedStyles.code}>
-              <Text>
-                {renderInlineText(block.children, markDefs)}
-              </Text>
+              <Text>{renderInlineText(block.children, markDefs)}</Text>
             </View>
           );
         case 'normal':
@@ -372,10 +415,10 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
     }
 
     if (block._type === 'image') {
-      const imageUrl = block.asset?._ref 
+      const imageUrl = block.asset?._ref
         ? `https://cdn.sanity.io/images/fercgabp/production/${block.asset._ref.replace('image-', '').replace('-jpg', '.jpg').replace('-png', '.png').replace('-webp', '.webp')}`
         : null;
-      
+
       return (
         <View key={block._key || index} style={mergedStyles.imageSection}>
           {imageUrl ? (
@@ -389,12 +432,9 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
       );
     }
 
-
     // Handle special block types
     if (block._type === 'dropdown') {
-      return (
-        <DropdownBlock block={block} index={index} />
-      );
+      return <DropdownBlock block={block} index={index} />;
     }
 
     if (block._type === 'example_box') {
@@ -418,19 +458,30 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
     if (block._type === 'note_box') {
       return (
         <View key={block._key || index} style={mergedStyles.noteBox}>
-          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} styles={{normal: mergedStyles.noteBoxText}} />
+          <RichTextRenderer
+            blocks={block.content || []}
+            markDefs={markDefs}
+            styles={{ normal: mergedStyles.noteBoxText }}
+          />
         </View>
       );
     }
 
     // Handle input box types
-    if (block._type === 'large_input_box' || block._type === 'mid_input_box' || block._type === 'small_input_box') {
+    if (
+      block._type === 'large_input_box' ||
+      block._type === 'mid_input_box' ||
+      block._type === 'small_input_box'
+    ) {
       const isLarge = block._type === 'large_input_box';
       const isMid = block._type === 'mid_input_box';
       const isSmall = block._type === 'small_input_box';
-      
+
       return (
-        <View key={block._key || index} style={mergedStyles.inputFieldContainer}>
+        <View
+          key={block._key || index}
+          style={mergedStyles.inputFieldContainer}
+        >
           {block.label && (
             <Text style={mergedStyles.inputLabel}>{block.label}</Text>
           )}
@@ -451,9 +502,9 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
               isMid && { height: 150, textAlignVertical: 'top' },
               isSmall && { height: 80 },
             ]}
-            placeholder={block.placeholder = 'Type here...'}
+            placeholder={(block.placeholder = 'Type here...')}
             value={inputValues[block._key] || ''}
-            onChangeText={(value) => onInputChange?.(block._key, value)}
+            onChangeText={value => onInputChange?.(block._key, value)}
             multiline={isLarge}
             numberOfLines={isLarge ? 4 : 1}
           />
@@ -469,11 +520,13 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
 
   return (
     <View style={styles.container}>
-      {blocks.map((block, index) => (
-        <React.Fragment key={block._key || index}>
-          {renderBlock(block, index, nestingLevels[block._key || index] || 0)}
-        </React.Fragment>
-      )).filter(Boolean)}
+      {blocks
+        .map((block, index) => (
+          <React.Fragment key={block._key || index}>
+            {renderBlock(block, index, nestingLevels[block._key || index] || 0)}
+          </React.Fragment>
+        ))
+        .filter(Boolean)}
     </View>
   );
 }
@@ -481,7 +534,6 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //gap:25
   },
   listItemContainer: {
     marginBottom: 8,

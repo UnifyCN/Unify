@@ -25,6 +25,6 @@ export function useProgressCache() {
 
   return {
     isInitialized,
-    isLoading
+    isLoading,
   };
 }

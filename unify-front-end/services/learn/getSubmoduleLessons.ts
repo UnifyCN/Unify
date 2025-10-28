@@ -1,5 +1,9 @@
 import { supabase } from '../../lib/supabase';
-import { SubmoduleLessonsData, Lesson, SubmoduleIntro } from '../../types/learn';
+import {
+  SubmoduleLessonsData,
+  Lesson,
+  SubmoduleIntro,
+} from '../../types/learn';
 
 export const getSubmoduleLessons = async (
   submoduleId: string
@@ -12,7 +16,6 @@ export const getSubmoduleLessons = async (
   if (userError || !user) {
     throw new Error('User not authenticated');
   }
-
 
   // Get submodule info
   const { data: submoduleData, error: submoduleError } = await supabase

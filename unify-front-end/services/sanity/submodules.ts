@@ -2,7 +2,9 @@ import { sanityClient } from '../../sanity-custom';
 import { SanitySubmodule, SanityLessonWithQuizzes } from '../../types/sanity';
 
 // Get a single submodule by ID
-export async function getSubmodule(submoduleId: string): Promise<SanitySubmodule | null> {
+export async function getSubmodule(
+  submoduleId: string
+): Promise<SanitySubmodule | null> {
   try {
     const query = `*[_type == "submodule" && _id == $submoduleId][0] {
       _id,
@@ -13,7 +15,7 @@ export async function getSubmodule(submoduleId: string): Promise<SanitySubmodule
       intro_pages,
       order
     }`;
-    
+
     const submodule = await sanityClient.fetch(query, { submoduleId });
     return submodule || null;
   } catch (error) {
@@ -23,7 +25,9 @@ export async function getSubmodule(submoduleId: string): Promise<SanitySubmodule
 }
 
 // Get submodule with all its lessons
-export async function getSubmoduleWithLessons(submoduleId: string): Promise<SanitySubmodule & { lessons: SanityLessonWithQuizzes[] } | null> {
+export async function getSubmoduleWithLessons(
+  submoduleId: string
+): Promise<(SanitySubmodule & { lessons: SanityLessonWithQuizzes[] }) | null> {
   try {
     const query = `*[_type == "submodule" && _id == $submoduleId][0] {
       _id,
@@ -54,7 +58,7 @@ export async function getSubmoduleWithLessons(submoduleId: string): Promise<Sani
         }
       }
     }`;
-    
+
     const submodule = await sanityClient.fetch(query, { submoduleId });
     return submodule || null;
   } catch (error) {

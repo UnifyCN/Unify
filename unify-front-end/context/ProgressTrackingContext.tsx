@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { 
-  getModuleProgress, 
-  getSubmoduleProgress, 
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
+import {
+  getModuleProgress,
+  getSubmoduleProgress,
   getLessonProgress,
   startModule,
   startSubmodule,
@@ -14,15 +20,15 @@ import {
   startQuizAttempt,
   submitQuizAnswer,
   completeQuizAttempt,
-  saveActivityInput
+  saveActivityInput,
 } from '@/services/progress/progressService';
-import { 
-  UserModuleProgress, 
-  UserSubmoduleProgress, 
+import {
+  UserModuleProgress,
+  UserSubmoduleProgress,
   UserLessonProgress,
   ProgressTrackingState,
   ProgressTrackingActions,
-  ProgressTrackingAPI
+  ProgressTrackingAPI,
 } from '@/types/progress';
 
 interface ProgressTrackingContextType {
@@ -31,7 +37,9 @@ interface ProgressTrackingContextType {
   api: ProgressTrackingAPI;
 }
 
-const ProgressTrackingContext = createContext<ProgressTrackingContextType | undefined>(undefined);
+const ProgressTrackingContext = createContext<
+  ProgressTrackingContextType | undefined
+>(undefined);
 
 interface ProgressTrackingProviderProps {
   children: React.ReactNode;
@@ -40,14 +48,16 @@ interface ProgressTrackingProviderProps {
   lessonId?: string;
 }
 
-export function ProgressTrackingProvider({ 
-  children, 
-  moduleId, 
-  submoduleId, 
-  lessonId 
+export function ProgressTrackingProvider({
+  children,
+  moduleId,
+  submoduleId,
+  lessonId,
 }: ProgressTrackingProviderProps) {
   // State
-  const [currentLesson, setCurrentLesson] = useState<UserLessonProgress | null>(null);
+  const [currentLesson, setCurrentLesson] = useState<UserLessonProgress | null>(
+    null
+  );
   const [currentPage, setCurrentPage] = useState<any>(null);
   const [moduleProgress, setModuleProgress] = useState(0);
   const [submoduleProgress, setSubmoduleProgress] = useState(0);
@@ -72,7 +82,7 @@ export function ProgressTrackingProvider({
       const [module, submodule, lesson] = await Promise.all([
         getModuleProgress(moduleId),
         getSubmoduleProgress(submoduleId),
-        getLessonProgress(lessonId)
+        getLessonProgress(lessonId),
       ]);
 
       setModuleProgress(module?.progress_percent || 0);
@@ -90,164 +100,239 @@ export function ProgressTrackingProvider({
   }, [moduleId, submoduleId, lessonId]);
 
   // Actions
-  const handleStartLesson = useCallback(async (lessonId: string, submoduleId: string, moduleId: string) => {
-    try {
-      await startLesson(lessonId, submoduleId, moduleId);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start lesson');
-    }
-  }, [fetchProgress]);
+  const handleStartLesson = useCallback(
+    async (lessonId: string, submoduleId: string, moduleId: string) => {
+      try {
+        await startLesson(lessonId, submoduleId, moduleId);
+        await fetchProgress();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to start lesson');
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleStartSubmodule = useCallback(async (submoduleId: string, moduleId: string) => {
-    try {
-      await startSubmodule(submoduleId, moduleId);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start submodule');
-    }
-  }, [fetchProgress]);
+  const handleStartSubmodule = useCallback(
+    async (submoduleId: string, moduleId: string) => {
+      try {
+        await startSubmodule(submoduleId, moduleId);
+        await fetchProgress();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to start submodule'
+        );
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleStartModule = useCallback(async (moduleId: string) => {
-    try {
-      await startModule(moduleId);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start module');
-    }
-  }, [fetchProgress]);
+  const handleStartModule = useCallback(
+    async (moduleId: string) => {
+      try {
+        await startModule(moduleId);
+        await fetchProgress();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to start module');
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleUpdateLessonProgress = useCallback(async (
-    lessonId: string, 
-    pageType: 'intro' | 'lesson' | 'activity' | 'quiz', 
-    pageNumber: number
-  ) => {
-    try {
-      await updateLessonProgress(lessonId, pageType, pageNumber);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update lesson progress');
-    }
-  }, [fetchProgress]);
+  const handleUpdateLessonProgress = useCallback(
+    async (
+      lessonId: string,
+      pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
+      pageNumber: number
+    ) => {
+      try {
+        await updateLessonProgress(lessonId, pageType, pageNumber);
+        await fetchProgress();
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to update lesson progress'
+        );
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleCompletePage = useCallback(async (
-    lessonId: string, 
-    pageType: 'intro' | 'lesson' | 'activity' | 'quiz', 
-    pageKey: string
-  ) => {
-    try {
-      await completePage(lessonId, pageType, pageKey);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete page');
-    }
-  }, [fetchProgress]);
+  const handleCompletePage = useCallback(
+    async (
+      lessonId: string,
+      pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
+      pageKey: string
+    ) => {
+      try {
+        await completePage(lessonId, pageType, pageKey);
+        await fetchProgress();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to complete page'
+        );
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleCompleteLesson = useCallback(async (lessonId: string) => {
-    try {
-      await completeLesson(lessonId);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete lesson');
-    }
-  }, [fetchProgress]);
+  const handleCompleteLesson = useCallback(
+    async (lessonId: string) => {
+      try {
+        await completeLesson(lessonId);
+        await fetchProgress();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to complete lesson'
+        );
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleCompleteSubmodule = useCallback(async (submoduleId: string) => {
-    try {
-      await completeSubmodule(submoduleId);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete submodule');
-    }
-  }, [fetchProgress]);
+  const handleCompleteSubmodule = useCallback(
+    async (submoduleId: string) => {
+      try {
+        await completeSubmodule(submoduleId);
+        await fetchProgress();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to complete submodule'
+        );
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleCompleteModule = useCallback(async (moduleId: string) => {
-    try {
-      await completeModule(moduleId);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete module');
-    }
-  }, [fetchProgress]);
+  const handleCompleteModule = useCallback(
+    async (moduleId: string) => {
+      try {
+        await completeModule(moduleId);
+        await fetchProgress();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to complete module'
+        );
+      }
+    },
+    [fetchProgress]
+  );
 
-  const handleStartQuizAttempt = useCallback(async (quizId: string, lessonId: string) => {
-    try {
-      if (!submoduleId || !moduleId) return null;
-      return await startQuizAttempt(quizId, lessonId, submoduleId, moduleId);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start quiz attempt');
-      return null;
-    }
-  }, [submoduleId, moduleId]);
+  const handleStartQuizAttempt = useCallback(
+    async (quizId: string, lessonId: string) => {
+      try {
+        if (!submoduleId || !moduleId) return null;
+        return await startQuizAttempt(quizId, lessonId, submoduleId, moduleId);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to start quiz attempt'
+        );
+        return null;
+      }
+    },
+    [submoduleId, moduleId]
+  );
 
-  const handleSubmitQuizAnswer = useCallback(async (
-    attemptId: string, 
-    questionId: string, 
-    answer: any
-  ) => {
-    try {
-      await submitQuizAnswer(attemptId, questionId, 'multiple_choice', answer, false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit quiz answer');
-    }
-  }, []);
+  const handleSubmitQuizAnswer = useCallback(
+    async (attemptId: string, questionId: string, answer: any) => {
+      try {
+        await submitQuizAnswer(
+          attemptId,
+          questionId,
+          'multiple_choice',
+          answer,
+          false
+        );
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to submit quiz answer'
+        );
+      }
+    },
+    []
+  );
 
-  const handleCompleteQuizAttempt = useCallback(async (
-    attemptId: string, 
-    score: number, 
-    totalQuestions: number, 
-    correctAnswers: number
-  ) => {
-    try {
-      await completeQuizAttempt(attemptId, score, totalQuestions, correctAnswers);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete quiz attempt');
-    }
-  }, []);
+  const handleCompleteQuizAttempt = useCallback(
+    async (
+      attemptId: string,
+      score: number,
+      totalQuestions: number,
+      correctAnswers: number
+    ) => {
+      try {
+        await completeQuizAttempt(
+          attemptId,
+          score,
+          totalQuestions,
+          correctAnswers
+        );
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to complete quiz attempt'
+        );
+      }
+    },
+    []
+  );
 
-  const handleSaveActivityInput = useCallback(async (
-    lessonId: string, 
-    pageKey: string, 
-    fieldKey: string, 
-    value: string
-  ) => {
-    try {
-      if (!submoduleId || !moduleId) return;
-      await saveActivityInput(lessonId, submoduleId, moduleId, pageKey, fieldKey, value);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save activity input');
-    }
-  }, [submoduleId, moduleId]);
+  const handleSaveActivityInput = useCallback(
+    async (
+      lessonId: string,
+      pageKey: string,
+      fieldKey: string,
+      value: string
+    ) => {
+      try {
+        if (!submoduleId || !moduleId) return;
+        await saveActivityInput(
+          lessonId,
+          submoduleId,
+          moduleId,
+          pageKey,
+          fieldKey,
+          value
+        );
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to save activity input'
+        );
+      }
+    },
+    [submoduleId, moduleId]
+  );
 
   // API functions
   const api: ProgressTrackingAPI = {
     getModuleProgress: useCallback(async (moduleId: string) => {
       return await getModuleProgress(moduleId);
     }, []),
-    
+
     getSubmoduleProgress: useCallback(async (submoduleId: string) => {
       return await getSubmoduleProgress(submoduleId);
     }, []),
-    
+
     getLessonProgress: useCallback(async (lessonId: string) => {
       return await getLessonProgress(lessonId);
     }, []),
-    
-    getPageProgress: useCallback(async (lessonId: string, pageType: string, pageKey: string) => {
-      // Implementation would go here
-      return null;
-    }, []),
-    
+
+    getPageProgress: useCallback(
+      async (lessonId: string, pageType: string, pageKey: string) => {
+        // Implementation would go here
+        return null;
+      },
+      []
+    ),
+
     getAllUserProgress: useCallback(async () => {
       // Implementation would go here
       return {
         modules: [],
         submodules: [],
         lessons: [],
-        pages: []
+        pages: [],
       };
     }, []),
-    
+
     calculateModuleProgress: useCallback(async (moduleId: string) => {
       // Implementation would go here
       return {
@@ -258,10 +343,10 @@ export function ProgressTrackingProvider({
         isInProgress: false,
         totalSubmodules: 0,
         completedSubmodules: 0,
-        submodulesProgress: []
+        submodulesProgress: [],
       };
     }, []),
-    
+
     calculateSubmoduleProgress: useCallback(async (submoduleId: string) => {
       // Implementation would go here
       return {
@@ -272,10 +357,10 @@ export function ProgressTrackingProvider({
         isInProgress: false,
         totalLessons: 0,
         completedLessons: 0,
-        lessonsProgress: []
+        lessonsProgress: [],
       };
     }, []),
-    
+
     calculateLessonProgress: useCallback(async (lessonId: string) => {
       // Implementation would go here
       return {
@@ -289,24 +374,24 @@ export function ProgressTrackingProvider({
         totalActivityPages: 0,
         completedActivityPages: 0,
         totalQuizPages: 0,
-        completedQuizPages: 0
+        completedQuizPages: 0,
       };
     }, []),
-    
+
     canAccessLesson: useCallback(async (lessonId: string) => {
       // Implementation would go here
       return true;
     }, []),
-    
+
     canAccessSubmodule: useCallback(async (submoduleId: string) => {
       // Implementation would go here
       return true;
     }, []),
-    
+
     canAccessModule: useCallback(async (moduleId: string) => {
       // Implementation would go here
       return true;
-    }, [])
+    }, []),
   };
 
   // Initialize progress tracking
@@ -327,7 +412,7 @@ export function ProgressTrackingProvider({
     canAccessNextSubmodule,
     canAccessNextModule,
     isLoading,
-    error
+    error,
   };
 
   const actions: ProgressTrackingActions = {
@@ -344,13 +429,13 @@ export function ProgressTrackingProvider({
     completeQuizAttempt: handleCompleteQuizAttempt,
     saveActivityInput: handleSaveActivityInput,
     startRetake: async () => {},
-    completeRetake: async () => {}
+    completeRetake: async () => {},
   };
 
   const value: ProgressTrackingContextType = {
     state,
     actions,
-    api
+    api,
   };
 
   return (
@@ -363,9 +448,9 @@ export function ProgressTrackingProvider({
 export function useProgressTracking(): ProgressTrackingContextType {
   const context = useContext(ProgressTrackingContext);
   if (context === undefined) {
-    throw new Error('useProgressTracking must be used within a ProgressTrackingProvider');
+    throw new Error(
+      'useProgressTracking must be used within a ProgressTrackingProvider'
+    );
   }
   return context;
 }
-
-

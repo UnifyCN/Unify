@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { getModuleProgress, getSubmoduleProgress } from '@/services/progress/progressService';
+import {
+  getModuleProgress,
+  getSubmoduleProgress,
+} from '@/services/progress/progressService';
 
 interface ProgressTestComponentProps {
   moduleId: string;
   submoduleId?: string;
 }
 
-export default function ProgressTestComponent({ moduleId, submoduleId }: ProgressTestComponentProps) {
+export default function ProgressTestComponent({
+  moduleId,
+  submoduleId,
+}: ProgressTestComponentProps) {
   const [moduleProgress, setModuleProgress] = useState<any>(null);
   const [submoduleProgress, setSubmoduleProgress] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +35,9 @@ export default function ProgressTestComponent({ moduleId, submoduleId }: Progres
           setSubmoduleProgress(submodule);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch progress');
+        setError(
+          err instanceof Error ? err.message : 'Failed to fetch progress'
+        );
         console.error('Progress test error:', err);
       } finally {
         setLoading(false);
@@ -51,7 +59,9 @@ export default function ProgressTestComponent({ moduleId, submoduleId }: Progres
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Error: {error}</Text>
-        <Text style={styles.text}>This is expected if the database tables don't exist yet.</Text>
+        <Text style={styles.text}>
+          This is expected if the database tables don't exist yet.
+        </Text>
       </View>
     );
   }
@@ -59,23 +69,21 @@ export default function ProgressTestComponent({ moduleId, submoduleId }: Progres
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Progress Test Results</Text>
-      
+
       <Text style={styles.text}>Module Progress:</Text>
       <Text style={styles.text}>
-        {moduleProgress ? 
-          `Completed: ${moduleProgress.completed_submodules}/${moduleProgress.total_submodules}, Progress: ${moduleProgress.progress_percent}%` :
-          'No module progress found'
-        }
+        {moduleProgress
+          ? `Completed: ${moduleProgress.completed_submodules}/${moduleProgress.total_submodules}, Progress: ${moduleProgress.progress_percent}%`
+          : 'No module progress found'}
       </Text>
 
       {submoduleId && (
         <>
           <Text style={styles.text}>Submodule Progress:</Text>
           <Text style={styles.text}>
-            {submoduleProgress ? 
-              `Completed: ${submoduleProgress.completed_pages}/${submoduleProgress.total_pages}, Progress: ${submoduleProgress.progress_percent}%` :
-              'No submodule progress found'
-            }
+            {submoduleProgress
+              ? `Completed: ${submoduleProgress.completed_pages}/${submoduleProgress.total_pages}, Progress: ${submoduleProgress.progress_percent}%`
+              : 'No submodule progress found'}
           </Text>
         </>
       )}
@@ -105,5 +113,3 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 });
-
-

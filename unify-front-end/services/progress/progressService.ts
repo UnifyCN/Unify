@@ -1,13 +1,22 @@
 import { progressClient } from './progressClient';
-import { UserLessonProgress, UserSubmoduleProgress, UserModuleProgress, UserPageProgress } from '@/types/progress';
+import {
+  UserLessonProgress,
+  UserSubmoduleProgress,
+  UserModuleProgress,
+  UserPageProgress,
+} from '@/types/progress';
 
 // =============================================
 // LESSON PROGRESS SERVICE
 // =============================================
 
-export async function getLessonProgress(lessonId: string): Promise<UserLessonProgress | null> {
+export async function getLessonProgress(
+  lessonId: string
+): Promise<UserLessonProgress | null> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return null;
 
     const { data, error } = await progressClient
@@ -29,14 +38,19 @@ export async function getLessonProgress(lessonId: string): Promise<UserLessonPro
   }
 }
 
-export async function startLesson(lessonId: string, submoduleId: string, moduleId: string): Promise<void> {
+export async function startLesson(
+  lessonId: string,
+  submoduleId: string,
+  moduleId: string
+): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const { error } = await progressClient
-      .from('user_lesson_progress')
-      .upsert({
+    const { error } = await progressClient.from('user_lesson_progress').upsert(
+      {
         user_id: user.id,
         sanity_lesson_id: lessonId,
         sanity_submodule_id: submoduleId,
@@ -46,9 +60,11 @@ export async function startLesson(lessonId: string, submoduleId: string, moduleI
         current_page_number: 1,
         current_question_number: 1,
         last_accessed_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,sanity_lesson_id'
-      });
+      },
+      {
+        onConflict: 'user_id,sanity_lesson_id',
+      }
+    );
 
     if (error) {
       console.error('Error starting lesson:', error);
@@ -59,14 +75,16 @@ export async function startLesson(lessonId: string, submoduleId: string, moduleI
 }
 
 export async function updateLessonProgress(
-  lessonId: string, 
-  pageType: 'intro' | 'lesson' | 'activity' | 'quiz', 
+  lessonId: string,
+  pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
   pageNumber: number,
   quizId?: string,
   questionNumber?: number
 ): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
     const updateData: any = {
@@ -94,7 +112,9 @@ export async function updateLessonProgress(
 
 export async function completeLesson(lessonId: string): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
     const { error } = await progressClient
@@ -131,12 +151,13 @@ export async function trackPageVisit(
   questionNumber?: number
 ): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const { error } = await progressClient
-      .from('user_page_progress')
-      .upsert({
+    const { error } = await progressClient.from('user_page_progress').upsert(
+      {
         user_id: user.id,
         sanity_lesson_id: lessonId,
         sanity_submodule_id: submoduleId,
@@ -148,9 +169,11 @@ export async function trackPageVisit(
         question_number: questionNumber,
         is_visited: true,
         first_visited_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,sanity_lesson_id,page_type,page_key'
-      });
+      },
+      {
+        onConflict: 'user_id,sanity_lesson_id,page_type,page_key',
+      }
+    );
 
     if (error) {
       console.error('Error tracking page visit:', error);
@@ -166,7 +189,9 @@ export async function completePage(
   pageKey: string
 ): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
     const { error } = await progressClient
@@ -192,9 +217,14 @@ export async function completePage(
 // SUBMODULE PROGRESS SERVICE
 // =============================================
 
-export async function getSubmoduleProgress(submoduleId: string, totalLessonsInSubmodule?: number): Promise<UserSubmoduleProgress | null> {
+export async function getSubmoduleProgress(
+  submoduleId: string,
+  totalLessonsInSubmodule?: number
+): Promise<UserSubmoduleProgress | null> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return null;
 
     // Get all lesson progress for this submodule
@@ -210,10 +240,16 @@ export async function getSubmoduleProgress(submoduleId: string, totalLessonsInSu
     }
 
     // Calculate progress based on completed lessons
-    const completedLessons = lessonProgresses?.filter(lesson => lesson.is_completed) || [];
-    const totalLessons = totalLessonsInSubmodule || lessonProgresses?.length || 0;
-    const progressPercent = totalLessons > 0 ? Math.round((completedLessons.length / totalLessons) * 100) : 0;
-    const isCompleted = completedLessons.length === totalLessons && totalLessons > 0;
+    const completedLessons =
+      lessonProgresses?.filter(lesson => lesson.is_completed) || [];
+    const totalLessons =
+      totalLessonsInSubmodule || lessonProgresses?.length || 0;
+    const progressPercent =
+      totalLessons > 0
+        ? Math.round((completedLessons.length / totalLessons) * 100)
+        : 0;
+    const isCompleted =
+      completedLessons.length === totalLessons && totalLessons > 0;
 
     // Get or create submodule progress record
     const { data: existingProgress, error: fetchError } = await progressClient
@@ -238,13 +274,13 @@ export async function getSubmoduleProgress(submoduleId: string, totalLessonsInSu
       completed_lessons: completedLessons.length,
       is_completed: isCompleted,
       last_accessed_at: new Date().toISOString(),
-      ...(isCompleted && { completed_at: new Date().toISOString() })
+      ...(isCompleted && { completed_at: new Date().toISOString() }),
     };
 
     const { data: updatedProgress, error: upsertError } = await progressClient
       .from('user_submodule_progress')
       .upsert(progressData, {
-        onConflict: 'user_id,sanity_submodule_id'
+        onConflict: 'user_id,sanity_submodule_id',
       })
       .select('*')
       .single();
@@ -261,21 +297,29 @@ export async function getSubmoduleProgress(submoduleId: string, totalLessonsInSu
   }
 }
 
-export async function startSubmodule(submoduleId: string, moduleId: string): Promise<void> {
+export async function startSubmodule(
+  submoduleId: string,
+  moduleId: string
+): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
     const { error } = await progressClient
       .from('user_submodule_progress')
-      .upsert({
-        user_id: user.id,
-        sanity_submodule_id: submoduleId,
-        sanity_module_id: moduleId,
-        last_accessed_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,sanity_submodule_id'
-      });
+      .upsert(
+        {
+          user_id: user.id,
+          sanity_submodule_id: submoduleId,
+          sanity_module_id: moduleId,
+          last_accessed_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'user_id,sanity_submodule_id',
+        }
+      );
 
     if (error) {
       console.error('Error starting submodule:', error);
@@ -287,7 +331,9 @@ export async function startSubmodule(submoduleId: string, moduleId: string): Pro
 
 export async function completeSubmodule(submoduleId: string): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
     const { error } = await progressClient
@@ -312,9 +358,13 @@ export async function completeSubmodule(submoduleId: string): Promise<void> {
 // MODULE PROGRESS SERVICE
 // =============================================
 
-export async function getModuleProgress(moduleId: string): Promise<UserModuleProgress | null> {
+export async function getModuleProgress(
+  moduleId: string
+): Promise<UserModuleProgress | null> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return null;
 
     const { data, error } = await progressClient
@@ -338,18 +388,21 @@ export async function getModuleProgress(moduleId: string): Promise<UserModulePro
 
 export async function startModule(moduleId: string): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const { error } = await progressClient
-      .from('user_module_progress')
-      .upsert({
+    const { error } = await progressClient.from('user_module_progress').upsert(
+      {
         user_id: user.id,
         sanity_module_id: moduleId,
         last_accessed_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,sanity_module_id'
-      });
+      },
+      {
+        onConflict: 'user_id,sanity_module_id',
+      }
+    );
 
     if (error) {
       console.error('Error starting module:', error);
@@ -361,7 +414,9 @@ export async function startModule(moduleId: string): Promise<void> {
 
 export async function completeModule(moduleId: string): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
     const { error } = await progressClient
@@ -386,9 +441,16 @@ export async function completeModule(moduleId: string): Promise<void> {
 // QUIZ PROGRESS SERVICE
 // =============================================
 
-export async function startQuizAttempt(quizId: string, lessonId: string, submoduleId: string, moduleId: string): Promise<string | null> {
+export async function startQuizAttempt(
+  quizId: string,
+  lessonId: string,
+  submoduleId: string,
+  moduleId: string
+): Promise<string | null> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return null;
 
     // Get current attempt number
@@ -400,7 +462,9 @@ export async function startQuizAttempt(quizId: string, lessonId: string, submodu
       .order('attempt_number', { ascending: false })
       .limit(1);
 
-    const attemptNumber = existingAttempts?.[0]?.attempt_number ? existingAttempts[0].attempt_number + 1 : 1;
+    const attemptNumber = existingAttempts?.[0]?.attempt_number
+      ? existingAttempts[0].attempt_number + 1
+      : 1;
 
     const { data, error } = await progressClient
       .from('user_quiz_attempts')
@@ -436,12 +500,13 @@ export async function submitQuizAnswer(
   isCorrect: boolean
 ): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const { error } = await progressClient
-      .from('user_quiz_responses')
-      .upsert({
+    const { error } = await progressClient.from('user_quiz_responses').upsert(
+      {
         user_id: user.id,
         quiz_attempt_id: attemptId,
         sanity_question_id: questionId,
@@ -449,9 +514,11 @@ export async function submitQuizAnswer(
         user_answer: answer,
         is_correct: isCorrect,
         answered_at: new Date().toISOString(),
-      }, {
-        onConflict: 'quiz_attempt_id,sanity_question_id'
-      });
+      },
+      {
+        onConflict: 'quiz_attempt_id,sanity_question_id',
+      }
+    );
 
     if (error) {
       console.error('Error submitting quiz answer:', error);
@@ -461,7 +528,12 @@ export async function submitQuizAnswer(
   }
 }
 
-export async function completeQuizAttempt(attemptId: string, score: number, totalQuestions: number, correctAnswers: number): Promise<void> {
+export async function completeQuizAttempt(
+  attemptId: string,
+  score: number,
+  totalQuestions: number,
+  correctAnswers: number
+): Promise<void> {
   try {
     const { error } = await progressClient
       .from('user_quiz_attempts')
@@ -495,12 +567,13 @@ export async function saveActivityInput(
   value: string
 ): Promise<void> {
   try {
-    const { data: { user } } = await progressClient.auth.getUser();
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const { error } = await progressClient
-      .from('user_activity_inputs')
-      .upsert({
+    const { error } = await progressClient.from('user_activity_inputs').upsert(
+      {
         user_id: user.id,
         sanity_lesson_id: lessonId,
         sanity_submodule_id: submoduleId,
@@ -510,9 +583,12 @@ export async function saveActivityInput(
         input_value: value,
         is_submitted: true,
         submitted_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,sanity_lesson_id,activity_page_key,input_field_key'
-      });
+      },
+      {
+        onConflict:
+          'user_id,sanity_lesson_id,activity_page_key,input_field_key',
+      }
+    );
 
     if (error) {
       console.error('Error saving activity input:', error);
@@ -521,5 +597,3 @@ export async function saveActivityInput(
     console.error('Error in saveActivityInput:', error);
   }
 }
-
-

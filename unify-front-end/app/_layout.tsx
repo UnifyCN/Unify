@@ -24,7 +24,7 @@ export default function RootLayout() {
 
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  
+
   // Initialize progress cache
   const { isInitialized: progressCacheInitialized } = useProgressCache();
 

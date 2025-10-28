@@ -21,7 +21,7 @@ export interface ProgressDatabase {
     created_at: string;
     updated_at: string;
   };
-  
+
   user_submodule_progress: {
     id: string;
     user_id: string;
@@ -39,7 +39,7 @@ export interface ProgressDatabase {
     created_at: string;
     updated_at: string;
   };
-  
+
   user_lesson_progress: {
     id: string;
     user_id: string;
@@ -61,7 +61,7 @@ export interface ProgressDatabase {
     created_at: string;
     updated_at: string;
   };
-  
+
   user_page_progress: {
     id: string;
     user_id: string;
@@ -81,7 +81,7 @@ export interface ProgressDatabase {
     created_at: string;
     updated_at: string;
   };
-  
+
   user_quiz_attempts: {
     id: string;
     user_id: string;
@@ -98,7 +98,7 @@ export interface ProgressDatabase {
     completed_at?: string;
     created_at: string;
   };
-  
+
   user_quiz_responses: {
     id: string;
     user_id: string;
@@ -110,7 +110,7 @@ export interface ProgressDatabase {
     time_spent_seconds: number;
     answered_at: string;
   };
-  
+
   user_activity_inputs: {
     id: string;
     user_id: string;
@@ -125,7 +125,7 @@ export interface ProgressDatabase {
     created_at: string;
     updated_at: string;
   };
-  
+
   user_lesson_retakes: {
     id: string;
     user_id: string;

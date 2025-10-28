@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { getSubmodule, getSubmoduleWithLessons } from '../../services/sanity/submodules';
+import {
+  getSubmodule,
+  getSubmoduleWithLessons,
+} from '../../services/sanity/submodules';
 
 export function useSanitySubmodule(submoduleId: string) {
   return useQuery({
@@ -20,4 +23,3 @@ export function useSanitySubmoduleWithLessons(submoduleId: string) {
     gcTime: 10 * 60 * 1000,
   });
 }
-

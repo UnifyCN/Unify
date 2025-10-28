@@ -1,5 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { getLessonQuizzes, getQuiz, getQuizQuestions } from '../../services/sanity/quizzes';
+import {
+  getLessonQuizzes,
+  getQuiz,
+  getQuizQuestions,
+} from '../../services/sanity/quizzes';
 
 export function useSanityLessonQuizzes(lessonId: string) {
   return useQuery({
@@ -30,4 +34,3 @@ export function useSanityQuizQuestions(quizId: string) {
     gcTime: 10 * 60 * 1000,
   });
 }
-

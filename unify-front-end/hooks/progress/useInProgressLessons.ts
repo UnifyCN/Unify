@@ -23,35 +23,38 @@ export function useInProgressLessons() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchInProgressLessons = async () => {
-      try {
-        console.log('🔄 Refreshing in-progress lessons...');
-        setIsLoading(true);
-        setError(null);
+    try {
+      console.log('🔄 Refreshing in-progress lessons...');
+      setIsLoading(true);
+      setError(null);
 
-        // Get current user
-        const { data: { user } } = await progressClient.auth.getUser();
-        if (!user) {
-          setLessons([]);
-          setIsLoading(false);
-          return;
-        }
+      // Get current user
+      const {
+        data: { user },
+      } = await progressClient.auth.getUser();
+      if (!user) {
+        setLessons([]);
+        setIsLoading(false);
+        return;
+      }
 
-        // Fetch all lesson progress
-        const { data: lessonProgresses, error: lessonError } = await progressClient
+      // Fetch all lesson progress
+      const { data: lessonProgresses, error: lessonError } =
+        await progressClient
           .from('user_lesson_progress')
           .select('*')
           .eq('user_id', user.id)
           .order('last_accessed_at', { ascending: false });
 
-        if (lessonError) {
-          console.error('Error fetching lesson progress:', lessonError);
-          setError('Failed to fetch lessons');
-          setIsLoading(false);
-          return;
-        }
+      if (lessonError) {
+        console.error('Error fetching lesson progress:', lessonError);
+        setError('Failed to fetch lessons');
+        setIsLoading(false);
+        return;
+      }
 
-        // Fetch all modules with submodules and lessons
-        const modulesQuery = `*[_type == "module"] {
+      // Fetch all modules with submodules and lessons
+      const modulesQuery = `*[_type == "module"] {
           _id,
           title,
           "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
@@ -70,113 +73,135 @@ export function useInProgressLessons() {
           }
         }`;
 
-        const modulesData = await sanityClient.fetch(modulesQuery);
+      const modulesData = await sanityClient.fetch(modulesQuery);
 
-        // Find active lessons using the same logic as submodule map
-        const availableLessons: ContinueLesson[] = [];
+      // Find active lessons using the same logic as submodule map
+      const availableLessons: ContinueLesson[] = [];
 
-        for (const module of modulesData) {
-          // Find the first active lesson in this module
-          let activeLesson = null;
-          let activeSubmodule = null;
-          
-          for (const submodule of module.submodules) {
-            // Get lesson progress for this submodule
-            const submoduleLessons = lessonProgresses?.filter(p => p.sanity_submodule_id === submodule._id) || [];
-            
-            // Find the first active lesson in this submodule using the same logic as map
-            for (let i = 0; i < submodule.lessons.length; i++) {
-              const lesson = submodule.lessons[i];
-              const lessonProgress = submoduleLessons.find(p => p.sanity_lesson_id === lesson._id);
-              
-              const isCompleted = lessonProgress?.is_completed || false;
-              const isInProgress = lessonProgress?.is_in_progress || false;
-              
-              // Determine if lesson is active (same logic as submodule map)
-              let isActive = false;
-              if (isInProgress) {
-                isActive = true; // Currently in progress
-              } else if (i === 0) {
-                isActive = true; // First lesson is always active
-              } else {
-                // Check if previous lesson is completed
-                const previousLesson = submodule.lessons[i - 1];
-                const previousProgress = submoduleLessons.find(p => p.sanity_lesson_id === previousLesson._id);
-                const previousCompleted = previousProgress?.is_completed || false;
-                isActive = previousCompleted; // Active if previous is completed
-              }
-              
-              // If this lesson is active, use it
-              if (isActive && !isCompleted) {
-                console.log(`Found active lesson: ${lesson.title} in ${submodule.title}`, {
+      for (const module of modulesData) {
+        // Find the first active lesson in this module
+        let activeLesson = null;
+        let activeSubmodule = null;
+
+        for (const submodule of module.submodules) {
+          // Get lesson progress for this submodule
+          const submoduleLessons =
+            lessonProgresses?.filter(
+              p => p.sanity_submodule_id === submodule._id
+            ) || [];
+
+          // Find the first active lesson in this submodule using the same logic as map
+          for (let i = 0; i < submodule.lessons.length; i++) {
+            const lesson = submodule.lessons[i];
+            const lessonProgress = submoduleLessons.find(
+              p => p.sanity_lesson_id === lesson._id
+            );
+
+            const isCompleted = lessonProgress?.is_completed || false;
+            const isInProgress = lessonProgress?.is_in_progress || false;
+
+            // Determine if lesson is active (same logic as submodule map)
+            let isActive = false;
+            if (isInProgress) {
+              isActive = true; // Currently in progress
+            } else if (i === 0) {
+              isActive = true; // First lesson is always active
+            } else {
+              // Check if previous lesson is completed
+              const previousLesson = submodule.lessons[i - 1];
+              const previousProgress = submoduleLessons.find(
+                p => p.sanity_lesson_id === previousLesson._id
+              );
+              const previousCompleted = previousProgress?.is_completed || false;
+              isActive = previousCompleted; // Active if previous is completed
+            }
+
+            // If this lesson is active, use it
+            if (isActive && !isCompleted) {
+              console.log(
+                `Found active lesson: ${lesson.title} in ${submodule.title}`,
+                {
                   isInProgress,
                   isCompleted,
                   isActive,
-                  index: i
-                });
-                activeLesson = lesson;
-                activeSubmodule = submodule;
-                break;
-              }
-            }
-            
-            // If we found an active lesson, break out of submodule loop
-            if (activeLesson) {
+                  index: i,
+                }
+              );
+              activeLesson = lesson;
+              activeSubmodule = submodule;
               break;
             }
           }
-          
-          // If we found an active lesson in this module, add it
-          if (activeLesson && activeSubmodule) {
-            const lessonProgress = lessonProgresses?.find(p => p.sanity_lesson_id === activeLesson._id);
-            
-            // Calculate total pages
-            const totalPages = (activeLesson.pages?.length || 0) + 
-                             (activeLesson.activity_pages?.length || 0) + 
-                             (activeLesson.quizzes?.length || 0);
 
-            const progressPercent = lessonProgress && totalPages > 0 ? 
-              Math.round((lessonProgress.completed_pages / totalPages) * 100) : 0;
-            
-            const currentPage = lessonProgress?.current_page_number || 1;
-
-            availableLessons.push({
-              id: activeLesson._id,
-              title: activeLesson.title || 'Untitled Lesson',
-              description: activeLesson.description || '',
-              moduleId: module._id,
-              moduleTitle: module.title || 'Unknown Module',
-              submoduleId: activeSubmodule._id,
-              submoduleTitle: activeSubmodule.title || 'Unknown Submodule',
-              currentPage: currentPage,
-              totalPages: totalPages,
-              progressPercent: progressPercent,
-              href: `/(tabs)/Learn/modules/${module._id}/${activeSubmodule._id}/lessons/${activeLesson._id}/pages/${currentPage}` as any
-            });
+          // If we found an active lesson, break out of submodule loop
+          if (activeLesson) {
+            break;
           }
         }
 
-        // Sort by most recently accessed
-        const inProgressLessons = availableLessons.sort((a, b) => {
-          const aProgress = lessonProgresses.find(p => p.sanity_lesson_id === a.id);
-          const bProgress = lessonProgresses.find(p => p.sanity_lesson_id === b.id);
-          
-          if (aProgress && bProgress) {
-            return new Date(bProgress.last_accessed_at).getTime() - new Date(aProgress.last_accessed_at).getTime();
-          }
-          return 0;
-        });
+        // If we found an active lesson in this module, add it
+        if (activeLesson && activeSubmodule) {
+          const lessonProgress = lessonProgresses?.find(
+            p => p.sanity_lesson_id === activeLesson._id
+          );
 
-        setLessons(inProgressLessons);
-        console.log('Continue lessons loaded:', inProgressLessons);
-        console.log('Total lessons found:', inProgressLessons.length);
-      } catch (error) {
-        console.error('Error fetching in-progress lessons:', error);
-        setError('Failed to load lessons');
-      } finally {
-        setIsLoading(false);
+          // Calculate total pages
+          const totalPages =
+            (activeLesson.pages?.length || 0) +
+            (activeLesson.activity_pages?.length || 0) +
+            (activeLesson.quizzes?.length || 0);
+
+          const progressPercent =
+            lessonProgress && totalPages > 0
+              ? Math.round((lessonProgress.completed_pages / totalPages) * 100)
+              : 0;
+
+          const currentPage = lessonProgress?.current_page_number || 1;
+
+          availableLessons.push({
+            id: activeLesson._id,
+            title: activeLesson.title || 'Untitled Lesson',
+            description: activeLesson.description || '',
+            moduleId: module._id,
+            moduleTitle: module.title || 'Unknown Module',
+            submoduleId: activeSubmodule._id,
+            submoduleTitle: activeSubmodule.title || 'Unknown Submodule',
+            currentPage: currentPage,
+            totalPages: totalPages,
+            progressPercent: progressPercent,
+            href: `/(tabs)/Learn/modules/${module._id}/${activeSubmodule._id}/lessons/${activeLesson._id}/pages/${currentPage}` as any,
+          });
+        }
       }
-    };
+
+      // Sort by most recently accessed
+      const inProgressLessons = availableLessons.sort((a, b) => {
+        const aProgress = lessonProgresses.find(
+          p => p.sanity_lesson_id === a.id
+        );
+        const bProgress = lessonProgresses.find(
+          p => p.sanity_lesson_id === b.id
+        );
+
+        if (aProgress && bProgress) {
+          return (
+            new Date(bProgress.last_accessed_at).getTime() -
+            new Date(aProgress.last_accessed_at).getTime()
+          );
+        }
+        return 0;
+      });
+
+      setLessons(inProgressLessons);
+      console.log('Continue lessons loaded:', inProgressLessons);
+      console.log('Total lessons found:', inProgressLessons.length);
+    } catch (error) {
+      console.error('Error fetching in-progress lessons:', error);
+      setError('Failed to load lessons');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Fetch on mount
   useEffect(() => {
@@ -194,6 +219,6 @@ export function useInProgressLessons() {
     lessons,
     isLoading,
     error,
-    refresh: fetchInProgressLessons
+    refresh: fetchInProgressLessons,
   };
 }

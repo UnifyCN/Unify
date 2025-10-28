@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { getSubmoduleIntro, getSubmoduleIntroPages } from '@/services/learn/getSubmoduleIntro';
+import {
+  getSubmoduleIntro,
+  getSubmoduleIntroPages,
+} from '@/services/learn/getSubmoduleIntro';
 
 export const useSubmoduleIntro = (submoduleId: string, pageNum: number = 1) => {
   return useQuery({

@@ -1,5 +1,9 @@
 import { sanityClient } from '../../sanity-custom';
-import { SanityModule, SanitySubmoduleWithLessons, SanityModuleWithSubmodules } from '../../types/sanity';
+import {
+  SanityModule,
+  SanitySubmoduleWithLessons,
+  SanityModuleWithSubmodules,
+} from '../../types/sanity';
 
 // Get all modules
 export async function getAllModules(): Promise<SanityModule[]> {
@@ -10,7 +14,7 @@ export async function getAllModules(): Promise<SanityModule[]> {
       title,
       description
     }`;
-    
+
     const modules = await sanityClient.fetch(query);
     return modules || [];
   } catch (error) {
@@ -20,7 +24,9 @@ export async function getAllModules(): Promise<SanityModule[]> {
 }
 
 // Get all modules with their submodules
-export async function getAllModulesWithSubmodules(): Promise<SanityModuleWithSubmodules[]> {
+export async function getAllModulesWithSubmodules(): Promise<
+  SanityModuleWithSubmodules[]
+> {
   try {
     const query = `*[_type == "module"] | order(title) {
       _id,
@@ -37,7 +43,7 @@ export async function getAllModulesWithSubmodules(): Promise<SanityModuleWithSub
         order
       }
     }`;
-    
+
     const modules = await sanityClient.fetch(query);
     return modules || [];
   } catch (error) {
@@ -47,7 +53,9 @@ export async function getAllModulesWithSubmodules(): Promise<SanityModuleWithSub
 }
 
 // Get a single module by ID
-export async function getModule(moduleId: string): Promise<SanityModule | null> {
+export async function getModule(
+  moduleId: string
+): Promise<SanityModule | null> {
   try {
     const query = `*[_type == "module" && _id == $moduleId][0] {
       _id,
@@ -55,7 +63,7 @@ export async function getModule(moduleId: string): Promise<SanityModule | null> 
       title,
       description
     }`;
-    
+
     const module = await sanityClient.fetch(query, { moduleId });
     return module || null;
   } catch (error) {
@@ -65,7 +73,11 @@ export async function getModule(moduleId: string): Promise<SanityModule | null> 
 }
 
 // Get module with all its submodules
-export async function getModuleWithSubmodules(moduleId: string): Promise<SanityModule & { submodules: SanitySubmoduleWithLessons[] } | null> {
+export async function getModuleWithSubmodules(
+  moduleId: string
+): Promise<
+  (SanityModule & { submodules: SanitySubmoduleWithLessons[] }) | null
+> {
   try {
     const query = `*[_type == "module" && _id == $moduleId][0] {
       _id,
@@ -102,7 +114,7 @@ export async function getModuleWithSubmodules(moduleId: string): Promise<SanityM
         }
       }
     }`;
-    
+
     const module = await sanityClient.fetch(query, { moduleId });
     return module || null;
   } catch (error) {

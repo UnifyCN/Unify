@@ -6,7 +6,9 @@ export const getLessonQuizzes = async (lessonId: string): Promise<Quiz[]> => {
 
   const { data: quizzes, error } = await supabase
     .from('quizzes')
-    .select('quiz_id, lesson_id, title, description, passing_score, order_number')
+    .select(
+      'quiz_id, lesson_id, title, description, passing_score, order_number'
+    )
     .eq('lesson_id', lessonId)
     .order('order_number');
 

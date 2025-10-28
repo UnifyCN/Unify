@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 
 interface ProgressData {
@@ -20,7 +26,9 @@ interface ProgressContextType {
   getSubmoduleProgress: (moduleId: string, submoduleId: string) => any;
 }
 
-const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
+const ProgressContext = createContext<ProgressContextType | undefined>(
+  undefined
+);
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [progressData, setProgressData] = useState<ProgressData>({});
@@ -29,17 +37,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const fetchAllProgress = async () => {
     try {
       setIsLoading(true);
-      const { data: { user } } = await progressClient.auth.getUser();
+      const {
+        data: { user },
+      } = await progressClient.auth.getUser();
       if (!user) {
         setIsLoading(false);
         return;
       }
 
       // Fetch all lesson progress
-      const { data: lessonProgresses, error: lessonError } = await progressClient
-        .from('user_lesson_progress')
-        .select('*')
-        .eq('user_id', user.id);
+      const { data: lessonProgresses, error: lessonError } =
+        await progressClient
+          .from('user_lesson_progress')
+          .select('*')
+          .eq('user_id', user.id);
 
       if (lessonError) {
         console.error('Error fetching lesson progress:', lessonError);
@@ -49,26 +60,26 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
       // Group lesson progress by module and submodule
       const groupedProgress: ProgressData = {};
-      
+
       if (lessonProgresses) {
         lessonProgresses.forEach((lesson: any) => {
           const moduleId = lesson.sanity_module_id;
           const submoduleId = lesson.sanity_submodule_id;
-          
+
           if (!groupedProgress[moduleId]) {
             groupedProgress[moduleId] = {};
           }
-          
+
           if (!groupedProgress[moduleId][submoduleId]) {
             groupedProgress[moduleId][submoduleId] = {
               is_completed: false,
               progress_percent: 0,
               completed_lessons: 0,
               total_lessons: 0,
-              last_updated: new Date().toISOString()
+              last_updated: new Date().toISOString(),
             };
           }
-          
+
           if (lesson.is_completed) {
             groupedProgress[moduleId][submoduleId].completed_lessons++;
           }
@@ -81,8 +92,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           const submoduleData = groupedProgress[moduleId][submoduleId];
           // We'll need to get total lessons from Sanity data, but for now use completed lessons as total
           const totalLessons = Math.max(submoduleData.completed_lessons, 1);
-          submoduleData.progress_percent = Math.round((submoduleData.completed_lessons / totalLessons) * 100);
-          submoduleData.is_completed = submoduleData.completed_lessons === totalLessons && totalLessons > 0;
+          submoduleData.progress_percent = Math.round(
+            (submoduleData.completed_lessons / totalLessons) * 100
+          );
+          submoduleData.is_completed =
+            submoduleData.completed_lessons === totalLessons &&
+            totalLessons > 0;
         });
       });
 
@@ -100,13 +115,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   };
 
   const getSubmoduleProgress = (moduleId: string, submoduleId: string) => {
-    return progressData[moduleId]?.[submoduleId] || {
-      is_completed: false,
-      progress_percent: 0,
-      completed_lessons: 0,
-      total_lessons: 0,
-      last_updated: new Date().toISOString()
-    };
+    return (
+      progressData[moduleId]?.[submoduleId] || {
+        is_completed: false,
+        progress_percent: 0,
+        completed_lessons: 0,
+        total_lessons: 0,
+        last_updated: new Date().toISOString(),
+      }
+    );
   };
 
   useEffect(() => {
@@ -114,12 +131,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ProgressContext.Provider value={{
-      progressData,
-      isLoading,
-      refreshProgress,
-      getSubmoduleProgress
-    }}>
+    <ProgressContext.Provider
+      value={{
+        progressData,
+        isLoading,
+        refreshProgress,
+        getSubmoduleProgress,
+      }}
+    >
       {children}
     </ProgressContext.Provider>
   );

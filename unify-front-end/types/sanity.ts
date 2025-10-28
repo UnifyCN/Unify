@@ -86,7 +86,14 @@ export interface SanityLessonPage {
   _key: string;
   title: string;
   order: number;
-  content: (SanityBlock | SanityImage | SanityDropdown | SanityExampleBox | SanityTipBox | SanityNoteBox)[];
+  content: (
+    | SanityBlock
+    | SanityImage
+    | SanityDropdown
+    | SanityExampleBox
+    | SanityTipBox
+    | SanityNoteBox
+  )[];
   markDefs?: any[];
 }
 
@@ -121,7 +128,11 @@ export interface SanityActivityPage {
   order: number;
   instructions: SanityBlock[];
   instructionsMarkDefs?: any[];
-  input_fields?: (SanityLargeInputBox | SanityMidInputBox | SanitySmallInputBox)[];
+  input_fields?: (
+    | SanityLargeInputBox
+    | SanityMidInputBox
+    | SanitySmallInputBox
+  )[];
   answer_box?: SanityAnswerBox;
 }
 
@@ -171,7 +182,14 @@ export interface SanityQuiz extends SanityDocument {
 
 export interface SanityQuizQuestion {
   _key: string;
-  question_type: 'multiple_choice_single' | 'multiple_choice_multiple' | 'true_false' | 'fill_blank' | 'short_answer' | 'matching' | 'long_answer';
+  question_type:
+    | 'multiple_choice_single'
+    | 'multiple_choice_multiple'
+    | 'true_false'
+    | 'fill_blank'
+    | 'short_answer'
+    | 'matching'
+    | 'long_answer';
   question_text: SanityBlock[];
   questionMarkDefs?: any[];
   options?: SanityQuizOption[];
@@ -214,4 +232,3 @@ export interface SanitySubmoduleWithLessons extends SanitySubmodule {
 export interface SanityLessonWithQuizzes extends SanityLesson {
   quizzes?: SanityQuiz[];
 }
-

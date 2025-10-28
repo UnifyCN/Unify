@@ -21,7 +21,9 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
   onComplete,
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<string, string>
+  >({});
   const [showResults, setShowResults] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -130,7 +132,9 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
             <View
               style={[
                 styles.progressFill,
-                { width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` },
+                {
+                  width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
+                },
               ]}
             />
           </View>
@@ -145,7 +149,7 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
           </View>
 
           <View style={styles.optionsContainer}>
-            {currentQuestion.options.map((option) => (
+            {currentQuestion.options.map(option => (
               <TouchableOpacity
                 key={option.id}
                 style={[
@@ -153,7 +157,9 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
                   selectedAnswers[currentQuestion.question_id] === option.id &&
                     styles.optionButtonSelected,
                 ]}
-                onPress={() => handleAnswerSelect(currentQuestion.question_id, option.id)}
+                onPress={() =>
+                  handleAnswerSelect(currentQuestion.question_id, option.id)
+                }
               >
                 <View style={styles.optionContent}>
                   {renderOptionContent(option.content)}
@@ -167,7 +173,8 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
           <TouchableOpacity
             style={[
               styles.nextButton,
-              !selectedAnswers[currentQuestion.question_id] && styles.nextButtonDisabled,
+              !selectedAnswers[currentQuestion.question_id] &&
+                styles.nextButtonDisabled,
             ]}
             onPress={handleNext}
             disabled={!selectedAnswers[currentQuestion.question_id]}

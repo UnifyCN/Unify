@@ -14,7 +14,8 @@ export const getSubmoduleIntro = async (
     .eq('order_num', pageNum)
     .single();
 
-  if (error) throw new Error(`Failed to fetch submodule intro: ${error.message}`);
+  if (error)
+    throw new Error(`Failed to fetch submodule intro: ${error.message}`);
 
   return {
     id: intro.id,
@@ -35,7 +36,8 @@ export const getSubmoduleIntroPages = async (
     .select('*', { count: 'exact', head: true })
     .eq('submodule_id', submoduleId);
 
-  if (error) throw new Error(`Failed to fetch intro pages count: ${error.message}`);
+  if (error)
+    throw new Error(`Failed to fetch intro pages count: ${error.message}`);
 
   return count || 0;
 };

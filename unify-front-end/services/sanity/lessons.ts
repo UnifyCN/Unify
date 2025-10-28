@@ -2,7 +2,9 @@ import { sanityClient } from '../../sanity-custom';
 import { SanityLesson, SanityQuiz } from '../../types/sanity';
 
 // Get a single lesson by ID
-export async function getLesson(lessonId: string): Promise<SanityLesson | null> {
+export async function getLesson(
+  lessonId: string
+): Promise<SanityLesson | null> {
   try {
     const query = `*[_type == "lesson" && _id == $lessonId][0] {
       _id,
@@ -15,7 +17,7 @@ export async function getLesson(lessonId: string): Promise<SanityLesson | null> 
       activity_pages,
       order
     }`;
-    
+
     const lesson = await sanityClient.fetch(query, { lessonId });
     return lesson || null;
   } catch (error) {
@@ -25,7 +27,9 @@ export async function getLesson(lessonId: string): Promise<SanityLesson | null> 
 }
 
 // Get lesson with all its quizzes
-export async function getLessonWithQuizzes(lessonId: string): Promise<SanityLesson & { quizzes: SanityQuiz[] } | null> {
+export async function getLessonWithQuizzes(
+  lessonId: string
+): Promise<(SanityLesson & { quizzes: SanityQuiz[] }) | null> {
   try {
     const query = `*[_type == "lesson" && _id == $lessonId][0] {
       _id,
@@ -47,7 +51,7 @@ export async function getLessonWithQuizzes(lessonId: string): Promise<SanityLess
         questions
       }
     }`;
-    
+
     const lesson = await sanityClient.fetch(query, { lessonId });
     return lesson || null;
   } catch (error) {

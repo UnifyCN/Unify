@@ -26,9 +26,14 @@ export default function Learn() {
 
   // Fetch all modules with their submodules to get accurate counts
   const { data: modules, isLoading, error } = useSanityModules();
-  
+
   // Fetch in-progress lessons for the carousel
-  const { lessons: inProgressLessons, isLoading: lessonsLoading, error: lessonsError, refresh: refreshLessons } = useInProgressLessons();
+  const {
+    lessons: inProgressLessons,
+    isLoading: lessonsLoading,
+    error: lessonsError,
+    refresh: refreshLessons,
+  } = useInProgressLessons();
 
   const onMomentumEnd = (e: any) => {
     const x = e.nativeEvent?.contentOffset?.x ?? 0;
@@ -54,7 +59,7 @@ export default function Learn() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style='dark' />
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -94,7 +99,7 @@ export default function Learn() {
                       paddingLeft: 1,
                     }}
                   >
-                    <LessonHeroCard 
+                    <LessonHeroCard
                       title={lesson.title}
                       description={lesson.description}
                       moduleTitle={lesson.moduleTitle}
@@ -117,7 +122,9 @@ export default function Learn() {
         ) : (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No lessons to continue</Text>
-            <Text style={styles.emptySubtext}>Start a lesson to see it here</Text>
+            <Text style={styles.emptySubtext}>
+              Start a lesson to see it here
+            </Text>
           </View>
         )}
 

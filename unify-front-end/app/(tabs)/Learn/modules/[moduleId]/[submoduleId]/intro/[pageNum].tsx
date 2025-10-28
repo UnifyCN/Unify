@@ -29,17 +29,19 @@ export default function SubmoduleIntroScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
-  const { data: submoduleData, isLoading: loadingIntro } = useSanitySubmoduleWithLessons(submoduleId || '');
+  const { data: submoduleData, isLoading: loadingIntro } =
+    useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
-  
+
   // Get intro pages from Sanity data and sort by order (1-indexed)
-  const introPages = (submoduleData?.intro_pages || []).sort((a: any, b: any) => a.order - b.order);
+  const introPages = (submoduleData?.intro_pages || []).sort(
+    (a: any, b: any) => a.order - b.order
+  );
   const totalPages = introPages.length;
   const introData = introPages[currentPage - 1];
 
   // Calculate progress for the progress bar
   const progress = calculateIntroProgress(submoduleData || null, currentPage);
-
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
@@ -57,8 +59,13 @@ export default function SubmoduleIntroScreen() {
   const handleBack = () => {
     if (currentPage > 1) {
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
-        params: { moduleId, submoduleId, pageNum: (currentPage - 1).toString() },
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+        params: {
+          moduleId,
+          submoduleId,
+          pageNum: (currentPage - 1).toString(),
+        },
       });
     }
   };
@@ -66,15 +73,21 @@ export default function SubmoduleIntroScreen() {
   const handleNext = () => {
     if (currentPage < (totalPages || 1)) {
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
-        params: { moduleId, submoduleId, pageNum: (currentPage + 1).toString() },
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+        params: {
+          moduleId,
+          submoduleId,
+          pageNum: (currentPage + 1).toString(),
+        },
       });
     } else {
       // Navigate to first lesson
       const firstLesson = submoduleData?.lessons?.[0];
       if (firstLesson) {
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
           params: { moduleId, submoduleId, lessonId: firstLesson._id },
         });
       } else {
@@ -90,40 +103,46 @@ export default function SubmoduleIntroScreen() {
   // Helper function to render Sanity block content
   const renderBlockContent = (blocks: any[]) => {
     if (!blocks || !Array.isArray(blocks)) return null;
-    
-    return blocks.map((block, index) => {
-      if (block._type === 'block') {
-        // Render text blocks with proper formatting
-        return (
-          <Text key={block._key || index} style={styles.textContent}>
-            {block.children?.map((child: any, childIndex: number) => {
-              if (child.marks?.includes('strong')) {
-                return <Text key={childIndex} style={styles.boldText}>{child.text}</Text>;
-              }
-              return child.text || '';
-            })}
-          </Text>
-        );
-      } else if (block._type === 'image') {
-        // Render images
-        const imageUrl = block.asset?._ref 
-          ? `https://cdn.sanity.io/images/fercgabp/production/${block.asset._ref.replace('image-', '').replace('-jpg', '.jpg').replace('-png', '.png').replace('-webp', '.webp')}`
-          : null;
-        
-        return (
-          <View key={block._key || index} style={styles.imageSection}>
-            {imageUrl ? (
-              <Image source={{ uri: imageUrl }} style={styles.image} />
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <Text style={styles.imagePlaceholderText}>Image</Text>
-              </View>
-            )}
-          </View>
-        );
-      }
-      return null;
-    }).filter(Boolean); // Remove null values
+
+    return blocks
+      .map((block, index) => {
+        if (block._type === 'block') {
+          // Render text blocks with proper formatting
+          return (
+            <Text key={block._key || index} style={styles.textContent}>
+              {block.children?.map((child: any, childIndex: number) => {
+                if (child.marks?.includes('strong')) {
+                  return (
+                    <Text key={childIndex} style={styles.boldText}>
+                      {child.text}
+                    </Text>
+                  );
+                }
+                return child.text || '';
+              })}
+            </Text>
+          );
+        } else if (block._type === 'image') {
+          // Render images
+          const imageUrl = block.asset?._ref
+            ? `https://cdn.sanity.io/images/fercgabp/production/${block.asset._ref.replace('image-', '').replace('-jpg', '.jpg').replace('-png', '.png').replace('-webp', '.webp')}`
+            : null;
+
+          return (
+            <View key={block._key || index} style={styles.imageSection}>
+              {imageUrl ? (
+                <Image source={{ uri: imageUrl }} style={styles.image} />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Text style={styles.imagePlaceholderText}>Image</Text>
+                </View>
+              )}
+            </View>
+          );
+        }
+        return null;
+      })
+      .filter(Boolean); // Remove null values
   };
 
   const renderSection = (section: SubmoduleIntroSection, index: number) => {
@@ -135,9 +154,7 @@ export default function SubmoduleIntroScreen() {
               {section.content?.map((textContent, textIndex) => (
                 <Text
                   key={textIndex}
-                  style={[
-                    textContent.bold && styles.boldText,
-                  ]}
+                  style={[textContent.bold && styles.boldText]}
                 >
                   {textContent.text}
                 </Text>
@@ -237,14 +254,14 @@ export default function SubmoduleIntroScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       {/* Progress Bar */}
-      <SubmoduleProgressBar 
-        currentProgress={progress.currentPage} 
+      <SubmoduleProgressBar
+        currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
       />
-      
+
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -263,7 +280,10 @@ export default function SubmoduleIntroScreen() {
 
         {/* Content sections */}
         <View style={styles.content}>
-          <RichTextRenderer blocks={introData?.content} markDefs={introData?.markDefs} />
+          <RichTextRenderer
+            blocks={introData?.content}
+            markDefs={introData?.markDefs}
+          />
         </View>
 
         {/* Navigation buttons */}
@@ -440,7 +460,7 @@ const styles = StyleSheet.create({
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  
+
   // Button container and buttons
   buttonContainer: {
     flexDirection: 'row',

@@ -22,7 +22,7 @@ export default function QuizzesPage() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+        <ActivityIndicator size='large' color='#3B82F6' />
         <Text style={styles.loadingText}>Loading quizzes...</Text>
       </View>
     );
@@ -71,7 +71,8 @@ export default function QuizzesPage() {
             style={styles.quizCard}
             onPress={() => {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
                 params: {
                   moduleId,
                   submoduleId,
@@ -85,11 +86,11 @@ export default function QuizzesPage() {
               <Text style={styles.quizNumber}>Quiz {quiz.order_number}</Text>
               <Text style={styles.quizTitle}>{quiz.title}</Text>
             </View>
-            
+
             {quiz.description && (
               <Text style={styles.quizDescription}>{quiz.description}</Text>
             )}
-            
+
             <View style={styles.quizFooter}>
               <Text style={styles.startQuiz}>Start Quiz →</Text>
             </View>

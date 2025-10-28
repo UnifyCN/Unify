@@ -33,7 +33,9 @@ export default function SubmoduleMap() {
   );
 
   // Progress tracking state
-  const [lessonProgresses, setLessonProgresses] = useState<{[key: string]: any}>({});
+  const [lessonProgresses, setLessonProgresses] = useState<{
+    [key: string]: any;
+  }>({});
   const [progressLoading, setProgressLoading] = useState(true);
 
   // Fetch lesson progress data
@@ -41,27 +43,30 @@ export default function SubmoduleMap() {
     if (submoduleData?.lessons) {
       const fetchLessonProgress = async () => {
         setProgressLoading(true);
-        const progressData: {[key: string]: any} = {};
-        
+        const progressData: { [key: string]: any } = {};
+
         for (const lesson of submoduleData.lessons) {
           try {
             const progress = await getLessonProgress(lesson._id);
             progressData[lesson._id] = progress;
           } catch (error) {
-            console.error(`Error fetching progress for lesson ${lesson._id}:`, error);
+            console.error(
+              `Error fetching progress for lesson ${lesson._id}:`,
+              error
+            );
             // Set default values if progress fetching fails
             progressData[lesson._id] = {
               is_completed: false,
               is_in_progress: false,
-              progress_percent: 0
+              progress_percent: 0,
             };
           }
         }
-        
+
         setLessonProgresses(progressData);
         setProgressLoading(false);
       };
-      
+
       fetchLessonProgress();
     }
   }, [submoduleData?.lessons]);
@@ -94,7 +99,7 @@ export default function SubmoduleMap() {
       const progress = lessonProgresses[lesson._id];
       const isCompleted = progress?.is_completed || false;
       const isInProgress = progress?.is_in_progress || false;
-      
+
       // Determine if lesson is active (next in line or in progress)
       let isActive = false;
       if (isInProgress) {
@@ -108,10 +113,10 @@ export default function SubmoduleMap() {
         const previousCompleted = previousProgress?.is_completed || false;
         isActive = previousCompleted; // Active if previous is completed
       }
-      
+
       // Determine if lesson is blocked (non-active)
       const blocked = !isActive && !isCompleted;
-      
+
       return {
         id: lesson._id, // Use Sanity _id
         title: lesson.title,
@@ -129,10 +134,15 @@ export default function SubmoduleMap() {
   // Find the next lesson based on progress
   const nextLesson = submoduleData.lessons.find((lesson: any) => {
     const progress = lessonProgresses[lesson._id];
-    return !progress?.is_completed && (progress?.is_in_progress || 
-      submoduleData.lessons.indexOf(lesson) === 0 || 
-      (submoduleData.lessons.indexOf(lesson) > 0 && 
-       lessonProgresses[submoduleData.lessons[submoduleData.lessons.indexOf(lesson) - 1]._id]?.is_completed));
+    return (
+      !progress?.is_completed &&
+      (progress?.is_in_progress ||
+        submoduleData.lessons.indexOf(lesson) === 0 ||
+        (submoduleData.lessons.indexOf(lesson) > 0 &&
+          lessonProgresses[
+            submoduleData.lessons[submoduleData.lessons.indexOf(lesson) - 1]._id
+          ]?.is_completed))
+    );
   });
 
   return (
@@ -143,12 +153,15 @@ export default function SubmoduleMap() {
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.replace({
-            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]',
-            params:{moduleId, submoduleId},
-          }
-
-          )} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() =>
+              router.replace({
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]',
+                params: { moduleId, submoduleId },
+              })
+            }
+            style={styles.backButton}
+          >
             <Feather name='arrow-left' size={24} color='#000' />
           </TouchableOpacity>
         </View>
@@ -169,14 +182,15 @@ export default function SubmoduleMap() {
             <Text style={styles.focusDescription}>
               {submoduleData.lessons[selectedLessonIndex].description}
             </Text>
-            
+
             {/* Progress Information */}
             {circles[selectedLessonIndex].isCompleted && (
               <Text style={styles.progressText}>✅ Completed</Text>
             )}
             {circles[selectedLessonIndex].inProgress && (
               <Text style={styles.progressText}>
-                🔄 In Progress ({Math.round(circles[selectedLessonIndex].progressPercent)}%)
+                🔄 In Progress (
+                {Math.round(circles[selectedLessonIndex].progressPercent)}%)
               </Text>
             )}
             {circles[selectedLessonIndex].isNext && (
@@ -185,11 +199,11 @@ export default function SubmoduleMap() {
             {circles[selectedLessonIndex].blocked && (
               <Text style={styles.progressText}>🔒 Locked</Text>
             )}
-            
+
             <TouchableOpacity
               style={[
                 styles.focusCta,
-                circles[selectedLessonIndex].blocked && styles.focusCtaDisabled
+                circles[selectedLessonIndex].blocked && styles.focusCtaDisabled,
               ]}
               onPress={() => {
                 router.push({
@@ -210,9 +224,13 @@ export default function SubmoduleMap() {
                   circles[selectedLessonIndex].blocked && styles.textBlocked,
                 ]}
               >
-                {circles[selectedLessonIndex].isCompleted ? 'Review Lesson' : 
-                 circles[selectedLessonIndex].inProgress ? 'Continue Lesson' : 
-                 circles[selectedLessonIndex].blocked ? 'Lesson Locked' : 'Start Lesson'}
+                {circles[selectedLessonIndex].isCompleted
+                  ? 'Review Lesson'
+                  : circles[selectedLessonIndex].inProgress
+                    ? 'Continue Lesson'
+                    : circles[selectedLessonIndex].blocked
+                      ? 'Lesson Locked'
+                      : 'Start Lesson'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -255,12 +273,16 @@ export default function SubmoduleMap() {
                     ) : c.blocked ? (
                       <View style={styles.circleBlockedInner}>
                         <Text style={styles.circleBlockedLabel}>Lesson</Text>
-                        <Text style={styles.circleBlockedIndex}>{c.orderNumber}</Text>
+                        <Text style={styles.circleBlockedIndex}>
+                          {c.orderNumber}
+                        </Text>
                       </View>
                     ) : isActive ? (
                       <View style={styles.circleActiveInner}>
                         <Text style={styles.circleActiveLabel}>Lesson</Text>
-                        <Text style={styles.circleActiveIndex}>{c.orderNumber}</Text>
+                        <Text style={styles.circleActiveIndex}>
+                          {c.orderNumber}
+                        </Text>
                       </View>
                     ) : (
                       <View style={{ alignItems: 'center' }}>
@@ -545,7 +567,7 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     textAlign: 'center',
   },
-  
+
   // Progress tracking styles
   progressText: {
     fontSize: 14,

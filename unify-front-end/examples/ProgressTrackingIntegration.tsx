@@ -22,7 +22,7 @@ export function LessonPageWithProgress() {
   }>();
 
   const currentPage = parseInt(pageNum || '1');
-  
+
   // Use the progress tracking hook
   const {
     lessonProgress,
@@ -32,7 +32,7 @@ export function LessonPageWithProgress() {
     updateProgress,
     completeLesson,
     trackPageVisit,
-    completePage
+    completePage,
   } = useLessonProgress(lessonId || '', submoduleId || '', moduleId || '');
 
   // Track page visit when component mounts
@@ -42,10 +42,10 @@ export function LessonPageWithProgress() {
       if (!lessonProgress) {
         startLesson(lessonId, submoduleId, moduleId);
       }
-      
+
       // Track page visit
       trackPageVisit('lesson', `lesson_${currentPage}`, currentPage);
-      
+
       // Update current progress
       updateProgress('lesson', currentPage);
     }
@@ -54,7 +54,7 @@ export function LessonPageWithProgress() {
   // Handle page completion
   const handlePageComplete = async () => {
     await completePage(lessonId || '', 'lesson', `lesson_${currentPage}`);
-    
+
     // Check if lesson is complete
     if (currentPage === totalPages) {
       await completeLesson();
@@ -72,7 +72,7 @@ export function LessonPageWithProgress() {
           <p>Is Completed: {lessonProgress.is_completed ? 'Yes' : 'No'}</p>
         </div>
       )}
-      
+
       {/* Your existing content */}
     </div>
   );
@@ -91,12 +91,12 @@ export function ActivityPageWithProgress() {
   }>();
 
   const currentPage = parseInt(pageNum || '1');
-  
-  const {
-    lessonProgress,
-    trackPageVisit,
-    completePage
-  } = useLessonProgress(lessonId || '', submoduleId || '', moduleId || '');
+
+  const { lessonProgress, trackPageVisit, completePage } = useLessonProgress(
+    lessonId || '',
+    submoduleId || '',
+    moduleId || ''
+  );
 
   // Track activity page visit
   useEffect(() => {
@@ -110,11 +110,7 @@ export function ActivityPageWithProgress() {
     await completePage(lessonId || '', 'activity', `activity_${currentPage}`);
   };
 
-  return (
-    <div>
-      {/* Your existing activity page JSX here */}
-    </div>
-  );
+  return <div>{/* Your existing activity page JSX here */}</div>;
 }
 
 // =============================================
@@ -122,26 +118,33 @@ export function ActivityPageWithProgress() {
 // =============================================
 
 export function QuizPageWithProgress() {
-  const { moduleId, submoduleId, lessonId, quizId, questionNum } = useLocalSearchParams<{
-    moduleId: string;
-    submoduleId: string;
-    lessonId: string;
-    quizId: string;
-    questionNum: string;
-  }>();
+  const { moduleId, submoduleId, lessonId, quizId, questionNum } =
+    useLocalSearchParams<{
+      moduleId: string;
+      submoduleId: string;
+      lessonId: string;
+      quizId: string;
+      questionNum: string;
+    }>();
 
   const currentQuestion = parseInt(questionNum || '1');
-  
-  const {
-    lessonProgress,
-    trackPageVisit,
-    completePage
-  } = useLessonProgress(lessonId || '', submoduleId || '', moduleId || '');
+
+  const { lessonProgress, trackPageVisit, completePage } = useLessonProgress(
+    lessonId || '',
+    submoduleId || '',
+    moduleId || ''
+  );
 
   // Track quiz question visit
   useEffect(() => {
     if (lessonId && submoduleId && moduleId && quizId) {
-      trackPageVisit('quiz', `quiz_${quizId}_question_${currentQuestion}`, currentQuestion, quizId, currentQuestion);
+      trackPageVisit(
+        'quiz',
+        `quiz_${quizId}_question_${currentQuestion}`,
+        currentQuestion,
+        quizId,
+        currentQuestion
+      );
     }
   }, [lessonId, submoduleId, moduleId, quizId, currentQuestion]);
 
@@ -150,11 +153,7 @@ export function QuizPageWithProgress() {
     await completePage(lessonId || '', 'quiz', `quiz_${quizId}`);
   };
 
-  return (
-    <div>
-      {/* Your existing quiz page JSX here */}
-    </div>
-  );
+  return <div>{/* Your existing quiz page JSX here */}</div>;
 }
 
 // =============================================
@@ -169,7 +168,10 @@ export function MapWithProgress() {
 
   // Use multiple progress hooks
   const { moduleProgress } = useModuleProgress(moduleId || '');
-  const { submoduleProgress } = useSubmoduleProgress(submoduleId || '', moduleId || '');
+  const { submoduleProgress } = useSubmoduleProgress(
+    submoduleId || '',
+    moduleId || ''
+  );
 
   return (
     <div>
@@ -177,18 +179,24 @@ export function MapWithProgress() {
       {moduleProgress && (
         <div>
           <p>Module Progress: {moduleProgress.progress_percent}%</p>
-          <p>Completed Submodules: {moduleProgress.completed_submodules}/{moduleProgress.total_submodules}</p>
+          <p>
+            Completed Submodules: {moduleProgress.completed_submodules}/
+            {moduleProgress.total_submodules}
+          </p>
         </div>
       )}
-      
+
       {/* Submodule progress */}
       {submoduleProgress && (
         <div>
           <p>Submodule Progress: {submoduleProgress.progress_percent}%</p>
-          <p>Completed Lessons: {submoduleProgress.completed_lessons}/{submoduleProgress.total_lessons}</p>
+          <p>
+            Completed Lessons: {submoduleProgress.completed_lessons}/
+            {submoduleProgress.total_lessons}
+          </p>
         </div>
       )}
-      
+
       {/* Your existing map JSX here */}
     </div>
   );
@@ -226,7 +234,7 @@ export function ComponentUsingContext() {
       <p>Module Progress: {state.moduleProgress}%</p>
       <p>Submodule Progress: {state.submoduleProgress}%</p>
       <p>Lesson Progress: {state.lessonProgress}%</p>
-      
+
       <button onClick={handleStartLesson}>Start Lesson</button>
       <button onClick={handleCompletePage}>Complete Page</button>
     </div>
@@ -242,7 +250,8 @@ export function ProgressCalculationExample() {
 
   const calculateProgress = async () => {
     const moduleProgress = await api.calculateModuleProgress('module-id');
-    const submoduleProgress = await api.calculateSubmoduleProgress('submodule-id');
+    const submoduleProgress =
+      await api.calculateSubmoduleProgress('submodule-id');
     const lessonProgress = await api.calculateLessonProgress('lesson-id');
 
     console.log('Module Progress:', moduleProgress);
@@ -256,5 +265,3 @@ export function ProgressCalculationExample() {
     </div>
   );
 }
-
-

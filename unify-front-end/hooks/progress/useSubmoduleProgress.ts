@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  getSubmoduleProgress, 
-  startSubmodule, 
-  completeSubmodule
+import {
+  getSubmoduleProgress,
+  startSubmodule,
+  completeSubmodule,
 } from '@/services/progress/progressService';
 import { UserSubmoduleProgress } from '@/types/progress';
 
@@ -15,8 +15,12 @@ interface UseSubmoduleProgressReturn {
   refreshProgress: () => Promise<void>;
 }
 
-export function useSubmoduleProgress(submoduleId: string, moduleId: string): UseSubmoduleProgressReturn {
-  const [submoduleProgress, setSubmoduleProgress] = useState<UserSubmoduleProgress | null>(null);
+export function useSubmoduleProgress(
+  submoduleId: string,
+  moduleId: string
+): UseSubmoduleProgressReturn {
+  const [submoduleProgress, setSubmoduleProgress] =
+    useState<UserSubmoduleProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,31 +28,42 @@ export function useSubmoduleProgress(submoduleId: string, moduleId: string): Use
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const progress = await getSubmoduleProgress(submoduleId);
       setSubmoduleProgress(progress);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch submodule progress');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to fetch submodule progress'
+      );
     } finally {
       setIsLoading(false);
     }
   }, [submoduleId]);
 
-  const handleStartSubmodule = useCallback(async (submoduleId: string, moduleId: string) => {
-    try {
-      await startSubmodule(submoduleId, moduleId);
-      await fetchProgress();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to start submodule');
-    }
-  }, [fetchProgress]);
+  const handleStartSubmodule = useCallback(
+    async (submoduleId: string, moduleId: string) => {
+      try {
+        await startSubmodule(submoduleId, moduleId);
+        await fetchProgress();
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Failed to start submodule'
+        );
+      }
+    },
+    [fetchProgress]
+  );
 
   const handleCompleteSubmodule = useCallback(async () => {
     try {
       await completeSubmodule(submoduleId);
       await fetchProgress();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to complete submodule');
+      setError(
+        err instanceof Error ? err.message : 'Failed to complete submodule'
+      );
     }
   }, [submoduleId, fetchProgress]);
 
@@ -71,5 +86,3 @@ export function useSubmoduleProgress(submoduleId: string, moduleId: string): Use
     refreshProgress,
   };
 }
-
-

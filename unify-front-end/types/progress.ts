@@ -145,22 +145,22 @@ export interface ProgressTrackingState {
   // Current lesson state
   currentLesson?: UserLessonProgress;
   currentPage?: UserPageProgress;
-  
+
   // Progress percentages
   moduleProgress: number;
   submoduleProgress: number;
   lessonProgress: number;
-  
+
   // Completion status
   isModuleCompleted: boolean;
   isSubmoduleCompleted: boolean;
   isLessonCompleted: boolean;
-  
+
   // Navigation state
   canAccessNextLesson: boolean;
   canAccessNextSubmodule: boolean;
   canAccessNextModule: boolean;
-  
+
   // Loading states
   isLoading: boolean;
   error?: string;
@@ -168,25 +168,46 @@ export interface ProgressTrackingState {
 
 export interface ProgressTrackingActions {
   // Start tracking
-  startLesson: (lessonId: string, submoduleId: string, moduleId: string) => Promise<void>;
+  startLesson: (
+    lessonId: string,
+    submoduleId: string,
+    moduleId: string
+  ) => Promise<void>;
   startSubmodule: (submoduleId: string, moduleId: string) => Promise<void>;
   startModule: (moduleId: string) => Promise<void>;
-  
+
   // Update progress
-  updateLessonProgress: (lessonId: string, pageType: string, pageNumber: number) => Promise<void>;
-  completePage: (lessonId: string, pageType: string, pageKey: string) => Promise<void>;
+  updateLessonProgress: (
+    lessonId: string,
+    pageType: string,
+    pageNumber: number
+  ) => Promise<void>;
+  completePage: (
+    lessonId: string,
+    pageType: string,
+    pageKey: string
+  ) => Promise<void>;
   completeLesson: (lessonId: string) => Promise<void>;
   completeSubmodule: (submoduleId: string) => Promise<void>;
   completeModule: (moduleId: string) => Promise<void>;
-  
+
   // Quiz tracking
   startQuizAttempt: (quizId: string, lessonId: string) => Promise<string>; // Returns attempt ID
-  submitQuizAnswer: (attemptId: string, questionId: string, answer: any) => Promise<void>;
+  submitQuizAnswer: (
+    attemptId: string,
+    questionId: string,
+    answer: any
+  ) => Promise<void>;
   completeQuizAttempt: (attemptId: string, score: number) => Promise<void>;
-  
+
   // Activity input tracking
-  saveActivityInput: (lessonId: string, pageKey: string, fieldKey: string, value: string) => Promise<void>;
-  
+  saveActivityInput: (
+    lessonId: string,
+    pageKey: string,
+    fieldKey: string,
+    value: string
+  ) => Promise<void>;
+
   // Retake tracking
   startRetake: (lessonId: string) => Promise<void>;
   completeRetake: (lessonId: string) => Promise<void>;
@@ -232,10 +253,16 @@ export interface ModuleProgressCalculation extends ProgressCalculation {
 export interface ProgressTrackingAPI {
   // Get progress
   getModuleProgress: (moduleId: string) => Promise<UserModuleProgress | null>;
-  getSubmoduleProgress: (submoduleId: string) => Promise<UserSubmoduleProgress | null>;
+  getSubmoduleProgress: (
+    submoduleId: string
+  ) => Promise<UserSubmoduleProgress | null>;
   getLessonProgress: (lessonId: string) => Promise<UserLessonProgress | null>;
-  getPageProgress: (lessonId: string, pageType: string, pageKey: string) => Promise<UserPageProgress | null>;
-  
+  getPageProgress: (
+    lessonId: string,
+    pageType: string,
+    pageKey: string
+  ) => Promise<UserPageProgress | null>;
+
   // Get all progress for a user
   getAllUserProgress: () => Promise<{
     modules: UserModuleProgress[];
@@ -243,12 +270,18 @@ export interface ProgressTrackingAPI {
     lessons: UserLessonProgress[];
     pages: UserPageProgress[];
   }>;
-  
+
   // Calculate progress
-  calculateModuleProgress: (moduleId: string) => Promise<ModuleProgressCalculation>;
-  calculateSubmoduleProgress: (submoduleId: string) => Promise<SubmoduleProgressCalculation>;
-  calculateLessonProgress: (lessonId: string) => Promise<LessonProgressCalculation>;
-  
+  calculateModuleProgress: (
+    moduleId: string
+  ) => Promise<ModuleProgressCalculation>;
+  calculateSubmoduleProgress: (
+    submoduleId: string
+  ) => Promise<SubmoduleProgressCalculation>;
+  calculateLessonProgress: (
+    lessonId: string
+  ) => Promise<LessonProgressCalculation>;
+
   // Check access permissions
   canAccessLesson: (lessonId: string) => Promise<boolean>;
   canAccessSubmodule: (submoduleId: string) => Promise<boolean>;
@@ -287,5 +320,3 @@ export interface ProgressAnalytics {
   quizScores: number[];
   averageQuizScore: number;
 }
-
-

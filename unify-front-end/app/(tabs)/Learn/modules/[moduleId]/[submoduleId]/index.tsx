@@ -59,10 +59,15 @@ export default function SubmoduleIndex() {
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.replace({
-            pathname: '/(tabs)/Learn/modules/[moduleId]',
-            params:{moduleId},
-            })} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() =>
+              router.replace({
+                pathname: '/(tabs)/Learn/modules/[moduleId]',
+                params: { moduleId },
+              })
+            }
+            style={styles.backButton}
+          >
             <Feather name='chevron-left' size={24} color='#000' />
           </TouchableOpacity>
           <TouchableOpacity
@@ -98,9 +103,7 @@ export default function SubmoduleIndex() {
             });
           }}
         >
-          <Text style={styles.resumeButtonText}>
-            Start Submodule
-          </Text>
+          <Text style={styles.resumeButtonText}>Start Submodule</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

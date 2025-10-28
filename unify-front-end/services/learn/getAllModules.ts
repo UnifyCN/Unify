@@ -28,7 +28,6 @@ export async function getAllModules(): Promise<Module[]> {
       return [];
     }
 
-
     // Get user progress for all modules
     const { data: userProgress, error: progressError } = await supabase
       .from('user_module_progress')

@@ -17,7 +17,8 @@ export default function LessonIndex() {
     if (lesson && lesson.pages && lesson.pages.length > 0) {
       // Redirect to first page
       router.replace({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
         params: { moduleId, submoduleId, lessonId, pageNum: '1' },
       });
     }

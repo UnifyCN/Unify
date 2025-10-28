@@ -20,4 +20,3 @@ export function useSanityLessonWithQuizzes(lessonId: string) {
     gcTime: 10 * 60 * 1000,
   });
 }
-

@@ -2,7 +2,9 @@ import { sanityClient } from '../../sanity-custom';
 import { SanityQuiz } from '../../types/sanity';
 
 // Get all quizzes for a lesson
-export async function getLessonQuizzes(lessonId: string): Promise<SanityQuiz[]> {
+export async function getLessonQuizzes(
+  lessonId: string
+): Promise<SanityQuiz[]> {
   try {
     const query = `*[_type == "quiz" && lesson._ref == $lessonId] | order(order_number) {
       _id,
@@ -13,7 +15,7 @@ export async function getLessonQuizzes(lessonId: string): Promise<SanityQuiz[]> 
       order_number,
       questions
     }`;
-    
+
     const quizzes = await sanityClient.fetch(query, { lessonId });
     return quizzes || [];
   } catch (error) {
@@ -34,7 +36,7 @@ export async function getQuiz(quizId: string): Promise<SanityQuiz | null> {
       order_number,
       questions
     }`;
-    
+
     const quiz = await sanityClient.fetch(query, { quizId });
     return quiz || null;
   } catch (error) {
@@ -47,7 +49,7 @@ export async function getQuiz(quizId: string): Promise<SanityQuiz | null> {
 export async function getQuizQuestions(quizId: string): Promise<any[]> {
   try {
     const query = `*[_type == "quiz" && _id == $quizId][0].questions | order(order_number)`;
-    
+
     const questions = await sanityClient.fetch(query, { quizId });
     return questions || [];
   } catch (error) {

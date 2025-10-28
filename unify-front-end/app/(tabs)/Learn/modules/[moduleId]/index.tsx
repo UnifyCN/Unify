@@ -33,7 +33,7 @@ const CONTENT_W = Math.max(0, SCREEN_WIDTH - EDGE_PAD * 2);
 
 // Card size
 const CARD_RATIO = 0.75;
-const CARD_W = 269
+const CARD_W = 269;
 
 const RAIL_W = 4;
 
@@ -45,30 +45,43 @@ const BUBBLE_GAP = 16; // change to move closer/farther from card
 export default function ModuleIndex() {
   const router = useRouter();
   const { moduleId } = useLocalSearchParams<{ moduleId: string }>();
-  const { data: moduleData, isLoading, error } = useSanityModuleWithSubmodules(moduleId || '');
-  
+  const {
+    data: moduleData,
+    isLoading,
+    error,
+  } = useSanityModuleWithSubmodules(moduleId || '');
+
   // Progress tracking
-  const { moduleProgress, isLoading: progressLoading } = useModuleProgress(moduleId || '');
-  const [submoduleProgresses, setSubmoduleProgresses] = useState<{[key: string]: any}>({});
-  
+  const { moduleProgress, isLoading: progressLoading } = useModuleProgress(
+    moduleId || ''
+  );
+  const [submoduleProgresses, setSubmoduleProgresses] = useState<{
+    [key: string]: any;
+  }>({});
+
   // Calculate module progress from submodule data
   const moduleProgressData = useMemo(() => {
     const submoduleList = Object.values(submoduleProgresses);
-    const completedSubmodules = submoduleList.filter((submodule: any) => submodule.is_completed).length;
+    const completedSubmodules = submoduleList.filter(
+      (submodule: any) => submodule.is_completed
+    ).length;
     const totalSubmodules = moduleData?.submodules?.length || 0;
-    const progressPercent = totalSubmodules > 0 ? Math.round((completedSubmodules / totalSubmodules) * 100) : 0;
-    
+    const progressPercent =
+      totalSubmodules > 0
+        ? Math.round((completedSubmodules / totalSubmodules) * 100)
+        : 0;
+
     console.log('Module Progress Calculation:', {
       submoduleProgresses,
       completedSubmodules,
       totalSubmodules,
-      progressPercent
+      progressPercent,
     });
-    
+
     return {
       completed_submodules: completedSubmodules,
       total_submodules: totalSubmodules,
-      progress_percent: progressPercent
+      progress_percent: progressPercent,
     };
   }, [submoduleProgresses, moduleData?.submodules]);
 
@@ -76,29 +89,35 @@ export default function ModuleIndex() {
   useEffect(() => {
     if (moduleData?.submodules) {
       const fetchSubmoduleProgress = async () => {
-        const progressData: {[key: string]: any} = {};
-        
+        const progressData: { [key: string]: any } = {};
+
         for (const submodule of moduleData.submodules) {
           try {
             // Use cached progress service for faster access
-            const progress = await cachedProgressService.getSubmoduleProgress(moduleId || '', submodule._id);
+            const progress = await cachedProgressService.getSubmoduleProgress(
+              moduleId || '',
+              submodule._id
+            );
             console.log(`Cached progress for ${submodule.title}:`, progress);
             progressData[submodule._id] = progress;
           } catch (error) {
-            console.error(`Error fetching cached progress for submodule ${submodule._id}:`, error);
+            console.error(
+              `Error fetching cached progress for submodule ${submodule._id}:`,
+              error
+            );
             // Set default values if progress fetching fails
             progressData[submodule._id] = {
               is_completed: false,
               progress_percent: 0,
               completed_lessons: 0,
-              total_lessons: submodule.lessons?.length || 0
+              total_lessons: submodule.lessons?.length || 0,
             };
           }
         }
-        
+
         setSubmoduleProgresses(progressData);
       };
-      
+
       fetchSubmoduleProgress();
     }
   }, [moduleData?.submodules, moduleId]);
@@ -170,7 +189,7 @@ export default function ModuleIndex() {
     const progress = submoduleProgresses[s._id];
     const isCompleted = progress?.is_completed || false;
     const progressPercent = progress?.progress_percent || 0;
-    
+
     // Determine status based on progress
     let status = 'not-started';
     if (isCompleted) {
@@ -178,18 +197,21 @@ export default function ModuleIndex() {
     } else if (progressPercent > 0) {
       status = 'in-progress';
     }
-    
+
     // Unlock logic: first submodule is always unlocked, others unlock when previous is completed
-    const unlocked = i === 0 || (i > 0 && submoduleProgresses[moduleData.submodules[i-1]._id]?.is_completed);
-    
-    return { 
-      ...s, 
+    const unlocked =
+      i === 0 ||
+      (i > 0 &&
+        submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+
+    return {
+      ...s,
       id: s._id, // Use Sanity _id
-      index: i + 1, 
-      status, 
+      index: i + 1,
+      status,
       unlocked,
       is_completed: isCompleted,
-      progress_percent: progressPercent
+      progress_percent: progressPercent,
     };
   });
 
@@ -251,7 +273,10 @@ export default function ModuleIndex() {
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.replace('/(tabs)/Learn')} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => router.replace('/(tabs)/Learn')}
+            style={styles.backButton}
+          >
             <Feather name='arrow-left' size={26} color='#111' />
           </TouchableOpacity>
           <View style={{ width: 26 }} />
@@ -268,18 +293,20 @@ export default function ModuleIndex() {
         {/* Progress Card */}
         <View style={styles.progressCard} onLayout={onProgressLayout}>
           <Text style={styles.progressCentered}>
-            Progress: {moduleProgressData.completed_submodules}/{moduleProgressData.total_submodules} submodules completed
+            Progress: {moduleProgressData.completed_submodules}/
+            {moduleProgressData.total_submodules} submodules completed
           </Text>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${Math.min(100, Math.max(0, moduleProgressData.progress_percent))}%` },
+                {
+                  width: `${Math.min(100, Math.max(0, moduleProgressData.progress_percent))}%`,
+                },
               ]}
             />
           </View>
         </View>
-
 
         {/* Rail container */}
         <View style={styles.railContainer}>
@@ -311,7 +338,6 @@ export default function ModuleIndex() {
               const bubbleText = m.is_completed
                 ? null
                 : `${Math.round(m.progress_percent || 0)}%`;
-              
 
               // Fallback edges until card onLayout fires
               const fallbackLeftEdgeOfRightCard =
@@ -366,7 +392,6 @@ export default function ModuleIndex() {
                         width: Math.max(0, width),
                         height: Math.max(0, height),
                       };
-                      
                     }}
                   >
                     {/* Small circle indicator for latest uncompleted */}
