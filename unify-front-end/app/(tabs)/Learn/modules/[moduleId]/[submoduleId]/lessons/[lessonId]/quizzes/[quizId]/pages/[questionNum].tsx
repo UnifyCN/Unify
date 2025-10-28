@@ -501,7 +501,7 @@ export default function QuizQuestionPage() {
                         {isSelected && <Text style={styles.checkmark}>✓</Text>}
                       </View>
                       <View style={styles.optionContent}>
-                          <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} />
+                          <RichTextRenderer blocks={option.text || []} markDefs={option.textMarkDefs} styles={{normal: styles.optionText}} />
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -651,32 +651,39 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   optionsContainer: {
-    gap: 12,
+    gap: 17,
   },
   optionButton: {
     borderWidth: 1,
     borderColor: '#DCDCDC',
     borderRadius: 8,
-    padding: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
   },
   optionButtonSelected: {
     borderWidth: 1,
     borderColor: 'black',
     borderRadius: 8,
-    padding: 16,
+    //padding: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     backgroundColor: '#F3F4F6',
   },
   optionButtonCorrect: {
     borderWidth: 1,
     borderRadius: 8,
-    padding: 16,
+    //padding: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
     borderColor: '#10B981',
     backgroundColor: '#F3F4F6',
   },
   optionButtonIncorrect: {
     borderWidth: 1,
     borderRadius: 8,
-    padding: 16,
+    //padding: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
     borderColor: '#EF4444',
     backgroundColor: '#F3F4F6',
   },
@@ -693,7 +700,6 @@ const styles = StyleSheet.create({
     borderColor: '#000000',
     borderRadius: 4,
     backgroundColor: '#fff',
-    justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxSelected: {
@@ -732,13 +738,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   optionContent: {
-    marginTop: 10,
     flex: 1,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#374151',
-    lineHeight: 24,
+    lineHeight: 20,
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',
@@ -803,6 +809,8 @@ const styles = StyleSheet.create({
     borderColor: '#DCDCDC',
     borderRadius: 8,
     padding: 16,
+    minWidth: 170,
+    minHeight: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -820,7 +828,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2',
   },
   matchingItemText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#374151',
     textAlign: 'center',
     fontWeight: '500',

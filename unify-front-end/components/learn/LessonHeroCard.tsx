@@ -35,7 +35,7 @@ export default function LessonHeroCard({
 
       <View style={styles.footerRow}>
         <View>
-          <Text style={styles.caption}>Continue from Page {currentPage}:</Text>
+          <Text style={styles.caption}>Continue from Lesson {currentPage}:</Text>
           <Text style={styles.subtitle}>{submoduleTitle}</Text>
         </View>
         <View style={styles.playButton}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, TextInput } from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
+import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 
 interface RichTextRendererProps {
   blocks: any[];
@@ -138,8 +139,8 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
     },
     exampleBox: {
       backgroundColor: '#EAEAEA',
-      borderRadius: 8,
-      padding: 16,
+      borderRadius: 10,
+      padding: 25,
       marginVertical: 16,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
@@ -158,24 +159,31 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
     },
     tipBox: {
       borderRadius: 0,
-      paddingLeft: 16,
-      marginVertical: 16,
+      paddingLeft: 15,
+      marginVertical: 10,
       borderLeftWidth: 4,
       borderLeftColor: '#374151',
     },
     noteBox: {
       backgroundColor: '#FFFFFF',
       borderRadius: 8,
-      paddingHorizontal: 15,
-      paddingVertical: 14,
+      paddingRight: 16,
+      paddingLeft: 22,
+      paddingVertical: 16,
       marginVertical: 16,
-      borderWidth: 1,
-      borderColor: '#3F3F3F',
+      borderWidth: 2,
+      borderColor: '#878787',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.05,
       shadowRadius: 2,
       elevation: 1,
+    },
+    noteBoxText: {
+      //fontsize is not the actual one from the figma but 14 looks to small
+      fontSize: 15,
+      color: '#3F3F3F',
+      lineHeight: 22,
     },
     // Links
     link: {
@@ -301,7 +309,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
         }
         
         return (
-          <View key={block._key || index} style={[styles.listItemContainer, { marginLeft: indentLevel }]}>
+          <View key={block._key || index} style={[styles.listItemContainer]}>
             <Text style={listStyle}>
               {displayBullet} {renderInlineText(block.children, markDefs)}
             </Text>
@@ -399,6 +407,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
     }
 
     if (block._type === 'tip_box') {
+      //cant center ththe tip w the line
       return (
         <View key={block._key || index} style={mergedStyles.tipBox}>
           <RichTextRenderer blocks={block.content || []} markDefs={markDefs} />
@@ -409,7 +418,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
     if (block._type === 'note_box') {
       return (
         <View key={block._key || index} style={mergedStyles.noteBox}>
-          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} />
+          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} styles={{normal: mergedStyles.noteBoxText}} />
         </View>
       );
     }
@@ -442,7 +451,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
               isMid && { height: 150, textAlignVertical: 'top' },
               isSmall && { height: 80 },
             ]}
-            placeholder={block.placeholder || (isLarge ? 'Enter your response here...' : 'Type here...')}
+            placeholder={block.placeholder = 'Type here...'}
             value={inputValues[block._key] || ''}
             onChangeText={(value) => onInputChange?.(block._key, value)}
             multiline={isLarge}
@@ -472,6 +481,7 @@ export default function RichTextRenderer({ blocks, styles: customStyles, markDef
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    //gap:25
   },
   listItemContainer: {
     marginBottom: 8,

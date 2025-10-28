@@ -215,7 +215,7 @@ export default function LessonPageScreen() {
 
         {/* Page contents */}
         <View style={styles.content}>
-          <RichTextRenderer blocks={currentPageData.content || []} markDefs={currentPageData.markDefs} />
+          <RichTextRenderer blocks={currentPageData.content || []} markDefs={currentPageData.markDefs} styles={{normal: styles.contentText}} />
         </View>
 
         {/* Navigation buttons */}
@@ -297,10 +297,10 @@ const styles = StyleSheet.create({
 
   pageTitle: {
     fontSize: 32,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#000',
     marginBottom: 20,
-    lineHeight: 38,
+    lineHeight: 40,
     textAlign: 'center',
     marginTop: 20,
   },
@@ -308,6 +308,11 @@ const styles = StyleSheet.create({
   content: {
     gap: 20,
     marginBottom: 30,
+  },
+  contentText:{
+    fontWeight: 600,
+    color: '#424242',
+    marginBottom: 15,
   },
 
 
@@ -331,9 +336,9 @@ const styles = StyleSheet.create({
   backBtnText: { color: '#374151', fontSize: 16, fontWeight: '600' },
   nextBtn: {
     backgroundColor: '#575757',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
     alignItems: 'center',
     flex: 1,
   },

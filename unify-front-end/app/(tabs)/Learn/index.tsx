@@ -64,7 +64,7 @@ export default function Learn() {
 
         <SearchBar placeholder='Search for a lesson' />
 
-        <SectionHeader title='Continue Learning' style={{ marginTop: 24 }} />
+        <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
         {lessonsLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size='large' color='#575757' />
@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   scrollContent: { padding: 20, paddingBottom: 100 },
   pageTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '600',
     color: '#000',
     marginBottom: 16,
   },
