@@ -397,6 +397,7 @@ export default function ModuleIndex() {
                 i === currentIndex && !m.is_completed && m.unlocked;
               const showProgressBubble =
                 (m.progress_percent || 0) > 0 || isCurrent;
+              const isLocked = !m.unlocked;
 
               return (
                 <View
@@ -506,7 +507,17 @@ export default function ModuleIndex() {
                       },
                     ]}
                   >
-                    {showProgressBubble ? (
+                    {isLocked ? (
+                      /* === 3-ring LOCKED bubble (no arc) === */
+                      <View style={styles.progressBubble}>
+                        <View style={styles.ringOuterLocked} />
+                        <View style={styles.ringMiddleLocked} />
+                        <View style={styles.ringInnerLocked} />
+                        <Text style={styles.bubbleText}>
+                          {Math.round(m.progress_percent || 0)}%
+                        </Text>
+                      </View>
+                    ): showProgressBubble ? (
                       /* === 3-ring progress bubble (also for current at 0%) === */
                       <View style={styles.progressBubble}>
                         <View style={styles.ringOuter} />
@@ -542,7 +553,7 @@ export default function ModuleIndex() {
                         </Text>
                       </View>
                     ) : (
-                      /* === Original bubble for not-started / completed === */
+                      /* === Original bubble for completed (check) === */
                       <View
                         style={[
                           styles.bubbleOuter,
@@ -817,54 +828,76 @@ const styles = StyleSheet.create({
     color: '#fff'
   },
   progressSvg: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  transform: [{ rotateZ: '-90deg' }], // makes the arc start at the top
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    transform: [{ rotateZ: '-90deg' }],
   },
   progressBubble: {
-  width: BUBBLE_SIZE,
-  height: BUBBLE_SIZE,
-  borderRadius: BUBBLE_RADIUS,
-  alignItems: 'center',
-  justifyContent: 'center',
-  position: 'relative',
-},
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+    borderRadius: BUBBLE_RADIUS,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
 
-ringOuter: {
-  position: 'absolute',
-  width: BUBBLE_SIZE,
-  height: BUBBLE_SIZE,
-  borderRadius: BUBBLE_RADIUS,
-  backgroundColor: '#9D9D9D',
-},
+  /* In-progress/current rings */
+  ringOuter: {
+    position: 'absolute',
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+    borderRadius: BUBBLE_RADIUS,
+    backgroundColor: '#9D9D9D',
+  },
+  ringMiddle: {
+    position: 'absolute',
+    width: RING_MIDDLE,
+    height: RING_MIDDLE,
+    borderRadius: RING_MIDDLE / 2,
+    backgroundColor: '#BABABA',
+  },
+  ringInner: {
+    position: 'absolute',
+    width: RING_INNER,
+    height: RING_INNER,
+    borderRadius: RING_INNER / 2,
+    backgroundColor: '#A6A6A6',
+    borderWidth: 2.5,
+    borderColor: '#9D9D9D',
+  },
 
-ringMiddle: {
-  position: 'absolute',
-  width: RING_MIDDLE,
-  height: RING_MIDDLE,
-  borderRadius: RING_MIDDLE / 2,
-  backgroundColor: '#BABABA',
-},
+  /* 🔒 LOCKED rings (requested colors) */
+  ringOuterLocked: {
+    position: 'absolute',
+    width: BUBBLE_SIZE,
+    height: BUBBLE_SIZE,
+    borderRadius: BUBBLE_RADIUS,
+    backgroundColor: '#D8D8D8',
+  },
+  ringMiddleLocked: {
+    position: 'absolute',
+    width: RING_MIDDLE,
+    height: RING_MIDDLE,
+    borderRadius: RING_MIDDLE / 2,
+    backgroundColor: '#EDEDED',
+  },
+  ringInnerLocked: {
+    position: 'absolute',
+    width: RING_INNER,
+    height: RING_INNER,
+    borderRadius: RING_INNER / 2,
+    backgroundColor: '#C8C8C8',
+    borderWidth: 2.5,
+    borderColor: '#D8D8D8',
+  },
 
-ringInner: {
-  position: 'absolute',
-  width: RING_INNER,
-  height: RING_INNER,
-  borderRadius: RING_INNER / 2,
-  backgroundColor: '#A6A6A6',
-  borderWidth: 2.5,
-  borderColor: '#9D9D9D',
-},
-
-progressSvgTop: {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  transform: [{ rotateZ: '-90deg' }], // arc starts at top
-},
-
-
+  progressSvgTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    transform: [{ rotateZ: '-90deg' }],
+  },
 
   // floating pill styles
   morePillWrap: {
@@ -910,7 +943,7 @@ progressSvgTop: {
 
   latestIndicator: {
     position: 'absolute',
-    top: -10,               // overlaps the corner like the mock
+    top: -10,
     right: -10,
     width: 24,
     height: 24,
