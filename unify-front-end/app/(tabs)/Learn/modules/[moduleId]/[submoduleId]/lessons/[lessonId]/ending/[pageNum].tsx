@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
+import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 
@@ -33,6 +34,7 @@ export default function EndingPageScreen() {
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
     lessonId || ''
   );
+  const { data: quizzes } = useSanityLessonQuizzes(lessonId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
@@ -102,8 +104,8 @@ export default function EndingPageScreen() {
       const totalLessonPages = lesson?.pages?.length || 0;
       const totalActivityPages = lesson?.activity_pages?.length || 0;
       const totalQuizPages =
-        lesson?.quizzes?.reduce(
-          (acc, quiz) => acc + (quiz.questions?.length || 0),
+        quizzes?.reduce(
+          (acc: number, quiz: any) => acc + (quiz.questions?.length || 0),
           0
         ) || 0;
       const totalEndingPages = endingPages.length;
@@ -158,8 +160,8 @@ export default function EndingPageScreen() {
       });
     } else {
       // First ending page, go back to last quiz
-      if (lesson?.quizzes && lesson.quizzes.length > 0) {
-        const sortedQuizzes = [...lesson.quizzes].sort(
+      if (quizzes && quizzes.length > 0) {
+        const sortedQuizzes = [...quizzes].sort(
           (a, b) => a.order_number - b.order_number
         );
         const lastQuiz = sortedQuizzes[sortedQuizzes.length - 1];

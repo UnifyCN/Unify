@@ -40,7 +40,7 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
     if (isLastQuestion) {
       // Calculate score
       const correctAnswers = questions.filter(
-        q => selectedAnswers[q.question_id] === q.correct_answer
+        q => selectedAnswers[q.id] === q.correct_answer
       ).length;
       onComplete(correctAnswers, questions.length);
       setShowResults(true);
@@ -81,7 +81,7 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
 
   if (showResults) {
     const correctAnswers = questions.filter(
-      q => selectedAnswers[q.question_id] === q.correct_answer
+      q => selectedAnswers[q.id] === q.correct_answer
     ).length;
     const score = Math.round((correctAnswers / questions.length) * 100);
     const passed = score >= quiz.passing_score;
@@ -145,7 +145,9 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
             Question {currentQuestionIndex + 1}
           </Text>
           <View style={styles.questionContent}>
-            {renderQuestionContent(currentQuestion.question_text)}
+            {Array.isArray(currentQuestion.question_text) 
+              ? renderQuestionContent(currentQuestion.question_text)
+              : <Text style={styles.questionText}>{currentQuestion.question_text}</Text>}
           </View>
 
           <View style={styles.optionsContainer}>
@@ -154,11 +156,11 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
                 key={option.id}
                 style={[
                   styles.optionButton,
-                  selectedAnswers[currentQuestion.question_id] === option.id &&
+                  selectedAnswers[currentQuestion.id] === option.id &&
                     styles.optionButtonSelected,
                 ]}
                 onPress={() =>
-                  handleAnswerSelect(currentQuestion.question_id, option.id)
+                  handleAnswerSelect(currentQuestion.id, option.id)
                 }
               >
                 <View style={styles.optionContent}>
@@ -173,11 +175,11 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
           <TouchableOpacity
             style={[
               styles.nextButton,
-              !selectedAnswers[currentQuestion.question_id] &&
+              !selectedAnswers[currentQuestion.id] &&
                 styles.nextButtonDisabled,
             ]}
             onPress={handleNext}
-            disabled={!selectedAnswers[currentQuestion.question_id]}
+            disabled={!selectedAnswers[currentQuestion.id]}
           >
             <Text style={styles.nextButtonText}>
               {isLastQuestion ? 'Submit Quiz' : 'Next Question'}
