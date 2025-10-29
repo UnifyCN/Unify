@@ -6,11 +6,15 @@ import {
   Image,
   ScrollView,
   Linking,
+  Share,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
+import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+import { useEffect } from 'react';
+import { Theme } from '@/constants/Theme';
 
 const EventDetailScreen = () => {
   const router = useRouter();
@@ -23,14 +27,53 @@ const EventDetailScreen = () => {
     }
   };
 
+  const { setVisible } = useHeaderVisibility();
+
+  useEffect(() => {
+    setVisible(false);
+    return () => setVisible(true);
+  }, [setVisible]);
+
+  // Using react native built in share
+  const handleShare = async () => {
+    try {
+      const shareMessage = [
+        `Check out this event: ${eventData.title}`,
+        `📅 ${formatEventDate(eventData.eventDatetime)}`,
+        `📍 ${eventData.location}`,
+        `🔗 ${eventData.externalLink}`,
+      ].join('\n\n');
+
+      await Share.share({
+        message: shareMessage,
+        title: 'Unify Gather',
+        url: eventData.externalLink,
+      });
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code !== 'SHARE_CANCELLED'
+      ) {
+        console.error('Error sharing event:', error);
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Feather name='chevron-left' size={24} color='#fff' />
+          <Feather name='chevron-left' size={24} color={Theme.white} />
         </TouchableOpacity>
-        {/* TODO: Design has a share button here but no clue how to implement that yet */}
+        {/* Share Button */}
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={handleShare}>
+            <Feather name='upload' size={24} color={Theme.white} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView style={styles.scrollView}>
@@ -68,8 +111,6 @@ const EventDetailScreen = () => {
                 )}
               </Text>
             </View>
-            {/* No clue what this is supposed to do but it's in the design */}
-            <Feather name='chevron-right' size={24} color='#000' />
           </View>
 
           {/* Location */}
@@ -81,8 +122,6 @@ const EventDetailScreen = () => {
               <Text style={styles.detailTitle}>{eventData.location}</Text>
               <Text style={styles.detailSubtitle}>{eventData.address}</Text>
             </View>
-            {/* No clue what this is supposed to do but it's in the design */}
-            <Feather name='chevron-right' size={24} color='#000' />
           </View>
 
           {/* About Event */}
@@ -123,7 +162,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 32,
+    paddingTop: 36,
     paddingBottom: 16,
     backgroundColor: '#C4C4C4',
   },
@@ -131,6 +170,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   placeholder: {
     width: 40,

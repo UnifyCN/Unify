@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { formatDate, formatTime } from '@/helpers/dateHelpers';
 import { Event } from '@/types/events';
+import { Theme } from '@/constants/Theme';
 
 interface EventCardProps {
   event: Event;
@@ -52,9 +53,10 @@ const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
 
 const styles = StyleSheet.create({
   eventCard: {
-    backgroundColor: '#DCDCDC',
-    borderRadius: 12,
+    backgroundColor: Theme.surfaceEventCard,
+    borderRadius: 16,
     overflow: 'hidden',
+    // todo: someone add a drop shadow i cant do it
   },
   eventImagePlaceholder: {
     height: 80,

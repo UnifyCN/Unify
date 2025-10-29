@@ -4,7 +4,7 @@ import { User } from '@/types/user';
 
 export const getSavedPosts = async (
   cursor?: string,
-  limit = 20
+  limit: number = 20
 ): Promise<{ posts: PostData[]; next_cursor?: string }> => {
   try {
     // Get current user's ID
@@ -32,7 +32,8 @@ export const getSavedPosts = async (
           group_id,
           users!user_id(
             id,
-            username
+            username,
+            profile_picture_url
           ),
           groups!group_id(
             id,
@@ -59,6 +60,7 @@ export const getSavedPosts = async (
         id: save.posts.users.id,
         username: save.posts.users.username,
         name: save.posts.users.username,
+        profilePictureUrl: save.posts.users.profile_picture_url,
       } as User,
       time: save.posts.created_at,
       title: save.posts.title,

@@ -1,11 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
-import { User } from '@/types/user';
+import { PostDto } from '@/types/feeds/postDto';
+import { transformPostDtos } from '@/utils/postTransform';
 
-export const getFeedGroups = async (
+export const getPostsFromJoinedGroups = async (
   cursor?: string,
-  limit = 20
+  limit: number = 20
 ): Promise<FeedResponse> => {
   try {
     // Get current user's ID
@@ -50,7 +51,8 @@ export const getFeedGroups = async (
 				group_id,
 				users!user_id(
 					id,
-					username
+					username,
+					profile_picture_url
 				),
 				groups!group_id(
 					id,
@@ -63,22 +65,15 @@ export const getFeedGroups = async (
       .range(offset, offset + limit - 1);
 
     if (error) {
-      throw new Error(`Failed to fetch groups feed: ${error.message}`);
+      throw new Error(
+        `Failed to fetch posts from joined groups: ${error.message}`
+      );
     }
 
-    // Transform data to match your Post type
-    const transformedPosts: PostData[] = (data || []).map((post: any) => ({
-      id: post.id,
-      user: {
-        id: post.users.id,
-        username: post.users.username,
-        name: post.users.username,
-      } as User,
-      time: post.created_at,
-      title: post.title,
-      content: post.content,
-      group: post.groups.group_name,
-    }));
+    // Transform data using helper function
+    const transformedPosts: PostData[] = transformPostDtos(
+      data as unknown as PostDto[]
+    );
 
     return {
       posts: transformedPosts,
@@ -86,7 +81,7 @@ export const getFeedGroups = async (
         transformedPosts.length === limit ? String(offset + limit) : undefined,
     };
   } catch (error) {
-    console.error('Error fetching groups feed:', error);
+    console.error('Error fetching posts from joined groups:', error);
     throw error;
   }
 };

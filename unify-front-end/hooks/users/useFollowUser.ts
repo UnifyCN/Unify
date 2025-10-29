@@ -9,22 +9,23 @@ export const useFollowUser = () => {
     onSuccess: (_, variables) => {
       const targetUserId = variables.targetUserId;
 
-      queryClient.refetchQueries({
+      // Invalidate user info queries to update follower counts
+      queryClient.invalidateQueries({
         queryKey: ['userInfo'],
       });
 
-      // Invalidate *exact* user info query
-      queryClient.refetchQueries({
+      // Invalidate specific user info query
+      queryClient.invalidateQueries({
         queryKey: ['userInfo', targetUserId],
       });
 
-      // Invalidate follow status cache to update button text immediately
+      // Invalidate follow status cache
       queryClient.invalidateQueries({
         queryKey: ['followStatus', variables.targetUserId],
       });
 
-      // Invalidate following feed to update posts immediately
-      queryClient.refetchQueries({
+      // Invalidate following feed to update posts
+      queryClient.invalidateQueries({
         queryKey: ['feed', 'following'],
       });
     },

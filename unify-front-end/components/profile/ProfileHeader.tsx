@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { ProfilePictureUpload } from './ProfilePictureUpload';
+import { Avatar } from '@/components/Avatar';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -18,62 +21,30 @@ export const ProfileHeader = ({
         {/* Left Section - Loading User Info */}
         <View style={styles.leftSection}>
           {/* Loading Username */}
-          <View
-            style={[
-              styles.loadingText,
-              { width: 50, height: 24, marginBottom: 8 },
-            ]}
-          />
+          <SkeletonLoader width={120} height={24} style={{ marginBottom: 8 }} />
 
           {/* Loading Stats */}
           <View style={[styles.statsContainer, { marginBottom: 8 }]}>
-            <View
-              style={[
-                styles.loadingText,
-                { width: 15, height: 12, marginRight: 4, flexShrink: 0 },
-              ]}
-            />
-            <View
-              style={[
-                styles.loadingText,
-                { width: 40, height: 12, flexShrink: 0 },
-              ]}
-            />
-            <View
-              style={[
-                styles.loadingText,
-                { width: 8, height: 12, marginHorizontal: 4, flexShrink: 0 },
-              ]}
-            />
-            <View
-              style={[
-                styles.loadingText,
-                { width: 15, height: 12, marginRight: 4, flexShrink: 0 },
-              ]}
-            />
-            <View
-              style={[
-                styles.loadingText,
-                { width: 40, height: 12, flexShrink: 0 },
-              ]}
-            />
+            <SkeletonLoader width={15} height={12} style={{ marginRight: 4 }} />
+            <SkeletonLoader width={40} height={12} />
+            <Text style={styles.bullet}> • </Text>
+            <SkeletonLoader width={15} height={12} style={{ marginRight: 4 }} />
+            <SkeletonLoader width={40} height={12} />
           </View>
 
           {/* Loading Follow/Edit Button */}
-          <View
-            style={[
-              styles.loadingText,
-              { width: 80, height: 24, marginTop: 8 },
-            ]}
-          />
+          <SkeletonLoader width={80} height={24} style={{ marginTop: 8 }} />
         </View>
 
         {/* Right Section - Loading Profile Picture */}
         <View style={styles.rightSection}>
           <View style={styles.profilePictureContainer}>
-            <View style={[styles.profilePicture, styles.loadingPlaceholder]}>
-              <ActivityIndicator size='large' color='#666' />
-            </View>
+            <SkeletonLoader
+              width={93}
+              height={93}
+              borderRadius={46.5}
+              style={styles.profilePicture}
+            />
           </View>
         </View>
       </View>
@@ -95,8 +66,8 @@ export const ProfileHeader = ({
           <Text style={styles.statLabel}>following</Text>
         </View>
 
-        {/* Follow Button or Edit Button */}
-        {!isCurrentUser && (
+        {/* Follow Button */}
+        {!isCurrentUser && isCurrentUser !== null && (
           <View style={styles.followButtonContainer}>
             <FollowButton targetUserId={userInfo.id} />
           </View>
@@ -106,12 +77,21 @@ export const ProfileHeader = ({
       {/* Right Section - Profile Picture */}
       <View style={styles.rightSection}>
         <View style={styles.profilePictureContainer}>
-          <View style={styles.profilePicture}>
-            <Text style={styles.profilePictureText}>
-              {userInfo.username.charAt(0).toUpperCase()}
-            </Text>
-          </View>
+          <Avatar
+            profilePictureUrl={userInfo.profilePictureUrl}
+            username={userInfo.username}
+            size={93}
+            style={styles.profilePicture}
+          />
         </View>
+
+        {/* Profile Picture Upload Component for Current User */}
+        {isCurrentUser && (
+          <ProfilePictureUpload
+            currentPictureUrl={userInfo.profilePictureUrl}
+            userId={userInfo.id}
+          />
+        )}
       </View>
     </View>
   );
@@ -193,13 +173,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: '600',
-  },
-  loadingPlaceholder: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#E0E0E0',
-  },
-  loadingText: {
-    backgroundColor: '#E5E5E5',
-    borderRadius: 4,
   },
 });

@@ -1,124 +1,65 @@
 import { useState, memo, useMemo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue,
-} from 'react-native-reanimated';
-import { useScrollContext } from '@/context/ScrollContext';
-import { useRouter } from 'expo-router';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
-import ForYouFeed from '@/components/home/ForYouFeed';
-import FollowingFeed from '@/components/home/FollowingFeed';
-import GroupsFeed from '@/components/home/GroupsFeed';
+import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { useEvents } from '@/hooks/events/useEvents';
-import EventCard from './EventCard';
-import ViewMoreCard from './ViewMoreCard';
+import FeedWithHook from '@/components/FeedWithHook';
+import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
+import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
+import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
+import { EventsCarousel } from '@/components/EventsCarousel';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
-
-const SCROLL_DISTANCE = 200;
+import { Theme } from '@/constants/Theme';
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
 
-const GatherHeader = memo(({ activeTab, setActiveTab }: HeaderProps) => {
+const GatherHeader = memo(() => {
   const router = useRouter();
 
-  const { data: events, isLoading } = useEvents();
-
-  const displayEvents = events?.slice(0, 3) || [];
+  const handleSearchPress = () => {
+    router.push('/(tabs)/Gather/SearchScreen');
+  };
 
   return (
     <View>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Gather Events</Text>
+      <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
+        <Feather name='search' size={20} color={Theme.textInput} />
+        <Text style={styles.searchPlaceholder}>
+          Search for posts and groups
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.eventsCarousel}>
+        <EventsCarousel
+          title='Community Events'
+          titleStyle={styles.headerText}
+        />
+      </View>
+    </View>
+  );
+});
+
+const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
+  return (
+    <View style={styles.tabs}>
+      {['For You', 'Following', 'Groups'].map(tab => (
         <TouchableOpacity
-          onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
+          key={tab}
+          onPress={() => setActiveTab(tab)}
+          style={[styles.tab, activeTab === tab && styles.activeTab]}
         >
-          <Feather name='chevron-right' size={24} color='#000' />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.eventsCarousel}
-        contentContainerStyle={[
-          styles.eventsCarouselContent,
-          events && events.length === 0 && styles.eventsCarouselContentEmpty,
-        ]}
-      >
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#000' />
-          </View>
-        )}
-        {!isLoading && events && events.length === 0 && (
-          <View style={styles.emptyEventsContainer}>
-            <Text style={styles.emptyEventsText}>No events available</Text>
-            <Text style={styles.emptyEventsSubtext}>
-              Check back later for new events
-            </Text>
-          </View>
-        )}
-        {displayEvents.map(event => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onPress={() =>
-              router.push({
-                pathname: '/(tabs)/Gather/EventDetailScreen',
-                params: { event: JSON.stringify(event) },
-              })
-            }
-          />
-        ))}
-        {events && events.length > 3 && (
-          <ViewMoreCard
-            onPress={() => router.push('/(tabs)/Gather/EventsScreen')}
-          />
-        )}
-      </ScrollView>
-
-      <Text
-        style={{
-          fontWeight: 600,
-          fontSize: 24,
-          color: 'black',
-          paddingHorizontal: 20,
-          marginTop: 20,
-        }}
-      >
-        Your Feed
-      </Text>
-      <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map(tab => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+          <Text
+            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
           >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
-              ]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            {tab}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 });
@@ -130,8 +71,9 @@ export default function GatherScreen() {
     switch (activeTab) {
       case 'Following':
         return (
-          <FollowingFeed
+          <FeedWithHook
             key={`following-${activeTab}`}
+            useFeedHook={useFollowingFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No one you follow has posted anything yet'
@@ -142,8 +84,9 @@ export default function GatherScreen() {
         );
       case 'Groups':
         return (
-          <GroupsFeed
+          <FeedWithHook
             key={`groups-${activeTab}`}
+            useFeedHook={useGroupsFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No posts in any of your groups yet'
@@ -154,8 +97,9 @@ export default function GatherScreen() {
         );
       default:
         return (
-          <ForYouFeed
+          <FeedWithHook
             key={`foryou-${activeTab}`}
+            useFeedHook={useForYouFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No one has posted anything yet'
@@ -167,40 +111,34 @@ export default function GatherScreen() {
     }
   }, [activeTab]);
 
-  const [scrollValue] = useScrollContext();
-  const previousScrollValue = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler({
-    // Change this if this cause any error
-    onScroll: e => {
-      const offsetY = e.contentOffset.y;
-      if (offsetY < 0 || offsetY > e.contentSize.height) return;
+  // Easiest way to make the header sticky
+  const data = [
+    { key: 'header', type: 'header' },
+    { key: 'tabs', type: 'tabs' },
+    { key: 'feed', type: 'feed' },
+  ];
 
-      scrollValue.value = Math.max(
-        0,
-        Math.min(
-          1,
-          scrollValue.value +
-            (offsetY - previousScrollValue.value) / SCROLL_DISTANCE
-        )
-      );
-
-      previousScrollValue.value = offsetY;
-    },
-  });
+  const renderItem = ({ item }: { item: { key: string; type: string } }) => {
+    switch (item.type) {
+      case 'header':
+        return <GatherHeader />;
+      case 'tabs':
+        return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+      case 'feed':
+        return <View>{renderFeedContent}</View>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar style='dark' />
       <Animated.FlatList
-        data={[{ key: 'feed' }]}
-        renderItem={() => (
-          <View style={styles.feedContainer}>{renderFeedContent}</View>
-        )}
+        data={data}
+        renderItem={renderItem}
         keyExtractor={item => item.key}
-        ListHeaderComponent={
-          <GatherHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-        }
-        onScroll={scrollHandler}
+        stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
       />
       <CreatePostButton />
     </View>
@@ -208,91 +146,64 @@ export default function GatherScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  searchButton: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: Theme.surfaceTextInput,
+    marginHorizontal: 20,
     marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    borderRadius: 100,
+    height: 36,
+    gap: 8,
+  },
+  searchPlaceholder: {
+    fontSize: 14,
+    color: Theme.textInput,
+    flex: 1,
   },
   headerText: {
     fontSize: 16,
     fontWeight: 600,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   eventsCarousel: {
-    marginTop: 16,
-  },
-  eventsCarouselContent: {
+    marginTop: 27,
     paddingHorizontal: 20,
-    gap: 12,
-  },
-  eventsCarouselContentEmpty: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     flexDirection: 'column',
   },
-  feedContainer: {
-    paddingBottom: 44,
-    marginBottom: 36,
-  },
   tabs: {
-    marginTop: 16,
     backgroundColor: '#fff',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderBottomWidth: 1,
+    zIndex: 1000,
+    borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5E5',
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
     marginHorizontal: 20,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#000',
+    borderBottomColor: Theme.primaryGatherRed,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Theme.textInactiveTab,
   },
   activeTabText: {
-    color: '#000',
-  },
-  emptyEventsContainer: {
-    backgroundColor: '#e5e5e5',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flex: 1,
-  },
-  emptyEventsText: {
-    fontSize: 16,
+    color: Theme.black,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyEventsSubtext: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
   },
 });

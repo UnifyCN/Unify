@@ -3,19 +3,15 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePathname } from 'expo-router';
 import { ChatBotModal } from './ChatBotModal';
+import { DISABLED_CHATBOT_ROUTES } from '@/constants/Routes';
+import { Theme } from '@/constants/Theme';
 
-interface FloatingChatButtonProps {
-  style?: any;
-}
-
-const DISABLED_ROUTES = ['gather', 'EventDetailScreen', 'profile'];
-
-export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
+export const FloatingChatButton = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const pathname = usePathname();
 
   // Hide the button on disabled routes
-  const shouldHide = DISABLED_ROUTES.some(
+  const shouldHide = DISABLED_CHATBOT_ROUTES.some(
     route => pathname === `/${route}` || pathname?.toLowerCase().includes(route)
   );
 
@@ -34,7 +30,7 @@ export const FloatingChatButton = ({ style }: FloatingChatButtonProps) => {
   return (
     <>
       <TouchableOpacity
-        style={[styles.floatingButton, style]}
+        style={styles.floatingButton}
         onPress={openChat}
         activeOpacity={0.8}
       >
@@ -54,7 +50,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#007AFF',
+    backgroundColor: Theme.primaryGatherRed,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',

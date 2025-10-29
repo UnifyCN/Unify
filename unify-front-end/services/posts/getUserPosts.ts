@@ -6,7 +6,7 @@ import { User } from '@/types/user';
 export const getUserPosts = async (
   userId?: string,
   cursor?: string,
-  limit = 20
+  limit: number = 20
 ): Promise<FeedResponse> => {
   try {
     let targetUserId = userId;
@@ -35,7 +35,8 @@ export const getUserPosts = async (
         group_id,
         users!user_id(
           id,
-          username
+          username,
+          profile_picture_url
         ),
         groups!group_id(
           id,
@@ -61,6 +62,7 @@ export const getUserPosts = async (
         id: post.users.id,
         username: post.users.username,
         name: post.users.username,
+        profilePictureUrl: post.users.profile_picture_url,
       } as User,
       time: post.created_at,
       title: post.title,

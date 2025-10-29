@@ -142,7 +142,7 @@ export default function CreatePostModal({
           <TextInput
             style={styles.titleInput}
             placeholder='Title'
-            placeholderTextColor='#000'
+            placeholderTextColor='#a5a5a5'
             value={title}
             onChangeText={setTitle}
             multiline
@@ -151,7 +151,7 @@ export default function CreatePostModal({
           <TextInput
             style={styles.contentInput}
             placeholder='Body text'
-            placeholderTextColor='#000'
+            placeholderTextColor='#a5a5a5'
             value={content}
             onChangeText={setContent}
             multiline
@@ -188,10 +188,10 @@ const styles = StyleSheet.create({
     marginTop: 60,
   },
   cancelButton: {
-    padding: 15,
+    paddingVertical: 15,
   },
   postButton: {
-    backgroundColor: '#2F2F2F',
+    backgroundColor: '#007AFF',
     paddingVertical: 7,
     paddingHorizontal: 24,
     borderRadius: 15,

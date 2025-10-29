@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, useRouter, usePathname } from 'expo-router';
 import { Colors } from '@/constants/Colors';
+import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Header from '@/components/Header';
+import {
+  HeaderVisibilityProvider,
+  useHeaderVisibility,
+} from '@/components/HeaderVisibilityProvider';
 import { View, Text, StyleSheet } from 'react-native';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
@@ -32,25 +37,39 @@ const TabIcon = ({ IconComponent, title, focused }: any) => {
 };
 
 export default function TabLayout() {
+  return (
+    <HeaderVisibilityProvider>
+      <InnerLayout />
+    </HeaderVisibilityProvider>
+  );
+}
+
+function InnerLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
+  const pathname = usePathname();
   const [currentTab, setCurrentTab] = useState('index');
+  const { visible } = useHeaderVisibility();
 
   return (
     <>
-      <Header />
+      {visible && <Header />}
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
           tabBarShowLabel: false,
           headerShown: false,
-          tabBarStyle: {
-            flexDirection: 'row',
-            paddingTop: 12,
-            paddingBottom: 52,
-            borderTopWidth: 1,
-            borderTopColor: '#F0F0F0',
-          },
+          tabBarStyle: HIDDEN_TAB_BAR_ROUTES.some(route =>
+            pathname.includes(route)
+          )
+            ? { display: 'none' }
+            : {
+                flexDirection: 'row',
+                paddingTop: 12,
+                paddingBottom: 52,
+                borderTopWidth: 1,
+                borderTopColor: '#F0F0F0',
+              },
         }}
         screenListeners={{
           tabPress: e => {

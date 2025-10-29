@@ -12,21 +12,34 @@ export const useMutateSavePost = () => {
       postId: number;
       isSaved: boolean;
     }) => {
+      // Optimistically update UI immediately
+      queryClient.setQueriesData(
+        { queryKey: ['post-metadata'] },
+        (oldData: Record<number, any> | undefined) => {
+          if (!oldData) return oldData;
+
+          const updatedData = { ...oldData };
+          if (updatedData[postId]) {
+            updatedData[postId] = {
+              ...updatedData[postId],
+              isSaved: !isSaved,
+            };
+          }
+          return updatedData;
+        }
+      );
+
+      // Then make server request
       if (isSaved) {
         return await unsavePost(postId);
       } else {
         return await savePost(postId);
       }
     },
-    onSuccess: (_, { postId }) => {
-      // Invalidate the specific post's save status
-      queryClient.invalidateQueries({
-        queryKey: ['post-save-status', postId],
-      });
-
-      // Invalidate the saved posts list
-      queryClient.invalidateQueries({
-        queryKey: ['saved-posts'],
+    onSuccess: () => {
+      // Invalidate saved posts list for profile feed
+      queryClient.resetQueries({
+        queryKey: ['feed', 'savedPosts'],
       });
     },
     onError: error => {

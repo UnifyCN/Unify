@@ -5,40 +5,67 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
-import Header from '@/components/Header';
+import { EventsCarousel } from '@/components/EventsCarousel';
+import { Theme } from '@/constants/Theme';
 
-const WelcomeSection = () => (
-  <View style={styles.welcomeSection}>
-    <Text style={styles.welcomeText}>
-      Welcome Back, <Text style={styles.welcomeName}>Sarab!</Text>
-    </Text>
-    <Text style={styles.progressText}>
-      You have two modules left of{' '}
-      <Text style={styles.boldText}>Understanding Canadian Banking</Text>
-    </Text>
-    <Text style={styles.percentageText}>55% Completed</Text>
-    <View style={styles.progressBar}>
-      <View style={styles.progressFill} />
+const WelcomeSection = () => {
+  const [username, setUsername] = useState('User');
+
+  useEffect(() => {
+    // Simple cache check
+    AsyncStorage.getItem('username').then(cached => {
+      if (cached) setUsername(cached);
+    });
+
+    // Fetch fresh data
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        supabase
+          .from('users')
+          .select('username')
+          .eq('id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (data?.username) {
+              setUsername(data.username);
+              AsyncStorage.setItem('username', data.username);
+            }
+          });
+      }
+    });
+  }, []);
+
+  return (
+    <View style={styles.welcomeSection}>
+      <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
+      <Text style={styles.progressText}>
+        You have two modules left of{' '}
+        <Text style={styles.boldText}>Understanding Canadian Banking</Text>
+      </Text>
+      <Text style={styles.percentageText}>55% Completed</Text>
+      <View style={styles.progressBar}>
+        <View style={styles.progressFill} />
+      </View>
+      <TouchableOpacity style={styles.resumeButton}>
+        <Text style={styles.resumeButtonText}>Resume Lesson</Text>
+      </TouchableOpacity>
     </View>
-    <TouchableOpacity style={styles.resumeButton}>
-      <Text style={styles.resumeButtonText}>Resume Lesson</Text>
-    </TouchableOpacity>
-  </View>
-);
+  );
+};
 
+// TODO: someone deal with this section
 const NewsTipsSection = () => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>News & Tips</Text>
       <Feather name='chevron-right' size={20} color='#666' />
     </View>
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.carousel}
-    >
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
       <View style={styles.newsCard}>
         <View style={styles.newsImagePlaceholder} />
         <View style={styles.newsContent}>
@@ -62,32 +89,16 @@ const NewsTipsSection = () => (
   </View>
 );
 
-const GatherEventsSection = () => (
-  <View style={styles.section}>
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>Upcoming Gather Events</Text>
-      <Feather name='chevron-right' size={20} color='#666' />
+const GatherEventsSection = () => {
+  return (
+    <View style={[styles.section, { paddingHorizontal: 20 }]}>
+      <EventsCarousel
+        title='Upcoming Gather Events'
+        titleStyle={styles.sectionTitle}
+      />
     </View>
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.carousel}
-    >
-      <View style={styles.eventCard}>
-        <View style={styles.eventImagePlaceholder} />
-        <Text style={styles.eventTitle}>Community Meetup</Text>
-      </View>
-      <View style={styles.eventCard}>
-        <View style={styles.eventImagePlaceholder} />
-        <Text style={styles.eventTitle}>Study Group</Text>
-      </View>
-      <View style={styles.eventCard}>
-        <View style={styles.eventImagePlaceholder} />
-        <Text style={styles.eventTitle}>Workshop</Text>
-      </View>
-    </ScrollView>
-  </View>
-);
+  );
+};
 
 export default function HomeScreen() {
   return (
@@ -105,23 +116,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Theme.white,
   },
   scrollView: {
     flex: 1,
   },
   welcomeSection: {
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 20,
   },
   welcomeText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#000',
+    color: Theme.black,
     marginBottom: 8,
-  },
-  welcomeName: {
-    fontStyle: 'italic',
   },
   progressText: {
     fontSize: 16,
@@ -173,12 +181,46 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 24,
     color: '#000',
+    fontFamily: 'Inter',
+    fontWeight: 500,
   },
-  carousel: {
-    paddingLeft: 20,
+  carouselContent: {
+    gap: 12,
+    paddingHorizontal: 20,
+  },
+  carouselContentEmpty: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyEventsContainer: {
+    backgroundColor: '#e5e5e5',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    width: '100%',
+    minWidth: '100%',
+  },
+  emptyEventsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyEventsSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
   newsCard: {
     width: 280,
@@ -208,29 +250,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     lineHeight: 18,
-  },
-  eventCard: {
-    width: 160,
-    height: 120,
-    backgroundColor: '#666',
-    borderRadius: 12,
-    marginRight: 16,
-    justifyContent: 'flex-end',
-    padding: 12,
-  },
-  eventImagePlaceholder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#666',
-    borderRadius: 12,
-  },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    zIndex: 1,
   },
 });
