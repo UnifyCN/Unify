@@ -294,7 +294,7 @@ export default function ModuleIndex() {
         <View style={styles.progressCard} onLayout={onProgressLayout}>
           <Text style={styles.progressCentered}>
             Progress: {moduleProgressData.completed_submodules}/
-            {moduleProgressData.total_submodules} submodules completed
+            {moduleProgressData.total_submodules} sections completed
           </Text>
           <View style={styles.progressBar}>
             <View
@@ -397,9 +397,7 @@ export default function ModuleIndex() {
                     {/* Small circle indicator for latest uncompleted */}
                     {i === latestUncompletedIndex &&
                       latestUncompletedIndex !== -1 && (
-                        <View style={styles.latestIndicator}>
-                          <View style={styles.latestIndicatorInner} />
-                        </View>
+                        <View style={styles.latestIndicator}/>
                       )}
 
                     {/* status chip */}
@@ -441,10 +439,12 @@ export default function ModuleIndex() {
                       <View
                         style={[
                           styles.cta,
-                          !m.is_completed && disabled && styles.ctaDisabled,
+                          (!m.is_completed && disabled) ? styles.ctaDisabled : null,
                         ]}
                       >
-                        <Text style={styles.ctaText}>{ctaText}</Text>
+                        <Text style={[styles.ctaText,
+                          (!m.is_completed && disabled) ? styles.ctaTextDisabled : null,
+                        ]}>{ctaText}</Text>
                       </View>
                     </View>
                   </TouchableOpacity>
@@ -523,7 +523,7 @@ export default function ModuleIndex() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F7F7F9', position: 'relative' },
-  container: { paddingHorizontal: EDGE_PAD, paddingBottom: 40 },
+  container: { paddingHorizontal: EDGE_PAD, paddingBottom: 40},
 
   headerRow: {
     flexDirection: 'row',
@@ -535,34 +535,42 @@ const styles = StyleSheet.create({
   backButton: { padding: 8 },
 
   // Header text
-  titleWrap: { alignItems: 'center', marginBottom: 8 },
+  titleWrap: { 
+    alignItems: 'center', 
+    marginBottom: 8,
+    width: 345,
+    alignSelf: 'center',
+  },
   title: {
     fontSize: 24,
-    fontWeight: '600',
     lineHeight: 32,
+    fontWeight: '600',
     color: '#2B2B2B',
-    marginBottom: 18,
-    textAlign: 'center',
     letterSpacing: 0.5,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
+    lineHeight: 20,
     fontWeight: 400,
     color: '#000000',
     textAlign: 'center',
+    letterSpacing: 0.25,
     marginBottom: 10,
+    width: 345,
   },
 
   progressCard: {
     backgroundColor: '#fff',
     borderRadius: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 5,
+    elevation: 2,
     alignItems: 'center',
     alignSelf: 'center',
     width: 345,
@@ -571,19 +579,26 @@ const styles = StyleSheet.create({
   },
   progressCentered: {
     fontSize: 14,
+    lineHeight: 20,
     fontWeight: '600',
     color: '#343434',
-    marginBottom: 10,
     textAlign: 'center',
+    marginBottom: 8,
+    
   },
   progressBar: {
-    width: '100%',
-    height: 8,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 6,
+    width: 323,
+    height: 11,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 20,
     overflow: 'hidden',
+    alignSelf: 'center',
   },
-  progressFill: { height: '100%', backgroundColor: '#111', borderRadius: 6 },
+  progressFill: 
+  { height: '100%', 
+    backgroundColor: '#000', 
+    borderRadius: 20, 
+  },
 
   railContainer: { position: 'relative' },
   rail: {
@@ -608,16 +623,18 @@ const styles = StyleSheet.create({
   // Card
   card: {
     width: CARD_W,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderWidth: 2,
+    borderColor: '#D1D1D1',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
     shadowRadius: 10,
-    elevation: 1,
-    borderWidth: 1,
-    borderColor: '#EEF2F7',
+    elevation: 3,
+    overflow: 'visible',
   },
   cardLeft: { marginLeft: EDGE_PAD, alignSelf: 'flex-start' },
   cardRight: { marginRight: EDGE_PAD, alignSelf: 'flex-end' },
@@ -626,43 +643,57 @@ const styles = StyleSheet.create({
   // Status chip
   pill: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    marginBottom: 10,
-    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 15,
+    marginBottom: 12,
   },
-  pillCompleted: { backgroundColor: '#ECFDF5', borderColor: '#C7F9DF' },
-  pillInProgress: { backgroundColor: '#F1F5F9', borderColor: '#E5E7EB' },
-  pillNotStarted: { backgroundColor: '#F1F5F9', borderColor: '#E5E7EB' },
-  pillText: { fontSize: 12, fontWeight: '800' },
+  pillCompleted: { backgroundColor: '#ECFDF5' },
+  pillInProgress: { backgroundColor: '#DCDCDC' },
+  pillNotStarted: { backgroundColor: '#DCDCDC'},
+  pillText: { fontSize: 10, lineHeight: 12, fontWeight: '500' },
   pillTextCompleted: { color: '#166534' },
-  pillTextInProgress: { color: '#4B5563' },
-  pillTextNotStarted: { color: '#6B7280' },
+  pillTextInProgress: { color: '#575757' },
+  pillTextNotStarted: { color: '#575757' },
 
   cardTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#2B2B2B',
     lineHeight: 20,
-    marginBottom: 7,
+    fontWeight: '600',
+    letterSpacing: 0.25,
+    color: '#2B2B2B',
+    marginBottom: 4,
   },
-  cardDesc: { fontSize: 13, color: '#6B7280', marginBottom: 12 },
+  cardDesc: { 
+    fontSize: 12, 
+    lineHeight: 16,
+    width: '100%',
+    fontWeight: '400',
+    letterSpacing: 0,
+    color: '#2B2B2B', 
+    marginBottom: 8, 
+  },
 
   // CTA
   ctaRow: { alignItems: 'center' },
   cta: {
-    alignSelf: 'stretch',
+    width: 230,
+    height: 24,
     backgroundColor: '#575757',
-    paddingVertical: 9,
-    borderRadius: 15,
+    borderRadius: 10,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#0f0f0f',
-    height: 40,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginTop: 6,
+    marginBottom: 6,
+    marginHorizontal: 14,
+    paddingVertical: 0,
+    borderWidth: 0,
+    
   },
-  ctaDisabled: { backgroundColor: '#B7B7B7', borderColor: '#B8BFC9' },
-  ctaText: { color: '#fff', fontSize: 15, fontWeight: '800' },
+  ctaDisabled: { backgroundColor: '#B7B7B7'},
+  ctaText: { color: '#FFFFFF', fontSize: 10, lineHeight: 12, fontWeight: '500' },
+  ctaTextDisabled: { color: '#575757'},
 
   // Bubble — absolute box; we set exact top/left inline per card
   bubbleAbs: {
@@ -737,25 +768,14 @@ const styles = StyleSheet.create({
 
   latestIndicator: {
     position: 'absolute',
-    top: -6,
-    right: -6,
-    width: 22,
-    height: 22,
-    borderRadius: 10,
-    backgroundColor: '#707070', // outer grey circle
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    top: -10,               // overlaps the corner like the mock
+    right: -10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#E4E4E4',
+    borderWidth: 7,
+    borderColor: '#707070',
   },
 
-  latestIndicatorInner: {
-    width: 9,
-    height: 9,
-    borderRadius: 15,
-    backgroundColor: '#FFFFFF', // inner white circle
-  },
 });
