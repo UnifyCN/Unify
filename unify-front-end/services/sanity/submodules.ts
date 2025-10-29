@@ -17,7 +17,8 @@ export async function getSubmodule(
     }`;
 
     const submodule = await sanityClient.fetch(query, { submoduleId });
-    return submodule || null;
+    if (!submodule || Array.isArray(submodule)) return null;
+    return submodule as SanitySubmodule;
   } catch (error) {
     console.error('Error fetching submodule from Sanity:', error);
     return null;
@@ -60,7 +61,8 @@ export async function getSubmoduleWithLessons(
     }`;
 
     const submodule = await sanityClient.fetch(query, { submoduleId });
-    return submodule || null;
+    if (!submodule || Array.isArray(submodule)) return null;
+    return submodule as SanitySubmodule & { lessons: SanityLessonWithQuizzes[] };
   } catch (error) {
     console.error('Error fetching submodule with lessons from Sanity:', error);
     return null;

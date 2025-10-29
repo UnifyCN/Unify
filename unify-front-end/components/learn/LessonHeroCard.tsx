@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { Link, Href } from 'expo-router';
 
 interface LessonHeroCardProps {
   title?: string;
@@ -11,7 +11,7 @@ interface LessonHeroCardProps {
   progressPercent?: number;
   currentPage?: number;
   totalPages?: number;
-  href?: string;
+  href?: Href;
 }
 
 export default function LessonHeroCard({
@@ -22,7 +22,7 @@ export default function LessonHeroCard({
   progressPercent = 0,
   currentPage = 1,
   totalPages = 10,
-  href = '/(tabs)/Learn',
+  href,
 }: LessonHeroCardProps) {
   const cardContent = (
     <View style={styles.card}>
@@ -51,8 +51,13 @@ export default function LessonHeroCard({
 
   if (href) {
     return (
-      <Link href={href as any} asChild>
-        <TouchableOpacity>{cardContent}</TouchableOpacity>
+      <Link href={href} asChild>
+        <TouchableOpacity
+          accessibilityRole="link"
+          accessibilityLabel={title ? `Open lesson: ${title}` : 'Open lesson'}
+        >
+          {cardContent}
+        </TouchableOpacity>
       </Link>
     );
   }
