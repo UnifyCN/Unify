@@ -79,6 +79,7 @@ export interface SanityLesson extends SanityDocument {
   };
   pages?: SanityLessonPage[];
   activity_pages?: SanityActivityPage[];
+  ending_pages?: SanityEndingPage[];
   order: number;
 }
 
@@ -134,6 +135,21 @@ export interface SanityActivityPage {
     | SanitySmallInputBox
   )[];
   answer_box?: SanityAnswerBox;
+}
+
+export interface SanityEndingPage {
+  _key: string;
+  title: string;
+  order: number;
+  content: (
+    | SanityBlock
+    | SanityImage
+    | SanityDropdown
+    | SanityExampleBox
+    | SanityTipBox
+    | SanityNoteBox
+  )[];
+  markDefs?: any[];
 }
 
 export interface SanityLargeInputBox {

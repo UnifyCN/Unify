@@ -122,40 +122,51 @@ export default function ActivityPageScreen() {
           params: { moduleId, submoduleId, lessonId, quizId: firstQuiz._id },
         });
       } else {
-        // No quizzes, save this lesson as completed
-        await saveLessonCompletion(
-          lessonId || '',
-          submoduleId || '',
-          moduleId || '',
-          totalPages
-        );
-
-        // Check if this is the last lesson
-        const currentIndex = getCurrentLessonIndex();
-        const isLastLesson =
-          currentIndex === (submoduleData?.lessons?.length || 0) - 1;
-
-        if (isLastLesson) {
-          // Last lesson completed, go back to map
+        // No quizzes, check if there are ending pages
+        const totalEndingPages = lesson?.ending_pages?.length || 0;
+        if (totalEndingPages > 0) {
+          // Navigate to first ending page
           router.push({
             pathname:
-              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-            params: { moduleId, submoduleId },
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/ending/[pageNum]' as any,
+            params: { moduleId, submoduleId, lessonId, pageNum: '1' },
           });
         } else {
-          // Go to next lesson
-          const nextLesson = getNextLesson();
-          if (nextLesson) {
+          // No ending pages, save this lesson as completed
+          await saveLessonCompletion(
+            lessonId || '',
+            submoduleId || '',
+            moduleId || '',
+            totalPages
+          );
+
+          // Check if this is the last lesson
+          const currentIndex = getCurrentLessonIndex();
+          const isLastLesson =
+            currentIndex === (submoduleData?.lessons?.length || 0) - 1;
+
+          if (isLastLesson) {
+            // Last lesson completed, go back to map
             router.push({
               pathname:
-                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-              params: {
-                moduleId,
-                submoduleId,
-                lessonId: nextLesson._id,
-                pageNum: '1',
-              },
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+              params: { moduleId, submoduleId },
             });
+          } else {
+            // Go to next lesson
+            const nextLesson = getNextLesson();
+            if (nextLesson) {
+              router.push({
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  lessonId: nextLesson._id,
+                  pageNum: '1',
+                },
+              });
+            }
           }
         }
       }

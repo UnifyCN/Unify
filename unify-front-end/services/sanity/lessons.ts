@@ -15,6 +15,7 @@ export async function getLesson(
       submodule,
       pages,
       activity_pages,
+      ending_pages,
       order
     }`;
 
@@ -40,6 +41,7 @@ export async function getLessonWithQuizzes(
       submodule,
       pages,
       activity_pages,
+      ending_pages,
       order,
       "quizzes": *[_type == "quiz" && references(^._id)] | order(order_number) {
         _id,

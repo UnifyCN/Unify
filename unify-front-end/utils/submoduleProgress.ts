@@ -5,6 +5,7 @@ export interface SubmodulePageCounts {
   lessonPages: number;
   activityPages: number;
   quizPages: number;
+  endingPages: number;
   totalPages: number;
 }
 
@@ -26,6 +27,7 @@ export function calculateSubmodulePageCounts(
       lessonPages: 0,
       activityPages: 0,
       quizPages: 0,
+      endingPages: 0,
       totalPages: 0,
     };
   }
@@ -33,10 +35,11 @@ export function calculateSubmodulePageCounts(
   // Count intro pages
   const introPages = submoduleData.intro_pages?.length || 0;
 
-  // Count lesson pages, activity pages, and quiz pages
+  // Count lesson pages, activity pages, quiz pages, and ending pages
   let lessonPages = 0;
   let activityPages = 0;
   let quizPages = 0;
+  let endingPages = 0;
 
   if (submoduleData.lessons) {
     submoduleData.lessons.forEach(lesson => {
@@ -52,16 +55,20 @@ export function calculateSubmodulePageCounts(
           quizPages += quiz.questions?.length || 0;
         });
       }
+
+      // Count ending pages
+      endingPages += lesson.ending_pages?.length || 0;
     });
   }
 
-  const totalPages = introPages + lessonPages + activityPages + quizPages;
+  const totalPages = introPages + lessonPages + activityPages + quizPages + endingPages;
 
   return {
     introPages,
     lessonPages,
     activityPages,
     quizPages,
+    endingPages,
     totalPages,
   };
 }
@@ -116,6 +123,7 @@ export function calculateLessonProgress(
           (acc, quiz) => acc + (quiz.questions?.length || 0),
           0
         ) || 0;
+      pagesCompleted += lesson.ending_pages?.length || 0;
     }
   }
 
@@ -162,6 +170,7 @@ export function calculateActivityProgress(
             (acc, quiz) => acc + (quiz.questions?.length || 0),
             0
           ) || 0;
+        pagesCompleted += lesson.ending_pages?.length || 0;
       } else {
         // Current lesson - add lesson pages, then activity pages
         pagesCompleted += lesson.pages?.length || 0;
@@ -211,6 +220,7 @@ export function calculateQuizProgress(
             (acc, quiz) => acc + (quiz.questions?.length || 0),
             0
           ) || 0;
+        pagesCompleted += lesson.ending_pages?.length || 0;
       } else {
         // Current lesson - add lesson pages and activity pages
         pagesCompleted += lesson.pages?.length || 0;
@@ -232,6 +242,63 @@ export function calculateQuizProgress(
             }
           }
         }
+        // Note: ending pages are not added here as they come after quizzes
+      }
+    }
+  }
+
+  return {
+    currentPage: pagesCompleted,
+    totalPages: pageCounts.totalPages,
+    progressPercentage:
+      pageCounts.totalPages > 0
+        ? (pagesCompleted / pageCounts.totalPages) * 100
+        : 0,
+  };
+}
+
+/**
+ * Calculate current progress for ending pages
+ */
+export function calculateEndingProgress(
+  submoduleData: SanitySubmoduleWithLessons | null,
+  lessonId: string,
+  currentPage: number
+): CurrentProgress {
+  const pageCounts = calculateSubmodulePageCounts(submoduleData);
+
+  // Find the current lesson index
+  const currentLessonIndex =
+    submoduleData?.lessons?.findIndex(l => l._id === lessonId) || 0;
+
+  // Calculate pages completed before current lesson ending pages
+  let pagesCompleted = pageCounts.introPages; // Start with intro pages
+
+  // Add pages from previous lessons
+  if (submoduleData?.lessons && currentLessonIndex >= 0) {
+    for (let i = 0; i <= currentLessonIndex; i++) {
+      const lesson = submoduleData.lessons[i];
+      if (i < currentLessonIndex) {
+        // Previous lessons - add all pages
+        pagesCompleted += lesson.pages?.length || 0;
+        pagesCompleted += lesson.activity_pages?.length || 0;
+        pagesCompleted +=
+          lesson.quizzes?.reduce(
+            (acc, quiz) => acc + (quiz.questions?.length || 0),
+            0
+          ) || 0;
+        pagesCompleted += lesson.ending_pages?.length || 0;
+      } else {
+        // Current lesson - add lesson pages, activity pages, and all quizzes
+        pagesCompleted += lesson.pages?.length || 0;
+        pagesCompleted += lesson.activity_pages?.length || 0;
+        pagesCompleted +=
+          lesson.quizzes?.reduce(
+            (acc, quiz) => acc + (quiz.questions?.length || 0),
+            0
+          ) || 0;
+        // Add current ending page (currentPage is already 1-indexed)
+        pagesCompleted += currentPage;
       }
     }
   }
