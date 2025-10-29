@@ -19,6 +19,14 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateIntroProgress } from '@/utils/submoduleProgress';
 
+const getSanityImageUrl = (assetRef: string | undefined): string | null => {
+  if (!assetRef) return null;
+  const match = assetRef.match(/image-([a-f0-9]+)-([\w]+)/i);
+  if (!match) return null;
+  const [, imageId, ext] = match;
+  return `https://cdn.sanity.io/images/fercgabp/production/${imageId}.${ext}`;
+};
+
 export default function SubmoduleIntroScreen() {
   const router = useRouter();
   const { moduleId, submoduleId, pageNum } = useLocalSearchParams<{
@@ -124,9 +132,7 @@ export default function SubmoduleIntroScreen() {
           );
         } else if (block._type === 'image') {
           // Render images
-          const imageUrl = block.asset?._ref
-            ? `https://cdn.sanity.io/images/fercgabp/production/${block.asset._ref.replace('image-', '').replace('-jpg', '.jpg').replace('-png', '.png').replace('-webp', '.webp')}`
-            : null;
+          const imageUrl = getSanityImageUrl(block.asset?._ref);
 
           return (
             <View key={block._key || index} style={styles.imageSection}>

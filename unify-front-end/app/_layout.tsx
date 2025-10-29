@@ -26,7 +26,18 @@ export default function RootLayout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Initialize progress cache
-  const { isInitialized: progressCacheInitialized } = useProgressCache();
+  const { isInitialized: progressCacheInitialized, isLoading: progressCacheLoading } = useProgressCache();
+  const [cacheTimeout, setCacheTimeout] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!progressCacheInitialized) {
+        console.warn('Progress cache initialization timed out');
+        setCacheTimeout(true);
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [progressCacheInitialized]);
 
   // Create a client
   const queryClient = React.useMemo(
@@ -54,10 +65,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (loaded && onboardingChecked && progressCacheInitialized) {
+    if (loaded && onboardingChecked && (progressCacheInitialized || cacheTimeout)) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, onboardingChecked, progressCacheInitialized]);
+  }, [loaded, onboardingChecked, progressCacheInitialized, cacheTimeout]);
 
   if (!loaded || !onboardingChecked) {
     return null; // or a loading spinner
