@@ -1,4 +1,10 @@
-import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import React, {
+  useMemo,
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import {
   View,
   Text,
@@ -11,7 +17,12 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
-import { useRouter, useLocalSearchParams, Link, useFocusEffect } from 'expo-router';
+import {
+  useRouter,
+  useLocalSearchParams,
+  Link,
+  useFocusEffect,
+} from 'expo-router';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
@@ -60,15 +71,21 @@ export default function ModuleIndex() {
   const { moduleProgress, isLoading: progressLoading } = useModuleProgress(
     moduleId || ''
   );
-  const [submoduleProgresses, setSubmoduleProgresses] = useState<{ [key: string]: any }>({});
+  const [submoduleProgresses, setSubmoduleProgresses] = useState<{
+    [key: string]: any;
+  }>({});
 
   // Calculate module progress from submodule data
   const moduleProgressData = useMemo(() => {
     const submoduleList = Object.values(submoduleProgresses);
-    const completedSubmodules = submoduleList.filter((submodule: any) => submodule.is_completed).length;
+    const completedSubmodules = submoduleList.filter(
+      (submodule: any) => submodule.is_completed
+    ).length;
     const totalSubmodules = moduleData?.submodules?.length || 0;
     const progressPercent =
-      totalSubmodules > 0 ? Math.round((completedSubmodules / totalSubmodules) * 100) : 0;
+      totalSubmodules > 0
+        ? Math.round((completedSubmodules / totalSubmodules) * 100)
+        : 0;
 
     return {
       completed_submodules: completedSubmodules,
@@ -112,7 +129,10 @@ export default function ModuleIndex() {
         for (const submodule of moduleData.submodules) {
           try {
             progressData[submodule._id] =
-              await cachedProgressService.getSubmoduleProgress(moduleId || '', submodule._id);
+              await cachedProgressService.getSubmoduleProgress(
+                moduleId || '',
+                submodule._id
+              );
           } catch {
             progressData[submodule._id] = {
               is_completed: false,
@@ -149,7 +169,9 @@ export default function ModuleIndex() {
   }, [moduleData?.submodules?.length]);
 
   // per-row card layout (for bubble X/Y position)
-  const cardLayoutsRef = useRef<Array<{ x: number; y: number; width: number; height: number }>>([]);
+  const cardLayoutsRef = useRef<
+    Array<{ x: number; y: number; width: number; height: number }>
+  >([]);
 
   // ========== Bubble helpers ==========
   const bubbleOutsideLeftOfCard = (index: number, fallbackLeftEdge: number) => {
@@ -159,7 +181,10 @@ export default function ModuleIndex() {
     return Math.max(0, cardLeft - BUBBLE_GAP - 2 * BUBBLE_RADIUS);
   };
 
-  const bubbleOutsideRightOfCard = (index: number, fallbackRightEdge: number) => {
+  const bubbleOutsideRightOfCard = (
+    index: number,
+    fallbackRightEdge: number
+  ) => {
     const entry = cardLayoutsRef.current[index];
     const cardRight =
       entry && Number.isFinite(entry.x) && Number.isFinite(entry.width)
@@ -246,7 +271,8 @@ export default function ModuleIndex() {
 
     const unlocked =
       i === 0 ||
-      (i > 0 && submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+      (i > 0 &&
+        submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
 
     return {
       ...s,
@@ -260,12 +286,12 @@ export default function ModuleIndex() {
   });
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y  = clampNonNeg(e.nativeEvent.contentOffset?.y);
+    const y = clampNonNeg(e.nativeEvent.contentOffset?.y);
     const vh = clampNonNeg(e.nativeEvent.layoutMeasurement?.height);
     const threshold = y + vh + 4; // small buffer
 
     const total = moduleData?.submodules?.length || 0;
-    const tops  = rowTopsRef.current;
+    const tops = rowTopsRef.current;
 
     // Find first index that is either unmeasured OR actually below the viewport
     let firstBelowIdx = -1;
@@ -348,7 +374,7 @@ export default function ModuleIndex() {
           {/* Rail */}
           {railHeight > 0 && (
             <View
-              pointerEvents="none"
+              pointerEvents='none'
               style={[
                 styles.rail,
                 {
@@ -363,8 +389,6 @@ export default function ModuleIndex() {
           {/* Timeline items */}
           <View
             style={styles.timelineList}
-            
-
             onLayout={e => {
               timelineTopRef.current = clampNonNeg(e.nativeEvent.layout.y);
             }}
@@ -374,12 +398,13 @@ export default function ModuleIndex() {
               const ctaText = m.is_completed
                 ? 'Review'
                 : m.progress_percent > 0
-                ? 'Resume'
-                : 'Start';
+                  ? 'Resume'
+                  : 'Start';
               const disabled = !m.unlocked;
 
               // Fallback edges until card onLayout fires
-              const fallbackLeftEdgeOfRightCard = SCREEN_WIDTH - EDGE_PAD - CARD_W;
+              const fallbackLeftEdgeOfRightCard =
+                SCREEN_WIDTH - EDGE_PAD - CARD_W;
               const fallbackRightEdgeOfLeftCard = EDGE_PAD + CARD_W;
 
               // Row layout (for fallback top)
@@ -387,8 +412,10 @@ export default function ModuleIndex() {
               let rowHeight = 0;
 
               // determine current and bubble style per-row
-              const isCurrent = i === currentIndex && !m.is_completed && m.unlocked;
-              const showProgressBubble = (m.progress_percent || 0) > 0 || isCurrent;
+              const isCurrent =
+                i === currentIndex && !m.is_completed && m.unlocked;
+              const showProgressBubble =
+                (m.progress_percent || 0) > 0 || isCurrent;
               const isLocked = !m.unlocked;
 
               return (
@@ -398,7 +425,6 @@ export default function ModuleIndex() {
                   onLayout={e => {
                     rowTop = clampNonNeg(e.nativeEvent.layout.y);
                     rowHeight = clampNonNeg(e.nativeEvent.layout.height);
-                    
 
                     const absTop =
                       clampNonNeg(railTopRef.current) +
@@ -414,7 +440,8 @@ export default function ModuleIndex() {
                     onPress={() => {
                       if (disabled) return;
                       router.push({
-                        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                        pathname:
+                          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                         params: { moduleId, submoduleId: m.id },
                       });
                     }}
@@ -443,8 +470,8 @@ export default function ModuleIndex() {
                         (m as any).status === 'completed'
                           ? styles.pillCompleted
                           : (m as any).status === 'in-progress'
-                          ? styles.pillInProgress
-                          : styles.pillNotStarted,
+                            ? styles.pillInProgress
+                            : styles.pillNotStarted,
                       ]}
                     >
                       <Text
@@ -453,33 +480,39 @@ export default function ModuleIndex() {
                           (m as any).status === 'completed'
                             ? styles.pillTextCompleted
                             : (m as any).status === 'in-progress'
-                            ? styles.pillTextInProgress
-                            : styles.pillTextNotStarted,
+                              ? styles.pillTextInProgress
+                              : styles.pillTextNotStarted,
                         ]}
                       >
                         {(m as any).status === 'completed'
                           ? 'Completed'
                           : (m as any).status === 'in-progress'
-                          ? 'In Progress'
-                          : 'Not Started'}
+                            ? 'In Progress'
+                            : 'Not Started'}
                       </Text>
                     </View>
 
                     <Text style={styles.cardTitle}>{m.title}</Text>
-                    {!!m.description && <Text style={styles.cardDesc}>{m.description}</Text>}
+                    {!!m.description && (
+                      <Text style={styles.cardDesc}>{m.description}</Text>
+                    )}
 
                     {/* CTA */}
                     <View style={styles.ctaRow}>
                       <View
                         style={[
                           styles.cta,
-                          (!m.is_completed && disabled) ? styles.ctaDisabled : null,
+                          !m.is_completed && disabled
+                            ? styles.ctaDisabled
+                            : null,
                         ]}
                       >
                         <Text
                           style={[
                             styles.ctaText,
-                            (!m.is_completed && disabled) ? styles.ctaTextDisabled : null,
+                            !m.is_completed && disabled
+                              ? styles.ctaTextDisabled
+                              : null,
                           ]}
                         >
                           {ctaText}
@@ -490,13 +523,19 @@ export default function ModuleIndex() {
 
                   {/* Bubble: rail-side of each card, centered to the card */}
                   <View
-                    pointerEvents="none"
+                    pointerEvents='none'
                     style={[
                       styles.bubbleAbs,
                       {
                         left: leftSide
-                          ? bubbleOutsideRightOfCard(i, fallbackRightEdgeOfLeftCard)
-                          : bubbleOutsideLeftOfCard(i, fallbackLeftEdgeOfRightCard),
+                          ? bubbleOutsideRightOfCard(
+                              i,
+                              fallbackRightEdgeOfLeftCard
+                            )
+                          : bubbleOutsideLeftOfCard(
+                              i,
+                              fallbackLeftEdgeOfRightCard
+                            ),
                         top: bubbleTopForCard(i, rowTop, rowHeight),
                         opacity: 1,
                       },
@@ -508,7 +547,9 @@ export default function ModuleIndex() {
                         <View style={styles.ringOuterLocked} />
                         <View style={styles.ringMiddleLocked} />
                         <View style={styles.ringInnerLocked} />
-                        <Text style={styles.bubbleText}>{Math.round(m.progress_percent || 0)}%</Text>
+                        <Text style={styles.bubbleText}>
+                          {Math.round(m.progress_percent || 0)}%
+                        </Text>
                       </View>
                     ) : showProgressBubble ? (
                       // 3-ring progress bubble (also for current at 0%)
@@ -516,40 +557,56 @@ export default function ModuleIndex() {
                         <View style={styles.ringOuter} />
                         <View style={styles.ringMiddle} />
                         <View style={styles.ringInner} />
-                        <Svg height="100%" width="100%" viewBox="0 0 100 100" style={styles.progressSvgTop}>
+                        <Svg
+                          height='100%'
+                          width='100%'
+                          viewBox='0 0 100 100'
+                          style={styles.progressSvgTop}
+                        >
                           <Circle
-                            cx="50"
-                            cy="50"
+                            cx='50'
+                            cy='50'
                             r={50 - PROGRESS_STROKE}
-                            stroke="#FFFFFF"
+                            stroke='#FFFFFF'
                             strokeWidth={PROGRESS_STROKE}
-                            strokeLinecap="round"
-                            strokeDasharray={2 * Math.PI * (50 - PROGRESS_STROKE)}
-                            strokeDashoffset={
-                              2 * Math.PI * (50 - PROGRESS_STROKE) * (1 - (m.progress_percent || 0) / 100)
+                            strokeLinecap='round'
+                            strokeDasharray={
+                              2 * Math.PI * (50 - PROGRESS_STROKE)
                             }
-                            fill="none"
+                            strokeDashoffset={
+                              2 *
+                              Math.PI *
+                              (50 - PROGRESS_STROKE) *
+                              (1 - (m.progress_percent || 0) / 100)
+                            }
+                            fill='none'
                           />
                         </Svg>
-                        <Text style={styles.bubbleText}>{Math.round(m.progress_percent || 0)}%</Text>
+                        <Text style={styles.bubbleText}>
+                          {Math.round(m.progress_percent || 0)}%
+                        </Text>
                       </View>
                     ) : (
                       // Original bubble for completed (check)
                       <View
                         style={[
                           styles.bubbleOuter,
-                          m.unlocked ? styles.bubbleOuterActive : styles.bubbleOuterBlocked,
+                          m.unlocked
+                            ? styles.bubbleOuterActive
+                            : styles.bubbleOuterBlocked,
                           m.is_completed && styles.bubbleDoneOuter,
                         ]}
                       >
                         <View
                           style={[
                             styles.bubbleInner,
-                            m.unlocked ? styles.bubbleInnerActive : styles.bubbleInnerBlocked,
+                            m.unlocked
+                              ? styles.bubbleInnerActive
+                              : styles.bubbleInnerBlocked,
                             m.is_completed && styles.bubbleDoneInner,
                           ]}
                         >
-                          <Feather name="check" size={20} color="#fff" />
+                          <Feather name='check' size={20} color='#fff' />
                         </View>
                       </View>
                     )}
@@ -565,9 +622,9 @@ export default function ModuleIndex() {
 
       {/* floating "N more modules ahead" pill */}
       {ahead > 0 && (
-        <View style={styles.morePillWrap} pointerEvents="none">
+        <View style={styles.morePillWrap} pointerEvents='none'>
           <View style={styles.morePill}>
-            <View className="dots" style={styles.dots}>
+            <View className='dots' style={styles.dots}>
               <View style={styles.dot} />
               <View style={styles.dot} />
               <View style={styles.dot} />
@@ -738,7 +795,12 @@ const styles = StyleSheet.create({
     borderWidth: 0,
   },
   ctaDisabled: { backgroundColor: '#B7B7B7' },
-  ctaText: { color: '#FFFFFF', fontSize: 10, lineHeight: 12, fontWeight: '500' },
+  ctaText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    lineHeight: 12,
+    fontWeight: '500',
+  },
   ctaTextDisabled: { color: '#575757' },
 
   // Bubble — absolute box
@@ -854,10 +916,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   dots: { flexDirection: 'row', marginRight: 10 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#C7CDD8', marginHorizontal: 2 },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#C7CDD8',
+    marginHorizontal: 2,
+  },
   moreText: { fontSize: 14, color: '#6B7280', fontWeight: '700' },
 
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   muted: { fontSize: 16, color: '#6B7280' },
   error: { fontSize: 16, color: '#EF4444' },
 
