@@ -265,25 +265,26 @@ export default function LessonPageScreen() {
           />
         </View>
 
-        {/* Navigation buttons */}
-        <View style={styles.navigationContainer}>
-          <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-            <Text style={styles.backBtnText}>Back</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-            <Text style={styles.nextBtnText}>
-              {currentPage < totalPages
-                ? 'Next'
-                : lesson?.activity_pages && lesson.activity_pages.length > 0
-                  ? 'Start Activity'
-                  : quizzes && quizzes.length > 0
-                    ? `Take Quiz`
-                    : 'Complete Lesson'}
-            </Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
+
+      {/* Navigation buttons - anchored at bottom */}
+      <View style={styles.navigationContainer}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+          <Text style={styles.backBtnText}>Back</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+          <Text style={styles.nextBtnText}>
+            {currentPage < totalPages
+              ? 'Next'
+              : lesson?.activity_pages && lesson.activity_pages.length > 0
+                ? 'Start Activity'
+                : quizzes && quizzes.length > 0
+                  ? `Take Quiz`
+                  : 'Complete Lesson'}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Exit modal, make this into component after in refactoring*/}
 
@@ -327,7 +328,7 @@ export default function LessonPageScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  container: { paddingHorizontal: 20, paddingBottom: 40 },
+  container: { paddingHorizontal: 23, paddingBottom: 100 },
 
   // Page indicator
   pageIndicatorContainer: {
@@ -356,18 +357,27 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   contentText: {
-    fontWeight: 600,
+    fontWeight: 400,
     color: '#424242',
-    marginBottom: 15,
+    marginBottom: 20,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   // Navigation styles
   navigationContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    paddingHorizontal: 23,
+    paddingVertical: 20,
+    paddingBottom: 40,
+    backgroundColor: '#fff',
     gap: 12,
   },
   backBtn: {

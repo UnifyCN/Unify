@@ -285,21 +285,21 @@ export default function SubmoduleIntroScreen() {
             markDefs={introData?.markDefs}
           />
         </View>
-
-        {/* Navigation buttons */}
-        <View style={styles.buttonContainer}>
-          {currentPage > 1 && (
-            <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-              <Text style={styles.backBtnText}>Back</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-            <Text style={styles.nextBtnText}>
-              {currentPage < (totalPages || 1) ? 'Next' : 'Start Lessons'}
-            </Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
+
+      {/* Navigation buttons - anchored at bottom */}
+      <View style={styles.buttonContainer}>
+        {currentPage > 1 && (
+          <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+            <Text style={styles.backBtnText}>Back</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+          <Text style={styles.nextBtnText}>
+            {currentPage < (totalPages || 1) ? 'Next' : 'Start Lessons'}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Exit Confirmation Modal */}
       <Modal
@@ -342,7 +342,7 @@ export default function SubmoduleIntroScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  container: { paddingHorizontal: 20, paddingBottom: 40 },
+  container: { paddingHorizontal: 20, paddingBottom: 100 },
 
   // Page indicator
   pageIndicatorContainer: {
@@ -463,7 +463,15 @@ const styles = StyleSheet.create({
 
   // Button container and buttons
   buttonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 40,
+    backgroundColor: '#fff',
     gap: 12,
   },
   backBtn: {

@@ -416,7 +416,10 @@ export default function QuizQuestionPage() {
         onClose={() => router.back()}
       />
 
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Question counter */}
         <View style={styles.questionCounterContainer}>
           <Text style={styles.questionCounter}>
@@ -594,52 +597,52 @@ export default function QuizQuestionPage() {
             )}
           </View>
         </View>
+      </ScrollView>
 
-        {/* Footer Buttons */}
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+      {/* Footer Buttons - anchored at bottom */}
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.checkButton,
+            (currentQuestion.question_type === 'matching'
+              ? completedPairs.length !==
+                (currentQuestion.matching_pairs?.length || 0) * 2
+              : currentQuestion.question_type === 'multiple_choice_multiple'
+                ? selectedAnswers.length === 0
+                : !selectedAnswer) && styles.checkButtonDisabled,
+          ]}
+          onPress={handleNext}
+          disabled={
+            currentQuestion.question_type === 'matching'
+              ? completedPairs.length !==
+                (currentQuestion.matching_pairs?.length || 0) * 2
+              : currentQuestion.question_type === 'multiple_choice_multiple'
+                ? selectedAnswers.length === 0
+                : !selectedAnswer
+          }
+        >
+          <Text
             style={[
-              styles.checkButton,
+              styles.checkButtonText,
               (currentQuestion.question_type === 'matching'
                 ? completedPairs.length !==
                   (currentQuestion.matching_pairs?.length || 0) * 2
                 : currentQuestion.question_type === 'multiple_choice_multiple'
                   ? selectedAnswers.length === 0
-                  : !selectedAnswer) && styles.checkButtonDisabled,
+                  : !selectedAnswer) && styles.checkButtonTextDisabled,
             ]}
-            onPress={handleNext}
-            disabled={
-              currentQuestion.question_type === 'matching'
-                ? completedPairs.length !==
-                  (currentQuestion.matching_pairs?.length || 0) * 2
-                : currentQuestion.question_type === 'multiple_choice_multiple'
-                  ? selectedAnswers.length === 0
-                  : !selectedAnswer
-            }
           >
-            <Text
-              style={[
-                styles.checkButtonText,
-                (currentQuestion.question_type === 'matching'
-                  ? completedPairs.length !==
-                    (currentQuestion.matching_pairs?.length || 0) * 2
-                  : currentQuestion.question_type === 'multiple_choice_multiple'
-                    ? selectedAnswers.length === 0
-                    : !selectedAnswer) && styles.checkButtonTextDisabled,
-              ]}
-            >
-              {currentQuestion.question_type === 'matching'
-                ? 'Next'
-                : !hasSubmitted
-                  ? 'Check'
-                  : 'Next'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+            {currentQuestion.question_type === 'matching'
+              ? 'Next'
+              : !hasSubmitted
+                ? 'Check'
+                : 'Next'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -651,6 +654,9 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   loadingContainer: {
     flex: 1,
@@ -836,11 +842,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 40,
+    backgroundColor: '#fff',
     gap: 12,
-    marginBottom: 40,
   },
   backButton: {
     backgroundColor: '#E5E7EB',

@@ -60,28 +60,28 @@ export default function RichTextRenderer({
       fontSize: 28,
       fontWeight: '700',
       color: '#000',
-      marginBottom: 16,
+      marginBottom: 20,
       marginTop: 24,
     },
     h2: {
       fontSize: 24,
       fontWeight: '600',
       color: '#000',
-      marginBottom: 14,
+      marginBottom: 16,
       marginTop: 20,
     },
     h3: {
       fontSize: 20,
       fontWeight: '600',
       color: '#000',
-      marginBottom: 12,
+      marginBottom: 14,
       marginTop: 16,
     },
     h4: {
       fontSize: 18,
       fontWeight: '600',
       color: '#000',
-      marginBottom: 10,
+      marginBottom: 12,
       marginTop: 14,
     },
     // Paragraphs
@@ -89,20 +89,20 @@ export default function RichTextRenderer({
       fontSize: 16,
       color: '#374151',
       lineHeight: 24,
-      marginBottom: 12,
+      marginBottom: 16,
     },
     // Lists
     bullet: {
-      fontSize: 16,
+      fontSize: 14,
       color: '#374151',
       lineHeight: 24,
-      marginBottom: 8,
+      marginBottom: 12,
     },
     number: {
       fontSize: 16,
       color: '#374151',
       lineHeight: 24,
-      marginBottom: 8,
+      marginBottom: 12,
     },
     // Quote
     blockquote: {
@@ -124,7 +124,7 @@ export default function RichTextRenderer({
       padding: 8,
       borderRadius: 4,
       fontFamily: 'monospace',
-      marginBottom: 12,
+      marginBottom: 16,
     },
     // Image
     image: {
@@ -168,13 +168,13 @@ export default function RichTextRenderer({
       fontSize: 14,
       fontWeight: '700',
       color: '#374151',
-      marginBottom: 8,
+      marginBottom: 12,
       textTransform: 'uppercase',
     },
     tipBox: {
       borderRadius: 0,
       paddingLeft: 15,
-      marginVertical: 10,
+      marginVertical: 16,
       borderLeftWidth: 4,
       borderLeftColor: '#374151',
     },
@@ -339,7 +339,7 @@ export default function RichTextRenderer({
             : `${numberingMap[block._key || index] || 1}.`;
 
         // Calculate indentation based on nesting level
-        const indentLevel = nestingLevel * 20; // 20px per nesting level
+        const indentLevel = nestingLevel * 15; // 20px per nesting level
 
         // Use different bullet styles for different nesting levels
         let displayBullet = bullet;
@@ -356,7 +356,7 @@ export default function RichTextRenderer({
         }
 
         return (
-          <View key={block._key || index} style={[styles.listItemContainer]}>
+          <View key={block._key || index} style={[styles.listItemContainer, { marginLeft: indentLevel }]}>
             <Text style={listStyle}>
               {displayBullet} {renderInlineText(block.children, markDefs)}
             </Text>
@@ -491,8 +491,8 @@ export default function RichTextRenderer({
                 borderWidth: 1,
                 borderColor: '#9CA3AF',
                 borderRadius: 8,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
+                paddingHorizontal: 20,
+                paddingVertical: 20,
                 fontSize: 16,
                 backgroundColor: '#fff',
                 minHeight: 44,
@@ -502,7 +502,7 @@ export default function RichTextRenderer({
               isMid && { height: 150, textAlignVertical: 'top' },
               isSmall && { height: 80 },
             ]}
-            placeholder={(block.placeholder = 'Type here...')}
+            placeholder={(block.placeholder = 'Type Here')}
             value={inputValues[block._key] || ''}
             onChangeText={value => onInputChange?.(block._key, value)}
             multiline={isLarge}

@@ -37,7 +37,7 @@ export default function DropdownAccordion({
   };
 
   return (
-    <View style={{ gap: 12 }}>
+    <View style={styles.container}>
       {items.map(item => {
         const open = item.id === openId;
         return (
@@ -70,6 +70,9 @@ export default function DropdownAccordion({
 }
 
 const styles = StyleSheet.create({
+  container: {
+    gap: 12,
+  },
   header: {
     backgroundColor: '#E6E6E6',
     borderRadius: 12,
@@ -82,13 +85,15 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
   },
   body: {
     backgroundColor: '#E6E6E6',
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 8,
   },
   bodyText: {
     fontSize: 15,

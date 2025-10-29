@@ -287,35 +287,37 @@ export default function ActivityPageScreen() {
           </View>
         )}
 
-        {/* Navigation buttons */}
-        <View style={styles.navigationContainer}>
-          <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-            <Text style={styles.backBtnText}>Back</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.nextBtn}
-            onPress={isSubmitted ? handleNext : handleSubmit}
-          >
-            <Text style={styles.nextBtnText}>
-              {!isSubmitted
-                ? 'Submit'
-                : currentPage < totalPages
-                  ? 'Next Activity'
-                  : quizzes && quizzes.length > 0
-                    ? `Take Quiz`
-                    : 'Complete Lesson'}
-            </Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
+
+      {/* Navigation buttons - anchored at bottom */}
+      <View style={styles.navigationContainer}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+          <Text style={styles.backBtnText}>Back</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.nextBtn}
+          onPress={isSubmitted ? handleNext : handleSubmit}
+        >
+          <Text style={styles.nextBtnText}>
+            {!isSubmitted
+              ? 'Submit'
+              : currentPage < totalPages
+                ? 'Next Activity'
+                : quizzes && quizzes.length > 0
+                  ? `Take Quiz`
+                  : 'Complete Lesson'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  container: { paddingHorizontal: 20, paddingBottom: 40 },
+  scrollView: { flex: 1 },
+  container: { paddingHorizontal: 23, paddingBottom: 100 },
 
   // Page indicator
   pageIndicatorContainer: {
@@ -382,7 +384,7 @@ const styles = StyleSheet.create({
   },
 
   answerBoxContainer: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#FFF',
     padding: 16,
     marginBottom: 30,
     borderLeftWidth: 4,
@@ -401,9 +403,16 @@ const styles = StyleSheet.create({
 
   // Navigation styles
   navigationContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    paddingHorizontal: 23,
+    paddingVertical: 20,
+    paddingBottom: 40,
+    backgroundColor: '#fff',
     gap: 12,
   },
   backBtn: {
