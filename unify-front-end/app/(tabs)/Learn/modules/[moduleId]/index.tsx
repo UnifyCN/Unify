@@ -35,7 +35,10 @@ const CONTENT_W = Math.max(0, SCREEN_WIDTH - EDGE_PAD * 2);
 const CARD_RATIO = 0.75;
 const CARD_W = 269;
 
+//RAIL = LINE
 const RAIL_W = 4;
+const FIRST_GAP = 40;
+const ROW_SEGMENT_LEN = 16;
 
 // Bubble sizing + gap (distance from card edge to bubble)
 const BUBBLE_SIZE = 70; // change to resize circle
@@ -608,7 +611,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
 
-  timelineList: { paddingTop: 6 },
+  timelineList: { paddingTop: 18 },
   timelineRow: { position: 'relative', marginVertical: 18, minHeight: 110 },
 
   rowSegment: {
