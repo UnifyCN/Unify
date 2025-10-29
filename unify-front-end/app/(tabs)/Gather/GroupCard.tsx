@@ -2,6 +2,7 @@ import { memo } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { Group } from '@/types/groups';
 import { Avatar } from '@/components/Avatar';
+import { Theme } from '@/constants/Theme';
 
 interface GroupCardProps {
   group: Group;
@@ -15,7 +16,7 @@ const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
         <Avatar
           profilePictureUrl={group.coverPhotoUrl || undefined}
           username={group.name}
-          size={48}
+          size={57}
         />
       </View>
       <View style={styles.groupContent}>
@@ -39,8 +40,6 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 58,
     alignItems: 'flex-start',
-    marginTop: 5,
-    paddingVertical: 6,
   },
   imageContainer: {
     height: 58,
@@ -55,8 +54,8 @@ const styles = StyleSheet.create({
   },
   groupTitle: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#000000ff',
+    fontWeight: '600',
+    color: Theme.black,
     lineHeight: 20,
   },
   groupDetail: {
@@ -66,7 +65,7 @@ const styles = StyleSheet.create({
   },
   groupDetailText: {
     fontSize: 14,
-    color: '#000000ff',
+    color: Theme.black,
     flex: 1,
   },
 });

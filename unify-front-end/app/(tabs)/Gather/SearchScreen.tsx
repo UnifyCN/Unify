@@ -28,6 +28,7 @@ import {
 } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
 import { SearchHeader } from '@/components/SearchHeader';
+import { Theme } from '@/constants/Theme';
 
 export const navigationOptions = {
   headerShown: false,
@@ -123,6 +124,12 @@ const SearchScreen = () => {
     } catch (e) {
       console.error('saveRecentGroups exception', e);
     }
+    
+    // Navigate to GroupDetailScreen
+    router.push({
+      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      params: { group: JSON.stringify(group) },
+    });
   };
 
   const renderPosts = ({ item }: { item: PostData }) => (
@@ -143,7 +150,7 @@ const SearchScreen = () => {
     // user is typing but hasn't submitted yet — show the helper frame
     searchHistory = (
       <View style={{ marginTop: 10 }}>
-        <Text style={styles.emptyHeadline}>RECENT SEARCHES</Text>
+        <Text style={styles.recentSectionHeader}>RECENT SEARCHES</Text>
         {recentSearches.map((recentSearch, index) => (
           <TouchableOpacity
             key={index}
@@ -151,12 +158,12 @@ const SearchScreen = () => {
               setSearchInput(recentSearch);
               handleSend(recentSearch);
             }}
+            style={{ marginBottom: 12 }}
           >
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                marginBottom: 6,
               }}
             >
               <Feather
@@ -165,7 +172,7 @@ const SearchScreen = () => {
                 color='#666'
                 style={{ marginRight: 8 }}
               />
-              <Text style={{ color: '#333', fontSize: 14 }}>
+              <Text style={{ color: Theme.black, fontSize: 14 }}>
                 {recentSearch}
               </Text>
             </View>
@@ -187,9 +194,9 @@ const SearchScreen = () => {
   if (recentGroups.length > 0 && searchInput.trim().length === 0) {
     groupsHistory = (
       <View>
-        <Text style={styles.emptyHeadline}>RECENTLY VIEWED GROUPS</Text>
+        <Text style={styles.recentSectionHeader}>RECENTLY VIEWED GROUPS</Text>
         {recentGroups.map(group => (
-          <View style={styles.cardItem} key={group.id}>
+          <View style={[styles.cardItem, { marginBottom: 20 }]} key={group.id}>
             <GroupCard group={group} onPress={() => groupPress(group)} />
           </View>
         ))}
@@ -202,12 +209,7 @@ const SearchScreen = () => {
       <SearchHeader />
 
       <View style={styles.searchInputContainer}>
-        <Feather
-          name='search'
-          size={20}
-          color='#666'
-          style={styles.searchIcon}
-        />
+        <Feather name='search' size={20} color={Theme.textInput} />
         <TextInput
           value={searchInput}
           onChangeText={text => {
@@ -215,9 +217,9 @@ const SearchScreen = () => {
           }}
           style={styles.searchInput}
           //in figma says events and groups but this screen doesnt check events
-          placeholder='Search for posts and groups near you'
+          placeholder='Search for posts and groups'
           onSubmitEditing={() => handleSend()}
-          placeholderTextColor='#999'
+          placeholderTextColor={Theme.textInput}
         />
       </View>
       <ScrollView
@@ -250,14 +252,10 @@ const SearchScreen = () => {
           <>
             {searchQuery && foundPost && (
               <View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={styles.emptyHeadline}>POSTS</Text>
+                <View style={styles.postsHeader}>
+                  <Text style={[styles.resultHeaderText, { marginTop: 8 }]}>
+                    POSTS
+                  </Text>
                   {postsToShow.length > 3 && (
                     <TouchableOpacity
                       onPress={() =>
@@ -267,7 +265,7 @@ const SearchScreen = () => {
                         })
                       }
                     >
-                      <Text style={styles.emptyHeadline}>see more</Text>
+                      <Text style={styles.seeMoreText}>see more</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -282,14 +280,8 @@ const SearchScreen = () => {
 
             {searchQuery && foundGroup && (
               <View>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={styles.emptyHeadline}>GROUPS</Text>
+                <View style={[styles.postsHeader, { marginBottom: 20 }]}>
+                  <Text style={styles.resultHeaderText}>GROUPS</Text>
                   {(filterGroups?.length ?? 0) > 3 && (
                     <TouchableOpacity
                       onPress={() =>
@@ -299,7 +291,7 @@ const SearchScreen = () => {
                         })
                       }
                     >
-                      <Text style={styles.emptyHeadline}>see more</Text>
+                      <Text style={styles.seeMoreText}>see more</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -308,6 +300,7 @@ const SearchScreen = () => {
                   renderItem={renderGroup}
                   keyExtractor={item => item.id.toString()}
                   scrollEnabled={false}
+                  contentContainerStyle={{ gap: 20, paddingBottom: 20 }}
                 />
               </View>
             )}
@@ -347,10 +340,9 @@ const styles = StyleSheet.create({
   },
   containerText: {
     fontSize: 14,
-    color: '#454545ff',
+    color: Theme.textInput,
     textAlign: 'left',
-    lineHeight: 20,
-    maxWidth: 309,
+    lineHeight: 18,
   },
   emptyText: {
     fontSize: 18,
@@ -359,12 +351,38 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
-  emptyHeadline: {
+  recentSectionHeader: {
+    fontSize: 12,
+    color: Theme.textAlternateGray,
+    fontWeight: '600',
+    marginTop: 16,
+    lineHeight: 14,
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  postsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    fontSize: 12,
+    fontWeight: '700',
+    color: Theme.textAlternateGray,
+    marginTop: 16,
+    marginBottom: 0,
+    lineHeight: 16,
+  },
+  resultHeaderText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Theme.textAlternateGray,
+    marginBottom: 0,
+    lineHeight: 16,
+  },
+  seeMoreText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#464646ff',
-    marginTop: 16,
-    marginBottom: 8,
+    color: Theme.textAlternateGray,
+    marginBottom: 0,
     lineHeight: 16,
   },
   emptySubtext: {
@@ -380,32 +398,30 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8E8E8',
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  searchIcon: {
-    marginRight: 12,
+    backgroundColor: Theme.surfaceTextInput,
+    borderRadius: 100,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    height: 36,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: Theme.textAlternateGray,
   },
   searchFrame: {
     marginTop: 30,
     alignSelf: 'center',
     width: '100%',
-    maxWidth: 349,
-    height: 72,
-    paddingHorizontal: 20,
+    height: 69,
+    paddingHorizontal: 15,
     paddingVertical: 15,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.surfaceGray,
     borderRadius: 5,
     alignItems: 'flex-start',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: Theme.borderInfoText,
   },
 });

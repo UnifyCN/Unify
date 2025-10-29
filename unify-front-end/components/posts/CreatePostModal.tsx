@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     marginTop: 60,
   },
   cancelButton: {
-    padding: 15,
+    paddingVertical: 15,
   },
   postButton: {
     backgroundColor: '#007AFF',

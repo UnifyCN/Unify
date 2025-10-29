@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CreatePostModal from './CreatePostModal';
+import { Theme } from '@/constants/Theme';
 
 export default function CreatePostButton() {
   const [showModal, setShowModal] = useState(false);
@@ -33,7 +34,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#444',
+    backgroundColor: Theme.primaryGatherRed,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
