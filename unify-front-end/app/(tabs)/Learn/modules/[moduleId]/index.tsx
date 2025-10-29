@@ -38,7 +38,6 @@ const CARD_W = 269;
 //RAIL = LINE
 const RAIL_W = 4;
 const FIRST_GAP = 40;
-const ROW_SEGMENT_LEN = 16;
 
 // Bubble sizing + gap (distance from card edge to bubble)
 const BUBBLE_SIZE = 70; // change to resize circle
@@ -160,9 +159,8 @@ export default function ModuleIndex() {
 
   const railHeight = useMemo(() => {
     if (railEnd == null || progressBottom <= 0) return 0;
-    const trim = 18;
-    const topOffset = FIRST_GAP - ROW_SEGMENT_LEN;
-    return Math.max(0, railEnd - (progressBottom + topOffset) - trim);
+    const trim = -240;
+    return Math.max(0, railEnd - progressBottom - trim);
   }, [railEnd, progressBottom]);
 
   if (isLoading || progressLoading) {
@@ -316,17 +314,18 @@ export default function ModuleIndex() {
         <View style={styles.railContainer}>
           {/* Rail */}
           {railHeight > 0 && (
-            <View
-              pointerEvents='none'
-              style={[
-                styles.rail,
-                {
-                  top: progressBottom + 18,
-                  height: railHeight,
-                  left: SCREEN_WIDTH / 2 - RAIL_W / 2,
-                },
-              ]}
-            />
+          <View
+            pointerEvents="none"
+            style={[
+              styles.rail,
+              {
+                top: progressBottom - 245,
+                height: railHeight,
+                left: SCREEN_WIDTH / 2 - RAIL_W / 2,
+              },
+            ]}
+          />
+            
           )}
 
           {/* Timeline items */}
@@ -363,14 +362,6 @@ export default function ModuleIndex() {
                     updateRowBottom(rowTop + rowHeight);
                   }}
                 >
-                  {/* per-row upward line segment */}
-                  <View
-                    pointerEvents='none'
-                    style={[
-                      styles.rowSegment,
-                      { left: SCREEN_WIDTH / 2 - RAIL_W / 2 },
-                    ]}
-                  />
 
                   {/* Submodule card */}
                   <TouchableOpacity
@@ -580,6 +571,7 @@ const styles = StyleSheet.create({
     width: 345,
     height: 69,
     justifyContent: 'center',
+    zIndex: 2,
   },
   progressCentered: {
     fontSize: 14,
@@ -610,19 +602,13 @@ const styles = StyleSheet.create({
     width: RAIL_W,
     backgroundColor: '#111',
     borderRadius: 2,
+    zIndex: 0,
+    elevation: 0,
   },
 
-  timelineList: { paddingTop: 18 },
+  timelineList: { paddingTop: FIRST_GAP },
   timelineRow: { position: 'relative', marginVertical: 18, minHeight: 110 },
 
-  rowSegment: {
-    position: 'absolute',
-    top: -39,
-    height: 30,
-    width: RAIL_W,
-    backgroundColor: '#111',
-    borderRadius: 2,
-  },
 
   // Card
   card: {
