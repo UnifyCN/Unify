@@ -12,6 +12,7 @@ import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from '@/app/(tabs)/Gather/EventCard';
 import ViewMoreCard from '@/app/(tabs)/Gather/ViewMoreCard';
 import { SkeletonLoader } from './SkeletonLoader';
+import { Theme } from '@/constants/Theme';
 
 // Skeleton loader component for events
 const EventSkeletonCard = () => {
@@ -33,7 +34,12 @@ const EventSkeletonCard = () => {
 
         <View style={skeletonStyles.detailsContainer}>
           <View style={skeletonStyles.eventDetail}>
-            <SkeletonLoader width={14} height={18} borderRadius={10} style={skeletonStyles.iconSkeleton} />
+            <SkeletonLoader
+              width={14}
+              height={18}
+              borderRadius={10}
+              style={skeletonStyles.iconSkeleton}
+            />
             <SkeletonLoader
               width='75%'
               height={18}
@@ -43,7 +49,12 @@ const EventSkeletonCard = () => {
           </View>
 
           <View style={skeletonStyles.eventDetail}>
-            <SkeletonLoader width={14} height={18} borderRadius={10} style={skeletonStyles.iconSkeleton} />
+            <SkeletonLoader
+              width={14}
+              height={18}
+              borderRadius={10}
+              style={skeletonStyles.iconSkeleton}
+            />
             <SkeletonLoader
               width='50%'
               height={18}
@@ -183,19 +194,21 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
+    paddingVertical: 30,
+    backgroundColor: Theme.surfaceGray,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: Theme.borderInfoText,
   },
   emptyEventsText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: Theme.textInput,
     marginBottom: 4,
   },
   emptyEventsSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: Theme.textInput,
     textAlign: 'center',
   },
 });

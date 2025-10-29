@@ -15,6 +15,7 @@ import EventCard from './EventCard';
 import { useEffect, useMemo, useState } from 'react';
 import { Event } from '@/types/events';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+import { Theme } from '@/constants/Theme';
 
 const EventsScreen = () => {
   const router = useRouter();
@@ -127,8 +128,8 @@ const EventsScreen = () => {
         <View style={styles.searchInputContainer}>
           <Feather
             name='search'
-            size={24}
-            color='#666'
+            size={20}
+            color={Theme.textInput}
             style={styles.searchIcon}
           />
           <TextInput
@@ -136,7 +137,7 @@ const EventsScreen = () => {
             onChangeText={setSearchQuery}
             style={styles.searchInput}
             placeholder='Search for events near you'
-            placeholderTextColor='#999'
+            placeholderTextColor={Theme.textInput}
           />
           {/* TODO: Implement addtional filter screen later */}
           {/* <TouchableOpacity>
@@ -220,7 +221,7 @@ const EventsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Theme.white,
   },
   header: {
     flexDirection: 'row',
@@ -303,18 +304,20 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8E8E8',
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: Theme.surfaceTextInput,
+    borderRadius: 100,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    height: 36,
+    gap: 8,
   },
   searchIcon: {
-    marginRight: 12,
+    marginRight: 0,
   },
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: Theme.textAlternateGray,
   },
   tagsContainer: {
     flexDirection: 'row',
@@ -328,25 +331,25 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#6C6C6C',
-    backgroundColor: '#FFFFFF',
+    borderColor: Theme.textInactiveTab,
+    backgroundColor: Theme.white,
   },
   tagButtonSelected: {
-    backgroundColor: '#333333',
-    borderColor: '#333333',
+    backgroundColor: Theme.primaryGatherRed,
+    borderColor: Theme.primaryGatherRed,
   },
   tagText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666666',
+    color: Theme.textInactiveTab,
   },
   tagTextSelected: {
-    color: '#FFFFFF',
+    color: Theme.white,
   },
   genreTagsWrapper: {
     marginTop: 16,
     marginBottom: 0,
-    backgroundColor: '#fff',
+    backgroundColor: Theme.white,
     paddingBottom: 10,
   },
   genreTagsContainer: {
@@ -366,16 +369,17 @@ const styles = StyleSheet.create({
   },
   genreTagItemSelected: {
     borderBottomWidth: 2,
-    borderColor: '#000',
+    borderColor: Theme.primaryGatherRed,
   },
   genreTagText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#000',
+    color: Theme.textInactiveTab,
     textAlign: 'center',
   },
   genreTagTextSelected: {
     fontWeight: '600',
+    color: Theme.black,
   },
 });
 

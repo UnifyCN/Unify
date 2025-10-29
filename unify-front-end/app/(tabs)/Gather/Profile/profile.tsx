@@ -15,6 +15,7 @@ import { useUserInfo } from '@/hooks/users/useUserInfo';
 import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
+import { Theme } from '@/constants/Theme';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -211,9 +212,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
     zIndex: 1000,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5E5',
   },
   tab: {
     backgroundColor: 'transparent',
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#000',
+    borderBottomColor: Theme.primaryGatherRed,
   },
   tabText: {
     fontSize: 14,

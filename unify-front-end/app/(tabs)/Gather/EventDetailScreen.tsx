@@ -14,6 +14,7 @@ import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { useEffect } from 'react';
+import { Theme } from '@/constants/Theme';
 
 const EventDetailScreen = () => {
   const router = useRouter();
@@ -42,14 +43,19 @@ const EventDetailScreen = () => {
         `📍 ${eventData.location}`,
         `🔗 ${eventData.externalLink}`,
       ].join('\n\n');
-      
+
       await Share.share({
         message: shareMessage,
         title: 'Unify Gather',
         url: eventData.externalLink,
       });
     } catch (error) {
-      if (error && typeof error === 'object' && 'code' in error && error.code !== 'SHARE_CANCELLED') {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code !== 'SHARE_CANCELLED'
+      ) {
         console.error('Error sharing event:', error);
       }
     }
@@ -60,12 +66,12 @@ const EventDetailScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Feather name='chevron-left' size={24} color='#fff' />
+          <Feather name='chevron-left' size={24} color={Theme.white} />
         </TouchableOpacity>
         {/* Share Button */}
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={handleShare}>
-            <Feather name='upload' size={24} color='#fff' />
+            <Feather name='upload' size={24} color={Theme.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -105,8 +111,6 @@ const EventDetailScreen = () => {
                 )}
               </Text>
             </View>
-            {/* No clue what this is supposed to do but it's in the design */}
-            <Feather name='chevron-right' size={24} color='#000' />
           </View>
 
           {/* Location */}
@@ -118,8 +122,6 @@ const EventDetailScreen = () => {
               <Text style={styles.detailTitle}>{eventData.location}</Text>
               <Text style={styles.detailSubtitle}>{eventData.address}</Text>
             </View>
-            {/* No clue what this is supposed to do but it's in the design */}
-            <Feather name='chevron-right' size={24} color='#000' />
           </View>
 
           {/* About Event */}

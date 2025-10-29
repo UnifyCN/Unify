@@ -22,6 +22,7 @@ import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
+import { Theme } from '@/constants/Theme';
 
 // Header component
 const PostDetailsHeader = ({ onBack }: { onBack: () => void }) => (
@@ -283,19 +284,20 @@ const styles = StyleSheet.create({
   commentInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 25,
-    paddingHorizontal: 16,
+    borderColor: '#e0e0e0',
+    borderRadius: 20,
+    paddingHorizontal: 15,
     paddingVertical: 10,
-    fontSize: 14,
+    maxHeight: 100,
+    fontSize: 16,
     height: 44,
-    backgroundColor: '#D9D9D9',
+    backgroundColor: Theme.surfaceTextInput,
   },
   postMessageButton: {
-    backgroundColor: '#575757',
+    backgroundColor: Theme.primaryGatherRed,
     borderRadius: 50,
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     justifyContent: 'center',
     alignItems: 'center',
     transform: [{ rotate: '45deg' }],

@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useFollowUser } from '@/hooks/users/useFollowUser';
 import { useFollowStatus } from '@/hooks/users/useFollowStatus';
+import { Theme } from '@/constants/Theme';
 
 interface FollowButtonProps {
   targetUserId: string;
@@ -59,16 +60,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    minWidth: 64,
   },
   followButton: {
-    backgroundColor: '#333',
+    backgroundColor: Theme.primaryGatherRed,
   },
   followingButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: Theme.primaryGatherRed,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 10,
+    color: Theme.white,
+    fontSize: 12,
     fontWeight: '600',
   },
 });

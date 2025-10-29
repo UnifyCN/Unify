@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { isGeminiAvailable, callGeminiAPI } from '@/utils/gemini';
 import { useChatbotUsage } from '@/hooks/chatbot/useChatbotUsage';
 import { useUpdateChatbotUsage } from '@/hooks/chatbot/useUpdateChatbotUsage';
+import { Theme } from '@/constants/Theme';
 
 interface Message {
   id: string;
@@ -181,6 +182,9 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
       >
         {/* Header */}
         <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Ionicons name='close' size={24} color={Theme.black} />
+          </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>
               AI Companion {!isApiAvailable && '⚠️'}
@@ -189,9 +193,6 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
               <Text style={styles.headerSubtitle}>Temporarily Unavailable</Text>
             )}
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name='close' size={24} color='#333' />
-          </TouchableOpacity>
         </View>
 
         {/* Messages */}
@@ -282,7 +283,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.backgroundChatbot,
   },
   header: {
     flexDirection: 'row',
@@ -293,15 +294,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-    paddingTop: 50,
   },
   headerContent: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#333',
+    color: Theme.black,
   },
   headerSubtitle: {
     fontSize: 12,
@@ -309,13 +311,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   closeButton: {
-    padding: 5,
+    position: 'absolute',
+    left: 16,
+    bottom: '0%',
+    transform: [{ translateY: -16 }],
+    zIndex: 1,
   },
   messagesList: {
     flex: 1,
   },
   messagesContent: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 18,
+    gap: 4,
     paddingVertical: 10,
   },
   messageContainer: {
@@ -331,16 +338,16 @@ const styles = StyleSheet.create({
   messageBubble: {
     maxWidth: '80%',
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: 15,
     borderRadius: 20,
   },
   userBubble: {
-    backgroundColor: '#007AFF',
-    borderBottomRightRadius: 5,
+    backgroundColor: Theme.surfaceBlue,
+    borderTopRightRadius: 5,
   },
   botBubble: {
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 5,
+    borderTopLeftRadius: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -372,7 +379,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     paddingHorizontal: 15,
     paddingBottom: 40,
     backgroundColor: '#fff',
@@ -386,7 +393,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     maxHeight: 100,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    height: 44,
+    backgroundColor: Theme.surfaceTextInput,
   },
   disabledInput: {
     backgroundColor: '#f0f0f0',
@@ -394,9 +402,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   sendButton: {
-    backgroundColor: '#007AFF',
-    width: 40,
-    height: 40,
+    backgroundColor: Theme.surfaceBlue,
+    width: 38,
+    height: 38,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',

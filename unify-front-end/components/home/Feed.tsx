@@ -37,9 +37,9 @@ const Feed = ({
   const renderPost = useCallback(
     ({ item }: { item: PostData }) => {
       return (
-        <PostItem 
-          post={item} 
-          metadata={metadata?.[item.id]} 
+        <PostItem
+          post={item}
+          metadata={metadata?.[item.id]}
           metadataLoading={metadataLoading}
         />
       );

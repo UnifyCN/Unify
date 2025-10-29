@@ -4,7 +4,10 @@ import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import Header from '@/components/Header';
-import { HeaderVisibilityProvider, useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+import {
+  HeaderVisibilityProvider,
+  useHeaderVisibility,
+} from '@/components/HeaderVisibilityProvider';
 import { View, Text, StyleSheet } from 'react-native';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';

@@ -11,13 +11,13 @@ export const formatSocialMediaTime = (timestamp: string | Date): string => {
   // Less than 1 hour
   if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}m ago`;
+    return `${minutes}m`;
   }
 
   // Less than 24 hours
   if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}h ago`;
+    return `${hours}h`;
   }
 
   // Less than 7 days
@@ -26,15 +26,21 @@ export const formatSocialMediaTime = (timestamp: string | Date): string => {
     return `${diffInDays}d ago`;
   }
 
-  // Less than 30 days
-  if (diffInDays < 30) {
+  // Less than 6 weeks (42 days)
+  if (diffInDays < 42) {
     const weeks = Math.floor(diffInDays / 7);
-    return `${weeks}w ago`;
+    if (weeks === 1) {
+      return '1 week ago';
+    } else {
+      return `${weeks} weeks ago`;
+    }
   }
 
-  // Less than 365 days
-  const months = Math.floor(diffInDays / 30);
-  return `${months}mo ago`;
+  // After 6 weeks, display pure date in yy-mm-dd format
+  const year = postDate.getFullYear().toString().slice(-2);
+  const month = (postDate.getMonth() + 1).toString().padStart(2, '0');
+  const day = postDate.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
 // Alternative: Format as absolute date (e.g., "Dec 15, 2023")
