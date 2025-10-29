@@ -18,6 +18,8 @@ import { useSubmoduleProgress } from '@/hooks/progress/useSubmoduleProgress';
 import { getSubmoduleProgress } from '@/services/progress/progressService';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+
 // NOTE: THIS FILE IS TO BE DIVIDED TO COMPONENTS AFTER LEARN COMPONENTS CLEAN UP
 // --- safety helpers ---
 const safeNum = (n: any, fallback = 0) =>
@@ -600,7 +602,7 @@ const styles = StyleSheet.create({
   rail: {
     position: 'absolute',
     width: RAIL_W,
-    backgroundColor: '#111',
+    backgroundColor: '#676767',
     borderRadius: 2,
     zIndex: 0,
     elevation: 0,
