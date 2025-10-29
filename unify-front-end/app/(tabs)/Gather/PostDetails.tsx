@@ -21,6 +21,7 @@ import { PostItem } from '@/components/home/PostItem';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
+import SendIcon from '@/components/icons/SendIcon.svg';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { Theme } from '@/constants/Theme';
 
@@ -97,7 +98,13 @@ const CommentInput = ({
       onPress={onSend}
       disabled={disabled}
     >
-      <Feather name='send' size={20} color={disabled ? '#999' : 'white'} />
+      <View style={styles.sendIconContainer}>
+        <SendIcon
+          width={20}
+          height={18}
+          stroke={disabled ? Theme.textInactiveTab : Theme.white}
+        />
+      </View>
     </TouchableOpacity>
   </View>
 );
@@ -300,13 +307,19 @@ const styles = StyleSheet.create({
     height: 38,
     justifyContent: 'center',
     alignItems: 'center',
-    transform: [{ rotate: '45deg' }],
     padding: 10,
     marginLeft: 12,
   },
   postMessageButtonDisabled: {
     backgroundColor: '#E5E5E5',
     opacity: 0.6,
+  },
+  sendIconContainer: {
+    width: 25,
+    paddingLeft: 2,
+    height: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   commentsLoadingContainer: {
     backgroundColor: '#fff',

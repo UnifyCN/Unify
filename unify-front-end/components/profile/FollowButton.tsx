@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -14,41 +14,43 @@ interface FollowButtonProps {
 }
 
 export const FollowButton = ({ targetUserId }: FollowButtonProps) => {
-  const { data: isFollowing, isLoading: isFollowStatusLoading } =
-    useFollowStatus(targetUserId);
+  const { data: isFollowing } = useFollowStatus(targetUserId);
   const followUserMutation = useFollowUser();
 
+  // Local state to track follow status for immediate UI updates
+  const [localIsFollowing, setLocalIsFollowing] = useState<boolean | null>(
+    null
+  );
+
+  // Update local state when server data changes
+  useEffect(() => {
+    if (isFollowing !== undefined) {
+      setLocalIsFollowing(isFollowing);
+    }
+  }, [isFollowing]);
+
   const handleFollowToggle = () => {
+    // Immediately update local state for instant UI feedback
+    setLocalIsFollowing(!localIsFollowing);
+
     followUserMutation.mutate({
       targetUserId,
-      isFollowing: !isFollowing,
+      isFollowing: !localIsFollowing,
     });
   };
-
-  if (isFollowStatusLoading) {
-    return (
-      <TouchableOpacity style={styles.button} disabled>
-        <ActivityIndicator size='small' color='#fff' />
-      </TouchableOpacity>
-    );
-  }
 
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        isFollowing ? styles.followingButton : styles.followButton,
+        localIsFollowing ? styles.followingButton : styles.followButton,
       ]}
       onPress={handleFollowToggle}
       disabled={followUserMutation.isPending}
     >
-      {followUserMutation.isPending ? (
-        <ActivityIndicator size='small' color='#fff' />
-      ) : (
-        <Text style={styles.buttonText}>
-          {isFollowing ? 'Unfollow' : 'Follow'}
-        </Text>
-      )}
+      <Text style={styles.buttonText}>
+        {localIsFollowing ? 'Unfollow' : 'Follow'}
+      </Text>
     </TouchableOpacity>
   );
 };

@@ -12,6 +12,7 @@ export const Theme = {
   textInput: '#686464',
   textInactiveTab: '#B5B1B1',
   textAlternateGray: '#575757',
+  textPostTime: '#9F9D9D',
 
   surfaceTextInput: '#E6E6E6',
   surfaceGray: '#F0F0F0',

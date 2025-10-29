@@ -15,6 +15,7 @@ import { isGeminiAvailable, callGeminiAPI } from '@/utils/gemini';
 import { useChatbotUsage } from '@/hooks/chatbot/useChatbotUsage';
 import { useUpdateChatbotUsage } from '@/hooks/chatbot/useUpdateChatbotUsage';
 import { Theme } from '@/constants/Theme';
+import SendIcon from '@/components/icons/SendIcon.svg';
 
 interface Message {
   id: string;
@@ -261,18 +262,20 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
               !canSendMessage
             }
           >
-            <Ionicons
-              name='send'
-              size={20}
-              color={
-                !inputText.trim() ||
-                isLoading ||
-                !isApiAvailable ||
-                !canSendMessage
-                  ? '#ccc'
-                  : '#fff'
-              }
-            />
+            <View style={styles.sendIconContainer}>
+              <SendIcon
+                width={20}
+                height={18}
+                stroke={
+                  !inputText.trim() ||
+                  isLoading ||
+                  !isApiAvailable ||
+                  !canSendMessage
+                    ? Theme.textInactiveTab
+                    : Theme.white
+                }
+              />
+            </View>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -412,6 +415,13 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#e0e0e0',
+  },
+  sendIconContainer: {
+    width: 25,
+    paddingLeft: 2,
+    height: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   messageCountContainer: {
     paddingHorizontal: 15,

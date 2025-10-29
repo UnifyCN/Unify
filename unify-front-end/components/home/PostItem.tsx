@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   time: {
     paddingTop: 2,
     fontSize: 10,
-    color: '#423F3F',
+    color: Theme.textPostTime,
     fontWeight: '500',
   },
   title: {

@@ -8,6 +8,7 @@ import { memo, useCallback } from 'react';
 import { PostCommentData } from '@/types/feeds/postcomment';
 import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Theme } from '@/constants/Theme';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -132,11 +133,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   name: {
-    fontWeight: '400',
+    fontSize: 12,
+    color: Theme.black,
   },
   time: {
+    paddingTop: 2,
     fontSize: 10,
-    color: '#9F9D9D',
+    color: Theme.textPostTime,
     fontWeight: '500',
   },
   description: {
