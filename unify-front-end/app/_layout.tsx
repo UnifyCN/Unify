@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Onboarding from './onboarding';
 import { FloatingChatButton } from '@/components/ChatBot';
+import { useProgressCache } from '@/hooks/progress/useProgressCache';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -23,6 +24,20 @@ export default function RootLayout() {
 
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Initialize progress cache
+  const { isInitialized: progressCacheInitialized, isLoading: progressCacheLoading } = useProgressCache();
+  const [cacheTimeout, setCacheTimeout] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!progressCacheInitialized) {
+        console.warn('Progress cache initialization timed out');
+        setCacheTimeout(true);
+      }
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [progressCacheInitialized]);
 
   // Create a client
   const queryClient = React.useMemo(
@@ -50,10 +65,10 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (loaded && onboardingChecked) {
+    if (loaded && onboardingChecked && (progressCacheInitialized || cacheTimeout)) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, onboardingChecked]);
+  }, [loaded, onboardingChecked, progressCacheInitialized, cacheTimeout]);
 
   if (!loaded || !onboardingChecked) {
     return null; // or a loading spinner

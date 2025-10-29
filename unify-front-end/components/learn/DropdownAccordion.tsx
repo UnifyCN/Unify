@@ -9,6 +9,7 @@ import {
   UIManager,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 
 if (
   Platform.OS === 'android' &&
@@ -20,7 +21,7 @@ if (
 type AccordionItem = {
   id: string;
   title: string;
-  body: string;
+  body: string | any[];
 };
 
 export default function DropdownAccordion({
@@ -36,11 +37,11 @@ export default function DropdownAccordion({
   };
 
   return (
-    <View style={{ gap: 12 }}>
+    <View style={styles.container}>
       {items.map(item => {
         const open = item.id === openId;
         return (
-          <View key={item.id} style={styles.card}>
+          <View key={item.id}>
             <TouchableOpacity
               style={styles.header}
               onPress={() => toggle(item.id)}
@@ -54,7 +55,11 @@ export default function DropdownAccordion({
             </TouchableOpacity>
             {open && (
               <View style={styles.body}>
-                <Text style={styles.bodyText}>{item.body}</Text>
+                {typeof item.body === 'string' ? (
+                  <Text style={styles.bodyText}>{item.body}</Text>
+                ) : (
+                  <RichTextRenderer blocks={item.body} />
+                )}
               </View>
             )}
           </View>
@@ -65,28 +70,30 @@ export default function DropdownAccordion({
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#E5E7EB',
-    borderRadius: 12,
-    overflow: 'hidden',
+  container: {
+    gap: 12,
   },
   header: {
+    backgroundColor: '#E6E6E6',
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 18,
+    marginBottom: 8,
   },
   headerText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '500',
     color: '#111827',
   },
   body: {
-    backgroundColor: '#F3F4F6',
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    backgroundColor: '#E6E6E6',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 8,
   },
   bodyText: {
     fontSize: 15,

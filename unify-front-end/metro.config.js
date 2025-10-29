@@ -16,6 +16,12 @@ module.exports = (() => {
     ...resolver,
     assetExts: resolver.assetExts.filter(ext => ext !== 'svg'),
     sourceExts: [...resolver.sourceExts, 'svg'],
+    // Add resolver for Sanity client React Native compatibility
+    alias: {
+      '@sanity/client/csm': false, // Disable the problematic module
+    },
+    // Add platform-specific extensions
+    platforms: ['ios', 'android', 'native', 'web'],
   };
 
   return wrapWithReanimatedMetroConfig(config);
