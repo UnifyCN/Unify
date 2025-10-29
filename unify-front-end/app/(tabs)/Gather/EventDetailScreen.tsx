@@ -65,7 +65,9 @@ const EventDetailScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity
+          onPress={() => router.replace('/(tabs)/Gather/gather')}
+        >
           <Feather name='chevron-left' size={24} color={Theme.white} />
         </TouchableOpacity>
         {/* Share Button */}
