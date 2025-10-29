@@ -124,6 +124,12 @@ const SearchScreen = () => {
     } catch (e) {
       console.error('saveRecentGroups exception', e);
     }
+    
+    // Navigate to GroupDetailScreen
+    router.push({
+      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      params: { group: JSON.stringify(group) },
+    });
   };
 
   const renderPosts = ({ item }: { item: PostData }) => (
@@ -294,7 +300,7 @@ const SearchScreen = () => {
                   renderItem={renderGroup}
                   keyExtractor={item => item.id.toString()}
                   scrollEnabled={false}
-                  contentContainerStyle={{ gap: 20 }}
+                  contentContainerStyle={{ gap: 20, paddingBottom: 20 }}
                 />
               </View>
             )}
