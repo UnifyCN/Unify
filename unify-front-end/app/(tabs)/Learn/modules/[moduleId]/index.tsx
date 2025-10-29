@@ -161,7 +161,8 @@ export default function ModuleIndex() {
   const railHeight = useMemo(() => {
     if (railEnd == null || progressBottom <= 0) return 0;
     const trim = 18;
-    return Math.max(0, railEnd - progressBottom - trim);
+    const topOffset = FIRST_GAP - ROW_SEGMENT_LEN;
+    return Math.max(0, railEnd - (progressBottom + topOffset) - trim);
   }, [railEnd, progressBottom]);
 
   if (isLoading || progressLoading) {
@@ -320,7 +321,7 @@ export default function ModuleIndex() {
               style={[
                 styles.rail,
                 {
-                  top: progressBottom,
+                  top: progressBottom + 18,
                   height: railHeight,
                   left: SCREEN_WIDTH / 2 - RAIL_W / 2,
                 },
@@ -616,8 +617,8 @@ const styles = StyleSheet.create({
 
   rowSegment: {
     position: 'absolute',
-    top: -24,
-    height: 24,
+    top: -39,
+    height: 30,
     width: RAIL_W,
     backgroundColor: '#111',
     borderRadius: 2,
