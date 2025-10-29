@@ -14,15 +14,10 @@ import {
 import { useRouter, useLocalSearchParams, Link, useFocusEffect } from 'expo-router';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
-import { useSubmoduleProgress } from '@/hooks/progress/useSubmoduleProgress';
-import { getSubmoduleProgress } from '@/services/progress/progressService';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle } from 'react-native-svg';
 
-
-// NOTE: THIS FILE IS TO BE DIVIDED TO COMPONENTS AFTER LEARN COMPONENTS CLEAN UP
 // --- safety helpers ---
 const safeNum = (n: any, fallback = 0) =>
   Number.isFinite(Number(n)) ? Number(n) : fallback;
@@ -39,18 +34,18 @@ const CONTENT_W = Math.max(0, SCREEN_WIDTH - EDGE_PAD * 2);
 const CARD_RATIO = 0.75;
 const CARD_W = 269;
 
-//RAIL = LINE
+// RAIL
 const RAIL_W = 4;
-const FIRST_GAP = 40;
+const FIRST_GAP = 20;
 
-// Bubble sizing + gap (distance from card edge to bubble)
-const BUBBLE_SIZE = 65; // change to resize circle
+// Bubble sizing + gap
+const BUBBLE_SIZE = 65;
 const BUBBLE_RADIUS = BUBBLE_SIZE / 2;
-const BUBBLE_GAP = 16; // change to move closer/farther from card
-// Bubble rings (match the Figma-ish gaps)
-const RING_MIDDLE = BUBBLE_SIZE - 6;   // ~3px gap from outer
-const RING_INNER  = BUBBLE_SIZE - 16;  // ~5px middle thickness
-const PROGRESS_STROKE = 6;             // white arc thickness
+const BUBBLE_GAP = 16;
+// Rings
+const RING_MIDDLE = BUBBLE_SIZE - 6;
+const RING_INNER = BUBBLE_SIZE - 16;
+const PROGRESS_STROKE = 6;
 
 export default function ModuleIndex() {
   const router = useRouter();
@@ -65,28 +60,15 @@ export default function ModuleIndex() {
   const { moduleProgress, isLoading: progressLoading } = useModuleProgress(
     moduleId || ''
   );
-  const [submoduleProgresses, setSubmoduleProgresses] = useState<{
-    [key: string]: any;
-  }>({});
+  const [submoduleProgresses, setSubmoduleProgresses] = useState<{ [key: string]: any }>({});
 
   // Calculate module progress from submodule data
   const moduleProgressData = useMemo(() => {
     const submoduleList = Object.values(submoduleProgresses);
-    const completedSubmodules = submoduleList.filter(
-      (submodule: any) => submodule.is_completed
-    ).length;
+    const completedSubmodules = submoduleList.filter((submodule: any) => submodule.is_completed).length;
     const totalSubmodules = moduleData?.submodules?.length || 0;
     const progressPercent =
-      totalSubmodules > 0
-        ? Math.round((completedSubmodules / totalSubmodules) * 100)
-        : 0;
-
-    console.log('Module Progress Calculation:', {
-      submoduleProgresses,
-      completedSubmodules,
-      totalSubmodules,
-      progressPercent,
-    });
+      totalSubmodules > 0 ? Math.round((completedSubmodules / totalSubmodules) * 100) : 0;
 
     return {
       completed_submodules: completedSubmodules,
@@ -95,44 +77,32 @@ export default function ModuleIndex() {
     };
   }, [submoduleProgresses, moduleData?.submodules]);
 
-  // Fetch submodule progress data using cached service
+  // Fetch submodule progress (initial)
   useEffect(() => {
-    if (moduleData?.submodules) {
-      const fetchSubmoduleProgress = async () => {
-        const progressData: { [key: string]: any } = {};
-
-        for (const submodule of moduleData.submodules) {
-          try {
-            // Use cached progress service for faster access
-            const progress = await cachedProgressService.getSubmoduleProgress(
-              moduleId || '',
-              submodule._id
-            );
-            console.log(`Cached progress for ${submodule.title}:`, progress);
-            progressData[submodule._id] = progress;
-          } catch (error) {
-            console.error(
-              `Error fetching cached progress for submodule ${submodule._id}:`,
-              error
-            );
-            // Set default values if progress fetching fails
-            progressData[submodule._id] = {
-              is_completed: false,
-              progress_percent: 0,
-              completed_lessons: 0,
-              total_lessons: submodule.lessons?.length || 0,
-            };
-          }
+    if (!moduleData?.submodules) return;
+    (async () => {
+      const progressData: { [key: string]: any } = {};
+      for (const submodule of moduleData.submodules) {
+        try {
+          const progress = await cachedProgressService.getSubmoduleProgress(
+            moduleId || '',
+            submodule._id
+          );
+          progressData[submodule._id] = progress;
+        } catch {
+          progressData[submodule._id] = {
+            is_completed: false,
+            progress_percent: 0,
+            completed_lessons: 0,
+            total_lessons: submodule.lessons?.length || 0,
+          };
         }
-
-        setSubmoduleProgresses(progressData);
-      };
-
-      fetchSubmoduleProgress();
-    }
+      }
+      setSubmoduleProgresses(progressData);
+    })();
   }, [moduleData?.submodules, moduleId]);
 
-  // 🔁 Refetch progress whenever this screen gains focus
+  // Refetch progress when screen focuses
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
@@ -155,7 +125,9 @@ export default function ModuleIndex() {
         if (!cancelled) setSubmoduleProgresses(progressData);
       };
       run();
-      return () => { cancelled = true; };
+      return () => {
+        cancelled = true;
+      };
     }, [moduleId, moduleData?.submodules])
   );
 
@@ -167,18 +139,55 @@ export default function ModuleIndex() {
   const rowTopsRef = useRef<number[]>([]);
   const [ahead, setAhead] = useState(0);
 
-  // per-row card layout (for bubble X/Y position)
-  const cardLayoutsRef = useRef<
-    Array<{ x: number; y: number; width: number; height: number }>
-  >([]);
+  const railTopRef = useRef(0);
+  const timelineTopRef = useRef(0);
 
-  // 👉 which submodule is the next one the user should do?
+  // Make rowTopsRef always have one slot per submodule
+  useEffect(() => {
+    const total = moduleData?.submodules?.length || 0;
+    rowTopsRef.current = new Array(total).fill(NaN); // NaN = unmeasured
+  }, [moduleData?.submodules?.length]);
+
+  // per-row card layout (for bubble X/Y position)
+  const cardLayoutsRef = useRef<Array<{ x: number; y: number; width: number; height: number }>>([]);
+
+  // ========== Bubble helpers ==========
+  const bubbleOutsideLeftOfCard = (index: number, fallbackLeftEdge: number) => {
+    const entry = cardLayoutsRef.current[index];
+    const cardLeft =
+      entry && Number.isFinite(entry.x) ? entry.x : fallbackLeftEdge;
+    return Math.max(0, cardLeft - BUBBLE_GAP - 2 * BUBBLE_RADIUS);
+  };
+
+  const bubbleOutsideRightOfCard = (index: number, fallbackRightEdge: number) => {
+    const entry = cardLayoutsRef.current[index];
+    const cardRight =
+      entry && Number.isFinite(entry.x) && Number.isFinite(entry.width)
+        ? entry.x + entry.width
+        : fallbackRightEdge;
+    return Math.max(0, cardRight + BUBBLE_GAP);
+  };
+
+  const bubbleTopForCard = (
+    index: number,
+    fallbackRowTop: number,
+    fallbackRowHeight: number
+  ) => {
+    const entry = cardLayoutsRef.current[index];
+    if (entry && Number.isFinite(entry.y) && Number.isFinite(entry.height)) {
+      return Math.max(0, entry.y + (entry.height - BUBBLE_SIZE) / 2);
+    }
+    // fallback: center in the row until we get card layout
+    return Math.max(0, fallbackRowTop + (fallbackRowHeight - BUBBLE_SIZE) / 2);
+  };
+
+  // which submodule is the next one the user should do?
   const currentIndex = useMemo(() => {
     if (!moduleData?.submodules) return -1;
     for (let i = 0; i < moduleData.submodules.length; i++) {
       const id = moduleData.submodules[i]._id;
       const p = submoduleProgresses[id];
-      if (!p?.is_completed) return i;   // first not-completed
+      if (!p?.is_completed) return i; // first not-completed
     }
     return -1; // all done
   }, [moduleData?.submodules, submoduleProgresses]);
@@ -226,28 +235,22 @@ export default function ModuleIndex() {
   }
 
   // Normalize list + gating with real progress data
-  const submodules = moduleData.submodules.map((s, i, arr) => {
+  const submodules = moduleData.submodules.map((s, i) => {
     const progress = submoduleProgresses[s._id];
     const isCompleted = progress?.is_completed || false;
     const progressPercent = progress?.progress_percent || 0;
 
-    // Determine status based on progress
-    let status = 'not-started';
-    if (isCompleted) {
-      status = 'completed';
-    } else if (progressPercent > 0) {
-      status = 'in-progress';
-    }
+    let status: 'not-started' | 'in-progress' | 'completed' = 'not-started';
+    if (isCompleted) status = 'completed';
+    else if (progressPercent > 0) status = 'in-progress';
 
-    // Unlock logic: first submodule is always unlocked, others unlock when previous is completed
     const unlocked =
       i === 0 ||
-      (i > 0 &&
-        submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+      (i > 0 && submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
 
     return {
       ...s,
-      id: s._id, // Use Sanity _id
+      id: s._id,
       index: i + 1,
       status,
       unlocked,
@@ -256,54 +259,29 @@ export default function ModuleIndex() {
     };
   });
 
-  // compute "ahead" on every scroll
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = clampNonNeg(e.nativeEvent.contentOffset?.y);
+    const y  = clampNonNeg(e.nativeEvent.contentOffset?.y);
     const vh = clampNonNeg(e.nativeEvent.layoutMeasurement?.height);
-    const visibleBottom = y + vh;
-    const buffer = 4;
-    const below = rowTopsRef.current.filter(
-      v => Number.isFinite(v) && v > visibleBottom + buffer
-    ).length;
-    setAhead(below);
-  };
+    const threshold = y + vh + 4; // small buffer
 
-  // ========== Bubble helpers ==========
-  // Bubble to the LEFT of a card (outside, hugging its left edge)
-  const bubbleOutsideLeftOfCard = (index: number, fallbackLeftEdge: number) => {
-    const entry = cardLayoutsRef.current[index];
-    const cardLeft =
-      entry && Number.isFinite(entry.x) ? entry.x : fallbackLeftEdge;
-    return Math.max(0, cardLeft - BUBBLE_GAP - 2 * BUBBLE_RADIUS);
-  };
+    const total = moduleData?.submodules?.length || 0;
+    const tops  = rowTopsRef.current;
 
-  // Bubble to the RIGHT of a card (outside, hugging its right edge)
-  const bubbleOutsideRightOfCard = (
-    index: number,
-    fallbackRightEdge: number
-  ) => {
-    const entry = cardLayoutsRef.current[index];
-    const cardRight =
-      entry && Number.isFinite(entry.x) && Number.isFinite(entry.width)
-        ? entry.x + entry.width
-        : fallbackRightEdge;
-    return Math.max(0, cardRight + BUBBLE_GAP);
-  };
-
-  // Vertically center the bubble to the CARD
-  const bubbleTopForCard = (
-    index: number,
-    fallbackRowTop: number,
-    fallbackRowHeight: number
-  ) => {
-    const entry = cardLayoutsRef.current[index];
-    if (entry && Number.isFinite(entry.y) && Number.isFinite(entry.height)) {
-      return Math.max(0, entry.y + (entry.height - BUBBLE_SIZE) / 2);
+    // Find first index that is either unmeasured OR actually below the viewport
+    let firstBelowIdx = -1;
+    for (let i = 0; i < total; i++) {
+      const top = tops[i];
+      if (!Number.isFinite(top) || top > threshold) {
+        firstBelowIdx = i;
+        break;
+      }
     }
-    // fallback: center in the row until we get card layout
-    return Math.max(0, fallbackRowTop + (fallbackRowHeight - BUBBLE_SIZE) / 2);
+
+    const newAhead = firstBelowIdx === -1 ? 0 : total - firstBelowIdx;
+    setAhead(newAhead);
   };
 
+  // === UI ===
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -311,6 +289,16 @@ export default function ModuleIndex() {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        // optional: run a first pass once the ScrollView knows its height
+        onLayout={e => {
+          const fakeEvt = {
+            nativeEvent: {
+              contentOffset: { y: 0 },
+              layoutMeasurement: { height: e.nativeEvent.layout.height },
+            },
+          } as unknown as NativeSyntheticEvent<NativeScrollEvent>;
+          handleScroll(fakeEvt);
+        }}
       >
         {/* Header */}
         <View style={styles.headerRow}>
@@ -342,10 +330,7 @@ export default function ModuleIndex() {
               style={[
                 styles.progressFill,
                 {
-                  width: `${Math.min(
-                    100,
-                    Math.max(0, moduleProgressData.progress_percent)
-                  )}%`,
+                  width: `${Math.min(100, Math.max(0, moduleProgressData.progress_percent))}%`,
                 },
               ]}
             />
@@ -353,7 +338,13 @@ export default function ModuleIndex() {
         </View>
 
         {/* Rail container */}
-        <View style={styles.railContainer}>
+        <View
+          style={styles.railContainer}
+          // ⬇️ NEW: capture absolute Y for this container (relative to ScrollView content)
+          onLayout={e => {
+            railTopRef.current = clampNonNeg(e.nativeEvent.layout.y);
+          }}
+        >
           {/* Rail */}
           {railHeight > 0 && (
             <View
@@ -370,7 +361,14 @@ export default function ModuleIndex() {
           )}
 
           {/* Timeline items */}
-          <View style={styles.timelineList}>
+          <View
+            style={styles.timelineList}
+            
+
+            onLayout={e => {
+              timelineTopRef.current = clampNonNeg(e.nativeEvent.layout.y);
+            }}
+          >
             {submodules.map((m, i) => {
               const leftSide = i % 2 === 0; // card sits on the left?
               const ctaText = m.is_completed
@@ -379,24 +377,18 @@ export default function ModuleIndex() {
                 ? 'Resume'
                 : 'Start';
               const disabled = !m.unlocked;
-              const bubbleText = m.is_completed
-                ? null
-                : `${Math.round(m.progress_percent || 0)}%`;
 
               // Fallback edges until card onLayout fires
-              const fallbackLeftEdgeOfRightCard =
-                SCREEN_WIDTH - EDGE_PAD - CARD_W; // right-aligned card's LEFT
-              const fallbackRightEdgeOfLeftCard = EDGE_PAD + CARD_W; // left-aligned card's RIGHT
+              const fallbackLeftEdgeOfRightCard = SCREEN_WIDTH - EDGE_PAD - CARD_W;
+              const fallbackRightEdgeOfLeftCard = EDGE_PAD + CARD_W;
 
               // Row layout (for fallback top)
               let rowTop = 0;
               let rowHeight = 0;
 
-              // 👉 determine current and bubble style per-row
-              const isCurrent =
-                i === currentIndex && !m.is_completed && m.unlocked;
-              const showProgressBubble =
-                (m.progress_percent || 0) > 0 || isCurrent;
+              // determine current and bubble style per-row
+              const isCurrent = i === currentIndex && !m.is_completed && m.unlocked;
+              const showProgressBubble = (m.progress_percent || 0) > 0 || isCurrent;
               const isLocked = !m.unlocked;
 
               return (
@@ -406,8 +398,14 @@ export default function ModuleIndex() {
                   onLayout={e => {
                     rowTop = clampNonNeg(e.nativeEvent.layout.y);
                     rowHeight = clampNonNeg(e.nativeEvent.layout.height);
-                    rowTopsRef.current[i] = rowTop;
-                    updateRowBottom(rowTop + rowHeight);
+                    
+
+                    const absTop =
+                      clampNonNeg(railTopRef.current) +
+                      clampNonNeg(timelineTopRef.current) +
+                      rowTop;
+                    rowTopsRef.current[i] = absTop;
+                    updateRowBottom(absTop + rowHeight);
                   }}
                 >
                   {/* Submodule card */}
@@ -416,8 +414,7 @@ export default function ModuleIndex() {
                     onPress={() => {
                       if (disabled) return;
                       router.push({
-                        pathname:
-                          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                         params: { moduleId, submoduleId: m.id },
                       });
                     }}
@@ -469,9 +466,7 @@ export default function ModuleIndex() {
                     </View>
 
                     <Text style={styles.cardTitle}>{m.title}</Text>
-                    {!!m.description && (
-                      <Text style={styles.cardDesc}>{m.description}</Text>
-                    )}
+                    {!!m.description && <Text style={styles.cardDesc}>{m.description}</Text>}
 
                     {/* CTA */}
                     <View style={styles.ctaRow}>
@@ -508,28 +503,20 @@ export default function ModuleIndex() {
                     ]}
                   >
                     {isLocked ? (
-                      /* === 3-ring LOCKED bubble (no arc) === */
+                      // 3-ring LOCKED bubble (no arc)
                       <View style={styles.progressBubble}>
                         <View style={styles.ringOuterLocked} />
                         <View style={styles.ringMiddleLocked} />
                         <View style={styles.ringInnerLocked} />
-                        <Text style={styles.bubbleText}>
-                          {Math.round(m.progress_percent || 0)}%
-                        </Text>
+                        <Text style={styles.bubbleText}>{Math.round(m.progress_percent || 0)}%</Text>
                       </View>
-                    ): showProgressBubble ? (
-                      /* === 3-ring progress bubble (also for current at 0%) === */
+                    ) : showProgressBubble ? (
+                      // 3-ring progress bubble (also for current at 0%)
                       <View style={styles.progressBubble}>
                         <View style={styles.ringOuter} />
                         <View style={styles.ringMiddle} />
                         <View style={styles.ringInner} />
-
-                        <Svg
-                          height="100%"
-                          width="100%"
-                          viewBox="0 0 100 100"
-                          style={styles.progressSvgTop}
-                        >
+                        <Svg height="100%" width="100%" viewBox="0 0 100 100" style={styles.progressSvgTop}>
                           <Circle
                             cx="50"
                             cy="50"
@@ -539,44 +526,30 @@ export default function ModuleIndex() {
                             strokeLinecap="round"
                             strokeDasharray={2 * Math.PI * (50 - PROGRESS_STROKE)}
                             strokeDashoffset={
-                              2 *
-                              Math.PI *
-                              (50 - PROGRESS_STROKE) *
-                              (1 - (m.progress_percent || 0) / 100)
+                              2 * Math.PI * (50 - PROGRESS_STROKE) * (1 - (m.progress_percent || 0) / 100)
                             }
                             fill="none"
                           />
                         </Svg>
-
-                        <Text style={styles.bubbleText}>
-                          {Math.round(m.progress_percent || 0)}%
-                        </Text>
+                        <Text style={styles.bubbleText}>{Math.round(m.progress_percent || 0)}%</Text>
                       </View>
                     ) : (
-                      /* === Original bubble for completed (check) === */
+                      // Original bubble for completed (check)
                       <View
                         style={[
                           styles.bubbleOuter,
-                          m.unlocked
-                            ? styles.bubbleOuterActive
-                            : styles.bubbleOuterBlocked,
+                          m.unlocked ? styles.bubbleOuterActive : styles.bubbleOuterBlocked,
                           m.is_completed && styles.bubbleDoneOuter,
                         ]}
                       >
                         <View
                           style={[
                             styles.bubbleInner,
-                            m.unlocked
-                              ? styles.bubbleInnerActive
-                              : styles.bubbleInnerBlocked,
+                            m.unlocked ? styles.bubbleInnerActive : styles.bubbleInnerBlocked,
                             m.is_completed && styles.bubbleDoneInner,
                           ]}
                         >
-                          {m.is_completed ? (
-                            <Feather name="check" size={20} color="#fff" />
-                          ) : (
-                            <Text style={styles.bubbleText}>{bubbleText}</Text>
-                          )}
+                          <Feather name="check" size={20} color="#fff" />
                         </View>
                       </View>
                     )}
@@ -590,12 +563,11 @@ export default function ModuleIndex() {
         <View style={{ height: 28 }} />
       </ScrollView>
 
-
       {/* floating "N more modules ahead" pill */}
       {ahead > 0 && (
-        <View style={styles.morePillWrap} pointerEvents='none'>
+        <View style={styles.morePillWrap} pointerEvents="none">
           <View style={styles.morePill}>
-            <View style={styles.dots}>
+            <View className="dots" style={styles.dots}>
               <View style={styles.dot} />
               <View style={styles.dot} />
               <View style={styles.dot} />
@@ -610,7 +582,7 @@ export default function ModuleIndex() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F7F7F9', position: 'relative' },
-  container: { paddingHorizontal: EDGE_PAD, paddingBottom: 40},
+  container: { paddingHorizontal: EDGE_PAD, paddingBottom: 40 },
 
   headerRow: {
     flexDirection: 'row',
@@ -621,9 +593,8 @@ const styles = StyleSheet.create({
   },
   backButton: { padding: 8 },
 
-  // Header text
-  titleWrap: { 
-    alignItems: 'center', 
+  titleWrap: {
+    alignItems: 'center',
     marginBottom: 8,
     width: 345,
     alignSelf: 'center',
@@ -640,7 +611,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: 400,
+    fontWeight: '400',
     color: '#000000',
     textAlign: 'center',
     letterSpacing: 0.25,
@@ -655,7 +626,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 2,
     alignItems: 'center',
@@ -672,7 +643,6 @@ const styles = StyleSheet.create({
     color: '#343434',
     textAlign: 'center',
     marginBottom: 8,
-    
   },
   progressBar: {
     width: 323,
@@ -682,11 +652,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignSelf: 'center',
   },
-  progressFill: 
-  { height: '100%', 
-    backgroundColor: '#000', 
-    borderRadius: 20, 
-  },
+  progressFill: { height: '100%', backgroundColor: '#000', borderRadius: 20 },
 
   railContainer: { position: 'relative' },
   rail: {
@@ -700,7 +666,6 @@ const styles = StyleSheet.create({
 
   timelineList: { paddingTop: FIRST_GAP },
   timelineRow: { position: 'relative', marginVertical: 18, minHeight: 110 },
-
 
   // Card
   card: {
@@ -732,7 +697,7 @@ const styles = StyleSheet.create({
   },
   pillCompleted: { backgroundColor: '#ECFDF5' },
   pillInProgress: { backgroundColor: '#DCDCDC' },
-  pillNotStarted: { backgroundColor: '#DCDCDC'},
+  pillNotStarted: { backgroundColor: '#DCDCDC' },
   pillText: { fontSize: 10, lineHeight: 12, fontWeight: '500' },
   pillTextCompleted: { color: '#166534' },
   pillTextInProgress: { color: '#575757' },
@@ -746,14 +711,14 @@ const styles = StyleSheet.create({
     color: '#2B2B2B',
     marginBottom: 4,
   },
-  cardDesc: { 
-    fontSize: 12, 
+  cardDesc: {
+    fontSize: 12,
     lineHeight: 16,
     width: '100%',
     fontWeight: '400',
     letterSpacing: 0,
-    color: '#2B2B2B', 
-    marginBottom: 8, 
+    color: '#2B2B2B',
+    marginBottom: 8,
   },
 
   // CTA
@@ -771,18 +736,13 @@ const styles = StyleSheet.create({
     marginHorizontal: 14,
     paddingVertical: 0,
     borderWidth: 0,
-    
   },
-  ctaDisabled: { backgroundColor: '#B7B7B7'},
+  ctaDisabled: { backgroundColor: '#B7B7B7' },
   ctaText: { color: '#FFFFFF', fontSize: 10, lineHeight: 12, fontWeight: '500' },
-  ctaTextDisabled: { color: '#575757'},
+  ctaTextDisabled: { color: '#575757' },
 
-  // Bubble — absolute box; we set exact top/left inline per card
-  bubbleAbs: {
-    position: 'absolute',
-    width: BUBBLE_SIZE,
-    height: BUBBLE_SIZE,
-  },
+  // Bubble — absolute box
+  bubbleAbs: { position: 'absolute', width: BUBBLE_SIZE, height: BUBBLE_SIZE },
   bubbleOuter: {
     width: BUBBLE_SIZE,
     height: BUBBLE_SIZE,
@@ -792,7 +752,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
   },
   bubbleOuterActive: { borderColor: '#BABABA' },
-  bubbleOuterBlocked: { borderColor: '#d8d8d8' }, // darker blocked ring
+  bubbleOuterBlocked: { borderColor: '#d8d8d8' },
   bubbleInner: {
     width: BUBBLE_SIZE - 10,
     height: BUBBLE_SIZE - 10,
@@ -801,38 +761,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bubbleInnerActive: { backgroundColor: '#A6A6A6' },
-  bubbleInnerBlocked: { backgroundColor: '#c8c8c8' }, // darker blocked fill
+  bubbleInnerBlocked: { backgroundColor: '#c8c8c8' },
   bubbleDoneOuter: { borderColor: '#059669' },
   bubbleDoneInner: { backgroundColor: '#10B981' },
-  
-  bubbleGrad: {
-    width: BUBBLE_SIZE,
-    height: BUBBLE_SIZE,
-    borderRadius: BUBBLE_RADIUS,
-    padding: 3,
-  },
-  bubbleMiddle: {
-    flex: 1, 
-    borderRadius: BUBBLE_RADIUS - 3,
-    backgroundColor: '#9D9D9D',
-    padding: 2.5,
-  },
-  BubbleInnerFill: {
-    flex: 1,
-    borderRadius: BUBBLE_RADIUS - 5.5,
-    backgroundColor: '#A6A6A6'
-  },
-  bubbleText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#fff'
-  },
-  progressSvg: {
+
+  bubbleText: { fontSize: 16, fontWeight: '500', color: '#fff' },
+
+  progressSvgTop: {
     position: 'absolute',
     top: 0,
     left: 0,
     transform: [{ rotateZ: '-90deg' }],
   },
+
   progressBubble: {
     width: BUBBLE_SIZE,
     height: BUBBLE_SIZE,
@@ -867,7 +808,7 @@ const styles = StyleSheet.create({
     borderColor: '#9D9D9D',
   },
 
-  /* 🔒 LOCKED rings (requested colors) */
+  /* LOCKED rings */
   ringOuterLocked: {
     position: 'absolute',
     width: BUBBLE_SIZE,
@@ -892,17 +833,10 @@ const styles = StyleSheet.create({
     borderColor: '#D8D8D8',
   },
 
-  progressSvgTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    transform: [{ rotateZ: '-90deg' }],
-  },
-
-  // floating pill styles
+  // More modules pill
   morePillWrap: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 10, // about 10px above the bottom bar
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -910,34 +844,20 @@ const styles = StyleSheet.create({
   morePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderColor: '#D7DDE7',
+    justifyContent: 'center',
+    width: 195,
+    height: 39,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#D1D1D1',
     borderWidth: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    borderRadius: 20,
+    paddingHorizontal: 12,
   },
   dots: { flexDirection: 'row', marginRight: 10 },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#C7CDD8',
-    marginHorizontal: 2,
-  },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#C7CDD8', marginHorizontal: 2 },
   moreText: { fontSize: 14, color: '#6B7280', fontWeight: '700' },
 
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
   muted: { fontSize: 16, color: '#6B7280' },
   error: { fontSize: 16, color: '#EF4444' },
 
@@ -952,5 +872,4 @@ const styles = StyleSheet.create({
     borderWidth: 7,
     borderColor: '#707070',
   },
-
 });
