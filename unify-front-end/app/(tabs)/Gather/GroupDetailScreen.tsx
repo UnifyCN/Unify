@@ -25,6 +25,7 @@ import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { PostData } from '@/types/feeds/post';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
+import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -39,7 +40,15 @@ const GroupDetailScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const headerOpacity = useRef(new Animated.Value(0)).current;
 
+  const { setVisible } = useHeaderVisibility();
+
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Always hide the main header when this screen is active
+    setVisible(false);
+    return () => setVisible(true);
+  }, []);
 
   useEffect(() => {
     // Reset header opacity when component mounts

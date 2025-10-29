@@ -12,12 +12,19 @@ import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Event } from '@/types/events';
+import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 
 const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
+  const { setVisible } = useHeaderVisibility();
+
+  useEffect(() => {
+    setVisible(false);
+    return () => setVisible(true);
+  }, [setVisible]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('Upcoming');
   const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
