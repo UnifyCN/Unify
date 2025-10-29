@@ -4,7 +4,7 @@ import { User } from '@/types/user';
 
 export const getSavedPosts = async (
   cursor?: string,
-  limit = 20
+  limit: number = 20
 ): Promise<{ posts: PostData[]; next_cursor?: string }> => {
   try {
     // Get current user's ID

@@ -1,21 +1,11 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
 import { getPostsFromJoinedGroups } from '@/services/feeds/getPostsFromJoinedGroups';
-import { FeedResponse } from '@/types/feeds/feedResponse';
+import { useFeedFactory } from './useFeedFactory';
 
-export const useGroupsFeed = () => {
-  return useInfiniteQuery<
-    FeedResponse,
-    Error,
-    FeedResponse,
-    string[],
-    string | undefined
-  >({
+export const useGroupsFeed = (limit: number = 20) => {
+  return useFeedFactory({
     queryKey: ['feed', 'groups'],
-    queryFn: ({ pageParam }) => getPostsFromJoinedGroups(pageParam),
-    initialPageParam: undefined,
-    getNextPageParam: lastPage => lastPage.next_cursor,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    gcTime: 1000 * 60 * 5, // 5 minutes
+    queryFn: getPostsFromJoinedGroups,
+    limit,
   });
 };
 

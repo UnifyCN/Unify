@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import PostCommentItem from './PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
-import { useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
@@ -38,8 +37,12 @@ const PostDetailsHeader = ({ onBack }: { onBack: () => void }) => (
 // Loading state component
 const CommentsLoadingState = () => (
   <View style={styles.commentsLoadingContainer}>
-    {[1, 2, 3].map(i => (
-      <SkeletonLoaderPostItem key={i} avatarSize={29} showFooter={false} />
+    {Array.from({ length: 3 }, (_, index) => (
+      <SkeletonLoaderPostItem
+        key={index + 1}
+        avatarSize={29}
+        showFooter={false}
+      />
     ))}
   </View>
 );
@@ -126,7 +129,8 @@ const PostDetails = () => {
   const [commentTextBox, setCommentTextBox] = useState('');
 
   // Get post metadata from query cache (supports optimistic updates)
-  const { data: postMetadata } = usePostMetadata([post.id]);
+  const { data: postMetadata, isLoading: postMetadataLoading } =
+    usePostMetadata([post.id]);
   const metadata = postMetadata?.[post.id];
 
   // Use metadata from query cache
@@ -173,7 +177,7 @@ const PostDetails = () => {
       <PostCommentItem
         comment={item}
         metadata={commentMetadata?.[item.id]}
-        isLoading={commentMetadataLoading}
+        metadataLoading={commentMetadataLoading}
       />
     ),
     [commentMetadata, commentMetadataLoading]
@@ -194,7 +198,6 @@ const PostDetails = () => {
         contentContainerStyle={{ paddingTop: 80, paddingBottom: 25 }}
         ListHeaderComponent={
           <>
-            {/* Post Content */}
             <PostItem
               post={post}
               metadata={{
@@ -203,6 +206,7 @@ const PostDetails = () => {
                 likeCount,
                 commentCount,
               }}
+              metadataLoading={postMetadataLoading}
             />
 
             <View style={styles.largeDivider} />

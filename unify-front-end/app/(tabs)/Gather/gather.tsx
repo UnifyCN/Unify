@@ -2,9 +2,10 @@ import { useState, memo, useMemo } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
-import ForYouFeed from '@/components/home/ForYouFeed';
-import FollowingFeed from '@/components/home/FollowingFeed';
-import GroupsFeed from '@/components/home/GroupsFeed';
+import FeedWithHook from '@/components/FeedWithHook';
+import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
+import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
+import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -63,8 +64,9 @@ export default function GatherScreen() {
     switch (activeTab) {
       case 'Following':
         return (
-          <FollowingFeed
+          <FeedWithHook
             key={`following-${activeTab}`}
+            useFeedHook={useFollowingFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No one you follow has posted anything yet'
@@ -75,8 +77,9 @@ export default function GatherScreen() {
         );
       case 'Groups':
         return (
-          <GroupsFeed
+          <FeedWithHook
             key={`groups-${activeTab}`}
+            useFeedHook={useGroupsFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No posts in any of your groups yet'
@@ -87,8 +90,9 @@ export default function GatherScreen() {
         );
       default:
         return (
-          <ForYouFeed
+          <FeedWithHook
             key={`foryou-${activeTab}`}
+            useFeedHook={useForYouFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No one has posted anything yet'

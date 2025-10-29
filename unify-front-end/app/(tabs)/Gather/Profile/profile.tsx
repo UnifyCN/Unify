@@ -8,11 +8,13 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
-import SavedFeed from '@/components/profile/SavedFeed';
-import UserPostsFeed from '@/components/profile/UserPostsFeed';
+import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
+import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
+import { useUserPosts } from '@/hooks/posts/useUserPosts';
+import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -112,16 +114,31 @@ export default function Profile() {
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'Comments':
-        // TODO: This will make screen go blank, implement after commenting feature has been adding
-        return null;
+        return (
+          <FeedWithHook
+            key={`comments-${userId}`}
+            useFeedHook={() => useCommentedOnFeed(userId)}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No posts available'
+                submessage={
+                  isCurrentUser
+                    ? "You haven't commented on any posts yet"
+                    : "This user hasn't commented on any posts yet"
+                }
+              />
+            }
+          />
+        );
       case 'Saved':
         if (!isCurrentUser) return null;
         return (
-          <SavedFeed
+          <FeedWithHook
             key={`saved-${userId}`}
+            useFeedHook={useGetSavedPosts}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No saved posts'
+                message='No posts available'
                 submessage='Save posts to see them here'
               />
             }
@@ -129,12 +146,12 @@ export default function Profile() {
         );
       default:
         return (
-          <UserPostsFeed
+          <FeedWithHook
             key={`posts-${userId}`}
-            userId={userId}
+            useFeedHook={() => useUserPosts(userId)}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No posts to see'
+                message='No posts available'
                 submessage={
                   isCurrentUser
                     ? "You haven't posted anything yet"

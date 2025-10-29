@@ -9,12 +9,12 @@ export const useFollowUser = () => {
     onSuccess: (_, variables) => {
       const targetUserId = variables.targetUserId;
 
-      queryClient.refetchQueries({
+      queryClient.resetQueries({
         queryKey: ['userInfo'],
       });
 
       // Invalidate *exact* user info query
-      queryClient.refetchQueries({
+      queryClient.resetQueries({
         queryKey: ['userInfo', targetUserId],
       });
 
@@ -24,7 +24,7 @@ export const useFollowUser = () => {
       });
 
       // Invalidate following feed to update posts immediately
-      queryClient.refetchQueries({
+      queryClient.resetQueries({
         queryKey: ['feed', 'following'],
       });
     },

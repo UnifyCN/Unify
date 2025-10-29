@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
+import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 
 interface FeedProps {
@@ -28,20 +29,21 @@ const Feed = ({
   ListEmptyComponent,
 }: FeedProps) => {
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
-  const postIds = allPosts.map((post: PostData) => post.id);
 
-  // Batch load all metadata at once
-  const { data: metadata, isLoading: metadataLoading } =
-    usePostMetadata(postIds);
+  const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
+    allPosts.map((post: PostData) => post.id)
+  );
 
   const renderPost = useCallback(
-    ({ item }: { item: PostData }) => (
-      <PostItem
-        post={item}
-        metadata={metadata?.[item.id]}
-        isLoading={metadataLoading}
-      />
-    ),
+    ({ item }: { item: PostData }) => {
+      return (
+        <PostItem 
+          post={item} 
+          metadata={metadata?.[item.id]} 
+          metadataLoading={metadataLoading}
+        />
+      );
+    },
     [metadata, metadataLoading]
   );
 
@@ -51,13 +53,16 @@ const Feed = ({
     }
   };
 
-  if (isLoading) {
+  if (isLoading && allPosts.length === 0) {
     return (
       <View style={styles.container}>
         {ListHeaderComponent}
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingMessage}>Loading...</Text>
-        </View>
+        <FlatList
+          data={Array.from({ length: 3 }, (_, index) => index + 1)}
+          keyExtractor={item => `skeleton-${item}`}
+          renderItem={() => <SkeletonLoaderPostItem />}
+          scrollEnabled={false}
+        />
       </View>
     );
   }
@@ -80,7 +85,7 @@ const Feed = ({
       ListFooterComponent={
         isFetchingNextPage ? (
           <View style={styles.loadingFooter}>
-            <Text>Loading more...</Text>
+            <SkeletonLoaderPostItem />
           </View>
         ) : null
       }
@@ -92,20 +97,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   loadingFooter: {
     padding: 20,
     alignItems: 'center',
-  },
-  loadingMessage: {
-    paddingTop: 20,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
   },
 });
 

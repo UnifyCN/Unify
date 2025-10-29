@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -12,6 +11,51 @@ import { useRouter } from 'expo-router';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from '@/app/(tabs)/Gather/EventCard';
 import ViewMoreCard from '@/app/(tabs)/Gather/ViewMoreCard';
+import { SkeletonLoader } from './SkeletonLoader';
+
+// Skeleton loader component for events
+const EventSkeletonCard = () => {
+  return (
+    <View style={skeletonStyles.eventCard}>
+      <SkeletonLoader
+        width='100%'
+        height={80}
+        borderRadius={0}
+        style={skeletonStyles.eventImagePlaceholder}
+      />
+      <View style={skeletonStyles.eventContent}>
+        <SkeletonLoader
+          width='85%'
+          height={20}
+          borderRadius={4}
+          style={skeletonStyles.titleSkeleton}
+        />
+
+        <View style={skeletonStyles.detailsContainer}>
+          <View style={skeletonStyles.eventDetail}>
+            <SkeletonLoader width={14} height={18} borderRadius={10} style={skeletonStyles.iconSkeleton} />
+            <SkeletonLoader
+              width='75%'
+              height={18}
+              borderRadius={4}
+              style={skeletonStyles.detailSkeleton}
+            />
+          </View>
+
+          <View style={skeletonStyles.eventDetail}>
+            <SkeletonLoader width={14} height={18} borderRadius={10} style={skeletonStyles.iconSkeleton} />
+            <SkeletonLoader
+              width='50%'
+              height={18}
+              borderRadius={4}
+              style={skeletonStyles.detailSkeleton}
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
 
 interface EventsCarouselProps {
   title?: string;
@@ -41,7 +85,6 @@ export const EventsCarousel = ({
     }) || [];
 
   const displayEvents = upcomingEvents.slice(0, maxEvents);
-
   const handleEventPress = (event: any) => {
     router.push({
       pathname: '/(tabs)/Gather/EventDetailScreen',
@@ -70,20 +113,24 @@ export const EventsCarousel = ({
         style={styles.eventsCarousel}
         contentContainerStyle={[
           styles.eventsCarouselContent,
-          upcomingEvents.length === 0 && styles.eventsCarouselContentEmpty,
+          upcomingEvents.length === 0 &&
+            !isLoading &&
+            styles.eventsCarouselContentEmpty,
           contentContainerStyle,
         ]}
       >
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#000' />
+            {Array.from({ length: 2 }).map((_, index) => (
+              <EventSkeletonCard key={`skeleton-${index}`} />
+            ))}
           </View>
         )}
         {!isLoading && upcomingEvents.length === 0 && (
           <View style={styles.emptyEventsContainer}>
             <Text style={styles.emptyEventsText}>No upcoming events</Text>
             <Text style={styles.emptyEventsSubtext}>
-              Check back later for new events
+              Check back later for new events or view past events.
             </Text>
           </View>
         )}
@@ -119,23 +166,26 @@ const styles = StyleSheet.create({
   },
   eventsCarouselContent: {
     paddingHorizontal: 0,
+    gap: 12,
   },
   eventsCarouselContentEmpty: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    width: '100%',
   },
   loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    gap: 12,
+    overflow: 'hidden',
+    width: '100%',
   },
   emptyEventsContainer: {
-    flex: 1,
+    width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
   },
   emptyEventsText: {
     fontSize: 16,
@@ -147,5 +197,45 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     textAlign: 'center',
+  },
+});
+
+const skeletonStyles = StyleSheet.create({
+  eventCard: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: 248,
+  },
+  eventImagePlaceholder: {
+    height: 80,
+    width: '100%',
+    backgroundColor: '#D5D5D5',
+  },
+  eventContent: {
+    padding: 12,
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  detailsContainer: {
+    marginTop: 'auto',
+    gap: 2,
+  },
+  eventDetail: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  titleSkeleton: {
+    marginBottom: 4,
+    backgroundColor: '#D5D5D5',
+  },
+  detailSkeleton: {
+    flex: 1,
+    backgroundColor: '#D5D5D5',
+  },
+  iconSkeleton: {
+    backgroundColor: '#D5D5D5',
   },
 });

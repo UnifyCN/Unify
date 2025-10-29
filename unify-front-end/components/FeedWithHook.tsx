@@ -1,18 +1,25 @@
 import React from 'react';
-import Feed from '@/components/home/Feed';
-import { useUserPosts } from '@/hooks/posts/useUserPosts';
+import Feed from './home/Feed';
 
-interface UserPostsFeedProps {
-  userId: string;
-  ListHeaderComponent?: React.ReactElement;
+interface FeedWithHookProps {
+  useFeedHook: () => {
+    data: any;
+    fetchNextPage: () => void;
+    hasNextPage?: boolean;
+    isFetchingNextPage: boolean;
+    isLoading: boolean;
+    isRefetching: boolean;
+    refetch: () => void;
+  };
   ListEmptyComponent?: React.ReactElement;
+  ListHeaderComponent?: React.ReactElement;
 }
 
-const UserPostsFeed = ({
-  userId,
-  ListHeaderComponent,
+const FeedWithHook = ({
+  useFeedHook,
   ListEmptyComponent,
-}: UserPostsFeedProps) => {
+  ListHeaderComponent,
+}: FeedWithHookProps) => {
   const {
     data,
     fetchNextPage,
@@ -21,7 +28,7 @@ const UserPostsFeed = ({
     isLoading,
     isRefetching,
     refetch,
-  } = useUserPosts(userId);
+  } = useFeedHook();
 
   return (
     <Feed
@@ -32,10 +39,10 @@ const UserPostsFeed = ({
       isLoading={isLoading}
       isRefetching={isRefetching}
       refetch={refetch}
-      ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={ListEmptyComponent}
+      ListHeaderComponent={ListHeaderComponent}
     />
   );
 };
 
-export default UserPostsFeed;
+export default FeedWithHook;

@@ -12,10 +12,8 @@ import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
-import { useMemo, useState } from 'react';
-import { ChartNoAxesGantt } from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { Event } from '@/types/events';
-import { useEffect } from 'react';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 
 const EventsScreen = () => {
