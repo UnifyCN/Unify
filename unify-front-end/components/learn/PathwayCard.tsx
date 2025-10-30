@@ -62,6 +62,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 6 },
-  meta: { fontSize: 12, color: '#666' },
+  title: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 6 },
+  meta: { fontSize: 12, color: '#fff' },
 });
