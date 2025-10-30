@@ -107,7 +107,7 @@ export default function Learn() {
                       progressPercent={lesson.progressPercent}
                       currentPage={lesson.currentPage}
                       totalPages={lesson.totalPages}
-                      href={lesson.href}
+                      href={lesson.href as any}
                     />
                   </View>
                 ))}
@@ -136,14 +136,18 @@ export default function Learn() {
           ) : error ? (
             <Text style={styles.errorText}>Error loading modules</Text>
           ) : modules && modules.length > 0 ? (
-            modules.map(module => (
-              <PathwayCard
-                key={module._id}
-                title={module.title}
-                modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
-                href={`/(tabs)/Learn/modules/${module._id}` as any}
-              />
-            ))
+            modules.map(module => {
+              console.log('Module color:', module._id, module.title, module.colorTheme?.hex);
+              return (
+                <PathwayCard
+                  key={module._id}
+                  title={module.title}
+                  modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                  href={`/(tabs)/Learn/modules/${module._id}` as any}
+                  colorHex={module.colorTheme?.hex}
+                />
+              );
+            })
           ) : (
             <Text style={styles.errorText}>No modules available</Text>
           )}
