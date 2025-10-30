@@ -357,6 +357,7 @@ export default function ModuleIndex() {
                 styles.progressFill,
                 {
                   width: `${Math.min(100, Math.max(0, moduleProgressData.progress_percent))}%`,
+                  backgroundColor: moduleData?.colorTheme?.hex || '#000',
                 },
               ]}
             />
@@ -567,7 +568,7 @@ export default function ModuleIndex() {
                             cx='50'
                             cy='50'
                             r={50 - PROGRESS_STROKE}
-                            stroke='#FFFFFF'
+                            stroke={moduleData?.colorTheme?.hex || '#000'}
                             strokeWidth={PROGRESS_STROKE}
                             strokeLinecap='round'
                             strokeDasharray={
@@ -858,7 +859,7 @@ const styles = StyleSheet.create({
     width: RING_MIDDLE,
     height: RING_MIDDLE,
     borderRadius: RING_MIDDLE / 2,
-    backgroundColor: '#BABABA',
+    backgroundColor: '#fff',
   },
   ringInner: {
     position: 'absolute',
