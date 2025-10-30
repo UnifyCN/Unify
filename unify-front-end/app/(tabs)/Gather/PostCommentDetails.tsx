@@ -109,11 +109,7 @@ const CommentInput = ({
   </View>
 );
 
-export interface PostDetailsProps {
-  isPost?: boolean;
-}
-
-const PostDetails = ({ isPost = true } : PostDetailsProps) => {
+const PostCommentDetails = () => {
   // Get passed data
   const { post: postParam } = useLocalSearchParams();
 
@@ -212,7 +208,6 @@ const PostDetails = ({ isPost = true } : PostDetailsProps) => {
           <>
             <PostItem
               post={post}
-              isPost={isPost}
               isTouchable={false}
               metadata={{
                 isLiked,
@@ -356,4 +351,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PostDetails;
+export default PostCommentDetails;

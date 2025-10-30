@@ -6,7 +6,7 @@ export interface LikeCommentResponse {
   likesCount: number;
 }
 
-export const likeComment = async (
+export const likePostComment = async (
   commentId: number
 ): Promise<LikeCommentResponse> => {
   try {

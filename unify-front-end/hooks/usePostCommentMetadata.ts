@@ -1,18 +1,18 @@
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 
-interface CommentMetadata {
+interface PostCommentMetadata {
   commentId: number;
   isLiked: boolean;
   likeCount: number;
-  // TODO: when replies for comments are implemented
-  // replyCount
+  // TODO: implement reply counting after reformatting database
+  // replyCount: number;
 }
 
-export const useCommentMetadata = (commentIds: number[]) => {
+export const usePostCommentMetadata = (commentIds: number[]) => {
   return useQuery({
     queryKey: ['comment-metadata', commentIds],
-    queryFn: async (): Promise<Record<number, CommentMetadata>> => {
+    queryFn: async (): Promise<Record<number, PostCommentMetadata>> => {
       if (commentIds.length === 0) return {};
 
       const {
@@ -29,8 +29,16 @@ export const useCommentMetadata = (commentIds: number[]) => {
           .in('comment_id', commentIds),
       ]);
 
+      const [repliesData] = await Promise.all([
+        // Get all replies for these comments
+        supabase
+          .from('post_comments')
+          .select('*')
+          .in('parent_comment_id', commentIds)
+      ]);
+
       // Process the data
-      const metadata: Record<number, CommentMetadata> = {};
+      const metadata: Record<number, PostCommentMetadata> = {};
 
       commentIds.forEach(commentId => {
         const likes =

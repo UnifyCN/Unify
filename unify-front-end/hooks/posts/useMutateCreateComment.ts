@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createComment } from '@/services/posts/createComment';
+import { createPostComment } from '@/services/posts/createPostComment';
 import { useInvalidatePostMetadata } from '@/hooks/usePostMetadata';
 
 export const useMutateCreateComment = () => {
@@ -16,7 +16,7 @@ export const useMutateCreateComment = () => {
       content: string;
       parentCommentId?: number | null;
     }) => {
-      return await createComment(postId, content, parentCommentId);
+      return await createPostComment(postId, content, parentCommentId);
     },
 
     onSuccess: (_, { postId }) => {

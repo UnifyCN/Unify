@@ -1,8 +1,8 @@
 import { supabase } from '@/lib/supabase';
 import { PostCommentData } from '@/types/feeds/postcomment';
 
-export const getPostComments = async (
-  postId: number
+export const getReplies = async (
+  parentCommentId: number
 ): Promise<PostCommentData[]> => {
   try {
     const { data, error } = await supabase
@@ -19,8 +19,7 @@ export const getPostComments = async (
             like_count
         `
       )
-      .eq('post_id', Number(postId))
-      .is('parent_comment_id', null)
+      .eq('parent_comment_id', Number(parentCommentId))
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -28,9 +27,9 @@ export const getPostComments = async (
     return data.map((comment: any) => ({
       id: comment.id,
       user_id: comment.user_id,
-      post_id: postId,
+      post_id: comment.post_id,
       content: comment.content,
-      parent_comment_id: comment.parent_comment_id,
+      parent_comment_id: parentCommentId,
       created_at: comment.created_at,
       username: comment.users.username,
       profilePictureUrl: comment.users.profile_picture_url,

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { likeComment, unlikeComment } from '@/services/posts/likeComment';
+import { likePostComment, unlikeComment } from '@/services/posts/likePostComment';
 
 export const useMutateLikeComment = () => {
   const queryClient = useQueryClient();
@@ -34,7 +34,7 @@ export const useMutateLikeComment = () => {
       if (isLiked) {
         return await unlikeComment(commentId);
       } else {
-        return await likeComment(commentId);
+        return await likePostComment(commentId);
       }
     },
     onError: err => {

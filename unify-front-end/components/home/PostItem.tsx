@@ -17,6 +17,8 @@ import { Theme } from '@/constants/Theme';
 
 export interface PostItemProps {
   post: PostData;
+  isPost?: boolean;
+  isTouchable?: boolean;
   shouldHideContent?: boolean;
   metadata?: {
     isLiked: boolean;
@@ -26,8 +28,9 @@ export interface PostItemProps {
   };
   metadataLoading?: boolean;
 }
+
 export const PostItem = memo(
-  ({ post, metadata, shouldHideContent, metadataLoading }: PostItemProps) => {
+  ({ post, metadata, shouldHideContent, metadataLoading, isPost = true, isTouchable = true }: PostItemProps) => {
     const router = useRouter();
 
     // Use batch-loaded metadata (no individual queries needed)
@@ -55,101 +58,89 @@ export const PostItem = memo(
     // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
 
-    return (
-      <View>
-        <View
-          style={[
-            styles.postContainer,
-            { paddingHorizontal: shouldHideContent ? 0 : 20 },
-          ]}
+    // For rendering the content of the post
+    const postContent = (
+      <>
+        {/* Head Shot */}
+        <TouchableOpacity
+          style={styles.headshot}
+          onPress={navigateToUserProfile}
         >
-          {/* Head Shot */}
-          <TouchableOpacity
-            style={styles.headshot}
-            onPress={navigateToUserProfile}
-          >
-            <Avatar
-              profilePictureUrl={post.user.profilePictureUrl}
-              username={post.user.username}
-              size={29}
-            />
-          </TouchableOpacity>
-          {/* Post Content */}
-          <View style={styles.postContent}>
-            {/* Header */}
-            <View style={styles.header}>
-              <TouchableOpacity onPress={navigateToUserProfile}>
-                <Text style={styles.name}>{post.user.name}</Text>
-              </TouchableOpacity>
-              <ChevronRight color={Theme.black} width={6} height={12} />
-              {post.group ? (
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
-                      params: { groupName: post.group },
-                    })
-                  }
-                >
-                  <Text style={styles.group}>{post.group}</Text>
-                </TouchableOpacity>
-              ) : (
-                <Text style={styles.group}>No group</Text>
-              )}
-              <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
-            </View>
-
-            {/* Title */}
-            <View>
-              <Text style={styles.title}>{post.title}</Text>
-            </View>
-
-            {/* Content */}
-            {!shouldHideContent && (
-              <Text style={styles.description}>{post.content}</Text>
-            )}
-
-            {/* Footer */}
-            <View style={styles.footer}>
-              <View style={styles.footerItem}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (isLiked !== undefined && !showMetadataLoading) {
-                      toggleLike(post.id, isLiked);
-                    }
-                  }}
-                  disabled={showMetadataLoading}
-                >
-                  {isLiked ? (
-                    <Like_Fill width={20} height={20} />
-                  ) : (
-                    <Like width={20} height={20} />
-                  )}
-                </TouchableOpacity>
-                {showMetadataLoading ? (
-                  <SkeletonLoader width={20} height={14} />
-                ) : (
-                  <Text style={styles.footerText}>{likeCount}</Text>
-                )}
-              </View>
+          <Avatar
+            profilePictureUrl={post.user.profilePictureUrl}
+            username={post.user.username}
+            size={29}
+          />
+        </TouchableOpacity>
+        {/* Post Content */}
+        <View style={styles.postContent}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={navigateToUserProfile}>
+              <Text style={styles.name}>{post.user.name}</Text>
+            </TouchableOpacity>
+            <ChevronRight color={Theme.black} width={6} height={12} />
+            {post.group ? (
               <TouchableOpacity
-                style={styles.footerItem}
                 onPress={() =>
                   router.push({
-                    pathname: '/Gather/PostDetails' as any,
-                    params: {
-                      post: JSON.stringify(post),
-                    },
+                    pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+                    params: { groupName: post.group },
                   })
                 }
               >
-                <Comment width={20} height={20} fill='gray' />
-                {showMetadataLoading ? (
-                  <SkeletonLoader width={24} height={20} />
+                <Text style={styles.group}>{post.group}</Text>
+              </TouchableOpacity>
+            ) : (
+              <Text style={styles.group}>No group</Text>
+            )}
+            <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+          </View>
+
+          {/* Title */}
+          <View>
+            <Text style={styles.title}>{post.title}</Text>
+          </View>
+
+          {/* Content */}
+          {!shouldHideContent && (
+            <Text style={styles.description}>{post.content}</Text>
+          )}
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            <View style={styles.footerItem}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (isLiked !== undefined && !showMetadataLoading) {
+                    toggleLike(post.id, isLiked);
+                  }
+                }}
+                disabled={showMetadataLoading}
+              >
+                {isLiked ? (
+                  <Like_Fill width={20} height={20} />
                 ) : (
-                  <Text style={styles.footerText}>{commentCount}</Text>
+                  <Like width={20} height={20} />
                 )}
               </TouchableOpacity>
+              {showMetadataLoading ? (
+                <SkeletonLoader width={20} height={14} />
+              ) : (
+                <Text style={styles.footerText}>{likeCount}</Text>
+              )}
+            </View>
+            <View
+              style={styles.footerItem}
+            >
+              <Comment width={20} height={20} fill='gray' />
+              {showMetadataLoading ? (
+                <SkeletonLoader width={24} height={20} />
+              ) : (
+                <Text style={styles.footerText}>{commentCount}</Text>
+              )}
+            </View>
+            {isPost ? (
               <TouchableOpacity
                 onPress={() => {
                   if (isSaved !== undefined && !showMetadataLoading) {
@@ -166,9 +157,45 @@ export const PostItem = memo(
                   <Save width={20} height={20} />
                 )}
               </TouchableOpacity>
-            </View>
+            ) : ( <></> )}
           </View>
         </View>
+      </>
+    );
+
+    return (
+      <View>
+        { isTouchable ? (
+          <TouchableOpacity
+            style={[
+              styles.postContainer,
+              { paddingHorizontal: shouldHideContent ? 0 : 20 },
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: '/Gather/PostDetails' as any,
+                params: {
+                  post: JSON.stringify(post),
+                },
+              })
+            }
+          >
+            {postContent}
+          </TouchableOpacity>
+        ) : (
+          <View
+            style={[
+              styles.postContainer,
+              { paddingHorizontal: shouldHideContent ? 0 : 20 },
+            ]}
+          >
+            {postContent}
+          </View>
+        )}
+        
+          
+          
+        
         <View style={styles.divider} />
       </View>
     );

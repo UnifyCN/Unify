@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-export const createComment = async (
+export const createPostComment = async (
   postId: number,
   content: string,
   parentCommentId?: number | null

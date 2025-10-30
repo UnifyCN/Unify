@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
+import Comment from '@/assets/images/Comment.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import { formatSmartTime } from '@/utils/dateUtils';
 import { useMutateLikeComment } from '@/hooks/posts/useMutateLikeComment';
@@ -9,13 +10,15 @@ import { PostCommentData } from '@/types/feeds/postcomment';
 import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
+import { useGetPostCommentReplies } from '@/hooks/posts/useGetPostCommentReplies';
+import { usePostCommentMetadata } from '@/hooks/usePostCommentMetadata';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
   metadata?: {
     isLiked: boolean;
     likeCount: number;
-    // TODO: when replies to comments are implemented
+    // TODO: implement reply counting after reformatting database
     // replyCount: number
   };
   metadataLoading?: boolean;
@@ -33,16 +36,37 @@ const PostCommentItem = memo(
       [likeCommentMutation]
     );
 
-    const navigateToUserProfile = useCallback(() => {
-      router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
-    }, [comment.user_id]);
+    // Reply ID's for batch loading
+    const { data: repliesData, isLoading: commentsLoading } = useGetPostCommentReplies(
+      comment.id
+    );
+    const replyIds =
+      repliesData?.map((replies: PostCommentData) => comment.id) ?? [];
+
+    
 
     // Use batch-loaded metadata
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked;
 
+    const navigateToUserProfile = useCallback(() => {
+      router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
+    }, [comment.user_id]);
+
+    // Show loading state for metadata if it's still loading
+    const showMetadataLoading = metadataLoading && !metadata;
+
     return (
-      <View>
+      <TouchableOpacity
+        onPress={() =>
+          router.push({
+            pathname: '/Gather/PostCommentDetails' as any,
+            params: {
+              post: JSON.stringify(comment),
+            },
+          })
+        }
+      >
         <View style={styles.postContainer}>
           {/* Headshot */}
           <TouchableOpacity
@@ -72,34 +96,43 @@ const PostCommentItem = memo(
 
             {/* Footer */}
             <View style={styles.footer}>
-              <>
-                <View style={styles.footerItem}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (isLiked !== undefined && !metadataLoading) {
-                        toggleLike(comment.id, isLiked);
-                      }
-                    }}
-                    disabled={metadataLoading}
-                  >
-                    {isLiked ? (
-                      <Like_Fill width={20} height={20} />
-                    ) : (
-                      <Like width={20} height={20} />
-                    )}
-                  </TouchableOpacity>
-                  {metadataLoading ? (
-                    <SkeletonLoader width={24} height={20} />
+              <View style={styles.footerItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isLiked !== undefined && !metadataLoading) {
+                      toggleLike(comment.id, isLiked);
+                    }
+                  }}
+                  disabled={metadataLoading}
+                >
+                  {isLiked ? (
+                    <Like_Fill width={20} height={20} />
                   ) : (
-                    <Text style={styles.footerText}>{likeCount}</Text>
+                    <Like width={20} height={20} />
                   )}
-                </View>
-              </>
+                </TouchableOpacity>
+                {metadataLoading ? (
+                  <SkeletonLoader width={24} height={20} />
+                ) : (
+                  <Text style={styles.footerText}>{likeCount}</Text>
+                )}
+              </View>
+              <View
+                style={styles.footerItem}
+              >
+                <Comment width={20} height={20} fill='gray' />
+                {showMetadataLoading ? (
+                  <SkeletonLoader width={24} height={20} />
+                ) : (
+                  // TODO: implement reply counting after reformatting database
+                  <Text style={styles.footerText}></Text>
+                )}
+              </View>
             </View>
           </View>
         </View>
         <View style={styles.divider} />
-      </View>
+      </TouchableOpacity>
     );
   }
 );
@@ -149,13 +182,15 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    gap: 25,
   },
   footerItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 4,
   },
   footerText: {
-    marginLeft: 4,
     fontSize: 14,
   },
   divider: {
