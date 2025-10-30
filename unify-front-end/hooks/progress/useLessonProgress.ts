@@ -12,13 +12,6 @@ export function useLessonProgress() {
       totalPages: number
     ) => {
       try {
-        console.log('Saving lesson completion:', {
-          lessonId,
-          submoduleId,
-          moduleId,
-          totalPages,
-        });
-
         // Get the current user
         const {
           data: { user },
@@ -55,8 +48,6 @@ export function useLessonProgress() {
           console.error('Error saving lesson completion:', error);
           return false;
         }
-
-        console.log('Lesson completed successfully:', data);
 
         // Update the progress cache
         await cachedProgressService.updateProgressOnLessonCompletion(

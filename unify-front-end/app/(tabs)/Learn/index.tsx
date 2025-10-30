@@ -137,7 +137,6 @@ export default function Learn() {
             <Text style={styles.errorText}>Error loading modules</Text>
           ) : modules && modules.length > 0 ? (
             modules.map(module => {
-              console.log('Module color:', module._id, module.title, module.colorTheme?.hex);
               return (
                 <PathwayCard
                   key={module._id}

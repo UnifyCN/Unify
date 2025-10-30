@@ -24,7 +24,6 @@ export function useInProgressLessons() {
 
   const fetchInProgressLessons = async () => {
     try {
-      console.log('🔄 Refreshing in-progress lessons...');
       setIsLoading(true);
       setError(null);
 
@@ -118,15 +117,6 @@ export function useInProgressLessons() {
 
             // If this lesson is active, use it
             if (isActive && !isCompleted) {
-              console.log(
-                `Found active lesson: ${lesson.title} in ${submodule.title}`,
-                {
-                  isInProgress,
-                  isCompleted,
-                  isActive,
-                  index: i,
-                }
-              );
               activeLesson = lesson;
               activeSubmodule = submodule;
               break;
@@ -193,8 +183,6 @@ export function useInProgressLessons() {
       });
 
       setLessons(inProgressLessons);
-      console.log('Continue lessons loaded:', inProgressLessons);
-      console.log('Total lessons found:', inProgressLessons.length);
     } catch (error) {
       console.error('Error fetching in-progress lessons:', error);
       setError('Failed to load lessons');

@@ -8,11 +8,9 @@ export function useProgressCache() {
   useEffect(() => {
     const initializeCache = async () => {
       try {
-        console.log('Initializing progress cache...');
         setIsLoading(true);
         await cachedProgressService.getProgressData();
         setIsInitialized(true);
-        console.log('Progress cache initialized successfully');
       } catch (error) {
         console.error('Error initializing progress cache:', error);
       } finally {
