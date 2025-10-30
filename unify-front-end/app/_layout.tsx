@@ -26,7 +26,10 @@ export default function RootLayout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Initialize progress cache
-  const { isInitialized: progressCacheInitialized, isLoading: progressCacheLoading } = useProgressCache();
+  const {
+    isInitialized: progressCacheInitialized,
+    isLoading: progressCacheLoading,
+  } = useProgressCache();
   const [cacheTimeout, setCacheTimeout] = useState(false);
 
   useEffect(() => {
@@ -65,7 +68,11 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (loaded && onboardingChecked && (progressCacheInitialized || cacheTimeout)) {
+    if (
+      loaded &&
+      onboardingChecked &&
+      (progressCacheInitialized || cacheTimeout)
+    ) {
       SplashScreen.hideAsync();
     }
   }, [loaded, onboardingChecked, progressCacheInitialized, cacheTimeout]);

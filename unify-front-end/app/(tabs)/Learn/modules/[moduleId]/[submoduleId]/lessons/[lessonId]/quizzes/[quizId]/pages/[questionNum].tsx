@@ -128,7 +128,9 @@ export default function QuizQuestionPage() {
         return acc + (quiz.questions?.length || 0);
       }, 0) || 0;
     const totalEndingPages = lesson?.ending_pages?.length || 0;
-    return totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages;
+    return (
+      totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages
+    );
   };
 
   if (!currentQuestion) {
@@ -460,7 +462,7 @@ export default function QuizQuestionPage() {
         onClose={() => router.back()}
       />
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
@@ -652,15 +654,16 @@ export default function QuizQuestionPage() {
           style={[
             styles.checkButton,
             {
-              backgroundColor:
-                (currentQuestion.question_type === 'matching'
+              backgroundColor: (
+                currentQuestion.question_type === 'matching'
                   ? completedPairs.length !==
                     (currentQuestion.matching_pairs?.length || 0) * 2
                   : currentQuestion.question_type === 'multiple_choice_multiple'
                     ? selectedAnswers.length === 0
-                    : !selectedAnswer)
-                  ? '#F3F4F6'
-                  : moduleData?.colorTheme?.hex || '#575757',
+                    : !selectedAnswer
+              )
+                ? '#F3F4F6'
+                : moduleData?.colorTheme?.hex || '#575757',
             },
           ]}
           onPress={handleNext}

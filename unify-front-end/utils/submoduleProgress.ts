@@ -61,7 +61,8 @@ export function calculateSubmodulePageCounts(
     });
   }
 
-  const totalPages = introPages + lessonPages + activityPages + quizPages + endingPages;
+  const totalPages =
+    introPages + lessonPages + activityPages + quizPages + endingPages;
 
   return {
     introPages,

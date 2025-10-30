@@ -53,7 +53,7 @@ export default function LessonHeroCard({
     return (
       <Link href={href} asChild>
         <TouchableOpacity
-          accessibilityRole="link"
+          accessibilityRole='link'
           accessibilityLabel={title ? `Open lesson: ${title}` : 'Open lesson'}
         >
           {cardContent}

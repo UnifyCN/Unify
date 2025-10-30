@@ -275,7 +275,6 @@ export default function LessonPageScreen() {
             styles={{ normal: styles.contentText }}
           />
         </View>
-
       </ScrollView>
 
       {/* Navigation buttons - anchored at bottom */}

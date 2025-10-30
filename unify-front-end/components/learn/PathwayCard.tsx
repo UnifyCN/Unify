@@ -3,15 +3,28 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 
-type Props = { title: string; modulesLabel: string; href?: LinkProps['href']; colorHex?: string };
+type Props = {
+  title: string;
+  modulesLabel: string;
+  href?: LinkProps['href'];
+  colorHex?: string;
+};
 
-export default function PathwayCard({ title, modulesLabel, href, colorHex }: Props) {
+export default function PathwayCard({
+  title,
+  modulesLabel,
+  href,
+  colorHex,
+}: Props) {
   const CardInner = (
     <>
       {colorHex ? (
         <View
           pointerEvents='none'
-          style={[StyleSheet.absoluteFillObject, { backgroundColor: colorHex, borderRadius: 12 }]}
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: colorHex, borderRadius: 12 },
+          ]}
         />
       ) : null}
       <View style={styles.banner} />

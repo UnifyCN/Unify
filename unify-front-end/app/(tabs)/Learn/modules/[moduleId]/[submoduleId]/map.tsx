@@ -260,7 +260,8 @@ export default function SubmoduleMap() {
                         ? [
                             styles.circleCompleted,
                             {
-                              borderColor: moduleData?.colorTheme?.hex || '#A0A0A0',
+                              borderColor:
+                                moduleData?.colorTheme?.hex || '#A0A0A0',
                             },
                           ]
                         : c.blocked
@@ -269,7 +270,8 @@ export default function SubmoduleMap() {
                             ? [
                                 styles.circleActive,
                                 {
-                                  borderColor: moduleData?.colorTheme?.hex || '#A0A0A0',
+                                  borderColor:
+                                    moduleData?.colorTheme?.hex || '#A0A0A0',
                                 },
                               ]
                             : styles.circleNormal,

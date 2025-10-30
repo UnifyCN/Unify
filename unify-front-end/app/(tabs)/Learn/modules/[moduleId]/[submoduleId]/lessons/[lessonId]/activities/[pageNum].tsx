@@ -297,7 +297,6 @@ export default function ActivityPageScreen() {
             />
           </View>
         )}
-
       </ScrollView>
 
       {/* Navigation buttons - anchored at bottom */}

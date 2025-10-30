@@ -503,7 +503,10 @@ export default function ModuleIndex() {
                       <View
                         style={[
                           styles.cta,
-                          { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+                          {
+                            backgroundColor:
+                              moduleData?.colorTheme?.hex || '#575757',
+                          },
                           !m.is_completed && disabled
                             ? styles.ctaDisabled
                             : null,

@@ -110,7 +110,10 @@ export default function EndingPageScreen() {
         ) || 0;
       const totalEndingPages = endingPages.length;
       const totalAllPages =
-        totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages;
+        totalLessonPages +
+        totalActivityPages +
+        totalQuizPages +
+        totalEndingPages;
 
       await saveLessonCompletion(
         lessonId || '',
@@ -454,4 +457,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
