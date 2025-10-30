@@ -275,7 +275,6 @@ export default function LessonPageScreen() {
             styles={{ normal: styles.contentText }}
           />
         </View>
-
       </ScrollView>
 
       {/* Navigation buttons - anchored at bottom */}
@@ -284,7 +283,13 @@ export default function LessonPageScreen() {
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+        <TouchableOpacity
+          style={[
+            styles.nextBtn,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+          ]}
+          onPress={handleNext}
+        >
           <Text style={styles.nextBtnText}>
             {currentPage < totalPages
               ? 'Next'

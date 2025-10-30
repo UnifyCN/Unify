@@ -94,7 +94,10 @@ export default function SubmoduleIndex() {
 
         {/* CTA to Intro Screen */}
         <TouchableOpacity
-          style={styles.resumeButton}
+          style={[
+            styles.resumeButton,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+          ]}
           onPress={() => {
             router.push({
               pathname:

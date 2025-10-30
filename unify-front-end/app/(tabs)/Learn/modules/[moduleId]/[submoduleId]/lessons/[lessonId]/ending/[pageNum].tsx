@@ -110,7 +110,10 @@ export default function EndingPageScreen() {
         ) || 0;
       const totalEndingPages = endingPages.length;
       const totalAllPages =
-        totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages;
+        totalLessonPages +
+        totalActivityPages +
+        totalQuizPages +
+        totalEndingPages;
 
       await saveLessonCompletion(
         lessonId || '',
@@ -271,7 +274,13 @@ export default function EndingPageScreen() {
           <Text style={styles.backBtnText}>Back</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+        <TouchableOpacity
+          style={[
+            styles.nextBtn,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+          ]}
+          onPress={handleNext}
+        >
           <Text style={styles.nextBtnText}>
             {currentPage < totalPages
               ? 'Next'
@@ -448,4 +457,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

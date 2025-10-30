@@ -27,12 +27,10 @@ class CachedProgressService {
       now - this.lastFetch < this.CACHE_DURATION &&
       Object.keys(this.cache).length > 0
     ) {
-      console.log('Returning cached progress data');
       return this.cache;
     }
 
     try {
-      console.log('Fetching fresh progress data...');
       const {
         data: { user },
       } = await progressClient.auth.getUser();
@@ -100,7 +98,6 @@ class CachedProgressService {
       this.cache = progressData;
       this.lastFetch = now;
 
-      console.log('Progress data cached:', progressData);
       return progressData;
     } catch (error) {
       console.error('Error fetching progress data:', error);
@@ -130,7 +127,6 @@ class CachedProgressService {
     moduleId: string,
     submoduleId: string
   ) {
-    console.log('Updating progress cache for lesson completion...');
     // Force refresh to get latest data
     return this.getProgressData(true);
   }

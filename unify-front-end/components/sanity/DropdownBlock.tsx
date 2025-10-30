@@ -14,11 +14,13 @@ export default function DropdownBlock({ block, index }: DropdownBlockProps) {
   }
 
   // Create a single dropdown item with the label as title and content as body
-  const dropdownItems = [{
-    id: block._key || `dropdown-${index}`,
-    title: block.label,
-    body: block.content,
-  }];
+  const dropdownItems = [
+    {
+      id: block._key || `dropdown-${index}`,
+      title: block.label,
+      body: block.content,
+    },
+  ];
 
   return (
     <View key={block._key || index}>

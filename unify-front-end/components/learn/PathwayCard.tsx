@@ -3,11 +3,30 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 
-type Props = { title: string; modulesLabel: string; href?: LinkProps['href'] };
+type Props = {
+  title: string;
+  modulesLabel: string;
+  href?: LinkProps['href'];
+  colorHex?: string;
+};
 
-export default function PathwayCard({ title, modulesLabel, href }: Props) {
+export default function PathwayCard({
+  title,
+  modulesLabel,
+  href,
+  colorHex,
+}: Props) {
   const CardInner = (
     <>
+      {colorHex ? (
+        <View
+          pointerEvents='none'
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: colorHex, borderRadius: 12 },
+          ]}
+        />
+      ) : null}
       <View style={styles.banner} />
       <Text style={styles.title} numberOfLines={2}>
         {title}
@@ -33,6 +52,7 @@ const styles = StyleSheet.create({
   card: {
     width: '48%',
     borderRadius: 12,
+    overflow: 'hidden',
     backgroundColor: '#fff',
     paddingTop: 0,
     paddingHorizontal: 12,
@@ -55,6 +75,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 12,
     borderBottomRightRadius: 12,
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 6 },
-  meta: { fontSize: 12, color: '#666' },
+  title: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 6 },
+  meta: { fontSize: 12, color: '#fff' },
 });

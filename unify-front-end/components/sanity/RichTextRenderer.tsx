@@ -356,7 +356,10 @@ export default function RichTextRenderer({
         }
 
         return (
-          <View key={block._key || index} style={[styles.listItemContainer, { marginLeft: indentLevel }]}>
+          <View
+            key={block._key || index}
+            style={[styles.listItemContainer, { marginLeft: indentLevel }]}
+          >
             <Text style={listStyle}>
               {displayBullet} {renderInlineText(block.children, markDefs)}
             </Text>
