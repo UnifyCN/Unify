@@ -307,7 +307,10 @@ export default function ActivityPageScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.nextBtn}
+          style={[
+            styles.nextBtn,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+          ]}
           onPress={isSubmitted ? handleNext : handleSubmit}
         >
           <Text style={styles.nextBtnText}>
