@@ -124,7 +124,7 @@ const SearchScreen = () => {
     } catch (e) {
       console.error('saveRecentGroups exception', e);
     }
-    
+
     // Navigate to GroupDetailScreen
     router.push({
       pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
