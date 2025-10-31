@@ -18,6 +18,11 @@ import PathwayCard from '../../../components/learn/PathwayCard';
 import { useSanityModules } from '../../../hooks/sanity/useSanityModules';
 import { useInProgressLessons } from '../../../hooks/progress/useInProgressLessons';
 import { urlFor } from '../../../sanity-custom';
+import {
+  CurrentLessonSkeletonLoader,
+  PathwayCardSkeletonLoader,
+  CarouselDotsSkeletonLoader,
+} from '../../../components/learn/learn-index-skeleton-loader';
 
 export default function Learn() {
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -72,10 +77,21 @@ export default function Learn() {
 
         <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
         {lessonsLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#575757' />
-            <Text style={styles.loadingText}>Loading your lessons...</Text>
-          </View>
+          <>
+            <View style={[styles.heroWrapper, { width }]}>
+              <View
+                style={{
+                  width,
+                  paddingRight: 30,
+                  paddingVertical: 10,
+                  paddingLeft: 1,
+                }}
+              >
+                <CurrentLessonSkeletonLoader />
+              </View>
+            </View>
+            <CarouselDotsSkeletonLoader />
+          </>
         ) : lessonsError ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>Error loading lessons</Text>
@@ -142,8 +158,10 @@ export default function Learn() {
         <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
         <View style={styles.pathwaysGrid}>
           {isLoading ? (
-            // Loading indicator to be waited for design
-            <ActivityIndicator size='large' color='#575757' />
+            <>
+              <PathwayCardSkeletonLoader />
+              <PathwayCardSkeletonLoader />
+            </>
           ) : error ? (
             <Text style={styles.errorText}>Error loading modules</Text>
           ) : modules && modules.length > 0 ? (
