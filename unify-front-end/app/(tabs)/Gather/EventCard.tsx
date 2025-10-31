@@ -56,7 +56,13 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.surfaceEventCard,
     borderRadius: 16,
     overflow: 'hidden',
-    // todo: someone add a drop shadow i cant do it
+    marginHorizontal: 2,
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   eventImagePlaceholder: {
     height: 80,
