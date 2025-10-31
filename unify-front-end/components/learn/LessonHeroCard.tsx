@@ -31,6 +31,23 @@ export default function LessonHeroCard({
   href,
 }: LessonHeroCardProps) {
   const sectionsText = submoduleCount === 1 ? 'section' : 'sections';
+  
+  // Extract lesson number from title (e.g., "Lesson 5.3" or "5.3" from title)
+  const extractLessonNumber = (lessonTitle?: string): string => {
+    if (!lessonTitle) return `Lesson ${currentPage}`;
+    
+    // Match patterns like "Lesson 5.3", "5.3", "Lesson 5", "5", etc.
+    const match = lessonTitle.match(/(?:Lesson\s+)?(\d+(?:\.\d+)?)/i);
+    if (match && match[1]) {
+      return `Lesson ${match[1]}`;
+    }
+    
+    // Fallback to currentPage if no lesson number found
+    return `Lesson ${currentPage}`;
+  };
+  
+  const lessonNumberText = extractLessonNumber(title);
+  
   const cardContent = (
     <View style={styles.card}>
       <View style={styles.banner}>
@@ -46,14 +63,14 @@ export default function LessonHeroCard({
           <Text style={styles.metaText}>
             {moduleTitle} • {submoduleCount} {sectionsText}
           </Text>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title}>{submoduleTitle}</Text>
         </View>
       </View>
 
       <View style={styles.footerRow}>
         <View>
           <Text style={styles.caption}>
-            Continue from Lesson {currentPage}:
+            Continue from {lessonNumberText}:
           </Text>
           <Text style={styles.subtitle}>{submoduleTitle}</Text>
         </View>
