@@ -65,7 +65,11 @@ const NewsTipsSection = () => (
       <Text style={styles.sectionTitle}>News & Tips</Text>
       <Feather name='chevron-right' size={20} color='#666' />
     </View>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={{ marginHorizontal: 20 }}
+    >
       <View style={styles.newsCard}>
         <View style={styles.newsImagePlaceholder} />
         <View style={styles.newsContent}>
@@ -229,6 +233,13 @@ const styles = StyleSheet.create({
     marginRight: 16,
     padding: 16,
     flexDirection: 'row',
+    marginHorizontal: 2,
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   newsImagePlaceholder: {
     width: 60,
