@@ -90,28 +90,34 @@ export default function Learn() {
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={onMomentumEnd}
               >
-                {inProgressLessons.map((lesson, i) => (
-                  <View
-                    key={lesson.id}
-                    style={{
-                      width,
-                      paddingRight: 30,
-                      paddingVertical: 10,
-                      paddingLeft: 1,
-                    }}
-                  >
-                    <LessonHeroCard
-                      title={lesson.title}
-                      description={lesson.description}
-                      moduleTitle={lesson.moduleTitle}
-                      submoduleTitle={lesson.submoduleTitle}
-                      progressPercent={lesson.progressPercent}
-                      currentPage={lesson.currentPage}
-                      totalPages={lesson.totalPages}
-                      href={lesson.href as any}
-                    />
-                  </View>
-                ))}
+                {inProgressLessons.map((lesson, i) => {
+                  const module = modules?.find(m => m._id === lesson.moduleId);
+                  const submoduleCount = module?.submodules?.length || 0;
+                  
+                  return (
+                    <View
+                      key={lesson.id}
+                      style={{
+                        width,
+                        paddingRight: 30,
+                        paddingVertical: 10,
+                        paddingLeft: 1,
+                      }}
+                    >
+                      <LessonHeroCard
+                        title={lesson.title}
+                        description={lesson.description}
+                        moduleTitle={lesson.moduleTitle}
+                        submoduleTitle={lesson.submoduleTitle}
+                        progressPercent={lesson.progressPercent}
+                        currentPage={lesson.currentPage}
+                        totalPages={lesson.totalPages}
+                        submoduleCount={submoduleCount}
+                        href={lesson.href as any}
+                      />
+                    </View>
+                  );
+                })}
               </ScrollView>
             </View>
             <CarouselDots

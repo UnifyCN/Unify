@@ -11,6 +11,7 @@ interface LessonHeroCardProps {
   progressPercent?: number;
   currentPage?: number;
   totalPages?: number;
+  submoduleCount?: number;
   href?: Href;
 }
 
@@ -22,14 +23,16 @@ export default function LessonHeroCard({
   progressPercent = 0,
   currentPage = 1,
   totalPages = 10,
+  submoduleCount = 0,
   href,
 }: LessonHeroCardProps) {
+  const sectionsText = submoduleCount === 1 ? 'section' : 'sections';
   const cardContent = (
     <View style={styles.card}>
       <View style={styles.banner}>
         <View style={styles.bannerTextWrap}>
           <Text style={styles.metaText}>
-            {moduleTitle} • {Math.round(progressPercent)}% Complete
+            {moduleTitle} • {submoduleCount} {sectionsText}
           </Text>
           <Text style={styles.title}>{title}</Text>
         </View>
