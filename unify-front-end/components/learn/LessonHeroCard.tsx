@@ -48,6 +48,17 @@ export default function LessonHeroCard({
   
   const lessonNumberText = extractLessonNumber(title);
   
+  // Remove lesson number prefix from title (e.g., "Lesson 5.3: " or "5.3: ")
+  const cleanTitle = (lessonTitle?: string): string => {
+    if (!lessonTitle) return '';
+    
+    // Remove patterns like "Lesson 5.3: ", "Lesson 5.3 ", "5.3: ", "5.3 ", etc.
+    const cleaned = lessonTitle.replace(/^(?:Lesson\s+)?\d+(?:\.\d+)?\s*:?\s*/i, '').trim();
+    return cleaned || lessonTitle; // Fallback to original if regex removes everything
+  };
+  
+  const displayTitle = cleanTitle(title);
+  
   const cardContent = (
     <View style={styles.card}>
       <View style={styles.banner}>
@@ -72,7 +83,7 @@ export default function LessonHeroCard({
           <Text style={styles.caption}>
             Continue from {lessonNumberText}:
           </Text>
-          <Text style={styles.subtitle}>{submoduleTitle}</Text>
+          <Text style={styles.subtitle}>{displayTitle}</Text>
         </View>
         <View style={[styles.playButton, colorHex ? { backgroundColor: colorHex } : null]}>
           <MaterialIcons name='play-arrow' size={28} color='#fff' />
