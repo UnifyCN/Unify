@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Link, Href } from 'expo-router';
 
@@ -12,6 +12,7 @@ interface LessonHeroCardProps {
   currentPage?: number;
   totalPages?: number;
   submoduleCount?: number;
+  coverImageUrl?: string;
   href?: Href;
 }
 
@@ -24,12 +25,21 @@ export default function LessonHeroCard({
   currentPage = 1,
   totalPages = 10,
   submoduleCount = 0,
+  coverImageUrl,
   href,
 }: LessonHeroCardProps) {
   const sectionsText = submoduleCount === 1 ? 'section' : 'sections';
   const cardContent = (
     <View style={styles.card}>
       <View style={styles.banner}>
+        {coverImageUrl ? (
+          <Image
+            source={{ uri: coverImageUrl }}
+            style={styles.bannerImage}
+            resizeMode="cover"
+          />
+        ) : null}
+        <View style={styles.bannerOverlay} />
         <View style={styles.bannerTextWrap}>
           <Text style={styles.metaText}>
             {moduleTitle} • {submoduleCount} {sectionsText}
@@ -91,10 +101,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'flex-end',
     padding: 20,
+    position: 'relative',
+  },
+  bannerImage: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   bannerTextWrap: {
     // place text at the bottom-left inside the banner
     alignSelf: 'flex-start',
+    position: 'relative',
+    zIndex: 1,
   },
   metaRow: { flexDirection: 'row', alignItems: 'center' },
   metaText: { color: 'rgba(255,255,255,0.95)', fontSize: 13, marginBottom: 6 },

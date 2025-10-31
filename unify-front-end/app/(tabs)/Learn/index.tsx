@@ -93,6 +93,7 @@ export default function Learn() {
                 {inProgressLessons.map((lesson, i) => {
                   const module = modules?.find(m => m._id === lesson.moduleId);
                   const submoduleCount = module?.submodules?.length || 0;
+                  const coverImageUrl = module?.coverPhoto ? urlFor(module.coverPhoto) : undefined;
                   
                   return (
                     <View
@@ -113,6 +114,7 @@ export default function Learn() {
                         currentPage={lesson.currentPage}
                         totalPages={lesson.totalPages}
                         submoduleCount={submoduleCount}
+                        coverImageUrl={coverImageUrl}
                         href={lesson.href as any}
                       />
                     </View>
