@@ -13,6 +13,7 @@ interface LessonHeroCardProps {
   totalPages?: number;
   submoduleCount?: number;
   coverImageUrl?: string;
+  colorHex?: string;
   href?: Href;
 }
 
@@ -26,6 +27,7 @@ export default function LessonHeroCard({
   totalPages = 10,
   submoduleCount = 0,
   coverImageUrl,
+  colorHex,
   href,
 }: LessonHeroCardProps) {
   const sectionsText = submoduleCount === 1 ? 'section' : 'sections';
@@ -55,7 +57,7 @@ export default function LessonHeroCard({
           </Text>
           <Text style={styles.subtitle}>{submoduleTitle}</Text>
         </View>
-        <View style={styles.playButton}>
+        <View style={[styles.playButton, colorHex ? { backgroundColor: colorHex } : null]}>
           <MaterialIcons name='play-arrow' size={28} color='#fff' />
         </View>
       </View>

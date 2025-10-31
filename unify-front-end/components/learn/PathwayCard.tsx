@@ -61,7 +61,7 @@ export default function PathwayCard({
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    borderRadius: 12,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#fff',
     paddingTop: 0,
@@ -80,10 +80,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#d9d9d9',
     marginBottom: 12,
     overflow: 'hidden',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   bannerImage: {
     width: '100%',
