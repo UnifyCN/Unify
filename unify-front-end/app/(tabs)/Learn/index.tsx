@@ -17,6 +17,7 @@ import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
 import { useSanityModules } from '../../../hooks/sanity/useSanityModules';
 import { useInProgressLessons } from '../../../hooks/progress/useInProgressLessons';
+import { urlFor } from '../../../sanity-custom';
 
 export default function Learn() {
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -144,6 +145,7 @@ export default function Learn() {
                   modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
                   href={`/(tabs)/Learn/modules/${module._id}` as any}
                   colorHex={module.colorTheme?.hex}
+                  coverImageUrl={module.coverPhoto ? urlFor(module.coverPhoto) : undefined}
                 />
               );
             })
