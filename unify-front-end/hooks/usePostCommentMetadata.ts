@@ -5,8 +5,7 @@ interface PostCommentMetadata {
   commentId: number;
   isLiked: boolean;
   likeCount: number;
-  // TODO: implement reply counting after reformatting database
-  // replyCount: number;
+  replyCount: number;
 }
 
 export const usePostCommentMetadata = (commentIds: number[]) => {
@@ -21,21 +20,29 @@ export const usePostCommentMetadata = (commentIds: number[]) => {
       if (!user) throw new Error('No user');
 
       // Batch load all metadata in parallel
-      const [likesData] = await Promise.all([
-        // Get all likes for these posts
+      const [likesData, repliesData] = await Promise.all([
         supabase
           .from('comment_likes')
           .select('comment_id, user_id')
           .in('comment_id', commentIds),
-      ]);
 
-      const [repliesData] = await Promise.all([
-        // Get all replies for these comments
         supabase
           .from('post_comments')
-          .select('*')
-          .in('parent_comment_id', commentIds)
+          .select('id, parent_comment_id')
+          .in('parent_comment_id', commentIds),
       ]);
+
+      if (likesData.error) throw likesData.error;
+      if (repliesData.error) throw repliesData.error;
+
+      // Build reply count map
+      const replyCountMap: Record<number, number> = {};
+      (repliesData.data || []).forEach(reply => {
+        if (reply.parent_comment_id) {
+          replyCountMap[reply.parent_comment_id] =
+            (replyCountMap[reply.parent_comment_id] || 0) + 1;
+        }
+      });
 
       // Process the data
       const metadata: Record<number, PostCommentMetadata> = {};
@@ -48,6 +55,7 @@ export const usePostCommentMetadata = (commentIds: number[]) => {
           commentId,
           isLiked: likes.some(like => like.user_id === user.id),
           likeCount: likes.length,
+          replyCount: replyCountMap[commentId] || 0,
         };
       });
 

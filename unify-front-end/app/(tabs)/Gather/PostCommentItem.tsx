@@ -10,16 +10,13 @@ import { PostCommentData } from '@/types/feeds/postcomment';
 import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
-import { useGetPostCommentReplies } from '@/hooks/posts/useGetPostCommentReplies';
-import { usePostCommentMetadata } from '@/hooks/usePostCommentMetadata';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
   metadata?: {
     isLiked: boolean;
     likeCount: number;
-    // TODO: implement reply counting after reformatting database
-    // replyCount: number
+    replyCount: number
   };
   metadataLoading?: boolean;
 }
@@ -36,18 +33,10 @@ const PostCommentItem = memo(
       [likeCommentMutation]
     );
 
-    // Reply ID's for batch loading
-    const { data: repliesData, isLoading: commentsLoading } = useGetPostCommentReplies(
-      comment.id
-    );
-    const replyIds =
-      repliesData?.map((replies: PostCommentData) => comment.id) ?? [];
-
-    
-
     // Use batch-loaded metadata
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked;
+    const replyCount = metadata?.replyCount;
 
     const navigateToUserProfile = useCallback(() => {
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
@@ -57,16 +46,7 @@ const PostCommentItem = memo(
     const showMetadataLoading = metadataLoading && !metadata;
 
     return (
-      <TouchableOpacity
-        onPress={() =>
-          router.push({
-            pathname: '/Gather/PostCommentDetails' as any,
-            params: {
-              post: JSON.stringify(comment),
-            },
-          })
-        }
-      >
+      <View>
         <View style={styles.postContainer}>
           {/* Headshot */}
           <TouchableOpacity
@@ -117,22 +97,22 @@ const PostCommentItem = memo(
                   <Text style={styles.footerText}>{likeCount}</Text>
                 )}
               </View>
-              <View
+              <TouchableOpacity
+                disabled={metadataLoading}
                 style={styles.footerItem}
               >
                 <Comment width={20} height={20} fill='gray' />
                 {showMetadataLoading ? (
                   <SkeletonLoader width={24} height={20} />
                 ) : (
-                  // TODO: implement reply counting after reformatting database
-                  <Text style={styles.footerText}></Text>
+                  <Text style={styles.footerText}>{replyCount}</Text>
                 )}
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
         <View style={styles.divider} />
-      </TouchableOpacity>
+      </View>
     );
   }
 );
