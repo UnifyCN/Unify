@@ -17,6 +17,12 @@ import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
 import { useSanityModules } from '../../../hooks/sanity/useSanityModules';
 import { useInProgressLessons } from '../../../hooks/progress/useInProgressLessons';
+import { urlFor } from '../../../sanity-custom';
+import {
+  CurrentLessonSkeletonLoader,
+  PathwayCardSkeletonLoader,
+  CarouselDotsSkeletonLoader,
+} from '../../../components/learn/learn-index-skeleton-loader';
 
 export default function Learn() {
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -71,10 +77,21 @@ export default function Learn() {
 
         <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
         {lessonsLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size='large' color='#575757' />
-            <Text style={styles.loadingText}>Loading your lessons...</Text>
-          </View>
+          <>
+            <View style={[styles.heroWrapper, { width }]}>
+              <View
+                style={{
+                  width,
+                  paddingRight: 30,
+                  paddingVertical: 10,
+                  paddingLeft: 1,
+                }}
+              >
+                <CurrentLessonSkeletonLoader />
+              </View>
+            </View>
+            <CarouselDotsSkeletonLoader />
+          </>
         ) : lessonsError ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>Error loading lessons</Text>
@@ -89,28 +106,38 @@ export default function Learn() {
                 showsHorizontalScrollIndicator={false}
                 onMomentumScrollEnd={onMomentumEnd}
               >
-                {inProgressLessons.map((lesson, i) => (
-                  <View
-                    key={lesson.id}
-                    style={{
-                      width,
-                      paddingRight: 30,
-                      paddingVertical: 10,
-                      paddingLeft: 1,
-                    }}
-                  >
-                    <LessonHeroCard
-                      title={lesson.title}
-                      description={lesson.description}
-                      moduleTitle={lesson.moduleTitle}
-                      submoduleTitle={lesson.submoduleTitle}
-                      progressPercent={lesson.progressPercent}
-                      currentPage={lesson.currentPage}
-                      totalPages={lesson.totalPages}
-                      href={lesson.href as any}
-                    />
-                  </View>
-                ))}
+                {inProgressLessons.map((lesson, i) => {
+                  const module = modules?.find(m => m._id === lesson.moduleId);
+                  const submoduleCount = module?.submodules?.length || 0;
+                  const coverImageUrl = module?.coverPhoto ? urlFor(module.coverPhoto) : undefined;
+                  const colorHex = module?.colorTheme?.hex;
+                  
+                  return (
+                    <View
+                      key={lesson.id}
+                      style={{
+                        width,
+                        paddingRight: 30,
+                        paddingVertical: 10,
+                        paddingLeft: 1,
+                      }}
+                    >
+                      <LessonHeroCard
+                        title={lesson.title}
+                        description={lesson.description}
+                        moduleTitle={lesson.moduleTitle}
+                        submoduleTitle={lesson.submoduleTitle}
+                        progressPercent={lesson.progressPercent}
+                        currentPage={lesson.currentPage}
+                        totalPages={lesson.totalPages}
+                        submoduleCount={submoduleCount}
+                        coverImageUrl={coverImageUrl}
+                        colorHex={colorHex}
+                        href={lesson.href as any}
+                      />
+                    </View>
+                  );
+                })}
               </ScrollView>
             </View>
             <CarouselDots
@@ -131,8 +158,10 @@ export default function Learn() {
         <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
         <View style={styles.pathwaysGrid}>
           {isLoading ? (
-            // Loading indicator to be waited for design
-            <ActivityIndicator size='large' color='#575757' />
+            <>
+              <PathwayCardSkeletonLoader />
+              <PathwayCardSkeletonLoader />
+            </>
           ) : error ? (
             <Text style={styles.errorText}>Error loading modules</Text>
           ) : modules && modules.length > 0 ? (
@@ -144,6 +173,7 @@ export default function Learn() {
                   modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
                   href={`/(tabs)/Learn/modules/${module._id}` as any}
                   colorHex={module.colorTheme?.hex}
+                  coverImageUrl={module.coverPhoto ? urlFor(module.coverPhoto) : undefined}
                 />
               );
             })
