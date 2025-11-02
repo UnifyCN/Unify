@@ -10,7 +10,8 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import LanguageIcon from '@/components/icons/LanguageIcon';
 import BackHeader from '@/components/BackHeader';
-
+import { Avatar } from '@/components/Avatar';
+import { Feather } from '@expo/vector-icons';
 interface AccountSettingsModalProps {
   visible: boolean;
   onClose: () => void;
@@ -20,6 +21,7 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -32,6 +34,17 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
           (user?.user_metadata as any)?.full_name || (user?.email ?? '');
         setUserName(name);
         setUserId(user?.id ?? null);
+        
+        if (user?.id) {
+          const { data: profileData } = await supabase
+            .from('users')
+            .select('profile_picture_url')
+            .eq('id', user.id)
+            .single();
+          if (mounted && profileData) {
+            setProfilePictureUrl(profileData.profile_picture_url);
+          }
+        }
       } catch (err) {
         console.warn('Failed to load user', err);
       }
@@ -73,14 +86,23 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
       <View style={styles.container}>
         <BackHeader title='Account' onBack={onClose} />
         <View style={styles.content}>
+          <View style={styles.profileSection}>
+            <Avatar
+              profilePictureUrl={profilePictureUrl ?? undefined}
+              username={userName}
+              size={80}
+              style={styles.avatar}
+            />
+            <Text style={styles.userName}>{userName}</Text>
+          </View>
           <View style={styles.rowsContainer}>
             <View style={styles.settingsCard}>
               <TouchableOpacity
                 style={styles.row}
                 onPress={handleNavigateToProfile}
               >
-                <View style={styles.avatarPlaceholderSmall} />
-                <Text style={styles.rowText}>Gather Profile</Text>
+                <Feather name='user' size={30} color='#000' />
+                <Text style={styles.rowText}>Community Profile</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -88,9 +110,9 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
                 onPress={handleLanguageSettings}
               >
                 <View style={styles.iconContainer}>
-                  <LanguageIcon />
+                  <Feather name='bookmark' size={30} color='#000' />
                 </View>
-                <Text style={styles.rowText}>Languages</Text>
+                <Text style={styles.rowText}>Saved</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.divider} />
@@ -115,12 +137,19 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 24,
+    gap: 24
   },
-  avatarPlaceholderSmall: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#e6e6e6',
+  profileSection: {
+    alignItems: 'center',
+    gap: 15
+  },
+  avatar: {
+    
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#111',
   },
   settingsCard: {
     flexDirection: 'column',
@@ -146,7 +175,7 @@ const styles = StyleSheet.create({
     height: 20,
   },
   rowText: {
-    fontSize: 16,
+    fontSize: 18 ,
     color: '#111',
   },
   divider: {
