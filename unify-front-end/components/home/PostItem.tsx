@@ -17,10 +17,9 @@ import { Theme } from '@/constants/Theme';
 
 export interface PostItemProps {
   post: PostData;
-  isPost?: boolean;
-  isTouchable?: boolean;
+  isInsideFeed?: boolean;
   shouldHideContent?: boolean;
-  isInsidePostDetails?: boolean;
+  isInsideDetails?: boolean;
   metadata?: {
     isLiked: boolean;
     isSaved: boolean;
@@ -37,10 +36,9 @@ export const PostItem = memo(
     metadata,
     shouldHideContent,
     metadataLoading,
-    isPost = true,
-    isTouchable = true,
+    isInsideFeed = true,
     onFocusReply,
-    isInsidePostDetails = false,
+    isInsideDetails = false,
   }: PostItemProps) => {
     const router = useRouter();
 
@@ -69,8 +67,9 @@ export const PostItem = memo(
     // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
 
+    // Logic for managing whether the input should be focused in PostDetails
     const handlePressedComment = () => {
-      if (isInsidePostDetails) {
+      if (isInsideDetails) {
         onFocusReply?.();
       } else {
         router.push({
@@ -166,7 +165,8 @@ export const PostItem = memo(
                 <Text style={styles.footerText}>{commentCount}</Text>
               )}
             </TouchableOpacity>
-            {isPost ? (
+            {isInsideFeed || isInsideDetails ? (
+              // The main posts (not comments) should be able to be saved
               <TouchableOpacity
                 onPress={() => {
                   if (isSaved !== undefined && !showMetadataLoading) {
@@ -193,7 +193,8 @@ export const PostItem = memo(
 
     return (
       <View>
-        {isTouchable ? (
+        {isInsideFeed ? (
+          // If the PostItem is displayed in a feed, then make it touchable
           <TouchableOpacity
             style={[
               styles.postContainer,

@@ -41,7 +41,7 @@ const Feed = ({
           post={item}
           metadata={metadata?.[item.id]}
           metadataLoading={metadataLoading}
-          isPost={true}
+          isInsideFeed={true}
         />
       );
     },

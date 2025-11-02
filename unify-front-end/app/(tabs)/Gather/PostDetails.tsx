@@ -111,6 +111,16 @@ const PostDetails = () => {
   // Get passed data
   const { post: postParam, focusReply } = useLocalSearchParams();
 
+  if (!postParam) {
+    return <PostNotFound />;
+  }
+
+  // Parse the post string and type it as PostData
+  const post: PostData = JSON.parse(postParam as string);
+
+  // Router for navigation
+  const router = useRouter();
+
   const { setVisible } = useHeaderVisibility();
   useEffect(() => {
     setVisible(false);
@@ -121,37 +131,26 @@ const PostDetails = () => {
     router.back();
   };
 
-  // Reply text box
+  // Control focus on comment input based on how PostDetails was opened:
+  // Input should be focused when comment icons clicked, otherwise do not open
   const [commentTextBox, setCommentTextBox] = useState('');
   const replyInputRef = useRef<TextInput>(null);
   const [shouldFocusReply, setShouldFocusReply] = useState(false);
 
-  // On mount, check if the param requests focus
   useEffect(() => {
     if (focusReply === 'true') {
       setShouldFocusReply(true);
     }
   }, [focusReply]);
 
-  // Focus input when state becomes true, then reset
   useEffect(() => {
     if (shouldFocusReply) {
       setTimeout(() => {
         replyInputRef.current?.focus();
-        setShouldFocusReply(false); // reset so next click works
+        setShouldFocusReply(false);
       }, 300);
     }
   }, [shouldFocusReply]);
-
-  if (!postParam) {
-    return <PostNotFound />;
-  }
-
-  // Parse the post string and type it as PostData
-  const post: PostData = JSON.parse(postParam as string);
-
-  // Router for navigation
-  const router = useRouter();
 
   // Get post metadata from query cache (supports optimistic updates)
   const { data: postMetadata, isLoading: postMetadataLoading } =
@@ -177,6 +176,7 @@ const PostDetails = () => {
   const { data: postCommentMetadata, isLoading: commentMetadataLoading } =
     usePostCommentMetadata(commentIds);
 
+  // Utilize hooks to create comments
   const createCommentMutation = useMutateCreateComment();
 
   const handleCreateComment = () => {
@@ -225,9 +225,8 @@ const PostDetails = () => {
           <>
             <PostItem
               post={post}
-              isPost={true}
-              isTouchable={false}
-              isInsidePostDetails={true}
+              isInsideFeed={false}
+              isInsideDetails={true}
               onFocusReply={() => setShouldFocusReply(true)}
               metadata={{
                 isLiked,
