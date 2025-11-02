@@ -494,9 +494,6 @@ export default function RichTextRenderer({
           key={block._key || index}
           style={mergedStyles.inputFieldContainer}
         >
-          {block.label && (
-            <Text style={mergedStyles.inputLabel}>{block.label}</Text>
-          )}
           <TextInput
             style={[
               {
