@@ -10,9 +10,10 @@ import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from '@/app/(tabs)/Gather/EventCard';
-import ViewMoreCard from '@/app/(tabs)/Gather/ViewMoreCard';
 import { SkeletonLoader } from './SkeletonLoader';
 import { Theme } from '@/constants/Theme';
+import ViewMoreCardEvents from '@/components/icons/ViewMoreCardEvents.svg';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 
 // Skeleton loader component for events
 const EventSkeletonCard = () => {
@@ -139,10 +140,22 @@ export const EventsCarousel = ({
         )}
         {!isLoading && upcomingEvents.length === 0 && (
           <View style={styles.emptyEventsContainer}>
-            <Text style={styles.emptyEventsText}>No upcoming events</Text>
-            <Text style={styles.emptyEventsSubtext}>
-              Check back later for new events or view past events.
-            </Text>
+            <EmptyFeedMessage
+              icon={<Feather name='calendar' size={24} color='#B4B1B1' />}
+              message='No events available'
+              submessage={
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: Theme.textInput,
+                    textAlign: 'center',
+                    lineHeight: 20,
+                  }}
+                >
+                  Check back later for new events
+                </Text>
+              }
+            />
           </View>
         )}
         {displayEvents.map(event => (
@@ -153,7 +166,28 @@ export const EventsCarousel = ({
           />
         ))}
         {upcomingEvents.length > maxEvents && (
-          <ViewMoreCard onPress={handleViewMore} />
+          <TouchableOpacity
+            style={styles.viewMoreCard}
+            onPress={handleViewMore}
+            activeOpacity={0.7}
+          >
+            <View style={styles.viewMoreContent}>
+              <ViewMoreCardEvents 
+                width={248}
+                height="100%"
+                preserveAspectRatio="none"
+              />
+              <View style={styles.viewMoreTextOverlay}>
+                <Text style={styles.viewMoreText}>
+                  View more events{' '}
+                  <Feather name='arrow-right' size={16} color={Theme.black} />
+                </Text>
+                <Text style={styles.viewMoreSubtext}>
+                  There's more to check out!
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
         )}
       </ScrollView>
     </View>
@@ -194,34 +228,47 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 30,
-    backgroundColor: Theme.surfaceGray,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: Theme.borderInfoText,
   },
-  emptyEventsText: {
+  viewMoreCard: {
+    width: 248,
+    alignSelf: 'stretch',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+  },
+  viewMoreContent: {
+    width: 248,
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  viewMoreTextOverlay: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewMoreText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Theme.textInput,
-    marginBottom: 4,
+    color: Theme.black,
   },
-  emptyEventsSubtext: {
+  viewMoreSubtext: {
     fontSize: 14,
-    color: Theme.textInput,
-    textAlign: 'center',
+    color: Theme.black,
   },
 });
 
 const skeletonStyles = StyleSheet.create({
   eventCard: {
     backgroundColor: '#f0f0f0',
-    borderRadius: 12,
+    borderRadius: 15,
     overflow: 'hidden',
     width: 248,
   },
   eventImagePlaceholder: {
-    height: 80,
+    height: 86,
     width: '100%',
     backgroundColor: '#D5D5D5',
   },
