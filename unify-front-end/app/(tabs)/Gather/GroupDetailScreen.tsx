@@ -26,6 +26,9 @@ import { PostData } from '@/types/feeds/post';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
+import { Theme } from '@/constants/Theme';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -308,15 +311,15 @@ const GroupDetailScreen = () => {
         ListEmptyComponent={() => {
           if (postsLoading) return null;
           return (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyStateContent}>
-                <Feather name='message-circle' size={48} color='#D1D1D6' />
-                <Text style={styles.emptyStateTitle}>No posts yet</Text>
-                <Text style={styles.emptyStateSubtitle}>
-                  Be the first to start the conversation
+            <EmptyFeedMessage
+              icon={<UnifyReplyIcon width={27} height={25} />}
+              message='Looks a little quiet here...'
+              submessage={
+                <Text style={{ fontSize: 14, color: Theme.textInput, textAlign: 'center', lineHeight: 20 }}>
+                  Be the first one to post!
                 </Text>
-              </View>
-            </View>
+              }
+            />
           );
         }}
         onEndReached={() => fetchNextPage()}

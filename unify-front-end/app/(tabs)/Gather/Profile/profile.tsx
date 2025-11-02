@@ -16,6 +16,7 @@ import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 import { Theme } from '@/constants/Theme';
+import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -121,11 +122,18 @@ export default function Profile() {
             useFeedHook={() => useCommentedOnFeed(userId)}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No posts available'
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
                 submessage={
-                  isCurrentUser
-                    ? "You haven't commented on any posts yet"
-                    : "This user hasn't commented on any posts yet"
+                  isCurrentUser ? (
+                    <Text style={styles.emptyMessageSubtext}>
+                      You haven't commented on any posts yet
+                    </Text>
+                  ) : (
+                    <Text style={styles.emptyMessageSubtext}>
+                      This person hasn't commented on any posts yet
+                    </Text>
+                  )
                 }
               />
             }
@@ -139,8 +147,13 @@ export default function Profile() {
             useFeedHook={useGetSavedPosts}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No posts available'
-                submessage='Save posts to see them here'
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    Save posts to see them here
+                  </Text>
+                }
               />
             }
           />
@@ -152,11 +165,19 @@ export default function Profile() {
             useFeedHook={() => useUserPosts(userId)}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No posts available'
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
                 submessage={
-                  isCurrentUser
-                    ? "You haven't posted anything yet"
-                    : "This user hasn't posted anything yet"
+                  isCurrentUser ? (
+                    <Text style={styles.emptyMessageSubtext}>
+                      We'd love to hear from you!{'\n'}
+                      Create a post to show up here.
+                    </Text>
+                  ) : (
+                    <Text style={styles.emptyMessageSubtext}>
+                      This person hasn't posted anything yet.
+                    </Text>
+                  )
                 }
               />
             }
@@ -231,9 +252,15 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Theme.textInactiveTab,
   },
   activeTabText: {
-    color: '#000',
+    color: Theme.black,
+  },
+  emptyMessageSubtext: {
+    fontSize: 14,
+    color: Theme.textInput,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
