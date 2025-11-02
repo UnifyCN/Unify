@@ -18,7 +18,6 @@ import { useCommentMetadata } from '@/hooks/useCommentMetadata';
 import PostCommentItem from './PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
@@ -102,13 +101,9 @@ const PostDetails = () => {
   // Get passed data
   const { post: postParam } = useLocalSearchParams();
 
-  const { setVisible } = useHeaderVisibility();
-  useEffect(() => {
-    setVisible(false);
-  }, [setVisible]);
+
 
   const onBack = () => {
-    setVisible(true);
     router.back();
   };
 

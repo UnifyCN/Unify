@@ -15,6 +15,7 @@ import CarouselDots from '../../../components/learn/CarouselDots';
 import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
 import { useAllModules } from '../../../hooks/learn/useAllModules';
+import Header from '@/components/Header';
 
 export default function Learn() {
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -36,69 +37,76 @@ export default function Learn() {
     sliderRef.current?.scrollTo({ x: i * width, animated: true });
   };
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style='dark' />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.pageTitle}>Let's get started!</Text>
+    <View style={styles.root}>
+      <Header/>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style='dark' />
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.pageTitle}>Let's get started!</Text>
 
-        <SearchBar placeholder='Search for a lesson' />
+          <SearchBar placeholder='Search for a lesson' />
 
-        <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
-        <View style={[styles.heroWrapper, { width }]}>
-          <ScrollView
-            ref={sliderRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={onMomentumEnd}
-          >
-            {heroSlides.map(i => (
-              <View
-                key={i}
-                style={{
-                  width,
-                  paddingRight: 30,
-                  paddingVertical: 10,
-                  paddingLeft: 1,
-                }}
-              >
-                <LessonHeroCard />
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-        <CarouselDots
-          total={heroSlides.length}
-          activeIndex={heroIndex}
-          onDotPress={handleDotPress}
-        />
+          <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
+          <View style={[styles.heroWrapper, { width }]}>
+            <ScrollView
+              ref={sliderRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={onMomentumEnd}
+            >
+              {heroSlides.map(i => (
+                <View
+                  key={i}
+                  style={{
+                    width,
+                    paddingRight: 30,
+                    paddingVertical: 10,
+                    paddingLeft: 1,
+                  }}
+                >
+                  <LessonHeroCard />
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+          <CarouselDots
+            total={heroSlides.length}
+            activeIndex={heroIndex}
+            onDotPress={handleDotPress}
+          />
 
-        <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
-        <View style={styles.pathwaysGrid}>
-          {isLoading ? (
-            // Loading indicator to be waited for design
-            <ActivityIndicator size='large' color='#575757' />
-          ) : error ? (
-            <Text style={styles.errorText}>Error loading modules</Text>
-          ) : modules && modules.length > 0 ? (
-            modules.map(module => (
-              <PathwayCard
-                key={module.id}
-                title={module.title}
-                modulesLabel={`${module.total_submodules} section${module.total_submodules === 1 ? '' : 's'}`}
-                href={`/(tabs)/Learn/modules/${module.id}` as any}
-              />
-            ))
-          ) : (
-            <Text style={styles.errorText}>No modules available</Text>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
+          <View style={styles.pathwaysGrid}>
+            {isLoading ? (
+              // Loading indicator to be waited for design
+              <ActivityIndicator size='large' color='#575757' />
+            ) : error ? (
+              <Text style={styles.errorText}>Error loading modules</Text>
+            ) : modules && modules.length > 0 ? (
+              modules.map(module => (
+                <PathwayCard
+                  key={module.id}
+                  title={module.title}
+                  modulesLabel={`${module.total_submodules} section${module.total_submodules === 1 ? '' : 's'}`}
+                  href={`/(tabs)/Learn/modules/${module.id}` as any}
+                />
+              ))
+            ) : (
+              <Text style={styles.errorText}>No modules available</Text>
+            )}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+    
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: { flex: 1, backgroundColor: '#fff' },
   scrollContent: { padding: 20, paddingBottom: 100 },
   pageTitle: {

@@ -15,18 +15,12 @@ import EventCard from './EventCard';
 import { useMemo, useState } from 'react';
 import { ChartNoAxesGantt } from 'lucide-react-native';
 import { Event } from '@/types/events';
-import { useEffect } from 'react';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+
 
 const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
-  const { setVisible } = useHeaderVisibility();
 
-  useEffect(() => {
-    setVisible(false);
-    return () => setVisible(true);
-  }, [setVisible]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('Upcoming');
   const [selectedGenre, setSelectedGenre] = useState<string>('All Events');

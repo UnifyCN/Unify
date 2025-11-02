@@ -14,7 +14,6 @@ import UserPostsFeed from '@/components/profile/UserPostsFeed';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import BackHeader from '@/components/BackHeader';
 interface TabHeaderProps {
   activeTab: string;
@@ -57,14 +56,7 @@ export default function Profile() {
 
   const { data: userInfo } = useUserInfo(userId);
 
-  const { setVisible } = useHeaderVisibility();
 
-  useFocusEffect(
-    React.useCallback(() => {
-      setVisible(false);
-      return () => setVisible(true);
-    }, [setVisible])
-  );
 
   useEffect(() => {
     const getCurrentUser = async () => {

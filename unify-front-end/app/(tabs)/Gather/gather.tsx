@@ -8,6 +8,7 @@ import GroupsFeed from '@/components/home/GroupsFeed';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import Header from '@/components/Header';
 
 interface HeaderProps {
   activeTab: string;
@@ -121,20 +122,27 @@ export default function GatherScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style='dark' />
-      <Animated.FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={item => item.key}
-        stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
-      />
-      <CreatePostButton />
+    <View style={styles.root}>
+      <Header />
+      <View style={styles.container}>
+        <StatusBar style='dark' />
+        <Animated.FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={item => item.key}
+          stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
+        />
+        <CreatePostButton />
+      </View>
     </View>
+    
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   headerText: {
     fontSize: 16,
     fontWeight: 600,

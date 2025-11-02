@@ -1,32 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Image,
+  Modal,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
-import BackHeader from '@/components/BackHeader';
 import LanguageIcon from '@/components/icons/LanguageIcon';
+import BackHeader from '@/components/BackHeader';
 
-const AccountSettings = () => {
+interface AccountSettingsModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) => {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
-
-  const { setVisible } = useHeaderVisibility();
-
-  useFocusEffect(
-    React.useCallback(() => {
-      setVisible(false);
-      return () => setVisible(true);
-    }, [setVisible])
-  );
 
   useEffect(() => {
     let mounted = true;
@@ -52,6 +45,7 @@ const AccountSettings = () => {
   const onLogout = async () => {
     try {
       await supabase.auth.signOut();
+      onClose();
       // Auth state listener will handle redirect to login
     } catch (err) {
       console.error('Logout failed', err);
@@ -60,6 +54,7 @@ const AccountSettings = () => {
 
   const handleNavigateToProfile = () => {
     if (userId) {
+      onClose();
       router.push(`/(tabs)/Gather/Profile/profile?userId=${userId}` as any);
     }
   };
@@ -69,37 +64,44 @@ const AccountSettings = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <BackHeader title='Account' />
-      <View style={styles.content}>
-        <View style={styles.rowsContainer}>
-          <View style={styles.settingsCard}>
-            <TouchableOpacity
-              style={styles.row}
-              onPress={handleNavigateToProfile}
-            >
-              <View style={styles.avatarPlaceholderSmall} />
-              <Text style={styles.rowText}>Gather Profile</Text>
-            </TouchableOpacity>
+    <Modal
+      visible={visible}
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View style={styles.container}>
+        <BackHeader title='Account' onBack={onClose} />
+        <View style={styles.content}>
+          <View style={styles.rowsContainer}>
+            <View style={styles.settingsCard}>
+              <TouchableOpacity
+                style={styles.row}
+                onPress={handleNavigateToProfile}
+              >
+                <View style={styles.avatarPlaceholderSmall} />
+                <Text style={styles.rowText}>Gather Profile</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.row}
-              onPress={handleLanguageSettings}
-            >
-              <View style={styles.iconContainer}>
-                <LanguageIcon />
-              </View>
-              <Text style={styles.rowText}>Languages</Text>
+              <TouchableOpacity
+                style={styles.row}
+                onPress={handleLanguageSettings}
+              >
+                <View style={styles.iconContainer}>
+                  <LanguageIcon />
+                </View>
+                <Text style={styles.rowText}>Languages</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.divider} />
+
+            <TouchableOpacity style={styles.row} onPress={onLogout}>
+              <Text style={[styles.rowText, { color: '#000' }]}>Log out</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.divider} />
-
-          <TouchableOpacity style={styles.row} onPress={onLogout}>
-            <Text style={[styles.rowText, { color: '#000' }]}>Log out</Text>
-          </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </Modal>
   );
 };
 
@@ -161,4 +163,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AccountSettings;
+export default AccountSettingsModal;

@@ -5,14 +5,23 @@ import { Feather } from '@expo/vector-icons';
 
 interface BackHeaderProps {
   title: string;
+  onBack?: () => void;
 }
 
-const BackHeader = ({ title = '' }: BackHeaderProps) => {
+const BackHeader = ({ title = '', onBack }: BackHeaderProps) => {
   const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  };
 
   return (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => router.back()}>
+      <TouchableOpacity onPress={handleBack}>
         <Feather name='chevron-left' size={24} color='#000' />
       </TouchableOpacity>
       {/* Share Button */}

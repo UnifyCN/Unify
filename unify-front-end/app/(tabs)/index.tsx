@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
+import Header from '@/components/Header';
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
 
@@ -41,7 +42,9 @@ const WelcomeSection = () => {
   }, []);
 
   return (
-    <View style={styles.welcomeSection}>
+    <View>
+      <Header/>
+      <View style={styles.welcomeSection}>
       <Text style={styles.welcomeText}>
         Welcome Back, <Text style={styles.welcomeName}>{username}!</Text>
       </Text>
@@ -57,6 +60,8 @@ const WelcomeSection = () => {
         <Text style={styles.resumeButtonText}>Resume Lesson</Text>
       </TouchableOpacity>
     </View>
+    </View>
+    
   );
 };
 

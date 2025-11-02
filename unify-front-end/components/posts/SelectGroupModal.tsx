@@ -59,8 +59,8 @@ export default function SelectGroupModal({
   return (
     <Modal
       visible={visible}
-      animationType='slide'
-      transparent={false}
+      animationType="none"
+      statusBarTranslucent
       onRequestClose={handleCancel}
     >
       <View style={styles.container}>
@@ -68,7 +68,6 @@ export default function SelectGroupModal({
           <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
             <Feather name='x' size={24} color='black' />
           </TouchableOpacity>
-          <Text style={styles.title}>Post to</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   cancelButton: {
-    padding: 15,
+    
   },
   title: {
     fontSize: 16,

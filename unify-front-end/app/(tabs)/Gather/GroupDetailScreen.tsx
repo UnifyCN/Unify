@@ -14,7 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { Group } from '@/types/groups';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
+
 import { getGroupByName } from '@/services/groups/getGroupByName';
 import { PostItem } from '@/components/home/PostItem';
 import CreatePostButton from '@/components/posts/CreatePostButton';
@@ -40,15 +40,7 @@ const GroupDetailScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const headerOpacity = useRef(new Animated.Value(0)).current;
 
-  const { setVisible } = useHeaderVisibility();
-
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    // Always hide the main header when this screen is active
-    setVisible(false);
-    return () => setVisible(true);
-  }, []);
 
   useEffect(() => {
     // Reset header opacity when component mounts

@@ -3,36 +3,24 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
+import AccountSettingsModal from './profile/AccountSettingsModal';
 
 const Header = () => {
-  const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-      }
-    };
-    getCurrentUser();
-  }, []);
-
-  const handleProfilePress = () => {
-    router.push('/(tabs)/Gather/Profile/AccountSettings');
-  };
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
   return (
     <View style={styles.header}>
       <Text style={styles.title}>Unify</Text>
       <TouchableOpacity
         style={styles.profileButton}
-        onPress={handleProfilePress}
+        onPress={() => setIsSettingsVisible(true)}
       >
         <Feather name='user' size={20} color='#000' />
       </TouchableOpacity>
+      <AccountSettingsModal
+        visible={isSettingsVisible}
+        onClose={() => setIsSettingsVisible(false)}
+      />
     </View>
   );
 };

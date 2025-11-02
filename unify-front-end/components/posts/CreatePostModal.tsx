@@ -82,8 +82,8 @@ export default function CreatePostModal({
     <>
       <Modal
         visible={visible}
-        animationType='slide'
-        transparent={false}
+        animationType="none"
+        statusBarTranslucent
         onRequestClose={handleCancel}
       >
         <ScrollView style={styles.container}>
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     marginTop: 60,
   },
   cancelButton: {
-    padding: 15,
+    
   },
   postButton: {
     backgroundColor: '#007AFF',
