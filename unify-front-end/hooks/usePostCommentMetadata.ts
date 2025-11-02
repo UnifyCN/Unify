@@ -59,6 +59,8 @@ export const usePostCommentMetadata = (commentIds: number[]) => {
         };
       });
 
+      console.log(metadata)
+
       return metadata;
     },
     enabled: commentIds.length > 0,

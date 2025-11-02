@@ -18,6 +18,7 @@ import { PostData } from '@/types/feeds/post';
 import { PostItem } from '@/components/home/PostItem';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPosts } from '@/services/posts/getAllPosts';
+import { usePostMetadata } from '@/hooks/usePostMetadata';
 import {
   saveRecentSearch,
   getRecentSearches,
@@ -52,6 +53,11 @@ const SearchScreen = () => {
   const postsToShow = searchResults?.posts ?? [];
   let searchHistory = null;
   let groupsHistory = null;
+
+  // Batch call to get metadata of posts
+  const postIds = postsToShow.map(p => p.id);
+  const { data: postMetadata, isLoading: postMetadataLoading } = usePostMetadata(postIds);
+
 
   useEffect(() => {
     const loadRecent = async () => {
@@ -132,11 +138,20 @@ const SearchScreen = () => {
     });
   };
 
-  const renderPosts = ({ item }: { item: PostData }) => (
-    <View style={styles.cardItem}>
-      <PostItem post={item} shouldHideContent />
-    </View>
-  );
+  const renderPosts = ({ item }: { item: PostData }) => {
+    const metadata = postMetadata?.[item.id];
+    return (
+      <View style={styles.cardItem}>
+        <PostItem
+          post={item}
+          shouldHideContent
+          metadata={metadata}
+          metadataLoading={postMetadataLoading}
+        />
+      </View>
+    );
+  };
+
   const renderGroup = ({ item }: { item: Group }) => (
     <View style={styles.cardItem}>
       <GroupCard group={item} onPress={() => groupPress(item)} />
