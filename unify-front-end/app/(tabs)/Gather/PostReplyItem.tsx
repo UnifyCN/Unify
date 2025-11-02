@@ -1,37 +1,26 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import Like from '@/assets/images/Like.svg';
-import Comment from '@/assets/images/Comment.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import { formatSmartTime } from '@/utils/dateUtils';
 import { useMutateLikeComment } from '@/hooks/posts/useMutateLikeComment';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback } from 'react';
 import { PostCommentData } from '@/types/feeds/postcomment';
 import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
-import { getPostReplies } from '@/services/posts/getPostReplies';
-import PostReplyItem from './PostReplyItem';
-import { useMutateCreateComment } from '@/hooks/posts/useMutateCreateComment';
 
-interface PostCommentItemProps {
+interface PostReplyItemProps {
   comment: PostCommentData;
   metadata?: {
     isLiked: boolean;
     likeCount: number;
-    replyCount: number;
   };
-  onReplyPress?: (comment: PostCommentData) => void;
   metadataLoading?: boolean;
 }
 
-const PostCommentItem = memo(
-  ({
-    comment,
-    metadata,
-    metadataLoading,
-    onReplyPress,
-  }: PostCommentItemProps) => {
+const PostReplyItem = memo(
+  ({ comment, metadata, metadataLoading }: PostReplyItemProps) => {
     // Hook for liking and unliking comments
     const likeCommentMutation = useMutateLikeComment();
 
@@ -45,7 +34,6 @@ const PostCommentItem = memo(
     // Use batch-loaded metadata
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked;
-    const replyCount = metadata?.replyCount;
 
     const navigateToUserProfile = useCallback(() => {
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
@@ -53,34 +41,6 @@ const PostCommentItem = memo(
 
     // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
-
-    // Load replies for comments on request
-    const [replies, setReplies] = useState<PostCommentData[]>([]);
-    const [loadingReplies, setLoadingReplies] = useState(false);
-    const [showReplies, setShowReplies] = useState(false);
-
-    const handleViewReplies = async () => {
-      if (replies.length > 0) {
-        setShowReplies(prev => !prev);
-        return;
-      }
-
-      try {
-        setLoadingReplies(true);
-        const fetchedReplies = await getPostReplies(comment.id);
-        setReplies(fetchedReplies);
-        setShowReplies(true);
-      } catch (error) {
-        console.error('Error loading replies:', error);
-      } finally {
-        setLoadingReplies(false);
-      }
-    };
-
-    // Utilize hooks to create replies
-    const createCommentMutation = useMutateCreateComment();
-
-    const handleCreateReply = () => {};
 
     return (
       <View>
@@ -134,53 +94,9 @@ const PostCommentItem = memo(
                   <Text style={styles.footerText}>{likeCount}</Text>
                 )}
               </View>
-              <TouchableOpacity
-                disabled={metadataLoading}
-                style={styles.footerItem}
-                onPress={() => onReplyPress?.(comment)}
-              >
-                <Comment width={20} height={20} fill='gray' />
-                {showMetadataLoading ? (
-                  <SkeletonLoader width={24} height={20} />
-                ) : (
-                  <Text style={styles.footerText}>{replyCount}</Text>
-                )}
-              </TouchableOpacity>
             </View>
-
-            {/* View replies section */}
-            {replyCount != null && replyCount > 0 && (
-              <View style={{ marginTop: 6 }}>
-                <TouchableOpacity
-                  style={styles.replyPreviewContainer}
-                  onPress={handleViewReplies}
-                >
-                  <View style={styles.replyPreviewAccent} />
-                  <Text style={styles.replyPreviewText}>
-                    {showReplies
-                      ? 'Hide replies'
-                      : `View ${replyCount} ${replyCount > 1 ? 'replies' : 'reply'}`}
-                  </Text>
-                </TouchableOpacity>
-
-                {showReplies &&
-                  !loadingReplies &&
-                  replies.map(reply => (
-                    <PostReplyItem
-                      key={reply.id}
-                      comment={reply}
-                      metadata={{
-                        likeCount: reply.like_count ?? 0,
-                        isLiked: false,
-                      }}
-                      metadataLoading={false}
-                    />
-                  ))}
-              </View>
-            )}
           </View>
         </View>
-        <View style={styles.divider} />
       </View>
     );
   }
@@ -190,7 +106,7 @@ const styles = StyleSheet.create({
   postContainer: {
     backgroundColor: '#fff',
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingVertical: 22,
     gap: 12,
   },
@@ -242,29 +158,6 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 14,
   },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#E5E5E5',
-  },
-  replyPreviewContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 10,
-    position: 'relative',
-  },
-  replyPreviewAccent: {
-    width: 24,
-    height: 6,
-    borderBottomWidth: 1,
-    borderColor: Theme.textInactiveTab,
-    marginRight: 6,
-    transform: [{ translateY: -2 }],
-  },
-  replyPreviewText: {
-    fontSize: 12,
-    color: Theme.textAlternateGray,
-  },
 });
 
-export default PostCommentItem;
+export default PostReplyItem;

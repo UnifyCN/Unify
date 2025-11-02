@@ -56,8 +56,8 @@ const SearchScreen = () => {
 
   // Batch call to get metadata of posts
   const postIds = postsToShow.map(p => p.id);
-  const { data: postMetadata, isLoading: postMetadataLoading } = usePostMetadata(postIds);
-
+  const { data: postMetadata, isLoading: postMetadataLoading } =
+    usePostMetadata(postIds);
 
   useEffect(() => {
     const loadRecent = async () => {

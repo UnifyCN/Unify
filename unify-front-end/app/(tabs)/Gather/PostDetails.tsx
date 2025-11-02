@@ -134,6 +134,8 @@ const PostDetails = () => {
   // Control focus on comment input based on how PostDetails was opened:
   // Input should be focused when comment icons clicked, otherwise do not open
   const [commentTextBox, setCommentTextBox] = useState('');
+  const [replyingToComment, setReplyingToComment] =
+    useState<PostCommentData | null>(null);
   const replyInputRef = useRef<TextInput>(null);
   const [shouldFocusReply, setShouldFocusReply] = useState(false);
 
@@ -151,6 +153,11 @@ const PostDetails = () => {
       }, 300);
     }
   }, [shouldFocusReply]);
+
+  const handleFocusPostComment = () => {
+    setReplyingToComment(null);
+    setShouldFocusReply(true);
+  };
 
   // Get post metadata from query cache (supports optimistic updates)
   const { data: postMetadata, isLoading: postMetadataLoading } =
@@ -181,14 +188,17 @@ const PostDetails = () => {
 
   const handleCreateComment = () => {
     if (commentTextBox.trim() === '') return;
+
     createCommentMutation.mutate(
       {
         postId: post.id,
         content: commentTextBox,
+        parentCommentId: replyingToComment?.id ?? null,
       },
       {
         onSuccess: () => {
           setCommentTextBox('');
+          setReplyingToComment(null);
           Keyboard.dismiss();
         },
       }
@@ -203,6 +213,10 @@ const PostDetails = () => {
         comment={item}
         metadata={postCommentMetadata?.[item.id]}
         metadataLoading={commentMetadataLoading}
+        onReplyPress={comment => {
+          setReplyingToComment(comment);
+          setShouldFocusReply(true);
+        }}
       />
     ),
     [postCommentMetadata, commentMetadataLoading]
@@ -227,7 +241,7 @@ const PostDetails = () => {
               post={post}
               isInsideFeed={false}
               isInsideDetails={true}
-              onFocusReply={() => setShouldFocusReply(true)}
+              onFocusReply={handleFocusPostComment}
               metadata={{
                 isLiked,
                 isSaved,
@@ -250,7 +264,11 @@ const PostDetails = () => {
 
       <CommentInput
         ref={replyInputRef}
-        placeholder={`Reply to ${post.user.name}`}
+        placeholder={
+          replyingToComment
+            ? `Reply to ${replyingToComment.username}`
+            : `Reply to ${post.user.name}`
+        }
         value={commentTextBox}
         onChangeText={setCommentTextBox}
         onSend={handleCreateComment}
