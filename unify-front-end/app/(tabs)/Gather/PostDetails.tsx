@@ -107,11 +107,7 @@ const CommentInput = React.forwardRef<
   </View>
 ));
 
-export interface PostDetailsProps {
-  isPost?: boolean;
-}
-
-const PostDetails = ({ isPost = true }: PostDetailsProps) => {
+const PostDetails = () => {
   // Get passed data
   const { post: postParam, focusReply } = useLocalSearchParams();
 
@@ -229,7 +225,7 @@ const PostDetails = ({ isPost = true }: PostDetailsProps) => {
           <>
             <PostItem
               post={post}
-              isPost={isPost}
+              isPost={true}
               isTouchable={false}
               isInsidePostDetails={true}
               onFocusReply={() => setShouldFocusReply(true)}
