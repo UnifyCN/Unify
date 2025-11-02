@@ -378,7 +378,6 @@ const computeAhead = (y: number, vh: number) => {
         {/* Rail container */}
         <View
           style={styles.railContainer}
-          // ⬇️ NEW: capture absolute Y for this container (relative to ScrollView content)
           onLayout={e => {
             railTopRef.current = clampNonNeg(e.nativeEvent.layout.y);
           }}
@@ -647,7 +646,7 @@ const computeAhead = (y: number, vh: number) => {
                 <View style={styles.dot} />
                 <View style={styles.dot} />
               </View>
-              <Text style={styles.moreText}>{ahead} more modules ahead</Text>
+              <Text style={styles.moreText}>{ahead} more module{ahead === 1 ? '' : 's'} ahead</Text>
             </View>
           </View>
         </View>
