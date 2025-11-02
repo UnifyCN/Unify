@@ -171,6 +171,17 @@ export default function RichTextRenderer({
       marginBottom: 12,
       textTransform: 'uppercase',
     },
+    exampleText: {
+      fontFamily: 'Font Family',
+      fontWeight: '400',     // Regular
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+      color: '#374151',
+    },
+
+    
     tipBox: {
       borderRadius: 0,
       paddingLeft: 15,
@@ -453,7 +464,16 @@ export default function RichTextRenderer({
       return (
         <View key={block._key || index} style={mergedStyles.exampleBox}>
           <Text style={mergedStyles.exampleBoxTitle}>EXAMPLE</Text>
-          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} />
+          <RichTextRenderer
+            blocks={block.content || []}
+            markDefs={markDefs}
+            styles={{
+              normal: mergedStyles.exampleText,
+              bullet: mergedStyles.exampleText,
+              number: mergedStyles.exampleText,
+              link: mergedStyles.link,
+            }}
+          />
         </View>
       );
     }
