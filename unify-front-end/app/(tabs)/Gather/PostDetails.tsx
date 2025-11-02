@@ -113,8 +113,7 @@ export interface PostDetailsProps {
 
 const PostDetails = ({ isPost = true }: PostDetailsProps) => {
   // Get passed data
-  const { post: postParam, focusReply: focusReplyParam } =
-    useLocalSearchParams();
+  const { post: postParam, focusReply } = useLocalSearchParams();
 
   const { setVisible } = useHeaderVisibility();
   useEffect(() => {
@@ -128,20 +127,25 @@ const PostDetails = ({ isPost = true }: PostDetailsProps) => {
 
   // Reply text box
   const [commentTextBox, setCommentTextBox] = useState('');
-  const [focusReply, setFocusReply] = useState(false);
-
-  const [focusReplyTrigger, setFocusReplyTrigger] = useState(false);
   const replyInputRef = useRef<TextInput>(null);
+  const [shouldFocusReply, setShouldFocusReply] = useState(false);
 
-  const handleFocusReply = () => {
-    setFocusReplyTrigger(prev => !prev); // toggle to retrigger effect
-  };
-
+  // On mount, check if the param requests focus
   useEffect(() => {
-    setTimeout(() => {
-      replyInputRef.current?.focus();
-    }, 300);
-  }, [focusReplyTrigger]);
+    if (focusReply === 'true') {
+      setShouldFocusReply(true);
+    }
+  }, [focusReply]);
+
+  // Focus input when state becomes true, then reset
+  useEffect(() => {
+    if (shouldFocusReply) {
+      setTimeout(() => {
+        replyInputRef.current?.focus();
+        setShouldFocusReply(false); // reset so next click works
+      }, 300);
+    }
+  }, [shouldFocusReply]);
 
   if (!postParam) {
     return <PostNotFound />;
@@ -228,7 +232,7 @@ const PostDetails = ({ isPost = true }: PostDetailsProps) => {
               isPost={isPost}
               isTouchable={false}
               isInsidePostDetails={true}
-              onFocusReply={handleFocusReply}
+              onFocusReply={() => setShouldFocusReply(true)}
               metadata={{
                 isLiked,
                 isSaved,
