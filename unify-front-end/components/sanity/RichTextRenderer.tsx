@@ -183,11 +183,36 @@ export default function RichTextRenderer({
 
     
     tipBox: {
-      borderRadius: 0,
-      paddingLeft: 15,
-      marginVertical: 16,
-      borderLeftWidth: 4,
+      // size behaves like Figma but adapts to content
+      alignSelf: 'flex-start',   // shrink to content width
+      maxWidth: 353,             // matches Figma width cap; remove if you want full width
+      minHeight: 40,             // Figma ref height; content can grow past it
+      paddingLeft: 15,           // Figma
+      borderLeftWidth: 5,        // Figma
       borderLeftColor: '#374151',
+      // margins (tighter than previous)
+      marginTop: 8,
+      marginBottom: 12,
+    },
+
+    tipText: {
+      fontFamily: 'Font Family',
+      fontWeight: '400',      // Regular
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,       // replace with your token if needed
+      color: '#374151',
+    },
+
+    tipStrong: {
+      fontFamily: 'Font Family',
+      fontWeight: '600',
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+      color: '#374151',
     },
     noteBox: {
       backgroundColor: '#FFFFFF',
@@ -258,12 +283,12 @@ export default function RichTextRenderer({
           child.marks.forEach((mark: string) => {
             switch (mark) {
               case 'strong':
-                text = (
-                  <Text key={index} style={{ fontWeight: '700' }}>
-                    {text}
-                  </Text>
-                );
-                break;
+              text = (
+                <Text key={index} style={[{ fontWeight: '700' }, mergedStyles?.strong]}>
+                  {text}
+                </Text>
+              );
+              break;
               case 'em':
                 text = (
                   <Text key={index} style={{ fontStyle: 'italic' }}>
@@ -479,13 +504,24 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'tip_box') {
-      //cant center ththe tip w the line
       return (
         <View key={block._key || index} style={mergedStyles.tipBox}>
-          <RichTextRenderer blocks={block.content || []} markDefs={markDefs} />
+          <RichTextRenderer
+            blocks={block.content || []}
+            markDefs={markDefs}
+            styles={{
+              normal: mergedStyles.tipText,   // 14/20 Regular
+              bullet: mergedStyles.tipText,
+              number: mergedStyles.tipText,
+              link: mergedStyles.link,
+              // ensure "**Safety Tip:**" (strong) renders 14/20 Semi Bold
+              strong: mergedStyles.tipStrong,
+            }}
+          />
         </View>
       );
     }
+
 
     if (block._type === 'note_box') {
       return (
@@ -645,7 +681,9 @@ export default function RichTextRenderer({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 1,
+    alignSelf: 'auto',
   },
   listItemContainer: {
     marginBottom: 8,

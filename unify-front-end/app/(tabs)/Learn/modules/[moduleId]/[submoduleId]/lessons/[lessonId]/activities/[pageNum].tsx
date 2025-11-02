@@ -292,9 +292,40 @@ export default function ActivityPageScreen() {
               </Text>
             )}
             <RichTextRenderer
-              blocks={currentPageData.answer_box.content || []}
-              markDefs={currentPageData.answer_box.markDefs}
-            />
+            blocks={currentPageData.answer_box.content || []}
+            markDefs={currentPageData.answer_box.markDefs}
+            styles={{
+              // Regular copy: 14/20, dark gray
+              normal: {
+                fontSize: 14,
+                lineHeight: 20,
+                fontWeight: '400',
+                color: '#3F3F3F',
+                marginBottom: 0,
+              },
+              bullet: {
+                fontSize: 14,
+                lineHeight: 20,
+                fontWeight: '400',
+                color: '#3F3F3F',
+                marginBottom: 0,
+              },
+              number: {
+                fontSize: 14,
+                lineHeight: 20,
+                fontWeight: '400',
+                color: '#3F3F3F',
+                marginBottom: 0,
+              },
+              // Bold lead-in like **Nice work!**
+              strong: {
+                fontSize: 14,
+                lineHeight: 20,
+                fontWeight: '600',
+                color: '#3F3F3F',
+              },
+            }}
+          />
           </View>
         )}
       </ScrollView>
@@ -397,19 +428,36 @@ const styles = StyleSheet.create({
   },
 
   answerBoxContainer: {
-    backgroundColor: '#FFF',
-    padding: 16,
+    backgroundColor: 'transparent', // ← no filled background
+    borderLeftWidth: 5,
+    borderLeftColor: '#3F3F3F',
+    paddingLeft: 15,          // Figma
+    paddingRight: 0,
+    paddingVertical: 0,
+    alignSelf: 'center',
+    width: 353,               // Figma width
+    maxWidth: '100%',
+    minHeight: 80,            // Figma baseline, still grows with content
+    marginTop: 0,
     marginBottom: 30,
-    borderLeftWidth: 4,
-    borderLeftColor: '#4B5563',
-    marginLeft: 0,
   },
 
+  // If you keep a separate title (not typical for this tip style):
   answerBoxTitle: {
-    fontSize: 18,
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: '600',
-    color: '#000',
-    marginBottom: 12,
+    color: '#3F3F3F',
+    marginBottom: 10,
+  },
+
+
+  answerBoxText: {
+    // Regular 14 / 20 for paragraph text inside renderer
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '400',
+    color: '#F5F5F5',
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
