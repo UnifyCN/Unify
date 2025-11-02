@@ -162,6 +162,31 @@ export default function ModuleIndex() {
   const railTopRef = useRef(0);
   const timelineTopRef = useRef(0);
 
+  // remember latest scroll snapshot so we can recompute when layouts arrive
+const scrollRef = useRef<{ y: number; vh: number }>({ y: 0, vh: 0 });
+
+// compute visible-ahead ignoring unmeasured rows (NaN)
+const computeAhead = (y: number, vh: number) => {
+  const total = moduleData?.submodules?.length || 0;
+  if (total === 0) return setAhead(0);
+  const threshold = y + vh + 4;
+  const tops = rowTopsRef.current;
+
+  let firstBelowIdx = -1;
+  for (let i = 0; i < total; i++) {
+    const top = tops[i];
+    if (!Number.isFinite(top)) continue; // ignore unmeasured rows
+    if (top > threshold) {
+      firstBelowIdx = i;
+      break;
+    }
+  }
+  const newAhead = firstBelowIdx === -1 ? 0 : total - firstBelowIdx;
+  setAhead(newAhead);
+};
+
+
+
   // Make rowTopsRef always have one slot per submodule
   useEffect(() => {
     const total = moduleData?.submodules?.length || 0;
@@ -288,24 +313,10 @@ export default function ModuleIndex() {
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = clampNonNeg(e.nativeEvent.contentOffset?.y);
     const vh = clampNonNeg(e.nativeEvent.layoutMeasurement?.height);
-    const threshold = y + vh + 4; // small buffer
-
-    const total = moduleData?.submodules?.length || 0;
-    const tops = rowTopsRef.current;
-
-    // Find first index that is either unmeasured OR actually below the viewport
-    let firstBelowIdx = -1;
-    for (let i = 0; i < total; i++) {
-      const top = tops[i];
-      if (!Number.isFinite(top) || top > threshold) {
-        firstBelowIdx = i;
-        break;
-      }
-    }
-
-    const newAhead = firstBelowIdx === -1 ? 0 : total - firstBelowIdx;
-    setAhead(newAhead);
+    scrollRef.current = { y, vh };
+    computeAhead(y, vh);
   };
+
 
   // === UI ===
   return (
@@ -433,6 +444,7 @@ export default function ModuleIndex() {
                       rowTop;
                     rowTopsRef.current[i] = absTop;
                     updateRowBottom(absTop + rowHeight);
+                    computeAhead(scrollRef.current.y, scrollRef.current.vh)
                   }}
                 >
                   {/* Submodule card */}
@@ -627,17 +639,21 @@ export default function ModuleIndex() {
 
       {/* floating "N more modules ahead" pill */}
       {ahead > 0 && (
-        <View style={styles.morePillWrap} pointerEvents='none'>
+        <View style={styles.morePillWrap} pointerEvents="none">
           <View style={styles.morePill}>
-            <View className='dots' style={styles.dots}>
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
+            <View style={styles.morePillContent}>
+              <View style={styles.dots}>
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+              </View>
+              <Text style={styles.moreText}>{ahead} more modules ahead</Text>
             </View>
-            <Text style={styles.moreText}>{ahead} more modules ahead</Text>
           </View>
         </View>
       )}
+
+
     </SafeAreaView>
   );
 }
@@ -903,7 +919,7 @@ const styles = StyleSheet.create({
   // More modules pill
   morePillWrap: {
     position: 'absolute',
-    bottom: 10, // about 10px above the bottom bar
+    bottom: 10,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -912,23 +928,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 195,
-    height: 39,
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D1D1D1',
+    width: 195,          // Ancho
+    height: 39,          // Altura
+    backgroundColor: '#FFFFFF', // White
+    borderColor: '#D1D1D1',     // 1px border color
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 20,    // Radio
     paddingHorizontal: 12,
   },
-  dots: { flexDirection: 'row', marginRight: 10 },
+  dots: { flexDirection: 'row', marginRight: 10, marginLeft: 12 },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#C7CDD8',
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#D7D7D7',
     marginHorizontal: 2,
   },
-  moreText: { fontSize: 14, color: '#6B7280', fontWeight: '700' },
+
+  moreText: {
+    fontSize: 10,
+    fontWeight: '600', // Inter 600
+    color: '#707070',
+    marginRight: 12, // text → right edge of globe
+    marginLeft: 0,  // left spacing from dots block
+  },
 
   centered: {
     flex: 1,
@@ -950,4 +973,32 @@ const styles = StyleSheet.create({
     borderWidth: 7,
     borderColor: '#707070',
   },
+
+    morePillBlur: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#D1D1D1',
+  },
+  morePillContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 12,
+    paddingRight: 12,
+    width: 195,
+    height: 39,
+  },
+  globe: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#E9E9E9',
+    marginLeft: 'auto',
+    // nudge to visually get ~11px top / 16px bottom from text to globe
+    marginTop: 11 - (39 - 22) / 2,
+    marginBottom: 16 - (39 - 22) / 2,
+  },
+
+
 });
