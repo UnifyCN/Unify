@@ -409,8 +409,17 @@ export default function RichTextRenderer({
           );
         case 'normal':
         default:
+          // Merged blocks (with \n) already handle spacing via lineHeight
+          // Non-merged blocks (paragraph breaks) get normal marginBottom
+          const hasLineBreaks = block.children?.some((child: any) => 
+            child.text === '\n'
+          );
+          const blockStyle = hasLineBreaks
+            ? { ...mergedStyles.normal, marginBottom: 0 }
+            : mergedStyles.normal;
+          
           return (
-            <Text key={block._key || index} style={mergedStyles.normal}>
+            <Text key={block._key || index} style={blockStyle}>
               {renderInlineText(block.children, markDefs)}
             </Text>
           );
@@ -521,14 +530,97 @@ export default function RichTextRenderer({
   // Calculate nesting levels for all blocks
   const nestingLevels = calculateNestingLevels(blocks);
 
+  // Helper function to check if a block is empty (only whitespace)
+  const isBlockEmpty = (block: any): boolean => {
+    if (block._type !== 'block') return false;
+    if (!block.children || !Array.isArray(block.children)) return true;
+    const text = block.children
+      .map((child: any) => (child.text || '').trim())
+      .join('');
+    return text.length === 0;
+  };
+
+  // Helper function to check if block is a normal text block
+  const isNormalBlock = (block: any): boolean => {
+    return block._type === 'block' && (block.style === 'normal' || !block.style);
+  };
+
+  // Process blocks to handle line spacing properly
+  const processedBlocks = blocks.map((block, index) => {
+    const prevBlock = index > 0 ? blocks[index - 1] : null;
+    const nextBlock = index < blocks.length - 1 ? blocks[index + 1] : null;
+    
+    const isEmpty = isBlockEmpty(block);
+    const isNormal = isNormalBlock(block);
+    const prevIsNormal = prevBlock ? isNormalBlock(prevBlock) : false;
+    const prevIsEmpty = prevBlock ? isBlockEmpty(prevBlock) : false;
+    const nextIsNormal = nextBlock ? isNormalBlock(nextBlock) : false;
+    
+    // If this is a normal block followed by another normal block (single line break),
+    // merge them with a line break instead of using marginBottom
+    if (isNormal && !isEmpty && nextIsNormal && !isBlockEmpty(nextBlock)) {
+      // This will be handled by merging in renderBlock
+      return { ...block, _shouldMerge: true, _nextBlock: nextBlock };
+    }
+    
+    // If this is an empty normal block (paragraph break), mark it as spacer
+    if (isNormal && isEmpty) {
+      return { _type: 'spacer', _key: `spacer-${block._key || index}` };
+    }
+    
+    return block;
+  });
+
+  // Group consecutive normal blocks that should be merged
+  const finalBlocks: any[] = [];
+  let skipNext = false;
+  
+  processedBlocks.forEach((block, index) => {
+    if (skipNext) {
+      skipNext = false;
+      return;
+    }
+    
+    if (block._type === 'spacer') {
+      finalBlocks.push(block);
+      return;
+    }
+    
+    if (block._shouldMerge && block._nextBlock) {
+      // Merge consecutive normal blocks with line breaks
+      const mergedBlock = {
+        ...block,
+        _type: 'block',
+        style: 'normal',
+        children: [
+          ...(block.children || []),
+          { _type: 'span', _key: `break-${block._key}`, text: '\n', marks: [] },
+          ...(block._nextBlock.children || []),
+        ],
+      };
+      delete mergedBlock._shouldMerge;
+      delete mergedBlock._nextBlock;
+      finalBlocks.push(mergedBlock);
+      skipNext = true;
+    } else {
+      finalBlocks.push(block);
+    }
+  });
+
   return (
     <View style={styles.container}>
-      {blocks
-        .map((block, index) => (
-          <React.Fragment key={block._key || index}>
-            {renderBlock(block, index, nestingLevels[block._key || index] || 0)}
-          </React.Fragment>
-        ))
+      {finalBlocks
+        .map((block, index) => {
+          if (block._type === 'spacer') {
+            return <View key={block._key || index} style={{ height: 16 }} />;
+          }
+          const nestingLevel = nestingLevels[block._key || index] || 0;
+          return (
+            <React.Fragment key={block._key || index}>
+              {renderBlock(block, index, nestingLevel)}
+            </React.Fragment>
+          );
+        })
         .filter(Boolean)}
     </View>
   );
