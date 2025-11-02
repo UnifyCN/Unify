@@ -315,7 +315,14 @@ const GroupDetailScreen = () => {
               icon={<UnifyReplyIcon width={27} height={25} />}
               message='Looks a little quiet here...'
               submessage={
-                <Text style={{ fontSize: 14, color: Theme.textInput, textAlign: 'center', lineHeight: 20 }}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: Theme.textInput,
+                    textAlign: 'center',
+                    lineHeight: 20,
+                  }}
+                >
                   Be the first one to post!
                 </Text>
               }
