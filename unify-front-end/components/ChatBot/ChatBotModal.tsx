@@ -108,7 +108,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
 
       // Handle new RAG response format
       if (response && response.answer) {
-        botResponse = response.answer;
+        botResponse = response.answer.trim(); // Trim any trailing whitespace
         sources = response.sources || [];
       }
       // Fallback: Handle old Gemini response format (for backward compatibility)
@@ -119,7 +119,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
           candidate.content.parts &&
           candidate.content.parts[0]
         ) {
-          botResponse = candidate.content.parts[0].text;
+          botResponse = candidate.content.parts[0].text.trim(); // Trim any trailing whitespace
         }
       }
 

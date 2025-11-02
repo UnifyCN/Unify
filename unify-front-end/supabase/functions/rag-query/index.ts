@@ -5,6 +5,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 Deno.serve(async (req: Request) => {
   try {
     const { prompt } = await req.json();
+    console.log('Question asked:', prompt);
     const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
     const apiKey = Deno.env.get('GEMINI_API_KEY');
@@ -25,7 +26,8 @@ Deno.serve(async (req: Request) => {
           Authorization: `Bearer ${openaiApiKey}`,
         },
         body: JSON.stringify({
-          model: 'text-embedding-3-small',
+          // Have to match aws lambda embedding model
+          model: 'text-embedding-ada-002',
           input: prompt,
         }),
       }
@@ -40,12 +42,6 @@ Deno.serve(async (req: Request) => {
     const embeddingData = await embeddingResponse.json();
     const queryEmbedding = embeddingData.data[0].embedding;
 
-    // First, check if any chunks exist in database
-    const { count: totalChunks } = await supabase
-      .from('knowledge_chunks')
-      .select('*', { count: 'exact', head: true });
-    console.log('Total chunks in database:', totalChunks);
-
     // Search for similar chunks in database
     // Typical similarity thresholds (cosine similarity, range 0-1):
     // - 0.7: Strict (very similar only) - good for precise technical docs
@@ -53,52 +49,36 @@ Deno.serve(async (req: Request) => {
     // - 0.5: Balanced (default) - good for most use cases, allows some flexibility
     // - 0.4: Permissive - finds more matches, may include less relevant results
     // - 0.3: Very permissive - use when you have few chunks or want to cast wide net
-    const { data: chunks, error: searchError } = await supabase.rpc(
+    // - 0.0 or negative: Returns all chunks ordered by similarity (no threshold filter)
+
+    let { data: chunks, error: searchError } = await supabase.rpc(
       'match_chunks',
       {
         query_embedding: queryEmbedding,
-        match_threshold: 0.5, // Balanced threshold - works well for most RAG applications
-        match_count: 5,
+        match_threshold: 0.3,
+        match_count: 10,
       }
     );
 
-    // Log results for debugging
+    console.log(`Chunks received for "${prompt}":`, chunks?.length || 0);
+    console.log('RPC error:', searchError ? JSON.stringify(searchError) : 'none');
+
     if (searchError) {
       console.error('RPC function error:', searchError);
-      console.error('Error details:', JSON.stringify(searchError, null, 2));
-    }
 
-    // Check if chunks have embeddings
-    const { data: sampleChunks } = await supabase
-      .from('knowledge_chunks')
-      .select('id, chunk_text, embedding')
-      .limit(1);
-    if (sampleChunks && sampleChunks.length > 0) {
-      console.log(
-        'Sample chunk has embedding:',
-        sampleChunks[0].embedding ? 'YES' : 'NO'
+      // Fallback: try with threshold 0.0
+      const { data: fallbackChunks, error: fallbackError } = await supabase.rpc(
+        'match_chunks',
+        {
+          query_embedding: queryEmbedding,
+          match_threshold: 0.0,
+          match_count: 10,
+        }
       );
-      console.log('Sample chunk ID:', sampleChunks[0].id);
-      console.log('Query embedding length:', queryEmbedding?.length);
-    }
-
-    console.log('Found matching chunks:', chunks?.length || 0);
-    if (!chunks || chunks.length === 0) {
-      console.log('No matching chunks found for query:', prompt);
-      console.log('Trying with threshold 0.0 instead...');
-      // Try with 0.0 threshold as fallback test
-      const { data: testChunks } = await supabase.rpc('match_chunks', {
-        query_embedding: queryEmbedding,
-        match_threshold: 0.0,
-        match_count: 5,
-      });
-      console.log('Test chunks with 0.0 threshold:', testChunks?.length || 0);
-    } else {
-      console.log('First chunk similarity:', chunks[0]?.similarity);
-      console.log(
-        'First chunk preview:',
-        chunks[0]?.chunk_text?.substring(0, 100)
-      );
+      console.log('Fallback chunks:', fallbackChunks?.length || 0);
+      if (!fallbackError && fallbackChunks) {
+        chunks = fallbackChunks;
+      }
     }
 
     // Build context from retrieved chunks
@@ -109,6 +89,8 @@ Deno.serve(async (req: Request) => {
       chunk_text: string;
       chunk_index: number;
     }> = [];
+
+    console.log(`Final chunks count for "${prompt}":`, chunks?.length || 0);
 
     if (chunks && chunks.length > 0) {
       chunks.forEach((chunk: any) => {
@@ -123,25 +105,28 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Build strict prompt that only uses provided context
+    // Build prompt that uses provided context
     let systemInstruction = '';
     if (contextText) {
-      systemInstruction = `You are a helpful assistant. You MUST answer the user's question using ONLY the information provided in the context below. 
+      systemInstruction = `You are a helpful assistant. Use the following context from the knowledge base to answer the user's question.
 
-IMPORTANT RULES:
-- ONLY use information from the provided context
-- If the answer is not in the context, say a friendly variation of: "I don't have that information in my knowledge base at the moment."
-- Do NOT use any information from your training data
-- Do NOT make up information
-
-Context from knowledge base:
+CONTEXT FROM KNOWLEDGE BASE:
 ${contextText}
 
-User question: ${prompt}
+USER QUESTION: ${prompt}
 
-Remember: Only answer if the information is in the context above. Otherwise, say you don't have that information.`;
+INSTRUCTIONS:
+- Answer the question using the information from the context provided above
+- Extract and use any relevant facts, numbers, ages, amounts, or details from the context
+- You can make reasonable inferences and connections between pieces of information in the context to answer the question
+- Synthesize information from multiple parts of the context if needed
+- Be direct and helpful - use the information that is available in the context
+- Only say "I don't have that information in my knowledge base at the moment" if the context above contains absolutely no relevant information at all
+- If the context has related information, use it to provide an answer, even if you need to make a small logical connection
+
+Answer the question:`;
     } else {
-      systemInstruction = `The user asked: "${prompt}"\n\nRespond concisely: "I don't have that information in my knowledge base at the moment."`;
+      systemInstruction = `The user asked: "${prompt}"\n\nRespond: "I don't have that information in my knowledge base at the moment."`;
     }
 
     const fullPrompt = preprompt
@@ -178,7 +163,8 @@ Remember: Only answer if the information is in the context above. Otherwise, say
         candidate.content.parts &&
         candidate.content.parts[0]
       ) {
-        answer = candidate.content.parts[0].text;
+        // Trim trailing whitespace/newlines from Gemini's response
+        answer = candidate.content.parts[0].text.trim();
       }
     }
 
