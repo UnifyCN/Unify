@@ -62,7 +62,9 @@ export async function getSubmoduleWithLessons(
 
     const submodule = await sanityClient.fetch(query, { submoduleId });
     if (!submodule || Array.isArray(submodule)) return null;
-    return submodule as SanitySubmodule & { lessons: SanityLessonWithQuizzes[] };
+    return submodule as SanitySubmodule & {
+      lessons: SanityLessonWithQuizzes[];
+    };
   } catch (error) {
     console.error('Error fetching submodule with lessons from Sanity:', error);
     return null;

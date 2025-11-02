@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -70,21 +70,19 @@ const PostNotFound = () => (
 );
 
 // Comment input component
-const CommentInput = ({
-  placeholder,
-  value,
-  onChangeText,
-  onSend,
-  disabled,
-}: {
-  placeholder: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  onSend: () => void;
-  disabled: boolean;
-}) => (
+const CommentInput = React.forwardRef<
+  TextInput,
+  {
+    placeholder: string;
+    value: string;
+    onChangeText: (text: string) => void;
+    onSend: () => void;
+    disabled: boolean;
+  }
+>(({ placeholder, value, onChangeText, onSend, disabled }, ref) => (
   <View style={styles.commentInputContainer}>
     <TextInput
+      ref={ref}
       style={styles.commentInput}
       placeholder={placeholder}
       value={value}
@@ -107,15 +105,16 @@ const CommentInput = ({
       </View>
     </TouchableOpacity>
   </View>
-);
+));
 
 export interface PostDetailsProps {
   isPost?: boolean;
 }
 
-const PostDetails = ({ isPost = true } : PostDetailsProps) => {
+const PostDetails = ({ isPost = true }: PostDetailsProps) => {
   // Get passed data
-  const { post: postParam } = useLocalSearchParams();
+  const { post: postParam, focusReply: focusReplyParam } =
+    useLocalSearchParams();
 
   const { setVisible } = useHeaderVisibility();
   useEffect(() => {
@@ -127,6 +126,23 @@ const PostDetails = ({ isPost = true } : PostDetailsProps) => {
     router.back();
   };
 
+  // Reply text box
+  const [commentTextBox, setCommentTextBox] = useState('');
+  const [focusReply, setFocusReply] = useState(false);
+
+  const [focusReplyTrigger, setFocusReplyTrigger] = useState(false);
+  const replyInputRef = useRef<TextInput>(null);
+
+  const handleFocusReply = () => {
+    setFocusReplyTrigger(prev => !prev); // toggle to retrigger effect
+  };
+
+  useEffect(() => {
+    setTimeout(() => {
+      replyInputRef.current?.focus();
+    }, 300);
+  }, [focusReplyTrigger]);
+
   if (!postParam) {
     return <PostNotFound />;
   }
@@ -136,9 +152,6 @@ const PostDetails = ({ isPost = true } : PostDetailsProps) => {
 
   // Router for navigation
   const router = useRouter();
-
-  // Reply text box
-  const [commentTextBox, setCommentTextBox] = useState('');
 
   // Get post metadata from query cache (supports optimistic updates)
   const { data: postMetadata, isLoading: postMetadataLoading } =
@@ -214,6 +227,8 @@ const PostDetails = ({ isPost = true } : PostDetailsProps) => {
               post={post}
               isPost={isPost}
               isTouchable={false}
+              isInsidePostDetails={true}
+              onFocusReply={handleFocusReply}
               metadata={{
                 isLiked,
                 isSaved,
@@ -235,6 +250,7 @@ const PostDetails = ({ isPost = true } : PostDetailsProps) => {
       />
 
       <CommentInput
+        ref={replyInputRef}
         placeholder={`Reply to ${post.user.name}`}
         value={commentTextBox}
         onChangeText={setCommentTextBox}
@@ -356,4 +372,5 @@ const styles = StyleSheet.create({
   },
 });
 
+CommentInput.displayName = 'CommentInput';
 export default PostDetails;

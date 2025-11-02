@@ -126,7 +126,9 @@ export default function QuizQuestionPage() {
         return acc + (quiz.questions?.length || 0);
       }, 0) || 0;
     const totalEndingPages = lesson?.ending_pages?.length || 0;
-    return totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages;
+    return (
+      totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages
+    );
   };
 
   if (!currentQuestion) {
@@ -458,7 +460,7 @@ export default function QuizQuestionPage() {
         onClose={() => router.back()}
       />
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >

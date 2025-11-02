@@ -20,17 +20,28 @@ export interface PostItemProps {
   isPost?: boolean;
   isTouchable?: boolean;
   shouldHideContent?: boolean;
+  isInsidePostDetails?: boolean;
   metadata?: {
     isLiked: boolean;
     isSaved: boolean;
     likeCount: number;
     commentCount: number;
   };
+  onFocusReply?: () => void;
   metadataLoading?: boolean;
 }
 
 export const PostItem = memo(
-  ({ post, metadata, shouldHideContent, metadataLoading, isPost = true, isTouchable = true }: PostItemProps) => {
+  ({
+    post,
+    metadata,
+    shouldHideContent,
+    metadataLoading,
+    isPost = true,
+    isTouchable = true,
+    onFocusReply,
+    isInsidePostDetails = false,
+  }: PostItemProps) => {
     const router = useRouter();
 
     // Use batch-loaded metadata (no individual queries needed)
@@ -57,6 +68,20 @@ export const PostItem = memo(
 
     // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
+
+    const handlePressedComment = () => {
+      if (isInsidePostDetails) {
+        onFocusReply?.();
+      } else {
+        router.push({
+          pathname: '/Gather/PostDetails',
+          params: {
+            post: JSON.stringify(post),
+            focusReply: 'true',
+          },
+        });
+      }
+    };
 
     // For rendering the content of the post
     const postContent = (
@@ -130,8 +155,9 @@ export const PostItem = memo(
                 <Text style={styles.footerText}>{likeCount}</Text>
               )}
             </View>
-            <View
+            <TouchableOpacity
               style={styles.footerItem}
+              onPress={handlePressedComment}
             >
               <Comment width={20} height={20} fill='gray' />
               {showMetadataLoading ? (
@@ -139,7 +165,7 @@ export const PostItem = memo(
               ) : (
                 <Text style={styles.footerText}>{commentCount}</Text>
               )}
-            </View>
+            </TouchableOpacity>
             {isPost ? (
               <TouchableOpacity
                 onPress={() => {
@@ -157,7 +183,9 @@ export const PostItem = memo(
                   <Save width={20} height={20} />
                 )}
               </TouchableOpacity>
-            ) : ( <></> )}
+            ) : (
+              <></>
+            )}
           </View>
         </View>
       </>
@@ -165,7 +193,7 @@ export const PostItem = memo(
 
     return (
       <View>
-        { isTouchable ? (
+        {isTouchable ? (
           <TouchableOpacity
             style={[
               styles.postContainer,
@@ -176,6 +204,7 @@ export const PostItem = memo(
                 pathname: '/Gather/PostDetails' as any,
                 params: {
                   post: JSON.stringify(post),
+                  focusReply: 'false',
                 },
               })
             }
@@ -192,10 +221,7 @@ export const PostItem = memo(
             {postContent}
           </View>
         )}
-        
-          
-          
-        
+
         <View style={styles.divider} />
       </View>
     );

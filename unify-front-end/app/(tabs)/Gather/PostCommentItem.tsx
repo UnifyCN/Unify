@@ -16,7 +16,7 @@ interface PostCommentItemProps {
   metadata?: {
     isLiked: boolean;
     likeCount: number;
-    replyCount: number
+    replyCount: number;
   };
   metadataLoading?: boolean;
 }

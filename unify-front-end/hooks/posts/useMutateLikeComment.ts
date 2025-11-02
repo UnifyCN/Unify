@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { likePostComment, unlikeComment } from '@/services/posts/likePostComment';
+import {
+  likePostComment,
+  unlikeComment,
+} from '@/services/posts/likePostComment';
 
 export const useMutateLikeComment = () => {
   const queryClient = useQueryClient();

@@ -40,7 +40,9 @@ const Feed = ({
         <PostItem
           post={item}
           metadata={metadata?.[item.id]}
-          metadataLoading={metadataLoading} isPost={false}        />
+          metadataLoading={metadataLoading}
+          isPost={false}
+        />
       );
     },
     [metadata, metadataLoading]

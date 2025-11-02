@@ -145,9 +145,13 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
             Question {currentQuestionIndex + 1}
           </Text>
           <View style={styles.questionContent}>
-            {Array.isArray(currentQuestion.question_text) 
-              ? renderQuestionContent(currentQuestion.question_text)
-              : <Text style={styles.questionText}>{currentQuestion.question_text}</Text>}
+            {Array.isArray(currentQuestion.question_text) ? (
+              renderQuestionContent(currentQuestion.question_text)
+            ) : (
+              <Text style={styles.questionText}>
+                {currentQuestion.question_text}
+              </Text>
+            )}
           </View>
 
           <View style={styles.optionsContainer}>
@@ -175,8 +179,7 @@ export const QuizComponent: React.FC<QuizComponentProps> = ({
           <TouchableOpacity
             style={[
               styles.nextButton,
-              !selectedAnswers[currentQuestion.id] &&
-                styles.nextButtonDisabled,
+              !selectedAnswers[currentQuestion.id] && styles.nextButtonDisabled,
             ]}
             onPress={handleNext}
             disabled={!selectedAnswers[currentQuestion.id]}
