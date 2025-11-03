@@ -179,7 +179,7 @@ const PostDetails = () => {
   const commentIds =
     commentsData?.map((comment: PostCommentData) => comment.id) ?? [];
 
-  // Batch load metadata for those comments
+  // Batch load metadata for these comments
   const { data: postCommentMetadata, isLoading: commentMetadataLoading } =
     usePostCommentMetadata(commentIds);
 
@@ -216,6 +216,7 @@ const PostDetails = () => {
         onReplyPress={comment => {
           setReplyingToComment(comment);
           setShouldFocusReply(true);
+          
         }}
       />
     ),

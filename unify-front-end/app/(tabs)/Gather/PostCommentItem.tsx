@@ -13,6 +13,7 @@ import { Theme } from '@/constants/Theme';
 import { getPostReplies } from '@/services/posts/getPostReplies';
 import PostReplyItem from './PostReplyItem';
 import { useMutateCreateComment } from '@/hooks/posts/useMutateCreateComment';
+import { usePostCommentMetadata } from '@/hooks/usePostCommentMetadata';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -26,12 +27,7 @@ interface PostCommentItemProps {
 }
 
 const PostCommentItem = memo(
-  ({
-    comment,
-    metadata,
-    metadataLoading,
-    onReplyPress,
-  }: PostCommentItemProps) => {
+  ({ comment, metadata, metadataLoading, onReplyPress }: PostCommentItemProps) => {
     // Hook for liking and unliking comments
     const likeCommentMutation = useMutateLikeComment();
 
@@ -67,9 +63,13 @@ const PostCommentItem = memo(
 
       try {
         setLoadingReplies(true);
-        const fetchedReplies = await getPostReplies(comment.id);
-        setReplies(fetchedReplies);
+        const replyData = await getPostReplies(comment.id);
+        setReplies(replyData);
         setShowReplies(true);
+
+        const replyIds =
+            replyData?.map((reply: PostCommentData) => reply.id) ?? [];
+
       } catch (error) {
         console.error('Error loading replies:', error);
       } finally {
@@ -80,7 +80,9 @@ const PostCommentItem = memo(
     // Utilize hooks to create replies
     const createCommentMutation = useMutateCreateComment();
 
-    const handleCreateReply = () => {};
+    const handleCreateReply = () => {
+      
+    };
 
     return (
       <View>
@@ -151,31 +153,27 @@ const PostCommentItem = memo(
             {/* View replies section */}
             {replyCount != null && replyCount > 0 && (
               <View style={{ marginTop: 6 }}>
-                <TouchableOpacity
+                <TouchableOpacity 
                   style={styles.replyPreviewContainer}
                   onPress={handleViewReplies}
                 >
                   <View style={styles.replyPreviewAccent} />
                   <Text style={styles.replyPreviewText}>
-                    {showReplies
-                      ? 'Hide replies'
-                      : `View ${replyCount} ${replyCount > 1 ? 'replies' : 'reply'}`}
+                    {showReplies ? 'Hide replies' : `View ${replyCount} ${replyCount > 1 ? 'replies' : 'reply'}`}
                   </Text>
                 </TouchableOpacity>
 
-                {showReplies &&
-                  !loadingReplies &&
-                  replies.map(reply => (
-                    <PostReplyItem
-                      key={reply.id}
-                      comment={reply}
-                      metadata={{
-                        likeCount: reply.like_count ?? 0,
-                        isLiked: false,
-                      }}
-                      metadataLoading={false}
-                    />
-                  ))}
+                {showReplies && !loadingReplies && replies.map(reply => (
+                  <PostReplyItem
+                    key={reply.id}
+                    comment={reply}
+                    metadata={{
+                      likeCount: reply.like_count ?? 0,
+                      isLiked: false,
+                    }}
+                    metadataLoading={false}
+                  />
+                ))}
               </View>
             )}
           </View>
@@ -248,10 +246,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5E5',
   },
   replyPreviewContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 10,
-    position: 'relative',
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingLeft: 10,
+  position: 'relative',
   },
   replyPreviewAccent: {
     width: 24,

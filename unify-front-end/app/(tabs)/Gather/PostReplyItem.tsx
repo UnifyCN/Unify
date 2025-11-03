@@ -39,9 +39,6 @@ const PostReplyItem = memo(
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
     }, [comment.user_id]);
 
-    // Show loading state for metadata if it's still loading
-    const showMetadataLoading = metadataLoading && !metadata;
-
     return (
       <View>
         <View style={styles.postContainer}>
