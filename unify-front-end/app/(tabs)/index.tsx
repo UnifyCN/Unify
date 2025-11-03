@@ -44,7 +44,6 @@ const WelcomeSection = () => {
 
   return (
     <View>
-      <Header />
       <View style={styles.welcomeSection}>
         <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
         <Text style={styles.progressText}>
@@ -112,6 +111,7 @@ const GatherEventsSection = () => {
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
+      <Header />
       <StatusBar style='dark' />
       <ScrollView style={styles.scrollView}>
         <WelcomeSection />

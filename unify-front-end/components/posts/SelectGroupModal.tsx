@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import Feather from '@expo/vector-icons/Feather';
 import { Theme } from '@/constants/Theme';
 import SearchGroupsList from '@/components/groups/SearchGroupsList';
+import BackHeader from '@/components/BackHeader';
 
 interface SelectGroupModalProps {
   visible: boolean;
@@ -63,13 +64,8 @@ export default function SelectGroupModal({
       statusBarTranslucent
       onRequestClose={handleCancel}
     >
+      <BackHeader title='Select Group' backIcon='x' onBack={handleCancel} />
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel}>
-            <Feather name='x' size={24} color='black' />
-          </TouchableOpacity>
-        </View>
-
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchInputWrapper}>
