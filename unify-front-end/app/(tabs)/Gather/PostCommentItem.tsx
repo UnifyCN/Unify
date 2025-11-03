@@ -6,8 +6,9 @@ import { formatSmartTime } from '@/utils/dateUtils';
 import { useMutateLikeComment } from '@/hooks/posts/useMutateLikeComment';
 import { memo, useCallback } from 'react';
 import { PostCommentData } from '@/types/feeds/postcomment';
-import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Avatar } from '@/components/Avatar';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Theme } from '@/constants/Theme';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -17,11 +18,11 @@ interface PostCommentItemProps {
     // TODO: when replies to comments are implemented
     // replyCount: number
   };
-  isLoading?: boolean;
+  metadataLoading?: boolean;
 }
 
 const PostCommentItem = memo(
-  ({ comment, metadata, isLoading }: PostCommentItemProps) => {
+  ({ comment, metadata, metadataLoading }: PostCommentItemProps) => {
     // Hook for liking and unliking comments
     const likeCommentMutation = useMutateLikeComment();
 
@@ -71,28 +72,29 @@ const PostCommentItem = memo(
 
             {/* Footer */}
             <View style={styles.footer}>
-              {isLoading ? (
-                <SkeletonLoader
-                  width='100%'
-                  height={20}
-                  style={{ marginTop: 8 }}
-                />
-              ) : (
-                <>
-                  <View style={styles.footerItem}>
-                    <TouchableOpacity
-                      onPress={() => toggleLike(comment.id, isLiked!)}
-                    >
-                      {isLiked ? (
-                        <Like_Fill width={20} height={20} />
-                      ) : (
-                        <Like width={20} height={20} />
-                      )}
-                    </TouchableOpacity>
+              <>
+                <View style={styles.footerItem}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (isLiked !== undefined && !metadataLoading) {
+                        toggleLike(comment.id, isLiked);
+                      }
+                    }}
+                    disabled={metadataLoading}
+                  >
+                    {isLiked ? (
+                      <Like_Fill width={20} height={20} />
+                    ) : (
+                      <Like width={20} height={20} />
+                    )}
+                  </TouchableOpacity>
+                  {metadataLoading ? (
+                    <SkeletonLoader width={24} height={20} />
+                  ) : (
                     <Text style={styles.footerText}>{likeCount}</Text>
-                  </View>
-                </>
-              )}
+                  )}
+                </View>
+              </>
             </View>
           </View>
         </View>
@@ -131,11 +133,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   name: {
-    fontWeight: '400',
+    fontSize: 12,
+    color: Theme.black,
   },
   time: {
+    paddingTop: 2,
     fontSize: 10,
-    color: '#9F9D9D',
+    color: Theme.textPostTime,
     fontWeight: '500',
   },
   description: {

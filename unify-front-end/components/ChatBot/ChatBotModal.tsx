@@ -9,17 +9,27 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { isGeminiAvailable, callGeminiAPI } from '@/utils/gemini';
 import { useChatbotUsage } from '@/hooks/chatbot/useChatbotUsage';
 import { useUpdateChatbotUsage } from '@/hooks/chatbot/useUpdateChatbotUsage';
+import { Theme } from '@/constants/Theme';
+import SendIcon from '@/components/icons/SendIcon.svg';
+
+interface Source {
+  document_id: number;
+  document_title: string;
+  url: string;
+}
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
+  sources?: Source[];
 }
 
 interface ChatBotModalProps {
@@ -92,17 +102,24 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
       const newMessageCount = (usage?.message_count ?? 0) + 1;
       updateUsage.mutate(newMessageCount);
 
-      // Extract the response text from the Gemini API response
+      // Extract the response from RAG API (new format with answer and sources)
       let botResponse = 'Sorry, I encountered an error. Please try again.';
+      let sources: Source[] = [];
 
-      if (response && response.candidates && response.candidates[0]) {
+      // Handle new RAG response format
+      if (response && response.answer) {
+        botResponse = response.answer.trim(); // Trim any trailing whitespace
+        sources = response.sources || [];
+      }
+      // Fallback: Handle old Gemini response format (for backward compatibility)
+      else if (response && response.candidates && response.candidates[0]) {
         const candidate = response.candidates[0];
         if (
           candidate.content &&
           candidate.content.parts &&
           candidate.content.parts[0]
         ) {
-          botResponse = candidate.content.parts[0].text;
+          botResponse = candidate.content.parts[0].text.trim(); // Trim any trailing whitespace
         }
       }
 
@@ -111,6 +128,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
         text: botResponse,
         isUser: false,
         timestamp: new Date(),
+        sources: sources.length > 0 ? sources : undefined,
       };
 
       setMessages(prev => [...prev, botMessage]);
@@ -128,29 +146,76 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <View
-      style={[
-        styles.messageContainer,
-        item.isUser ? styles.userMessage : styles.botMessage,
-      ]}
-    >
+  // Component for messages with sources
+  const MessageWithSources = ({ item }: { item: Message }) => {
+    const [showSources, setShowSources] = useState(false);
+
+    return (
       <View
         style={[
-          styles.messageBubble,
-          item.isUser ? styles.userBubble : styles.botBubble,
+          styles.messageContainer,
+          item.isUser ? styles.userMessage : styles.botMessage,
         ]}
       >
-        <Text
+        <View
           style={[
-            styles.messageText,
-            item.isUser ? styles.userText : styles.botText,
+            styles.messageBubble,
+            item.isUser ? styles.userBubble : styles.botBubble,
           ]}
         >
-          {item.text}
-        </Text>
+          <Text
+            style={[
+              styles.messageText,
+              item.isUser ? styles.userText : styles.botText,
+            ]}
+          >
+            {item.text}
+          </Text>
+
+          {/* Sources section for bot messages */}
+          {!item.isUser && item.sources && item.sources.length > 0 && (
+            <View style={styles.sourcesContainer}>
+              <TouchableOpacity
+                style={styles.sourcesHeader}
+                onPress={() => setShowSources(!showSources)}
+              >
+                <Text style={styles.sourcesHeaderText}>
+                  Sources ({item.sources.length})
+                </Text>
+                <Ionicons
+                  name={showSources ? 'chevron-up' : 'chevron-down'}
+                  size={16}
+                  color={Theme.textInput}
+                />
+              </TouchableOpacity>
+              {showSources && (
+                <View style={styles.sourcesList}>
+                  {item.sources.map((source, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.sourceItem}
+                      onPress={() => {
+                        if (source.url) {
+                          Linking.openURL(source.url).catch((err) =>
+                            console.error('Failed to open URL:', err)
+                          );
+                        }
+                      }}
+                    >
+                      <Text style={styles.sourceLink}>{source.document_title}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    );
+  };
+
+  const renderMessage = ({ item }: { item: Message }) => (
+    <MessageWithSources item={item} />
   );
 
   const renderLoadingIndicator = () => {
@@ -181,6 +246,9 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
       >
         {/* Header */}
         <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Ionicons name='close' size={24} color={Theme.black} />
+          </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>
               AI Companion {!isApiAvailable && '⚠️'}
@@ -189,9 +257,6 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
               <Text style={styles.headerSubtitle}>Temporarily Unavailable</Text>
             )}
           </View>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name='close' size={24} color='#333' />
-          </TouchableOpacity>
         </View>
 
         {/* Messages */}
@@ -260,18 +325,20 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
               !canSendMessage
             }
           >
-            <Ionicons
-              name='send'
-              size={20}
-              color={
-                !inputText.trim() ||
-                isLoading ||
-                !isApiAvailable ||
-                !canSendMessage
-                  ? '#ccc'
-                  : '#fff'
-              }
-            />
+            <View style={styles.sendIconContainer}>
+              <SendIcon
+                width={20}
+                height={18}
+                stroke={
+                  !inputText.trim() ||
+                  isLoading ||
+                  !isApiAvailable ||
+                  !canSendMessage
+                    ? Theme.textInactiveTab
+                    : Theme.white
+                }
+              />
+            </View>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -282,7 +349,7 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Theme.backgroundChatbot,
   },
   header: {
     flexDirection: 'row',
@@ -293,15 +360,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-    paddingTop: 50,
   },
   headerContent: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#333',
+    color: Theme.black,
   },
   headerSubtitle: {
     fontSize: 12,
@@ -309,13 +377,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   closeButton: {
-    padding: 5,
+    position: 'absolute',
+    left: 16,
+    bottom: '0%',
+    transform: [{ translateY: -16 }],
+    zIndex: 1,
   },
   messagesList: {
     flex: 1,
   },
   messagesContent: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 18,
+    gap: 4,
     paddingVertical: 10,
   },
   messageContainer: {
@@ -331,16 +404,16 @@ const styles = StyleSheet.create({
   messageBubble: {
     maxWidth: '80%',
     paddingHorizontal: 15,
-    paddingVertical: 10,
+    paddingVertical: 15,
     borderRadius: 20,
   },
   userBubble: {
-    backgroundColor: '#007AFF',
-    borderBottomRightRadius: 5,
+    backgroundColor: Theme.surfaceBlue,
+    borderTopRightRadius: 5,
   },
   botBubble: {
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 5,
+    borderTopLeftRadius: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -372,7 +445,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     paddingHorizontal: 15,
     paddingBottom: 40,
     backgroundColor: '#fff',
@@ -386,7 +459,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     maxHeight: 100,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    height: 44,
+    backgroundColor: Theme.surfaceTextInput,
   },
   disabledInput: {
     backgroundColor: '#f0f0f0',
@@ -394,9 +468,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   sendButton: {
-    backgroundColor: '#007AFF',
-    width: 40,
-    height: 40,
+    backgroundColor: Theme.surfaceBlue,
+    width: 38,
+    height: 38,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
@@ -404,6 +478,13 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: '#e0e0e0',
+  },
+  sendIconContainer: {
+    width: 25,
+    paddingLeft: 2,
+    height: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   messageCountContainer: {
     paddingHorizontal: 15,
@@ -424,5 +505,36 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flex: 1,
     position: 'relative',
+  },
+  sourcesContainer: {
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 12,
+  },
+  sourcesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  sourcesHeaderText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Theme.textInput,
+  },
+  sourcesList: {
+    marginTop: 8,
+    gap: 8,
+  },
+  sourceItem: {
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  sourceLink: {
+    fontSize: 12,
+    color: Theme.surfaceBlue,
+    textDecorationLine: 'underline',
   },
 });

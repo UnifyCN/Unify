@@ -18,10 +18,13 @@ import { useCommentMetadata } from '@/hooks/useCommentMetadata';
 import PostCommentItem from './PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
-import { useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
+import SendIcon from '@/components/icons/SendIcon.svg';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
+import { Theme } from '@/constants/Theme';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 
 // Header component
 const PostDetailsHeader = ({ onBack }: { onBack: () => void }) => (
@@ -37,22 +40,13 @@ const PostDetailsHeader = ({ onBack }: { onBack: () => void }) => (
 // Loading state component
 const CommentsLoadingState = () => (
   <View style={styles.commentsLoadingContainer}>
-    {[1, 2, 3].map(i => (
-      <SkeletonLoaderPostItem key={i} avatarSize={29} showFooter={false} />
+    {Array.from({ length: 3 }, (_, index) => (
+      <SkeletonLoaderPostItem
+        key={index + 1}
+        avatarSize={29}
+        showFooter={false}
+      />
     ))}
-  </View>
-);
-
-// Empty state component
-const CommentsEmptyState = () => (
-  <View style={styles.emptyState}>
-    <View style={styles.emptyStateContent}>
-      <Feather name='message-circle' size={48} color='#D1D1D6' />
-      <Text style={styles.emptyStateTitle}>No comments yet</Text>
-      <Text style={styles.emptyStateSubtitle}>
-        Be the first to start the conversation
-      </Text>
-    </View>
   </View>
 );
 
@@ -92,7 +86,13 @@ const CommentInput = ({
       onPress={onSend}
       disabled={disabled}
     >
-      <Feather name='send' size={20} color={disabled ? '#999' : 'white'} />
+      <View style={styles.sendIconContainer}>
+        <SendIcon
+          width={20}
+          height={18}
+          stroke={disabled ? Theme.textInactiveTab : Theme.white}
+        />
+      </View>
     </TouchableOpacity>
   </View>
 );
@@ -119,7 +119,8 @@ const PostDetails = () => {
   const [commentTextBox, setCommentTextBox] = useState('');
 
   // Get post metadata from query cache (supports optimistic updates)
-  const { data: postMetadata } = usePostMetadata([post.id]);
+  const { data: postMetadata, isLoading: postMetadataLoading } =
+    usePostMetadata([post.id]);
   const metadata = postMetadata?.[post.id];
 
   // Use metadata from query cache
@@ -166,7 +167,7 @@ const PostDetails = () => {
       <PostCommentItem
         comment={item}
         metadata={commentMetadata?.[item.id]}
-        isLoading={commentMetadataLoading}
+        metadataLoading={commentMetadataLoading}
       />
     ),
     [commentMetadata, commentMetadataLoading]
@@ -187,7 +188,6 @@ const PostDetails = () => {
         contentContainerStyle={{ paddingTop: 80, paddingBottom: 25 }}
         ListHeaderComponent={
           <>
-            {/* Post Content */}
             <PostItem
               post={post}
               metadata={{
@@ -196,6 +196,7 @@ const PostDetails = () => {
                 likeCount,
                 commentCount,
               }}
+              metadataLoading={postMetadataLoading}
             />
 
             <View style={styles.largeDivider} />
@@ -205,7 +206,26 @@ const PostDetails = () => {
           if (commentsLoading) {
             return <CommentsLoadingState />;
           }
-          return <CommentsEmptyState />;
+          return (
+            <View style={[{ paddingTop: 20 }]}>
+              <EmptyFeedMessage
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
+                submessage={
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: Theme.textInput,
+                      textAlign: 'center',
+                      lineHeight: 20,
+                    }}
+                  >
+                    Be the first one to comment!
+                  </Text>
+                }
+              />
+            </View>
+          );
         }}
       />
 
@@ -272,28 +292,35 @@ const styles = StyleSheet.create({
   commentInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 25,
-    paddingHorizontal: 16,
+    borderColor: '#e0e0e0',
+    borderRadius: 20,
+    paddingHorizontal: 15,
     paddingVertical: 10,
-    fontSize: 14,
+    maxHeight: 100,
+    fontSize: 16,
     height: 44,
-    backgroundColor: '#D9D9D9',
+    backgroundColor: Theme.surfaceTextInput,
   },
   postMessageButton: {
-    backgroundColor: '#575757',
+    backgroundColor: Theme.primaryGatherRed,
     borderRadius: 50,
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     justifyContent: 'center',
     alignItems: 'center',
-    transform: [{ rotate: '45deg' }],
     padding: 10,
     marginLeft: 12,
   },
   postMessageButtonDisabled: {
     backgroundColor: '#E5E5E5',
     opacity: 0.6,
+  },
+  sendIconContainer: {
+    width: 25,
+    paddingLeft: 2,
+    height: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   commentsLoadingContainer: {
     backgroundColor: '#fff',

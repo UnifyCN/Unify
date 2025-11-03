@@ -2,14 +2,20 @@ import { View, Text, StyleSheet } from 'react-native';
 
 interface EmptyFeedMessageProps {
   message: string;
-  submessage: string;
+  submessage?: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
-const EmptyFeedMessage = ({ message, submessage }: EmptyFeedMessageProps) => {
+const EmptyFeedMessage = ({
+  message,
+  submessage,
+  icon,
+}: EmptyFeedMessageProps) => {
   return (
     <View style={styles.container}>
+      {icon && <View style={styles.iconContainer}>{icon}</View>}
       <Text style={styles.message}>{message}</Text>
-      <Text style={styles.submessage}>{submessage}</Text>
+      {submessage}
     </View>
   );
 };
@@ -21,14 +27,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  iconContainer: {
+    marginBottom: 10,
+  },
   message: {
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
-  },
-  submessage: {
-    fontSize: 14,
-    color: '#666',
+    marginBottom: 10,
   },
 });
 

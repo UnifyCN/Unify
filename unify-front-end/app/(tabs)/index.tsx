@@ -4,16 +4,16 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
+import { Theme } from '@/constants/Theme';
+
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
 
@@ -45,9 +45,7 @@ const WelcomeSection = () => {
     <View>
       <Header />
       <View style={styles.welcomeSection}>
-        <Text style={styles.welcomeText}>
-          Welcome Back, <Text style={styles.welcomeName}>{username}!</Text>
-        </Text>
+        <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
         <Text style={styles.progressText}>
           You have two modules left of{' '}
           <Text style={styles.boldText}>Understanding Canadian Banking</Text>
@@ -64,13 +62,18 @@ const WelcomeSection = () => {
   );
 };
 
+// TODO: someone deal with this section
 const NewsTipsSection = () => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>News & Tips</Text>
       <Feather name='chevron-right' size={20} color='#666' />
     </View>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={{ marginHorizontal: 20 }}
+    >
       <View style={styles.newsCard}>
         <View style={styles.newsImagePlaceholder} />
         <View style={styles.newsContent}>
@@ -121,23 +124,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Theme.white,
   },
   scrollView: {
     flex: 1,
   },
   welcomeSection: {
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 20,
   },
   welcomeText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#000',
+    color: Theme.black,
     marginBottom: 8,
-  },
-  welcomeName: {
-    fontStyle: 'italic',
   },
   progressText: {
     fontSize: 16,
@@ -237,6 +237,13 @@ const styles = StyleSheet.create({
     marginRight: 16,
     padding: 16,
     flexDirection: 'row',
+    marginHorizontal: 2,
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   newsImagePlaceholder: {
     width: 60,

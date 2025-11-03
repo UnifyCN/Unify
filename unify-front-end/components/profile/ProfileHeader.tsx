@@ -66,7 +66,7 @@ export const ProfileHeader = ({
           <Text style={styles.statLabel}>following</Text>
         </View>
 
-        {/* Follow Button or Edit Button */}
+        {/* Follow Button */}
         {!isCurrentUser && isCurrentUser !== null && (
           <View style={styles.followButtonContainer}>
             <FollowButton targetUserId={userInfo.id} />

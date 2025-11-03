@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import UnifyLogo from '@/components/icons/UnifyLogo.svg';
 
 const Header = () => {
   const router = useRouter();
@@ -10,7 +11,10 @@ const Header = () => {
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-      <Text style={styles.title}>Unify</Text>
+      <View style={styles.titleContainer}>
+        <UnifyLogo width={24} height={24} />
+        <Text style={styles.title}>Unify</Text>
+      </View>
       <TouchableOpacity
         style={styles.profileButton}
         onPress={() => router.push('/account-settings')}
@@ -32,6 +36,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontSize: 24,

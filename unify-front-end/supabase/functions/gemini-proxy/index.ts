@@ -1,3 +1,4 @@
+// NOTE: THIS IS NOT USED ANYMORE WE USE THE RAG-QUERY FUNCTION INSTEAD
 // @ts-nocheck We do not need the actual Deno import since it's used by supabase serverless functions so ignore
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 

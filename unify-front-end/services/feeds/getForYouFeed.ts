@@ -1,11 +1,12 @@
 import { supabase } from '@/lib/supabase';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
-import { User } from '@/types/user';
+import { PostDto } from '@/types/feeds/postDto';
+import { transformPostDtos } from '@/utils/postTransform';
 
 export const getForYouFeed = async (
   cursor?: string,
-  limit = 20
+  limit: number = 20
 ): Promise<FeedResponse> => {
   try {
     // Get current user's ID
@@ -48,20 +49,10 @@ export const getForYouFeed = async (
       throw new Error(`Failed to fetch following feed: ${error.message}`);
     }
 
-    // Transform data to match your PostData type
-    const transformedPosts: PostData[] = (data || []).map((post: any) => ({
-      id: post.id,
-      user: {
-        id: post.users.id,
-        username: post.users.username,
-        name: post.users.username,
-        profilePictureUrl: post.users.profile_picture_url,
-      } as User,
-      time: post.created_at,
-      title: post.title,
-      content: post.content,
-      group: post.groups.group_name,
-    }));
+    // Transform data using helper function
+    const transformedPosts: PostData[] = transformPostDtos(
+      data as unknown as PostDto[]
+    );
 
     return {
       posts: transformedPosts,

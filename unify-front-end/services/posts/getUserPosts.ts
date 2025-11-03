@@ -6,7 +6,7 @@ import { User } from '@/types/user';
 export const getUserPosts = async (
   userId?: string,
   cursor?: string,
-  limit = 20
+  limit: number = 20
 ): Promise<FeedResponse> => {
   try {
     let targetUserId = userId;

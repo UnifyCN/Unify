@@ -9,12 +9,16 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
-import SavedFeed from '@/components/profile/SavedFeed';
-import UserPostsFeed from '@/components/profile/UserPostsFeed';
+import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
-import BackHeader from '@/components/BackHeader';
+import BackHeader from '@/components/BackHeader';import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
+import { useUserPosts } from '@/hooks/posts/useUserPosts';
+import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
+import { Theme } from '@/constants/Theme';
+import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
+
 interface TabHeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -111,33 +115,68 @@ export default function Profile() {
   const renderTabContent = useMemo(() => {
     switch (activeTab) {
       case 'Comments':
-        // TODO: This will make screen go blank, implement after commenting feature has been adding
-        return null;
+        return (
+          <FeedWithHook
+            key={`comments-${userId}`}
+            useFeedHook={() => useCommentedOnFeed(userId)}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
+                submessage={
+                  isCurrentUser ? (
+                    <Text style={styles.emptyMessageSubtext}>
+                      You haven't commented on any posts yet
+                    </Text>
+                  ) : (
+                    <Text style={styles.emptyMessageSubtext}>
+                      This person hasn't commented on any posts yet
+                    </Text>
+                  )
+                }
+              />
+            }
+          />
+        );
       case 'Saved':
         if (!isCurrentUser) return null;
         return (
-          <SavedFeed
+          <FeedWithHook
             key={`saved-${userId}`}
+            useFeedHook={useGetSavedPosts}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No saved posts'
-                submessage='Save posts to see them here'
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    Save posts to see them here
+                  </Text>
+                }
               />
             }
           />
         );
       default:
         return (
-          <UserPostsFeed
+          <FeedWithHook
             key={`posts-${userId}`}
-            userId={userId}
+            useFeedHook={() => useUserPosts(userId)}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No posts to see'
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
                 submessage={
-                  isCurrentUser
-                    ? "You haven't posted anything yet"
-                    : "This user hasn't posted anything yet"
+                  isCurrentUser ? (
+                    <Text style={styles.emptyMessageSubtext}>
+                      We'd love to hear from you!{'\n'}
+                      Create a post to show up here.
+                    </Text>
+                  ) : (
+                    <Text style={styles.emptyMessageSubtext}>
+                      This person hasn't posted anything yet.
+                    </Text>
+                  )
                 }
               />
             }
@@ -194,9 +233,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
     zIndex: 1000,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5E5',
   },
   tab: {
     backgroundColor: 'transparent',
@@ -208,14 +247,20 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#000',
+    borderBottomColor: Theme.primaryGatherRed,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    color: Theme.textInactiveTab,
   },
   activeTabText: {
-    color: '#000',
+    color: Theme.black,
+  },
+  emptyMessageSubtext: {
+    fontSize: 14,
+    color: Theme.textInput,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

@@ -12,7 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Group } from '@/types/groups';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { getGroupByName } from '@/services/groups/getGroupByName';
@@ -26,6 +26,9 @@ import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { PostData } from '@/types/feeds/post';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
+import { Theme } from '@/constants/Theme';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -105,7 +108,8 @@ const GroupDetailScreen = () => {
 
   // Get post IDs for metadata fetching
   const postIds = posts.map((post: PostData) => post.id);
-  const { data: postMetadata } = usePostMetadata(postIds);
+  const { data: postMetadata, isLoading: postMetadataLoading } =
+    usePostMetadata(postIds);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -142,7 +146,7 @@ const GroupDetailScreen = () => {
         // Optimistically update UI for joining
 
         await joinGroup(groupData.id);
-        queryClient.invalidateQueries({ queryKey: ['joined-groups'] });
+        queryClient.resetQueries({ queryKey: ['joined-groups'] });
         setIsMember(true);
         setGroupData(prev =>
           prev
@@ -166,7 +170,7 @@ const GroupDetailScreen = () => {
           : prev
       );
     } finally {
-      queryClient.refetchQueries({ queryKey: ['feed', 'groups'] });
+      queryClient.resetQueries({ queryKey: ['feed', 'groups'] });
       setJoining(false);
     }
   };
@@ -252,7 +256,11 @@ const GroupDetailScreen = () => {
         data={posts}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => (
-          <PostItem post={item} metadata={postMetadata?.[item.id]} />
+          <PostItem
+            post={item}
+            metadata={postMetadata?.[item.id]}
+            metadataLoading={postMetadataLoading}
+          />
         )}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -295,15 +303,22 @@ const GroupDetailScreen = () => {
         ListEmptyComponent={() => {
           if (postsLoading) return null;
           return (
-            <View style={styles.emptyState}>
-              <View style={styles.emptyStateContent}>
-                <Feather name='message-circle' size={48} color='#D1D1D6' />
-                <Text style={styles.emptyStateTitle}>No posts yet</Text>
-                <Text style={styles.emptyStateSubtitle}>
-                  Be the first to start the conversation
+            <EmptyFeedMessage
+              icon={<UnifyReplyIcon width={27} height={25} />}
+              message='Looks a little quiet here...'
+              submessage={
+                <Text
+                  style={{
+                    fontSize: 14,
+                    color: Theme.textInput,
+                    textAlign: 'center',
+                    lineHeight: 20,
+                  }}
+                >
+                  Be the first one to post!
                 </Text>
-              </View>
-            </View>
+              }
+            />
           );
         }}
         onEndReached={() => fetchNextPage()}

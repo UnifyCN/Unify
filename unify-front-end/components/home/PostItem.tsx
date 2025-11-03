@@ -11,8 +11,9 @@ import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
-import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Avatar } from '@/components/Avatar';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Theme } from '@/constants/Theme';
 
 export interface PostItemProps {
   post: PostData;
@@ -23,10 +24,10 @@ export interface PostItemProps {
     likeCount: number;
     commentCount: number;
   };
-  isLoading?: boolean;
+  metadataLoading?: boolean;
 }
 export const PostItem = memo(
-  ({ post, metadata, isLoading, shouldHideContent }: PostItemProps) => {
+  ({ post, metadata, shouldHideContent, metadataLoading }: PostItemProps) => {
     const router = useRouter();
 
     // Use batch-loaded metadata (no individual queries needed)
@@ -45,11 +46,14 @@ export const PostItem = memo(
       router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
     };
 
-    // Use batch-loaded metadata
+    // Use batch-loaded metadata with loading state
     const likeCount = metadata?.likeCount ?? 0;
-    const isLiked = metadata?.isLiked;
-    const isSaved = metadata?.isSaved;
+    const isLiked = metadata?.isLiked ?? false;
+    const isSaved = metadata?.isSaved ?? false;
     const commentCount = metadata?.commentCount ?? 0;
+
+    // Show loading state for metadata if it's still loading
+    const showMetadataLoading = metadataLoading && !metadata;
 
     return (
       <View>
@@ -77,7 +81,7 @@ export const PostItem = memo(
               <TouchableOpacity onPress={navigateToUserProfile}>
                 <Text style={styles.name}>{post.user.name}</Text>
               </TouchableOpacity>
-              <ChevronRight width={6} height={10} />
+              <ChevronRight color={Theme.black} width={6} height={12} />
               {post.group ? (
                 <TouchableOpacity
                   onPress={() =>
@@ -107,59 +111,61 @@ export const PostItem = memo(
 
             {/* Footer */}
             <View style={styles.footer}>
-              {isLoading ? (
-                <SkeletonLoader
-                  width='100%'
-                  height={20}
-                  style={{ marginTop: 8 }}
-                />
-              ) : (
-                <>
-                  <View style={styles.footerItem}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (isLiked !== undefined) {
-                          toggleLike(post.id, isLiked);
-                        }
-                      }}
-                    >
-                      {isLiked ? (
-                        <Like_Fill width={20} height={20} />
-                      ) : (
-                        <Like width={20} height={20} />
-                      )}
-                    </TouchableOpacity>
-                    <Text style={styles.footerText}>{likeCount}</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.footerItem}
-                    onPress={() =>
-                      router.push({
-                        pathname: '/Gather/PostDetails' as any,
-                        params: {
-                          post: JSON.stringify(post),
-                        },
-                      })
+              <View style={styles.footerItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isLiked !== undefined && !showMetadataLoading) {
+                      toggleLike(post.id, isLiked);
                     }
-                  >
-                    <Comment width={20} height={20} fill='gray' />
-                    <Text style={styles.footerText}>{commentCount}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (isSaved !== undefined) {
-                        toggleSave(post.id, isSaved);
-                      }
-                    }}
-                  >
-                    {isSaved ? (
-                      <Save_Fill width={20} height={20} />
-                    ) : (
-                      <Save width={20} height={20} />
-                    )}
-                  </TouchableOpacity>
-                </>
-              )}
+                  }}
+                  disabled={showMetadataLoading}
+                >
+                  {isLiked ? (
+                    <Like_Fill width={20} height={20} />
+                  ) : (
+                    <Like width={20} height={20} />
+                  )}
+                </TouchableOpacity>
+                {showMetadataLoading ? (
+                  <SkeletonLoader width={20} height={14} />
+                ) : (
+                  <Text style={styles.footerText}>{likeCount}</Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={styles.footerItem}
+                onPress={() =>
+                  router.push({
+                    pathname: '/Gather/PostDetails' as any,
+                    params: {
+                      post: JSON.stringify(post),
+                    },
+                  })
+                }
+              >
+                <Comment width={20} height={20} fill='gray' />
+                {showMetadataLoading ? (
+                  <SkeletonLoader width={24} height={20} />
+                ) : (
+                  <Text style={styles.footerText}>{commentCount}</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (isSaved !== undefined && !showMetadataLoading) {
+                    toggleSave(post.id, isSaved);
+                  }
+                }}
+                disabled={showMetadataLoading}
+              >
+                {showMetadataLoading ? (
+                  <SkeletonLoader width={20} height={20} borderRadius={4} />
+                ) : isSaved ? (
+                  <Save_Fill width={20} height={20} />
+                ) : (
+                  <Save width={20} height={20} />
+                )}
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -198,14 +204,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   name: {
-    fontWeight: '400',
+    fontSize: 12,
+    color: Theme.black,
   },
   group: {
     fontWeight: '600',
+    fontSize: 12,
+    color: Theme.black,
   },
   time: {
+    paddingTop: 2,
     fontSize: 10,
-    color: '#9F9D9D',
+    color: Theme.textPostTime,
     fontWeight: '500',
   },
   title: {

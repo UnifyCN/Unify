@@ -25,6 +25,10 @@ export const useMutateCreateComment = () => {
         queryKey: ['post-comments', postId],
       });
 
+      queryClient.resetQueries({
+        queryKey: ['feed', 'commentedOn'],
+      });
+
       // Invalidate only the specific post's metadata (more efficient)
       invalidatePostMetadata(postId);
     },

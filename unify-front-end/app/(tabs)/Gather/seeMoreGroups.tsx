@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGroups } from '@/hooks/groups/useGroups';
 import GroupCard from './GroupCard';
 import { Group } from '@/types/groups';
@@ -12,6 +12,7 @@ export default function MoreGroupsScreen() {
   const { q } = useLocalSearchParams();
   const searchQuery = (q as string) ?? '';
   const { data: groups } = useGroups();
+  const router = useRouter();
 
   const filtered: Group[] = (groups ?? []).filter(g =>
     !searchQuery
@@ -29,6 +30,12 @@ export default function MoreGroupsScreen() {
     } catch (e) {
       console.error('saveRecentGroups exception', e);
     }
+
+    // Navigate to GroupDetailScreen
+    router.push({
+      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      params: { group: JSON.stringify(group) },
+    });
   };
 
   const renderGroup = ({ item }: { item: Group }) => {

@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { formatDate, formatTime } from '@/helpers/dateHelpers';
 import { Event } from '@/types/events';
+import { Theme } from '@/constants/Theme';
 
 interface EventCardProps {
   event: Event;
@@ -52,17 +53,25 @@ const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
 
 const styles = StyleSheet.create({
   eventCard: {
-    backgroundColor: '#DCDCDC',
-    borderRadius: 12,
+    backgroundColor: Theme.surfaceEventCard,
+    borderRadius: 16,
     overflow: 'hidden',
+    marginHorizontal: 2,
+    marginBottom: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+    minHeight: 182,
   },
   eventImagePlaceholder: {
-    height: 80,
+    height: 86,
     backgroundColor: '#A6A6A6',
     width: '100%',
   },
   eventImage: {
-    height: 80,
+    height: 86,
     width: '100%',
     resizeMode: 'cover',
   },

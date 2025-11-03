@@ -5,10 +5,10 @@ export const isGeminiAvailable = () => {
   return !!supabase;
 };
 
-// Function to call the Gemini proxy edge function
+// Function to call the RAG query edge function
 export const callGeminiAPI = async (prompt: string) => {
   try {
-    const { data, error } = await supabase.functions.invoke('gemini-proxy', {
+    const { data, error } = await supabase.functions.invoke('rag-query', {
       body: { prompt },
     });
 
@@ -17,7 +17,7 @@ export const callGeminiAPI = async (prompt: string) => {
     }
 
     if (!data) {
-      throw new Error('No data received from Gemini API');
+      throw new Error('No data received from RAG API');
     }
 
     return data;

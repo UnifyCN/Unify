@@ -12,7 +12,7 @@ import {
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { useQuery } from '@tanstack/react-query';
 import Feather from '@expo/vector-icons/Feather';
-import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
+import { Theme } from '@/constants/Theme';
 import SearchGroupsList from '@/components/groups/SearchGroupsList';
 
 interface SelectGroupModalProps {
@@ -68,17 +68,17 @@ export default function SelectGroupModal({
           <TouchableOpacity onPress={handleCancel}>
             <Feather name='x' size={24} color='black' />
           </TouchableOpacity>
-          <View style={styles.placeholder} />
+          <Text style={styles.title}>Post to</Text>
         </View>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchInputWrapper}>
-            <SimpleLineIcons name='magnifier' size={18} color='white' />
+            <Feather name='search' size={20} color={Theme.textInput} />
             <TextInput
               style={styles.searchInput}
               placeholder='Search for a group'
-              placeholderTextColor='#FFF'
+              placeholderTextColor={Theme.textInput}
               value={searchText}
               onChangeText={setSearchText}
               autoCapitalize='none'
@@ -125,26 +125,23 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'center',
   },
-  placeholder: {
-    width: 54,
-  },
   searchContainer: {
     paddingVertical: 10,
   },
   searchInputWrapper: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#8F8F8F',
-    gap: 15,
-    borderRadius: 15,
+    backgroundColor: Theme.surfaceTextInput,
+    borderRadius: 100,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    height: 36,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#FFF',
+    fontSize: 14,
+    color: Theme.textAlternateGray,
   },
   content: {
     flex: 1,
