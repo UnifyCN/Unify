@@ -9,6 +9,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { isGeminiAvailable, callGeminiAPI } from '@/utils/gemini';
@@ -20,8 +21,7 @@ import SendIcon from '@/components/icons/SendIcon.svg';
 interface Source {
   document_id: number;
   document_title: string;
-  chunk_text: string;
-  chunk_index: number;
+  url: string;
 }
 
 interface Message {
@@ -191,14 +191,19 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
               {showSources && (
                 <View style={styles.sourcesList}>
                   {item.sources.map((source, index) => (
-                    <View key={index} style={styles.sourceItem}>
-                      <Text style={styles.sourceTitle}>
-                        {source.document_title}
-                      </Text>
-                      <Text style={styles.sourceText} numberOfLines={2}>
-                        {source.chunk_text}
-                      </Text>
-                    </View>
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.sourceItem}
+                      onPress={() => {
+                        if (source.url) {
+                          Linking.openURL(source.url).catch((err) =>
+                            console.error('Failed to open URL:', err)
+                          );
+                        }
+                      }}
+                    >
+                      <Text style={styles.sourceLink}>{source.document_title}</Text>
+                    </TouchableOpacity>
                   ))}
                 </View>
               )}
@@ -527,15 +532,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
   },
-  sourceTitle: {
+  sourceLink: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  sourceText: {
-    fontSize: 11,
-    color: '#666',
-    lineHeight: 16,
+    color: Theme.surfaceBlue,
+    textDecorationLine: 'underline',
   },
 });
