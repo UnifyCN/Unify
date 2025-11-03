@@ -2,6 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Group } from '@/types/groups';
 import { Avatar } from '@/components/Avatar';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import { Theme } from '@/constants/Theme';
 
 interface GroupsListProps {
   groups: Group[];
@@ -40,9 +42,26 @@ export default function SearchGroupsList({
       ) : (
         <View style={styles.emptyStateContainer}>
           <Text style={styles.emptyStateText}>
-            {searchText?.trim()
-              ? 'No groups found matching your search'
-              : 'No groups joined yet'}
+            {searchText?.trim() ? (
+              'No groups found matching your search'
+            ) : (
+              <EmptyFeedMessage
+                message='No groups here...'
+                submessage={
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: Theme.textInput,
+                      textAlign: 'center',
+                      lineHeight: 20,
+                    }}
+                  >
+                    You haven't joined any groups yet.{'\n'}
+                    Join a group to start the conversation!
+                  </Text>
+                }
+              />
+            )}
           </Text>
         </View>
       )}
@@ -77,7 +96,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyStateContainer: {
-    paddingVertical: 40,
+    paddingVertical: 30,
     alignItems: 'center',
   },
   emptyStateText: {

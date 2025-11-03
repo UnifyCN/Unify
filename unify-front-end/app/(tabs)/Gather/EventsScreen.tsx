@@ -16,6 +16,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Event } from '@/types/events';
 import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { Theme } from '@/constants/Theme';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 
 const EventsScreen = () => {
   const router = useRouter();
@@ -205,13 +206,22 @@ const EventsScreen = () => {
         contentContainerStyle={styles.eventsList}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Feather name='calendar' size={48} color='#ccc' />
-            <Text style={styles.emptyText}>No events available</Text>
-            <Text style={styles.emptySubtext}>
-              Check back later for new events
-            </Text>
-          </View>
+          <EmptyFeedMessage
+            icon={<Feather name='calendar' size={24} color='#B4B1B1' />}
+            message='No events available'
+            submessage={
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: Theme.textInput,
+                  textAlign: 'center',
+                  lineHeight: 20,
+                }}
+              >
+                Check back later for new events
+              </Text>
+            }
+          />
         }
       />
     </View>
@@ -335,8 +345,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.white,
   },
   tagButtonSelected: {
-    backgroundColor: Theme.primaryGatherRed,
-    borderColor: Theme.primaryGatherRed,
+    backgroundColor: Theme.black,
+    borderColor: Theme.black,
   },
   tagText: {
     fontSize: 14,
