@@ -64,10 +64,10 @@ export default function SelectGroupModal({
       statusBarTranslucent
       onRequestClose={handleCancel}
     >
-      <BackHeader title='Select Group' backIcon='x' onBack={handleCancel} />
+      <BackHeader title='' backIcon='x' onBack={handleCancel} />
       <View style={styles.container}>
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
+        <View>
           <View style={styles.searchInputWrapper}>
             <Feather name='search' size={18} color={Theme.textInput} />
             <TextInput
@@ -106,15 +106,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
+    gap: 24,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 60,
-  },
-  searchContainer: {
-    marginVertical: 16,
   },
   searchInputWrapper: {
     flexDirection: 'row',

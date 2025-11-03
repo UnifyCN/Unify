@@ -12,10 +12,10 @@ import {
 } from 'react-native';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
 import Feather from '@expo/vector-icons/Feather';
-import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import PostSuccessModal from './PostSuccessModal';
 import SelectGroupModal from './SelectGroupModal';
 import { Theme } from '@/constants/Theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -32,6 +32,7 @@ export default function CreatePostModal({
   const [showGroupSelector, setShowGroupSelector] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const insets = useSafeAreaInsets();
   const createPostMutation = useMutateCreatePost();
 
   const handleSubmit = () => {
@@ -88,7 +89,7 @@ export default function CreatePostModal({
         onRequestClose={handleCancel}
       >
         <ScrollView style={styles.container}>
-          <View style={styles.header}>
+          <View style={[styles.header,  { paddingTop: insets.top + 20 }]}>
             <TouchableOpacity onPress={handleCancel}>
               <Feather name='x' size={24} color='black' />
             </TouchableOpacity>
@@ -184,7 +185,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 60,
   },
   postButton: {
     backgroundColor: Theme.primaryGatherRed,

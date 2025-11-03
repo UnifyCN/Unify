@@ -39,8 +39,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
   },
   title: {
     fontSize: 24,
