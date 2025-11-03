@@ -255,14 +255,14 @@ export default function LessonPageScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page indicator */}
+        {/* Page indicator
         {totalPages > 1 && (
           <View style={styles.pageIndicatorContainer}>
             <Text style={styles.pageIndicator}>
               {currentPage} of {totalPages}
             </Text>
           </View>
-        )}
+        )} */}
 
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
