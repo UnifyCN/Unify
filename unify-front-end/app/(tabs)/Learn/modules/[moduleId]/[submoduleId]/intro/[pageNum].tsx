@@ -300,7 +300,13 @@ export default function SubmoduleIntroScreen() {
             <Text style={styles.backBtnText}>Back</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+        <TouchableOpacity
+          style={[
+            styles.nextBtn,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+          ]}
+          onPress={handleNext}
+        >
           <Text style={styles.nextBtnText}>
             {currentPage < (totalPages || 1) ? 'Next' : 'Start Lessons'}
           </Text>

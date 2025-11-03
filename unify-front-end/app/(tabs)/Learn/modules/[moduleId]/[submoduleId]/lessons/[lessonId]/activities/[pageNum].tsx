@@ -29,6 +29,7 @@ export default function ActivityPageScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -132,15 +133,20 @@ export default function ActivityPageScreen() {
             params: { moduleId, submoduleId, lessonId, pageNum: '1' },
           });
         } else {
-          // No ending pages, save this lesson as completed
-          await saveLessonCompletion(
+          // No ending pages, save this lesson as completed (in background)
+          setIsSaving(true);
+          
+          // Save in background - don't block navigation
+          saveLessonCompletion(
             lessonId || '',
             submoduleId || '',
             moduleId || '',
             totalPages
-          );
+          ).finally(() => {
+            setIsSaving(false);
+          });
 
-          // Check if this is the last lesson
+          // Navigate immediately while saving happens in background
           const currentIndex = getCurrentLessonIndex();
           const isLastLesson =
             currentIndex === (submoduleData?.lessons?.length || 0) - 1;
@@ -340,17 +346,21 @@ export default function ActivityPageScreen() {
           style={[
             styles.nextBtn,
             { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+            isSaving && styles.nextBtnDisabled,
           ]}
           onPress={isSubmitted ? handleNext : handleSubmit}
+          disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
-            {!isSubmitted
-              ? 'Submit'
-              : currentPage < totalPages
-                ? 'Next Activity'
-                : quizzes && quizzes.length > 0
-                  ? `Take Quiz`
-                  : 'Complete Lesson'}
+            {isSaving
+              ? 'Saving...'
+              : !isSubmitted
+                ? 'Submit'
+                : currentPage < totalPages
+                  ? 'Next Activity'
+                  : quizzes && quizzes.length > 0
+                    ? `Take Quiz`
+                    : 'Complete Lesson'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -494,4 +504,5 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  nextBtnDisabled: { opacity: 0.7 },
 });
