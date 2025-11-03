@@ -63,14 +63,15 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
+    minHeight: 182,
   },
   eventImagePlaceholder: {
-    height: 80,
+    height: 86,
     backgroundColor: '#A6A6A6',
     width: '100%',
   },
   eventImage: {
-    height: 80,
+    height: 86,
     width: '100%',
     resizeMode: 'cover',
   },

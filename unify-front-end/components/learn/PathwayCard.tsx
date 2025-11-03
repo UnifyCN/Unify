@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Link } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 
@@ -8,6 +8,7 @@ type Props = {
   modulesLabel: string;
   href?: LinkProps['href'];
   colorHex?: string;
+  coverImageUrl?: string;
 };
 
 export default function PathwayCard({
@@ -15,6 +16,7 @@ export default function PathwayCard({
   modulesLabel,
   href,
   colorHex,
+  coverImageUrl,
 }: Props) {
   const CardInner = (
     <>
@@ -27,7 +29,15 @@ export default function PathwayCard({
           ]}
         />
       ) : null}
-      <View style={styles.banner} />
+      <View style={styles.banner}>
+        {coverImageUrl ? (
+          <Image
+            source={{ uri: coverImageUrl }}
+            style={styles.bannerImage}
+            resizeMode="cover"
+          />
+        ) : null}
+      </View>
       <Text style={styles.title} numberOfLines={2}>
         {title}
       </Text>
@@ -51,7 +61,7 @@ export default function PathwayCard({
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    borderRadius: 12,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#fff',
     paddingTop: 0,
@@ -70,10 +80,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#d9d9d9',
     marginBottom: 12,
     overflow: 'hidden',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
   },
   title: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 6 },
   meta: { fontSize: 12, color: '#fff' },
