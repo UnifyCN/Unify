@@ -2,6 +2,7 @@
   "expo": {
     "name": "unify-front-end",
     "slug": "unify-front-end",
+    "owner": "unifysocial",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -14,8 +15,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.unifyfrontend",
+      "googleServicesFile": "./GoogleService_ios.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -25,7 +26,10 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.unifyfrontend"
+      "package": "com.anonymous.unifyfrontend",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -50,7 +54,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "9ba672ff-1636-46e9-9095-b4d5f107ddd0"
+        "projectId": "3772d4d9-79dd-4848-9691-bae1b19eefb8"
       }
     }
   }

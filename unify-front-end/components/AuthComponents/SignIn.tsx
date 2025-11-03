@@ -6,6 +6,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
 import { supabase } from '../../lib/supabase';
 import { Button } from 'react-native-paper';
+import { Platform } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
@@ -71,9 +72,11 @@ export function SignIn({
   // Configure Google Sign-In once on mount (must happen BEFORE calling signIn)
   React.useEffect(() => {
     GoogleSignin.configure({
+      iosClientId: '718278262223-rfq8s91jg7o9lmif54gcuibf4732ce7l.apps.googleusercontent.com',
+
       webClientId:
         '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
-      scopes: ['email', 'profile'],
+      scopes: ['email', 'profile', 'openid'],
       offlineAccess: true,
       forceCodeForRefreshToken: false,
     });
@@ -81,14 +84,25 @@ export function SignIn({
 
   // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
-    if (isExpoGo) return; // Not supported in Expo Go
+    if (isExpoGo) {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      if (error) setErrorMessage(error.message);
+      return;
+    } 
+
     try {
-      await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-      if (response.data?.idToken) {
+        if (Platform.OS === 'android') {
+          await GoogleSignin.hasPlayServices();
+        }
+      await GoogleSignin.signIn();
+      //CHANGE
+      const { idToken } = await GoogleSignin.getTokens();
+      if (idToken) {
         const { error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
-          token: response.data.idToken,
+          token: idToken,
         });
         if (error) setErrorMessage(error.message);
       } else {
