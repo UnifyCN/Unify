@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
+
 import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -12,7 +13,7 @@ import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
-import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
+import BackHeader from '@/components/BackHeader';import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 import { Theme } from '@/constants/Theme';
@@ -56,7 +57,6 @@ const TabHeader = memo(
 export default function Profile() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
-
   const { data: userInfo } = useUserInfo(userId);
 
   useEffect(() => {
@@ -74,7 +74,6 @@ export default function Profile() {
   }, [userId]);
 
   const [activeTab, setActiveTab] = useState('Posts');
-
   useEffect(() => {
     if (isCurrentUser === false && activeTab === 'Saved') {
       setActiveTab('Posts');
@@ -188,6 +187,7 @@ export default function Profile() {
 
   return (
     <View style={styles.container}>
+      <BackHeader title='' />
       <FlatList
         data={data}
         renderItem={renderItem}

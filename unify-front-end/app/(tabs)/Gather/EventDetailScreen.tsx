@@ -12,8 +12,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
-import { useEffect } from 'react';
 import { Theme } from '@/constants/Theme';
 
 const EventDetailScreen = () => {
@@ -27,13 +25,6 @@ const EventDetailScreen = () => {
     }
   };
 
-  const { setVisible } = useHeaderVisibility();
-
-  useEffect(() => {
-    setVisible(false);
-    return () => setVisible(true);
-  }, [setVisible]);
-
   // Using react native built in share
   const handleShare = async () => {
     try {
@@ -43,7 +34,7 @@ const EventDetailScreen = () => {
         `📍 ${eventData.location}`,
         `🔗 ${eventData.externalLink}`,
       ].join('\n\n');
-
+      
       await Share.share({
         message: shareMessage,
         title: 'Unify Gather',

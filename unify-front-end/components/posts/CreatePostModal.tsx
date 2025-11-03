@@ -82,16 +82,13 @@ export default function CreatePostModal({
     <>
       <Modal
         visible={visible}
-        animationType='slide'
-        transparent={false}
+        animationType='none'
+        statusBarTranslucent
         onRequestClose={handleCancel}
       >
         <ScrollView style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={handleCancel}
-              style={styles.cancelButton}
-            >
+            <TouchableOpacity onPress={handleCancel}>
               <Feather name='x' size={24} color='black' />
             </TouchableOpacity>
             <TouchableOpacity
@@ -186,9 +183,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 60,
-  },
-  cancelButton: {
-    paddingVertical: 15,
   },
   postButton: {
     backgroundColor: '#007AFF',

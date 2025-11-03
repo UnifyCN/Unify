@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
+import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
 
 const WelcomeSection = () => {
@@ -41,19 +42,22 @@ const WelcomeSection = () => {
   }, []);
 
   return (
-    <View style={styles.welcomeSection}>
-      <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
-      <Text style={styles.progressText}>
-        You have two modules left of{' '}
-        <Text style={styles.boldText}>Understanding Canadian Banking</Text>
-      </Text>
-      <Text style={styles.percentageText}>55% Completed</Text>
-      <View style={styles.progressBar}>
-        <View style={styles.progressFill} />
+    <View>
+      <Header />
+      <View style={styles.welcomeSection}>
+        <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
+        <Text style={styles.progressText}>
+          You have two modules left of{' '}
+          <Text style={styles.boldText}>Understanding Canadian Banking</Text>
+        </Text>
+        <Text style={styles.percentageText}>55% Completed</Text>
+        <View style={styles.progressBar}>
+          <View style={styles.progressFill} />
+        </View>
+        <TouchableOpacity style={styles.resumeButton}>
+          <Text style={styles.resumeButtonText}>Resume Lesson</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.resumeButton}>
-        <Text style={styles.resumeButtonText}>Resume Lesson</Text>
-      </TouchableOpacity>
     </View>
   );
 };
