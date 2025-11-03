@@ -222,7 +222,7 @@ export default function LearnProgressCardCarousel() {
                   {/* Progress Bar with Linear Gradient */}
                   <View style={styles.cardProgressBar}>
                     <LinearGradient
-                      colors={['#151515', '#595959']}
+                      colors={['#D8492C', '#FFB570']}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 0 }}
                       style={[
@@ -237,7 +237,7 @@ export default function LearnProgressCardCarousel() {
                   <TouchableOpacity
                     style={[
                       styles.cardResumeButton,
-                      { backgroundColor: '#575757' },
+                      { backgroundColor: '#D8492C' },
                     ]}
                     onPress={() => handleResume(card.resumeHref)}
                   >
