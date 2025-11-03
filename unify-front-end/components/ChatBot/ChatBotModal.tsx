@@ -196,13 +196,15 @@ export const ChatBotModal = ({ visible, onClose }: ChatBotModalProps) => {
                       style={styles.sourceItem}
                       onPress={() => {
                         if (source.url) {
-                          Linking.openURL(source.url).catch((err) =>
+                          Linking.openURL(source.url).catch(err =>
                             console.error('Failed to open URL:', err)
                           );
                         }
                       }}
                     >
-                      <Text style={styles.sourceLink}>{source.document_title}</Text>
+                      <Text style={styles.sourceLink}>
+                        {source.document_title}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>

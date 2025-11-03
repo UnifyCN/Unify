@@ -72,7 +72,8 @@ export function SignIn({
   // Configure Google Sign-In once on mount (must happen BEFORE calling signIn)
   React.useEffect(() => {
     GoogleSignin.configure({
-      iosClientId: '718278262223-rfq8s91jg7o9lmif54gcuibf4732ce7l.apps.googleusercontent.com',
+      iosClientId:
+        '718278262223-rfq8s91jg7o9lmif54gcuibf4732ce7l.apps.googleusercontent.com',
 
       webClientId:
         '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
@@ -90,12 +91,12 @@ export function SignIn({
       });
       if (error) setErrorMessage(error.message);
       return;
-    } 
+    }
 
     try {
-        if (Platform.OS === 'android') {
-          await GoogleSignin.hasPlayServices();
-        }
+      if (Platform.OS === 'android') {
+        await GoogleSignin.hasPlayServices();
+      }
       await GoogleSignin.signIn();
       //CHANGE
       const { idToken } = await GoogleSignin.getTokens();
