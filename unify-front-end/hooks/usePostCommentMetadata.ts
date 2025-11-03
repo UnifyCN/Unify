@@ -1,14 +1,14 @@
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 
-interface PostCommentMetadata {
+export interface PostCommentMetadata {
   commentId: number;
   isLiked: boolean;
   likeCount: number;
   replyCount: number;
 }
 
-export const usePostCommentMetadata = (commentIds: number[]) => {
+export const usePostCommentMetadata = (commentIds: number[], p0?: { enabled: boolean; }) => {
   return useQuery({
     queryKey: ['comment-metadata', commentIds],
     queryFn: async (): Promise<Record<number, PostCommentMetadata>> => {

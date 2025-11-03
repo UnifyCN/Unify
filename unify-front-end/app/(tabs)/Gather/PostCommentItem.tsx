@@ -12,7 +12,6 @@ import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
 import { getPostReplies } from '@/services/posts/getPostReplies';
 import PostReplyItem from './PostReplyItem';
-import { useMutateCreateComment } from '@/hooks/posts/useMutateCreateComment';
 import { usePostCommentMetadata } from '@/hooks/usePostCommentMetadata';
 
 interface PostCommentItemProps {
@@ -47,42 +46,33 @@ const PostCommentItem = memo(
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
     }, [comment.user_id]);
 
-    // Show loading state for metadata if it's still loading
-    const showMetadataLoading = metadataLoading && !metadata;
-
-    // Load replies for comments on request
     const [replies, setReplies] = useState<PostCommentData[]>([]);
-    const [loadingReplies, setLoadingReplies] = useState(false);
     const [showReplies, setShowReplies] = useState(false);
 
+    // Batch load metadata for these replies (only when requested)
+    const replyIds = replies.map(r => r.id);
+    const { data: replyMetadata } = usePostCommentMetadata(replyIds, {
+      enabled: showReplies && replyIds.length > 0,
+    });
+
+    // Post replies are fetched upon request
     const handleViewReplies = async () => {
-      if (replies.length > 0) {
-        setShowReplies(prev => !prev);
+      if (showReplies) {
+        setShowReplies(false);
         return;
       }
 
-      try {
-        setLoadingReplies(true);
-        const replyData = await getPostReplies(comment.id);
-        setReplies(replyData);
-        setShowReplies(true);
+      setShowReplies(true);
 
-        const replyIds =
-            replyData?.map((reply: PostCommentData) => reply.id) ?? [];
-
-      } catch (error) {
-        console.error('Error loading replies:', error);
-      } finally {
-        setLoadingReplies(false);
+      // Reply metadata will be fetched since enabled set to true
+      if (replies.length === 0) {
+        const fetchedReplies = await getPostReplies(comment.id);
+        setReplies(fetchedReplies);
       }
     };
 
-    // Utilize hooks to create replies
-    const createCommentMutation = useMutateCreateComment();
-
-    const handleCreateReply = () => {
-      
-    };
+    // Show loading state for metadata if it's still loading
+    const showMetadataLoading = metadataLoading && !metadata;
 
     return (
       <View>
@@ -162,16 +152,15 @@ const PostCommentItem = memo(
                     {showReplies ? 'Hide replies' : `View ${replyCount} ${replyCount > 1 ? 'replies' : 'reply'}`}
                   </Text>
                 </TouchableOpacity>
-
-                {showReplies && !loadingReplies && replies.map(reply => (
+                {showReplies &&
+                replies.map(reply => (
                   <PostReplyItem
                     key={reply.id}
                     comment={reply}
-                    metadata={{
-                      likeCount: reply.like_count ?? 0,
-                      isLiked: false,
-                    }}
-                    metadataLoading={false}
+                    metadata={
+                      replyMetadata?.[reply.id] ?? { likeCount: 0, isLiked: false }
+                    }
+                    metadataLoading={!replyMetadata}
                   />
                 ))}
               </View>
