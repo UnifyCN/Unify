@@ -3,46 +3,23 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Feather } from '@expo/vector-icons';
+import { useUserInfo } from '@/hooks/users/useUserInfo';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
-  const [userName, setUserName] = useState('');
+  const { data: userInfo } = useUserInfo();
   const [userId, setUserId] = useState<string | null>(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (!mounted) return;
-        const user = data?.user;
-        const name =
-          (user?.user_metadata as any)?.full_name || (user?.email ?? '');
-        setUserName(name);
-        setUserId(user?.id ?? null);
-        
-        if (user?.id) {
-          const { data: profileData } = await supabase
-            .from('users')
-            .select('profile_picture_url')
-            .eq('id', user.id)
-            .single();
-          if (mounted && profileData) {
-            setProfilePictureUrl(profileData.profile_picture_url);
-          }
-        }
-      } catch (err) {
-        console.warn('Failed to load user', err);
-      }
+  // Keep track of current user's ID for navigation
+  useState(() => {
+    const getUserId = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUserId(data?.user?.id ?? null);
     };
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    getUserId();
+  });
 
   const onLogout = async () => {
     try {
@@ -59,12 +36,12 @@ export default function AccountSettingsPage() {
       <View style={styles.content}>
         <View style={styles.profileSection}>
           <Avatar
-            profilePictureUrl={profilePictureUrl ?? undefined}
-            username={userName}
+            profilePictureUrl={userInfo?.profilePictureUrl}
+            username={userInfo?.username || ''}
             size={80}
             style={styles.avatar}
           />
-          <Text style={styles.userName}>{userName}</Text>
+          <Text style={styles.userName}>{userInfo?.username || ''}</Text>
         </View>
         <View style={styles.rowsContainer}>
           <View style={styles.settingsCard}>
@@ -72,7 +49,7 @@ export default function AccountSettingsPage() {
               style={styles.row}
               onPress={() => {
                 if (userId) {
-                  router.push(`/(tabs)/Gather/Profile/profile?userId=${userId}`);
+                  router.push(`/profile?userId=${userId}`);
                 }
               }}
             >
@@ -84,7 +61,7 @@ export default function AccountSettingsPage() {
               style={styles.row}
               onPress={() => {
                 if (userId) {
-                  router.push(`/(tabs)/Gather/Profile/profile?userId=${userId}&tab=Saved`);
+                  router.push(`/profile?userId=${userId}&tab=Saved`);
                 }
               }}
             >

@@ -59,7 +59,7 @@ export default function SelectGroupModal({
   return (
     <Modal
       visible={visible}
-      animationType='none'
+      animationType='slide'
       statusBarTranslucent
       onRequestClose={handleCancel}
     >
@@ -68,17 +68,16 @@ export default function SelectGroupModal({
           <TouchableOpacity onPress={handleCancel}>
             <Feather name='x' size={24} color='black' />
           </TouchableOpacity>
-          <Text style={styles.title}>Post to</Text>
         </View>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchInputWrapper}>
-            <Feather name='search' size={20} color={Theme.textInput} />
+            <Feather name='search' size={18} color={Theme.textInput} />
             <TextInput
               style={styles.searchInput}
-              placeholder='Search for a group'
-              placeholderTextColor={Theme.textInput}
+              placeholder='Select a group'
+              placeholderTextColor={Theme.textAlternateGray}
               value={searchText}
               onChangeText={setSearchText}
               autoCapitalize='none'
@@ -90,7 +89,7 @@ export default function SelectGroupModal({
         <ScrollView style={styles.content}>
           {groupsLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size='large' color='#007AFF' />
+              <ActivityIndicator size='large' color={Theme.primaryGatherRed} />
               <Text style={styles.loadingText}>Loading groups...</Text>
             </View>
           ) : (
@@ -117,30 +116,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 60,
-    paddingBottom: 20,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
   },
   searchContainer: {
-    paddingVertical: 10,
+    marginVertical: 16,
   },
   searchInputWrapper: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Theme.surfaceTextInput,
-    borderRadius: 100,
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    height: 36,
-    gap: 8,
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 7,
+    gap: 15,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: Theme.textAlternateGray,
   },
   content: {

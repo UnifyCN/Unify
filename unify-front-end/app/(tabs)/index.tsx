@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
+import { FloatingChatButton } from '@/components/ChatBot';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
@@ -117,6 +118,7 @@ export default function HomeScreen() {
         <NewsTipsSection />
         <GatherEventsSection />
       </ScrollView>
+      <FloatingChatButton />
     </View>
   );
 }

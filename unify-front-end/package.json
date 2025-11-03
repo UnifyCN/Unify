@@ -52,6 +52,7 @@
     "expo-status-bar": "~2.0.1",
     "expo-system-ui": "~4.0.9",
     "expo-web-browser": "~14.0.2",
+    "format": "^0.2.2",
     "generate-random-username": "^2.0.1",
     "lucide-react-native": "^0.542.0",
     "or": "^0.2.0",

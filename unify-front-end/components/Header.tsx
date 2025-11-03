@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 60, // Account for status bar and safe area
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',

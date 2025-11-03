@@ -11,7 +11,6 @@ import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Onboarding from './onboarding';
-import { FloatingChatButton } from '@/components/ChatBot';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -100,9 +99,12 @@ export default function RootLayout() {
                       name='account-settings'
                       options={{ headerShown: false }}
                     />
+                    <Stack.Screen
+                      name='profile'
+                      options={{ headerShown: false }}
+                    />
                     <Stack.Screen name='+not-found' />
                   </Stack>
-                  <FloatingChatButton />
                 </ThemeProvider>
               </AuthWrapper>
             )}
