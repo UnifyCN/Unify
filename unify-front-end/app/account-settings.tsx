@@ -19,7 +19,7 @@ export default function AccountSettingsPage() {
       setUserId(data?.user?.id ?? null);
     };
     getUserId();
-  });
+  }, []);
 
   const onLogout = async () => {
     try {
