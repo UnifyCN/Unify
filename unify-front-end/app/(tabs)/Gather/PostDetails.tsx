@@ -101,8 +101,6 @@ const PostDetails = () => {
   // Get passed data
   const { post: postParam } = useLocalSearchParams();
 
-
-
   const onBack = () => {
     router.back();
   };

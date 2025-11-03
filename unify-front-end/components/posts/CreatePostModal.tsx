@@ -82,15 +82,13 @@ export default function CreatePostModal({
     <>
       <Modal
         visible={visible}
-        animationType="none"
+        animationType='none'
         statusBarTranslucent
         onRequestClose={handleCancel}
       >
         <ScrollView style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity
-              onPress={handleCancel}
-            >
+            <TouchableOpacity onPress={handleCancel}>
               <Feather name='x' size={24} color='black' />
             </TouchableOpacity>
             <TouchableOpacity

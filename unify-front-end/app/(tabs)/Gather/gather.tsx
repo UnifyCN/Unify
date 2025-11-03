@@ -135,7 +135,6 @@ export default function GatherScreen() {
         <CreatePostButton />
       </View>
     </View>
-    
   );
 }
 

@@ -59,7 +59,7 @@ export default function SelectGroupModal({
   return (
     <Modal
       visible={visible}
-      animationType="none"
+      animationType='none'
       statusBarTranslucent
       onRequestClose={handleCancel}
     >

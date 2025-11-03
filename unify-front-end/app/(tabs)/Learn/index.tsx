@@ -38,7 +38,7 @@ export default function Learn() {
   };
   return (
     <View style={styles.root}>
-      <Header/>
+      <Header />
       <SafeAreaView style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -99,7 +99,6 @@ export default function Learn() {
         </ScrollView>
       </SafeAreaView>
     </View>
-    
   );
 }
 

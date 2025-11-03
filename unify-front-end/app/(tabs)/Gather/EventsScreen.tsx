@@ -16,7 +16,6 @@ import { useMemo, useState } from 'react';
 import { ChartNoAxesGantt } from 'lucide-react-native';
 import { Event } from '@/types/events';
 
-
 const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();

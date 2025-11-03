@@ -21,7 +21,7 @@ const BackHeader = ({ title = '', onBack }: BackHeaderProps) => {
   };
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 20}]}>
+    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
       <TouchableOpacity onPress={handleBack}>
         <Feather name='chevron-left' size={24} color='#000' />
       </TouchableOpacity>

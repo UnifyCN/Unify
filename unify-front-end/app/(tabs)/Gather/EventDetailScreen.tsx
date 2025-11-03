@@ -13,7 +13,6 @@ import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
 
-
 const EventDetailScreen = () => {
   const router = useRouter();
   const { event } = useLocalSearchParams();
@@ -24,8 +23,6 @@ const EventDetailScreen = () => {
       Linking.openURL(eventData.externalLink);
     }
   };
-
-
 
   // Using react native built in share
   const handleShare = async () => {

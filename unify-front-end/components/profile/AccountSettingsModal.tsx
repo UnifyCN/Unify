@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import LanguageIcon from '@/components/icons/LanguageIcon';
@@ -17,11 +11,16 @@ interface AccountSettingsModalProps {
   onClose: () => void;
 }
 
-const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) => {
+const AccountSettingsModal = ({
+  visible,
+  onClose,
+}: AccountSettingsModalProps) => {
   const router = useRouter();
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
-  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -34,7 +33,7 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
           (user?.user_metadata as any)?.full_name || (user?.email ?? '');
         setUserName(name);
         setUserId(user?.id ?? null);
-        
+
         if (user?.id) {
           const { data: profileData } = await supabase
             .from('users')
@@ -72,20 +71,20 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
     }
   };
 
-  const handleSavedPress = () => {  
-    if (userId) {  
-      onClose();  
-      router.push({  
-        pathname: '/(tabs)/Gather/Profile/profile',  
-        params: { userId, tab: 'Saved' },  
-      } as any);  
-    }  
-  };  
+  const handleSavedPress = () => {
+    if (userId) {
+      onClose();
+      router.push({
+        pathname: '/(tabs)/Gather/Profile/profile',
+        params: { userId, tab: 'Saved' },
+      } as any);
+    }
+  };
 
   return (
     <Modal
       visible={visible}
-      animationType="none"
+      animationType='none'
       statusBarTranslucent
       onRequestClose={onClose}
     >
@@ -111,10 +110,7 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
                 <Text style={styles.rowText}>Community Profile</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.row}
-                onPress={handleSavedPress}
-              >
+              <TouchableOpacity style={styles.row} onPress={handleSavedPress}>
                 <View style={styles.iconContainer}>
                   <Feather name='bookmark' size={30} color='#000' />
                 </View>
@@ -143,15 +139,13 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingVertical: 24,
-    gap: 24
+    gap: 24,
   },
   profileSection: {
     alignItems: 'center',
-    gap: 15
+    gap: 15,
   },
-  avatar: {
-    
-  },
+  avatar: {},
   userName: {
     fontSize: 24,
     fontWeight: '600',
@@ -181,7 +175,7 @@ const styles = StyleSheet.create({
     height: 20,
   },
   rowText: {
-    fontSize: 18 ,
+    fontSize: 18,
     color: '#111',
   },
   divider: {
