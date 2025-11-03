@@ -72,9 +72,15 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
     }
   };
 
-  const handleLanguageSettings = () => {
-    // Do nothing for now
-  };
+  const handleSavedPress = () => {  
+    if (userId) {  
+      onClose();  
+      router.push({  
+        pathname: '/(tabs)/Gather/Profile/profile',  
+        params: { userId, tab: 'Saved' },  
+      } as any);  
+    }  
+  };  
 
   return (
     <Modal
@@ -107,7 +113,7 @@ const AccountSettingsModal = ({ visible, onClose }: AccountSettingsModalProps) =
 
               <TouchableOpacity
                 style={styles.row}
-                onPress={handleLanguageSettings}
+                onPress={handleSavedPress}
               >
                 <View style={styles.iconContainer}>
                   <Feather name='bookmark' size={30} color='#000' />

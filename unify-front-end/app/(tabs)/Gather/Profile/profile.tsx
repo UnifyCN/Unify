@@ -5,9 +5,9 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+
+import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
-import React from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import SavedFeed from '@/components/profile/SavedFeed';
 import UserPostsFeed from '@/components/profile/UserPostsFeed';
@@ -53,10 +53,7 @@ const TabHeader = memo(
 export default function Profile() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
-
   const { data: userInfo } = useUserInfo(userId);
-
-
 
   useEffect(() => {
     const getCurrentUser = async () => {
@@ -73,7 +70,6 @@ export default function Profile() {
   }, [userId]);
 
   const [activeTab, setActiveTab] = useState('Posts');
-
   useEffect(() => {
     if (isCurrentUser === false && activeTab === 'Saved') {
       setActiveTab('Posts');

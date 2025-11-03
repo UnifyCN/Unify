@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface BackHeaderProps {
   title: string;
   onBack?: () => void;
@@ -10,6 +10,7 @@ interface BackHeaderProps {
 
 const BackHeader = ({ title = '', onBack }: BackHeaderProps) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const handleBack = () => {
     if (onBack) {
@@ -20,11 +21,10 @@ const BackHeader = ({ title = '', onBack }: BackHeaderProps) => {
   };
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 20}]}>
       <TouchableOpacity onPress={handleBack}>
         <Feather name='chevron-left' size={24} color='#000' />
       </TouchableOpacity>
-      {/* Share Button */}
       <Text style={styles.title}>{title}</Text>
       <View style={styles.placeholder} />
     </View>
@@ -37,7 +37,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    marginTop: 40,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',

@@ -65,7 +65,7 @@ export default function SelectGroupModal({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
+          <TouchableOpacity onPress={handleCancel}>
             <Feather name='x' size={24} color='black' />
           </TouchableOpacity>
           <View style={styles.placeholder} />
@@ -118,9 +118,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 60,
     paddingBottom: 20,
-  },
-  cancelButton: {
-    
   },
   title: {
     fontSize: 16,

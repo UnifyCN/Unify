@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { supabase } from '@/lib/supabase';
 import AccountSettingsModal from './profile/AccountSettingsModal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Header = () => {
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
       <Text style={styles.title}>Unify</Text>
       <TouchableOpacity
         style={styles.profileButton}

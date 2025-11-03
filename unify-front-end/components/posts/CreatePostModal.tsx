@@ -90,7 +90,6 @@ export default function CreatePostModal({
           <View style={styles.header}>
             <TouchableOpacity
               onPress={handleCancel}
-              style={styles.cancelButton}
             >
               <Feather name='x' size={24} color='black' />
             </TouchableOpacity>
@@ -186,9 +185,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 60,
-  },
-  cancelButton: {
-    
   },
   postButton: {
     backgroundColor: '#007AFF',
