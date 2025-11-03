@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSanityModules } from '@/hooks/sanity/useSanityModules';
 import { useInProgressLessons } from '@/hooks/progress/useInProgressLessons';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
+import CarouselDots from '@/components/learn/CarouselDots';
+import { CarouselDotsSkeletonLoader } from '@/components/learn/learn-index-skeleton-loader';
+import { LearnProgressCardSkeletonLoader } from './LearnProgressCardSkeletonLoader';
 
 interface ModuleProgressCard {
   module: any;
@@ -25,6 +28,8 @@ export default function LearnProgressCardCarousel() {
   const { width } = useWindowDimensions();
   const [moduleCards, setModuleCards] = useState<ModuleProgressCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const sliderRef = useRef<ScrollView>(null);
   const { data: modulesData } = useSanityModules();
   const { lessons: inProgressLessons, isLoading: lessonsLoading } =
     useInProgressLessons();
@@ -124,91 +129,144 @@ export default function LearnProgressCardCarousel() {
     })();
   }, [modulesData, inProgressLessons]);
 
+  const onMomentumEnd = (e: any) => {
+    const x = e.nativeEvent?.contentOffset?.x ?? 0;
+    const i = Math.round(x / width);
+    if (i !== heroIndex && i < moduleCards.length) setHeroIndex(i);
+  };
+
+  const handleDotPress = (i: number) => {
+    if (i < moduleCards.length) {
+      setHeroIndex(i);
+      sliderRef.current?.scrollTo({ x: i * width, animated: true });
+    }
+  };
+
   const handleResume = (href: string) => {
     router.push(href as any);
   };
 
-  // Don't show anything if loading or no cards
+  // Show skeleton loader while loading
   if (isLoading || lessonsLoading) {
-    return null;
+    return (
+      <>
+        <View style={[styles.heroWrapper, { width }]}>
+          <View
+            style={{
+              width,
+              paddingRight: 43,
+              paddingVertical: 10,
+              paddingLeft: 1,
+            }}
+          >
+            <LearnProgressCardSkeletonLoader />
+          </View>
+        </View>
+        <CarouselDotsSkeletonLoader />
+      </>
+    );
   }
 
+  // Show empty state if no cards
   if (moduleCards.length === 0) {
-    return null;
+    return (
+      <View style={[styles.heroWrapper, { width }]}>
+        <View
+          style={{
+            width,
+            paddingRight: 43,
+            paddingVertical: 10,
+            paddingLeft: 1,
+          }}
+        >
+          <View style={styles.progressCard}>
+            <Text style={styles.emptyStateText}>No modules in progress</Text>
+          </View>
+        </View>
+      </View>
+    );
   }
 
   return (
-    <View style={[styles.carouselWrapper, { width }]}>
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.carouselContent}
-      >
-        {moduleCards.map((card) => {
-          const moduleColor = card.module?.colorTheme?.hex || '#666';
-          return (
-            <View
-              key={card.module._id}
-              style={[styles.cardContainer, { width }]}
-            >
-              <View style={styles.progressCard}>
-                <Text style={styles.cardProgressText}>
-                  You have {card.lessonsRemaining} lesson
-                  {card.lessonsRemaining !== 1 ? 's' : ''} left of{' '}
-                  <Text style={styles.boldText}>{card.module.title}</Text>
-                </Text>
-                <Text style={styles.cardPercentageText}>
-                  {card.progressPercent}% Completed
-                </Text>
-                
-                {/* Progress Bar with Linear Gradient */}
-                <View style={styles.cardProgressBar}>
-                  <LinearGradient
-                    colors={['#151515', '#595959']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${Math.min(100, Math.max(0, card.progressPercent))}%`,
-                      },
-                    ]}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={[
-                    styles.cardResumeButton,
-                    { backgroundColor: moduleColor },
-                  ]}
-                  onPress={() => handleResume(card.resumeHref)}
-                >
-                  <Text style={styles.cardResumeButtonText}>
-                    Resume Lesson
+    <>
+      <View style={[styles.heroWrapper, { width }]}>
+        <ScrollView
+          ref={sliderRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={onMomentumEnd}
+        >
+          {moduleCards.map((card, i) => {
+            const moduleColor = card.module?.colorTheme?.hex || '#666';
+            return (
+              <View
+                key={card.module._id}
+                style={{
+                  width,
+                  paddingRight: 43,
+                  paddingVertical: 10,
+                  paddingLeft: 1,
+                }}
+              >
+                <View style={styles.progressCard}>
+                  <Text style={styles.cardProgressText}>
+                    You have {card.lessonsRemaining} lesson
+                    {card.lessonsRemaining !== 1 ? 's' : ''} left in{' '}
+                    <Text style={styles.boldText}>{card.module.title}</Text>
                   </Text>
-                </TouchableOpacity>
+                  <Text style={styles.cardPercentageText}>
+                    {card.progressPercent}% Completed
+                  </Text>
+                  
+                  {/* Progress Bar with Linear Gradient */}
+                  <View style={styles.cardProgressBar}>
+                    <LinearGradient
+                      colors={['#151515', '#595959']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={[
+                        styles.progressFill,
+                        {
+                          width: `${Math.min(100, Math.max(0, card.progressPercent))}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.cardResumeButton,
+                      { backgroundColor: '#575757' },
+                    ]}
+                    onPress={() => handleResume(card.resumeHref)}
+                  >
+                    <Text style={styles.cardResumeButtonText}>
+                      Resume Lesson
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
-          );
-        })}
-      </ScrollView>
-    </View>
+            );
+          })}
+        </ScrollView>
+      </View>
+      <CarouselDots
+        total={moduleCards.length}
+        activeIndex={heroIndex}
+        onDotPress={handleDotPress}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  carouselWrapper: {
-    marginTop: 16,
-  },
-  carouselContent: {},
-  cardContainer: {
-    paddingVertical: 10,
+  heroWrapper: {
+    marginTop: 8,
   },
   progressCard: {
-    marginHorizontal: 20,
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 20,
     padding: 20,
     shadowColor: '#000',
     shadowOpacity: 0.06,
@@ -217,8 +275,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardProgressText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    color: '#000',
     marginBottom: 16,
     lineHeight: 22,
   },
@@ -226,15 +284,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   cardPercentageText: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     color: '#000',
     marginBottom: 8,
   },
   cardProgressBar: {
-    height: 8,
+    height: 11,
     backgroundColor: '#E5E5E5',
-    borderRadius: 4,
+    borderRadius: 20,
     marginBottom: 20,
     overflow: 'hidden',
   },
@@ -253,6 +311,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#fff',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    paddingVertical: 8,
   },
 });
 
