@@ -1,3 +1,4 @@
+// RichTextRenderer.tsx
 import React from 'react';
 import {
   View,
@@ -28,7 +29,7 @@ export default function RichTextRenderer({
 }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
-  // Create numbering map for ordered lists
+  // Create numbering map for ordered lists (keep prev behavior)
   const createNumberingMap = (blocks: any[]) => {
     const numberingMap: { [key: string]: number } = {};
     let currentNumber = 1;
@@ -37,13 +38,12 @@ export default function RichTextRenderer({
     blocks.forEach((block, index) => {
       if (block._type === 'block' && block.listItem === 'number') {
         if (!inOrderedList) {
-          currentNumber = 1; // Reset when starting a new ordered list
+          currentNumber = 1;
           inOrderedList = true;
         }
         numberingMap[block._key || index] = currentNumber;
         currentNumber++;
       } else if (block._type === 'block' && !block.listItem) {
-        // Reset when we hit a non-list block
         inOrderedList = false;
         currentNumber = 1;
       }
@@ -56,54 +56,18 @@ export default function RichTextRenderer({
 
   const defaultStyles = {
     // Headings
-    h1: {
-      fontSize: 28,
-      fontWeight: '700',
-      color: '#000',
-      marginBottom: 20,
-      marginTop: 24,
-    },
-    h2: {
-      fontSize: 24,
-      fontWeight: '600',
-      color: '#000',
-      marginBottom: 16,
-      marginTop: 20,
-    },
-    h3: {
-      fontSize: 20,
-      fontWeight: '600',
-      color: '#000',
-      marginBottom: 14,
-      marginTop: 16,
-    },
-    h4: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: '#000',
-      marginBottom: 12,
-      marginTop: 14,
-    },
+    h1: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 20, marginTop: 24 },
+    h2: { fontSize: 24, fontWeight: '600', color: '#000', marginBottom: 16, marginTop: 20 },
+    h3: { fontSize: 20, fontWeight: '600', color: '#000', marginBottom: 14, marginTop: 16 },
+    h4: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 12, marginTop: 14 },
+
     // Paragraphs
-    normal: {
-      fontSize: 16,
-      color: '#374151',
-      lineHeight: 24,
-      marginBottom: 16,
-    },
+    normal: { fontSize: 16, color: '#374151', lineHeight: 24, marginBottom: 16 },
+
     // Lists
-    bullet: {
-      fontSize: 14,
-      color: '#374151',
-      lineHeight: 24,
-      marginBottom: 12,
-    },
-    number: {
-      fontSize: 16,
-      color: '#374151',
-      lineHeight: 24,
-      marginBottom: 12,
-    },
+    bullet: { fontSize: 14, color: '#374151', lineHeight: 24, marginBottom: 12 },
+    number: { fontSize: 16, color: '#374151', lineHeight: 24, marginBottom: 12 },
+
     // Quote
     blockquote: {
       fontSize: 16,
@@ -116,6 +80,7 @@ export default function RichTextRenderer({
       borderLeftWidth: 4,
       borderLeftColor: '#E5E7EB',
     },
+
     // Code
     code: {
       fontSize: 14,
@@ -126,13 +91,9 @@ export default function RichTextRenderer({
       fontFamily: 'monospace',
       marginBottom: 16,
     },
+
     // Image
-    image: {
-      width: '100%',
-      height: 200,
-      borderRadius: 12,
-      marginVertical: 16,
-    },
+    image: { width: '100%', height: 200, borderRadius: 12, marginVertical: 16 },
     imagePlaceholder: {
       width: '100%',
       height: 200,
@@ -142,15 +103,11 @@ export default function RichTextRenderer({
       justifyContent: 'center',
       marginVertical: 16,
     },
-    imagePlaceholderText: {
-      fontSize: 16,
-      color: '#6B7280',
-      textAlign: 'center',
-    },
+    imagePlaceholderText: { fontSize: 16, color: '#6B7280', textAlign: 'center' },
+
     // Special blocks
-    dropdown: {
-      marginVertical: 16,
-    },
+    dropdown: { marginVertical: 16 },
+
     exampleBox: {
       backgroundColor: '#EAEAEA',
       borderRadius: 10,
@@ -173,7 +130,7 @@ export default function RichTextRenderer({
     },
     exampleText: {
       fontFamily: 'Font Family',
-      fontWeight: '400',     // Regular
+      fontWeight: '400',
       fontStyle: 'normal',
       fontSize: 14,
       lineHeight: 20,
@@ -181,39 +138,38 @@ export default function RichTextRenderer({
       color: '#374151',
     },
 
-    
-    tipBox: {
-      // size behaves like Figma but adapts to content
-      alignSelf: 'flex-start',   // shrink to content width
-      maxWidth: 353,             // matches Figma width cap; remove if you want full width
-      minHeight: 40,             // Figma ref height; content can grow past it
-      paddingLeft: 15,           // Figma
-      borderLeftWidth: 5,        // Figma
-      borderLeftColor: '#374151',
-      // margins (tighter than previous)
-      marginTop: 8,
-      marginBottom: 12,
+    // ✅ TIP BOX (merged from your ActivityPageScreen, Figma spec)
+    tipBoxContainer: {
+      backgroundColor: 'transparent',
+      borderLeftWidth: 5,
+      borderLeftColor: '#3F3F3F',
+      paddingLeft: 15,
+      paddingRight: 0,
+      paddingVertical: 0,
+      alignSelf: 'center',
+      width: 353,
+      maxWidth: '100%',
+      minHeight: 40, // adaptable; grows with content
+      marginTop: 0,
+      marginBottom: 30,
     },
-
-    tipText: {
+    tipTitleText: {
       fontFamily: 'Font Family',
-      fontWeight: '400',      // Regular
-      fontStyle: 'normal',
       fontSize: 14,
       lineHeight: 20,
-      letterSpacing: 0,       // replace with your token if needed
-      color: '#374151',
+      fontWeight: '600', // Semi-bold
+      color: '#3F3F3F',
     },
-
-    tipStrong: {
+    tipBodyText: {
       fontFamily: 'Font Family',
-      fontWeight: '600',
-      fontStyle: 'normal',
       fontSize: 14,
       lineHeight: 20,
-      letterSpacing: 0,
-      color: '#374151',
+      fontWeight: '400', // Regular
+      color: '#3F3F3F',
+      marginBottom: 0,
     },
+
+    // Note box (unchanged)
     noteBox: {
       backgroundColor: '#FFFFFF',
       borderRadius: 8,
@@ -229,21 +185,15 @@ export default function RichTextRenderer({
       shadowRadius: 2,
       elevation: 1,
     },
-    noteBoxText: {
-      fontSize: 15,
-      color: '#3F3F3F',
-      lineHeight: 22,
-    },
+    noteBoxText: { fontSize: 15, color: '#3F3F3F', lineHeight: 22 },
+
     // Links
-    link: {
-      color: '#2563EB',
-      textDecorationLine: 'underline',
-    },
+    link: { color: '#2563EB', textDecorationLine: 'underline' },
   };
 
   const mergedStyles = { ...defaultStyles, ...customStyles };
 
-  // Function to calculate nesting levels for list items
+  // Keep prev nesting-level calc
   const calculateNestingLevels = (blocks: any[]) => {
     const nestingMap: { [key: string]: number } = {};
     let currentNesting = 0;
@@ -253,12 +203,10 @@ export default function RichTextRenderer({
       const block = blocks[i];
 
       if (block._type === 'block' && block.listItem) {
-        // Check if this is a nested list item by looking at the level property
         const level = block.level || 0;
         nestingMap[block._key || i] = level;
         currentNesting = level;
       } else {
-        // Non-list item, reset nesting
         currentNesting = 0;
         listStack = [];
       }
@@ -271,24 +219,22 @@ export default function RichTextRenderer({
     if (!children || !Array.isArray(children)) return null;
 
     return children.map((child, index) => {
-      if (typeof child === 'string') {
-        return child;
-      }
+      if (typeof child === 'string') return child;
 
       if (child._type === 'span') {
-        let text = child.text || '';
+        let text: any = child.text || '';
 
-        // Apply text marks
         if (child.marks) {
           child.marks.forEach((mark: string) => {
             switch (mark) {
               case 'strong':
-              text = (
-                <Text key={index} style={[{ fontWeight: '700' }, mergedStyles?.strong]}>
-                  {text}
-                </Text>
-              );
-              break;
+                // ✅ allow scoped override (used by tip box)
+                text = (
+                  <Text key={index} style={mergedStyles.strong || { fontWeight: '700' }}>
+                    {text}
+                  </Text>
+                );
+                break;
               case 'em':
                 text = (
                   <Text key={index} style={{ fontStyle: 'italic' }}>
@@ -320,21 +266,15 @@ export default function RichTextRenderer({
                 break;
               case 'strike-through':
                 text = (
-                  <Text
-                    key={index}
-                    style={{ textDecorationLine: 'line-through' }}
-                  >
+                  <Text key={index} style={{ textDecorationLine: 'line-through' }}>
                     {text}
                   </Text>
                 );
                 break;
-              case 'link':
-                // Handle links - find the markDef for this link
+              case 'link': {
                 const linkDef = markDefs?.find(def => def._key === mark);
                 if (linkDef && linkDef.href) {
-                  const handleLinkPress = () => {
-                    Linking.openURL(linkDef.href);
-                  };
+                  const handleLinkPress = () => Linking.openURL(linkDef.href);
                   text = (
                     <TouchableOpacity key={index} onPress={handleLinkPress}>
                       <Text style={mergedStyles.link}>{text}</Text>
@@ -342,6 +282,7 @@ export default function RichTextRenderer({
                   );
                 }
                 break;
+              }
             }
           });
         }
@@ -354,7 +295,6 @@ export default function RichTextRenderer({
   };
 
   const renderBlock = (block: any, index: number, nestingLevel: number = 0) => {
-    // Debug logging for input boxes
     if (
       block._type === 'large_input_box' ||
       block._type === 'mid_input_box' ||
@@ -363,32 +303,23 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'block') {
-      // Handle list items first
+      // Keep prev bullet/number behavior
       if (block.listItem) {
         const listStyle =
-          block.listItem === 'bullet'
-            ? mergedStyles.bullet
-            : mergedStyles.number;
+          block.listItem === 'bullet' ? mergedStyles.bullet : mergedStyles.number;
         const bullet =
           block.listItem === 'bullet'
             ? '•'
             : `${numberingMap[block._key || index] || 1}.`;
 
-        // Calculate indentation based on nesting level
-        const indentLevel = nestingLevel * 15; // 20px per nesting level
+        const indentLevel = nestingLevel * 15;
 
-        // Use different bullet styles for different nesting levels
         let displayBullet = bullet;
         if (block.listItem === 'bullet') {
-          if (nestingLevel === 1) {
-            displayBullet = '•';
-          } else if (nestingLevel === 2) {
-            displayBullet = '◦';
-          } else if (nestingLevel === 3) {
-            displayBullet = '▪';
-          } else {
-            displayBullet = '▫';
-          }
+          if (nestingLevel === 1) displayBullet = '•';
+          else if (nestingLevel === 2) displayBullet = '◦';
+          else if (nestingLevel === 3) displayBullet = '▪';
+          else displayBullet = '▫';
         }
 
         return (
@@ -405,7 +336,6 @@ export default function RichTextRenderer({
 
       const style = block.style || 'normal';
 
-      // Handle different block styles
       switch (style) {
         case 'h1':
           return (
@@ -445,17 +375,8 @@ export default function RichTextRenderer({
           );
         case 'normal':
         default:
-          // Merged blocks (with \n) already handle spacing via lineHeight
-          // Non-merged blocks (paragraph breaks) get normal marginBottom
-          const hasLineBreaks = block.children?.some((child: any) => 
-            child.text === '\n'
-          );
-          const blockStyle = hasLineBreaks
-            ? { ...mergedStyles.normal, marginBottom: 0 }
-            : mergedStyles.normal;
-          
           return (
-            <Text key={block._key || index} style={blockStyle}>
+            <Text key={block._key || index} style={mergedStyles.normal}>
               {renderInlineText(block.children, markDefs)}
             </Text>
           );
@@ -464,7 +385,11 @@ export default function RichTextRenderer({
 
     if (block._type === 'image') {
       const imageUrl = block.asset?._ref
-        ? `https://cdn.sanity.io/images/fercgabp/production/${block.asset._ref.replace('image-', '').replace('-jpg', '.jpg').replace('-png', '.png').replace('-webp', '.webp')}`
+        ? `https://cdn.sanity.io/images/fercgabp/production/${block.asset._ref
+            .replace('image-', '')
+            .replace('-jpg', '.jpg')
+            .replace('-png', '.png')
+            .replace('-webp', '.webp')}`
         : null;
 
       return (
@@ -480,12 +405,13 @@ export default function RichTextRenderer({
       );
     }
 
-    // Handle special block types
+    // Special block types
     if (block._type === 'dropdown') {
       return <DropdownBlock block={block} index={index} />;
     }
 
     if (block._type === 'example_box') {
+      // keep your current example override
       return (
         <View key={block._key || index} style={mergedStyles.exampleBox}>
           <Text style={mergedStyles.exampleBoxTitle}>EXAMPLE</Text>
@@ -504,24 +430,25 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'tip_box') {
+      // ✅ ONLY changed tip box handling (Figma spec)
       return (
-        <View key={block._key || index} style={mergedStyles.tipBox}>
+        <View key={block._key || index} style={mergedStyles.tipBoxContainer}>
           <RichTextRenderer
             blocks={block.content || []}
             markDefs={markDefs}
             styles={{
-              normal: mergedStyles.tipText,   // 14/20 Regular
-              bullet: mergedStyles.tipText,
-              number: mergedStyles.tipText,
+              // regular copy inside tip
+              normal: mergedStyles.tipBodyText,
+              bullet: mergedStyles.tipBodyText,
+              number: mergedStyles.tipBodyText,
               link: mergedStyles.link,
-              // ensure "**Safety Tip:**" (strong) renders 14/20 Semi Bold
-              strong: mergedStyles.tipStrong,
+              // bold lead-in (e.g., "**Safety tip:**")
+              strong: mergedStyles.tipTitleText,
             }}
           />
         </View>
       );
     }
-
 
     if (block._type === 'note_box') {
       return (
@@ -535,7 +462,7 @@ export default function RichTextRenderer({
       );
     }
 
-    // Handle input box types
+    // Inputs
     if (
       block._type === 'large_input_box' ||
       block._type === 'mid_input_box' ||
@@ -546,10 +473,8 @@ export default function RichTextRenderer({
       const isSmall = block._type === 'small_input_box';
 
       return (
-        <View
-          key={block._key || index}
-          style={mergedStyles.inputFieldContainer}
-        >
+        <View key={block._key || index} style={mergedStyles.inputFieldContainer}>
+          {block.label && <Text style={mergedStyles.inputLabel}>{block.label}</Text>}
           <TextInput
             style={[
               {
@@ -580,114 +505,24 @@ export default function RichTextRenderer({
     return null;
   };
 
-  // Calculate nesting levels for all blocks
   const nestingLevels = calculateNestingLevels(blocks);
-
-  // Helper function to check if a block is empty (only whitespace)
-  const isBlockEmpty = (block: any): boolean => {
-    if (block._type !== 'block') return false;
-    if (!block.children || !Array.isArray(block.children)) return true;
-    const text = block.children
-      .map((child: any) => (child.text || '').trim())
-      .join('');
-    return text.length === 0;
-  };
-
-  // Helper function to check if block is a normal text block
-  const isNormalBlock = (block: any): boolean => {
-    return block._type === 'block' && (block.style === 'normal' || !block.style);
-  };
-
-  // Process blocks to handle line spacing properly
-  const processedBlocks = blocks.map((block, index) => {
-    const prevBlock = index > 0 ? blocks[index - 1] : null;
-    const nextBlock = index < blocks.length - 1 ? blocks[index + 1] : null;
-    
-    const isEmpty = isBlockEmpty(block);
-    const isNormal = isNormalBlock(block);
-    const prevIsNormal = prevBlock ? isNormalBlock(prevBlock) : false;
-    const prevIsEmpty = prevBlock ? isBlockEmpty(prevBlock) : false;
-    const nextIsNormal = nextBlock ? isNormalBlock(nextBlock) : false;
-    
-    // If this is a normal block followed by another normal block (single line break),
-    // merge them with a line break instead of using marginBottom
-    if (isNormal && !isEmpty && nextIsNormal && !isBlockEmpty(nextBlock)) {
-      // This will be handled by merging in renderBlock
-      return { ...block, _shouldMerge: true, _nextBlock: nextBlock };
-    }
-    
-    // If this is an empty normal block (paragraph break), mark it as spacer
-    if (isNormal && isEmpty) {
-      return { _type: 'spacer', _key: `spacer-${block._key || index}` };
-    }
-    
-    return block;
-  });
-
-  // Group consecutive normal blocks that should be merged
-  const finalBlocks: any[] = [];
-  let skipNext = false;
-  
-  processedBlocks.forEach((block, index) => {
-    if (skipNext) {
-      skipNext = false;
-      return;
-    }
-    
-    if (block._type === 'spacer') {
-      finalBlocks.push(block);
-      return;
-    }
-    
-    if (block._shouldMerge && block._nextBlock) {
-      // Merge consecutive normal blocks with line breaks
-      const mergedBlock = {
-        ...block,
-        _type: 'block',
-        style: 'normal',
-        children: [
-          ...(block.children || []),
-          { _type: 'span', _key: `break-${block._key}`, text: '\n', marks: [] },
-          ...(block._nextBlock.children || []),
-        ],
-      };
-      delete mergedBlock._shouldMerge;
-      delete mergedBlock._nextBlock;
-      finalBlocks.push(mergedBlock);
-      skipNext = true;
-    } else {
-      finalBlocks.push(block);
-    }
-  });
 
   return (
     <View style={styles.container}>
-      {finalBlocks
-        .map((block, index) => {
-          if (block._type === 'spacer') {
-            return <View key={block._key || index} style={{ height: 16 }} />;
-          }
-          const nestingLevel = nestingLevels[block._key || index] || 0;
-          return (
-            <React.Fragment key={block._key || index}>
-              {renderBlock(block, index, nestingLevel)}
-            </React.Fragment>
-          );
-        })
+      {blocks
+        .map((block, index) => (
+          <React.Fragment key={block._key || index}>
+            {renderBlock(block, index, nestingLevels[block._key || index] || 0)}
+          </React.Fragment>
+        ))
         .filter(Boolean)}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 0,
-    flexShrink: 1,
-    alignSelf: 'auto',
-  },
-  listItemContainer: {
-    marginBottom: 8,
-  },
+  container: { flex: 1 },
+  listItemContainer: { marginBottom: 8 },
   inputFieldContainer: {
     marginVertical: 12,
     borderWidth: 1,
@@ -695,12 +530,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
   },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
+  inputLabel: { fontSize: 16, fontWeight: '600', color: '#374151', marginBottom: 8 },
   input: {
     borderWidth: 2,
     borderColor: '#9CA3AF',
@@ -711,21 +541,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     minHeight: 44,
   },
-  largeInput: {
-    height: 300,
-    textAlignVertical: 'top',
-    borderWidth: 2,
-    borderColor: '#9CA3AF',
-  },
-  midInput: {
-    height: 200,
-    textAlignVertical: 'top',
-    borderWidth: 2,
-    borderColor: '#9CA3AF',
-  },
-  smallInput: {
-    height: 100,
-    borderWidth: 2,
-    borderColor: '#9CA3AF',
-  },
+  largeInput: { height: 300, textAlignVertical: 'top', borderWidth: 2, borderColor: '#9CA3AF' },
+  midInput: { height: 200, textAlignVertical: 'top', borderWidth: 2, borderColor: '#9CA3AF' },
+  smallInput: { height: 100, borderWidth: 2, borderColor: '#9CA3AF' },
 });
