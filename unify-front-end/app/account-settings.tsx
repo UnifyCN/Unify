@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 
@@ -13,7 +13,7 @@ export default function AccountSettingsPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   // Keep track of current user's ID for navigation
-  useState(() => {
+  useEffect(() => {
     const getUserId = async () => {
       const { data } = await supabase.auth.getUser();
       setUserId(data?.user?.id ?? null);
@@ -24,7 +24,7 @@ export default function AccountSettingsPage() {
   const onLogout = async () => {
     try {
       await supabase.auth.signOut();
-      router.push('/');
+      // Let AuthWrapper handle the navigation
     } catch (err) {
       console.error('Logout failed', err);
     }

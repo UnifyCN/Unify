@@ -103,6 +103,10 @@ export default function RootLayout() {
                       name='profile'
                       options={{ headerShown: false }}
                     />
+                    <Stack.Screen
+                      name='reset-password'
+                      options={{ headerShown: false }}
+                    />
                     <Stack.Screen name='+not-found' />
                   </Stack>
                 </ThemeProvider>
