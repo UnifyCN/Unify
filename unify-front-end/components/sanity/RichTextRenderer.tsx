@@ -62,12 +62,49 @@ export default function RichTextRenderer({
     h4: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 12, marginTop: 14 },
 
     // Paragraphs
-    normal: { fontSize: 16, color: '#374151', lineHeight: 24, marginBottom: 16 },
+    normal: {
+      fontFamily: 'Font Family',
+      fontWeight: '400',         // Regular
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,          // set your token here if not 0
+      color: '#374151',
+      marginBottom: 0
+    },
 
     // Lists
-    bullet: { fontSize: 14, color: '#374151', lineHeight: 24, marginBottom: 12 },
-    number: { fontSize: 16, color: '#374151', lineHeight: 24, marginBottom: 12 },
+    bullet: {
+      fontFamily: 'Font Family',
+      fontWeight: '400',
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+      color: '#374151',
+      marginBottom: 3,
+      marginTop: 0
+    },
+    number: {
+      fontFamily: 'Font Family',
+      fontWeight: '400',
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+      color: '#374151',
+      marginBottom: 4
+    },
 
+    strong: {
+      fontFamily: 'Font Family',
+      fontWeight: '700',       // Semi-Bold
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+      color: '#374151',
+    },
     // Quote
     blockquote: {
       fontSize: 16,
@@ -230,7 +267,7 @@ export default function RichTextRenderer({
               case 'strong':
                 // ✅ allow scoped override (used by tip box)
                 text = (
-                  <Text key={index} style={mergedStyles.strong || { fontWeight: '700' }}>
+                  <Text key={index} style={mergedStyles.strong}>
                     {text}
                   </Text>
                 );
@@ -430,7 +467,6 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'tip_box') {
-      // ✅ ONLY changed tip box handling (Figma spec)
       return (
         <View key={block._key || index} style={mergedStyles.tipBoxContainer}>
           <RichTextRenderer
@@ -522,7 +558,7 @@ export default function RichTextRenderer({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  listItemContainer: { marginBottom: 8 },
+  listItemContainer: { marginBottom: 4 },
   inputFieldContainer: {
     marginVertical: 12,
     borderWidth: 1,
