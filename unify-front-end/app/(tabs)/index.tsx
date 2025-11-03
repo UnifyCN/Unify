@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import { Theme } from '@/constants/Theme';
 import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
+import { NewsCard } from '@/components/home/NewsCard';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
@@ -59,27 +60,16 @@ const NewsTipsSection = () => (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ marginHorizontal: 20 }}
+      style={{ marginHorizontal: 20, paddingVertical: 2 }}
     >
-      <View style={styles.newsCard}>
-        <View style={styles.newsImagePlaceholder} />
-        <View style={styles.newsContent}>
-          <Text style={styles.newsTitle}>Navigating Winter Roads</Text>
-          <Text style={styles.newsDescription}>
-            New to snow? ICBC article to help you avoid issues on the icy,
-            winter roads.
-          </Text>
-        </View>
-      </View>
-      <View style={styles.newsCard}>
-        <View style={styles.newsImagePlaceholder} />
-        <View style={styles.newsContent}>
-          <Text style={styles.newsTitle}>Financial Planning Tips</Text>
-          <Text style={styles.newsDescription}>
-            Essential tips for managing your finances in Canada.
-          </Text>
-        </View>
-      </View>
+      <NewsCard
+        title="Navigating Winter Roads"
+        description="New to snow? ICBC article to help you avoid issues on the icy, winter roads."
+      />
+      <NewsCard
+        title="Financial Planning Tips"
+        description="Essential tips for managing your finances in Canada."
+      />
     </ScrollView>
   </View>
 );
@@ -124,7 +114,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Theme.black,
-    marginBottom: 8,
   },
   progressText: {
     fontSize: 16,
@@ -177,7 +166,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#000',
     fontFamily: 'Inter',
-    fontWeight: 500,
+    fontWeight: 600,
   },
   carouselContentEmpty: {
     flexGrow: 1,
@@ -210,41 +199,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
-  },
-  newsCard: {
-    width: 280,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    marginRight: 16,
-    padding: 16,
-    flexDirection: 'row',
-    marginHorizontal: 2,
-    marginBottom: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  newsImagePlaceholder: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#666',
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  newsContent: {
-    flex: 1,
-  },
-  newsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 4,
-  },
-  newsDescription: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 18,
   },
 });
