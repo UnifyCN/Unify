@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import AccountSettingsModal from './profile/AccountSettingsModal';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Header = () => {
-  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
@@ -13,14 +13,10 @@ const Header = () => {
       <Text style={styles.title}>Unify</Text>
       <TouchableOpacity
         style={styles.profileButton}
-        onPress={() => setIsSettingsVisible(true)}
+        onPress={() => router.push('/account-settings')}
       >
         <Feather name='user' size={20} color='#000' />
       </TouchableOpacity>
-      <AccountSettingsModal
-        visible={isSettingsVisible}
-        onClose={() => setIsSettingsVisible(false)}
-      />
     </View>
   );
 };

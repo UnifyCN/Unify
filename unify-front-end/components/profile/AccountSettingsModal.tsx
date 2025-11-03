@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import LanguageIcon from '@/components/icons/LanguageIcon';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
 import { Feather } from '@expo/vector-icons';
