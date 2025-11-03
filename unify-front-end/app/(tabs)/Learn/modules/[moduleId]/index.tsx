@@ -26,6 +26,8 @@ import {
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
+import { getLessonProgress } from '@/services/progress/progressService';
+import { progressClient } from '@/services/progress/progressClient';
 import { Feather } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 
@@ -74,6 +76,9 @@ export default function ModuleIndex() {
   const [submoduleProgresses, setSubmoduleProgresses] = useState<{
     [key: string]: any;
   }>({});
+  const [submoduleHrefs, setSubmoduleHrefs] = useState<{
+    [key: string]: string;
+  }>({});
 
   // Calculate module progress from submodule data
   const moduleProgressData = useMemo(() => {
@@ -94,28 +99,195 @@ export default function ModuleIndex() {
     };
   }, [submoduleProgresses, moduleData?.submodules]);
 
-  // Fetch submodule progress (initial)
+  // Fetch submodule progress and determine resume destinations
   useEffect(() => {
     if (!moduleData?.submodules) return;
     (async () => {
       const progressData: { [key: string]: any } = {};
-      for (const submodule of moduleData.submodules) {
-        try {
-          const progress = await cachedProgressService.getSubmoduleProgress(
-            moduleId || '',
-            submodule._id
-          );
-          progressData[submodule._id] = progress;
-        } catch {
-          progressData[submodule._id] = {
-            is_completed: false,
-            progress_percent: 0,
-            completed_lessons: 0,
-            total_lessons: submodule.lessons?.length || 0,
-          };
+      const hrefData: { [key: string]: string } = {};
+
+      try {
+        const {
+          data: { user },
+        } = await progressClient.auth.getUser();
+        if (!user) {
+          // No user, just set progress data
+          for (const submodule of moduleData.submodules) {
+            try {
+              const progress = await cachedProgressService.getSubmoduleProgress(
+                moduleId || '',
+                submodule._id
+              );
+              progressData[submodule._id] = progress;
+            } catch {
+              progressData[submodule._id] = {
+                is_completed: false,
+                progress_percent: 0,
+                completed_lessons: 0,
+                total_lessons: submodule.lessons?.length || 0,
+              };
+            }
+          }
+          setSubmoduleProgresses(progressData);
+          return;
         }
+
+        // Process all submodules in parallel for better performance
+        await Promise.all(
+          moduleData.submodules.map(async (submodule) => {
+            try {
+              const progress = await cachedProgressService.getSubmoduleProgress(
+                moduleId || '',
+                submodule._id
+              );
+              progressData[submodule._id] = progress;
+
+              // Skip href calculation if no progress
+              if (!progress?.progress_percent || progress.progress_percent === 0) {
+                // Still set a default href for submodules with no progress
+                const hasIntro =
+                  submodule.intro_pages && submodule.intro_pages.length > 0;
+                if (hasIntro) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
+                } else if (
+                  submodule.lessons &&
+                  submodule.lessons.length > 0
+                ) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
+                } else {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
+                }
+                return;
+              }
+
+              // Fetch all lesson progress for this submodule
+              const { data: lessonProgresses } = await progressClient
+                .from('user_lesson_progress')
+                .select('*')
+                .eq('sanity_submodule_id', submodule._id);
+
+              // Build lesson progress map from database results (faster than individual calls)
+              const lessonProgressData: { [key: string]: any } = {};
+              if (submodule.lessons && lessonProgresses) {
+                for (const lessonProgress of lessonProgresses) {
+                  if (lessonProgress.sanity_lesson_id) {
+                    lessonProgressData[lessonProgress.sanity_lesson_id] = {
+                      is_completed: lessonProgress.is_completed || false,
+                      is_in_progress: lessonProgress.is_in_progress || false,
+                    };
+                  }
+                }
+                
+                // For lessons without progress records, mark them as not started
+                for (const lesson of submodule.lessons) {
+                  if (!lessonProgressData[lesson._id]) {
+                    lessonProgressData[lesson._id] = {
+                      is_completed: false,
+                      is_in_progress: false,
+                    };
+                  }
+                }
+              }
+
+              // Find active lesson (same logic as useInProgressLessons)
+              let activeLesson = null;
+              let activeLessonProgress = null;
+
+              if (submodule.lessons) {
+                for (let i = 0; i < submodule.lessons.length; i++) {
+                  const lesson = submodule.lessons[i];
+                  const lessonProgress = lessonProgressData[lesson._id];
+                  const isCompleted = lessonProgress?.is_completed || false;
+                  const isInProgress = lessonProgress?.is_in_progress || false;
+
+                  let isActive = false;
+                  if (isInProgress) {
+                    isActive = true;
+                  } else if (i === 0) {
+                    isActive = true;
+                  } else {
+                    const previousLesson = submodule.lessons[i - 1];
+                    const previousProgress =
+                      lessonProgressData[previousLesson._id];
+                    const previousCompleted =
+                      previousProgress?.is_completed || false;
+                    isActive = previousCompleted;
+                  }
+
+                  if (isActive && !isCompleted) {
+                    activeLesson = lesson;
+                    const fullProgress = lessonProgresses?.find(
+                      (p: any) => p.sanity_lesson_id === lesson._id
+                    );
+                    activeLessonProgress = fullProgress || lessonProgress;
+                    break;
+                  }
+                }
+              }
+
+              // Build href based on current page type
+              if (activeLesson && activeLessonProgress?.is_in_progress) {
+                const currentPageType =
+                  activeLessonProgress?.current_page_type || 'lesson';
+                const currentPageNumber =
+                  activeLessonProgress?.current_page_number || 1;
+
+                let href = '';
+                if (currentPageType === 'intro') {
+                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/${currentPageNumber}`;
+                } else if (currentPageType === 'activity') {
+                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
+                } else if (currentPageType === 'quiz') {
+                  const quizId = activeLessonProgress?.current_quiz_id || '';
+                  const questionNumber =
+                    activeLessonProgress?.current_question_number || 1;
+                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
+                } else {
+                  // lesson type
+                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
+                }
+                hrefData[submodule._id] = href;
+              } else if (activeLesson) {
+                // Not in progress but is next in line
+                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/1`;
+              } else {
+                // No active lesson - go to intro or first lesson (already set above if no progress)
+                const hasIntro =
+                  submodule.intro_pages && submodule.intro_pages.length > 0;
+                if (hasIntro) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
+                } else if (
+                  submodule.lessons &&
+                  submodule.lessons.length > 0
+                ) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
+                } else {
+                  // Fallback to submodule index
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
+                }
+              }
+            } catch (error) {
+              console.error(
+                `Error processing submodule ${submodule._id}:`,
+                error
+              );
+              progressData[submodule._id] = {
+                is_completed: false,
+                progress_percent: 0,
+                completed_lessons: 0,
+                total_lessons: submodule.lessons?.length || 0,
+              };
+              // Fallback to submodule index
+              hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
+            }
+          })
+        );
+        
+        setSubmoduleProgresses(progressData);
+        setSubmoduleHrefs(hrefData);
+      } catch (error) {
+        console.error('[ModuleIndex] Error fetching submodule progress:', error);
       }
-      setSubmoduleProgresses(progressData);
     })();
   }, [moduleData?.submodules, moduleId]);
 
@@ -161,6 +333,31 @@ export default function ModuleIndex() {
 
   const railTopRef = useRef(0);
   const timelineTopRef = useRef(0);
+
+  // remember latest scroll snapshot so we can recompute when layouts arrive
+const scrollRef = useRef<{ y: number; vh: number }>({ y: 0, vh: 0 });
+
+// compute visible-ahead ignoring unmeasured rows (NaN)
+const computeAhead = (y: number, vh: number) => {
+  const total = moduleData?.submodules?.length || 0;
+  if (total === 0) return setAhead(0);
+  const threshold = y + vh + 4;
+  const tops = rowTopsRef.current;
+
+  let firstBelowIdx = -1;
+  for (let i = 0; i < total; i++) {
+    const top = tops[i];
+    if (!Number.isFinite(top)) continue; // ignore unmeasured rows
+    if (top > threshold) {
+      firstBelowIdx = i;
+      break;
+    }
+  }
+  const newAhead = firstBelowIdx === -1 ? 0 : total - firstBelowIdx;
+  setAhead(newAhead);
+};
+
+
 
   // Make rowTopsRef always have one slot per submodule
   useEffect(() => {
@@ -288,24 +485,10 @@ export default function ModuleIndex() {
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const y = clampNonNeg(e.nativeEvent.contentOffset?.y);
     const vh = clampNonNeg(e.nativeEvent.layoutMeasurement?.height);
-    const threshold = y + vh + 4; // small buffer
-
-    const total = moduleData?.submodules?.length || 0;
-    const tops = rowTopsRef.current;
-
-    // Find first index that is either unmeasured OR actually below the viewport
-    let firstBelowIdx = -1;
-    for (let i = 0; i < total; i++) {
-      const top = tops[i];
-      if (!Number.isFinite(top) || top > threshold) {
-        firstBelowIdx = i;
-        break;
-      }
-    }
-
-    const newAhead = firstBelowIdx === -1 ? 0 : total - firstBelowIdx;
-    setAhead(newAhead);
+    scrollRef.current = { y, vh };
+    computeAhead(y, vh);
   };
+
 
   // === UI ===
   return (
@@ -367,7 +550,6 @@ export default function ModuleIndex() {
         {/* Rail container */}
         <View
           style={styles.railContainer}
-          // ⬇️ NEW: capture absolute Y for this container (relative to ScrollView content)
           onLayout={e => {
             railTopRef.current = clampNonNeg(e.nativeEvent.layout.y);
           }}
@@ -433,18 +615,132 @@ export default function ModuleIndex() {
                       rowTop;
                     rowTopsRef.current[i] = absTop;
                     updateRowBottom(absTop + rowHeight);
+                    computeAhead(scrollRef.current.y, scrollRef.current.vh)
                   }}
                 >
                   {/* Submodule card */}
                   <TouchableOpacity
                     activeOpacity={disabled ? 1 : 0.9}
-                    onPress={() => {
+                    onPress={async () => {
                       if (disabled) return;
-                      router.push({
-                        pathname:
-                          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                        params: { moduleId, submoduleId: m.id },
-                      });
+                      // Navigate directly to current lesson page if href exists (resume state), otherwise fallback to submodule index
+                      let href = submoduleHrefs[m.id];
+                      
+                      // If href doesn't exist yet, calculate it on-demand (optimized version)
+                      if (!href && m.progress_percent > 0) {
+                        try {
+                          const {
+                            data: { user },
+                          } = await progressClient.auth.getUser();
+                          if (user) {
+                            // Fetch lesson progress for this submodule
+                            const { data: lessonProgresses } = await progressClient
+                              .from('user_lesson_progress')
+                              .select('*')
+                              .eq('sanity_submodule_id', m.id);
+
+                            // Build lesson progress map from database results (faster than individual calls)
+                            const lessonProgressData: { [key: string]: any } = {};
+                            const submodule = moduleData.submodules?.find((s) => s._id === m.id);
+                            if (submodule?.lessons && lessonProgresses) {
+                              for (const lessonProgress of lessonProgresses) {
+                                if (lessonProgress.sanity_lesson_id) {
+                                  lessonProgressData[lessonProgress.sanity_lesson_id] = {
+                                    is_completed: lessonProgress.is_completed || false,
+                                    is_in_progress: lessonProgress.is_in_progress || false,
+                                  };
+                                }
+                              }
+                              
+                              // For lessons without progress records, mark them as not started
+                              for (const lesson of submodule.lessons) {
+                                if (!lessonProgressData[lesson._id]) {
+                                  lessonProgressData[lesson._id] = {
+                                    is_completed: false,
+                                    is_in_progress: false,
+                                  };
+                                }
+                              }
+
+                              // Find active lesson
+                              let activeLesson = null;
+                              let activeLessonProgress = null;
+
+                              for (let i = 0; i < submodule.lessons.length; i++) {
+                                const lesson = submodule.lessons[i];
+                                const lessonProgress = lessonProgressData[lesson._id];
+                                const isCompleted = lessonProgress?.is_completed || false;
+                                const isInProgress = lessonProgress?.is_in_progress || false;
+
+                                let isActive = false;
+                                if (isInProgress) {
+                                  isActive = true;
+                                } else if (i === 0) {
+                                  isActive = true;
+                                } else {
+                                  const previousLesson = submodule.lessons[i - 1];
+                                  const previousProgress =
+                                    lessonProgressData[previousLesson._id];
+                                  const previousCompleted =
+                                    previousProgress?.is_completed || false;
+                                  isActive = previousCompleted;
+                                }
+
+                                if (isActive && !isCompleted) {
+                                  activeLesson = lesson;
+                                  const fullProgress = lessonProgresses?.find(
+                                    (p: any) => p.sanity_lesson_id === lesson._id
+                                  );
+                                  activeLessonProgress = fullProgress || lessonProgress;
+                                  break;
+                                }
+                              }
+
+                              // Build href
+                              if (activeLesson && activeLessonProgress?.is_in_progress) {
+                                const currentPageType =
+                                  activeLessonProgress?.current_page_type || 'lesson';
+                                const currentPageNumber =
+                                  activeLessonProgress?.current_page_number || 1;
+
+                                if (currentPageType === 'intro') {
+                                  href = `/(tabs)/Learn/modules/${moduleId}/${m.id}/intro/${currentPageNumber}`;
+                                } else if (currentPageType === 'activity') {
+                                  href = `/(tabs)/Learn/modules/${moduleId}/${m.id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
+                                } else if (currentPageType === 'quiz') {
+                                  const quizId = activeLessonProgress?.current_quiz_id || '';
+                                  const questionNumber =
+                                    activeLessonProgress?.current_question_number || 1;
+                                  href = `/(tabs)/Learn/modules/${moduleId}/${m.id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
+                                } else {
+                                  href = `/(tabs)/Learn/modules/${moduleId}/${m.id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
+                                }
+                              } else if (activeLesson) {
+                                href = `/(tabs)/Learn/modules/${moduleId}/${m.id}/lessons/${activeLesson._id}/pages/1`;
+                              }
+                              
+                              // Cache the calculated href
+                              if (href) {
+                                setSubmoduleHrefs((prev) => ({ ...prev, [m.id]: href }));
+                              }
+                            }
+                          }
+                        } catch (error) {
+                          console.error('[ModuleIndex] Error calculating href on-demand:', error);
+                        }
+                      }
+                      
+                      if (href) {
+                        // Use direct href if it exists (means there's an active lesson - either in progress or next to start)
+                        router.push(href as any);
+                      } else {
+                        // No href, go to submodule index
+                        router.push({
+                          pathname:
+                            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                          params: { moduleId, submoduleId: m.id },
+                        });
+                      }
                     }}
                     style={[
                       styles.card,
@@ -627,17 +923,21 @@ export default function ModuleIndex() {
 
       {/* floating "N more modules ahead" pill */}
       {ahead > 0 && (
-        <View style={styles.morePillWrap} pointerEvents='none'>
+        <View style={styles.morePillWrap} pointerEvents="none">
           <View style={styles.morePill}>
-            <View className='dots' style={styles.dots}>
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
+            <View style={styles.morePillContent}>
+              <View style={styles.dots}>
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+                <View style={styles.dot} />
+              </View>
+              <Text style={styles.moreText}>{ahead} more module{ahead === 1 ? '' : 's'} ahead</Text>
             </View>
-            <Text style={styles.moreText}>{ahead} more modules ahead</Text>
           </View>
         </View>
       )}
+
+
     </SafeAreaView>
   );
 }
@@ -903,7 +1203,7 @@ const styles = StyleSheet.create({
   // More modules pill
   morePillWrap: {
     position: 'absolute',
-    bottom: 10, // about 10px above the bottom bar
+    bottom: 10,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -912,23 +1212,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 195,
-    height: 39,
-    backgroundColor: '#FFFFFF',
-    borderColor: '#D1D1D1',
+    width: 195,          // Ancho
+    height: 39,          // Altura
+    backgroundColor: '#FFFFFF', // White
+    borderColor: '#D1D1D1',     // 1px border color
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: 20,    // Radio
     paddingHorizontal: 12,
   },
-  dots: { flexDirection: 'row', marginRight: 10 },
+  dots: { flexDirection: 'row', marginRight: 10, marginLeft: 12 },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#C7CDD8',
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#D7D7D7',
     marginHorizontal: 2,
   },
-  moreText: { fontSize: 14, color: '#6B7280', fontWeight: '700' },
+
+  moreText: {
+    fontSize: 10,
+    fontWeight: '600', // Inter 600
+    color: '#707070',
+    marginRight: 12, // text → right edge of globe
+    marginLeft: 0,  // left spacing from dots block
+  },
 
   centered: {
     flex: 1,
@@ -950,4 +1257,32 @@ const styles = StyleSheet.create({
     borderWidth: 7,
     borderColor: '#707070',
   },
+
+    morePillBlur: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#D1D1D1',
+  },
+  morePillContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 12,
+    paddingRight: 12,
+    width: 195,
+    height: 39,
+  },
+  globe: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#E9E9E9',
+    marginLeft: 'auto',
+    // nudge to visually get ~11px top / 16px bottom from text to globe
+    marginTop: 11 - (39 - 22) / 2,
+    marginBottom: 16 - (39 - 22) / 2,
+  },
+
+
 });

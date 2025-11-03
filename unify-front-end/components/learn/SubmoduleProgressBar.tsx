@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface SubmoduleProgressBarProps {
   currentProgress: number;
@@ -27,7 +28,7 @@ export default function SubmoduleProgressBar({
       {/* Header with title and close button */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Feather name='x' size={20} color='#374151' />
+          <Feather name='x' size={20} color='#878787' />
         </TouchableOpacity>
         <Text style={styles.title}>
           Section {submoduleOrder}: {submoduleTitle}
@@ -37,7 +38,10 @@ export default function SubmoduleProgressBar({
       {/* Progress bar */}
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
-          <View
+          <LinearGradient
+            colors={['#797977', '#000000']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
             style={[
               styles.progressBarFill,
               { width: `${Math.min(progressPercentage, 100)}%` },
@@ -67,9 +71,9 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: '#343434',
     textAlign: 'center',
     marginRight: 40, // Offset for the close button
   },
@@ -79,13 +83,12 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 6,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#EEEEEE',
     borderRadius: 3,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#6B7280',
     borderRadius: 3,
   },
   label: {
