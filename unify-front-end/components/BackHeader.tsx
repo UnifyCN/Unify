@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Theme } from '@/constants/Theme';
 interface BackHeaderProps {
   title: string;
   onBack?: () => void;
@@ -38,12 +39,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: Theme.white,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#000',
+    color: Theme.black,
   },
   placeholder: {
     width: 24, // To balance the back button size

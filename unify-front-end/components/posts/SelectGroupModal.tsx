@@ -108,11 +108,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 24,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   searchInputWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',

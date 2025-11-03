@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { SimpleTextField, SubmitButton, ViewContainer } from '@/components/AuthComponents/Components';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -15,7 +15,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
   const validatePassword = (password: string) => {
-    return password.length >= 8;
+    return password.length >= 8; // Can add more complex validation if needed
   };
 
   const handleResetPassword = async () => {
@@ -86,13 +86,16 @@ export default function ResetPasswordPage() {
               secureTextEntry={!passwordVisible}
               autoCapitalize="none"
             />
-            <MaterialIcons
-              name={passwordVisible ? 'visibility' : 'visibility-off'}
-              size={24}
-              color="#333"
-              style={styles.eyeIcon}
-              onPress={() => setPasswordVisible(!passwordVisible)}
-            />
+            <TouchableOpacity  
+              onPress={() => setPasswordVisible(!passwordVisible)}  
+              style={styles.eyeIcon}  
+            >  
+              <MaterialIcons  
+                name={passwordVisible ? 'visibility' : 'visibility-off'}  
+                size={24}  
+                color="#333"  
+              />  
+            </TouchableOpacity>  
           </View>
         </View>
 

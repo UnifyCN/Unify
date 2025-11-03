@@ -105,12 +105,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#111',
   },
-  avatarPlaceholderSmall: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#e6e6e6',
-  },
   settingsCard: {
     flexDirection: 'column',
     gap: 15,
