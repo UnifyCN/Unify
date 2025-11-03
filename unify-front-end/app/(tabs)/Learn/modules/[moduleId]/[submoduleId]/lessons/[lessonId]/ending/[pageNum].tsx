@@ -29,6 +29,7 @@ export default function EndingPageScreen() {
     pageNum: string;
   }>();
   const [showExitModal, setShowExitModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -115,13 +116,20 @@ export default function EndingPageScreen() {
         totalQuizPages +
         totalEndingPages;
 
-      await saveLessonCompletion(
+      // All ending pages completed, save this lesson as completed (in background)
+      setIsSaving(true);
+      
+      // Save in background - don't block navigation
+      saveLessonCompletion(
         lessonId || '',
         submoduleId || '',
         moduleId || '',
         totalAllPages
-      );
+      ).finally(() => {
+        setIsSaving(false);
+      });
 
+      // Navigate immediately
       // Check if this is the last lesson
       if (isLastLesson()) {
         // Last lesson completed, go back to map
@@ -278,15 +286,19 @@ export default function EndingPageScreen() {
           style={[
             styles.nextBtn,
             { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+            isSaving && styles.nextBtnDisabled,
           ]}
           onPress={handleNext}
+          disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
-            {currentPage < totalPages
-              ? 'Next'
-              : isLastLesson()
-                ? 'Complete'
-                : 'Next Lesson'}
+            {isSaving
+              ? 'Saving...'
+              : currentPage < totalPages
+                ? 'Next'
+                : isLastLesson()
+                  ? 'Complete'
+                  : 'Next Lesson'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -400,6 +412,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  nextBtnDisabled: {
+    opacity: 0.7,
+  },
 
   // Modal styles
   modalOverlay: {

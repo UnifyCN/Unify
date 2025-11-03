@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import { Theme } from '@/constants/Theme';
+import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
@@ -43,17 +44,7 @@ const WelcomeSection = () => {
   return (
     <View style={styles.welcomeSection}>
       <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
-      <Text style={styles.progressText}>
-        You have two modules left of{' '}
-        <Text style={styles.boldText}>Understanding Canadian Banking</Text>
-      </Text>
-      <Text style={styles.percentageText}>55% Completed</Text>
-      <View style={styles.progressBar}>
-        <View style={styles.progressFill} />
-      </View>
-      <TouchableOpacity style={styles.resumeButton}>
-        <Text style={styles.resumeButtonText}>Resume Lesson</Text>
-      </TouchableOpacity>
+      <LearnProgressCardCarousel />
     </View>
   );
 };
@@ -158,8 +149,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    width: '55%',
-    backgroundColor: '#666',
     borderRadius: 4,
   },
   resumeButton: {
@@ -189,10 +178,6 @@ const styles = StyleSheet.create({
     color: '#000',
     fontFamily: 'Inter',
     fontWeight: 500,
-  },
-  carouselContent: {
-    gap: 12,
-    paddingHorizontal: 20,
   },
   carouselContentEmpty: {
     flexGrow: 1,
