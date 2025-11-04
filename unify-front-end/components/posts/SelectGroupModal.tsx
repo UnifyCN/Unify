@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import Feather from '@expo/vector-icons/Feather';
 import { Theme } from '@/constants/Theme';
 import SearchGroupsList from '@/components/groups/SearchGroupsList';
+import BackHeader from '@/components/BackHeader';
 
 interface SelectGroupModalProps {
   visible: boolean;
@@ -60,25 +61,19 @@ export default function SelectGroupModal({
     <Modal
       visible={visible}
       animationType='slide'
-      transparent={false}
+      statusBarTranslucent
       onRequestClose={handleCancel}
     >
+      <BackHeader title='' backIcon='x' onBack={handleCancel} />
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
-            <Feather name='x' size={24} color='black' />
-          </TouchableOpacity>
-          <Text style={styles.title}>Post to</Text>
-        </View>
-
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
+        <View>
           <View style={styles.searchInputWrapper}>
-            <Feather name='search' size={20} color={Theme.textInput} />
+            <Feather name='search' size={18} color={Theme.textInput} />
             <TextInput
               style={styles.searchInput}
-              placeholder='Search for a group'
-              placeholderTextColor={Theme.textInput}
+              placeholder='Select a group'
+              placeholderTextColor={Theme.textAlternateGray}
               value={searchText}
               onChangeText={setSearchText}
               autoCapitalize='none'
@@ -90,7 +85,7 @@ export default function SelectGroupModal({
         <ScrollView style={styles.content}>
           {groupsLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size='large' color='#007AFF' />
+              <ActivityIndicator size='large' color={Theme.primaryGatherRed} />
               <Text style={styles.loadingText}>Loading groups...</Text>
             </View>
           ) : (
@@ -111,39 +106,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 60,
-    paddingBottom: 20,
-  },
-  cancelButton: {
-    padding: 15,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
-  },
-  searchContainer: {
-    paddingVertical: 10,
+    gap: 24,
   },
   searchInputWrapper: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Theme.surfaceTextInput,
-    borderRadius: 100,
-    paddingHorizontal: 24,
-    paddingVertical: 8,
-    height: 36,
-    gap: 8,
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 7,
+    gap: 15,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: Theme.textAlternateGray,
   },
   content: {

@@ -299,17 +299,7 @@ export default function LessonPageScreen() {
           onPress={handleNext}
           disabled={isSaving}
         >
-          <Text style={styles.nextBtnText}>
-            {isSaving
-              ? 'Saving...'
-              : currentPage < totalPages
-                ? 'Next'
-                : lesson?.activity_pages && lesson.activity_pages.length > 0
-                  ? 'Start Activity'
-                  : quizzes && quizzes.length > 0
-                    ? `Take Quiz`
-                    : 'Complete Lesson'}
-          </Text>
+          <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
       </View>
 

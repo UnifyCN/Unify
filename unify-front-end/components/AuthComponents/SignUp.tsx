@@ -56,7 +56,20 @@ export function SignUp({
     setErrorMessage(null);
 
     try {
-      // Send OTP to user's email
+      // Check if email exists in the users table
+      const { data: existingUser, error: checkError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (existingUser) {
+        setErrorMessage('An account with this email already exists');
+        setLoading(false);
+        return;
+      }
+
+      // If we get here, the email doesn't exist, so proceed with signup
       const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,

@@ -11,6 +11,7 @@ import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
 
 interface HeaderProps {
@@ -147,20 +148,26 @@ export default function GatherScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style='dark' />
-      <Animated.FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={item => item.key}
-        stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
-      />
-      <CreatePostButton />
+    <View style={styles.root}>
+      <Header />
+      <View style={styles.container}>
+        <StatusBar style='dark' />
+        <Animated.FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={item => item.key}
+          stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
+        />
+        <CreatePostButton />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   searchButton: {
     flexDirection: 'row',
     alignItems: 'center',

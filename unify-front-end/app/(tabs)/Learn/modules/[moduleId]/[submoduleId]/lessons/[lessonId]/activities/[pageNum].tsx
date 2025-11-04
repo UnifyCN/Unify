@@ -353,15 +353,13 @@ export default function ActivityPageScreen() {
           disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
-            {isSaving
-              ? 'Saving...'
-              : !isSubmitted
-                ? 'Submit'
-                : currentPage < totalPages
-                  ? 'Next Activity'
-                  : quizzes && quizzes.length > 0
-                    ? `Take Quiz`
-                    : 'Complete Lesson'}
+            {!isSubmitted
+              ? 'Submit'
+              : currentPage < totalPages
+                ? 'Next'
+                : quizzes && quizzes.length > 0
+                  ? `Take Quiz`
+                  : 'Next'}
           </Text>
         </TouchableOpacity>
       </View>

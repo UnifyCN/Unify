@@ -13,7 +13,12 @@ export default function PostSuccessModal({ visible, onClose, postTitle }: any) {
   if (!visible) return null;
 
   return (
-    <Modal>
+    <Modal
+      visible={visible}
+      animationType='none'
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
         <View style={styles.content}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -42,9 +47,8 @@ const styles = StyleSheet.create({
     marginTop: 60,
     gap: 30,
   },
-  closeButton: {
+  closeButton: { 
     alignSelf: 'flex-start',
-    padding: 15,
   },
   title: {
     fontSize: 24,

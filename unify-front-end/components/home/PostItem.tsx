@@ -43,7 +43,7 @@ export const PostItem = memo(
     };
 
     const navigateToUserProfile = () => {
-      router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
+      router.push(`/profile?userId=${post.user.id}`);
     };
 
     // Use batch-loaded metadata with loading state

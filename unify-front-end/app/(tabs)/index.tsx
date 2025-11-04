@@ -11,11 +11,9 @@ import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
+import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
-import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
-import { NewsCard } from '@/components/home/NewsCard';
-import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
-import { useRouter } from 'expo-router';
+import { FloatingChatButton } from '@/components/ChatBot';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
@@ -117,12 +115,14 @@ const GatherEventsSection = () => {
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
+      <Header />
       <StatusBar style='dark' />
       <ScrollView style={styles.scrollView}>
         <WelcomeSection />
         <NewsTipsSection />
         <GatherEventsSection />
       </ScrollView>
+      <FloatingChatButton />
     </View>
   );
 }
