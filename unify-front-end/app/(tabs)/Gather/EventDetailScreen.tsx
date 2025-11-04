@@ -12,8 +12,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
-import { useEffect } from 'react';
 import { Theme } from '@/constants/Theme';
 
 const EventDetailScreen = () => {
@@ -26,13 +24,6 @@ const EventDetailScreen = () => {
       Linking.openURL(eventData.externalLink);
     }
   };
-
-  const { setVisible } = useHeaderVisibility();
-
-  useEffect(() => {
-    setVisible(false);
-    return () => setVisible(true);
-  }, [setVisible]);
 
   // Using react native built in share
   const handleShare = async () => {

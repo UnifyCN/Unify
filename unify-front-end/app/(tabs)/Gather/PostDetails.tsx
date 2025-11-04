@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,6 @@ import { useCommentMetadata } from '@/hooks/useCommentMetadata';
 import PostCommentItem from './PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import SendIcon from '@/components/icons/SendIcon.svg';
@@ -102,13 +101,7 @@ const PostDetails = () => {
   // Get passed data
   const { post: postParam } = useLocalSearchParams();
 
-  const { setVisible } = useHeaderVisibility();
-  useEffect(() => {
-    setVisible(false);
-  }, [setVisible]);
-
   const onBack = () => {
-    setVisible(true);
     router.back();
   };
 

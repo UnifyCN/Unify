@@ -15,6 +15,7 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import Header from '@/components/Header';
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
@@ -29,6 +30,7 @@ export default function EndingPageScreen() {
     pageNum: string;
   }>();
   const [showExitModal, setShowExitModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -115,13 +117,20 @@ export default function EndingPageScreen() {
         totalQuizPages +
         totalEndingPages;
 
-      await saveLessonCompletion(
+      // All ending pages completed, save this lesson as completed (in background)
+      setIsSaving(true);
+      
+      // Save in background - don't block navigation
+      saveLessonCompletion(
         lessonId || '',
         submoduleId || '',
         moduleId || '',
         totalAllPages
-      );
+      ).finally(() => {
+        setIsSaving(false);
+      });
 
+      // Navigate immediately
       // Check if this is the last lesson
       if (isLastLesson()) {
         // Last lesson completed, go back to map
@@ -214,6 +223,7 @@ export default function EndingPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loading}>
           <Text>Loading ending page...</Text>
         </View>
@@ -224,6 +234,7 @@ export default function EndingPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loading}>
           <Text>Error loading ending page</Text>
         </View>
@@ -233,6 +244,7 @@ export default function EndingPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -278,16 +290,12 @@ export default function EndingPageScreen() {
           style={[
             styles.nextBtn,
             { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+            isSaving && styles.nextBtnDisabled,
           ]}
           onPress={handleNext}
+          disabled={isSaving}
         >
-          <Text style={styles.nextBtnText}>
-            {currentPage < totalPages
-              ? 'Next'
-              : isLastLesson()
-                ? 'Complete'
-                : 'Next Lesson'}
-          </Text>
+          <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
       </View>
 
@@ -378,7 +386,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 23,
     paddingVertical: 20,
-    paddingBottom: 40,
+    paddingBottom: 15,
     backgroundColor: '#fff',
     gap: 12,
   },
@@ -400,6 +408,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  nextBtnDisabled: {
+    opacity: 0.7,
+  },
 
   // Modal styles
   modalOverlay: {
