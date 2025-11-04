@@ -6,9 +6,11 @@ import {
   StyleSheet,
   ActivityIndicator,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
+import Header from '@/components/Header';
 
 export default function QuizzesPage() {
   const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
@@ -21,42 +23,53 @@ export default function QuizzesPage() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size='large' color='#3B82F6' />
-        <Text style={styles.loadingText}>Loading quizzes...</Text>
-      </View>
+      <SafeAreaView style={styles.safe}>
+        <Header />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size='large' color='#3B82F6' />
+          <Text style={styles.loadingText}>Loading quizzes...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
-          Error loading quizzes: {error.message}
-        </Text>
-      </View>
+      <SafeAreaView style={styles.safe}>
+        <Header />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Error loading quizzes: {error.message}
+          </Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   if (!quizzes || quizzes.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyTitle}>No Quizzes Available</Text>
-        <Text style={styles.emptyText}>
-          This lesson doesn't have any quizzes yet.
-        </Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backButtonText}>Back to Lesson</Text>
-        </TouchableOpacity>
-      </View>
+      <SafeAreaView style={styles.safe}>
+        <Header />
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>No Quizzes Available</Text>
+          <Text style={styles.emptyText}>
+            This lesson doesn't have any quizzes yet.
+          </Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Text style={styles.backButtonText}>Back to Lesson</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.safe}>
+      <Header />
+      <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Quizzes</Text>
         <Text style={styles.subtitle}>
@@ -107,10 +120,15 @@ export default function QuizzesPage() {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fff',

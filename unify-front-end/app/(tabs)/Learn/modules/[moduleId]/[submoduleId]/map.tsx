@@ -14,6 +14,7 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { getLessonProgress } from '@/services/progress/progressService';
 import { Feather } from '@expo/vector-icons';
+import Header from '@/components/Header';
 
 export default function SubmoduleMap() {
   const router = useRouter();
@@ -76,6 +77,7 @@ export default function SubmoduleMap() {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading submodule...</Text>
         </View>
@@ -86,6 +88,7 @@ export default function SubmoduleMap() {
   if (error || !submoduleData) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
             Error loading submodule: {error?.message || 'Unknown error'}
@@ -149,6 +152,7 @@ export default function SubmoduleMap() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <Header />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}

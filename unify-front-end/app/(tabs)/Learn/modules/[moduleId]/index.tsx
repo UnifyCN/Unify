@@ -30,6 +30,7 @@ import { getLessonProgress } from '@/services/progress/progressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
+import Header from '@/components/Header';
 
 // --- safety helpers ---
 const safeNum = (n: any, fallback = 0) =>
@@ -436,6 +437,7 @@ const computeAhead = (y: number, vh: number) => {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.centered}>
           <Text style={styles.muted}>Loading module…</Text>
         </View>
@@ -446,6 +448,7 @@ const computeAhead = (y: number, vh: number) => {
   if (error || !moduleData) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.centered}>
           <Text style={styles.error}>
             Error loading module: {error?.message || 'Unknown error'}
@@ -493,6 +496,7 @@ const computeAhead = (y: number, vh: number) => {
   // === UI ===
   return (
     <SafeAreaView style={styles.safe}>
+      <Header />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}

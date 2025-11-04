@@ -18,6 +18,7 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import Header from '@/components/Header';
 
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
@@ -230,6 +231,7 @@ export default function LessonPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loading}>
           <Text>Loading lesson...</Text>
         </View>
@@ -240,6 +242,7 @@ export default function LessonPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loading}>
           <Text>Error loading lesson page</Text>
         </View>
@@ -249,6 +252,7 @@ export default function LessonPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
