@@ -1,0 +1,1 @@
+../../../SDWebImageAVIFCoder/SDWebImageAVIFCoder/Classes/Public/SDImageAVIFCoder.h

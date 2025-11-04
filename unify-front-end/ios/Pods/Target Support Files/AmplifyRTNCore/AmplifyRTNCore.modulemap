@@ -1,0 +1,6 @@
+module AmplifyRTNCore {
+  umbrella header "AmplifyRTNCore-umbrella.h"
+
+  export *
+  module * { export * }
+}

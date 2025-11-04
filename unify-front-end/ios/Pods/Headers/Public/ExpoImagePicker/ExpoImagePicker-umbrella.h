@@ -1,0 +1,1 @@
+../../../Target Support Files/ExpoImagePicker/ExpoImagePicker-umbrella.h

@@ -1,0 +1,6 @@
+module Pods_unifyfrontend {
+  umbrella header "Pods-unifyfrontend-umbrella.h"
+
+  export *
+  module * { export * }
+}

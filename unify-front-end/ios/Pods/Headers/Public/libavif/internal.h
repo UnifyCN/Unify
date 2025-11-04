@@ -1,0 +1,1 @@
+../../../libavif/include/avif/internal.h

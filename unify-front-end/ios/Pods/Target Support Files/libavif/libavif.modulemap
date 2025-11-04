@@ -1,0 +1,6 @@
+module libavif {
+  umbrella header "libavif-umbrella.h"
+
+  export *
+  module * { export * }
+}

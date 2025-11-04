@@ -1,0 +1,6 @@
+module AmplifyRTNWebBrowser {
+  umbrella header "AmplifyRTNWebBrowser-umbrella.h"
+
+  export *
+  module * { export * }
+}

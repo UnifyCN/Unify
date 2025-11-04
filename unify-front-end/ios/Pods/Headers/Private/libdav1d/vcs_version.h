@@ -1,0 +1,1 @@
+../../../libdav1d/generate/vcs_version.h

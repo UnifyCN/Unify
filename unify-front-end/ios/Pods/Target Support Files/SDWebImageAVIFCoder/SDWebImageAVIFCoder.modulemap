@@ -1,0 +1,6 @@
+module SDWebImageAVIFCoder {
+  umbrella header "SDWebImageAVIFCoder-umbrella.h"
+
+  export *
+  module * { export * }
+}

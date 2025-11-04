@@ -1,0 +1,1 @@
+../../../Target Support Files/SDWebImageAVIFCoder/SDWebImageAVIFCoder-umbrella.h
