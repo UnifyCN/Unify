@@ -27,7 +27,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
     
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'unify://reset-password',
+        redirectTo: 'myapp://reset-password',
       });
 
       if (error) {
