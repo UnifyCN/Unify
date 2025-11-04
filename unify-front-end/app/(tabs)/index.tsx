@@ -15,6 +15,7 @@ import { Theme } from '@/constants/Theme';
 import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
 import { NewsCard } from '@/components/home/NewsCard';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
+import { useRouter } from 'expo-router';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
@@ -52,42 +53,55 @@ const WelcomeSection = () => {
 };
 
 // TODO: someone deal with this section
-const NewsTipsSection = () => (
-  <View style={styles.section}>
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>News & Tips</Text>
-      <Feather name='chevron-right' size={20} color='#666' />
-    </View>
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={{ marginHorizontal: 20, paddingVertical: 2 }}
-    >
-      <NewsCard
-        title="Navigating Winter Roads"
-        description="New to snow? ICBC article to help you avoid issues on the icy, winter roads."
-      />
-      <NewsCard
-        title="Financial Planning Tips"
-        description="Essential tips for managing your finances in Canada."
-      />
-      <View style={styles.viewMoreCardContainer}>
-        <View style={styles.viewMoreContent}>
-          <ViewMoreCardNews width={332} height={132} />
-          <View style={styles.viewMoreTextOverlay}>
-            <Text style={styles.viewMoreText}>
-              View more news{' '}
-              <Feather name='arrow-right' size={16} color='#000' />
-            </Text>
-            <Text style={styles.viewMoreSubtext}>
-              There's more to check out!
-            </Text>
-          </View>
-        </View>
+const NewsTipsSection = () => {
+  const router = useRouter();
+
+  const handleViewMore = () => {
+    // TODO: Navigate to News & Tips screen when available
+    // router.push('/(tabs)/NewsTipsScreen');
+  };
+
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>News & Tips</Text>
+        <Feather name='chevron-right' size={20} color='#666' />
       </View>
-    </ScrollView>
-  </View>
-);
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: 20, paddingVertical: 2 }}
+      >
+        <NewsCard
+          title="Navigating Winter Roads"
+          description="New to snow? ICBC article to help you avoid issues on the icy, winter roads."
+        />
+        <NewsCard
+          title="Financial Planning Tips"
+          description="Essential tips for managing your finances in Canada."
+        />
+        <TouchableOpacity
+          style={styles.viewMoreCardContainer}
+          onPress={handleViewMore}
+          activeOpacity={0.8}
+        >
+          <View style={styles.viewMoreContent}>
+            <ViewMoreCardNews width={332} height={132} />
+            <View style={styles.viewMoreTextOverlay}>
+              <Text style={styles.viewMoreText}>
+                View more news{' '}
+                <Feather name='arrow-right' size={16} color='#000' />
+              </Text>
+              <Text style={styles.viewMoreSubtext}>
+                There's more to check out!
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
+};
 
 const GatherEventsSection = () => {
   return (
