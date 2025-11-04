@@ -180,7 +180,10 @@ export default function LearnProgressCardCarousel() {
           }}
         >
           <View style={styles.progressCard}>
-            <Text style={styles.emptyStateText}>No modules in progress</Text>
+            {/* Empty placeholder to match normal card height */}
+            <View style={styles.emptyPlaceholder}>
+              <Text style={styles.emptyStateText}>No modules in progress</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -312,11 +315,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#fff',
   },
+  emptyPlaceholder: {
+    minHeight: 153, // Match height of content in normal card (text + percentage + bar + button)
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   emptyStateText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
-    paddingVertical: 8,
   },
 });
 
