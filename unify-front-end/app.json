@@ -9,6 +9,8 @@
     "scheme": "myapp",
     "newArchEnabled": true,
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": "1.0.0",
+    "updates": { "url": "https://u.expo.dev/3772d4d9-79dd-4848-9691-bae1b19eefb8" },
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
