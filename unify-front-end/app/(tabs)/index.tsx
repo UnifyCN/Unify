@@ -14,6 +14,10 @@ import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
 import { FloatingChatButton } from '@/components/ChatBot';
+import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
+import { NewsCard } from '@/components/home/NewsCard';
+import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
+import { useRouter } from 'expo-router';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
