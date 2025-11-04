@@ -10,7 +10,6 @@ import { PostCommentData } from '@/types/feeds/postcomment';
 import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
-import { getPostReplies } from '@/services/posts/getPostReplies';
 import PostReplyItem from './PostReplyItem';
 import { usePostCommentMetadata } from '@/hooks/usePostCommentMetadata';
 import { useGetPostReplies } from '@/hooks/posts/useGetPostReplies';
@@ -52,10 +51,10 @@ const PostCommentItem = memo(
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
     }, [comment.user_id]);
 
-    const { data: replies = [], refetch: refetchReplies } = useGetPostReplies(
-      comment.id
-    );
     const [showReplies, setShowReplies] = useState(false);
+    const { data: replies = [] } = useGetPostReplies(comment.id, {
+      enabled: showReplies,
+    });
 
     // Batch load metadata for these replies (only when requested)
     const replyIds = replies.map(r => r.id);

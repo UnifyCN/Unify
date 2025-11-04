@@ -10,7 +10,7 @@ export interface PostCommentMetadata {
 
 export const usePostCommentMetadata = (
   commentIds: number[],
-  p0?: { enabled: boolean }
+  options?: { enabled: boolean }
 ) => {
   return useQuery({
     queryKey: ['comment-metadata', commentIds],

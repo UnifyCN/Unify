@@ -2,11 +2,15 @@ import { getPostReplies } from '@/services/posts/getPostReplies';
 import { PostCommentData } from '@/types/feeds/postcomment';
 import { useQuery } from '@tanstack/react-query';
 
-export const useGetPostReplies = (commentId: number) => {
+export const useGetPostReplies = (
+  commentId: number,
+  options?: { enabled: boolean }
+) => {
   return useQuery<PostCommentData[]>({
     queryKey: ['post-replies', commentId],
     queryFn: () => getPostReplies(commentId),
     staleTime: 1000 * 60 * 2, // 2 minutes
     gcTime: 1000 * 60 * 5, // 5 minutes
+    enabled: options?.enabled ?? true,
   });
 };
