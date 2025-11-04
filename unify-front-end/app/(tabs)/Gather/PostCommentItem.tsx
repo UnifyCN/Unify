@@ -27,7 +27,12 @@ interface PostCommentItemProps {
 }
 
 const PostCommentItem = memo(
-  ({ comment, metadata, metadataLoading, onReplyPress }: PostCommentItemProps) => {
+  ({
+    comment,
+    metadata,
+    metadataLoading,
+    onReplyPress,
+  }: PostCommentItemProps) => {
     // Hook for liking and unliking comments
     const likeCommentMutation = useMutateLikeComment();
 
@@ -47,7 +52,9 @@ const PostCommentItem = memo(
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
     }, [comment.user_id]);
 
-    const { data: replies = [], refetch: refetchReplies } = useGetPostReplies(comment.id);
+    const { data: replies = [], refetch: refetchReplies } = useGetPostReplies(
+      comment.id
+    );
     const [showReplies, setShowReplies] = useState(false);
 
     // Batch load metadata for these replies (only when requested)
@@ -138,24 +145,26 @@ const PostCommentItem = memo(
             {/* View replies section */}
             {replyCount != null && replyCount > 0 && (
               <View style={{ marginTop: 6 }}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.replyPreviewContainer}
                   onPress={handleViewReplies}
                 >
                   <View style={styles.replyPreviewAccent} />
                   <Text style={styles.replyPreviewText}>
-                    {showReplies ? 'Hide replies' : `View ${replyCount} ${replyCount > 1 ? 'replies' : 'reply'}`}
+                    {showReplies
+                      ? 'Hide replies'
+                      : `View ${replyCount} ${replyCount > 1 ? 'replies' : 'reply'}`}
                   </Text>
                 </TouchableOpacity>
                 {showReplies &&
-                replies.map(reply => (
-                  <PostReplyItem
-                    key={reply.id}
-                    comment={reply}
-                    metadata={replyMetadata?.[reply.id]}
-                    metadataLoading={!replyMetadata}
-                  />
-                ))}
+                  replies.map(reply => (
+                    <PostReplyItem
+                      key={reply.id}
+                      comment={reply}
+                      metadata={replyMetadata?.[reply.id]}
+                      metadataLoading={!replyMetadata}
+                    />
+                  ))}
               </View>
             )}
           </View>
@@ -228,10 +237,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E5E5',
   },
   replyPreviewContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  paddingLeft: 10,
-  position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 10,
+    position: 'relative',
   },
   replyPreviewAccent: {
     width: 24,

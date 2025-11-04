@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export interface PostCommentMetadata {
   commentId: number;
@@ -8,7 +8,10 @@ export interface PostCommentMetadata {
   replyCount: number;
 }
 
-export const usePostCommentMetadata = (commentIds: number[], p0?: { enabled: boolean; }) => {
+export const usePostCommentMetadata = (
+  commentIds: number[],
+  p0?: { enabled: boolean }
+) => {
   return useQuery({
     queryKey: ['comment-metadata', commentIds],
     queryFn: async (): Promise<Record<number, PostCommentMetadata>> => {
@@ -64,4 +67,56 @@ export const usePostCommentMetadata = (commentIds: number[], p0?: { enabled: boo
     enabled: commentIds.length > 0,
     staleTime: 1000 * 30, // 30 seconds
   });
+};
+
+// Helper function to invalidate specific post metadata
+export const useInvalidatePostCommentMetadata = () => {
+  const queryClient = useQueryClient();
+
+  const invalidatePostCommentMetadata = (commentId: number) => {
+    // Find all queries that contain this postId
+    queryClient.invalidateQueries({
+      predicate: query => {
+        const queryKey = query.queryKey;
+        if (queryKey[0] === 'comment-metadata' && Array.isArray(queryKey[1])) {
+          return queryKey[1].includes(commentId);
+        }
+        return false;
+      },
+    });
+  };
+
+  const updatePostCommentMetadata = (
+    commentId: number,
+    updates: Partial<PostCommentMetadata>
+  ) => {
+    // Update all queries that contain this commentId
+    queryClient.setQueriesData(
+      {
+        predicate: query => {
+          const queryKey = query.queryKey;
+          if (
+            queryKey[0] === 'comment-metadata' &&
+            Array.isArray(queryKey[1])
+          ) {
+            return queryKey[1].includes(commentId);
+          }
+          return false;
+        },
+      },
+      (oldData: Record<number, PostCommentMetadata> | undefined) => {
+        if (!oldData || !oldData[commentId]) return oldData;
+
+        return {
+          ...oldData,
+          [commentId]: {
+            ...oldData[commentId],
+            ...updates,
+          },
+        };
+      }
+    );
+  };
+
+  return { invalidatePostCommentMetadata, updatePostCommentMetadata };
 };

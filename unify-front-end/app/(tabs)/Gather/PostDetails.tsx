@@ -216,7 +216,6 @@ const PostDetails = () => {
         onReplyPress={comment => {
           setReplyingToComment(comment);
           setShouldFocusReply(true);
-          
         }}
       />
     ),

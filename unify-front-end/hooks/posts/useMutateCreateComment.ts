@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPostComment } from '@/services/posts/createPostComment';
 import { useInvalidatePostMetadata } from '@/hooks/usePostMetadata';
+import { useInvalidatePostCommentMetadata } from '../usePostCommentMetadata';
 
 export const useMutateCreateComment = () => {
   const queryClient = useQueryClient();
   const { invalidatePostMetadata } = useInvalidatePostMetadata();
+  const { invalidatePostCommentMetadata } = useInvalidatePostCommentMetadata();
 
   return useMutation({
     mutationFn: async ({
@@ -36,6 +38,8 @@ export const useMutateCreateComment = () => {
         queryClient.invalidateQueries({
           queryKey: ['post-replies', parentCommentId],
         });
+
+        invalidatePostCommentMetadata(parentCommentId);
       }
     },
 
