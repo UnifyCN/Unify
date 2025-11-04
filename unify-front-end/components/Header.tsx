@@ -1,39 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { supabase } from '@/lib/supabase';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UnifyLogo from '@/components/icons/UnifyLogo.svg';
 
 const Header = () => {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-      }
-    };
-    getCurrentUser();
-  }, []);
-
-  const handleProfilePress = () => {
-    router.push(`/(tabs)/Gather/Profile/profile?userId=${userId}`);
-  };
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
       <View style={styles.titleContainer}>
         <UnifyLogo width={24} height={24} />
         <Text style={styles.title}>Unify</Text>
       </View>
       <TouchableOpacity
         style={styles.profileButton}
-        onPress={handleProfilePress}
+        onPress={() => router.push('/account-settings')}
       >
         <Feather name='user' size={20} color='#000' />
       </TouchableOpacity>
@@ -48,7 +32,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 60, // Account for status bar and safe area
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',

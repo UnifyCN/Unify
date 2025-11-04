@@ -5,15 +5,14 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-
-import { useLocalSearchParams } from 'expo-router';
 import { useState, useMemo, memo, useEffect } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
-import BackHeader from '@/components/BackHeader';import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
+import BackHeader from '@/components/BackHeader';
+import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 import { Theme } from '@/constants/Theme';
@@ -54,8 +53,12 @@ const TabHeader = memo(
   }
 );
 
-export default function Profile() {
-  const { userId } = useLocalSearchParams<{ userId: string }>();
+interface ProfileProps {
+  userId: string;
+  initialTab?: string;
+}
+
+export default function Profile({ userId, initialTab }: ProfileProps) {
   const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
   const { data: userInfo } = useUserInfo(userId);
 
@@ -73,7 +76,7 @@ export default function Profile() {
     getCurrentUser();
   }, [userId]);
 
-  const [activeTab, setActiveTab] = useState('Posts');
+  const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
   useEffect(() => {
     if (isCurrentUser === false && activeTab === 'Saved') {
       setActiveTab('Posts');
