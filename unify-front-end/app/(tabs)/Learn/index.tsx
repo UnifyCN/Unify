@@ -199,7 +199,8 @@ const styles = StyleSheet.create({
   pathwaysGrid: {
     marginTop: 12,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
     gap: 12,
   },
   errorText: {
