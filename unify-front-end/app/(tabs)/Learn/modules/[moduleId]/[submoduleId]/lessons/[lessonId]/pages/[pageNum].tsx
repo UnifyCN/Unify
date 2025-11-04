@@ -290,15 +290,7 @@ export default function LessonPageScreen() {
           ]}
           onPress={handleNext}
         >
-          <Text style={styles.nextBtnText}>
-            {currentPage < totalPages
-              ? 'Next'
-              : lesson?.activity_pages && lesson.activity_pages.length > 0
-                ? 'Start Activity'
-                : quizzes && quizzes.length > 0
-                  ? `Take Quiz`
-                  : 'Complete Lesson'}
-          </Text>
+          <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
       </View>
 
