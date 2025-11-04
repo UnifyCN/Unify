@@ -26,6 +26,9 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
     setMessage(null);
     
     try {
+      // TODO: This does not work at all, user will be redirected back to this page instead of the reset password page
+      // https://blog.theodo.com/2023/03/supabase-reset-password-rn/ maybe this is useful
+      // I think it's because our auth wrapper wraps EVERYTHING, instead of having two stacks of unauthenticated and authenticated routes
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'myapp://reset-password',
       });
