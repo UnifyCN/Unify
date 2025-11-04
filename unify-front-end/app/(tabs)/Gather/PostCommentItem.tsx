@@ -13,6 +13,7 @@ import { Theme } from '@/constants/Theme';
 import { getPostReplies } from '@/services/posts/getPostReplies';
 import PostReplyItem from './PostReplyItem';
 import { usePostCommentMetadata } from '@/hooks/usePostCommentMetadata';
+import { useGetPostReplies } from '@/hooks/posts/useGetPostReplies';
 
 interface PostCommentItemProps {
   comment: PostCommentData;
@@ -46,7 +47,7 @@ const PostCommentItem = memo(
       router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
     }, [comment.user_id]);
 
-    const [replies, setReplies] = useState<PostCommentData[]>([]);
+    const { data: replies = [], refetch: refetchReplies } = useGetPostReplies(comment.id);
     const [showReplies, setShowReplies] = useState(false);
 
     // Batch load metadata for these replies (only when requested)
@@ -63,12 +64,6 @@ const PostCommentItem = memo(
       }
 
       setShowReplies(true);
-
-      // Reply metadata will be fetched since enabled set to true
-      if (replies.length === 0) {
-        const fetchedReplies = await getPostReplies(comment.id);
-        setReplies(fetchedReplies);
-      }
     };
 
     // Show loading state for metadata if it's still loading
@@ -157,9 +152,7 @@ const PostCommentItem = memo(
                   <PostReplyItem
                     key={reply.id}
                     comment={reply}
-                    metadata={
-                      replyMetadata?.[reply.id] ?? { likeCount: 0, isLiked: false }
-                    }
+                    metadata={replyMetadata?.[reply.id]}
                     metadataLoading={!replyMetadata}
                   />
                 ))}

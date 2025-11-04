@@ -19,8 +19,9 @@ export const useMutateCreateComment = () => {
       return await createPostComment(postId, content, parentCommentId);
     },
 
-    onSuccess: (_, { postId }) => {
-      // Refresh the comments list
+    onSuccess: (_, variables) => {
+      const { postId, parentCommentId } = variables;
+
       queryClient.invalidateQueries({
         queryKey: ['post-comments', postId],
       });
@@ -29,8 +30,13 @@ export const useMutateCreateComment = () => {
         queryKey: ['feed', 'commentedOn'],
       });
 
-      // Invalidate only the specific post's metadata (more efficient)
       invalidatePostMetadata(postId);
+
+      if (parentCommentId) {
+        queryClient.invalidateQueries({
+          queryKey: ['post-replies', parentCommentId],
+        });
+      }
     },
 
     onError: error => {
