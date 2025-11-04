@@ -301,9 +301,7 @@ export default function SubmoduleIntroScreen() {
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-          <Text style={styles.nextBtnText}>
-            {currentPage < (totalPages || 1) ? 'Next' : 'Start Lessons'}
-          </Text>
+          <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
       </View>
 

@@ -350,7 +350,7 @@ export default function ActivityPageScreen() {
                 ? 'Next Activity'
                 : quizzes && quizzes.length > 0
                   ? `Take Quiz`
-                  : 'Complete Lesson'}
+                  : 'Next'}
           </Text>
         </TouchableOpacity>
       </View>

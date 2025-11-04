@@ -281,13 +281,7 @@ export default function EndingPageScreen() {
           ]}
           onPress={handleNext}
         >
-          <Text style={styles.nextBtnText}>
-            {currentPage < totalPages
-              ? 'Next'
-              : isLastLesson()
-                ? 'Complete'
-                : 'Next Lesson'}
-          </Text>
+          <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
       </View>
 
