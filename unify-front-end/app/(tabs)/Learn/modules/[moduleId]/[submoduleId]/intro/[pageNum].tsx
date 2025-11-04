@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 20,
-    paddingBottom: 40,
+    paddingBottom: 15,
     backgroundColor: '#fff',
     gap: 12,
   },
