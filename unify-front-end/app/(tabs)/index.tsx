@@ -14,6 +14,7 @@ import { EventsCarousel } from '@/components/EventsCarousel';
 import { Theme } from '@/constants/Theme';
 import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
 import { NewsCard } from '@/components/home/NewsCard';
+import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
@@ -70,6 +71,20 @@ const NewsTipsSection = () => (
         title="Financial Planning Tips"
         description="Essential tips for managing your finances in Canada."
       />
+      <View style={styles.viewMoreCardContainer}>
+        <View style={styles.viewMoreContent}>
+          <ViewMoreCardNews width={332} height={132} />
+          <View style={styles.viewMoreTextOverlay}>
+            <Text style={styles.viewMoreText}>
+              View more news{' '}
+              <Feather name='arrow-right' size={16} color='#000' />
+            </Text>
+            <Text style={styles.viewMoreSubtext}>
+              There's more to check out!
+            </Text>
+          </View>
+        </View>
+      </View>
     </ScrollView>
   </View>
 );
@@ -199,5 +214,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  viewMoreCardContainer: {
+    width: 332,
+    height: 132,
+    marginRight: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  viewMoreContent: {
+    width: 332,
+    height: 132,
+    position: 'relative',
+  },
+  viewMoreTextOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewMoreText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+  },
+  viewMoreSubtext: {
+    fontSize: 14,
+    color: '#000',
   },
 });
