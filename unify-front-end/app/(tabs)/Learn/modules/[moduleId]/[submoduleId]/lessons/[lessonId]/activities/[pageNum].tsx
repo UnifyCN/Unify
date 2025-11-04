@@ -29,6 +29,7 @@ export default function ActivityPageScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -132,14 +133,20 @@ export default function ActivityPageScreen() {
             params: { moduleId, submoduleId, lessonId, pageNum: '1' },
           });
         } else {
-          // No ending pages, save this lesson as completed
-          await saveLessonCompletion(
+          // No ending pages, save this lesson as completed (in background)
+          setIsSaving(true);
+          
+          // Save in background - don't block navigation
+          saveLessonCompletion(
             lessonId || '',
             submoduleId || '',
             moduleId || '',
             totalPages
-          );
+          ).finally(() => {
+            setIsSaving(false);
+          });
 
+          // Navigate immediately
           // Check if this is the last lesson
           const currentIndex = getCurrentLessonIndex();
           const isLastLesson =
@@ -340,14 +347,16 @@ export default function ActivityPageScreen() {
           style={[
             styles.nextBtn,
             { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+            isSaving && styles.nextBtnDisabled,
           ]}
           onPress={isSubmitted ? handleNext : handleSubmit}
+          disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
             {!isSubmitted
               ? 'Submit'
               : currentPage < totalPages
-                ? 'Next Activity'
+                ? 'Next'
                 : quizzes && quizzes.length > 0
                   ? `Take Quiz`
                   : 'Next'}
@@ -494,4 +503,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  nextBtnDisabled: {
+    opacity: 0.7,
+  },
 });

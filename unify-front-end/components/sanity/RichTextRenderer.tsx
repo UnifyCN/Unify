@@ -510,7 +510,6 @@ export default function RichTextRenderer({
 
       return (
         <View key={block._key || index} style={mergedStyles.inputFieldContainer}>
-          {block.label && <Text style={mergedStyles.inputLabel}>{block.label}</Text>}
           <TextInput
             style={[
               {

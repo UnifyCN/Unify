@@ -273,7 +273,7 @@ export default function SubmoduleIntroScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Page indicator */}
-        {totalPages && totalPages > 1 && (
+        {totalPages && totalPages >= 1 && (
           <View style={styles.pageIndicatorContainer}>
             <Text style={styles.pageIndicator}>
               {currentPage} of {totalPages}
