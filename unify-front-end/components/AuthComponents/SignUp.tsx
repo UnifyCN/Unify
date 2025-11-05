@@ -35,7 +35,7 @@ export function SignUp({
   const [isChecked, setIsChecked] = React.useState(false);
 
   // Use the unified Google Auth hook
-  const { signInWithGoogle, isExpoGo } = useGoogleAuth();
+  const { signInWithGoogle } = useGoogleAuth();
 
   const validateEmail = (email: string) => {
     // Simple email validation regex

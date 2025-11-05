@@ -67,7 +67,7 @@ export function SignIn({
   };
 
   // Use the unified Google Auth hook
-  const { signInWithGoogle, isExpoGo } = useGoogleAuth();
+  const { signInWithGoogle } = useGoogleAuth();
 
   // Handle Google sign-in with unified hook
   const handleGoogleSignIn = async () => {
