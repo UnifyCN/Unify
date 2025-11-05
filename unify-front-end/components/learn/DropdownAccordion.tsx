@@ -49,7 +49,9 @@ export default function DropdownAccordion({
               style={styles.header}
               onPress={() => toggle(item.id)}
             >
-              <Text style={[styles.headerText, titleTextStyle]}>{item.title}</Text>
+              <Text style={[styles.headerText, titleTextStyle]}>
+                {item.title}
+              </Text>
               <Feather
                 name={open ? 'chevron-up' : 'chevron-down'}
                 size={18}

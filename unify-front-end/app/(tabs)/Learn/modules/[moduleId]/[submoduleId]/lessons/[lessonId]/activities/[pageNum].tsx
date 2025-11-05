@@ -136,7 +136,7 @@ export default function ActivityPageScreen() {
         } else {
           // No ending pages, save this lesson as completed (in background)
           setIsSaving(true);
-          
+
           // Save in background - don't block navigation
           saveLessonCompletion(
             lessonId || '',
@@ -303,40 +303,40 @@ export default function ActivityPageScreen() {
               </Text>
             )}
             <RichTextRenderer
-            blocks={currentPageData.answer_box.content || []}
-            markDefs={currentPageData.answer_box.markDefs}
-            styles={{
-              // Regular copy: 14/20, dark gray
-              normal: {
-                fontSize: 14,
-                lineHeight: 20,
-                fontWeight: '400',
-                color: '#3F3F3F',
-                marginBottom: 0,
-              },
-              bullet: {
-                fontSize: 14,
-                lineHeight: 20,
-                fontWeight: '400',
-                color: '#3F3F3F',
-                marginBottom: 0,
-              },
-              number: {
-                fontSize: 14,
-                lineHeight: 20,
-                fontWeight: '400',
-                color: '#3F3F3F',
-                marginBottom: 0,
-              },
-              // Bold lead-in like **Nice work!**
-              strong: {
-                fontSize: 14,
-                lineHeight: 20,
-                fontWeight: '600',
-                color: '#3F3F3F',
-              },
-            }}
-          />
+              blocks={currentPageData.answer_box.content || []}
+              markDefs={currentPageData.answer_box.markDefs}
+              styles={{
+                // Regular copy: 14/20, dark gray
+                normal: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '400',
+                  color: '#3F3F3F',
+                  marginBottom: 0,
+                },
+                bullet: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '400',
+                  color: '#3F3F3F',
+                  marginBottom: 0,
+                },
+                number: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '400',
+                  color: '#3F3F3F',
+                  marginBottom: 0,
+                },
+                // Bold lead-in like **Nice work!**
+                strong: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '600',
+                  color: '#3F3F3F',
+                },
+              }}
+            />
           </View>
         )}
       </ScrollView>
@@ -444,13 +444,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent', // ← no filled background
     borderLeftWidth: 5,
     borderLeftColor: '#3F3F3F',
-    paddingLeft: 15,          // Figma
+    paddingLeft: 15, // Figma
     paddingRight: 0,
     paddingVertical: 0,
     alignSelf: 'center',
-    width: 353,               // Figma width
+    width: 353, // Figma width
     maxWidth: '100%',
-    minHeight: 80,            // Figma baseline, still grows with content
+    minHeight: 80, // Figma baseline, still grows with content
     marginTop: 0,
     marginBottom: 30,
   },
@@ -463,7 +463,6 @@ const styles = StyleSheet.create({
     color: '#3F3F3F',
     marginBottom: 10,
   },
-
 
   answerBoxText: {
     // Regular 14 / 20 for paragraph text inside renderer

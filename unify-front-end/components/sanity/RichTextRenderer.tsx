@@ -56,21 +56,45 @@ export default function RichTextRenderer({
 
   const defaultStyles = {
     // Headings
-    h1: { fontSize: 28, fontWeight: '700', color: '#000', marginBottom: 20, marginTop: 24 },
-    h2: { fontSize: 24, fontWeight: '600', color: '#000', marginBottom: 16, marginTop: 20 },
-    h3: { fontSize: 20, fontWeight: '600', color: '#000', marginBottom: 14, marginTop: 16 },
-    h4: { fontSize: 18, fontWeight: '600', color: '#000', marginBottom: 12, marginTop: 14 },
+    h1: {
+      fontSize: 28,
+      fontWeight: '700',
+      color: '#000',
+      marginBottom: 20,
+      marginTop: 24,
+    },
+    h2: {
+      fontSize: 24,
+      fontWeight: '600',
+      color: '#000',
+      marginBottom: 16,
+      marginTop: 20,
+    },
+    h3: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: '#000',
+      marginBottom: 14,
+      marginTop: 16,
+    },
+    h4: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: '#000',
+      marginBottom: 12,
+      marginTop: 14,
+    },
 
     // Paragraphs
     normal: {
       fontFamily: 'Font Family',
-      fontWeight: '400',         // Regular
+      fontWeight: '400', // Regular
       fontStyle: 'normal',
       fontSize: 14,
       lineHeight: 20,
-      letterSpacing: 0,          // set your token here if not 0
+      letterSpacing: 0, // set your token here if not 0
       color: '#374151',
-      marginBottom: 0
+      marginBottom: 0,
     },
 
     // Lists
@@ -83,7 +107,7 @@ export default function RichTextRenderer({
       letterSpacing: 0,
       color: '#374151',
       marginBottom: 3,
-      marginTop: 0
+      marginTop: 0,
     },
     number: {
       fontFamily: 'Font Family',
@@ -93,12 +117,12 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
-      marginBottom: 4
+      marginBottom: 4,
     },
 
     strong: {
       fontFamily: 'Font Family',
-      fontWeight: '700',       // Semi-Bold
+      fontWeight: '700', // Semi-Bold
       fontStyle: 'normal',
       fontSize: 14,
       lineHeight: 20,
@@ -140,7 +164,11 @@ export default function RichTextRenderer({
       justifyContent: 'center',
       marginVertical: 16,
     },
-    imagePlaceholderText: { fontSize: 16, color: '#6B7280', textAlign: 'center' },
+    imagePlaceholderText: {
+      fontSize: 16,
+      color: '#6B7280',
+      textAlign: 'center',
+    },
 
     // Special blocks
     dropdown: { marginVertical: 16 },
@@ -303,7 +331,10 @@ export default function RichTextRenderer({
                 break;
               case 'strike-through':
                 text = (
-                  <Text key={index} style={{ textDecorationLine: 'line-through' }}>
+                  <Text
+                    key={index}
+                    style={{ textDecorationLine: 'line-through' }}
+                  >
                     {text}
                   </Text>
                 );
@@ -343,7 +374,9 @@ export default function RichTextRenderer({
       // Keep prev bullet/number behavior
       if (block.listItem) {
         const listStyle =
-          block.listItem === 'bullet' ? mergedStyles.bullet : mergedStyles.number;
+          block.listItem === 'bullet'
+            ? mergedStyles.bullet
+            : mergedStyles.number;
         const bullet =
           block.listItem === 'bullet'
             ? '•'
@@ -509,7 +542,10 @@ export default function RichTextRenderer({
       const isSmall = block._type === 'small_input_box';
 
       return (
-        <View key={block._key || index} style={mergedStyles.inputFieldContainer}>
+        <View
+          key={block._key || index}
+          style={mergedStyles.inputFieldContainer}
+        >
           <TextInput
             style={[
               {
@@ -565,7 +601,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
   },
-  inputLabel: { fontSize: 16, fontWeight: '600', color: '#374151', marginBottom: 8 },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
   input: {
     borderWidth: 2,
     borderColor: '#9CA3AF',
@@ -576,7 +617,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     minHeight: 44,
   },
-  largeInput: { height: 300, textAlignVertical: 'top', borderWidth: 2, borderColor: '#9CA3AF' },
-  midInput: { height: 200, textAlignVertical: 'top', borderWidth: 2, borderColor: '#9CA3AF' },
+  largeInput: {
+    height: 300,
+    textAlignVertical: 'top',
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+  },
+  midInput: {
+    height: 200,
+    textAlignVertical: 'top',
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+  },
   smallInput: { height: 100, borderWidth: 2, borderColor: '#9CA3AF' },
 });

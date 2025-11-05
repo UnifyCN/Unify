@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAllPosts } from '@/services/posts/getAllPosts';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from '@/components/home/PostItem';
-import { SearchHeader } from '@/components/SearchHeader';
+import BackHeader from '@/components/BackHeader';
 
 export default function MorePostsScreen() {
   const { q } = useLocalSearchParams();
@@ -25,7 +25,7 @@ export default function MorePostsScreen() {
 
   return (
     <View style={styles.searchContainer}>
-      <SearchHeader />
+      <BackHeader title='Search' />
 
       <FlatList
         data={posts}

@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     marginTop: 60,
     gap: 30,
   },
-  closeButton: { 
+  closeButton: {
     alignSelf: 'flex-start',
   },
   title: {
