@@ -28,7 +28,12 @@ export function CurrentLessonSkeletonLoader() {
     outputRange: [0.3, 0.7],
   });
 
-  const SkeletonBox = ({ width, height, borderRadius = 0, style }: {
+  const SkeletonBox = ({
+    width,
+    height,
+    borderRadius = 0,
+    style,
+  }: {
     width: number | string;
     height: number;
     borderRadius?: number;
@@ -51,12 +56,12 @@ export function CurrentLessonSkeletonLoader() {
   return (
     <View style={styles.card}>
       <View style={styles.banner}>
-        <SkeletonBox width="100%" height={160} borderRadius={16} />
+        <SkeletonBox width='100%' height={160} borderRadius={16} />
       </View>
       <View style={styles.footerRow}>
         <View style={styles.footerText}>
-          <SkeletonBox width="60%" height={12} style={{ marginBottom: 8 }} />
-          <SkeletonBox width="80%" height={16} />
+          <SkeletonBox width='60%' height={12} style={{ marginBottom: 8 }} />
+          <SkeletonBox width='80%' height={16} />
         </View>
         <SkeletonBox width={38} height={38} borderRadius={12} />
       </View>
@@ -99,4 +104,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
 });
-

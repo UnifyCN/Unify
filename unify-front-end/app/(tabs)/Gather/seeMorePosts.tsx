@@ -25,7 +25,7 @@ export default function MorePostsScreen() {
 
   return (
     <View style={styles.searchContainer}>
-      <BackHeader title="Search" />
+      <BackHeader title='Search' />
 
       <FlatList
         data={posts}

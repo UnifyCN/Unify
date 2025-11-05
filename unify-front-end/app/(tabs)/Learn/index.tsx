@@ -110,11 +110,15 @@ export default function Learn() {
                   onMomentumScrollEnd={onMomentumEnd}
                 >
                   {inProgressLessons.map((lesson, i) => {
-                    const module = modules?.find(m => m._id === lesson.moduleId);
+                    const module = modules?.find(
+                      m => m._id === lesson.moduleId
+                    );
                     const submoduleCount = module?.submodules?.length || 0;
-                    const coverImageUrl = module?.coverPhoto ? urlFor(module.coverPhoto) : undefined;
+                    const coverImageUrl = module?.coverPhoto
+                      ? urlFor(module.coverPhoto)
+                      : undefined;
                     const colorHex = module?.colorTheme?.hex;
-                    
+
                     return (
                       <View
                         key={lesson.id}
@@ -176,7 +180,9 @@ export default function Learn() {
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
                     href={`/(tabs)/Learn/modules/${module._id}` as any}
                     colorHex={module.colorTheme?.hex}
-                    coverImageUrl={module.coverPhoto ? urlFor(module.coverPhoto) : undefined}
+                    coverImageUrl={
+                      module.coverPhoto ? urlFor(module.coverPhoto) : undefined
+                    }
                   />
                 );
               })

@@ -48,7 +48,7 @@ export default function MoreGroupsScreen() {
 
   return (
     <View style={styles.searchContainer}>
-      <BackHeader title="Search" />
+      <BackHeader title='Search' />
 
       <FlatList
         data={filtered}

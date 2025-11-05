@@ -89,7 +89,7 @@ export default function CreatePostModal({
         onRequestClose={handleCancel}
       >
         <ScrollView style={styles.container}>
-          <View style={[styles.header,  { paddingTop: insets.top + 20 }]}>
+          <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
             <TouchableOpacity onPress={handleCancel}>
               <Feather name='x' size={24} color='black' />
             </TouchableOpacity>
@@ -97,13 +97,10 @@ export default function CreatePostModal({
               onPress={handleSubmit}
               style={[
                 styles.postButton,
-                (!title.trim() || !content.trim()) &&
-                  styles.disabledButton,
+                (!title.trim() || !content.trim()) && styles.disabledButton,
               ]}
               disabled={
-                !title.trim() ||
-                !content.trim() ||
-                createPostMutation.isPending
+                !title.trim() || !content.trim() || createPostMutation.isPending
               }
             >
               {createPostMutation.isPending ? (
@@ -117,7 +114,9 @@ export default function CreatePostModal({
           <TouchableOpacity
             style={[
               styles.groupSelector,
-              selectedGroup ? styles.groupSelectorSelected : styles.groupSelectorFull
+              selectedGroup
+                ? styles.groupSelectorSelected
+                : styles.groupSelectorFull,
             ]}
             onPress={() => setShowGroupSelector(true)}
           >
@@ -131,8 +130,14 @@ export default function CreatePostModal({
                 </View>
               ) : (
                 <View style={styles.selectedGroupInfo}>
-                  <Feather name='search' size={18} color={Theme.textAlternateGray} />
-                  <Text style={styles.groupBlankText}>Select a group (optional)</Text>
+                  <Feather
+                    name='search'
+                    size={18}
+                    color={Theme.textAlternateGray}
+                  />
+                  <Text style={styles.groupBlankText}>
+                    Select a group (optional)
+                  </Text>
                 </View>
               )}
             </View>

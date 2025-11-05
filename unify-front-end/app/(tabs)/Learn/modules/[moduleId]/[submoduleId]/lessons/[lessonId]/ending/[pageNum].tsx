@@ -119,7 +119,7 @@ export default function EndingPageScreen() {
 
       // All ending pages completed, save this lesson as completed (in background)
       setIsSaving(true);
-      
+
       // Save in background - don't block navigation
       saveLessonCompletion(
         lessonId || '',

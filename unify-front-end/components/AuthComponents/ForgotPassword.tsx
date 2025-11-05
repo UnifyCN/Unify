@@ -13,7 +13,10 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: 'error' | 'success';
+    text: string;
+  } | null>(null);
 
   // Method to validate if email is in valid format
   const validateEmail = (email: string) => {
@@ -24,7 +27,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
   const handleResetPassword = async () => {
     setLoading(true);
     setMessage(null);
-    
+
     try {
       // TODO: This does not work at all, user will be redirected back to this page instead of the reset password page
       // https://blog.theodo.com/2023/03/supabase-reset-password-rn/ maybe this is useful
@@ -36,15 +39,15 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
       if (error) {
         setMessage({ type: 'error', text: error.message });
       } else {
-        setMessage({ 
-          type: 'success', 
-          text: 'Password reset link has been sent to your email' 
+        setMessage({
+          type: 'success',
+          text: 'Password reset link has been sent to your email',
         });
       }
     } catch (error) {
-      setMessage({ 
-        type: 'error', 
-        text: 'An error occurred while sending reset email' 
+      setMessage({
+        type: 'error',
+        text: 'An error occurred while sending reset email',
       });
     } finally {
       setLoading(false);
@@ -53,11 +56,12 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
 
   return (
     <ViewContainer style={styles.container}>
-      <BackHeader title="Reset Password" onBack={onBack} backIcon="x" />
-      
+      <BackHeader title='Reset Password' onBack={onBack} backIcon='x' />
+
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter your email address and we'll send you instructions to reset your password.
+          Enter your email address and we'll send you instructions to reset your
+          password.
         </Text>
 
         <View style={styles.inputContainer}>
@@ -69,18 +73,18 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
                 setEmail(text);
                 validateEmail(text);
               }}
-              placeholder="Email address"
+              placeholder='Email address'
               style={[
                 styles.textField,
-                message?.type === 'error' && { borderColor: '#f00' }
+                message?.type === 'error' && { borderColor: '#f00' },
               ]}
-              autoCapitalize="none"
+              autoCapitalize='none'
             />
             {isEmailValid && (
               <MaterialIcons
-                name="check-circle"
+                name='check-circle'
                 size={24}
-                color="#333"
+                color='#333'
                 style={styles.tickIcon}
               />
             )}
@@ -91,7 +95,9 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
           <Text
             style={[
               styles.message,
-              message.type === 'error' ? styles.errorMessage : styles.successMessage
+              message.type === 'error'
+                ? styles.errorMessage
+                : styles.successMessage,
             ]}
           >
             {message.text}

@@ -24,8 +24,8 @@ export default function DropdownBlock({ block, index }: DropdownBlockProps) {
 
   return (
     <View key={block._key || index}>
-      <DropdownAccordion 
-        items={dropdownItems} 
+      <DropdownAccordion
+        items={dropdownItems}
         titleTextStyle={styles.closedTitle}
       />
     </View>
@@ -43,5 +43,5 @@ const styles = StyleSheet.create({
     //if needed:
     //color: '#FFFFFF',
     //letterSpacing: 0,
-  }
-})
+  },
+});

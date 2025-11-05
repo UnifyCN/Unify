@@ -112,7 +112,7 @@ const EventsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <BackHeader title="Gather Events" />
+      <BackHeader title='Gather Events' />
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>

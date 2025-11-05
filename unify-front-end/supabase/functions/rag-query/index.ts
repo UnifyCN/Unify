@@ -61,7 +61,10 @@ Deno.serve(async (req: Request) => {
     );
 
     console.log(`Chunks received for "${prompt}":`, chunks?.length || 0);
-    console.log('RPC error:', searchError ? JSON.stringify(searchError) : 'none');
+    console.log(
+      'RPC error:',
+      searchError ? JSON.stringify(searchError) : 'none'
+    );
 
     if (searchError) {
       console.error('RPC function error:', searchError);
@@ -83,11 +86,14 @@ Deno.serve(async (req: Request) => {
 
     // Build context from retrieved chunks
     let contextText = '';
-    const sourcesMap = new Map<number, {
-      document_id: number;
-      document_title: string;
-      url: string;
-    }>();
+    const sourcesMap = new Map<
+      number,
+      {
+        document_id: number;
+        document_title: string;
+        url: string;
+      }
+    >();
 
     console.log(`Final chunks count for "${prompt}":`, chunks?.length || 0);
 
@@ -99,13 +105,13 @@ Deno.serve(async (req: Request) => {
       chunks.forEach((chunk: any) => {
         const doc = chunk.knowledge_documents || {};
         contextText += `[Document: ${doc.title || 'Unknown'}]\n${chunk.chunk_text}\n\n`;
-        
+
         // Deduplicate by document_id - only keep first occurrence
         if (!sourcesMap.has(chunk.document_id)) {
           const storagePath = doc.storage_path || '';
           // Construct public S3 URL: https://bucket-name.s3.region.amazonaws.com/path/to/file.pdf
           const s3Url = `https://${s3BucketName}.s3.${s3Region}.amazonaws.com/${storagePath}`;
-          
+
           sourcesMap.set(chunk.document_id, {
             document_id: chunk.document_id,
             document_title: doc.title || 'Unknown',

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { supabase } from '@/lib/supabase';
-import { SimpleTextField, SubmitButton, ViewContainer } from '@/components/AuthComponents/Components';
+import {
+  SimpleTextField,
+  SubmitButton,
+  ViewContainer,
+} from '@/components/AuthComponents/Components';
 import { MaterialIcons } from '@expo/vector-icons';
 import BackHeader from '@/components/BackHeader';
 import { useRouter } from 'expo-router';
@@ -12,7 +16,10 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: 'error' | 'success';
+    text: string;
+  } | null>(null);
 
   const validatePassword = (password: string) => {
     return password.length >= 8; // Can add more complex validation if needed
@@ -31,22 +38,25 @@ export default function ResetPasswordPage() {
 
     // Validate password strength
     if (!validatePassword(newPassword)) {
-      setMessage({ type: 'error', text: 'Password must be at least 8 characters long' });
+      setMessage({
+        type: 'error',
+        text: 'Password must be at least 8 characters long',
+      });
       setLoading(false);
       return;
     }
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
       });
 
       if (error) {
         setMessage({ type: 'error', text: error.message });
       } else {
-        setMessage({ 
-          type: 'success', 
-          text: 'Password has been reset successfully' 
+        setMessage({
+          type: 'success',
+          text: 'Password has been reset successfully',
         });
         // Redirect to sign in after a short delay
         setTimeout(() => {
@@ -54,9 +64,9 @@ export default function ResetPasswordPage() {
         }, 2000);
       }
     } catch (error) {
-      setMessage({ 
-        type: 'error', 
-        text: 'An error occurred while resetting your password' 
+      setMessage({
+        type: 'error',
+        text: 'An error occurred while resetting your password',
       });
     } finally {
       setLoading(false);
@@ -65,12 +75,14 @@ export default function ResetPasswordPage() {
 
   return (
     <ViewContainer style={styles.container}>
-      <BackHeader title="Reset Password" onBack={() => router.back()} backIcon="x" />
-      
+      <BackHeader
+        title='Reset Password'
+        onBack={() => router.back()}
+        backIcon='x'
+      />
+
       <View style={styles.content}>
-        <Text style={styles.description}>
-          Enter your new password below.
-        </Text>
+        <Text style={styles.description}>Enter your new password below.</Text>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>New Password</Text>
@@ -78,24 +90,24 @@ export default function ResetPasswordPage() {
             <SimpleTextField
               value={newPassword}
               onChangeText={setNewPassword}
-              placeholder="New password"
+              placeholder='New password'
               style={[
                 styles.textField,
-                message?.type === 'error' && { borderColor: '#f00' }
+                message?.type === 'error' && { borderColor: '#f00' },
               ]}
               secureTextEntry={!passwordVisible}
-              autoCapitalize="none"
+              autoCapitalize='none'
             />
-            <TouchableOpacity  
-              onPress={() => setPasswordVisible(!passwordVisible)}  
-              style={styles.eyeIcon}  
-            >  
-              <MaterialIcons  
-                name={passwordVisible ? 'visibility' : 'visibility-off'}  
-                size={24}  
-                color="#333"  
-              />  
-            </TouchableOpacity>  
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              style={styles.eyeIcon}
+            >
+              <MaterialIcons
+                name={passwordVisible ? 'visibility' : 'visibility-off'}
+                size={24}
+                color='#333'
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -105,13 +117,13 @@ export default function ResetPasswordPage() {
             <SimpleTextField
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Confirm password"
+              placeholder='Confirm password'
               style={[
                 styles.textField,
-                message?.type === 'error' && { borderColor: '#f00' }
+                message?.type === 'error' && { borderColor: '#f00' },
               ]}
               secureTextEntry={!passwordVisible}
-              autoCapitalize="none"
+              autoCapitalize='none'
             />
           </View>
         </View>
@@ -120,7 +132,9 @@ export default function ResetPasswordPage() {
           <Text
             style={[
               styles.message,
-              message.type === 'error' ? styles.errorMessage : styles.successMessage
+              message.type === 'error'
+                ? styles.errorMessage
+                : styles.successMessage,
             ]}
           >
             {message.text}

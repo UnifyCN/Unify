@@ -28,7 +28,12 @@ export function PathwayCardSkeletonLoader() {
     outputRange: [0.3, 0.7],
   });
 
-  const SkeletonBox = ({ width, height, borderRadius = 0, style }: {
+  const SkeletonBox = ({
+    width,
+    height,
+    borderRadius = 0,
+    style,
+  }: {
     width: number | string;
     height: number;
     borderRadius?: number;
@@ -51,10 +56,10 @@ export function PathwayCardSkeletonLoader() {
   return (
     <View style={styles.card}>
       <View style={styles.banner}>
-        <SkeletonBox width="100%" height={100} borderRadius={20} />
+        <SkeletonBox width='100%' height={100} borderRadius={20} />
       </View>
-      <SkeletonBox width="80%" height={16} style={{ marginBottom: 6 }} />
-      <SkeletonBox width="60%" height={12} />
+      <SkeletonBox width='80%' height={16} style={{ marginBottom: 6 }} />
+      <SkeletonBox width='60%' height={12} />
     </View>
   );
 }
@@ -89,4 +94,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
 });
-

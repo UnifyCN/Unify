@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-} from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useFollowUser } from '@/hooks/users/useFollowUser';
 import { useFollowStatus } from '@/hooks/users/useFollowStatus';
 import { Theme } from '@/constants/Theme';

@@ -206,7 +206,7 @@ const SearchScreen = () => {
 
   return (
     <View style={styles.searchContainer}>
-      <BackHeader title="Search" />
+      <BackHeader title='Search' />
 
       <View style={styles.searchInputContainer}>
         <Feather name='search' size={20} color={Theme.textInput} />

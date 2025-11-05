@@ -10,7 +10,11 @@ interface BackHeaderProps {
   backIcon?: keyof typeof Feather.glyphMap;
 }
 
-const BackHeader = ({ title = '', onBack, backIcon = 'chevron-left' }: BackHeaderProps) => {
+const BackHeader = ({
+  title = '',
+  onBack,
+  backIcon = 'chevron-left',
+}: BackHeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
