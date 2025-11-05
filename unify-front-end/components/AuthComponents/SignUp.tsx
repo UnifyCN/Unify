@@ -3,6 +3,10 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
+import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import Facebook from '../../assets/images/Facebook.svg';
+import Google from '../../assets/images/Google.svg';
+import Apple from '../../assets/images/Apple.svg';
 import {
   SubmitButton,
   SimpleTextField,
@@ -29,6 +33,9 @@ export function SignUp({
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
+
+  // Use the unified Google Auth hook
+  const { signInWithGoogle, isExpoGo } = useGoogleAuth();
 
   const validateEmail = (email: string) => {
     // Simple email validation regex
@@ -89,6 +96,21 @@ export function SignUp({
 
     setLoading(false);
   };
+
+  // Handle Google sign-in with unified hook
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    
+    const result = await signInWithGoogle();
+    
+    if (!result.success && result.error) {
+      setErrorMessage(result.error);
+    }
+    
+    setLoading(false);
+  };
+
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Create account</ViewHeader>
@@ -204,6 +226,27 @@ export function SignUp({
       >
         Sign Up
       </SubmitButton>
+
+      <View style={styles.orLogIn}>
+        <View style={styles.lineView}></View>
+        <Text style={styles.orText}>Or Sign up with</Text>
+        <View style={styles.lineView}></View>
+      </View>
+      <View style={styles.buttonBucket}>
+        <View style={styles.buttonWithIcon}>
+          <Facebook width={20} height={20} />
+        </View>
+        <View style={styles.buttonWithIcon}>
+          <Apple width={20} height={20} />
+        </View>
+
+        <TouchableOpacity
+          style={styles.buttonWithIcon}
+          onPress={handleGoogleSignIn}
+        >
+          <Google width={20} height={20} />
+        </TouchableOpacity>
+      </View>
       <View style={styles.footer}>
         <Text
           style={{
@@ -342,5 +385,43 @@ const styles = {
   },
   buttonDisabled: {
     backgroundColor: '#E7E7E9',
+  },
+  orLogIn: {
+    marginTop: 22 * 0.87,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+  },
+  lineView: {
+    borderStyle: 'solid' as 'solid',
+    borderColor: '#d8dadc',
+    borderTopWidth: 1 * 0.87,
+    flex: 1,
+    width: '100%' as '100%',
+    height: 1 * 0.87,
+  },
+  orText: {
+    color: 'rgba(0, 0, 0, 0.7)',
+    fontSize: 14 * 0.87,
+    lineHeight: 18 * 0.87,
+    marginHorizontal: 10 * 0.87,
+  },
+  buttonBucket: {
+    marginTop: 22 * 0.87,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    gap: 15 * 0.87,
+  },
+  buttonWithIcon: {
+    borderRadius: 10 * 0.87,
+    backgroundColor: '#fff',
+    borderStyle: 'solid' as 'solid',
+    borderColor: '#d8dadc',
+    borderWidth: 1 * 0.87,
+    flex: 1,
+    width: '100%' as '100%',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    paddingHorizontal: 45 * 0.87,
+    paddingVertical: 18 * 0.87,
   },
 };

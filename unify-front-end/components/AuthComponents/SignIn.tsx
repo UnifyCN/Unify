@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import isExpoGo from '../../utils/isExpoGo'; // see if we are running dev env using expo go or not
 import ForgotPassword from './ForgotPassword';
 
 import { useForm } from 'react-hook-form';
@@ -7,10 +6,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SignInProps } from '@aws-amplify/ui-react-native';
 import { supabase } from '../../lib/supabase';
 import { Button } from 'react-native-paper';
-import {
-  GoogleSignin,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
+import { useGoogleAuth } from '../../hooks/useGoogleAuth';
 
 import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
 import Facebook from '../../assets/images/Facebook.svg';
@@ -70,40 +66,21 @@ export function SignIn({
     setLoading(false);
   };
 
-  // Configure Google Sign-In once on mount (must happen BEFORE calling signIn)
-  React.useEffect(() => {
-    GoogleSignin.configure({
-      webClientId:
-        '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
-      scopes: ['email', 'profile'],
-      offlineAccess: true,
-      forceCodeForRefreshToken: false,
-    });
-  }, []);
+  // Use the unified Google Auth hook
+  const { signInWithGoogle, isExpoGo } = useGoogleAuth();
 
-  // Move Google sign-in logic to a separate function
+  // Handle Google sign-in with unified hook
   const handleGoogleSignIn = async () => {
-    if (isExpoGo) return; // Not supported in Expo Go
-    try {
-      await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-      if (response.data?.idToken) {
-        const { error } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: response.data.idToken,
-        });
-        if (error) setErrorMessage(error.message);
-      } else {
-        setErrorMessage('No Google idToken');
-      }
-    } catch (error: any) {
-      if (error?.code === statusCodes.IN_PROGRESS) return; // already in progress
-      if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setErrorMessage('Google Play Services not available');
-        return;
-      }
-      setErrorMessage(error?.message || 'Google sign-in failed');
+    setLoading(true);
+    setErrorMessage(null);
+    
+    const result = await signInWithGoogle();
+    
+    if (!result.success && result.error) {
+      setErrorMessage(result.error);
     }
+    
+    setLoading(false);
   };
 
   if (showForgotPassword) {
