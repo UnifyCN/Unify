@@ -70,56 +70,56 @@ export default function QuizzesPage() {
     <SafeAreaView style={styles.safe}>
       <Header />
       <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Quizzes</Text>
-        <Text style={styles.subtitle}>
-          Test your knowledge with these quizzes
-        </Text>
-      </View>
+        <View style={styles.header}>
+          <Text style={styles.title}>Quizzes</Text>
+          <Text style={styles.subtitle}>
+            Test your knowledge with these quizzes
+          </Text>
+        </View>
 
-      <View style={styles.quizzesList}>
-        {quizzes.map((quiz, index) => (
+        <View style={styles.quizzesList}>
+          {quizzes.map((quiz, index) => (
+            <TouchableOpacity
+              key={quiz._id}
+              style={styles.quizCard}
+              onPress={() => {
+                router.push({
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
+                  params: {
+                    moduleId,
+                    submoduleId,
+                    lessonId,
+                    quizId: quiz._id,
+                  },
+                });
+              }}
+            >
+              <View style={styles.quizHeader}>
+                <Text style={styles.quizNumber}>Quiz {quiz.order_number}</Text>
+                <Text style={styles.quizTitle}>{quiz.title}</Text>
+              </View>
+
+              {quiz.description && (
+                <Text style={styles.quizDescription}>{quiz.description}</Text>
+              )}
+
+              <View style={styles.quizFooter}>
+                <Text style={styles.startQuiz}>Start Quiz →</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.footer}>
           <TouchableOpacity
-            key={quiz._id}
-            style={styles.quizCard}
-            onPress={() => {
-              router.push({
-                pathname:
-                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,
-                params: {
-                  moduleId,
-                  submoduleId,
-                  lessonId,
-                  quizId: quiz._id,
-                },
-              });
-            }}
+            style={styles.backButton}
+            onPress={() => router.back()}
           >
-            <View style={styles.quizHeader}>
-              <Text style={styles.quizNumber}>Quiz {quiz.order_number}</Text>
-              <Text style={styles.quizTitle}>{quiz.title}</Text>
-            </View>
-
-            {quiz.description && (
-              <Text style={styles.quizDescription}>{quiz.description}</Text>
-            )}
-
-            <View style={styles.quizFooter}>
-              <Text style={styles.startQuiz}>Start Quiz →</Text>
-            </View>
+            <Text style={styles.backButtonText}>Back to Lesson</Text>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backButtonText}>Back to Lesson</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -34,7 +34,7 @@ export default function PathwayCard({
           <Image
             source={{ uri: coverImageUrl }}
             style={styles.bannerImage}
-            resizeMode="cover"
+            resizeMode='cover'
           />
         ) : null}
       </View>

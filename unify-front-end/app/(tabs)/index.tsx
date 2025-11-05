@@ -75,12 +75,12 @@ const NewsTipsSection = () => {
         style={{ marginHorizontal: 20, paddingVertical: 2 }}
       >
         <NewsCard
-          title="Navigating Winter Roads"
-          description="New to snow? ICBC article to help you avoid issues on the icy, winter roads."
+          title='Navigating Winter Roads'
+          description='New to snow? ICBC article to help you avoid issues on the icy, winter roads.'
         />
         <NewsCard
-          title="Financial Planning Tips"
-          description="Essential tips for managing your finances in Canada."
+          title='Financial Planning Tips'
+          description='Essential tips for managing your finances in Canada.'
         />
         <TouchableOpacity
           style={styles.viewMoreCardContainer}

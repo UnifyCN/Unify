@@ -27,7 +27,7 @@ import {
   getRecentGroupsWithData,
 } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
-import { SearchHeader } from '@/components/SearchHeader';
+import BackHeader from '@/components/BackHeader';
 import { Theme } from '@/constants/Theme';
 
 export const navigationOptions = {
@@ -206,7 +206,7 @@ const SearchScreen = () => {
 
   return (
     <View style={styles.searchContainer}>
-      <SearchHeader />
+      <BackHeader title='Search' />
 
       <View style={styles.searchInputContainer}>
         <Feather name='search' size={20} color={Theme.textInput} />
@@ -391,7 +391,6 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 20,
-    paddingTop: 20,
     flex: 1,
     backgroundColor: '#ffffffff',
   },

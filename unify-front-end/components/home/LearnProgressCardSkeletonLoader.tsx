@@ -28,7 +28,12 @@ export function LearnProgressCardSkeletonLoader() {
     outputRange: [0.3, 0.7],
   });
 
-  const SkeletonBox = ({ width, height, borderRadius = 0, style }: {
+  const SkeletonBox = ({
+    width,
+    height,
+    borderRadius = 0,
+    style,
+  }: {
     width: number | string;
     height: number;
     borderRadius?: number;
@@ -51,16 +56,21 @@ export function LearnProgressCardSkeletonLoader() {
   return (
     <View style={styles.progressCard}>
       {/* Text skeleton */}
-      <SkeletonBox width="85%" height={22} style={{ marginBottom: 16 }} />
-      <SkeletonBox width="40%" height={18} style={{ marginBottom: 8 }} />
-      
+      <SkeletonBox width='85%' height={22} style={{ marginBottom: 16 }} />
+      <SkeletonBox width='40%' height={18} style={{ marginBottom: 8 }} />
+
       {/* Progress bar skeleton */}
       <View style={styles.cardProgressBar}>
-        <SkeletonBox width="60%" height={11} borderRadius={20} />
+        <SkeletonBox width='60%' height={11} borderRadius={20} />
       </View>
 
       {/* Button skeleton */}
-      <SkeletonBox width="100%" height={44} borderRadius={8} style={{ marginTop: 20 }} />
+      <SkeletonBox
+        width='100%'
+        height={44}
+        borderRadius={8}
+        style={{ marginTop: 20 }}
+      />
     </View>
   );
 }
@@ -87,4 +97,3 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
 });
-

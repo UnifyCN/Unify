@@ -31,34 +31,36 @@ export default function LessonHeroCard({
   href,
 }: LessonHeroCardProps) {
   const sectionsText = submoduleCount === 1 ? 'section' : 'sections';
-  
+
   // Extract lesson number from title (e.g., "Lesson 5.3" or "5.3" from title)
   const extractLessonNumber = (lessonTitle?: string): string => {
     if (!lessonTitle) return `Lesson ${currentPage}`;
-    
+
     // Match patterns like "Lesson 5.3", "5.3", "Lesson 5", "5", etc.
     const match = lessonTitle.match(/(?:Lesson\s+)?(\d+(?:\.\d+)?)/i);
     if (match && match[1]) {
       return `Lesson ${match[1]}`;
     }
-    
+
     // Fallback to currentPage if no lesson number found
     return `Lesson ${currentPage}`;
   };
-  
+
   const lessonNumberText = extractLessonNumber(title);
-  
+
   // Remove lesson number prefix from title (e.g., "Lesson 5.3: " or "5.3: ")
   const cleanTitle = (lessonTitle?: string): string => {
     if (!lessonTitle) return '';
-    
+
     // Remove patterns like "Lesson 5.3: ", "Lesson 5.3 ", "5.3: ", "5.3 ", etc.
-    const cleaned = lessonTitle.replace(/^(?:Lesson\s+)?\d+(?:\.\d+)?\s*:?\s*/i, '').trim();
+    const cleaned = lessonTitle
+      .replace(/^(?:Lesson\s+)?\d+(?:\.\d+)?\s*:?\s*/i, '')
+      .trim();
     return cleaned || lessonTitle; // Fallback to original if regex removes everything
   };
-  
+
   const displayTitle = cleanTitle(title);
-  
+
   const cardContent = (
     <View style={styles.card}>
       <View style={styles.banner}>
@@ -66,7 +68,7 @@ export default function LessonHeroCard({
           <Image
             source={{ uri: coverImageUrl }}
             style={styles.bannerImage}
-            resizeMode="cover"
+            resizeMode='cover'
           />
         ) : null}
         <View style={styles.bannerOverlay} />
@@ -80,12 +82,15 @@ export default function LessonHeroCard({
 
       <View style={styles.footerRow}>
         <View>
-          <Text style={styles.caption}>
-            Continue from {lessonNumberText}:
-          </Text>
+          <Text style={styles.caption}>Continue from {lessonNumberText}:</Text>
           <Text style={styles.subtitle}>{displayTitle}</Text>
         </View>
-        <View style={[styles.playButton, colorHex ? { backgroundColor: colorHex } : null]}>
+        <View
+          style={[
+            styles.playButton,
+            colorHex ? { backgroundColor: colorHex } : null,
+          ]}
+        >
           <MaterialIcons name='play-arrow' size={28} color='#fff' />
         </View>
       </View>

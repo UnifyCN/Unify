@@ -172,10 +172,10 @@ export const EventsCarousel = ({
             activeOpacity={0.7}
           >
             <View style={styles.viewMoreContent}>
-              <ViewMoreCardEvents 
+              <ViewMoreCardEvents
                 width={248}
-                height="100%"
-                preserveAspectRatio="none"
+                height='100%'
+                preserveAspectRatio='none'
               />
               <View style={styles.viewMoreTextOverlay}>
                 <Text style={styles.viewMoreText}>

@@ -77,15 +77,15 @@ export default function LearnProgressCardCarousel() {
 
               // Only include modules with progress between 1% and 100%
               if (progressPercent > 1 && progressPercent < 100) {
-                const lessonsRemaining = totalModuleLessons - completedModuleLessons;
+                const lessonsRemaining =
+                  totalModuleLessons - completedModuleLessons;
 
                 // Find resume href from in-progress lessons for this module
                 const moduleLesson = inProgressLessons?.find(
-                  (lesson) => lesson.moduleId === module._id
+                  lesson => lesson.moduleId === module._id
                 );
                 const resumeHref =
-                  moduleLesson?.href ||
-                  `/(tabs)/Learn/modules/${module._id}`;
+                  moduleLesson?.href || `/(tabs)/Learn/modules/${module._id}`;
 
                 cards.push({
                   module,
@@ -107,10 +107,10 @@ export default function LearnProgressCardCarousel() {
         if (inProgressLessons && inProgressLessons.length > 0) {
           cards.sort((a, b) => {
             const aIndex = inProgressLessons.findIndex(
-              (l) => l.moduleId === a.module._id
+              l => l.moduleId === a.module._id
             );
             const bIndex = inProgressLessons.findIndex(
-              (l) => l.moduleId === b.module._id
+              l => l.moduleId === b.module._id
             );
             // Put modules with lessons first, sorted by lesson order
             if (aIndex >= 0 && bIndex >= 0) return aIndex - bIndex;
@@ -122,7 +122,10 @@ export default function LearnProgressCardCarousel() {
 
         setModuleCards(cards);
       } catch (error) {
-        console.error('[LearnProgressCardCarousel] Error calculating module cards:', error);
+        console.error(
+          '[LearnProgressCardCarousel] Error calculating module cards:',
+          error
+        );
       } finally {
         setIsLoading(false);
       }
@@ -221,7 +224,7 @@ export default function LearnProgressCardCarousel() {
                   <Text style={styles.cardPercentageText}>
                     {card.progressPercent}% Completed
                   </Text>
-                  
+
                   {/* Progress Bar with Linear Gradient */}
                   <View style={styles.cardProgressBar}>
                     <LinearGradient
@@ -326,4 +329,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
