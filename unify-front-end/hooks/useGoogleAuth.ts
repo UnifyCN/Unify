@@ -69,8 +69,9 @@ export function useGoogleAuth() {
       } else {
         return { success: false, error: 'Authentication failed' };
       }
-    } catch (error: any) {
-      return { success: false, error: error?.message || 'OAuth flow failed' };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'OAuth flow failed';
+      return { success: false, error: message };
     }
   };
 
