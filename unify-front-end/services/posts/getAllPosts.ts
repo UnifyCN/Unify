@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { PostData } from '@/types/feeds/post';
-import { User } from '@/types/user';
+import { PostDto } from '@/types/feeds/postDto';
+import { transformPostDtos } from '@/utils/postTransform';
 
 export const getAllPosts = async (
   cursor?: string,
@@ -19,6 +20,7 @@ export const getAllPosts = async (
 				group_id,
 				users!user_id(
 					id,
+          profile_picture_url,
 					username
 				),
 				groups!group_id(
@@ -30,7 +32,8 @@ export const getAllPosts = async (
     if (searchQuery) {
       query = query.or(`title.ilike.%${searchQuery}%`);
     }
-    // .order('posts.created_at', { ascending: false }) // this doesn't work
+    // Order by created_at descending (posts without groups are included)
+    query = query.order('created_at', { ascending: false });
     query = query.range(
       cursor ? parseInt(cursor) : 0,
       (cursor ? parseInt(cursor) : 0) + limit - 1
@@ -42,21 +45,11 @@ export const getAllPosts = async (
       throw new Error(`Failed to fetch all posts: ${error.message}`);
     }
 
-    // Transform data to match PostData type
-    const transformedPosts: PostData[] = (data || [])
-      .filter((row: any) => row.users)
-      .map((row: any) => ({
-        id: row.id,
-        user: {
-          id: row.users.id,
-          username: row.users.username,
-          name: row.users.username,
-        } as User,
-        content: row.content,
-        group: row.groups.group_name,
-        title: row.title,
-        time: row.created_at,
-      }));
+    // Transform data using helper function
+    // Note: Posts without groups (group_id is null) are included - groups will be null
+    const transformedPosts: PostData[] = transformPostDtos(
+      (data || []).filter((row: any) => row.users) as unknown as PostDto[]
+    );
 
     return {
       posts: transformedPosts,

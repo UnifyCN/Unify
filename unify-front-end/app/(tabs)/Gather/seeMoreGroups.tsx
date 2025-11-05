@@ -6,7 +6,7 @@ import GroupCard from './GroupCard';
 import { Group } from '@/types/groups';
 import { saveRecentGroups } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
-import { SearchHeader } from '@/components/SearchHeader';
+import BackHeader from '@/components/BackHeader';
 
 export default function MoreGroupsScreen() {
   const { q } = useLocalSearchParams();
@@ -48,7 +48,7 @@ export default function MoreGroupsScreen() {
 
   return (
     <View style={styles.searchContainer}>
-      <SearchHeader />
+      <BackHeader title="Search" />
 
       <FlatList
         data={filtered}

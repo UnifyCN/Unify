@@ -3,7 +3,6 @@ import {
   TouchableOpacity,
   Text,
   StyleSheet,
-  ActivityIndicator,
 } from 'react-native';
 import { useFollowUser } from '@/hooks/users/useFollowUser';
 import { useFollowStatus } from '@/hooks/users/useFollowStatus';
