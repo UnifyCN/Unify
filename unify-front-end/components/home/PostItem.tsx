@@ -104,20 +104,20 @@ export const PostItem = memo(
               <Text style={styles.name}>{post.user.name}</Text>
             </TouchableOpacity>
             {post.group && (
-                <>
-                  <ChevronRight color={Theme.black} width={6} height={12} />
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push({
-                        pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
-                        params: { groupName: post.group },
-                      })
-                    }
-                  >
-                    <Text style={styles.group}>{post.group}</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <>
+                <ChevronRight color={Theme.black} width={6} height={12} />
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+                      params: { groupName: post.group },
+                    })
+                  }
+                >
+                  <Text style={styles.group}>{post.group}</Text>
+                </TouchableOpacity>
+              </>
+            )}
             <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
           </View>
 
@@ -165,27 +165,26 @@ export const PostItem = memo(
                 <Text style={styles.footerText}>{commentCount}</Text>
               )}
             </TouchableOpacity>
-            {isInsideFeed || isInsideDetails ? (
-              // The main posts (not comments) should be able to be saved
-              <TouchableOpacity
-                onPress={() => {
-                  if (isSaved !== undefined && !showMetadataLoading) {
-                    toggleSave(post.id, isSaved);
-                  }
-                }}
-                disabled={showMetadataLoading}
-              >
-                {showMetadataLoading ? (
-                  <SkeletonLoader width={20} height={20} borderRadius={4} />
-                ) : isSaved ? (
-                  <Save_Fill width={20} height={20} />
-                ) : (
-                  <Save width={20} height={20} />
-                )}
-              </TouchableOpacity>
-            ) : (
-              <></>
-            )}
+            {isInsideFeed ||
+              (isInsideDetails && (
+                // The main posts (not comments) should be able to be saved
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isSaved !== undefined && !showMetadataLoading) {
+                      toggleSave(post.id, isSaved);
+                    }
+                  }}
+                  disabled={showMetadataLoading}
+                >
+                  {showMetadataLoading ? (
+                    <SkeletonLoader width={20} height={20} borderRadius={4} />
+                  ) : isSaved ? (
+                    <Save_Fill width={20} height={20} />
+                  ) : (
+                    <Save width={20} height={20} />
+                  )}
+                </TouchableOpacity>
+              ))}
           </View>
         </View>
       </>
