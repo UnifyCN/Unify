@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
 import Facebook from '../../assets/images/Facebook.svg';
 import Google from '../../assets/images/Google.svg';
-import Apple from '../../assets/images/Apple.svg';
 import {
   SubmitButton,
   SimpleTextField,
@@ -64,7 +63,7 @@ export function SignUp({
 
     try {
       // Check if email exists in the users table
-      const { data: existingUser, error: checkError } = await supabase
+      const { data: existingUser } = await supabase
         .from('users')
         .select('email')
         .eq('email', email.toLowerCase())
@@ -77,7 +76,7 @@ export function SignUp({
       }
 
       // If we get here, the email doesn't exist, so proceed with signup
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: email,
         password: password,
       });
@@ -101,13 +100,14 @@ export function SignUp({
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setErrorMessage(null);
-    
+
     const result = await signInWithGoogle();
-    
+
+    // Only show error if there is one (cancellation returns no error)
     if (!result.success && result.error) {
       setErrorMessage(result.error);
     }
-    
+
     setLoading(false);
   };
 
@@ -236,9 +236,6 @@ export function SignUp({
         <View style={styles.buttonWithIcon}>
           <Facebook width={20} height={20} />
         </View>
-        <View style={styles.buttonWithIcon}>
-          <Apple width={20} height={20} />
-        </View>
 
         <TouchableOpacity
           style={styles.buttonWithIcon}
@@ -276,7 +273,7 @@ export function SignUp({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -286,7 +283,7 @@ const styles = {
   },
   header: {
     fontSize: 34 * 0.87,
-    fontWeight: '700' as '700',
+    fontWeight: '700',
     color: '#000',
     marginBottom: 7 * 0.87,
     marginTop: 110 * 0.87,
@@ -297,13 +294,13 @@ const styles = {
     marginTop: 37 * 0.87,
     width: 110 * 0.87,
     height: 42 * 0.87,
-    alignSelf: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    alignItems: 'center' as 'center',
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
     color: 'white',
-    textAlign: 'center' as 'center',
+    textAlign: 'center',
     fontSize: 16 * 0.87,
   },
   textField: {
@@ -319,47 +316,38 @@ const styles = {
     color: '#f00',
     fontSize: 14 * 0.87,
   },
-  link: {
-    color: 'black',
-    textDecorationLine: 'underline' as 'underline',
-  },
-  linkText: {
-    color: 'black',
-    fontSize: 15 * 0.87,
-    fontWeight: '400' as '400',
-  },
   label: {
     fontSize: 16 * 0.87,
-    fontWeight: '400' as '400',
+    fontWeight: '400',
     color: '#000',
     marginBottom: 8 * 0.87,
     marginTop: 13 * 0.87,
   },
   eyeIcon: {
-    position: 'absolute' as 'absolute',
+    position: 'absolute',
     right: 16 * 0.87,
     top: 62 * 0.87,
   },
   tickIcon: {
-    position: 'absolute' as 'absolute',
+    position: 'absolute',
     right: 16 * 0.87,
     top: 60 * 0.87,
   },
   footer: {
     marginTop: 50 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 5 * 0.87,
   },
   // Terms and conditions checkbox style
   checkboxContainer: {
-    backgroundColor: 'transparent' as 'transparent',
+    backgroundColor: 'transparent',
     borderWidth: 0,
     padding: 0,
     margin: 0,
     marginVertical: 10 * 0.87,
-    alignSelf: 'flex-start' as 'flex-start',
+    alignSelf: 'flex-start',
   },
   checkboxText: {
     fontSize: 16 * 0.87,
@@ -367,36 +355,36 @@ const styles = {
     marginLeft: 0 * 0.87,
   },
   checkboxRow: {
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    alignSelf: 'flex-start' as 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
     marginVertical: 10 * 0.87,
     marginLeft: 0,
     paddingLeft: 0,
   },
   checkboxLinkText: {
     fontSize: 16 * 0.87,
-    color: 'black' as 'black', // Style the link text
-    textDecorationLine: 'underline' as 'underline',
+    color: 'black',
+    textDecorationLine: 'underline',
   },
   checkboxWrapper: {
-    margin: 0, // Remove wrapper margin
-    padding: 0, // Remove wrapper padding
+    margin: 0,
+    padding: 0,
   },
   buttonDisabled: {
     backgroundColor: '#E7E7E9',
   },
   orLogIn: {
     marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   lineView: {
-    borderStyle: 'solid' as 'solid',
+    borderStyle: 'solid',
     borderColor: '#d8dadc',
     borderTopWidth: 1 * 0.87,
     flex: 1,
-    width: '100%' as '100%',
+    width: '100%',
     height: 1 * 0.87,
   },
   orText: {
@@ -407,21 +395,21 @@ const styles = {
   },
   buttonBucket: {
     marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 15 * 0.87,
   },
   buttonWithIcon: {
     borderRadius: 10 * 0.87,
     backgroundColor: '#fff',
-    borderStyle: 'solid' as 'solid',
+    borderStyle: 'solid',
     borderColor: '#d8dadc',
     borderWidth: 1 * 0.87,
     flex: 1,
-    width: '100%' as '100%',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 45 * 0.87,
     paddingVertical: 18 * 0.87,
   },
-};
+});

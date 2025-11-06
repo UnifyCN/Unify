@@ -36,41 +36,42 @@ export function useGoogleAuth() {
         data.url,
         redirectUrl
       );
-      
+
       if (result.type === 'success' && result.url) {
         const url = result.url;
         const hashFragment = url.split('#')[1];
-        
+
         if (!hashFragment) {
           return { success: false, error: 'No tokens in callback URL' };
         }
-        
+
         const params = new URLSearchParams(hashFragment);
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
-        
+
         if (!accessToken || !refreshToken) {
           return { success: false, error: 'Missing tokens' };
         }
-        
+
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
-        
+
         if (sessionError) {
           return { success: false, error: sessionError.message };
         }
-        
+
         return { success: true };
-        
       } else if (result.type === 'cancel') {
-        return { success: false, error: 'Authentication cancelled' };
+        // User cancelled - return without error so it won't be displayed
+        return { success: false };
       } else {
         return { success: false, error: 'Authentication failed' };
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'OAuth flow failed';
+      const message =
+        error instanceof Error ? error.message : 'OAuth flow failed';
       return { success: false, error: message };
     }
   };
