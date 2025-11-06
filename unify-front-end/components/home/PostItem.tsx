@@ -165,8 +165,8 @@ export const PostItem = memo(
                 <Text style={styles.footerText}>{commentCount}</Text>
               )}
             </TouchableOpacity>
-            {isInsideFeed ||
-              (isInsideDetails && (
+            {(isInsideFeed ||
+              isInsideDetails) && (
                 // The main posts (not comments) should be able to be saved
                 <TouchableOpacity
                   onPress={() => {
@@ -184,7 +184,7 @@ export const PostItem = memo(
                     <Save width={20} height={20} />
                   )}
                 </TouchableOpacity>
-              ))}
+              )}
           </View>
         </View>
       </>

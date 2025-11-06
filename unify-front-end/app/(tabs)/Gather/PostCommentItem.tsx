@@ -121,7 +121,7 @@ const PostCommentItem = memo(
                     <Like width={20} height={20} />
                   )}
                 </TouchableOpacity>
-                {metadataLoading ? (
+                {showMetadataLoading ? (
                   <SkeletonLoader width={24} height={20} />
                 ) : (
                   <Text style={styles.footerText}>{likeCount}</Text>

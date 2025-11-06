@@ -11,6 +11,6 @@ export const useGetPostReplies = (
     queryFn: () => getPostReplies(commentId),
     staleTime: 1000 * 60 * 2, // 2 minutes
     gcTime: 1000 * 60 * 5, // 5 minutes
-    enabled: options?.enabled ?? true,
+    enabled: options?.enabled ?? true, // only runs when enabled
   });
 };

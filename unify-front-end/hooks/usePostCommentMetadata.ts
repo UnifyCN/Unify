@@ -64,7 +64,7 @@ export const usePostCommentMetadata = (
 
       return metadata;
     },
-    enabled: commentIds.length > 0,
+    enabled: options?.enabled === true && commentIds.length > 0,
     staleTime: 1000 * 30, // 30 seconds
   });
 };

@@ -163,7 +163,9 @@ const PostDetails = () => {
 
   // Batch load metadata for these comments
   const { data: postCommentMetadata, isLoading: commentMetadataLoading } =
-    usePostCommentMetadata(commentIds);
+    usePostCommentMetadata(commentIds, {
+      enabled: true,
+    });
 
   // Utilize hooks to create comments
   const createCommentMutation = useMutateCreateComment();
