@@ -10,6 +10,12 @@ npm-debug.*
 *.orig.*
 web-build/
 
+# iOS
+ios/Pods/
+ios/build/
+*.xcworkspace
+*.xcodeproj/
+
 *test.tsx*
 # macOS
 .DS_Store
