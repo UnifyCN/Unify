@@ -10,9 +10,11 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
+import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { getLessonProgress } from '@/services/progress/progressService';
 import { Feather } from '@expo/vector-icons';
+import Header from '@/components/Header';
 
 export default function SubmoduleMap() {
   const router = useRouter();
@@ -26,6 +28,7 @@ export default function SubmoduleMap() {
     isLoading,
     error,
   } = useSanitySubmoduleWithLessons(submoduleId || '');
+  const { data: moduleData } = useSanityModule(moduleId || '');
 
   // Add state for selected lesson
   const [selectedLessonIndex, setSelectedLessonIndex] = useState<number | null>(
@@ -74,6 +77,7 @@ export default function SubmoduleMap() {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading submodule...</Text>
         </View>
@@ -84,6 +88,7 @@ export default function SubmoduleMap() {
   if (error || !submoduleData) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
             Error loading submodule: {error?.message || 'Unknown error'}
@@ -147,6 +152,7 @@ export default function SubmoduleMap() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <Header />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -184,7 +190,7 @@ export default function SubmoduleMap() {
             </Text>
 
             {/* Progress Information */}
-            {circles[selectedLessonIndex].isCompleted && (
+            {/* {circles[selectedLessonIndex].isCompleted && (
               <Text style={styles.progressText}>✅ Completed</Text>
             )}
             {circles[selectedLessonIndex].inProgress && (
@@ -198,11 +204,12 @@ export default function SubmoduleMap() {
             )}
             {circles[selectedLessonIndex].blocked && (
               <Text style={styles.progressText}>🔒 Locked</Text>
-            )}
+            )} */}
 
             <TouchableOpacity
               style={[
                 styles.focusCta,
+                { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
                 circles[selectedLessonIndex].blocked && styles.focusCtaDisabled,
               ]}
               onPress={() => {
@@ -254,11 +261,23 @@ export default function SubmoduleMap() {
                     style={[
                       styles.circleWrap,
                       c.isCompleted
-                        ? styles.circleCompleted
+                        ? [
+                            styles.circleCompleted,
+                            {
+                              borderColor:
+                                moduleData?.colorTheme?.hex || '#A0A0A0',
+                            },
+                          ]
                         : c.blocked
                           ? styles.circleBlocked
                           : isActive
-                            ? styles.circleActive
+                            ? [
+                                styles.circleActive,
+                                {
+                                  borderColor:
+                                    moduleData?.colorTheme?.hex || '#A0A0A0',
+                                },
+                              ]
                             : styles.circleNormal,
                     ]}
                     onPress={() => {
@@ -267,7 +286,15 @@ export default function SubmoduleMap() {
                     disabled={c.blocked}
                   >
                     {c.isCompleted ? (
-                      <View style={styles.circleCompletedInner}>
+                      <View
+                        style={[
+                          styles.circleCompletedInner,
+                          {
+                            backgroundColor:
+                              moduleData?.colorTheme?.hex || '#A0A0A0',
+                          },
+                        ]}
+                      >
                         <Feather name='check' size={60} color='#fff' />
                       </View>
                     ) : c.blocked ? (
@@ -278,7 +305,15 @@ export default function SubmoduleMap() {
                         </Text>
                       </View>
                     ) : isActive ? (
-                      <View style={styles.circleActiveInner}>
+                      <View
+                        style={[
+                          styles.circleActiveInner,
+                          {
+                            backgroundColor:
+                              moduleData?.colorTheme?.hex || '#A0A0A0',
+                          },
+                        ]}
+                      >
                         <Text style={styles.circleActiveLabel}>Lesson</Text>
                         <Text style={styles.circleActiveIndex}>
                           {c.orderNumber}
@@ -511,14 +546,14 @@ const styles = StyleSheet.create({
   },
   circleActiveLabel: {
     fontSize: 16,
-    color: '#222',
+    color: '#fff',
     fontWeight: '600',
     marginBottom: -2,
   },
   circleActiveIndex: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#222',
+    color: '#fff',
   },
   // --- END ACTIVE CIRCLE STYLES ---
   circleLabelTop: {

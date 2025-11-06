@@ -48,7 +48,7 @@ const PostCommentItem = memo(
     const replyCount = metadata?.replyCount;
 
     const navigateToUserProfile = useCallback(() => {
-      router.push(`/(tabs)/Gather/Profile/profile?userId=${comment.user_id}`);
+      router.push(`/profile?userId=${comment.user_id}`);
     }, [comment.user_id]);
 
     const [showReplies, setShowReplies] = useState(false);

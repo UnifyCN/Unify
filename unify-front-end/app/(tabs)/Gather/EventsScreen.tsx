@@ -12,34 +12,30 @@ import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from './EventCard';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Event } from '@/types/events';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { Theme } from '@/constants/Theme';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import BackHeader from '@/components/BackHeader';
 
 const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
-  const { setVisible } = useHeaderVisibility();
 
-  useEffect(() => {
-    setVisible(false);
-    return () => setVisible(true);
-  }, [setVisible]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string>('Upcoming');
-  const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
+  // const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
 
   const tags = ['All', 'Upcoming', 'Past'];
-  const genreTags = [
-    'All Events',
-    'Socials',
-    'Finance',
-    'Employment',
-    'Housing',
-    'Documentation',
-    'Uncategorized',
-  ];
+  // const genreTags = [
+  //   'All Events',
+  //   'Socials',
+  //   'Finance',
+  //   'Employment',
+  //   'Housing',
+  //   'Documentation',
+  //   'Uncategorized',
+  // ];
 
   const selectTag = (tag: string) => {
     setSelectedTag(tag);
@@ -64,12 +60,12 @@ const EventsScreen = () => {
         }
       })();
 
-      const matchesGenre =
-        selectedGenre === 'All Events' || event.genre === selectedGenre;
+      // const matchesGenre =
+      //   selectedGenre === 'All Events' || event.genre === selectedGenre;
 
-      return matchesSearch && matchesTag && matchesGenre;
+      return matchesSearch && matchesTag; // && matchesGenre;
     });
-  }, [events, selectedTag, searchQuery, selectedGenre]);
+  }, [events, selectedTag, searchQuery]); // , selectedGenre
 
   const renderEvent = ({ item }: { item: Event }) => (
     <View style={styles.eventItem}>
@@ -116,13 +112,7 @@ const EventsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name='chevron-left' size={24} color='#000' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Gather Events</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <BackHeader title='Gather Events' />
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
@@ -168,7 +158,8 @@ const EventsScreen = () => {
         ))}
       </View>
 
-      {/* Genre Tags Section */}
+      {/* Genre Tags Section - Commented out for now */}
+      {/* 
       <View style={styles.genreTagsWrapper}>
         <ScrollView
           horizontal
@@ -197,6 +188,7 @@ const EventsScreen = () => {
           ))}
         </ScrollView>
       </View>
+      */}
 
       <FlatList
         data={handleFilterEvents}
@@ -205,13 +197,22 @@ const EventsScreen = () => {
         contentContainerStyle={styles.eventsList}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Feather name='calendar' size={48} color='#ccc' />
-            <Text style={styles.emptyText}>No events available</Text>
-            <Text style={styles.emptySubtext}>
-              Check back later for new events
-            </Text>
-          </View>
+          <EmptyFeedMessage
+            icon={<Feather name='calendar' size={24} color='#B4B1B1' />}
+            message='No events available'
+            submessage={
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: Theme.textInput,
+                  textAlign: 'center',
+                  lineHeight: 20,
+                }}
+              >
+                Check back later for new events
+              </Text>
+            }
+          />
         }
       />
     </View>
@@ -223,24 +224,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Theme.white,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
-  },
-  placeholder: {
-    width: 40,
-  },
   eventsList: {
     paddingHorizontal: 16,
-    paddingTop: 8,
     paddingBottom: 20,
     gap: 16,
   },
@@ -299,7 +284,6 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 20,
-    marginTop: 20,
   },
   searchInputContainer: {
     flexDirection: 'row',
@@ -323,7 +307,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    marginTop: 16,
+    marginVertical: 16,
     gap: 10,
   },
   tagButton: {
@@ -335,8 +319,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.white,
   },
   tagButtonSelected: {
-    backgroundColor: Theme.primaryGatherRed,
-    borderColor: Theme.primaryGatherRed,
+    backgroundColor: Theme.black,
+    borderColor: Theme.black,
   },
   tagText: {
     fontSize: 14,
@@ -346,41 +330,41 @@ const styles = StyleSheet.create({
   tagTextSelected: {
     color: Theme.white,
   },
-  genreTagsWrapper: {
-    marginTop: 16,
-    marginBottom: 0,
-    backgroundColor: Theme.white,
-    paddingBottom: 10,
-  },
-  genreTagsContainer: {
-    maxHeight: 60,
-  },
-  genreTagsContent: {
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    height: 60,
-  },
-  genreTagItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    height: 50,
-    marginRight: 12,
-  },
-  genreTagItemSelected: {
-    borderBottomWidth: 2,
-    borderColor: Theme.primaryGatherRed,
-  },
-  genreTagText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Theme.textInactiveTab,
-    textAlign: 'center',
-  },
-  genreTagTextSelected: {
-    fontWeight: '600',
-    color: Theme.black,
-  },
+  // genreTagsWrapper: {
+  //   marginTop: 16,
+  //   marginBottom: 0,
+  //   backgroundColor: Theme.white,
+  //   paddingBottom: 10,
+  // },
+  // genreTagsContainer: {
+  //   maxHeight: 60,
+  // },
+  // genreTagsContent: {
+  //   paddingHorizontal: 20,
+  //   alignItems: 'center',
+  //   height: 60,
+  // },
+  // genreTagItem: {
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  //   paddingHorizontal: 8,
+  //   height: 50,
+  //   marginRight: 12,
+  // },
+  // genreTagItemSelected: {
+  //   borderBottomWidth: 2,
+  //   borderColor: Theme.primaryGatherRed,
+  // },
+  // genreTagText: {
+  //   fontSize: 14,
+  //   fontWeight: '500',
+  //   color: Theme.textInactiveTab,
+  //   textAlign: 'center',
+  // },
+  // genreTagTextSelected: {
+  //   fontWeight: '600',
+  //   color: Theme.black,
+  // },
 });
 
 export default EventsScreen;

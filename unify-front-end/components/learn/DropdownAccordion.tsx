@@ -7,6 +7,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  TextStyle,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
@@ -26,8 +27,10 @@ type AccordionItem = {
 
 export default function DropdownAccordion({
   items,
+  titleTextStyle,
 }: {
   items: AccordionItem[];
+  titleTextStyle?: TextStyle;
 }) {
   const [openId, setOpenId] = React.useState<string | null>(null);
 
@@ -46,7 +49,9 @@ export default function DropdownAccordion({
               style={styles.header}
               onPress={() => toggle(item.id)}
             >
-              <Text style={styles.headerText}>{item.title}</Text>
+              <Text style={[styles.headerText, titleTextStyle]}>
+                {item.title}
+              </Text>
               <Feather
                 name={open ? 'chevron-up' : 'chevron-down'}
                 size={18}

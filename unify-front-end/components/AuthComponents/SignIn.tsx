@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import isExpoGo from '../../utils/isExpoGo'; // see if we are running dev env using expo go or not
+import ForgotPassword from './ForgotPassword';
 
 import { useForm } from 'react-hook-form';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
@@ -48,6 +49,7 @@ export function SignIn({
   const [isEmailValid, setIsEmailValid] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   // Method to validate if email is in valid format for the tick icon to appear
   const validateEmail = (email: string) => {
@@ -103,6 +105,10 @@ export function SignIn({
       setErrorMessage(error?.message || 'Google sign-in failed');
     }
   };
+
+  if (showForgotPassword) {
+    return <ForgotPassword onBack={() => setShowForgotPassword(false)} />;
+  }
 
   return (
     <ViewContainer style={styles.container}>
@@ -169,6 +175,7 @@ export function SignIn({
 
       <LinksContainer>
         <LinkButton
+          onPress={() => setShowForgotPassword(true)}
           style={undefined}
           labelStyle={[styles.link, styles.linkText]}
         >

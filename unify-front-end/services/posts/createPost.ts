@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 export const CreatePost = async (
   title: string,
   content: string,
-  group_id: string
+  group_id?: string | null
 ) => {
   try {
     const {
@@ -18,7 +18,7 @@ export const CreatePost = async (
         title: title,
         content: content,
         user_id: user.id,
-        group_id: group_id,
+        group_id: group_id || null,
       })
       .select()
       .single();

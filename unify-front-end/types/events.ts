@@ -7,7 +7,7 @@ export type Event = {
   location: string;
   address: string | null;
   eventType: EventType;
-  genre: EventGenre;
+  genre: EventGenre | null;
   coverPhotoUrl: string | null;
   externalLink: string;
   maxAttendees: number | null;
@@ -21,6 +21,7 @@ enum EventType {
   HYBRID = 'hybrid',
 }
 
+// TODO: Add more event genres later maybe
 export enum EventGenre {
   SOCIALS = 'Socials',
   FINANCE = 'Finance',

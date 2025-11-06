@@ -18,6 +18,7 @@ export const getForYouFeed = async (
     }
 
     // Get all posts without like data (likes will be fetched individually)
+    // Only get posts WITHOUT a group (group_id is null)
     const { data, error } = await supabase
       .from('posts')
       .select(
@@ -32,13 +33,10 @@ export const getForYouFeed = async (
           id,
           username,
           profile_picture_url
-        ),
-        groups!group_id(
-          id,
-          group_name
         )
       `
       )
+      .is('group_id', null)
       .order('created_at', { ascending: false })
       .range(
         cursor ? parseInt(cursor) : 0,

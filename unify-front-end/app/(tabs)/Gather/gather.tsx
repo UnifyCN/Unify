@@ -11,6 +11,7 @@ import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
 
 interface HeaderProps {
@@ -76,8 +77,13 @@ export default function GatherScreen() {
             useFeedHook={useFollowingFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No one you follow has posted anything yet'
-                submessage='Follow other users to see their posts here'
+                message='No posts here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    You haven't followed any users yet.{'\n'}
+                    Follow other users to see their posts!
+                  </Text>
+                }
               />
             }
           />
@@ -89,8 +95,13 @@ export default function GatherScreen() {
             useFeedHook={useGroupsFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No posts in any of your groups yet'
-                submessage='Join a group to see their posts here'
+                message='No groups here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    You haven't joined any groups yet.{'\n'}
+                    Join a group to see their posts!
+                  </Text>
+                }
               />
             }
           />
@@ -102,8 +113,13 @@ export default function GatherScreen() {
             useFeedHook={useForYouFeed}
             ListEmptyComponent={
               <EmptyFeedMessage
-                message='No one has posted anything yet'
-                submessage='No posts for you to see'
+                message='No posts here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    No one has posted anything yet.{'\n'}
+                    Post something to see it here!
+                  </Text>
+                }
               />
             }
           />
@@ -132,20 +148,26 @@ export default function GatherScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar style='dark' />
-      <Animated.FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={item => item.key}
-        stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
-      />
-      <CreatePostButton />
+    <View style={styles.root}>
+      <Header />
+      <View style={styles.container}>
+        <StatusBar style='dark' />
+        <Animated.FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={item => item.key}
+          stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
+        />
+        <CreatePostButton />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   searchButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -205,5 +227,11 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: Theme.black,
     fontWeight: '600',
+  },
+  emptyMessageSubtext: {
+    fontSize: 14,
+    color: Theme.textInput,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

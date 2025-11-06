@@ -11,7 +11,13 @@ import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
+import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
+import { FloatingChatButton } from '@/components/ChatBot';
+import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
+import { NewsCard } from '@/components/home/NewsCard';
+import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
+import { useRouter } from 'expo-router';
 
 const WelcomeSection = () => {
   const [username, setUsername] = useState('User');
@@ -43,55 +49,61 @@ const WelcomeSection = () => {
   return (
     <View style={styles.welcomeSection}>
       <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
-      <Text style={styles.progressText}>
-        You have two modules left of{' '}
-        <Text style={styles.boldText}>Understanding Canadian Banking</Text>
-      </Text>
-      <Text style={styles.percentageText}>55% Completed</Text>
-      <View style={styles.progressBar}>
-        <View style={styles.progressFill} />
-      </View>
-      <TouchableOpacity style={styles.resumeButton}>
-        <Text style={styles.resumeButtonText}>Resume Lesson</Text>
-      </TouchableOpacity>
+      <LearnProgressCardCarousel />
     </View>
   );
 };
 
 // TODO: someone deal with this section
-const NewsTipsSection = () => (
-  <View style={styles.section}>
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>News & Tips</Text>
-      <Feather name='chevron-right' size={20} color='#666' />
+const NewsTipsSection = () => {
+  const router = useRouter();
+
+  const handleViewMore = () => {
+    // TODO: Navigate to News & Tips screen when available
+    // router.push('/(tabs)/NewsTipsScreen');
+  };
+
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>News & Tips</Text>
+        <Feather name='chevron-right' size={20} color='#666' />
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: 20, paddingVertical: 2 }}
+      >
+        <NewsCard
+          title='Navigating Winter Roads'
+          description='New to snow? ICBC article to help you avoid issues on the icy, winter roads.'
+        />
+        <NewsCard
+          title='Financial Planning Tips'
+          description='Essential tips for managing your finances in Canada.'
+        />
+        <TouchableOpacity
+          style={styles.viewMoreCardContainer}
+          onPress={handleViewMore}
+          activeOpacity={0.8}
+        >
+          <View style={styles.viewMoreContent}>
+            <ViewMoreCardNews width={332} height={132} />
+            <View style={styles.viewMoreTextOverlay}>
+              <Text style={styles.viewMoreText}>
+                View more news{' '}
+                <Feather name='arrow-right' size={16} color='#000' />
+              </Text>
+              <Text style={styles.viewMoreSubtext}>
+                There's more to check out!
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={{ marginHorizontal: 20 }}
-    >
-      <View style={styles.newsCard}>
-        <View style={styles.newsImagePlaceholder} />
-        <View style={styles.newsContent}>
-          <Text style={styles.newsTitle}>Navigating Winter Roads</Text>
-          <Text style={styles.newsDescription}>
-            New to snow? ICBC article to help you avoid issues on the icy,
-            winter roads.
-          </Text>
-        </View>
-      </View>
-      <View style={styles.newsCard}>
-        <View style={styles.newsImagePlaceholder} />
-        <View style={styles.newsContent}>
-          <Text style={styles.newsTitle}>Financial Planning Tips</Text>
-          <Text style={styles.newsDescription}>
-            Essential tips for managing your finances in Canada.
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
-  </View>
-);
+  );
+};
 
 const GatherEventsSection = () => {
   return (
@@ -107,12 +119,14 @@ const GatherEventsSection = () => {
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
+      <Header />
       <StatusBar style='dark' />
       <ScrollView style={styles.scrollView}>
         <WelcomeSection />
         <NewsTipsSection />
         <GatherEventsSection />
       </ScrollView>
+      <FloatingChatButton />
     </View>
   );
 }
@@ -133,7 +147,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Theme.black,
-    marginBottom: 8,
   },
   progressText: {
     fontSize: 16,
@@ -158,8 +171,6 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    width: '55%',
-    backgroundColor: '#666',
     borderRadius: 4,
   },
   resumeButton: {
@@ -188,11 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#000',
     fontFamily: 'Inter',
-    fontWeight: 500,
-  },
-  carouselContent: {
-    gap: 12,
-    paddingHorizontal: 20,
+    fontWeight: 600,
   },
   carouselContentEmpty: {
     flexGrow: 1,
@@ -226,40 +233,40 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
-  newsCard: {
-    width: 280,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
+  viewMoreCardContainer: {
+    width: 332,
+    height: 132,
     marginRight: 16,
-    padding: 16,
-    flexDirection: 'row',
-    marginHorizontal: 2,
-    marginBottom: 6,
+    borderRadius: 12,
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.08,
     shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  newsImagePlaceholder: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#666',
-    borderRadius: 8,
-    marginRight: 12,
+  viewMoreContent: {
+    width: 332,
+    height: 132,
+    position: 'relative',
   },
-  newsContent: {
-    flex: 1,
+  viewMoreTextOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
   },
-  newsTitle: {
+  viewMoreText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 4,
   },
-  newsDescription: {
+  viewMoreSubtext: {
     fontSize: 14,
-    color: '#666',
-    lineHeight: 18,
+    color: '#000',
   },
 });

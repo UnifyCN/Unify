@@ -12,6 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
+import Header from '@/components/Header';
 
 export default function SubmoduleIndex() {
   const router = useRouter();
@@ -53,6 +54,7 @@ export default function SubmoduleIndex() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <Header />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -94,7 +96,10 @@ export default function SubmoduleIndex() {
 
         {/* CTA to Intro Screen */}
         <TouchableOpacity
-          style={styles.resumeButton}
+          style={[
+            styles.resumeButton,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+          ]}
           onPress={() => {
             router.push({
               pathname:

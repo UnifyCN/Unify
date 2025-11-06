@@ -55,7 +55,7 @@ export const PostItem = memo(
     };
 
     const navigateToUserProfile = () => {
-      router.push(`/(tabs)/Gather/Profile/profile?userId=${post.user.id}`);
+      router.push(`/profile?userId=${post.user.id}`);
     };
 
     // Use batch-loaded metadata with loading state
@@ -103,21 +103,21 @@ export const PostItem = memo(
             <TouchableOpacity onPress={navigateToUserProfile}>
               <Text style={styles.name}>{post.user.name}</Text>
             </TouchableOpacity>
-            <ChevronRight color={Theme.black} width={6} height={12} />
-            {post.group ? (
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
-                    params: { groupName: post.group },
-                  })
-                }
-              >
-                <Text style={styles.group}>{post.group}</Text>
-              </TouchableOpacity>
-            ) : (
-              <Text style={styles.group}>No group</Text>
-            )}
+            {post.group && (
+                <>
+                  <ChevronRight color={Theme.black} width={6} height={12} />
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+                        params: { groupName: post.group },
+                      })
+                    }
+                  >
+                    <Text style={styles.group}>{post.group}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
             <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
           </View>
 

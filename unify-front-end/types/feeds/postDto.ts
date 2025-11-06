@@ -4,7 +4,7 @@ export interface PostDto {
   content: string;
   created_at: string;
   user_id: number;
-  group_id: number;
+  group_id: number | null;
   users: {
     id: number;
     username: string;
@@ -13,5 +13,5 @@ export interface PostDto {
   groups: {
     id: number;
     group_name: string;
-  };
+  } | null;
 }

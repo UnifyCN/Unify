@@ -41,6 +41,10 @@ export interface SanityModule extends SanityDocument {
   _type: 'module';
   title: string;
   description?: string;
+  coverPhoto?: SanityImage;
+  colorTheme?: {
+    hex: string;
+  };
 }
 
 // Submodule type

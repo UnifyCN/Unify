@@ -12,7 +12,16 @@ export async function getAllModules(): Promise<SanityModule[]> {
       _id,
       _type,
       title,
-      description
+      description,
+      coverPhoto {
+        _type,
+        asset {
+          _ref,
+          _type
+        },
+        alt
+      },
+      colorTheme { hex }
     }`;
 
     const modules = await sanityClient.fetch(query);
@@ -33,6 +42,15 @@ export async function getAllModulesWithSubmodules(): Promise<
       _type,
       title,
       description,
+      coverPhoto {
+        _type,
+        asset {
+          _ref,
+          _type
+        },
+        alt
+      },
+      colorTheme { hex },
       "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
         _id,
         _type,
@@ -61,7 +79,16 @@ export async function getModule(
       _id,
       _type,
       title,
-      description
+      description,
+      coverPhoto {
+        _type,
+        asset {
+          _ref,
+          _type
+        },
+        alt
+      },
+      colorTheme { hex }
     }`;
 
     const module = await sanityClient.fetch(query, { moduleId });
@@ -84,6 +111,15 @@ export async function getModuleWithSubmodules(
       _type,
       title,
       description,
+      coverPhoto {
+        _type,
+        asset {
+          _ref,
+          _type
+        },
+        alt
+      },
+      colorTheme { hex },
       "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
         _id,
         _type,

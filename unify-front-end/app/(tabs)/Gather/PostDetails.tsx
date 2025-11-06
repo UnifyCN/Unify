@@ -18,12 +18,13 @@ import { usePostCommentMetadata } from '@/hooks/usePostCommentMetadata';
 import PostCommentItem from './PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
-import { useHeaderVisibility } from '@/components/HeaderVisibilityProvider';
 import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { Theme } from '@/constants/Theme';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 
 // Header component
 const PostDetailsHeader = ({ onBack }: { onBack: () => void }) => (
@@ -46,19 +47,6 @@ const CommentsLoadingState = () => (
         showFooter={false}
       />
     ))}
-  </View>
-);
-
-// Empty state component
-const CommentsEmptyState = () => (
-  <View style={styles.emptyState}>
-    <View style={styles.emptyStateContent}>
-      <Feather name='message-circle' size={48} color='#D1D1D6' />
-      <Text style={styles.emptyStateTitle}>No comments yet</Text>
-      <Text style={styles.emptyStateSubtitle}>
-        Be the first to start the conversation
-      </Text>
-    </View>
   </View>
 );
 
@@ -121,13 +109,7 @@ const PostDetails = () => {
   // Router for navigation
   const router = useRouter();
 
-  const { setVisible } = useHeaderVisibility();
-  useEffect(() => {
-    setVisible(false);
-  }, [setVisible]);
-
   const onBack = () => {
-    setVisible(true);
     router.back();
   };
 
@@ -258,7 +240,26 @@ const PostDetails = () => {
           if (commentsLoading) {
             return <CommentsLoadingState />;
           }
-          return <CommentsEmptyState />;
+          return (
+            <View style={[{ paddingTop: 20 }]}>
+              <EmptyFeedMessage
+                icon={<UnifyReplyIcon width={27} height={25} />}
+                message='Looks a little quiet here...'
+                submessage={
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: Theme.textInput,
+                      textAlign: 'center',
+                      lineHeight: 20,
+                    }}
+                  >
+                    Be the first one to comment!
+                  </Text>
+                }
+              />
+            </View>
+          );
         }}
       />
 

@@ -12,7 +12,7 @@ export const useMutateCreatePost = () => {
     }: {
       title: string;
       content: string;
-      group_id: string;
+      group_id?: string | null;
     }) => {
       await CreatePost(title, content, group_id);
     },

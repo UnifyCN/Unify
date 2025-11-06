@@ -1,14 +1,43 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Link } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 
-type Props = { title: string; modulesLabel: string; href?: LinkProps['href'] };
+type Props = {
+  title: string;
+  modulesLabel: string;
+  href?: LinkProps['href'];
+  colorHex?: string;
+  coverImageUrl?: string;
+};
 
-export default function PathwayCard({ title, modulesLabel, href }: Props) {
+export default function PathwayCard({
+  title,
+  modulesLabel,
+  href,
+  colorHex,
+  coverImageUrl,
+}: Props) {
   const CardInner = (
     <>
-      <View style={styles.banner} />
+      {colorHex ? (
+        <View
+          pointerEvents='none'
+          style={[
+            StyleSheet.absoluteFillObject,
+            { backgroundColor: colorHex, borderRadius: 12 },
+          ]}
+        />
+      ) : null}
+      <View style={styles.banner}>
+        {coverImageUrl ? (
+          <Image
+            source={{ uri: coverImageUrl }}
+            style={styles.bannerImage}
+            resizeMode='cover'
+          />
+        ) : null}
+      </View>
       <Text style={styles.title} numberOfLines={2}>
         {title}
       </Text>
@@ -32,7 +61,8 @@ export default function PathwayCard({ title, modulesLabel, href }: Props) {
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    borderRadius: 12,
+    borderRadius: 20,
+    overflow: 'hidden',
     backgroundColor: '#fff',
     paddingTop: 0,
     paddingHorizontal: 12,
@@ -50,11 +80,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#d9d9d9',
     marginBottom: 12,
     overflow: 'hidden',
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 6 },
-  meta: { fontSize: 12, color: '#666' },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  title: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 6 },
+  meta: { fontSize: 12, color: '#fff' },
 });

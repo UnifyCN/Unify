@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import DropdownAccordion from '@/components/learn/DropdownAccordion';
 
 interface DropdownBlockProps {
@@ -24,7 +24,24 @@ export default function DropdownBlock({ block, index }: DropdownBlockProps) {
 
   return (
     <View key={block._key || index}>
-      <DropdownAccordion items={dropdownItems} />
+      <DropdownAccordion
+        items={dropdownItems}
+        titleTextStyle={styles.closedTitle}
+      />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  closedTitle: {
+    fontFamily: 'Font Family',
+    fontWeight: '700',
+    fontStyle: 'normal',
+    fontSize: 14,
+    lineHeight: 20,
+
+    //if needed:
+    //color: '#FFFFFF',
+    //letterSpacing: 0,
+  },
+});

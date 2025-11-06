@@ -18,6 +18,7 @@ import { SubmoduleIntroSection } from '@/types/learn';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateIntroProgress } from '@/utils/submoduleProgress';
+import Header from '@/components/Header';
 
 const getSanityImageUrl = (assetRef: string | undefined): string | null => {
   if (!assetRef) return null;
@@ -240,6 +241,7 @@ export default function SubmoduleIntroScreen() {
   if (loadingIntro) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loading}>
           <Text>Loading intro...</Text>
         </View>
@@ -250,6 +252,7 @@ export default function SubmoduleIntroScreen() {
   if (!introData) {
     return (
       <SafeAreaView style={styles.safe}>
+        <Header />
         <View style={styles.loading}>
           <Text>Error loading intro</Text>
         </View>
@@ -259,6 +262,7 @@ export default function SubmoduleIntroScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -273,7 +277,7 @@ export default function SubmoduleIntroScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Page indicator */}
-        {totalPages && totalPages > 1 && (
+        {totalPages && totalPages >= 1 && (
           <View style={styles.pageIndicatorContainer}>
             <Text style={styles.pageIndicator}>
               {currentPage} of {totalPages}
@@ -301,9 +305,7 @@ export default function SubmoduleIntroScreen() {
           </TouchableOpacity>
         )}
         <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
-          <Text style={styles.nextBtnText}>
-            {currentPage < (totalPages || 1) ? 'Next' : 'Start Lessons'}
-          </Text>
+          <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
       </View>
 
@@ -476,7 +478,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 20,
-    paddingBottom: 40,
+    paddingBottom: 15,
     backgroundColor: '#fff',
     gap: 12,
   },
