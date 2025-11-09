@@ -67,6 +67,7 @@ export default function CompanionScreen() {
       // Clear conversation ID when starting a new conversation (no conversationId param)
       setCurrentConversationId(null);
     }
+    previousMessageCountRef.current = 0;
   }, [conversationId]);
 
   // Scroll to end only when new messages are added (not when sources expand/collapse)
