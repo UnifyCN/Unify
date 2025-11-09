@@ -4,6 +4,7 @@ import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { View, Text, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
 import GatherIcon from '@/components/icons/GatherPageIcon';
@@ -112,6 +113,31 @@ export default function TabLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name='companion'
+          options={{
+            title: 'Companion',
+            tabBarIcon: ({ focused }) => (
+              <View style={styles.tab}>
+                <Feather
+                  name='message-circle'
+                  size={24}
+                  color={
+                    focused ? styles.activeTab.color : styles.inactiveTab.color
+                  }
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    focused ? styles.activeTab : styles.inactiveTab,
+                  ]}
+                >
+                  Companion
+                </Text>
+              </View>
+            ),
+          }}
+        />
       </Tabs>
     </>
   );
@@ -123,10 +149,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     gap: 4,
-    width: 60,
+    width: 70,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 9,
     flexShrink: 0,
   },
   tabText: {

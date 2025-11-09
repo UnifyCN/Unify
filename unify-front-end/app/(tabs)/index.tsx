@@ -13,7 +13,6 @@ import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
-import { FloatingChatButton } from '@/components/ChatBot';
 import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
 import { NewsCard } from '@/components/home/NewsCard';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
@@ -126,7 +125,6 @@ export default function HomeScreen() {
         <NewsTipsSection />
         <GatherEventsSection />
       </ScrollView>
-      <FloatingChatButton />
     </View>
   );
 }

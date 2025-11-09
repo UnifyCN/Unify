@@ -4,8 +4,10 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 Deno.serve(async (req: Request) => {
   try {
-    const { prompt } = await req.json();
+    const { prompt, conversationIdentifier, messages } = await req.json();
     console.log('Question asked:', prompt);
+    console.log('Conversation identifier:', conversationIdentifier);
+    console.log('Previous messages count:', messages?.length || 0);
     const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
     const apiKey = Deno.env.get('GEMINI_API_KEY');
@@ -124,15 +126,27 @@ Deno.serve(async (req: Request) => {
     // Convert Map to Array for response
     const sources = Array.from(sourcesMap.values());
 
-    // Build prompt that uses provided context
+    // Build conversation history from messages (limit to most recent 10 for context)
+    const recentMessages =
+      messages && Array.isArray(messages)
+        ? messages.slice(-10) // Get last 10 messages
+        : [];
+
+    // Build conversation history for Gemini
+    const conversationHistory = recentMessages.map(
+      (msg: { message: string; role: 'user' | 'assistant' }) => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.message }],
+      })
+    );
+
+    // Build system instruction with knowledge base context
     let systemInstruction = '';
     if (contextText) {
       systemInstruction = `You are a helpful assistant. Use the following context from the knowledge base to answer the user's question.
 
 CONTEXT FROM KNOWLEDGE BASE:
 ${contextText}
-
-USER QUESTION: ${prompt}
 
 INSTRUCTIONS:
 - Answer the question using the information from the context provided above
@@ -142,33 +156,81 @@ INSTRUCTIONS:
 - Be direct and helpful - use the information that is available in the context
 - Only say "I don't have that information in my knowledge base at the moment" if the context above contains absolutely no relevant information at all
 - If the context has related information, use it to provide an answer, even if you need to make a small logical connection
-
-Answer the question:`;
+- Consider the conversation history when providing your answer to maintain context and continuity
+- CRITICAL: If you are about to provide a general answer to something not specific, do NOT add a source. Only include sources when your answer is specific, detailed, and directly uses information from the knowledge base context.`;
     } else {
-      systemInstruction = `The user asked: "${prompt}"\n\nRespond: "I don't have that information in my knowledge base at the moment."`;
+      systemInstruction = `You are a helpful assistant. Consider the conversation history when providing your answer.`;
     }
 
-    const fullPrompt = preprompt
+    // Add preprompt if available
+    const fullSystemInstruction = preprompt
       ? `${preprompt}\n\n${systemInstruction}`
       : systemInstruction;
 
-    // Call Gemini (same as gemini-proxy)
+    // Build contents array with conversation history + current prompt
+    // Note: Some Gemini models (like gemini-2.0-flash) don't support systemInstruction field,
+    // so we prepend the system instruction to the current user message if context exists
+    const contents = [];
+
+    // Add conversation history first
+    contents.push(...conversationHistory);
+
+    // Build the current user prompt - include system instruction if we have context
+    // (Context is retrieved fresh for each query, so we need to include it each time)
+    let currentPrompt = prompt;
+    if (fullSystemInstruction && contextText) {
+      // Prepend system instruction to the current prompt
+      currentPrompt = `${fullSystemInstruction}\n\nUser question: ${prompt}`;
+    }
+
+    // Add current user prompt
+    contents.push({
+      role: 'user',
+      parts: [{ text: currentPrompt }],
+    });
+
+    // Prepare request body (without systemInstruction field)
+    const requestBody = {
+      contents: contents,
+      generationConfig: {
+        maxOutputTokens: 500,
+      },
+    };
+
+    console.log('Gemini API Request Details:');
+    console.log('- Model:', model);
+    console.log('- Conversation history length:', conversationHistory.length);
+    console.log('- Contents array length:', contents.length);
+    console.log('- System instruction length:', fullSystemInstruction.length);
+    console.log('- Request body keys:', Object.keys(requestBody));
+    console.log(
+      '- Contents structure:',
+      JSON.stringify(contents, null, 2).substring(0, 500)
+    );
+
+    // Call Gemini with conversation context
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }],
-          generationConfig: {
-            maxOutputTokens: 500,
-          },
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Gemini API error details:');
+      console.error('- Status:', response.status);
+      console.error('- Status Text:', response.statusText);
+      console.error('- Error response:', errorText);
+      console.error(
+        '- Request body sent:',
+        JSON.stringify(requestBody, null, 2).substring(0, 1000)
+      );
+      throw new Error(
+        `Gemini API error: ${response.statusText} - ${errorText}`
+      );
     }
 
     const geminiData = await response.json();

@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export const upsertChatbotUsage = async (
   new_message_count: number
