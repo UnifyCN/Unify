@@ -4,6 +4,7 @@ export interface GroupedConversations {
   yesterday: Conversation[];
   last7Days: Conversation[];
   last30Days: Conversation[];
+  older: Conversation[];
 }
 
 export interface ConversationSection {
@@ -39,6 +40,7 @@ export const groupConversationsByDate = (
       yesterday: [],
       last7Days: [],
       last30Days: [],
+      older: [],
     };
   }
 
@@ -59,6 +61,7 @@ export const groupConversationsByDate = (
     yesterday: [],
     last7Days: [],
     last30Days: [],
+    older: [],
   };
 
   conversations.forEach(conv => {
@@ -70,6 +73,8 @@ export const groupConversationsByDate = (
       grouped.last7Days.push(conv);
     } else if (updatedAt >= last30Days) {
       grouped.last30Days.push(conv);
+    } else {
+      grouped.older.push(conv);
     }
   });
 
@@ -98,6 +103,11 @@ export const createConversationSections = (
       title: 'Previous 30 Days',
       data: grouped.last30Days,
       key: 'last30Days',
+    },
+    {
+      title: 'Older',
+      data: grouped.older,
+      key: 'older',
     },
   ].filter(section => section.data.length > 0);
 };

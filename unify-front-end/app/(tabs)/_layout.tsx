@@ -118,23 +118,13 @@ export default function TabLayout() {
           options={{
             title: 'Companion',
             tabBarIcon: ({ focused }) => (
-              <View style={styles.tab}>
-                <Feather
-                  name='message-circle'
-                  size={24}
-                  color={
-                    focused ? styles.activeTab.color : styles.inactiveTab.color
-                  }
-                />
-                <Text
-                  style={[
-                    styles.tabText,
-                    focused ? styles.activeTab : styles.inactiveTab,
-                  ]}
-                >
-                  Companion
-                </Text>
-              </View>
+              <TabIcon
+                IconComponent={({ color }: any) => (
+                  <Feather name='message-circle' size={24} color={color} />
+                )}
+                title='Companion'
+                focused={focused}
+              />
             ),
           }}
         />

@@ -54,8 +54,9 @@ export default function CompanionScreen() {
     setCurrentConversationId,
   });
 
-  const MESSAGE_LIMIT = 3; // Daily message limit, applicable to everyone but could be changed/ignored for premium members in the future
-  const messagesLeft = MESSAGE_LIMIT - usage?.message_count!;
+  const MESSAGE_LIMIT = 3;
+  const messageCount = usage?.message_count ?? 0;
+  const messagesLeft = Math.max(0, MESSAGE_LIMIT - messageCount);
   const canSendMessage = messagesLeft > 0;
 
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
