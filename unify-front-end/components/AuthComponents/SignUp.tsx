@@ -1,11 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
-import { useGoogleAuth } from '../../hooks/useGoogleAuth';
-import Facebook from '../../assets/images/Facebook.svg';
-import Google from '../../assets/images/Google.svg';
 import {
   SubmitButton,
   SimpleTextField,
@@ -32,9 +29,6 @@ export function SignUp({
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
-
-  // Use the unified Google Auth hook
-  const { signInWithGoogle } = useGoogleAuth();
 
   const validateEmail = (email: string) => {
     // Simple email validation regex
@@ -63,7 +57,7 @@ export function SignUp({
 
     try {
       // Check if email exists in the users table
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('email')
         .eq('email', email.toLowerCase())
@@ -76,7 +70,7 @@ export function SignUp({
       }
 
       // If we get here, the email doesn't exist, so proceed with signup
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: email,
         password: password,
       });
@@ -95,22 +89,6 @@ export function SignUp({
 
     setLoading(false);
   };
-
-  // Handle Google sign-in with unified hook
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    setErrorMessage(null);
-
-    const result = await signInWithGoogle();
-
-    // Only show error if there is one (cancellation returns no error)
-    if (!result.success && result.error) {
-      setErrorMessage(result.error);
-    }
-
-    setLoading(false);
-  };
-
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Create account</ViewHeader>
@@ -226,24 +204,6 @@ export function SignUp({
       >
         Sign Up
       </SubmitButton>
-
-      <View style={styles.orLogIn}>
-        <View style={styles.lineView}></View>
-        <Text style={styles.orText}>Or Sign up with</Text>
-        <View style={styles.lineView}></View>
-      </View>
-      <View style={styles.buttonBucket}>
-        <View style={styles.buttonWithIcon}>
-          <Facebook width={20} height={20} />
-        </View>
-
-        <TouchableOpacity
-          style={styles.buttonWithIcon}
-          onPress={handleGoogleSignIn}
-        >
-          <Google width={20} height={20} />
-        </TouchableOpacity>
-      </View>
       <View style={styles.footer}>
         <Text
           style={{
@@ -273,7 +233,7 @@ export function SignUp({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -283,7 +243,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 34 * 0.87,
-    fontWeight: '700',
+    fontWeight: '700' as '700',
     color: '#000',
     marginBottom: 7 * 0.87,
     marginTop: 110 * 0.87,
@@ -294,13 +254,13 @@ const styles = StyleSheet.create({
     marginTop: 37 * 0.87,
     width: 110 * 0.87,
     height: 42 * 0.87,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
+    alignSelf: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    alignItems: 'center' as 'center',
   },
   buttonText: {
     color: 'white',
-    textAlign: 'center',
+    textAlign: 'center' as 'center',
     fontSize: 16 * 0.87,
   },
   textField: {
@@ -316,38 +276,47 @@ const styles = StyleSheet.create({
     color: '#f00',
     fontSize: 14 * 0.87,
   },
+  link: {
+    color: 'black',
+    textDecorationLine: 'underline' as 'underline',
+  },
+  linkText: {
+    color: 'black',
+    fontSize: 15 * 0.87,
+    fontWeight: '400' as '400',
+  },
   label: {
     fontSize: 16 * 0.87,
-    fontWeight: '400',
+    fontWeight: '400' as '400',
     color: '#000',
     marginBottom: 8 * 0.87,
     marginTop: 13 * 0.87,
   },
   eyeIcon: {
-    position: 'absolute',
+    position: 'absolute' as 'absolute',
     right: 16 * 0.87,
     top: 62 * 0.87,
   },
   tickIcon: {
-    position: 'absolute',
+    position: 'absolute' as 'absolute',
     right: 16 * 0.87,
     top: 60 * 0.87,
   },
   footer: {
     marginTop: 50 * 0.87,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
     gap: 5 * 0.87,
   },
   // Terms and conditions checkbox style
   checkboxContainer: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'transparent' as 'transparent',
     borderWidth: 0,
     padding: 0,
     margin: 0,
     marginVertical: 10 * 0.87,
-    alignSelf: 'flex-start',
+    alignSelf: 'flex-start' as 'flex-start',
   },
   checkboxText: {
     fontSize: 16 * 0.87,
@@ -355,61 +324,23 @@ const styles = StyleSheet.create({
     marginLeft: 0 * 0.87,
   },
   checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    alignSelf: 'flex-start' as 'flex-start',
     marginVertical: 10 * 0.87,
     marginLeft: 0,
     paddingLeft: 0,
   },
   checkboxLinkText: {
     fontSize: 16 * 0.87,
-    color: 'black',
-    textDecorationLine: 'underline',
+    color: 'black' as 'black', // Style the link text
+    textDecorationLine: 'underline' as 'underline',
   },
   checkboxWrapper: {
-    margin: 0,
-    padding: 0,
+    margin: 0, // Remove wrapper margin
+    padding: 0, // Remove wrapper padding
   },
   buttonDisabled: {
     backgroundColor: '#E7E7E9',
   },
-  orLogIn: {
-    marginTop: 22 * 0.87,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  lineView: {
-    borderStyle: 'solid',
-    borderColor: '#d8dadc',
-    borderTopWidth: 1 * 0.87,
-    flex: 1,
-    width: '100%',
-    height: 1 * 0.87,
-  },
-  orText: {
-    color: 'rgba(0, 0, 0, 0.7)',
-    fontSize: 14 * 0.87,
-    lineHeight: 18 * 0.87,
-    marginHorizontal: 10 * 0.87,
-  },
-  buttonBucket: {
-    marginTop: 22 * 0.87,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15 * 0.87,
-  },
-  buttonWithIcon: {
-    borderRadius: 10 * 0.87,
-    backgroundColor: '#fff',
-    borderStyle: 'solid',
-    borderColor: '#d8dadc',
-    borderWidth: 1 * 0.87,
-    flex: 1,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 45 * 0.87,
-    paddingVertical: 18 * 0.87,
-  },
-});
+};

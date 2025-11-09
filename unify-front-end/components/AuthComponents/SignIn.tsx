@@ -1,20 +1,41 @@
 import React, { useState } from 'react';
+import isExpoGo from '../../utils/isExpoGo'; // see if we are running dev env using expo go or not
 import ForgotPassword from './ForgotPassword';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
+import { useForm } from 'react-hook-form';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { SignInProps } from '@aws-amplify/ui-react-native';
 import { supabase } from '../../lib/supabase';
-import { useGoogleAuth } from '../../hooks/useGoogleAuth';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Button } from 'react-native-paper';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+
+import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
 import Facebook from '../../assets/images/Facebook.svg';
 import Google from '../../assets/images/Google.svg';
+import Apple from '../../assets/images/Apple.svg';
+
 import {
+  ErrorMessage,
   LinkButton,
   LinksContainer,
+  ProviderButton,
   SubmitButton,
+  TextField,
   ViewHeader,
   ViewContainer,
   ViewSection,
+  ViewDivider,
   SimpleTextField,
 } from './Components';
+
+function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
+  return [first && first.toUpperCase(), rest.join('').toLowerCase()]
+    .filter(Boolean)
+    .join('') as Capitalize<T>;
+}
 
 export function SignIn({
   onSwitchToSignUp,
@@ -49,22 +70,40 @@ export function SignIn({
     setLoading(false);
   };
 
-  // Use the unified Google Auth hook
-  const { signInWithGoogle } = useGoogleAuth();
+  // Configure Google Sign-In once on mount (must happen BEFORE calling signIn)
+  React.useEffect(() => {
+    GoogleSignin.configure({
+      webClientId:
+        '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
+      scopes: ['email', 'profile'],
+      offlineAccess: true,
+      forceCodeForRefreshToken: false,
+    });
+  }, []);
 
-  // Handle Google sign-in with unified hook
+  // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
-    setLoading(true);
-    setErrorMessage(null);
-
-    const result = await signInWithGoogle();
-
-    // Only show error if there is one (cancellation returns no error)
-    if (!result.success && result.error) {
-      setErrorMessage(result.error);
+    if (isExpoGo) return; // Not supported in Expo Go
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (response.data?.idToken) {
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: response.data.idToken,
+        });
+        if (error) setErrorMessage(error.message);
+      } else {
+        setErrorMessage('No Google idToken');
+      }
+    } catch (error: any) {
+      if (error?.code === statusCodes.IN_PROGRESS) return; // already in progress
+      if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        setErrorMessage('Google Play Services not available');
+        return;
+      }
+      setErrorMessage(error?.message || 'Google sign-in failed');
     }
-
-    setLoading(false);
   };
 
   if (showForgotPassword) {
@@ -83,6 +122,7 @@ export function SignIn({
               setEmail(text);
               validateEmail(text);
             }}
+            // name="email"
             placeholder='Email address'
             style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
             autoCapitalize='none'
@@ -101,6 +141,7 @@ export function SignIn({
           <SimpleTextField
             value={password}
             onChangeText={setPassword}
+            // name="password"
             placeholder='Password'
             style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
             secureTextEntry={!passwordVisible}
@@ -151,6 +192,9 @@ export function SignIn({
         <View style={styles.buttonWithIcon}>
           <Facebook width={20} height={20} />
         </View>
+        <View style={styles.buttonWithIcon}>
+          <Apple width={20} height={20} />
+        </View>
 
         <TouchableOpacity
           style={styles.buttonWithIcon}
@@ -188,7 +232,7 @@ export function SignIn({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     backgroundColor: '#fff',
@@ -198,7 +242,7 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 34 * 0.87,
-    fontWeight: '700',
+    fontWeight: '700' as '700',
     color: '#000',
     marginBottom: 7 * 0.87,
     marginTop: 110 * 0.87,
@@ -209,13 +253,13 @@ const styles = StyleSheet.create({
     marginTop: 37 * 0.87,
     width: 110 * 0.87,
     height: 42 * 0.87,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    alignItems: 'center',
+    alignSelf: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    alignItems: 'center' as 'center',
   },
   buttonText: {
     color: 'white',
-    textAlign: 'center',
+    textAlign: 'center' as 'center',
     fontSize: 16 * 0.87,
   },
   textField: {
@@ -233,41 +277,41 @@ const styles = StyleSheet.create({
   },
   link: {
     color: 'black',
-    textDecorationLine: 'underline',
+    textDecorationLine: 'underline' as 'underline',
   },
   linkText: {
     color: 'black',
     fontSize: 15 * 0.87,
-    fontWeight: '400',
+    fontWeight: '400' as '400',
   },
   label: {
     fontSize: 16 * 0.87,
-    fontWeight: '400',
+    fontWeight: '400' as '400',
     color: '#000',
     marginBottom: 8 * 0.87,
     marginTop: 13 * 0.87,
   },
   eyeIcon: {
-    position: 'absolute',
+    position: 'absolute' as 'absolute',
     right: 16 * 0.87,
     top: 62 * 0.87,
   },
   tickIcon: {
-    position: 'absolute',
+    position: 'absolute' as 'absolute',
     right: 16 * 0.87,
     top: 60 * 0.87,
   },
   orLogIn: {
     marginTop: 22 * 0.87,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
   },
   lineView: {
-    borderStyle: 'solid',
+    borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
     borderTopWidth: 1 * 0.87,
     flex: 1,
-    width: '100%',
+    width: '100%' as '100%',
     height: 1 * 0.87,
   },
   orText: {
@@ -278,28 +322,28 @@ const styles = StyleSheet.create({
   },
   buttonBucket: {
     marginTop: 22 * 0.87,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
     gap: 15 * 0.87,
   },
   buttonWithIcon: {
     borderRadius: 10 * 0.87,
     backgroundColor: '#fff',
-    borderStyle: 'solid',
+    borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
     borderWidth: 1 * 0.87,
     flex: 1,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: '100%' as '100%',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
     paddingHorizontal: 45 * 0.87,
     paddingVertical: 18 * 0.87,
   },
   footer: {
     marginTop: 50 * 0.87,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
     gap: 5 * 0.87,
   },
-});
+};
