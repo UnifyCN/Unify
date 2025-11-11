@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#FF6B35', // orange-red color
+    backgroundColor: '#D8492C',
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 4,

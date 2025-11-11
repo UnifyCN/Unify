@@ -33,15 +33,17 @@ export function CurrentLessonSkeletonLoader() {
     height,
     borderRadius = 0,
     style,
+    isText = false,
   }: {
     width: number | string;
     height: number;
     borderRadius?: number;
     style?: any;
+    isText?: boolean;
   }) => (
     <Animated.View
       style={[
-        styles.skeleton,
+        isText ? styles.skeletonText : styles.skeleton,
         {
           width,
           height,
@@ -56,14 +58,21 @@ export function CurrentLessonSkeletonLoader() {
   return (
     <View style={styles.card}>
       <View style={styles.banner}>
-        <SkeletonBox width='100%' height={160} borderRadius={16} />
-      </View>
-      <View style={styles.footerRow}>
-        <View style={styles.footerText}>
-          <SkeletonBox width='60%' height={12} style={{ marginBottom: 8 }} />
-          <SkeletonBox width='80%' height={16} />
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFillObject,
+            styles.skeleton,
+            { opacity },
+          ]}
+        />
+        <View style={styles.bannerOverlay} />
+        <View style={styles.bannerTextWrap}>
+          <SkeletonBox width={120} height={12} style={{ marginBottom: 8 }} isText />
+          <SkeletonBox width={200} height={18} isText />
         </View>
-        <SkeletonBox width={38} height={38} borderRadius={12} />
+        <View style={styles.resumeButtonContainer}>
+          <SkeletonBox width={101} height={36} borderRadius={8} isText />
+        </View>
       </View>
     </View>
   );
@@ -73,34 +82,43 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 16,
-    paddingTop: 0,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    shadowColor: '#000',
+    padding: 0,
+    marginRight: 10,
+    shadowColor: '#fff',
     shadowOpacity: 0.06,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
-  },
-  banner: {
-    marginHorizontal: -16,
-    marginBottom: 12,
-    borderRadius: 16,
     overflow: 'hidden',
   },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
-    paddingRight: 15,
-    paddingVertical: 8,
+  banner: {
+    height: 160,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    padding: 20,
+    position: 'relative',
   },
-  footerText: {
-    flex: 1,
-    paddingRight: 8,
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(153, 153, 153, 0.4)',
+  },
+  bannerTextWrap: {
+    alignSelf: 'flex-start',
+    position: 'relative',
+    zIndex: 1,
+  },
+  resumeButtonContainer: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 2,
   },
   skeleton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#F5F5F5',
+  },
+  skeletonText: {
+    backgroundColor: '#B0B0B0',
   },
 });

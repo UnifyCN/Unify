@@ -74,11 +74,10 @@ export default function Learn() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          <Text style={styles.pageTitle}>Let's get started!</Text>
+          <Text style={styles.pageTitle}>Ready To Learn?</Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}
 
-          <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
           {lessonsLoading ? (
             <>
               <View style={[styles.heroWrapper, { width }]}>
@@ -199,7 +198,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 16,
+    marginBottom: 2,
   },
   heroWrapper: { marginTop: 8 },
   pathwaysGrid: {
