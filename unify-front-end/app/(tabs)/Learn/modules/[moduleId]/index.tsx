@@ -29,7 +29,6 @@ import { cachedProgressService } from '@/services/progress/cachedProgressService
 import { getLessonProgress } from '@/services/progress/progressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather } from '@expo/vector-icons';
-import Svg, { Circle } from 'react-native-svg';
 import Header from '@/components/Header';
 
 // --- safety helpers ---
@@ -51,15 +50,6 @@ const CARD_W = 269;
 // RAIL
 const RAIL_W = 4;
 const FIRST_GAP = 20;
-
-// Bubble sizing + gap
-const BUBBLE_SIZE = 65;
-const BUBBLE_RADIUS = BUBBLE_SIZE / 2;
-const BUBBLE_GAP = 16;
-// Rings
-const RING_MIDDLE = BUBBLE_SIZE - 6;
-const RING_INNER = BUBBLE_SIZE - 16;
-const PROGRESS_STROKE = 6;
 
 export default function ModuleIndex() {
   const router = useRouter();
@@ -372,43 +362,6 @@ export default function ModuleIndex() {
     rowTopsRef.current = new Array(total).fill(NaN); // NaN = unmeasured
   }, [moduleData?.submodules?.length]);
 
-  // per-row card layout (for bubble X/Y position)
-  const cardLayoutsRef = useRef<
-    Array<{ x: number; y: number; width: number; height: number }>
-  >([]);
-
-  // ========== Bubble helpers ==========
-  const bubbleOutsideLeftOfCard = (index: number, fallbackLeftEdge: number) => {
-    const entry = cardLayoutsRef.current[index];
-    const cardLeft =
-      entry && Number.isFinite(entry.x) ? entry.x : fallbackLeftEdge;
-    return Math.max(0, cardLeft - BUBBLE_GAP - 2 * BUBBLE_RADIUS);
-  };
-
-  const bubbleOutsideRightOfCard = (
-    index: number,
-    fallbackRightEdge: number
-  ) => {
-    const entry = cardLayoutsRef.current[index];
-    const cardRight =
-      entry && Number.isFinite(entry.x) && Number.isFinite(entry.width)
-        ? entry.x + entry.width
-        : fallbackRightEdge;
-    return Math.max(0, cardRight + BUBBLE_GAP);
-  };
-
-  const bubbleTopForCard = (
-    index: number,
-    fallbackRowTop: number,
-    fallbackRowHeight: number
-  ) => {
-    const entry = cardLayoutsRef.current[index];
-    if (entry && Number.isFinite(entry.y) && Number.isFinite(entry.height)) {
-      return Math.max(0, entry.y + (entry.height - BUBBLE_SIZE) / 2);
-    }
-    // fallback: center in the row until we get card layout
-    return Math.max(0, fallbackRowTop + (fallbackRowHeight - BUBBLE_SIZE) / 2);
-  };
 
   // which submodule is the next one the user should do?
   const currentIndex = useMemo(() => {
@@ -586,7 +539,6 @@ export default function ModuleIndex() {
             }}
           >
             {submodules.map((m, i) => {
-              const leftSide = i % 2 === 0; // card sits on the left?
               const ctaText = m.is_completed
                 ? 'Review'
                 : m.progress_percent > 0
@@ -594,21 +546,13 @@ export default function ModuleIndex() {
                   : 'Start';
               const disabled = !m.unlocked;
 
-              // Fallback edges until card onLayout fires
-              const fallbackLeftEdgeOfRightCard =
-                SCREEN_WIDTH - EDGE_PAD - CARD_W;
-              const fallbackRightEdgeOfLeftCard = EDGE_PAD + CARD_W;
-
-              // Row layout (for fallback top)
+              // Row layout
               let rowTop = 0;
               let rowHeight = 0;
 
-              // determine current and bubble style per-row
+              // determine current
               const isCurrent =
                 i === currentIndex && !m.is_completed && m.unlocked;
-              const showProgressBubble =
-                (m.progress_percent || 0) > 0 || isCurrent;
-              const isLocked = !m.unlocked;
 
               return (
                 <View
@@ -784,18 +728,9 @@ export default function ModuleIndex() {
                     }}
                     style={[
                       styles.card,
-                      leftSide ? styles.cardLeft : styles.cardRight,
+                      styles.cardCentered,
                       (m as any).status === 'completed' && styles.cardCompleted,
                     ]}
-                    onLayout={ev => {
-                      const { x, y, width, height } = ev.nativeEvent.layout;
-                      cardLayoutsRef.current[i] = {
-                        x: Math.max(0, x),
-                        y: Math.max(0, y),
-                        width: Math.max(0, width),
-                        height: Math.max(0, height),
-                      };
-                    }}
                   >
                     {/* Small circle indicator for current */}
                     {isCurrent && <View style={styles.latestIndicator} />}
@@ -861,97 +796,6 @@ export default function ModuleIndex() {
                       </View>
                     </View>
                   </TouchableOpacity>
-
-                  {/* Bubble: rail-side of each card, centered to the card */}
-                  <View
-                    pointerEvents='none'
-                    style={[
-                      styles.bubbleAbs,
-                      {
-                        left: leftSide
-                          ? bubbleOutsideRightOfCard(
-                              i,
-                              fallbackRightEdgeOfLeftCard
-                            )
-                          : bubbleOutsideLeftOfCard(
-                              i,
-                              fallbackLeftEdgeOfRightCard
-                            ),
-                        top: bubbleTopForCard(i, rowTop, rowHeight),
-                        opacity: 1,
-                      },
-                    ]}
-                  >
-                    {isLocked ? (
-                      // 3-ring LOCKED bubble (no arc)
-                      <View style={styles.progressBubble}>
-                        <View style={styles.ringOuterLocked} />
-                        <View style={styles.ringMiddleLocked} />
-                        <View style={styles.ringInnerLocked} />
-                        <Text style={styles.bubbleText}>
-                          {Math.round(m.progress_percent || 0)}%
-                        </Text>
-                      </View>
-                    ) : showProgressBubble ? (
-                      // 3-ring progress bubble (also for current at 0%)
-                      <View style={styles.progressBubble}>
-                        <View style={styles.ringOuter} />
-                        <View style={styles.ringMiddle} />
-                        <View style={styles.ringInner} />
-                        <Svg
-                          height='100%'
-                          width='100%'
-                          viewBox='0 0 100 100'
-                          style={styles.progressSvgTop}
-                        >
-                          <Circle
-                            cx='50'
-                            cy='50'
-                            r={50 - PROGRESS_STROKE}
-                            stroke={moduleData?.colorTheme?.hex || '#000'}
-                            strokeWidth={PROGRESS_STROKE}
-                            strokeLinecap='round'
-                            strokeDasharray={
-                              2 * Math.PI * (50 - PROGRESS_STROKE)
-                            }
-                            strokeDashoffset={
-                              2 *
-                              Math.PI *
-                              (50 - PROGRESS_STROKE) *
-                              (1 - (m.progress_percent || 0) / 100)
-                            }
-                            fill='none'
-                          />
-                        </Svg>
-                        <Text style={styles.bubbleText}>
-                          {Math.round(m.progress_percent || 0)}%
-                        </Text>
-                      </View>
-                    ) : (
-                      // Original bubble for completed (check)
-                      <View
-                        style={[
-                          styles.bubbleOuter,
-                          m.unlocked
-                            ? styles.bubbleOuterActive
-                            : styles.bubbleOuterBlocked,
-                          m.is_completed && styles.bubbleDoneOuter,
-                        ]}
-                      >
-                        <View
-                          style={[
-                            styles.bubbleInner,
-                            m.unlocked
-                              ? styles.bubbleInnerActive
-                              : styles.bubbleInnerBlocked,
-                            m.is_completed && styles.bubbleDoneInner,
-                          ]}
-                        >
-                          <Feather name='check' size={20} color='#fff' />
-                        </View>
-                      </View>
-                    )}
-                  </View>
                 </View>
               );
             })}
@@ -1085,8 +929,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: 'visible',
   },
-  cardLeft: { marginLeft: EDGE_PAD, alignSelf: 'flex-start' },
-  cardRight: { marginRight: EDGE_PAD, alignSelf: 'flex-end' },
+  cardCentered: { alignSelf: 'center' },
   cardCompleted: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
 
   // Status chip
@@ -1147,98 +990,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   ctaTextDisabled: { color: '#575757' },
-
-  // Bubble — absolute box
-  bubbleAbs: { position: 'absolute', width: BUBBLE_SIZE, height: BUBBLE_SIZE },
-  bubbleOuter: {
-    width: BUBBLE_SIZE,
-    height: BUBBLE_SIZE,
-    borderRadius: BUBBLE_RADIUS,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-  },
-  bubbleOuterActive: { borderColor: '#BABABA' },
-  bubbleOuterBlocked: { borderColor: '#d8d8d8' },
-  bubbleInner: {
-    width: BUBBLE_SIZE - 10,
-    height: BUBBLE_SIZE - 10,
-    borderRadius: (BUBBLE_SIZE - 10) / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bubbleInnerActive: { backgroundColor: '#A6A6A6' },
-  bubbleInnerBlocked: { backgroundColor: '#c8c8c8' },
-  bubbleDoneOuter: { borderColor: '#059669' },
-  bubbleDoneInner: { backgroundColor: '#10B981' },
-
-  bubbleText: { fontSize: 16, fontWeight: '500', color: '#fff' },
-
-  progressSvgTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    transform: [{ rotateZ: '-90deg' }],
-  },
-
-  progressBubble: {
-    width: BUBBLE_SIZE,
-    height: BUBBLE_SIZE,
-    borderRadius: BUBBLE_RADIUS,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-
-  /* In-progress/current rings */
-  ringOuter: {
-    position: 'absolute',
-    width: BUBBLE_SIZE,
-    height: BUBBLE_SIZE,
-    borderRadius: BUBBLE_RADIUS,
-    backgroundColor: '#9D9D9D',
-  },
-  ringMiddle: {
-    position: 'absolute',
-    width: RING_MIDDLE,
-    height: RING_MIDDLE,
-    borderRadius: RING_MIDDLE / 2,
-    backgroundColor: '#fff',
-  },
-  ringInner: {
-    position: 'absolute',
-    width: RING_INNER,
-    height: RING_INNER,
-    borderRadius: RING_INNER / 2,
-    backgroundColor: '#A6A6A6',
-    borderWidth: 2.5,
-    borderColor: '#9D9D9D',
-  },
-
-  /* LOCKED rings */
-  ringOuterLocked: {
-    position: 'absolute',
-    width: BUBBLE_SIZE,
-    height: BUBBLE_SIZE,
-    borderRadius: BUBBLE_RADIUS,
-    backgroundColor: '#D8D8D8',
-  },
-  ringMiddleLocked: {
-    position: 'absolute',
-    width: RING_MIDDLE,
-    height: RING_MIDDLE,
-    borderRadius: RING_MIDDLE / 2,
-    backgroundColor: '#EDEDED',
-  },
-  ringInnerLocked: {
-    position: 'absolute',
-    width: RING_INNER,
-    height: RING_INNER,
-    borderRadius: RING_INNER / 2,
-    backgroundColor: '#C8C8C8',
-    borderWidth: 2.5,
-    borderColor: '#D8D8D8',
-  },
 
   // More modules pill
   morePillWrap: {
