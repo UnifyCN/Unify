@@ -173,7 +173,6 @@ export default function Learn() {
                     title={module.title}
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
                     href={`/(tabs)/Learn/modules/${module._id}` as any}
-                    colorHex={module.colorTheme?.hex}
                     coverImageUrl={
                       module.coverPhoto ? urlFor(module.coverPhoto) : undefined
                     }
