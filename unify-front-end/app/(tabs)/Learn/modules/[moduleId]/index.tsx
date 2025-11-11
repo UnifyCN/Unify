@@ -45,7 +45,7 @@ const CONTENT_W = Math.max(0, SCREEN_WIDTH - EDGE_PAD * 2);
 
 // Card size
 const CARD_RATIO = 0.75;
-const CARD_W = 269;
+const CARD_W = 274;
 
 // RAIL
 const RAIL_W = 4;
