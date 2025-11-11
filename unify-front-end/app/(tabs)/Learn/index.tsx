@@ -130,13 +130,8 @@ export default function Learn() {
                         }}
                       >
                         <LessonHeroCard
-                          title={lesson.title}
-                          description={lesson.description}
                           moduleTitle={lesson.moduleTitle}
                           submoduleTitle={lesson.submoduleTitle}
-                          progressPercent={lesson.progressPercent}
-                          currentPage={lesson.currentPage}
-                          totalPages={lesson.totalPages}
                           submoduleCount={submoduleCount}
                           coverImageUrl={coverImageUrl}
                           colorHex={colorHex}
