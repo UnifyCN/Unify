@@ -76,7 +76,7 @@ export default function Learn() {
         >
           <Text style={styles.pageTitle}>Let's get started!</Text>
 
-          <SearchBar placeholder='Search for a lesson' />
+          {/* <SearchBar placeholder='Search for a lesson' /> */}
 
           <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
           {lessonsLoading ? (
