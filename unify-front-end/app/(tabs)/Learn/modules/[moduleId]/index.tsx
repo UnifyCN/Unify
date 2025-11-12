@@ -16,7 +16,9 @@ import {
   LayoutChangeEvent,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Modal,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   useRouter,
   useLocalSearchParams,
@@ -31,7 +33,6 @@ import { progressClient } from '@/services/progress/progressClient';
 import { Feather } from '@expo/vector-icons';
 import Header from '@/components/Header';
 
-// --- safety helpers ---
 const safeNum = (n: any, fallback = 0) =>
   Number.isFinite(Number(n)) ? Number(n) : fallback;
 const clampNonNeg = (n: any) => Math.max(0, safeNum(n, 0));
@@ -70,6 +71,91 @@ export default function ModuleIndex() {
   const [submoduleHrefs, setSubmoduleHrefs] = useState<{
     [key: string]: string;
   }>({});
+
+  // Disclaimer modal state
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+
+  // Check if disclaimer should be shown (first time opening Finance module)
+  useEffect(() => {
+    const checkDisclaimer = async () => {
+      if (!moduleId) {
+        console.log('[Disclaimer] Missing moduleId');
+        return;
+      }
+
+      if (!moduleData?.title) {
+        console.log('[Disclaimer] Module data not loaded yet, title:', moduleData?.title);
+        return;
+      }
+
+      // Check if this is the Finance module (by title)
+      const titleLower = moduleData.title.toLowerCase();
+      const isFinanceModule =
+        titleLower.includes('finance') ||
+        titleLower.includes('financial') ||
+        titleLower.includes('wealth') ||
+        titleLower === 'finance';
+
+      console.log('[Disclaimer] Checking module:', {
+        title: moduleData.title,
+        titleLower,
+        isFinanceModule,
+        moduleId,
+        isLoading,
+        hasError: !!error,
+      });
+
+      if (!isFinanceModule) {
+        console.log('[Disclaimer] Not a Finance module, skipping');
+        return;
+      }
+
+      // Check if disclaimer has been seen for this module
+      try {
+        const storageKey = `disclaimerSeen_${moduleId}`;
+        const hasSeen = await AsyncStorage.getItem(storageKey);
+        console.log('[Disclaimer] Storage check:', { storageKey, hasSeen, willShow: !hasSeen });
+        
+        if (!hasSeen) {
+          console.log('[Disclaimer] Showing disclaimer for first time');
+          setShowDisclaimer(true);
+        } else {
+          console.log('[Disclaimer] Already seen, not showing');
+        }
+      } catch (error) {
+        console.error('[Disclaimer] Error checking disclaimer status:', error);
+      }
+    };
+
+    // Wait for module data to be loaded
+    if (moduleData && !isLoading && !error) {
+      checkDisclaimer();
+    } else {
+      console.log('[Disclaimer] Waiting for data:', { 
+        hasModuleData: !!moduleData, 
+        isLoading, 
+        hasError: !!error 
+      });
+    }
+  }, [moduleId, moduleData, isLoading, error]);
+
+  // Handle disclaimer Continue button
+  const handleDisclaimerContinue = async () => {
+    if (!moduleId) return;
+    try {
+      const storageKey = `disclaimerSeen_${moduleId}`;
+      await AsyncStorage.setItem(storageKey, 'true');
+      setShowDisclaimer(false);
+    } catch (error) {
+      console.error('Error saving disclaimer status:', error);
+    }
+  };
+
+  // Handle disclaimer Back button
+  const handleDisclaimerBack = () => {
+    setShowDisclaimer(false);
+    router.replace('/(tabs)/Learn');
+  };
 
   // Calculate module progress from submodule data
   const moduleProgressData = useMemo(() => {
@@ -822,6 +908,51 @@ export default function ModuleIndex() {
           </View>
         </View>
       )}
+
+      {/* Disclaimer Modal */}
+      <Modal
+        visible={showDisclaimer}
+        transparent={true}
+        animationType='fade'
+        onRequestClose={handleDisclaimerBack}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Disclaimer</Text>
+            <View style={styles.modalTextContainer}>
+              <Text style={styles.modalText}>
+                This module is for educational purposes only. Unify does not
+                provide legal or financial advice and makes no guarantee of
+                accuracy, completeness, or applicability. Policies may change at
+                any time, and Unify is not liable for any outcomes or losses
+                resulting from use or reliance on this content. Always verify
+                current requirements with official sources such as IRCC or
+                qualified professionals.
+              </Text>
+            </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButtonBack}
+                onPress={handleDisclaimerBack}
+              >
+                <Text style={styles.modalButtonBackText}>Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalButtonContinue,
+                  {
+                    backgroundColor:
+                      moduleData?.colorTheme?.hex || '#D8492C',
+                  },
+                ]}
+                onPress={handleDisclaimerContinue}
+              >
+                <Text style={styles.modalButtonContinueText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1073,5 +1204,97 @@ const styles = StyleSheet.create({
     // nudge to visually get ~11px top / 16px bottom from text to globe
     marginTop: 11 - (39 - 22) / 2,
     marginBottom: 16 - (39 - 22) / 2,
+  },
+
+  // Disclaimer Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 30,
+    width: 353,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    width: 293,
+    height: 26,
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: '600',
+    color: '#343434',
+    textAlign: 'center',
+    marginBottom: 14,
+    letterSpacing: 0,
+  },
+  modalTextContainer: {
+    width: 293,
+    height: 200,
+    marginBottom: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '400',
+    color: '#686464',
+    textAlign: 'center',
+    letterSpacing: 0,
+    width: 293,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  modalButtonBack: {
+    width: 139,
+    height: 46,
+    paddingTop: 12,
+    paddingRight: 24,
+    paddingBottom: 12,
+    paddingLeft: 24,
+    backgroundColor: '#E6E6E6',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  modalButtonBackText: {
+    width: 39,
+    height: 22,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '600',
+    color: '#000000',
+    textAlign: 'center',
+    letterSpacing: 0,
+  },
+  modalButtonContinue: {
+    width: 139,
+    height: 46,
+    paddingTop: 12,
+    paddingRight: 24,
+    paddingBottom: 12,
+    paddingLeft: 24,
+    backgroundColor: '#D8492C',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonContinueText: {
+    width: 71,
+    height: 22,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: 0,
   },
 });
