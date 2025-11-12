@@ -466,17 +466,19 @@ export default function ModuleIndex() {
     setProgressBottom(y + h);
   };
 
-  const updateRowBottom = (bottom: number) =>
-    setRailEnd(prev => {
-      const b = clampNonNeg(bottom);
-      if (!Number.isFinite(b)) return prev ?? 0;
-      return prev == null ? b : Math.max(prev, b);
-    });
+  const updateRowBottom = (bottom: number, isLastModule: boolean) => {
+    if (!isLastModule) return; // Only track the last module's bottom
+    
+    const b = clampNonNeg(bottom);
+    if (Number.isFinite(b)) {
+      setRailEnd(b);
+    }
+  };
 
   const railHeight = useMemo(() => {
     if (railEnd == null || progressBottom <= 0) return 0;
-    const trim = -240;
-    return Math.max(0, railEnd - progressBottom - trim);
+    // Rail should stop exactly at the last module's bottom
+    return Math.max(0, railEnd - progressBottom);
   }, [railEnd, progressBottom]);
 
   if (isLoading || progressLoading) {
@@ -640,6 +642,9 @@ export default function ModuleIndex() {
               const isCurrent =
                 i === currentIndex && !m.is_completed && m.unlocked;
 
+              // Check if this is the last module
+              const isLastModule = i === submodules.length - 1;
+
               return (
                 <View
                   key={m.id}
@@ -653,7 +658,7 @@ export default function ModuleIndex() {
                       clampNonNeg(timelineTopRef.current) +
                       rowTop;
                     rowTopsRef.current[i] = absTop;
-                    updateRowBottom(absTop + rowHeight);
+                    updateRowBottom(absTop + rowHeight, isLastModule);
                     computeAhead(scrollRef.current.y, scrollRef.current.vh);
                   }}
                 >
