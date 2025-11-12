@@ -99,6 +99,14 @@ const PostDetails = () => {
   // Get passed data
   const { post: postParam, focusReply } = useLocalSearchParams();
 
+  // Control focus on comment input based on how PostDetails was opened:
+  // Input should be focused when comment icons clicked, otherwise do not open
+  const [commentTextBox, setCommentTextBox] = useState('');
+  const [replyingToComment, setReplyingToComment] =
+    useState<PostCommentData | null>(null);
+  const replyInputRef = useRef<TextInput>(null);
+  const [shouldFocusReply, setShouldFocusReply] = useState(false);
+
   if (!postParam) {
     return <PostNotFound />;
   }
@@ -112,14 +120,6 @@ const PostDetails = () => {
   const onBack = () => {
     router.back();
   };
-
-  // Control focus on comment input based on how PostDetails was opened:
-  // Input should be focused when comment icons clicked, otherwise do not open
-  const [commentTextBox, setCommentTextBox] = useState('');
-  const [replyingToComment, setReplyingToComment] =
-    useState<PostCommentData | null>(null);
-  const replyInputRef = useRef<TextInput>(null);
-  const [shouldFocusReply, setShouldFocusReply] = useState(false);
 
   useEffect(() => {
     if (focusReply === 'true') {
