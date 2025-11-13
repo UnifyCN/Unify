@@ -116,7 +116,6 @@ export default function Learn() {
                     const coverImageUrl = module?.coverPhoto
                       ? urlFor(module.coverPhoto)
                       : undefined;
-                    const colorHex = module?.colorTheme?.hex;
 
                     return (
                       <View
@@ -133,7 +132,6 @@ export default function Learn() {
                           submoduleTitle={lesson.submoduleTitle}
                           submoduleCount={submoduleCount}
                           coverImageUrl={coverImageUrl}
-                          colorHex={colorHex}
                           href={lesson.href as any}
                         />
                       </View>
