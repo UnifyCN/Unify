@@ -9,7 +9,6 @@ import LearnIcon from '@/components/icons/LearnPageIcon';
 import CommunityIcon from '@/components/icons/CommunityIcon';
 import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
 import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
-import ClickedCommunityIcon from '@/components/icons/ClickedCommunityIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
@@ -93,7 +92,7 @@ export default function TabLayout() {
             title: 'Community',
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent={focused ? ClickedCommunityIcon : CommunityIcon}
+                IconComponent={CommunityIcon}
                 title='Community'
                 focused={focused}
               />
