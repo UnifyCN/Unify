@@ -11,7 +11,6 @@ import { useState, useMemo, memo, useEffect } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
-import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import BackHeader from '@/components/BackHeader';
 import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
@@ -19,6 +18,7 @@ import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 import { Theme } from '@/constants/Theme';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
+import { useCurrentUser } from '@/context/UserContext';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -57,22 +57,9 @@ const TabHeader = memo(
 
 export default function Profile() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
-  const [isCurrentUser, setIsCurrentUser] = useState<boolean | null>(null);
+  const { currentUser } = useCurrentUser();
   const { data: userInfo } = useUserInfo(userId);
-
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setIsCurrentUser(user.id === userId);
-      } else {
-        setIsCurrentUser(false);
-      }
-    };
-    getCurrentUser();
-  }, [userId]);
+  const isCurrentUser = currentUser?.id === userId;
 
   const [activeTab, setActiveTab] = useState('Posts');
   useEffect(() => {
@@ -103,7 +90,7 @@ export default function Profile() {
           <TabHeader
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            isCurrentUser={isCurrentUser!}
+            isCurrentUser={isCurrentUser}
           />
         );
       case 'feed':

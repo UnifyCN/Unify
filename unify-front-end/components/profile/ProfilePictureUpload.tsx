@@ -5,10 +5,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   Modal,
   Pressable,
   Animated,
+  PanResponder,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,18 +18,22 @@ import {
 } from '@/services/s3/uploadProfilePicture';
 import { updateProfilePicture } from '@/services/users/updateProfilePicture';
 import { useQueryClient } from '@tanstack/react-query';
+import { Theme } from '@/constants/Theme';
 
 interface ProfilePictureUploadProps {
   currentPictureUrl?: string;
   userId: string;
+  modalVisible: boolean;
+  onClose: () => void;
 }
 
 export const ProfilePictureUpload = ({
   currentPictureUrl,
   userId,
+  modalVisible,
+  onClose,
 }: ProfilePictureUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
   const queryClient = useQueryClient();
   const slideAnim = useRef(new Animated.Value(300)).current;
 
@@ -57,6 +61,51 @@ export const ProfilePictureUpload = ({
       }).start();
     }
   }, [modalVisible, slideAnim]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Only respond to downward drags
+        return gestureState.dy > 0;
+      },
+      onPanResponderGrant: () => {
+        slideAnim.stopAnimation(value => {
+          slideAnim.setOffset(value);
+          slideAnim.setValue(0);
+        });
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Only allow dragging down
+        if (gestureState.dy > 0) {
+          slideAnim.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        slideAnim.flattenOffset();
+        const dragThreshold = 100; // Close if dragged down more than 100px
+
+        if (gestureState.dy > dragThreshold || gestureState.vy > 0.5) {
+          // Close modal
+          Animated.timing(slideAnim, {
+            toValue: 300,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            onClose();
+          });
+        } else {
+          // Snap back to original position
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            tension: 65,
+            friction: 11,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const requestPermissions = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -183,27 +232,22 @@ export const ProfilePictureUpload = ({
         animationType='fade'
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={onClose}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setModalVisible(false)}
-        >
+        <Pressable style={styles.modalOverlay} onPress={onClose}>
           <View style={styles.modalContainer}>
             <Animated.View
               style={[
                 styles.modalContent,
                 { transform: [{ translateY: slideAnim }] },
               ]}
+              {...panResponder.panHandlers}
             >
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Change Profile Picture</Text>
-              </View>
-
+              <View style={styles.dragHandle} />
               <TouchableOpacity
                 style={styles.modalOption}
                 onPress={() => {
-                  setModalVisible(false);
+                  onClose();
                   pickImage();
                 }}
                 disabled={isUploading}
@@ -211,7 +255,7 @@ export const ProfilePictureUpload = ({
                 <Feather
                   name='image'
                   size={20}
-                  color='#000'
+                  color={Theme.black}
                   style={styles.optionIcon}
                 />
                 <Text style={styles.modalOptionText}>Choose from library</Text>
@@ -219,9 +263,9 @@ export const ProfilePictureUpload = ({
 
               {currentPictureUrl && (
                 <TouchableOpacity
-                  style={[styles.modalOption, styles.removeOption]}
+                  style={styles.modalOption}
                   onPress={() => {
-                    setModalVisible(false);
+                    onClose();
                     removePicture();
                   }}
                   disabled={isUploading}
@@ -229,36 +273,18 @@ export const ProfilePictureUpload = ({
                   <Feather
                     name='trash-2'
                     size={20}
-                    color='#FF3B30'
+                    color={Theme.black}
                     style={styles.optionIcon}
                   />
-                  <Text style={styles.removeOptionText}>
-                    Remove current picture
+                  <Text style={styles.modalOptionText}>
+                    Remove current photo
                   </Text>
                 </TouchableOpacity>
               )}
-
-              <View style={styles.infoMessage}>
-                <Text style={styles.infoText}>
-                  Your profile picture is visible to everyone on the app.
-                </Text>
-              </View>
             </Animated.View>
           </View>
         </Pressable>
       </Modal>
-
-      <TouchableOpacity
-        style={styles.avatarButton}
-        onPress={() => setModalVisible(true)}
-        disabled={isUploading}
-      >
-        {isUploading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator color='#fff' size='small' />
-          </View>
-        )}
-      </TouchableOpacity>
     </>
   );
 };
@@ -273,52 +299,34 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: Theme.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 12,
     paddingBottom: 20,
   },
-  modalHeader: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
+  dragHandle: {
+    width: 77,
+    height: 5,
+    backgroundColor: Theme.textInactiveTab,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    marginBottom: 8,
   },
   optionIcon: {
-    marginRight: 12,
+    marginRight: 8,
   },
   modalOptionText: {
-    fontSize: 16,
-    color: '#000',
+    fontSize: 18,
+    color: Theme.black,
+    fontWeight: '500',
     flex: 1,
-  },
-  removeOption: {
-    borderBottomWidth: 0,
-  },
-  removeOptionText: {
-    fontSize: 16,
-    color: '#FF3B30',
-    fontWeight: '600',
-    flex: 1,
-  },
-  infoMessage: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#000',
   },
   avatarButton: {
     position: 'absolute',

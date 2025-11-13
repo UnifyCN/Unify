@@ -3,23 +3,16 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Feather } from '@expo/vector-icons';
-import { useUserInfo } from '@/hooks/users/useUserInfo';
+import { Theme } from '@/constants/Theme';
+import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
+import { useCurrentUser } from '@/context/UserContext';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
-  const { data: userInfo } = useUserInfo();
-  const [userId, setUserId] = useState<string | null>(null);
-
-  // Keep track of current user's ID for navigation
-  useEffect(() => {
-    const getUserId = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUserId(data?.user?.id ?? null);
-    };
-    getUserId();
-  }, []);
+  const { currentUser } = useCurrentUser();
+  const [modalVisible, setModalVisible] = useState(false);
 
   const onLogout = async () => {
     try {
@@ -32,49 +25,70 @@ export default function AccountSettingsPage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Account' onBack={() => router.back()} />
+      <BackHeader title='Profile' onBack={() => router.back()} />
       <View style={styles.content}>
         <View style={styles.profileSection}>
-          <Avatar
-            profilePictureUrl={userInfo?.profilePictureUrl}
-            username={userInfo?.username || ''}
-            size={80}
-            style={styles.avatar}
-          />
-          <Text style={styles.userName}>{userInfo?.username || ''}</Text>
+          <View style={styles.avatarContainer}>
+            <TouchableOpacity
+              onPress={() => setModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Avatar
+                profilePictureUrl={currentUser?.profilePictureUrl}
+                username={currentUser?.username || ''}
+                size={93}
+                style={styles.avatar}
+              />
+            </TouchableOpacity>
+            {currentUser && (
+              <ProfilePictureUpload
+                currentPictureUrl={currentUser.profilePictureUrl}
+                userId={currentUser.id}
+                modalVisible={modalVisible}
+                onClose={() => setModalVisible(false)}
+              />
+            )}
+            <TouchableOpacity
+              style={styles.cameraButton}
+              onPress={() => setModalVisible(true)}
+            >
+              <View style={styles.cameraIconContainer}>
+                <Feather name='camera' size={18} color={Theme.white} />
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.userInfoContainer}>
+            <TouchableOpacity
+              style={styles.nameRow}
+              onPress={() => router.push('/edit-name')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.userName}>{currentUser?.username || ''}</Text>
+              <Feather name='edit-3' size={20} color={Theme.black} />
+            </TouchableOpacity>
+            <Text style={styles.userEmail}>{currentUser?.email || ''}</Text>
+          </View>
         </View>
         <View style={styles.rowsContainer}>
           <View style={styles.settingsCard}>
             <TouchableOpacity
               style={styles.row}
               onPress={() => {
-                if (userId) {
-                  router.push(`/profile?userId=${userId}`);
+                if (currentUser) {
+                  router.push(`/profile?userId=${currentUser.id}&tab=Saved`);
                 }
               }}
             >
-              <Feather name='user' size={30} color='#000' />
-              <Text style={styles.rowText}>Gather Profile</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.row}
-              onPress={() => {
-                if (userId) {
-                  router.push(`/profile?userId=${userId}&tab=Saved`);
-                }
-              }}
-            >
-              <View style={styles.iconContainer}>
-                <Feather name='bookmark' size={30} color='#000' />
+              <View style={styles.bookmarkIconContainer}>
+                <Feather name='bookmark' size={24} color={Theme.black} />
               </View>
-              <Text style={styles.rowText}>Saved Posts</Text>
+              <Text style={[styles.rowText, { fontSize: 18 }]}>Saved</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={onLogout}>
-            <Text style={[styles.rowText, { color: '#000' }]}>Log out</Text>
+            <Text style={styles.rowText}>Log out</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -90,20 +104,52 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingVertical: 24,
-    gap: 20,
+    paddingTop: 20,
+    gap: 25,
   },
   profileSection: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 20,
+  },
+  avatarContainer: {
+    position: 'relative',
   },
   avatar: {
-    marginBottom: 12,
+    // No additional styles needed
+  },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+  },
+  cameraIconContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: Theme.primaryGatherRed,
+    borderWidth: 2,
+    borderColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userInfoContainer: {
+    flex: 1,
+    gap: 4,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   userName: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#111',
+    color: Theme.black,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#343434',
   },
   settingsCard: {
     flexDirection: 'column',
@@ -118,15 +164,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 18,
   },
-  iconContainer: {
-    width: 30,
-    height: 30,
+  bookmarkIconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   rowText: {
     fontSize: 16,
-    color: '#111',
+    color: Theme.black,
   },
   divider: {
     height: StyleSheet.hairlineWidth,

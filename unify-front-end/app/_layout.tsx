@@ -12,6 +12,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Onboarding from './onboarding';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
+import { UserProvider } from '@/context/UserContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -89,27 +90,33 @@ export default function RootLayout() {
               <Onboarding onFinish={() => setShowOnboarding(false)} />
             ) : (
               <AuthWrapper>
-                <ThemeProvider value={DefaultTheme}>
-                  <Stack>
-                    <Stack.Screen
-                      name='(tabs)'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='account-settings'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='profile'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='reset-password'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen name='+not-found' />
-                  </Stack>
-                </ThemeProvider>
+                <UserProvider>
+                  <ThemeProvider value={DefaultTheme}>
+                    <Stack>
+                      <Stack.Screen
+                        name='(tabs)'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='account-settings'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='edit-name'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='profile'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='reset-password'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen name='+not-found' />
+                    </Stack>
+                  </ThemeProvider>
+                </UserProvider>
               </AuthWrapper>
             )}
           </ScrollContextProvider>
