@@ -79,12 +79,10 @@ export default function ModuleIndex() {
   useEffect(() => {
     const checkDisclaimer = async () => {
       if (!moduleId) {
-        console.log('[Disclaimer] Missing moduleId');
         return;
       }
 
       if (!moduleData?.title) {
-        console.log('[Disclaimer] Module data not loaded yet, title:', moduleData?.title);
         return;
       }
 
@@ -96,17 +94,7 @@ export default function ModuleIndex() {
         titleLower.includes('wealth') ||
         titleLower === 'finance';
 
-      console.log('[Disclaimer] Checking module:', {
-        title: moduleData.title,
-        titleLower,
-        isFinanceModule,
-        moduleId,
-        isLoading,
-        hasError: !!error,
-      });
-
       if (!isFinanceModule) {
-        console.log('[Disclaimer] Not a Finance module, skipping');
         return;
       }
 
@@ -114,13 +102,9 @@ export default function ModuleIndex() {
       try {
         const storageKey = `disclaimerSeen_${moduleId}`;
         const hasSeen = await AsyncStorage.getItem(storageKey);
-        console.log('[Disclaimer] Storage check:', { storageKey, hasSeen, willShow: !hasSeen });
         
         if (!hasSeen) {
-          console.log('[Disclaimer] Showing disclaimer for first time');
           setShowDisclaimer(true);
-        } else {
-          console.log('[Disclaimer] Already seen, not showing');
         }
       } catch (error) {
         console.error('[Disclaimer] Error checking disclaimer status:', error);
@@ -130,12 +114,6 @@ export default function ModuleIndex() {
     // Wait for module data to be loaded
     if (moduleData && !isLoading && !error) {
       checkDisclaimer();
-    } else {
-      console.log('[Disclaimer] Waiting for data:', { 
-        hasModuleData: !!moduleData, 
-        isLoading, 
-        hasError: !!error 
-      });
     }
   }, [moduleId, moduleData, isLoading, error]);
 
@@ -613,7 +591,9 @@ export default function ModuleIndex() {
                 {
                   top: progressBottom - 245,
                   height: railHeight,
-                  left: SCREEN_WIDTH / 2 - RAIL_W / 2,
+
+                  /* Line fix */
+                  left: SCREEN_WIDTH / 2 - RAIL_W / 2 - 9,
                 },
               ]}
             />
@@ -1065,7 +1045,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: 'visible',
   },
-  cardCentered: { alignSelf: 'center' },
+  cardCentered: { alignSelf: 'center', marginLeft: 3.5},
   cardCompleted: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
 
   // Status chip
@@ -1124,6 +1104,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     lineHeight: 12,
     fontWeight: '500',
+    paddingLeft: 2,
   },
   ctaTextDisabled: { color: '#575757' },
 
