@@ -4,13 +4,13 @@ import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { View, Text, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
-import GatherIcon from '@/components/icons/GatherPageIcon';
+import CommunityIcon from '@/components/icons/CommunityIcon';
 import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
 import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
-import ClickedGatherIcon from '@/components/icons/ClickedGatherIcon';
+import ClickedCommunityIcon from '@/components/icons/ClickedCommunityIcon';
+import CompanionIcon from '@/components/icons/CompanionIcon';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
   return (
@@ -88,26 +88,13 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name='Learn'
-          options={{
-            title: 'Learn',
-            tabBarIcon: ({ focused }) => (
-              <TabIcon
-                IconComponent={focused ? ClickedLearnIcon : LearnIcon}
-                title='Learn'
-                focused={focused}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
           name='Gather'
           options={{
-            title: 'Gather',
+            title: 'Community',
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent={focused ? ClickedGatherIcon : GatherIcon}
-                title='Gather'
+                IconComponent={focused ? ClickedCommunityIcon : CommunityIcon}
+                title='Community'
                 focused={focused}
               />
             ),
@@ -119,10 +106,21 @@ export default function TabLayout() {
             title: 'Companion',
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent={({ color }: any) => (
-                  <Feather name='message-circle' size={24} color={color} />
-                )}
+                IconComponent={CompanionIcon}
                 title='Companion'
+                focused={focused}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='Learn'
+          options={{
+            title: 'Learn',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                IconComponent={focused ? ClickedLearnIcon : LearnIcon}
+                title='Learn'
                 focused={focused}
               />
             ),
