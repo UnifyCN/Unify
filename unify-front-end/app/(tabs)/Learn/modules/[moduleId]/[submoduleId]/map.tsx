@@ -13,8 +13,9 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { getLessonProgress } from '@/services/progress/progressService';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Header from '@/components/Header';
+import BookIcon from '@/assets/images/book_5.svg';
 
 export default function SubmoduleMap() {
   const router = useRouter();
@@ -30,9 +31,9 @@ export default function SubmoduleMap() {
   } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
 
-  // Add state for expanded lessons
-  const [expandedLessonIndex, setExpandedLessonIndex] = useState<number | null>(
-    null
+  // Add state for expanded lessons (using Set to allow multiple)
+  const [expandedLessonIndices, setExpandedLessonIndices] = useState<Set<number>>(
+    new Set()
   );
 
   // Progress tracking state
@@ -77,7 +78,7 @@ export default function SubmoduleMap() {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
+
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading submodule...</Text>
         </View>
@@ -88,7 +89,6 @@ export default function SubmoduleMap() {
   if (error || !submoduleData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
             Error loading submodule: {error?.message || 'Unknown error'}
@@ -152,59 +152,68 @@ export default function SubmoduleMap() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
+
+      {/* Back button and submodule title container */}
+      <View style={styles.titleContainer}>
+        <TouchableOpacity
+          onPress={() =>
+            router.replace({
+              pathname: '/(tabs)/Learn/modules/[moduleId]',
+              params: { moduleId },
+            })
+          }
+          style={styles.backButton}
+        >
+          <Feather name='arrow-left' size={24} color='#000' />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle} numberOfLines={2}>
+            {submoduleData?.title || 'Submodule'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.lessonCountWrapper}>
+        <View style={styles.lessonCountContainer}>
+          <BookIcon width={14} height={19} />
+          <Text style={styles.lessonCount}>
+            {submoduleData.lessons?.length || 0} Lessons
+          </Text>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with module name */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() =>
-              router.replace({
-                pathname: '/(tabs)/Learn/modules/[moduleId]',
-                params: { moduleId },
-              })
-            }
-            style={styles.backButton}
-          >
-            <Feather name='arrow-left' size={24} color='#000' />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle} numberOfLines={2}>
-              {moduleData?.title || 'Module'}
-            </Text>
-            <View style={styles.lessonCountContainer}>
-              <Feather name='book-open' size={14} color='#666' />
-              <Text style={styles.lessonCount}>
-                {submoduleData.lessons?.length || 0} Lessons
-              </Text>
-            </View>
-          </View>
-        </View>
 
         {/* Lesson Cards */}
         <View style={styles.lessonsContainer}>
           {circles.map((c, i) => {
             const lesson = submoduleData.lessons[i];
-            const isExpanded = expandedLessonIndex === i;
+            const isExpanded = expandedLessonIndices.has(i);
             const isActive = c.isNext || c.inProgress;
 
             return (
-              <View
-                key={c.id}
-                style={[
-                  styles.lessonCard,
-                  c.blocked && styles.lessonCardBlocked,
-                  isActive && !c.blocked && styles.lessonCardActive,
-                ]}
-              >
-                {/* Card Header - Always Visible */}
+              <View key={c.id} style={styles.lessonCardWrapper}>
+                {/* Top Card - Header Only */}
                 <TouchableOpacity
-                  style={styles.lessonCardHeader}
+                  style={[
+                    styles.lessonCardHeader,
+                    c.blocked && styles.lessonCardBlocked,
+                    isActive && !c.blocked && styles.lessonCardActive,
+                  ]}
                   onPress={() => {
                     if (!c.blocked) {
-                      setExpandedLessonIndex(isExpanded ? null : i);
+                      setExpandedLessonIndices((prev) => {
+                        const newSet = new Set(prev);
+                        if (isExpanded) {
+                          newSet.delete(i);
+                        } else {
+                          newSet.add(i);
+                        }
+                        return newSet;
+                      });
                     }
                   }}
                   disabled={c.blocked}
@@ -240,24 +249,25 @@ export default function SubmoduleMap() {
                       styles.lessonTitle,
                       c.blocked && styles.lessonTitleBlocked,
                     ]}
-                    numberOfLines={1}
                   >
-                    {lesson.title}
+                    {lesson.title.slice(12)}
                   </Text>
 
                   {/* Expand/Collapse Icon */}
                   {!c.blocked && (
-                    <Feather
-                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color='#666'
-                    />
+                    <View style={styles.chevronContainer}>
+                      <MaterialIcons
+                        name={isExpanded ? 'arrow-drop-up' : 'arrow-drop-down'}
+                        size={24}
+                        color='#000'
+                      />
+                    </View>
                   )}
                 </TouchableOpacity>
 
-                {/* Expanded Content */}
+                {/* Bottom Card - Expanded Content */}
                 {isExpanded && !c.blocked && (
-                  <View style={styles.lessonCardExpanded}>
+                  <View style={styles.lessonCardContent}>
                     <Text style={styles.lessonDescription}>
                       {lesson.description || 'No description available.'}
                     </Text>
@@ -310,75 +320,100 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 20,
+    paddingTop: 12,
     paddingBottom: 40,
     minHeight: '100%',
   },
 
   // Header
-  headerRow: {
+  titleContainer: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: 10,
-    marginBottom: 24,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingTop: 70,
     gap: 12,
+    position: 'relative',
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+    paddingBottom: 20,
   },
   backButton: {
     padding: 8,
     marginLeft: -8,
-    marginTop: 4,
   },
   headerTitleContainer: {
-    flex: 1,
-    paddingRight: 8,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 48,
+    paddingRight: 48,
+    paddingTop: 70,
+    paddingBottom: 20,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-    lineHeight: 24,
-    marginBottom: 4,
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#343434',
+    lineHeight: 32,
+    textAlign: 'center',
+    letterSpacing: 0.2,
+  },
+  lessonCountWrapper: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   lessonCountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
   },
   lessonCount: {
     fontSize: 14,
-    color: '#666',
+    color: '#000',
+    fontWeight: '600',
   },
 
   // Lesson Cards
   lessonsContainer: {
     gap: 12,
   },
-  lessonCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  lessonCardBlocked: {
-    opacity: 0.6,
-  },
-  lessonCardActive: {
-    borderWidth: 2,
-    borderColor: '#D8492C',
+  lessonCardWrapper: {
+    gap: 6,
+    alignSelf: 'stretch',
   },
   lessonCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     gap: 12,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    minHeight: 72,
+    alignSelf: 'stretch',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  lessonCardBlocked: {
+    opacity: 0.6,
+  },
+  lessonCardActive: {
+
   },
   lessonCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 200,
     backgroundColor: '#E5E5E5',
     alignItems: 'center',
     justifyContent: 'center',
@@ -408,30 +443,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
+    flexShrink: 1,
   },
   lessonTitleBlocked: {
     color: '#9CA3AF',
   },
-  lessonCardExpanded: {
+  chevronContainer: {
+    // Container for chevron alignment
+  },
+  lessonCardContent: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
     paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    marginTop: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   lessonDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#000',
     lineHeight: 20,
-    marginTop: 12,
     marginBottom: 16,
+    fontWeight: '400',
+    marginLeft:5
   },
   lessonButton: {
     backgroundColor: '#D8492C',
-    borderRadius: 8,
-    paddingVertical: 12,
+    borderRadius: 10,
+    paddingVertical: 11,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    marginHorizontal:5
   },
   lessonButtonText: {
     color: '#fff',
