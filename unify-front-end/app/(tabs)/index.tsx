@@ -5,9 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '@/lib/supabase';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
@@ -17,33 +14,11 @@ import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarous
 import { NewsCard } from '@/components/home/NewsCard';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 import { useRouter } from 'expo-router';
+import { useCurrentUser } from '@/context/UserContext';
 
 const WelcomeSection = () => {
-  const [username, setUsername] = useState('User');
-
-  useEffect(() => {
-    // Simple cache check
-    AsyncStorage.getItem('username').then(cached => {
-      if (cached) setUsername(cached);
-    });
-
-    // Fetch fresh data
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase
-          .from('users')
-          .select('username')
-          .eq('id', user.id)
-          .single()
-          .then(({ data }) => {
-            if (data?.username) {
-              setUsername(data.username);
-              AsyncStorage.setItem('username', data.username);
-            }
-          });
-      }
-    });
-  }, []);
+  const { currentUser } = useCurrentUser();
+  const username = currentUser?.username || 'User';
 
   return (
     <View style={styles.welcomeSection}>

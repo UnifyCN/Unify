@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
@@ -15,6 +15,7 @@ export const ProfileHeader = ({
   userInfo,
   isCurrentUser,
 }: ProfileHeaderProps) => {
+  const [modalVisible, setModalVisible] = useState(false);
   if (!userInfo) {
     return (
       <View style={styles.container}>
@@ -83,15 +84,22 @@ export const ProfileHeader = ({
             size={93}
             style={styles.profilePicture}
           />
+          {/* Profile Picture Upload Component for Current User */}
+          {isCurrentUser && (
+            <>
+              <TouchableOpacity
+                style={styles.avatarButton}
+                onPress={() => setModalVisible(true)}
+              />
+              <ProfilePictureUpload
+                currentPictureUrl={userInfo.profilePictureUrl}
+                userId={userInfo.id}
+                modalVisible={modalVisible}
+                onClose={() => setModalVisible(false)}
+              />
+            </>
+          )}
         </View>
-
-        {/* Profile Picture Upload Component for Current User */}
-        {isCurrentUser && (
-          <ProfilePictureUpload
-            currentPictureUrl={userInfo.profilePictureUrl}
-            userId={userInfo.id}
-          />
-        )}
       </View>
     </View>
   );
@@ -113,6 +121,7 @@ const styles = StyleSheet.create({
   },
   profilePictureContainer: {
     marginBottom: 0,
+    position: 'relative',
   },
   profilePicture: {
     width: 93,
@@ -173,5 +182,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 10,
     fontWeight: '600',
+  },
+  avatarButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 46.5,
   },
 });
