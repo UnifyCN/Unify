@@ -5,11 +5,24 @@ export const isGeminiAvailable = () => {
   return !!supabase;
 };
 
+interface ConversationMessage {
+  message: string;
+  role: 'user' | 'assistant';
+}
+
 // Function to call the RAG query edge function
-export const callGeminiAPI = async (prompt: string) => {
+export const callGeminiAPI = async (
+  prompt: string,
+  conversationIdentifier?: string,
+  messages?: ConversationMessage[]
+) => {
   try {
     const { data, error } = await supabase.functions.invoke('rag-query', {
-      body: { prompt },
+      body: {
+        prompt,
+        conversationIdentifier,
+        messages: messages || [],
+      },
     });
 
     if (error) {

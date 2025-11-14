@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { upsertChatbotUsage } from '../../services/chatbot/upsertChatbotUsage';
+import { upsertChatbotUsage } from '@/services/companion/upsertChatbotUsage';
 
 export const useUpdateChatbotUsage = () => {
   const queryClient = useQueryClient();

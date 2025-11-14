@@ -1,5 +1,5 @@
-import { supabase } from '../../lib/supabase';
-import { ChatbotUsage } from '../../types/chatbot';
+import { supabase } from '@/lib/supabase';
+import { ChatbotUsage } from '@/types/chatbot';
 
 export const getChatbotUsage = async (): Promise<ChatbotUsage> => {
   try {
