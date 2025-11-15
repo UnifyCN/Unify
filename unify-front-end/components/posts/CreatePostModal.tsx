@@ -16,6 +16,7 @@ import PostSuccessModal from './PostSuccessModal';
 import SelectGroupModal from './SelectGroupModal';
 import { Theme } from '@/constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SearchButton from '@/components/SearchButton';
 
 interface CreatePostModalProps {
   visible: boolean;
@@ -111,37 +112,15 @@ export default function CreatePostModal({
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.groupSelector,
-              selectedGroup
-                ? styles.groupSelectorSelected
-                : styles.groupSelectorFull,
-            ]}
+          <SearchButton
+            placeholder={selectedGroup ? selectedGroup.name : 'Select a group (optional)'}
             onPress={() => setShowGroupSelector(true)}
-          >
-            <View style={styles.groupSelectorContent}>
-              {selectedGroup ? (
-                <View style={styles.selectedGroupInfo}>
-                  <Feather name='search' size={18} color={Theme.black} />
-                  <Text style={styles.groupSelectorText}>
-                    {selectedGroup.name}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.selectedGroupInfo}>
-                  <Feather
-                    name='search'
-                    size={18}
-                    color={Theme.textAlternateGray}
-                  />
-                  <Text style={styles.groupBlankText}>
-                    Select a group (optional)
-                  </Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
+            style={styles.groupSelector}
+            placeholderStyle={
+              selectedGroup ? styles.groupSelectorText : styles.groupBlankText
+            }
+            iconSize={20}
+          />
 
           <TextInput
             style={styles.titleInput}
@@ -205,34 +184,18 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   groupSelector: {
-    borderRadius: 15,
-    backgroundColor: Theme.surfaceTextInput,
-    marginVertical: 16,
+    marginVertical: 15,
   },
   groupSelectorSelected: {
     alignSelf: 'flex-start',
   },
-  groupSelectorFull: {
-    alignSelf: 'stretch',
-  },
-  groupSelectorContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
   groupBlankText: {
-    fontSize: 16,
+    fontSize: 14,
     color: Theme.textAlternateGray,
   },
   groupSelectorText: {
-    fontSize: 16,
+    fontSize: 14,
     color: Theme.black,
-  },
-  selectedGroupInfo: {
-    flexDirection: 'row',
-    gap: 15,
   },
   titleInput: {
     fontSize: 32,
