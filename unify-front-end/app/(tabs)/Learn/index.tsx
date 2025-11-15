@@ -74,11 +74,10 @@ export default function Learn() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          <Text style={styles.pageTitle}>Let's get started!</Text>
+          <Text style={styles.pageTitle}>Ready To Learn?</Text>
 
-          <SearchBar placeholder='Search for a lesson' />
+          {/* <SearchBar placeholder='Search for a lesson' /> */}
 
-          <SectionHeader title='Current Lessons' style={{ marginTop: 24 }} />
           {lessonsLoading ? (
             <>
               <View style={[styles.heroWrapper, { width }]}>
@@ -117,7 +116,6 @@ export default function Learn() {
                     const coverImageUrl = module?.coverPhoto
                       ? urlFor(module.coverPhoto)
                       : undefined;
-                    const colorHex = module?.colorTheme?.hex;
 
                     return (
                       <View
@@ -130,16 +128,10 @@ export default function Learn() {
                         }}
                       >
                         <LessonHeroCard
-                          title={lesson.title}
-                          description={lesson.description}
                           moduleTitle={lesson.moduleTitle}
                           submoduleTitle={lesson.submoduleTitle}
-                          progressPercent={lesson.progressPercent}
-                          currentPage={lesson.currentPage}
-                          totalPages={lesson.totalPages}
                           submoduleCount={submoduleCount}
                           coverImageUrl={coverImageUrl}
-                          colorHex={colorHex}
                           href={lesson.href as any}
                         />
                       </View>
@@ -179,7 +171,6 @@ export default function Learn() {
                     title={module.title}
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
                     href={`/(tabs)/Learn/modules/${module._id}` as any}
-                    colorHex={module.colorTheme?.hex}
                     coverImageUrl={
                       module.coverPhoto ? urlFor(module.coverPhoto) : undefined
                     }
@@ -204,7 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 16,
+    marginBottom: 2,
   },
   heroWrapper: { marginTop: 8 },
   pathwaysGrid: {
