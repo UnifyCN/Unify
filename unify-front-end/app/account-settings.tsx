@@ -74,9 +74,7 @@ export default function AccountSettingsPage() {
             <TouchableOpacity
               style={styles.row}
               onPress={() => {
-                if (currentUser) {
-                  router.push(`/profile?userId=${currentUser.id}&tab=Saved`);
-                }
+                router.push('/saved');
               }}
             >
               <View style={styles.bookmarkIconContainer}>

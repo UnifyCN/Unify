@@ -11,7 +11,6 @@ import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import BackHeader from '@/components/BackHeader';
-import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 import { Theme } from '@/constants/Theme';
@@ -24,34 +23,27 @@ interface TabHeaderProps {
   isCurrentUser: boolean;
 }
 
-const TabHeader = memo(
-  ({ activeTab, setActiveTab, isCurrentUser }: TabHeaderProps) => {
-    const tabs = isCurrentUser
-      ? ['Posts', 'Comments', 'Saved']
-      : ['Posts', 'Comments'];
+const TabHeader = memo(({ activeTab, setActiveTab }: TabHeaderProps) => {
+  const tabs = ['Posts', 'Comments'];
 
-    return (
-      <View style={styles.tabs}>
-        {tabs.map(tab => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+  return (
+    <View style={styles.tabs}>
+      {tabs.map(tab => (
+        <TouchableOpacity
+          key={tab}
+          onPress={() => setActiveTab(tab)}
+          style={[styles.tab, activeTab === tab && styles.activeTab]}
+        >
+          <Text
+            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
           >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
-              ]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  }
-);
+            {tab}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+});
 
 interface ProfileProps {
   userId: string;
@@ -64,11 +56,6 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const isCurrentUser = currentUser?.id === userId;
 
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
-  useEffect(() => {
-    if (isCurrentUser === false && activeTab === 'Saved') {
-      setActiveTab('Posts');
-    }
-  }, [isCurrentUser, activeTab]);
 
   // Create data array with header, tabs, and feed content to be used to do sticky header
   const data = [
@@ -123,25 +110,6 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
                       This person hasn't commented on any posts yet
                     </Text>
                   )
-                }
-              />
-            }
-          />
-        );
-      case 'Saved':
-        if (!isCurrentUser) return null;
-        return (
-          <FeedWithHook
-            key={`saved-${userId}`}
-            useFeedHook={useGetSavedPosts}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                icon={<UnifyReplyIcon width={27} height={25} />}
-                message='Looks a little quiet here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    Save posts to see them here
-                  </Text>
                 }
               />
             }
