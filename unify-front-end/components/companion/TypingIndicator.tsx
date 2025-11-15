@@ -9,13 +9,37 @@ export const TypingIndicator: React.FC = () => {
   React.useEffect(() => {
     const animate = () => {
       Animated.sequence([
-        Animated.timing(dot1Opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.timing(dot2Opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
-        Animated.timing(dot3Opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+        Animated.timing(dot1Opacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot2Opacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(dot3Opacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
         Animated.parallel([
-          Animated.timing(dot1Opacity, { toValue: 0.3, duration: 400, useNativeDriver: true }),
-          Animated.timing(dot2Opacity, { toValue: 0.3, duration: 400, useNativeDriver: true }),
-          Animated.timing(dot3Opacity, { toValue: 0.3, duration: 400, useNativeDriver: true }),
+          Animated.timing(dot1Opacity, {
+            toValue: 0.3,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot2Opacity, {
+            toValue: 0.3,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(dot3Opacity, {
+            toValue: 0.3,
+            duration: 400,
+            useNativeDriver: true,
+          }),
         ]),
       ]).start(() => animate());
     };
@@ -33,7 +57,7 @@ export const TypingIndicator: React.FC = () => {
       </View>
     </View>
   );
-};  
+};
 
 const styles = StyleSheet.create({
   messageContainer: {

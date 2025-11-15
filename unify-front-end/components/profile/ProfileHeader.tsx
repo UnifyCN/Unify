@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { Avatar } from '@/components/Avatar';
+import { Theme } from '@/constants/Theme';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -16,6 +18,7 @@ export const ProfileHeader = ({
   isCurrentUser,
 }: ProfileHeaderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
   if (!userInfo) {
     return (
       <View style={styles.container}>
@@ -67,10 +70,20 @@ export const ProfileHeader = ({
           <Text style={styles.statLabel}>following</Text>
         </View>
 
-        {/* Follow Button */}
+        {/* Follow Button or Edit Profile Button */}
         {!isCurrentUser && isCurrentUser !== null && (
           <View style={styles.followButtonContainer}>
             <FollowButton targetUserId={userInfo.id} />
+          </View>
+        )}
+        {isCurrentUser && (
+          <View style={styles.followButtonContainer}>
+            <TouchableOpacity
+              style={styles.editProfileButton}
+              onPress={() => router.push('/account-settings')}
+            >
+              <Text style={styles.editProfileButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -190,5 +203,19 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: 46.5,
+  },
+  editProfileButton: {
+    backgroundColor: Theme.black,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 64,
+  },
+  editProfileButtonText: {
+    color: Theme.white,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
