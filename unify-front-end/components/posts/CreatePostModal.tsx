@@ -113,7 +113,9 @@ export default function CreatePostModal({
           </View>
 
           <SearchButton
-            placeholder={selectedGroup ? selectedGroup.name : 'Select a group (optional)'}
+            placeholder={
+              selectedGroup ? selectedGroup.name : 'Select a group (optional)'
+            }
             onPress={() => setShowGroupSelector(true)}
             style={styles.groupSelector}
             placeholderStyle={

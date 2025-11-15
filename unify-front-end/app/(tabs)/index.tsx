@@ -1,9 +1,4 @@
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/Header';
@@ -44,7 +39,7 @@ const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 
 export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState('For You');
-  
+
   const renderFeedContent = useMemo(() => {
     switch (activeTab) {
       case 'Following':

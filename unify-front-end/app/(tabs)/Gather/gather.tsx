@@ -1,5 +1,11 @@
 import { memo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -69,7 +75,7 @@ const GatherHeader = memo(() => {
 
   return (
     <View>
-      <SearchButton 
+      <SearchButton
         onPress={handleSearchPress}
         style={styles.searchButton}
         placeholderStyle={styles.searchPlaceholder}
