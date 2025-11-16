@@ -322,6 +322,7 @@ export default function RichTextRenderer({
       if (child._type === 'span') {
         let text: any = child.text || '';
         let linkHref: string | null = null;
+        const decoratorStyles: any[] = [];
 
         if (child.marks) {
           // First pass: handle annotations (link, textAlign) that need markDefs
@@ -350,72 +351,76 @@ export default function RichTextRenderer({
             }
           });
 
-          // Second pass: handle decorators (strong, em, code, etc.) and apply link
+          // Second pass: collect decorator styles (strong, em, code, etc.)
           child.marks.forEach((mark: string | any) => {
             // Handle decorators (strong, em, code, etc.)
             if (typeof mark === 'string') {
               switch (mark) {
                 case 'strong':
-                  // ✅ allow scoped override (used by tip box)
-                  text = (
-                    <Text key={index} style={mergedStyles.strong}>
-                      {text}
-                    </Text>
-                  );
+                  decoratorStyles.push(mergedStyles.strong);
                   break;
                 case 'em':
-                  text = (
-                    <Text key={index} style={{ fontStyle: 'italic' }}>
-                      {text}
-                    </Text>
-                  );
+                  decoratorStyles.push({ fontStyle: 'italic' });
                   break;
                 case 'code':
-                  text = (
-                    <Text
-                      key={index}
-                      style={{
-                        fontFamily: 'monospace',
-                        backgroundColor: '#F3F4F6',
-                        paddingHorizontal: 4,
-                        borderRadius: 2,
-                      }}
-                    >
-                      {text}
-                    </Text>
-                  );
+                  decoratorStyles.push({
+                    fontFamily: 'monospace',
+                    backgroundColor: '#F3F4F6',
+                    paddingHorizontal: 4,
+                    borderRadius: 2,
+                  });
                   break;
                 case 'underline':
-                  text = (
-                    <Text key={index} style={{ textDecorationLine: 'underline' }}>
-                      {text}
-                    </Text>
-                  );
+                  decoratorStyles.push({ textDecorationLine: 'underline' });
                   break;
                 case 'strike-through':
-                  text = (
-                    <Text
-                      key={index}
-                      style={{ textDecorationLine: 'line-through' }}
-                    >
-                      {text}
-                    </Text>
-                  );
+                  decoratorStyles.push({ textDecorationLine: 'line-through' });
                   break;
               }
             }
           });
 
-          // Apply link if found
+          // Merge all decorator styles into one object
+          // Important: fontStyle: 'italic' should take precedence over fontStyle: 'normal'
+          const mergedDecoratorStyle = decoratorStyles.reduce((acc, style) => {
+            const merged = { ...acc, ...style };
+            // If both styles have fontStyle, prioritize 'italic' over 'normal'
+            if (acc.fontStyle === 'italic' || style.fontStyle === 'italic') {
+              merged.fontStyle = 'italic';
+            }
+            return merged;
+          }, {});
+
+          // Apply decorators by wrapping text (only if not a link, since link will handle it)
+          if (!linkHref && decoratorStyles.length > 0) {
+            // Use merged decorator style in a single Text component
+            text = (
+              <Text key={`${index}-decorators`} style={mergedDecoratorStyle}>
+                {text}
+              </Text>
+            );
+          }
+
+          // Apply link if found, merging link styles with all decorator styles
           if (linkHref) {
             const handleLinkPress = () => {
               if (linkHref) {
                 Linking.openURL(linkHref);
               }
             };
+            // Merge link styles with all decorator styles
+            // Ensure fontStyle: 'italic' is preserved when merging with link styles
+            const linkStyle = decoratorStyles.length > 0
+              ? { 
+                  ...mergedStyles.link, 
+                  ...mergedDecoratorStyle,
+                  // Preserve italic if it exists in decorator styles
+                  ...(mergedDecoratorStyle.fontStyle === 'italic' ? { fontStyle: 'italic' } : {})
+                }
+              : mergedStyles.link;
             text = (
               <TouchableOpacity key={`${index}-link`} onPress={handleLinkPress} activeOpacity={0.7}>
-                <Text style={mergedStyles.link}>{text}</Text>
+                <Text style={linkStyle}>{text}</Text>
               </TouchableOpacity>
             );
           }
