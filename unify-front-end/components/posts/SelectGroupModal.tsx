@@ -69,10 +69,10 @@ export default function SelectGroupModal({
         {/* Search Bar */}
         <View>
           <View style={styles.searchInputWrapper}>
-            <Feather name='search' size={18} color={Theme.textInput} />
+            <Feather name='search' size={20} color={Theme.textInput} />
             <TextInput
               style={styles.searchInput}
-              placeholder='Select a group'
+              placeholder='Search for a group'
               placeholderTextColor={Theme.textAlternateGray}
               value={searchText}
               onChangeText={setSearchText}
@@ -113,14 +113,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Theme.surfaceTextInput,
-    borderRadius: 15,
+    borderRadius: 100,
     paddingHorizontal: 20,
-    paddingVertical: 7,
+    paddingVertical: 8,
     gap: 15,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: Theme.textAlternateGray,
   },
   content: {

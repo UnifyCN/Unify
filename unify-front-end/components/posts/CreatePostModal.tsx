@@ -11,28 +11,29 @@ import {
   Modal,
 } from 'react-native';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
-import Feather from '@expo/vector-icons/Feather';
 import PostSuccessModal from './PostSuccessModal';
 import SelectGroupModal from './SelectGroupModal';
 import { Theme } from '@/constants/Theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SearchButton from '@/components/SearchButton';
+import BackHeader from '@/components/BackHeader';
 
 interface CreatePostModalProps {
   visible: boolean;
   onClose: () => void;
+  preselectedGroup?: any;
 }
 
 export default function CreatePostModal({
   visible,
   onClose,
+  preselectedGroup,
 }: CreatePostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [selectedGroup, setSelectedGroup] = useState<any>(preselectedGroup || null);
   const [showGroupSelector, setShowGroupSelector] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const insets = useSafeAreaInsets();
   const createPostMutation = useMutateCreatePost();
 
   const handleSubmit = () => {
@@ -88,11 +89,11 @@ export default function CreatePostModal({
         statusBarTranslucent
         onRequestClose={handleCancel}
       >
-        <ScrollView style={styles.container}>
-          <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-            <TouchableOpacity onPress={handleCancel}>
-              <Feather name='x' size={24} color='black' />
-            </TouchableOpacity>
+        <BackHeader
+          title=''
+          backIcon='x'
+          onBack={handleCancel}
+          rightButton={
             <TouchableOpacity
               onPress={handleSubmit}
               style={[
@@ -109,39 +110,20 @@ export default function CreatePostModal({
                 <Text style={styles.postButtonText}>Post</Text>
               )}
             </TouchableOpacity>
-          </View>
+          }
+        />
+        <ScrollView style={styles.container}>
 
-          <TouchableOpacity
-            style={[
-              styles.groupSelector,
-              selectedGroup
-                ? styles.groupSelectorSelected
-                : styles.groupSelectorFull,
-            ]}
+          <SearchButton
+            placeholder={
+              selectedGroup ? selectedGroup.name : 'Search for a group'
+            }
             onPress={() => setShowGroupSelector(true)}
-          >
-            <View style={styles.groupSelectorContent}>
-              {selectedGroup ? (
-                <View style={styles.selectedGroupInfo}>
-                  <Feather name='search' size={18} color={Theme.black} />
-                  <Text style={styles.groupSelectorText}>
-                    {selectedGroup.name}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.selectedGroupInfo}>
-                  <Feather
-                    name='search'
-                    size={18}
-                    color={Theme.textAlternateGray}
-                  />
-                  <Text style={styles.groupBlankText}>
-                    Select a group (optional)
-                  </Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
+            placeholderStyle={
+              selectedGroup ? styles.groupSelectorText : styles.groupBlankText
+            }
+            iconSize={20}
+          />
 
           <TextInput
             style={styles.titleInput}
@@ -185,11 +167,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 20,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   postButton: {
     backgroundColor: Theme.primaryGatherRed,
     paddingVertical: 9,
@@ -204,44 +181,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
   },
-  groupSelector: {
-    borderRadius: 15,
-    backgroundColor: Theme.surfaceTextInput,
-    marginVertical: 16,
-  },
   groupSelectorSelected: {
     alignSelf: 'flex-start',
   },
-  groupSelectorFull: {
-    alignSelf: 'stretch',
-  },
-  groupSelectorContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
   groupBlankText: {
-    fontSize: 16,
+    fontSize: 14,
     color: Theme.textAlternateGray,
   },
   groupSelectorText: {
-    fontSize: 16,
+    fontSize: 14,
     color: Theme.black,
-  },
-  selectedGroupInfo: {
-    flexDirection: 'row',
-    gap: 15,
   },
   titleInput: {
     fontSize: 32,
     fontWeight: '600',
     color: '#000',
-    paddingTop: 18,
+    paddingTop: 24,
   },
   contentInput: {
-    paddingTop: 12,
+    paddingTop: 9,
     fontSize: 16,
   },
 });

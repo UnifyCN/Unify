@@ -241,7 +241,7 @@ const GroupDetailScreen = () => {
               <View style={styles.backButton}>
                 <Feather
                   name='chevron-left'
-                  size={24}
+                  size={36}
                   color={isAtTop ? '#fff' : '#000'}
                 />
               </View>
@@ -280,7 +280,7 @@ const GroupDetailScreen = () => {
 
               {/* Join button on image */}
               <TouchableOpacity
-                style={styles.joinButton}
+                style={[styles.joinButton, !isMember && styles.notJoined]}
                 onPress={handleJoinToggle}
                 disabled={joining}
               >
@@ -340,8 +340,8 @@ const GroupDetailScreen = () => {
         showsVerticalScrollIndicator={false}
       />
 
-      {/* floating create post button, prefilled with group */}
-      <CreatePostButton />
+      {/* floating create post button, only visible when user is a member */}
+      {isMember && <CreatePostButton preselectedGroup={groupData} />}
     </View>
   );
 };
@@ -431,23 +431,29 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   joinButton: {
-    backgroundColor: '#2F2F2F',
-    paddingHorizontal: 20,
-    paddingVertical: 6.5,
-    borderRadius: 15,
+    backgroundColor: Theme.secondaryBlack,
+    minWidth: 150,
+    paddingVertical: 12,
+    borderRadius: 10,
     position: 'absolute',
     bottom: 20,
     right: 20,
+    boxShadow: '0 2.185px 34.954px 0 rgba(0, 0, 0, 0.25)'
+  },
+  notJoined: {
+    backgroundColor: Theme.primaryGatherRed,
   },
   joinText: {
     color: '#fff',
     fontSize: 16,
-    lineHeight: 25,
+    lineHeight: 22,
+    fontWeight: '600',
+    alignSelf: 'center',
   },
   card: {
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 20,
     gap: 4,
   },
   subtitle: {

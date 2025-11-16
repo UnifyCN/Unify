@@ -29,7 +29,7 @@ const BackHeader = ({
   };
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+    <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
       <TouchableOpacity onPress={handleBack}>
         <Feather name={backIcon} size={24} color='#000' />
       </TouchableOpacity>

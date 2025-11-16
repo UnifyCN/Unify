@@ -2,12 +2,10 @@ import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Modal,
 } from 'react-native';
-import Feather from '@expo/vector-icons/Feather';
+import BackHeader from '@/components/BackHeader';
 
 export default function PostSuccessModal({ visible, onClose, postTitle }: any) {
   if (!visible) return null;
@@ -20,16 +18,9 @@ export default function PostSuccessModal({ visible, onClose, postTitle }: any) {
       onRequestClose={onClose}
     >
       <View style={styles.container}>
+        <BackHeader title='' backIcon='x' onBack={onClose} />
         <View style={styles.content}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Feather name='x' size={24} color='black' />
-          </TouchableOpacity>
-
           <Text style={styles.title}>Your post is up!</Text>
-
-          <View style={styles.mascotPlaceholder}>
-            <Text style={styles.mascotText}>🎉 mascot graphic 🎉</Text>
-          </View>
         </View>
       </View>
     </Modal>
@@ -44,11 +35,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 20,
-    marginTop: 60,
     gap: 30,
-  },
-  closeButton: {
-    alignSelf: 'flex-start',
   },
   title: {
     fontSize: 24,

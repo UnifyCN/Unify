@@ -9,6 +9,14 @@ export const getPostsByGroup = async (
   limit = 20
 ): Promise<FeedResponse> => {
   try {
+    // Return empty response if group_id is invalid
+    if (!group_id || isNaN(group_id)) {
+      return {
+        posts: [],
+        next_cursor: undefined,
+      };
+    }
+
     const offset = cursor ? parseInt(cursor) : 0;
 
     const { data, error } = await supabase

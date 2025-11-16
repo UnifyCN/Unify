@@ -1,164 +1,131 @@
-import { useState, memo, useMemo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { memo } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import FeedWithHook from '@/components/FeedWithHook';
-import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
-import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
-import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 import { EventsCarousel } from '@/components/EventsCarousel';
-import CreatePostButton from '@/components/posts/CreatePostButton';
-import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import Header from '@/components/Header';
+import SearchButton from '@/components/SearchButton';
 import { Theme } from '@/constants/Theme';
+import { NewsCard } from '@/components/home/NewsCard';
+import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
+import GroupCard from './GroupCard';
+import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
+import { useQuery } from '@tanstack/react-query';
+import { Group } from '@/types/groups';
 
-interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
-
-const GatherHeader = memo(() => {
+const NewsTipsSection = () => {
   const router = useRouter();
 
-  const handleSearchPress = () => {
-    router.push('/(tabs)/Gather/SearchScreen');
+  const handleViewMore = () => {
+    // TODO: Navigate to News & Tips screen when available
+    // router.push('/(tabs)/NewsTipsScreen');
   };
 
   return (
-    <View>
-      <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
-        <Feather name='search' size={20} color={Theme.textInput} />
-        <Text style={styles.searchPlaceholder}>
-          Search for posts and groups
-        </Text>
-      </TouchableOpacity>
-
-      <View style={styles.eventsCarousel}>
-        <EventsCarousel
-          title='Community Events'
-          titleStyle={styles.headerText}
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.headerText}>News & Tips</Text>
+      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ marginHorizontal: 20, paddingVertical: 2 }}
+      >
+        <NewsCard
+          title='Navigating Winter Roads'
+          description='New to snow? ICBC article to help you avoid issues on the icy, winter roads.'
         />
+        <NewsCard
+          title='Financial Planning Tips'
+          description='Essential tips for managing your finances in Canada.'
+        />
+        <TouchableOpacity
+          style={styles.viewMoreCardContainer}
+          onPress={handleViewMore}
+          activeOpacity={0.8}
+        >
+          <View style={styles.viewMoreContent}>
+            <ViewMoreCardNews width={332} height={132} />
+            <View style={styles.viewMoreTextOverlay}>
+              <Text style={styles.viewMoreText}>
+                View more news{' '}
+                <Feather name='arrow-right' size={16} color='#000' />
+              </Text>
+              <Text style={styles.viewMoreSubtext}>
+                There's more to check out!
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
+};
+
+const GroupsForYouSection = () => {
+  const router = useRouter();
+
+  const { data: groups } = useQuery({
+    queryKey: ['joined-groups'],
+    queryFn: getUserJoinedGroups,
+  });
+
+  const handleGroupPress = (group: Group) => {
+    router.push({
+      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      params: { group: JSON.stringify(group) },
+    });
+  };
+
+  if (!groups || groups.length === 0) {
+    return null;
+  }
+
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.headerText}>Groups for You</Text>
+      </View>
+      <View style={styles.groupsList}> 
+        {groups.map((group) => (
+          <View key={group.id} style={styles.groupItem}>
+            <GroupCard group={group} onPress={() => handleGroupPress(group)} />
+          </View>
+        ))}
       </View>
     </View>
   );
-});
+};
 
-const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
+const GatherHeader = memo(() => {
   return (
-    <View style={styles.tabs}>
-      {['For You', 'Following', 'Groups'].map(tab => (
-        <TouchableOpacity
-          key={tab}
-          onPress={() => setActiveTab(tab)}
-          style={[styles.tab, activeTab === tab && styles.activeTab]}
-        >
-          <Text
-            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
-          >
-            {tab}
-          </Text>
-        </TouchableOpacity>
-      ))}
+    <View style={styles.eventsCarousel}>
+      <EventsCarousel
+        title='Community Events'
+        titleStyle={styles.headerText}
+      />
     </View>
   );
 });
 
 export default function GatherScreen() {
-  const [activeTab, setActiveTab] = useState('For You');
-
-  const renderFeedContent = useMemo(() => {
-    switch (activeTab) {
-      case 'Following':
-        return (
-          <FeedWithHook
-            key={`following-${activeTab}`}
-            useFeedHook={useFollowingFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No posts here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    You haven't followed any users yet.{'\n'}
-                    Follow other users to see their posts!
-                  </Text>
-                }
-              />
-            }
-          />
-        );
-      case 'Groups':
-        return (
-          <FeedWithHook
-            key={`groups-${activeTab}`}
-            useFeedHook={useGroupsFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No groups here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    You haven't joined any groups yet.{'\n'}
-                    Join a group to see their posts!
-                  </Text>
-                }
-              />
-            }
-          />
-        );
-      default:
-        return (
-          <FeedWithHook
-            key={`foryou-${activeTab}`}
-            useFeedHook={useForYouFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No posts here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    No one has posted anything yet.{'\n'}
-                    Post something to see it here!
-                  </Text>
-                }
-              />
-            }
-          />
-        );
-    }
-  }, [activeTab]);
-
-  // Easiest way to make the header sticky
-  const data = [
-    { key: 'header', type: 'header' },
-    { key: 'tabs', type: 'tabs' },
-    { key: 'feed', type: 'feed' },
-  ];
-
-  const renderItem = ({ item }: { item: { key: string; type: string } }) => {
-    switch (item.type) {
-      case 'header':
-        return <GatherHeader />;
-      case 'tabs':
-        return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
-      case 'feed':
-        return <View>{renderFeedContent}</View>;
-      default:
-        return null;
-    }
-  };
-
   return (
     <View style={styles.root}>
       <Header />
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <Animated.FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={item => item.key}
-          stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
-        />
-        <CreatePostButton />
+        <ScrollView style={styles.scrollView}>
+          <GatherHeader />
+          <NewsTipsSection />
+          <GroupsForYouSection />
+        </ScrollView>
       </View>
     </View>
   );
@@ -168,70 +135,88 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
   searchButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Theme.surfaceTextInput,
     marginHorizontal: 20,
     marginTop: 20,
     paddingHorizontal: 24,
     paddingVertical: 8,
     borderRadius: 100,
     height: 36,
-    gap: 8,
   },
   searchPlaceholder: {
     fontSize: 14,
-    color: Theme.textInput,
-    flex: 1,
   },
   headerText: {
-    fontSize: 16,
-    fontWeight: 600,
+    fontSize: 24,
+    fontWeight: '400',
   },
   eventsCarousel: {
     marginTop: 27,
     paddingHorizontal: 20,
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    flexDirection: 'column',
+  section: {
+    marginBottom: 30,
   },
-  tabs: {
-    backgroundColor: '#fff',
+  sectionHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    color: '#000',
+    fontWeight: '600',
+  },
+  viewMoreCardContainer: {
+    width: 332,
+    height: 132,
+    marginRight: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  viewMoreContent: {
+    width: 332,
+    height: 132,
+    position: 'relative',
+  },
+  viewMoreTextOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1000,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E5E5',
+    gap: 4,
   },
-  tab: {
-    backgroundColor: 'transparent',
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginHorizontal: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: Theme.primaryGatherRed,
-  },
-  tabText: {
-    fontSize: 14,
+  viewMoreText: {
+    fontSize: 16,
     fontWeight: '600',
-    color: Theme.textInactiveTab,
+    color: '#000',
   },
-  activeTabText: {
-    color: Theme.black,
-    fontWeight: '600',
-  },
-  emptyMessageSubtext: {
+  viewMoreSubtext: {
     fontSize: 14,
-    color: Theme.textInput,
-    textAlign: 'center',
-    lineHeight: 20,
+    color: '#000',
+  },
+  groupsList: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  groupItem: {
+    marginBottom: 12,
   },
 });
