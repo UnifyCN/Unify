@@ -985,8 +985,7 @@ const styles = StyleSheet.create({
   // Two options question styles
   twoOptionsContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
+    gap: 12,    
   },
   twoOptionCard: {
     flex: 1,
@@ -1007,10 +1006,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 24,
     paddingHorizontal: 16,
-    backgroundColor: '#F3F4F6',
+    // backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
+    minHeight: 406,
   },
   twoOptionCardCorrect: {
     flex: 1,
@@ -1022,7 +1021,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
+    minHeight: 406,
   },
   twoOptionCardIncorrect: {
     flex: 1,
@@ -1034,7 +1033,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
+    minHeight: 406,
   },
   twoOptionContent: {
     alignItems: 'center',
