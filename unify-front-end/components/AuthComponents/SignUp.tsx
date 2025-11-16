@@ -3,6 +3,14 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
+import isExpoGo from '../../utils/isExpoGo';
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
+import { useQueryClient } from '@tanstack/react-query';
+import { getUserInfo } from '@/services/users/getUserInfo';
+import Google from '../../assets/images/Google.svg';
 import {
   SubmitButton,
   SimpleTextField,
@@ -18,6 +26,7 @@ export function SignUp({
   onSwitchToSignIn?: () => void;
   onShowOTP?: (email: string, password: string) => void;
 }): React.JSX.Element {
+  const queryClient = useQueryClient();
   // State vars
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -89,6 +98,54 @@ export function SignUp({
 
     setLoading(false);
   };
+
+  // Configure Google Sign-In once on mount
+  React.useEffect(() => {
+    GoogleSignin.configure({
+      webClientId:
+        '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
+      scopes: ['email', 'profile'],
+      offlineAccess: true,
+      forceCodeForRefreshToken: false,
+    });
+  }, []);
+
+  // Google sign-in logic
+  const handleGoogleSignIn = async () => {
+    if (isExpoGo) return; // Not supported in Expo Go
+    try {
+      await GoogleSignin.hasPlayServices();
+      const response = await GoogleSignin.signIn();
+      if (response.data?.idToken) {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: response.data.idToken,
+        });
+        if (error) {
+          setErrorMessage(error.message);
+          return;
+        }
+
+        // Prefetch user info immediately after successful Google signup/login and wait for it
+        if (data?.user?.id) {
+          await queryClient.ensureQueryData({
+            queryKey: ['userInfo', data.user.id],
+            queryFn: () => getUserInfo(data.user.id),
+          });
+        }
+      } else {
+        setErrorMessage('No Google idToken');
+      }
+    } catch (error: any) {
+      if (error?.code === statusCodes.IN_PROGRESS) return; // already in progress
+      if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        setErrorMessage('Google Play Services not available');
+        return;
+      }
+      setErrorMessage(error?.message || 'Google sign-in failed');
+    }
+  };
+
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Create account</ViewHeader>
@@ -204,6 +261,21 @@ export function SignUp({
       >
         Sign Up
       </SubmitButton>
+
+      <View style={styles.orSignUp}>
+        <View style={styles.lineView}></View>
+        <Text style={styles.orText}>Or Sign up with</Text>
+        <View style={styles.lineView}></View>
+      </View>
+      <View style={styles.buttonBucket}>
+        <TouchableOpacity
+          style={styles.buttonWithIcon}
+          onPress={handleGoogleSignIn}
+        >
+          <Google width={20} height={20} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.footer}>
         <Text
           style={{
@@ -342,5 +414,43 @@ const styles = {
   },
   buttonDisabled: {
     backgroundColor: '#E7E7E9',
+  },
+  orSignUp: {
+    marginTop: 22 * 0.87,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+  },
+  lineView: {
+    borderStyle: 'solid' as 'solid',
+    borderColor: '#d8dadc',
+    borderTopWidth: 1 * 0.87,
+    flex: 1,
+    width: '100%' as '100%',
+    height: 1 * 0.87,
+  },
+  orText: {
+    color: 'rgba(0, 0, 0, 0.7)',
+    fontSize: 14 * 0.87,
+    lineHeight: 18 * 0.87,
+    marginHorizontal: 10 * 0.87,
+  },
+  buttonBucket: {
+    marginTop: 22 * 0.87,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    gap: 15 * 0.87,
+  },
+  buttonWithIcon: {
+    borderRadius: 10 * 0.87,
+    backgroundColor: '#fff',
+    borderStyle: 'solid' as 'solid',
+    borderColor: '#d8dadc',
+    borderWidth: 1 * 0.87,
+    flex: 1,
+    width: '100%' as '100%',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    paddingHorizontal: 45 * 0.87,
+    paddingVertical: 18 * 0.87,
   },
 };

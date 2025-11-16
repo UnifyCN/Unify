@@ -59,7 +59,9 @@ export default function LessonHeroCard({
       <Link href={href} asChild>
         <TouchableOpacity
           accessibilityRole='link'
-          accessibilityLabel={submoduleTitle ? `Resume ${submoduleTitle}` : 'Resume lesson'}
+          accessibilityLabel={
+            submoduleTitle ? `Resume ${submoduleTitle}` : 'Resume lesson'
+          }
         >
           {cardContent}
         </TouchableOpacity>

@@ -32,9 +32,9 @@ export default function SubmoduleMap() {
   const { data: moduleData } = useSanityModule(moduleId || '');
 
   // Add state for expanded lessons (using Set to allow multiple)
-  const [expandedLessonIndices, setExpandedLessonIndices] = useState<Set<number>>(
-    new Set()
-  );
+  const [expandedLessonIndices, setExpandedLessonIndices] = useState<
+    Set<number>
+  >(new Set());
 
   // Progress tracking state
   const [lessonProgresses, setLessonProgresses] = useState<{
@@ -78,7 +78,6 @@ export default function SubmoduleMap() {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading submodule...</Text>
         </View>
@@ -152,7 +151,6 @@ export default function SubmoduleMap() {
 
   return (
     <SafeAreaView style={styles.safe}>
-
       {/* Back button and submodule title container */}
       <View style={styles.titleContainer}>
         <TouchableOpacity
@@ -186,7 +184,6 @@ export default function SubmoduleMap() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-
         {/* Lesson Cards */}
         <View style={styles.lessonsContainer}>
           {circles.map((c, i) => {
@@ -205,7 +202,7 @@ export default function SubmoduleMap() {
                   ]}
                   onPress={() => {
                     if (!c.blocked) {
-                      setExpandedLessonIndices((prev) => {
+                      setExpandedLessonIndices(prev => {
                         const newSet = new Set(prev);
                         if (isExpanded) {
                           newSet.delete(i);
@@ -225,7 +222,10 @@ export default function SubmoduleMap() {
                       styles.lessonCircle,
                       c.isCompleted && styles.lessonCircleCompleted,
                       c.blocked && styles.lessonCircleBlocked,
-                      isActive && !c.blocked && !c.isCompleted && styles.lessonCircleActive,
+                      isActive &&
+                        !c.blocked &&
+                        !c.isCompleted &&
+                        styles.lessonCircleActive,
                     ]}
                   >
                     {c.isCompleted ? (
@@ -235,7 +235,9 @@ export default function SubmoduleMap() {
                         style={[
                           styles.lessonCircleText,
                           c.blocked && styles.lessonCircleTextBlocked,
-                          isActive && !c.blocked && styles.lessonCircleTextActive,
+                          isActive &&
+                            !c.blocked &&
+                            styles.lessonCircleTextActive,
                         ]}
                       >
                         {c.orderNumber}
@@ -407,9 +409,7 @@ const styles = StyleSheet.create({
   lessonCardBlocked: {
     opacity: 0.6,
   },
-  lessonCardActive: {
-
-  },
+  lessonCardActive: {},
   lessonCircle: {
     width: 50,
     height: 50,
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 16,
     fontWeight: '400',
-    marginLeft:5
+    marginLeft: 5,
   },
   lessonButton: {
     backgroundColor: '#D8492C',
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal:5
+    marginHorizontal: 5,
   },
   lessonButtonText: {
     color: '#fff',
