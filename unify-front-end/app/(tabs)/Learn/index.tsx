@@ -74,7 +74,7 @@ export default function Learn() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          <Text style={styles.pageTitle}>Ready To Learn?</Text>
+          <Text style={styles.pageTitle}>Ready to learn?</Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}
 

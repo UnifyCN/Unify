@@ -644,6 +644,47 @@ export default function QuizQuestionPage() {
               </View>
             )}
           </View>
+
+          {/* Answer box (if available and submitted) */}
+          {currentQuestion.answer_box &&
+            hasSubmitted &&
+            currentQuestion.answer_box.showAfterSubmit && (
+              <View style={styles.answerBoxContainer}>
+                <RichTextRenderer
+                  blocks={currentQuestion.answer_box.content || []}
+                  markDefs={currentQuestion.answer_box.markDefs}
+                  styles={{
+                    normal: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '400',
+                      color: '#3F3F3F',
+                      marginBottom: 0,
+                    },
+                    bullet: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '400',
+                      color: '#3F3F3F',
+                      marginBottom: 0,
+                    },
+                    number: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '400',
+                      color: '#3F3F3F',
+                      marginBottom: 0,
+                    },
+                    strong: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '600',
+                      color: '#3F3F3F',
+                    },
+                  }}
+                />
+              </View>
+            )}
         </View>
       </ScrollView>
 
@@ -1007,5 +1048,19 @@ const styles = StyleSheet.create({
   },
   matchingCheckButtonTextDisabled: {
     color: '#9CA3AF',
+  },
+  answerBoxContainer: {
+    backgroundColor: 'transparent',
+    borderLeftWidth: 5,
+    borderLeftColor: '#3F3F3F',
+    paddingLeft: 15,
+    paddingRight: 0,
+    paddingVertical: 0,
+    alignSelf: 'center',
+    width: 353,
+    maxWidth: '100%',
+    minHeight: 80,
+    marginTop: 20,
+    marginBottom: 30,
   },
 });

@@ -18,6 +18,9 @@ interface RichTextRendererProps {
   markDefs?: any[];
   inputValues?: { [key: string]: string };
   onInputChange?: (fieldKey: string, value: string) => void;
+  questionAnswers?: { [key: string]: string | string[] };
+  onQuestionAnswer?: (questionKey: string, answer: string | string[]) => void;
+  showQuestionFeedback?: boolean;
 }
 
 export default function RichTextRenderer({
@@ -26,6 +29,9 @@ export default function RichTextRenderer({
   markDefs,
   inputValues = {},
   onInputChange,
+  questionAnswers = {},
+  onQuestionAnswer,
+  showQuestionFeedback = false,
 }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
@@ -573,6 +579,133 @@ export default function RichTextRenderer({
       );
     }
 
+    // Question types for activity pages
+    if (
+      block._type === 'multiple_choice_single' ||
+      block._type === 'multiple_choice_multiple' ||
+      block._type === 'two_options_question'
+    ) {
+      const isMultiple = block._type === 'multiple_choice_multiple';
+      const currentAnswer = questionAnswers[block._key];
+      const isArrayAnswer = Array.isArray(currentAnswer);
+      const selectedValues = isArrayAnswer
+        ? (currentAnswer as string[])
+        : currentAnswer
+          ? [currentAnswer as string]
+          : [];
+
+      const handleOptionSelect = (optionValue: string) => {
+        if (!onQuestionAnswer) return;
+
+        if (isMultiple) {
+          const current = (questionAnswers[block._key] as string[]) || [];
+          const newAnswer = current.includes(optionValue)
+            ? current.filter(v => v !== optionValue)
+            : [...current, optionValue];
+          onQuestionAnswer(block._key, newAnswer);
+        } else {
+          onQuestionAnswer(block._key, optionValue);
+        }
+      };
+
+      return (
+        <View key={block._key || index} style={styles.questionContainer}>
+          <View style={styles.questionTextContainer}>
+            <RichTextRenderer
+              blocks={block.question_text || []}
+              markDefs={markDefs}
+              styles={mergedStyles}
+            />
+          </View>
+          <View style={styles.optionsContainer}>
+            {(block.options || []).map((option: any) => {
+              const isSelected = isMultiple
+                ? selectedValues.includes(option.value)
+                : selectedValues[0] === option.value;
+              const isCorrect = option.is_correct;
+              const showFeedback = showQuestionFeedback;
+
+              let optionStyle = styles.questionOption;
+              let checkboxStyle = styles.questionCheckbox;
+
+              if (isSelected) {
+                optionStyle = styles.questionOptionSelected;
+                checkboxStyle = styles.questionCheckboxSelected;
+              }
+
+              if (showFeedback) {
+                if (isCorrect) {
+                  optionStyle = styles.questionOptionCorrect;
+                  checkboxStyle = styles.questionCheckboxCorrect;
+                } else if (isSelected && !isCorrect) {
+                  optionStyle = styles.questionOptionIncorrect;
+                  checkboxStyle = styles.questionCheckboxIncorrect;
+                }
+              }
+
+              return (
+                <TouchableOpacity
+                  key={option._key}
+                  style={optionStyle}
+                  onPress={() => !showFeedback && handleOptionSelect(option.value)}
+                  disabled={showFeedback}
+                >
+                  <View style={styles.questionOptionRow}>
+                    <View style={checkboxStyle}>
+                      {isSelected && (
+                        <Text style={styles.questionCheckmark}>✓</Text>
+                      )}
+                    </View>
+                    <View style={styles.questionOptionContent}>
+                      <RichTextRenderer
+                        blocks={option.text || []}
+                        markDefs={option.textMarkDefs}
+                        styles={{ normal: styles.questionOptionText }}
+                      />
+                    </View>
+                  </View>
+                  {showFeedback && isSelected && option.explanation && (
+                    <View style={styles.explanationContainer}>
+                      <RichTextRenderer
+                        blocks={option.explanation}
+                        markDefs={option.explanationMarkDefs}
+                        styles={{ normal: styles.explanationText }}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      );
+    }
+
+    if (block._type === 'matching_question') {
+      // For matching questions, we'll render a simplified version
+      // Full matching logic would require more complex state management
+      return (
+        <View key={block._key || index} style={styles.questionContainer}>
+          <View style={styles.questionTextContainer}>
+            <RichTextRenderer
+              blocks={block.question_text || []}
+              markDefs={markDefs}
+              styles={mergedStyles}
+            />
+          </View>
+          <View style={styles.matchingPairsContainer}>
+            {(block.matching_pairs || []).map((pair: any, pairIndex: number) => (
+              <View key={pair._key || pairIndex} style={styles.matchingPairRow}>
+                <Text style={styles.matchingPairText}>
+                  {pair.left_item} → {pair.right_item}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      );
+    }
+
     return null;
   };
 
@@ -630,4 +763,133 @@ const styles = StyleSheet.create({
     borderColor: '#9CA3AF',
   },
   smallInput: { height: 100, borderWidth: 2, borderColor: '#9CA3AF' },
+  // Question styles
+  questionContainer: {
+    marginVertical: 20,
+  },
+  questionTextContainer: {
+    marginBottom: 16,
+  },
+  optionsContainer: {
+    gap: 12,
+  },
+  questionOption: {
+    borderWidth: 1,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+  },
+  questionOptionSelected: {
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#F3F4F6',
+  },
+  questionOptionCorrect: {
+    borderWidth: 1,
+    borderColor: '#10B981',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#F3F4F6',
+  },
+  questionOptionIncorrect: {
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#F3F4F6',
+  },
+  questionOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  questionCheckbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckboxSelected: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 4,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckboxCorrect: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#10B981',
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckboxIncorrect: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#EF4444',
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckmark: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  questionOptionContent: {
+    flex: 1,
+  },
+  questionOptionText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+    fontWeight: '400',
+  },
+  explanationContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  explanationText: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  matchingPairsContainer: {
+    gap: 8,
+    marginTop: 12,
+  },
+  matchingPairRow: {
+    padding: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  matchingPairText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
 });
