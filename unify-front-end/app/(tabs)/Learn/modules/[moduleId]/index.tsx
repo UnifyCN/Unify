@@ -75,34 +75,23 @@ export default function ModuleIndex() {
   // Disclaimer modal state
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
-  // Check if disclaimer should be shown (first time opening Finance module)
+  // Check if disclaimer should be shown (first time opening this module with 0% progress)
   useEffect(() => {
     const checkDisclaimer = async () => {
-      if (!moduleId) {
+      if (!moduleId || !moduleData?.title) return;
+
+      // Only show if user hasn't started this module yet
+      const overallPercent = moduleProgress?.progress_percent ?? 0;
+      if (overallPercent > 0) {
+        // Already started → never show disclaimer again for this module
         return;
       }
 
-      if (!moduleData?.title) {
-        return;
-      }
-
-      // Check if this is the Finance module (by title)
-      const titleLower = moduleData.title.toLowerCase();
-      const isFinanceModule =
-        titleLower.includes('finance') ||
-        titleLower.includes('financial') ||
-        titleLower.includes('wealth') ||
-        titleLower === 'finance';
-
-      if (!isFinanceModule) {
-        return;
-      }
-
-      // Check if disclaimer has been seen for this module
       try {
+        // Per-module key: works for all modules now and for future ones
         const storageKey = `disclaimerSeen_${moduleId}`;
         const hasSeen = await AsyncStorage.getItem(storageKey);
-        
+
         if (!hasSeen) {
           setShowDisclaimer(true);
         }
@@ -111,11 +100,11 @@ export default function ModuleIndex() {
       }
     };
 
-    // Wait for module data to be loaded
-    if (moduleData && !isLoading && !error) {
+    // Wait for all data to be ready
+    if (moduleData && !isLoading && !error && !progressLoading) {
       checkDisclaimer();
     }
-  }, [moduleId, moduleData, isLoading, error]);
+  }, [moduleId, moduleData, isLoading, error, progressLoading, moduleProgress]);
 
   // Handle disclaimer Continue button
   const handleDisclaimerContinue = async () => {
@@ -135,7 +124,7 @@ export default function ModuleIndex() {
     router.replace('/(tabs)/Learn');
   };
 
-  // Calculate module progress from submodule data
+  // Calculate module progress from submodule data (for UI card)
   const moduleProgressData = useMemo(() => {
     const submoduleList = Object.values(submoduleProgresses);
     const completedSubmodules = submoduleList.filter(
@@ -426,7 +415,6 @@ export default function ModuleIndex() {
     rowTopsRef.current = new Array(total).fill(NaN); // NaN = unmeasured
   }, [moduleData?.submodules?.length]);
 
-
   // which submodule is the next one the user should do?
   const currentIndex = useMemo(() => {
     if (!moduleData?.submodules) return -1;
@@ -446,7 +434,7 @@ export default function ModuleIndex() {
 
   const updateRowBottom = (bottom: number, isLastModule: boolean) => {
     if (!isLastModule) return; // Only track the last module's bottom
-    
+
     const b = clampNonNeg(bottom);
     if (Number.isFinite(b)) {
       setRailEnd(b);
@@ -567,7 +555,10 @@ export default function ModuleIndex() {
               style={[
                 styles.progressFill,
                 {
-                  width: `${Math.min(100, Math.max(0, moduleProgressData.progress_percent))}%`,
+                  width: `${Math.min(
+                    100,
+                    Math.max(0, moduleProgressData.progress_percent)
+                  )}%`,
                   backgroundColor: '#D8492C', // Hardcoded color for this page only
                 },
               ]}
@@ -1044,7 +1035,7 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: 'visible',
   },
-  cardCentered: { alignSelf: 'center', marginLeft: 3.5},
+  cardCentered: { alignSelf: 'center', marginLeft: 3.5 },
   cardCompleted: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
 
   // Status chip
@@ -1119,12 +1110,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 195, // Ancho
-    height: 39, // Altura
-    backgroundColor: '#FFFFFF', // White
-    borderColor: '#D1D1D1', // 1px border color
+    width: 195,
+    height: 39,
+    backgroundColor: '#FFFFFF',
+    borderColor: '#D1D1D1',
     borderWidth: 1,
-    borderRadius: 20, // Radio
+    borderRadius: 20,
     paddingHorizontal: 12,
   },
   dots: { flexDirection: 'row', marginRight: 10, marginLeft: 12 },
@@ -1138,10 +1129,10 @@ const styles = StyleSheet.create({
 
   moreText: {
     fontSize: 10,
-    fontWeight: '600', // Inter 600
+    fontWeight: '600',
     color: '#707070',
-    marginRight: 12, // text → right edge of globe
-    marginLeft: 0, // left spacing from dots block
+    marginRight: 12,
+    marginLeft: 0,
   },
 
   centered: {
@@ -1186,7 +1177,6 @@ const styles = StyleSheet.create({
     borderRadius: 11,
     backgroundColor: '#E9E9E9',
     marginLeft: 'auto',
-    // nudge to visually get ~11px top / 16px bottom from text to globe
     marginTop: 11 - (39 - 22) / 2,
     marginBottom: 16 - (39 - 22) / 2,
   },
