@@ -259,7 +259,7 @@ export default function RichTextRenderer({
     noteBoxText: { fontSize: 15, color: '#3F3F3F', lineHeight: 22 },
 
     // Links
-    link: { color: '#2563EB', textDecorationLine: 'underline' },
+    link: { color: '#424242', textDecorationLine: 'underline', fontWeight: '600'},
   };
 
   // Merge styles, ensuring header styles are always preserved
@@ -307,16 +307,50 @@ export default function RichTextRenderer({
     return nestingMap;
   };
 
-  const renderInlineText = (children: any[], markDefs?: any[]) => {
+  const renderInlineText = (children: any[], markDefs?: any[], blockMarkDefs?: any[]) => {
     if (!children || !Array.isArray(children)) return null;
+
+    // Combine markDefs from props and block-level markDefs
+    const allMarkDefs = [
+      ...(markDefs || []),
+      ...(blockMarkDefs || [])
+    ];
 
     return children.map((child, index) => {
       if (typeof child === 'string') return child;
 
       if (child._type === 'span') {
         let text: any = child.text || '';
+        let linkHref: string | null = null;
 
         if (child.marks) {
+          // First pass: handle annotations (link, textAlign) that need markDefs
+          child.marks.forEach((mark: string | any) => {
+            // Handle link annotation
+            if (typeof mark === 'string') {
+              // Check if mark key references a link annotation in markDefs
+              const markDef = allMarkDefs.find((def: any) => def._key === mark);
+              if (markDef && markDef._type === 'link') {
+                linkHref = markDef.href || null;
+              }
+            } else if (typeof mark === 'object' && mark !== null) {
+              // Sometimes marks can be objects directly (inline annotations)
+              const markType = (mark as any)._type || mark._type;
+              if (markType === 'link') {
+                linkHref = (mark as any).href || (mark as any).value?.href || null;
+              }
+              // Or it might be a reference object with _key that we need to look up
+              const markKey = (mark as any)._key;
+              if (markKey && !linkHref) {
+                const markDef = allMarkDefs.find((def: any) => def._key === markKey);
+                if (markDef && markDef._type === 'link') {
+                  linkHref = markDef.href || null;
+                }
+              }
+            }
+          });
+
+          // Second pass: handle decorators (strong, em, code, etc.) and apply link
           child.marks.forEach((mark: string | any) => {
             // Handle decorators (strong, em, code, etc.)
             if (typeof mark === 'string') {
@@ -368,21 +402,23 @@ export default function RichTextRenderer({
                     </Text>
                   );
                   break;
-                case 'link': {
-                  const linkDef = markDefs?.find((def: any) => def._key === mark);
-                  if (linkDef && linkDef.href) {
-                    const handleLinkPress = () => Linking.openURL(linkDef.href);
-                    text = (
-                      <TouchableOpacity key={index} onPress={handleLinkPress}>
-                        <Text style={mergedStyles.link}>{text}</Text>
-                      </TouchableOpacity>
-                    );
-                  }
-                  break;
-                }
               }
             }
           });
+
+          // Apply link if found
+          if (linkHref) {
+            const handleLinkPress = () => {
+              if (linkHref) {
+                Linking.openURL(linkHref);
+              }
+            };
+            text = (
+              <TouchableOpacity key={`${index}-link`} onPress={handleLinkPress} activeOpacity={0.7}>
+                <Text style={mergedStyles.link}>{text}</Text>
+              </TouchableOpacity>
+            );
+          }
         }
 
         // Text alignment is now handled at block level, so we don't need to wrap here
@@ -429,7 +465,7 @@ export default function RichTextRenderer({
             style={[styles.listItemContainer, { marginLeft: indentLevel }]}
           >
             <Text style={listStyle}>
-              {displayBullet} {renderInlineText(block.children, markDefs)}
+              {displayBullet} {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           </View>
         );
@@ -494,32 +530,32 @@ export default function RichTextRenderer({
         case 'h1':
           return (
             <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs)}
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'h2':
           return (
             <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs)}
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'h3':
           return (
             <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs)}
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'h4':
           return (
             <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs)}
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'blockquote':
           return (
             <View key={block._key || index} style={mergedStyles.blockquote}>
               <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
-                {renderInlineText(block.children, markDefs)}
+                {renderInlineText(block.children, markDefs, block.markDefs)}
               </Text>
             </View>
           );
@@ -527,7 +563,7 @@ export default function RichTextRenderer({
           return (
             <View key={block._key || index} style={mergedStyles.code}>
               <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
-                {renderInlineText(block.children, markDefs)}
+                {renderInlineText(block.children, markDefs, block.markDefs)}
               </Text>
             </View>
           );
@@ -535,7 +571,7 @@ export default function RichTextRenderer({
         default:
           return (
             <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs)}
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
       }
