@@ -1,10 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { Avatar } from '@/components/Avatar';
+import { Theme } from '@/constants/Theme';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -15,6 +17,8 @@ export const ProfileHeader = ({
   userInfo,
   isCurrentUser,
 }: ProfileHeaderProps) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
   if (!userInfo) {
     return (
       <View style={styles.container}>
@@ -66,10 +70,20 @@ export const ProfileHeader = ({
           <Text style={styles.statLabel}>following</Text>
         </View>
 
-        {/* Follow Button */}
+        {/* Follow Button or Edit Profile Button */}
         {!isCurrentUser && isCurrentUser !== null && (
           <View style={styles.followButtonContainer}>
             <FollowButton targetUserId={userInfo.id} />
+          </View>
+        )}
+        {isCurrentUser && (
+          <View style={styles.followButtonContainer}>
+            <TouchableOpacity
+              style={styles.editProfileButton}
+              onPress={() => router.push('/account-settings')}
+            >
+              <Text style={styles.editProfileButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -83,15 +97,22 @@ export const ProfileHeader = ({
             size={93}
             style={styles.profilePicture}
           />
+          {/* Profile Picture Upload Component for Current User */}
+          {isCurrentUser && (
+            <>
+              <TouchableOpacity
+                style={styles.avatarButton}
+                onPress={() => setModalVisible(true)}
+              />
+              <ProfilePictureUpload
+                currentPictureUrl={userInfo.profilePictureUrl}
+                userId={userInfo.id}
+                modalVisible={modalVisible}
+                onClose={() => setModalVisible(false)}
+              />
+            </>
+          )}
         </View>
-
-        {/* Profile Picture Upload Component for Current User */}
-        {isCurrentUser && (
-          <ProfilePictureUpload
-            currentPictureUrl={userInfo.profilePictureUrl}
-            userId={userInfo.id}
-          />
-        )}
       </View>
     </View>
   );
@@ -113,6 +134,7 @@ const styles = StyleSheet.create({
   },
   profilePictureContainer: {
     marginBottom: 0,
+    position: 'relative',
   },
   profilePicture: {
     width: 93,
@@ -172,6 +194,28 @@ const styles = StyleSheet.create({
   followButtonText: {
     color: '#fff',
     fontSize: 10,
+    fontWeight: '600',
+  },
+  avatarButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 46.5,
+  },
+  editProfileButton: {
+    backgroundColor: Theme.black,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 64,
+  },
+  editProfileButtonText: {
+    color: Theme.white,
+    fontSize: 12,
     fontWeight: '600',
   },
 });

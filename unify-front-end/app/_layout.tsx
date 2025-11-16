@@ -9,9 +9,9 @@ import React, { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Onboarding from './onboarding';
+// import Onboarding from './onboarding';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
+import { UserProvider } from '@/context/UserContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -21,8 +21,8 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
+  // const [onboardingChecked, setOnboardingChecked] = useState(false);
+  // const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Initialize progress cache
   const {
@@ -57,26 +57,26 @@ export default function RootLayout() {
     []
   );
 
-  useEffect(() => {
-    const checkOnboarding = async () => {
-      const completed = await AsyncStorage.getItem('onboardingCompleted');
-      setShowOnboarding(completed !== 'true');
-      setOnboardingChecked(true);
-    };
-    checkOnboarding();
-  }, []);
+  // useEffect(() => {
+  //   const checkOnboarding = async () => {
+  //     const completed = await AsyncStorage.getItem('onboardingCompleted');
+  //     setShowOnboarding(completed !== 'true');
+  //     setOnboardingChecked(true);
+  //   };
+  //   checkOnboarding();
+  // }, []);
 
   useEffect(() => {
     if (
       loaded &&
-      onboardingChecked &&
+      // onboardingChecked &&
       (progressCacheInitialized || cacheTimeout)
     ) {
       SplashScreen.hideAsync();
     }
-  }, [loaded, onboardingChecked, progressCacheInitialized, cacheTimeout]);
+  }, [loaded, /* onboardingChecked, */ progressCacheInitialized, cacheTimeout]);
 
-  if (!loaded || !onboardingChecked) {
+  if (!loaded /* || !onboardingChecked */) {
     return null; // or a loading spinner
   }
 
@@ -85,10 +85,11 @@ export default function RootLayout() {
       <GestureHandlerRootView>
         <SafeAreaProvider>
           <ScrollContextProvider>
-            {showOnboarding ? (
+            {/* {showOnboarding ? (
               <Onboarding onFinish={() => setShowOnboarding(false)} />
-            ) : (
-              <AuthWrapper>
+            ) : ( */}
+            <AuthWrapper>
+              <UserProvider>
                 <ThemeProvider value={DefaultTheme}>
                   <Stack>
                     <Stack.Screen
@@ -100,7 +101,15 @@ export default function RootLayout() {
                       options={{ headerShown: false }}
                     />
                     <Stack.Screen
+                      name='edit-name'
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
                       name='profile'
+                      options={{ headerShown: false }}
+                    />
+                    <Stack.Screen
+                      name='saved'
                       options={{ headerShown: false }}
                     />
                     <Stack.Screen
@@ -110,8 +119,9 @@ export default function RootLayout() {
                     <Stack.Screen name='+not-found' />
                   </Stack>
                 </ThemeProvider>
-              </AuthWrapper>
-            )}
+              </UserProvider>
+            </AuthWrapper>
+            {/* )} */}
           </ScrollContextProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>

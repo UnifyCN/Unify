@@ -6,6 +6,7 @@ CREATE TABLE users (
     biography TEXT,
     email VARCHAR(100) UNIQUE NOT NULL,
     profile_picture_url TEXT,
+    is_premium BOOLEAN DEFAULT FALSE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (id)

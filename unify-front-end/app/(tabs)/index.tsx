@@ -1,272 +1,181 @@
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
-import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '@/lib/supabase';
+import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
-import { Feather } from '@expo/vector-icons';
-import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
-import { FloatingChatButton } from '@/components/ChatBot';
-import LearnProgressCardCarousel from '@/components/home/LearnProgressCardCarousel';
-import { NewsCard } from '@/components/home/NewsCard';
-import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
-import { useRouter } from 'expo-router';
+import { useCurrentUser } from '@/context/UserContext';
+import FeedWithHook from '@/components/FeedWithHook';
+import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
+import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
+import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
+import { memo, useState, useMemo } from 'react';
+import CreatePostButton from '@/components/posts/CreatePostButton';
 
-const WelcomeSection = () => {
-  const [username, setUsername] = useState('User');
+interface HeaderProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
 
-  useEffect(() => {
-    // Simple cache check
-    AsyncStorage.getItem('username').then(cached => {
-      if (cached) setUsername(cached);
-    });
-
-    // Fetch fresh data
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase
-          .from('users')
-          .select('username')
-          .eq('id', user.id)
-          .single()
-          .then(({ data }) => {
-            if (data?.username) {
-              setUsername(data.username);
-              AsyncStorage.setItem('username', data.username);
-            }
-          });
-      }
-    });
-  }, []);
-
+const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
   return (
-    <View style={styles.welcomeSection}>
-      <Text style={styles.welcomeText}>Welcome Back, {username}!</Text>
-      <LearnProgressCardCarousel />
+    <View style={styles.tabs}>
+      {['For You', 'Following', 'Groups'].map(tab => (
+        <TouchableOpacity
+          key={tab}
+          onPress={() => setActiveTab(tab)}
+          style={[styles.tab, activeTab === tab && styles.activeTab]}
+        >
+          <Text
+            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
+          >
+            {tab}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
-};
+});
 
-// TODO: someone deal with this section
-const NewsTipsSection = () => {
-  const router = useRouter();
+export default function HomeScreen() {
+  const [activeTab, setActiveTab] = useState('For You');
 
-  const handleViewMore = () => {
-    // TODO: Navigate to News & Tips screen when available
-    // router.push('/(tabs)/NewsTipsScreen');
+  const renderFeedContent = useMemo(() => {
+    switch (activeTab) {
+      case 'Following':
+        return (
+          <FeedWithHook
+            key={`following-${activeTab}`}
+            useFeedHook={useFollowingFeed}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No posts here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    You haven't followed any users yet.{'\n'}
+                    Follow other users to see their posts!
+                  </Text>
+                }
+              />
+            }
+          />
+        );
+      case 'Groups':
+        return (
+          <FeedWithHook
+            key={`groups-${activeTab}`}
+            useFeedHook={useGroupsFeed}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No groups here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    You haven't joined any groups yet.{'\n'}
+                    Join a group to see their posts!
+                  </Text>
+                }
+              />
+            }
+          />
+        );
+      default:
+        return (
+          <FeedWithHook
+            key={`foryou-${activeTab}`}
+            useFeedHook={useForYouFeed}
+            ListEmptyComponent={
+              <EmptyFeedMessage
+                message='No posts here...'
+                submessage={
+                  <Text style={styles.emptyMessageSubtext}>
+                    No one has posted anything yet.{'\n'}
+                    Post something to see it here!
+                  </Text>
+                }
+              />
+            }
+          />
+        );
+    }
+  }, [activeTab]);
+
+  // Easiest way to make the header sticky
+  const data = [
+    { key: 'tabs', type: 'tabs' },
+    { key: 'feed', type: 'feed' },
+  ];
+
+  const renderItem = ({ item }: { item: { key: string; type: string } }) => {
+    switch (item.type) {
+      case 'tabs':
+        return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+      case 'feed':
+        return <View>{renderFeedContent}</View>;
+      default:
+        return null;
+    }
   };
 
   return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>News & Tips</Text>
-        <Feather name='chevron-right' size={20} color='#666' />
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: 20, paddingVertical: 2 }}
-      >
-        <NewsCard
-          title='Navigating Winter Roads'
-          description='New to snow? ICBC article to help you avoid issues on the icy, winter roads.'
-        />
-        <NewsCard
-          title='Financial Planning Tips'
-          description='Essential tips for managing your finances in Canada.'
-        />
-        <TouchableOpacity
-          style={styles.viewMoreCardContainer}
-          onPress={handleViewMore}
-          activeOpacity={0.8}
-        >
-          <View style={styles.viewMoreContent}>
-            <ViewMoreCardNews width={332} height={132} />
-            <View style={styles.viewMoreTextOverlay}>
-              <Text style={styles.viewMoreText}>
-                View more news{' '}
-                <Feather name='arrow-right' size={16} color='#000' />
-              </Text>
-              <Text style={styles.viewMoreSubtext}>
-                There's more to check out!
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
-};
-
-const GatherEventsSection = () => {
-  return (
-    <View style={[styles.section, { paddingHorizontal: 20 }]}>
-      <EventsCarousel
-        title='Upcoming Gather Events'
-        titleStyle={styles.sectionTitle}
-      />
-    </View>
-  );
-};
-
-export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <Header />
-      <StatusBar style='dark' />
-      <ScrollView style={styles.scrollView}>
-        <WelcomeSection />
-        <NewsTipsSection />
-        <GatherEventsSection />
-      </ScrollView>
-      <FloatingChatButton />
+      <View style={styles.container}>
+        <StatusBar style='dark' />
+        <Animated.FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={item => item.key}
+          stickyHeaderIndices={[0]} // Make the tabs (index 0) sticky
+        />
+        <CreatePostButton />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: Theme.white,
+    backgroundColor: '#fff',
+    flexDirection: 'column',
   },
-  scrollView: {
-    flex: 1,
-  },
-  welcomeSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Theme.black,
-  },
-  progressText: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 16,
-    lineHeight: 22,
-  },
-  boldText: {
-    fontWeight: '600',
-  },
-  percentageText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#E5E5E5',
-    borderRadius: 4,
-    marginBottom: 20,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  resumeButton: {
-    backgroundColor: '#E5E5E5',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignSelf: 'center',
-  },
-  resumeButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000',
-  },
-  section: {
-    marginBottom: 30,
-  },
-  sectionHeader: {
+  tabs: {
+    backgroundColor: '#fff',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    color: '#000',
-    fontFamily: 'Inter',
-    fontWeight: 600,
-  },
-  carouselContentEmpty: {
-    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1000,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5E5',
   },
-  loadingContainer: {
+  tab: {
+    backgroundColor: 'transparent',
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 8,
+    marginHorizontal: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  emptyEventsContainer: {
-    backgroundColor: '#e5e5e5',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    width: '100%',
-    minWidth: '100%',
+  activeTab: {
+    borderBottomColor: Theme.primaryGatherRed,
   },
-  emptyEventsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptyEventsSubtext: {
+  tabText: {
     fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  viewMoreCardContainer: {
-    width: 332,
-    height: 132,
-    marginRight: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  viewMoreContent: {
-    width: 332,
-    height: 132,
-    position: 'relative',
-  },
-  viewMoreTextOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 4,
-  },
-  viewMoreText: {
-    fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: Theme.textInactiveTab,
   },
-  viewMoreSubtext: {
+  activeTabText: {
+    color: Theme.black,
+    fontWeight: '600',
+  },
+  emptyMessageSubtext: {
     fontSize: 14,
-    color: '#000',
+    color: Theme.textInput,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

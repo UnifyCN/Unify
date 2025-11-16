@@ -13,8 +13,9 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { getLessonProgress } from '@/services/progress/progressService';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Header from '@/components/Header';
+import BookIcon from '@/assets/images/book_5.svg';
 
 export default function SubmoduleMap() {
   const router = useRouter();
@@ -30,10 +31,10 @@ export default function SubmoduleMap() {
   } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
 
-  // Add state for selected lesson
-  const [selectedLessonIndex, setSelectedLessonIndex] = useState<number | null>(
-    null
-  );
+  // Add state for expanded lessons (using Set to allow multiple)
+  const [expandedLessonIndices, setExpandedLessonIndices] = useState<
+    Set<number>
+  >(new Set());
 
   // Progress tracking state
   const [lessonProgresses, setLessonProgresses] = useState<{
@@ -77,7 +78,6 @@ export default function SubmoduleMap() {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading submodule...</Text>
         </View>
@@ -88,7 +88,6 @@ export default function SubmoduleMap() {
   if (error || !submoduleData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
             Error loading submodule: {error?.message || 'Unknown error'}
@@ -152,209 +151,156 @@ export default function SubmoduleMap() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
+      {/* Back button and submodule title container */}
+      <View style={styles.titleContainer}>
+        <TouchableOpacity
+          onPress={() =>
+            router.replace({
+              pathname: '/(tabs)/Learn/modules/[moduleId]',
+              params: { moduleId },
+            })
+          }
+          style={styles.backButton}
+        >
+          <Feather name='arrow-left' size={24} color='#000' />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle} numberOfLines={2}>
+            {submoduleData?.title || 'Submodule'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.lessonCountWrapper}>
+        <View style={styles.lessonCountContainer}>
+          <BookIcon width={14} height={19} />
+          <Text style={styles.lessonCount}>
+            {submoduleData.lessons?.length || 0} Lessons
+          </Text>
+        </View>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() =>
-              router.replace({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]',
-                params: { moduleId, submoduleId },
-              })
-            }
-            style={styles.backButton}
-          >
-            <Feather name='arrow-left' size={24} color='#000' />
-          </TouchableOpacity>
-        </View>
-
-        {/* Submodule Title Section, keeping this commented out incase design changes */}
-        {/* <View style={styles.titleSection}>
-          <Text style={styles.title}>{submoduleData.submodule_title}</Text>
-          <Text style={styles.description}>{submoduleData.submodule_description}</Text>
-        </View> */}
-
-        {/* Focus Card: only show if a circle is selected */}
-        {selectedLessonIndex !== null && (
-          <View style={styles.focusCard}>
-            <Text style={styles.focusTitle}>
-              {/* Lesson {circles[selectedLessonIndex].orderNumber}:{' '} */}
-              {submoduleData.lessons[selectedLessonIndex].title}
-            </Text>
-            <Text style={styles.focusDescription}>
-              {submoduleData.lessons[selectedLessonIndex].description}
-            </Text>
-
-            {/* Progress Information */}
-            {/* {circles[selectedLessonIndex].isCompleted && (
-              <Text style={styles.progressText}>✅ Completed</Text>
-            )}
-            {circles[selectedLessonIndex].inProgress && (
-              <Text style={styles.progressText}>
-                🔄 In Progress (
-                {Math.round(circles[selectedLessonIndex].progressPercent)}%)
-              </Text>
-            )}
-            {circles[selectedLessonIndex].isNext && (
-              <Text style={styles.progressText}>🎯 Next Lesson</Text>
-            )}
-            {circles[selectedLessonIndex].blocked && (
-              <Text style={styles.progressText}>🔒 Locked</Text>
-            )} */}
-
-            <TouchableOpacity
-              style={[
-                styles.focusCta,
-                { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
-                circles[selectedLessonIndex].blocked && styles.focusCtaDisabled,
-              ]}
-              onPress={() => {
-                router.push({
-                  pathname:
-                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
-                  params: {
-                    moduleId,
-                    submoduleId,
-                    lessonId: submoduleData.lessons[selectedLessonIndex]._id,
-                  },
-                });
-              }}
-              disabled={circles[selectedLessonIndex].blocked}
-            >
-              <Text
-                style={[
-                  styles.focusCtaText,
-                  circles[selectedLessonIndex].blocked && styles.textBlocked,
-                ]}
-              >
-                {circles[selectedLessonIndex].isCompleted
-                  ? 'Review Lesson'
-                  : circles[selectedLessonIndex].inProgress
-                    ? 'Continue Lesson'
-                    : circles[selectedLessonIndex].blocked
-                      ? 'Lesson Locked'
-                      : 'Start Lesson'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Zig-zag circles */}
-        <View style={styles.zigzagContainer}>
+        {/* Lesson Cards */}
+        <View style={styles.lessonsContainer}>
           {circles.map((c, i) => {
-            const leftSide = i % 2 === 0;
+            const lesson = submoduleData.lessons[i];
+            const isExpanded = expandedLessonIndices.has(i);
             const isActive = c.isNext || c.inProgress;
+
             return (
-              <View key={c.id}>
-                <View style={styles.zRow}>
-                  <View
-                    style={
-                      leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge
+              <View key={c.id} style={styles.lessonCardWrapper}>
+                {/* Top Card - Header Only */}
+                <TouchableOpacity
+                  style={[
+                    styles.lessonCardHeader,
+                    c.blocked && styles.lessonCardBlocked,
+                    isActive && !c.blocked && styles.lessonCardActive,
+                  ]}
+                  onPress={() => {
+                    if (!c.blocked) {
+                      setExpandedLessonIndices(prev => {
+                        const newSet = new Set(prev);
+                        if (isExpanded) {
+                          newSet.delete(i);
+                        } else {
+                          newSet.add(i);
+                        }
+                        return newSet;
+                      });
                     }
-                  />
-                  <TouchableOpacity
-                    activeOpacity={c.blocked ? 1 : 0.8}
+                  }}
+                  disabled={c.blocked}
+                  activeOpacity={0.7}
+                >
+                  {/* Circle Indicator */}
+                  <View
                     style={[
-                      styles.circleWrap,
-                      c.isCompleted
-                        ? [
-                            styles.circleCompleted,
-                            {
-                              borderColor:
-                                moduleData?.colorTheme?.hex || '#A0A0A0',
-                            },
-                          ]
-                        : c.blocked
-                          ? styles.circleBlocked
-                          : isActive
-                            ? [
-                                styles.circleActive,
-                                {
-                                  borderColor:
-                                    moduleData?.colorTheme?.hex || '#A0A0A0',
-                                },
-                              ]
-                            : styles.circleNormal,
+                      styles.lessonCircle,
+                      c.isCompleted && styles.lessonCircleCompleted,
+                      c.blocked && styles.lessonCircleBlocked,
+                      isActive &&
+                        !c.blocked &&
+                        !c.isCompleted &&
+                        styles.lessonCircleActive,
                     ]}
-                    onPress={() => {
-                      if (!c.blocked) setSelectedLessonIndex(i);
-                    }}
-                    disabled={c.blocked}
                   >
                     {c.isCompleted ? (
-                      <View
-                        style={[
-                          styles.circleCompletedInner,
-                          {
-                            backgroundColor:
-                              moduleData?.colorTheme?.hex || '#A0A0A0',
-                          },
-                        ]}
-                      >
-                        <Feather name='check' size={60} color='#fff' />
-                      </View>
-                    ) : c.blocked ? (
-                      <View style={styles.circleBlockedInner}>
-                        <Text style={styles.circleBlockedLabel}>Lesson</Text>
-                        <Text style={styles.circleBlockedIndex}>
-                          {c.orderNumber}
-                        </Text>
-                      </View>
-                    ) : isActive ? (
-                      <View
-                        style={[
-                          styles.circleActiveInner,
-                          {
-                            backgroundColor:
-                              moduleData?.colorTheme?.hex || '#A0A0A0',
-                          },
-                        ]}
-                      >
-                        <Text style={styles.circleActiveLabel}>Lesson</Text>
-                        <Text style={styles.circleActiveIndex}>
-                          {c.orderNumber}
-                        </Text>
-                      </View>
+                      <Feather name='check' size={20} color='#fff' />
                     ) : (
-                      <View style={{ alignItems: 'center' }}>
-                        <Text style={styles.circleLabelTop}>Lesson</Text>
-                        <Text style={styles.circleIndex}>{c.orderNumber}</Text>
-                      </View>
+                      <Text
+                        style={[
+                          styles.lessonCircleText,
+                          c.blocked && styles.lessonCircleTextBlocked,
+                          isActive &&
+                            !c.blocked &&
+                            styles.lessonCircleTextActive,
+                        ]}
+                      >
+                        {c.orderNumber}
+                      </Text>
                     )}
-                  </TouchableOpacity>
-                  <View
-                    style={
-                      leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall
-                    }
-                  />
-                </View>
-                {/* Label row centered under the circle */}
-                <View style={styles.zRowLabelRow}>
-                  <View
-                    style={
-                      leftSide ? styles.spacerGrowSmall : styles.spacerGrowLarge
-                    }
-                  />
-                  <View style={styles.labelBox}>
-                    <Text
-                      style={[
-                        styles.lessonTitleText,
-                        c.blocked && styles.textBlocked,
-                      ]}
-                    >
-                      {c.title?.substring(12) || c.title}
-                    </Text>
                   </View>
-                  <View
-                    style={
-                      leftSide ? styles.spacerGrowLarge : styles.spacerGrowSmall
-                    }
-                  />
-                </View>
+
+                  {/* Lesson Title */}
+                  <Text
+                    style={[
+                      styles.lessonTitle,
+                      c.blocked && styles.lessonTitleBlocked,
+                    ]}
+                  >
+                    {lesson.title.slice(12)}
+                  </Text>
+
+                  {/* Expand/Collapse Icon */}
+                  {!c.blocked && (
+                    <View style={styles.chevronContainer}>
+                      <MaterialIcons
+                        name={isExpanded ? 'arrow-drop-up' : 'arrow-drop-down'}
+                        size={24}
+                        color='#000'
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                {/* Bottom Card - Expanded Content */}
+                {isExpanded && !c.blocked && (
+                  <View style={styles.lessonCardContent}>
+                    <Text style={styles.lessonDescription}>
+                      {lesson.description || 'No description available.'}
+                    </Text>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.lessonButton,
+                        { backgroundColor: '#D8492C' },
+                      ]}
+                      onPress={() => {
+                        router.push({
+                          pathname:
+                            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
+                          params: {
+                            moduleId,
+                            submoduleId,
+                            lessonId: lesson._id,
+                          },
+                        });
+                      }}
+                    >
+                      <Text style={styles.lessonButtonText}>
+                        {c.isCompleted
+                          ? 'Retake Lesson'
+                          : c.inProgress
+                            ? 'Continue Lesson'
+                            : 'Start Lesson'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             );
           })}
@@ -376,213 +322,169 @@ const styles = StyleSheet.create({
   },
   container: {
     paddingHorizontal: 20,
+    paddingTop: 12,
     paddingBottom: 40,
     minHeight: '100%',
   },
 
   // Header
-  headerRow: {
+  titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingTop: 70,
+    gap: 12,
+    position: 'relative',
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+    paddingBottom: 20,
   },
   backButton: {
     padding: 8,
     marginLeft: -8,
   },
-
-  // Title Section
-  titleSection: {
+  headerTitleContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    marginBottom: 24,
+    justifyContent: 'center',
+    paddingLeft: 48,
+    paddingRight: 48,
+    paddingTop: 70,
+    paddingBottom: 20,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#343434',
+    lineHeight: 32,
     textAlign: 'center',
-    color: '#1A1A1A',
-    marginBottom: 12,
-    lineHeight: 38,
+    letterSpacing: 0.2,
   },
-  description: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#6B7280',
-    lineHeight: 24,
+  lessonCountWrapper: {
     paddingHorizontal: 20,
-    maxWidth: width - 40,
+    paddingTop: 12,
+    paddingBottom: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  // Focus Card
-  focusCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+  lessonCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
   },
-  focusTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 6,
-  },
-  focusDescription: {
+  lessonCount: {
     fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  focusCta: {
-    backgroundColor: '#575757',
-    alignSelf: 'stretch',
-    width: '100%',
-    paddingVertical: 12,
-    paddingHorizontal: 0,
-    borderRadius: 12,
-    marginTop: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  focusCtaText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    color: '#000',
+    fontWeight: '600',
   },
 
-  // Zig-zag circles
-  zigzagContainer: {
-    marginTop: 8,
+  // Lesson Cards
+  lessonsContainer: {
+    gap: 12,
   },
-  zRow: {
+  lessonCardWrapper: {
+    gap: 6,
+    alignSelf: 'stretch',
+  },
+  lessonCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 9,
-  },
-  zRowLabel: {
-    marginBottom: 8,
-    paddingHorizontal: 15,
-  },
-  zRowLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 0,
-    marginBottom: 10,
-  },
-  labelLeft: { alignItems: 'flex-start' },
-  labelRight: { alignItems: 'flex-end' },
-  spacer: { width: 0 },
-  flexGrow: { flex: 1 },
-  spacerGrowLarge: { flex: 1.5 },
-  spacerGrowSmall: { flex: 0.5 },
-  circleWrap: {
-    width: 110,
-    height: 110,
-    borderRadius: 60,
-    borderWidth: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 16,
+    gap: 12,
     backgroundColor: '#fff',
-    borderColor: '#E5E5E5',
+    borderRadius: 24,
+    minHeight: 72,
+    alignSelf: 'stretch',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  circleNormal: {
-    backgroundColor: '#fff',
-    borderColor: '#E5E5E5',
+  lessonCardBlocked: {
+    opacity: 0.6,
   },
-  // --- COMPLETED CIRCLE STYLES ---
-  circleCompleted: {
-    backgroundColor: '#fff',
-    borderColor: '#A0A0A0',
-  },
-  circleCompletedInner: {
-    width: 91,
-    height: 91,
-    borderRadius: 45.5,
-    backgroundColor: '#A0A0A0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  // --- END COMPLETED CIRCLE STYLES ---
-  circleBlocked: {
-    backgroundColor: '#fff',
-    borderColor: '#dcdcdc',
-  },
-  circleBlockedInner: {
-    width: 91,
-    height: 91,
-    borderRadius: 44,
+  lessonCardActive: {},
+  lessonCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 200,
     backgroundColor: '#E5E5E5',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  circleBlockedLabel: {
+  lessonCircleCompleted: {
+    backgroundColor: '#D8492C',
+  },
+  lessonCircleBlocked: {
+    backgroundColor: '#E5E5E5',
+  },
+  lessonCircleActive: {
+    backgroundColor: '#D8492C',
+  },
+  lessonCircleText: {
     fontSize: 16,
-    color: '#9CA3AF',
-    fontWeight: '500',
-    marginBottom: -2,
-  },
-  circleBlockedIndex: {
-    fontSize: 28,
     fontWeight: '700',
+    color: '#000',
+  },
+  lessonCircleTextBlocked: {
     color: '#9CA3AF',
   },
-  // --- ACTIVE CIRCLE STYLES ---
-  circleActive: {
-    backgroundColor: '#F8F9FA',
-    borderColor: '#A0A0A0',
-  },
-  circleActiveInner: {
-    width: 91,
-    height: 91,
-    borderRadius: 44,
-    backgroundColor: '#A0A0A0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  circleActiveLabel: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: '600',
-    marginBottom: -2,
-  },
-  circleActiveIndex: {
-    fontSize: 28,
-    fontWeight: '700',
+  lessonCircleTextActive: {
     color: '#fff',
   },
-  // --- END ACTIVE CIRCLE STYLES ---
-  circleLabelTop: {
-    fontSize: 16,
-    color: '#222',
-    fontWeight: '500',
-    marginBottom: -2,
-  },
-  circleIndex: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#222',
-  },
-  lessonTitleText: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginHorizontal: 0,
-    textAlign: 'center',
-    color: '#222',
-  },
-  labelBox: {
+  lessonTitle: {
     flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000',
+    flexShrink: 1,
+  },
+  lessonTitleBlocked: {
+    color: '#9CA3AF',
+  },
+  chevronContainer: {
+    // Container for chevron alignment
+  },
+  lessonCardContent: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    marginTop: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  lessonDescription: {
+    fontSize: 14,
+    color: '#000',
+    lineHeight: 20,
+    marginBottom: 16,
+    fontWeight: '400',
+    marginLeft: 5,
+  },
+  lessonButton: {
+    backgroundColor: '#D8492C',
+    borderRadius: 10,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 0,
-    minHeight: 40,
+    marginHorizontal: 5,
   },
-  textBlocked: {
-    color: '#BDBDBD',
+  lessonButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 
   // Loading and Error States
@@ -602,17 +504,7 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     textAlign: 'center',
   },
-
-  // Progress tracking styles
-  progressText: {
-    fontSize: 14,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginVertical: 8,
-    fontWeight: '500',
-  },
-  focusCtaDisabled: {
-    backgroundColor: '#E5E5E5',
-    borderColor: '#D1D5DB',
+  textBlocked: {
+    color: '#BDBDBD',
   },
 });

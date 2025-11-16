@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -8,12 +8,14 @@ interface BackHeaderProps {
   title: string;
   onBack?: () => void;
   backIcon?: keyof typeof Feather.glyphMap;
+  rightButton?: ReactNode;
 }
 
 const BackHeader = ({
   title = '',
   onBack,
   backIcon = 'chevron-left',
+  rightButton,
 }: BackHeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -27,12 +29,12 @@ const BackHeader = ({
   };
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+    <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
       <TouchableOpacity onPress={handleBack}>
         <Feather name={backIcon} size={24} color='#000' />
       </TouchableOpacity>
       <Text style={styles.title}>{title}</Text>
-      <View style={styles.placeholder} />
+      {rightButton || <View style={styles.placeholder} />}
     </View>
   );
 };

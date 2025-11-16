@@ -7,7 +7,6 @@ type Props = {
   title: string;
   modulesLabel: string;
   href?: LinkProps['href'];
-  colorHex?: string;
   coverImageUrl?: string;
 };
 
@@ -15,20 +14,10 @@ export default function PathwayCard({
   title,
   modulesLabel,
   href,
-  colorHex,
   coverImageUrl,
 }: Props) {
   const CardInner = (
     <>
-      {colorHex ? (
-        <View
-          pointerEvents='none'
-          style={[
-            StyleSheet.absoluteFillObject,
-            { backgroundColor: colorHex, borderRadius: 12 },
-          ]}
-        />
-      ) : null}
       <View style={styles.banner}>
         {coverImageUrl ? (
           <Image
@@ -89,6 +78,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#fff', marginBottom: 6 },
-  meta: { fontSize: 12, color: '#fff' },
+  title: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 6 },
+  meta: { fontSize: 12, color: '#000' },
 });
