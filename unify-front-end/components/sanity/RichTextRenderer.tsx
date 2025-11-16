@@ -317,71 +317,75 @@ export default function RichTextRenderer({
         let text: any = child.text || '';
 
         if (child.marks) {
-          child.marks.forEach((mark: string) => {
-            switch (mark) {
-              case 'strong':
-                // ✅ allow scoped override (used by tip box)
-                text = (
-                  <Text key={index} style={mergedStyles.strong}>
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'em':
-                text = (
-                  <Text key={index} style={{ fontStyle: 'italic' }}>
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'code':
-                text = (
-                  <Text
-                    key={index}
-                    style={{
-                      fontFamily: 'monospace',
-                      backgroundColor: '#F3F4F6',
-                      paddingHorizontal: 4,
-                      borderRadius: 2,
-                    }}
-                  >
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'underline':
-                text = (
-                  <Text key={index} style={{ textDecorationLine: 'underline' }}>
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'strike-through':
-                text = (
-                  <Text
-                    key={index}
-                    style={{ textDecorationLine: 'line-through' }}
-                  >
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'link': {
-                const linkDef = markDefs?.find(def => def._key === mark);
-                if (linkDef && linkDef.href) {
-                  const handleLinkPress = () => Linking.openURL(linkDef.href);
+          child.marks.forEach((mark: string | any) => {
+            // Handle decorators (strong, em, code, etc.)
+            if (typeof mark === 'string') {
+              switch (mark) {
+                case 'strong':
+                  // ✅ allow scoped override (used by tip box)
                   text = (
-                    <TouchableOpacity key={index} onPress={handleLinkPress}>
-                      <Text style={mergedStyles.link}>{text}</Text>
-                    </TouchableOpacity>
+                    <Text key={index} style={mergedStyles.strong}>
+                      {text}
+                    </Text>
                   );
+                  break;
+                case 'em':
+                  text = (
+                    <Text key={index} style={{ fontStyle: 'italic' }}>
+                      {text}
+                    </Text>
+                  );
+                  break;
+                case 'code':
+                  text = (
+                    <Text
+                      key={index}
+                      style={{
+                        fontFamily: 'monospace',
+                        backgroundColor: '#F3F4F6',
+                        paddingHorizontal: 4,
+                        borderRadius: 2,
+                      }}
+                    >
+                      {text}
+                    </Text>
+                  );
+                  break;
+                case 'underline':
+                  text = (
+                    <Text key={index} style={{ textDecorationLine: 'underline' }}>
+                      {text}
+                    </Text>
+                  );
+                  break;
+                case 'strike-through':
+                  text = (
+                    <Text
+                      key={index}
+                      style={{ textDecorationLine: 'line-through' }}
+                    >
+                      {text}
+                    </Text>
+                  );
+                  break;
+                case 'link': {
+                  const linkDef = markDefs?.find((def: any) => def._key === mark);
+                  if (linkDef && linkDef.href) {
+                    const handleLinkPress = () => Linking.openURL(linkDef.href);
+                    text = (
+                      <TouchableOpacity key={index} onPress={handleLinkPress}>
+                        <Text style={mergedStyles.link}>{text}</Text>
+                      </TouchableOpacity>
+                    );
+                  }
+                  break;
                 }
-                break;
               }
             }
           });
         }
 
+        // Text alignment is now handled at block level, so we don't need to wrap here
         return text;
       }
 
@@ -433,47 +437,104 @@ export default function RichTextRenderer({
 
       const style = block.style || 'normal';
 
+      // Check for text alignment in block children
+      // Combine markDefs from props and block-level markDefs
+      const allMarkDefs = [
+        ...(markDefs || []),
+        ...(block.markDefs || [])
+      ];
+
+      let blockTextAlign: 'left' | 'center' | 'right' | undefined = undefined;
+      if (block.children && Array.isArray(block.children)) {
+        for (const child of block.children) {
+          if (child.marks && Array.isArray(child.marks)) {
+            for (const mark of child.marks) {
+              // Marks in Sanity are typically string keys that reference markDefs
+              if (typeof mark === 'string') {
+                // Check if mark key references a textAlign annotation in markDefs
+                const markDef = allMarkDefs.find((def: any) => def._key === mark);
+                if (markDef) {
+                  if (markDef._type === 'textAlign') {
+                    blockTextAlign = markDef.align || 'left';
+                    break;
+                  }
+                }
+              } else if (typeof mark === 'object' && mark !== null) {
+                // Sometimes marks can be objects directly (inline annotations)
+                const markType = (mark as any)._type || mark._type;
+                if (markType === 'textAlign') {
+                  blockTextAlign = (mark as any).align || (mark as any).value?.align || 'left';
+                  break;
+                }
+                // Or it might be a reference object with _key that we need to look up
+                const markKey = (mark as any)._key;
+                if (markKey) {
+                  const markDef = allMarkDefs.find((def: any) => def._key === markKey);
+                  if (markDef && markDef._type === 'textAlign') {
+                    blockTextAlign = markDef.align || 'left';
+                    break;
+                  }
+                }
+              }
+            }
+            if (blockTextAlign) break;
+          }
+        }
+      }
+
+      // Apply alignment to block style
+      // Default to 'left' if no alignment is specified
+      const finalTextAlign = blockTextAlign || 'left';
+      const blockStyle = {
+        ...mergedStyles[style],
+        textAlign: finalTextAlign,
+      };
+
       switch (style) {
         case 'h1':
           return (
-            <Text key={block._key || index} style={mergedStyles.h1}>
+            <Text key={block._key || index} style={blockStyle}>
               {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'h2':
           return (
-            <Text key={block._key || index} style={mergedStyles.h2}>
+            <Text key={block._key || index} style={blockStyle}>
               {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'h3':
           return (
-            <Text key={block._key || index} style={mergedStyles.h3}>
+            <Text key={block._key || index} style={blockStyle}>
               {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'h4':
           return (
-            <Text key={block._key || index} style={mergedStyles.h4}>
+            <Text key={block._key || index} style={blockStyle}>
               {renderInlineText(block.children, markDefs)}
             </Text>
           );
         case 'blockquote':
           return (
             <View key={block._key || index} style={mergedStyles.blockquote}>
-              <Text>{renderInlineText(block.children, markDefs)}</Text>
+              <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
+                {renderInlineText(block.children, markDefs)}
+              </Text>
             </View>
           );
         case 'code':
           return (
             <View key={block._key || index} style={mergedStyles.code}>
-              <Text>{renderInlineText(block.children, markDefs)}</Text>
+              <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
+                {renderInlineText(block.children, markDefs)}
+              </Text>
             </View>
           );
         case 'normal':
         default:
           return (
-            <Text key={block._key || index} style={mergedStyles.normal}>
+            <Text key={block._key || index} style={blockStyle}>
               {renderInlineText(block.children, markDefs)}
             </Text>
           );
@@ -1006,7 +1067,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 24,
     paddingHorizontal: 16,
-    // backgroundColor: '#F3F4F6',
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 406,
