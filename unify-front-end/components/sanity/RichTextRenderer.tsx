@@ -262,7 +262,28 @@ export default function RichTextRenderer({
     link: { color: '#2563EB', textDecorationLine: 'underline' },
   };
 
-  const mergedStyles = { ...defaultStyles, ...customStyles };
+  // Merge styles, ensuring header styles are always preserved
+  // If custom styles are provided, merge them but always ensure headers exist
+  // For nested renders (like question text), we need to ensure headers are always available
+  const mergedStyles = {
+    ...defaultStyles,
+    // Only spread customStyles if it exists and is an object
+    ...(customStyles && typeof customStyles === 'object' ? customStyles : {}),
+    // Always ensure header styles exist with their full default properties
+    // If custom header styles are provided, merge them with defaults to preserve all properties
+    h1: customStyles?.h1 && typeof customStyles.h1 === 'object'
+      ? { ...defaultStyles.h1, ...customStyles.h1 } 
+      : defaultStyles.h1,
+    h2: customStyles?.h2 && typeof customStyles.h2 === 'object'
+      ? { ...defaultStyles.h2, ...customStyles.h2 } 
+      : defaultStyles.h2,
+    h3: customStyles?.h3 && typeof customStyles.h3 === 'object'
+      ? { ...defaultStyles.h3, ...customStyles.h3 } 
+      : defaultStyles.h3,
+    h4: customStyles?.h4 && typeof customStyles.h4 === 'object'
+      ? { ...defaultStyles.h4, ...customStyles.h4 } 
+      : defaultStyles.h4,
+  };
 
   // Keep prev nesting-level calc
   const calculateNestingLevels = (blocks: any[]) => {
@@ -579,11 +600,82 @@ export default function RichTextRenderer({
       );
     }
 
-    // Question types for activity pages
+    // Two options question - special layout with side-by-side cards
+    if (block._type === 'two_options_question') {
+      const currentAnswer = questionAnswers[block._key];
+      const selectedValue = currentAnswer as string | undefined;
+
+      const handleOptionSelect = (optionValue: string) => {
+        if (!onQuestionAnswer) return;
+        onQuestionAnswer(block._key, optionValue);
+      };
+
+      return (
+        <View key={block._key || index} style={styles.questionContainer}>
+          <View style={styles.questionTextContainer}>
+            <RichTextRenderer
+              blocks={block.question_text || []}
+              markDefs={markDefs}
+            />
+          </View>
+          <View style={styles.twoOptionsContainer}>
+            {(block.options || []).map((option: any) => {
+              const isSelected = selectedValue === option.value;
+              const isCorrect = option.is_correct;
+              const showFeedback = showQuestionFeedback;
+
+              let optionStyle = styles.twoOptionCard;
+
+              if (isSelected) {
+                optionStyle = styles.twoOptionCardSelected;
+              }
+
+              if (showFeedback) {
+                if (isCorrect) {
+                  optionStyle = styles.twoOptionCardCorrect;
+                } else if (isSelected && !isCorrect) {
+                  optionStyle = styles.twoOptionCardIncorrect;
+                }
+              }
+
+              return (
+                <TouchableOpacity
+                  key={option._key}
+                  style={optionStyle}
+                  onPress={() => !showFeedback && handleOptionSelect(option.value)}
+                  disabled={showFeedback}
+                >
+                  <View style={styles.twoOptionContent}>
+                    <RichTextRenderer
+                      blocks={option.text || []}
+                      markDefs={option.textMarkDefs}
+                      styles={{
+                        normal: styles.twoOptionText,
+                        strong: styles.twoOptionTextBold,
+                      }}
+                    />
+                  </View>
+                  {showFeedback && isSelected && option.explanation && (
+                    <View style={styles.twoOptionExplanation}>
+                      <RichTextRenderer
+                        blocks={option.explanation}
+                        markDefs={option.explanationMarkDefs}
+                        styles={{ normal: styles.explanationText }}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      );
+    }
+
+    // Question types for activity pages (MCQ single and multiple)
     if (
       block._type === 'multiple_choice_single' ||
-      block._type === 'multiple_choice_multiple' ||
-      block._type === 'two_options_question'
+      block._type === 'multiple_choice_multiple'
     ) {
       const isMultiple = block._type === 'multiple_choice_multiple';
       const currentAnswer = questionAnswers[block._key];
@@ -614,7 +706,6 @@ export default function RichTextRenderer({
             <RichTextRenderer
               blocks={block.question_text || []}
               markDefs={markDefs}
-              styles={mergedStyles}
             />
           </View>
           <View style={styles.optionsContainer}>
@@ -690,7 +781,6 @@ export default function RichTextRenderer({
             <RichTextRenderer
               blocks={block.question_text || []}
               markDefs={markDefs}
-              styles={mergedStyles}
             />
           </View>
           <View style={styles.matchingPairsContainer}>
@@ -891,5 +981,87 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     lineHeight: 20,
+  },
+  // Two options question styles
+  twoOptionsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  twoOptionCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#DCDCDC',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 120,
+  },
+  twoOptionCardSelected: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 120,
+  },
+  twoOptionCardCorrect: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#10B981',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 120,
+  },
+  twoOptionCardIncorrect: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#EF4444',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 120,
+  },
+  twoOptionContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  twoOptionText: {
+    fontSize: 16,
+    color: '#000',
+    lineHeight: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    fontStyle: 'normal',
+  },
+  twoOptionTextBold: {
+    fontSize: 16,
+    color: '#000',
+    lineHeight: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    fontStyle: 'normal',
+  },
+  twoOptionExplanation: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    width: '100%',
   },
 });
