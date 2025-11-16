@@ -1,47 +1,32 @@
 import React, { useState } from 'react';
-import isExpoGo from '../../utils/isExpoGo'; // see if we are running dev env using expo go or not
+import isExpoGo from '../../utils/isExpoGo';
 import ForgotPassword from './ForgotPassword';
-
-import { useForm } from 'react-hook-form';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { SignInProps } from '@aws-amplify/ui-react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { supabase } from '../../lib/supabase';
-import { Button } from 'react-native-paper';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-
-import { MaterialIcons, SimpleLineIcons } from '@expo/vector-icons';
-import Facebook from '../../assets/images/Facebook.svg';
+import { MaterialIcons } from '@expo/vector-icons';
 import Google from '../../assets/images/Google.svg';
-import Apple from '../../assets/images/Apple.svg';
-
+import { useQueryClient } from '@tanstack/react-query';
+import { getUserInfo } from '@/services/users/getUserInfo';
 import {
-  ErrorMessage,
   LinkButton,
   LinksContainer,
-  ProviderButton,
   SubmitButton,
-  TextField,
   ViewHeader,
   ViewContainer,
   ViewSection,
-  ViewDivider,
   SimpleTextField,
 } from './Components';
-
-function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
-  return [first && first.toUpperCase(), rest.join('').toLowerCase()]
-    .filter(Boolean)
-    .join('') as Capitalize<T>;
-}
 
 export function SignIn({
   onSwitchToSignUp,
 }: {
   onSwitchToSignUp?: () => void;
 }): React.JSX.Element {
+  const queryClient = useQueryClient();
   // State for email tick and password eye icon toggle
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -62,11 +47,24 @@ export function SignIn({
   const handleSignIn = async () => {
     setLoading(true);
     setErrorMessage(null);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) setErrorMessage(error.message);
+    if (error) {
+      setErrorMessage(error.message);
+      setLoading(false);
+      return;
+    }
+
+    // Prefetch user info immediately after successful login and wait for it
+    if (data?.user?.id) {
+      await queryClient.ensureQueryData({
+        queryKey: ['userInfo', data.user.id],
+        queryFn: () => getUserInfo(data.user.id),
+      });
+    }
+
     setLoading(false);
   };
 
@@ -88,11 +86,22 @@ export function SignIn({
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
       if (response.data?.idToken) {
-        const { error } = await supabase.auth.signInWithIdToken({
+        const { data, error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: response.data.idToken,
         });
-        if (error) setErrorMessage(error.message);
+        if (error) {
+          setErrorMessage(error.message);
+          return;
+        }
+
+        // Prefetch user info immediately after successful Google login and wait for it
+        if (data?.user?.id) {
+          await queryClient.ensureQueryData({
+            queryKey: ['userInfo', data.user.id],
+            queryFn: () => getUserInfo(data.user.id),
+          });
+        }
       } else {
         setErrorMessage('No Google idToken');
       }
@@ -189,13 +198,6 @@ export function SignIn({
         <View style={styles.lineView}></View>
       </View>
       <View style={styles.buttonBucket}>
-        <View style={styles.buttonWithIcon}>
-          <Facebook width={20} height={20} />
-        </View>
-        <View style={styles.buttonWithIcon}>
-          <Apple width={20} height={20} />
-        </View>
-
         <TouchableOpacity
           style={styles.buttonWithIcon}
           onPress={handleGoogleSignIn}

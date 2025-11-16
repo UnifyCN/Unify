@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
+import { useCurrentUser } from '@/context/UserContext';
 import {
   formatMessagesForUI,
   Message,
@@ -24,6 +25,51 @@ import { Theme } from '@/constants/Theme';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import HistoryIcon from '@/components/icons/HistoryIcon.svg';
 import BackHeader from '@/components/BackHeader';
+
+const MESSAGE_LIMIT = 3;
+
+// Helper functions
+const getMessagesLeft = (
+  messageCount: number,
+  messageLimit: number
+): number => {
+  return Math.max(0, messageLimit - messageCount);
+};
+
+const canSendMessage = (isPremium: boolean, messagesLeft: number): boolean => {
+  return isPremium || messagesLeft > 0;
+};
+
+const getMessageCountText = (
+  isLoadingUsage: boolean,
+  isLoadingUser: boolean,
+  isPremium: boolean,
+  messagesLeft: number,
+  messageLimit: number
+): string => {
+  if (isLoadingUsage || isLoadingUser) {
+    return 'Loading...';
+  }
+  if (isPremium) {
+    return 'Unlimited messages';
+  }
+  return `${messagesLeft}/${messageLimit} messages left today`;
+};
+
+const shouldShowWarning = (
+  messagesLeft: number,
+  isPremium: boolean
+): boolean => {
+  return messagesLeft <= 0 && !isPremium;
+};
+
+const isSendButtonDisabled = (
+  inputText: string,
+  isLoading: boolean,
+  canSend: boolean
+): boolean => {
+  return !inputText.trim() || isLoading || !canSend;
+};
 
 export default function CompanionScreen() {
   const { conversationId } = useLocalSearchParams<{
@@ -48,16 +94,23 @@ export default function CompanionScreen() {
   const previousMessageCountRef = useRef<number>(0);
 
   const { data: usage, isLoading: isLoadingUsage } = useChatbotUsage();
+  const { currentUser, isLoading: isLoadingUser } = useCurrentUser();
+  const isPremium = currentUser?.isPremium ?? false;
   const { sendMessage, isLoading, isWaitingForBot } = useSendMessage({
     messages,
     currentConversationId,
     setCurrentConversationId,
+    isPremium,
   });
 
-  const MESSAGE_LIMIT = 3;
   const messageCount = usage?.message_count ?? 0;
-  const messagesLeft = Math.max(0, MESSAGE_LIMIT - messageCount);
-  const canSendMessage = messagesLeft > 0;
+  const messagesLeft = getMessagesLeft(messageCount, MESSAGE_LIMIT);
+  const canSend = canSendMessage(isPremium, messagesLeft);
+  const sendButtonDisabled = isSendButtonDisabled(
+    inputText,
+    isLoading,
+    canSend
+  );
 
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
   useEffect(() => {
@@ -87,7 +140,7 @@ export default function CompanionScreen() {
   }, [messages.length]);
 
   const handleSendMessage = async () => {
-    if (!inputText.trim() || isLoading || !canSendMessage) return;
+    if (sendButtonDisabled) return;
 
     const messageText = inputText.trim();
     setInputText('');
@@ -163,51 +216,48 @@ export default function CompanionScreen() {
               <Text
                 style={[
                   styles.messageCountText,
-                  messagesLeft <= 0 && styles.messageCountTextWarning,
+                  shouldShowWarning(messagesLeft, isPremium) &&
+                    styles.messageCountTextWarning,
                 ]}
               >
-                {isLoadingUsage
-                  ? 'Loading...'
-                  : `${messagesLeft}/${MESSAGE_LIMIT} messages left today`}
+                {getMessageCountText(
+                  isLoadingUsage,
+                  isLoadingUser,
+                  isPremium,
+                  messagesLeft,
+                  MESSAGE_LIMIT
+                )}
               </Text>
             </View>
 
             {/* Input */}
             <View style={styles.inputContainer}>
               <TextInput
-                style={[
-                  styles.textInput,
-                  !canSendMessage && styles.disabledInput,
-                ]}
+                style={[styles.textInput, !canSend && styles.disabledInput]}
                 value={inputText}
                 onChangeText={setInputText}
                 placeholder={
-                  !canSendMessage
-                    ? 'Daily limit reached'
-                    : 'Type your message...'
+                  canSend ? 'Type your message...' : 'Daily limit reached'
                 }
                 placeholderTextColor='#999'
                 multiline
                 maxLength={500}
-                editable={!isLoading && canSendMessage}
+                editable={!isLoading && canSend}
               />
               <TouchableOpacity
                 style={[
                   styles.sendButton,
-                  (!inputText.trim() || isLoading || !canSendMessage) &&
-                    styles.sendButtonDisabled,
+                  sendButtonDisabled && styles.sendButtonDisabled,
                 ]}
                 onPress={handleSendMessage}
-                disabled={!inputText.trim() || isLoading || !canSendMessage}
+                disabled={sendButtonDisabled}
               >
                 <View style={styles.sendIconContainer}>
                   <SendIcon
                     width={20}
                     height={18}
                     stroke={
-                      !inputText.trim() || isLoading || !canSendMessage
-                        ? Theme.textInactiveTab
-                        : Theme.white
+                      sendButtonDisabled ? Theme.textInactiveTab : Theme.white
                     }
                   />
                 </View>

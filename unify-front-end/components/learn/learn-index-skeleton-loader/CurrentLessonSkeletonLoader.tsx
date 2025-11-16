@@ -59,15 +59,16 @@ export function CurrentLessonSkeletonLoader() {
     <View style={styles.card}>
       <View style={styles.banner}>
         <Animated.View
-          style={[
-            StyleSheet.absoluteFillObject,
-            styles.skeleton,
-            { opacity },
-          ]}
+          style={[StyleSheet.absoluteFillObject, styles.skeleton, { opacity }]}
         />
         <View style={styles.bannerOverlay} />
         <View style={styles.bannerTextWrap}>
-          <SkeletonBox width={120} height={12} style={{ marginBottom: 8 }} isText />
+          <SkeletonBox
+            width={120}
+            height={12}
+            style={{ marginBottom: 8 }}
+            isText
+          />
           <SkeletonBox width={200} height={18} isText />
         </View>
         <View style={styles.resumeButtonContainer}>

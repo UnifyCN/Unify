@@ -14,12 +14,14 @@ interface UseSendMessageParams {
   messages: Message[];
   currentConversationId: string | null;
   setCurrentConversationId: (id: string | null) => void;
+  isPremium: boolean;
 }
 
 export const useSendMessage = ({
   messages,
   currentConversationId,
   setCurrentConversationId,
+  isPremium,
 }: UseSendMessageParams) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
@@ -76,9 +78,11 @@ export const useSendMessage = ({
         conversationMessages
       );
 
-      // Update usage count
-      const newMessageCount = (usage?.message_count ?? 0) + 1;
-      updateUsage.mutate(newMessageCount);
+      // Update usage count only for non-premium users
+      if (!isPremium) {
+        const newMessageCount = (usage?.message_count ?? 0) + 1;
+        updateUsage.mutate(newMessageCount);
+      }
 
       // Parse the response
       const { answer: botResponse, sources } = parseRAGResponse(response);
