@@ -568,7 +568,7 @@ export default function ModuleIndex() {
                 styles.progressFill,
                 {
                   width: `${Math.min(100, Math.max(0, moduleProgressData.progress_percent))}%`,
-                  backgroundColor: moduleData?.colorTheme?.hex || '#000',
+                  backgroundColor: '#D8492C', // Hardcoded color for this page only
                 },
               ]}
             />
@@ -846,8 +846,7 @@ export default function ModuleIndex() {
                         style={[
                           styles.cta,
                           {
-                            backgroundColor:
-                              moduleData?.colorTheme?.hex || '#575757',
+                            backgroundColor: '#D8492C', // Hardcoded color for this page only
                           },
                           !m.is_completed && disabled
                             ? styles.ctaDisabled
