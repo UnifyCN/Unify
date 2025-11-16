@@ -997,7 +997,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 120,
+    minHeight: 406,
   },
   twoOptionCardSelected: {
     flex: 1,
