@@ -4,7 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import CreatePostModal from './CreatePostModal';
 import { Theme } from '@/constants/Theme';
 
-export default function CreatePostButton() {
+interface CreatePostButtonProps {
+  preselectedGroup?: any;
+}
+
+export default function CreatePostButton({ preselectedGroup }: CreatePostButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
   const handlePress = () => {
@@ -21,7 +25,11 @@ export default function CreatePostButton() {
         <Ionicons name='add' size={24} color='white' />
       </TouchableOpacity>
 
-      <CreatePostModal visible={showModal} onClose={handleCloseCreateModal} />
+      <CreatePostModal 
+        visible={showModal} 
+        onClose={handleCloseCreateModal}
+        preselectedGroup={preselectedGroup}
+      />
     </>
   );
 }

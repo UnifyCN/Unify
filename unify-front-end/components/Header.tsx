@@ -10,17 +10,20 @@ const Header = () => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
-      <View style={styles.titleContainer}>
-        <UnifyLogo width={24} height={24} />
-        <Text style={styles.title}>Unify</Text>
+    <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
+      <UnifyLogo width={28} height={28} />
+      <View style={styles.rightButtons}>
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/Gather/SearchScreen')}
+        >
+          <Feather name='search' size={28} color='#000' />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push('/account-settings')}
+        >
+          <Feather name='settings' size={28} color='#000' />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.profileButton}
-        onPress={() => router.push('/account-settings')}
-      >
-        <Feather name='user' size={20} color='#000' />
-      </TouchableOpacity>
     </View>
   );
 };
@@ -31,31 +34,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 15,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
   },
-  titleContainer: {
+  rightButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
-    textTransform: 'lowercase',
-  },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    gap: 15,
   },
 });
 

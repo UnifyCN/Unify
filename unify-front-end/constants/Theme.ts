@@ -9,6 +9,7 @@ export const Theme = {
 
   black: '#000000',
   white: '#FFFFFF',
+  secondaryBlack: '#171616',
 
   textInput: '#686464',
   textInactiveTab: '#B5B1B1',

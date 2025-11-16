@@ -15,6 +15,10 @@ import SearchButton from '@/components/SearchButton';
 import { Theme } from '@/constants/Theme';
 import { NewsCard } from '@/components/home/NewsCard';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
+import GroupCard from './GroupCard';
+import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
+import { useQuery } from '@tanstack/react-query';
+import { Group } from '@/types/groups';
 
 const NewsTipsSection = () => {
   const router = useRouter();
@@ -28,7 +32,6 @@ const NewsTipsSection = () => {
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={styles.headerText}>News & Tips</Text>
-        <Feather name='chevron-right' size={20} color='#666' />
       </View>
       <ScrollView
         horizontal
@@ -66,28 +69,48 @@ const NewsTipsSection = () => {
   );
 };
 
-const GatherHeader = memo(() => {
+const GroupsForYouSection = () => {
   const router = useRouter();
 
-  const handleSearchPress = () => {
-    router.push('/(tabs)/Gather/SearchScreen');
+  const { data: groups } = useQuery({
+    queryKey: ['joined-groups'],
+    queryFn: getUserJoinedGroups,
+  });
+
+  const handleGroupPress = (group: Group) => {
+    router.push({
+      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      params: { group: JSON.stringify(group) },
+    });
   };
 
-  return (
-    <View>
-      <SearchButton
-        onPress={handleSearchPress}
-        style={styles.searchButton}
-        placeholderStyle={styles.searchPlaceholder}
-        iconSize={20}
-      />
+  if (!groups || groups.length === 0) {
+    return null;
+  }
 
-      <View style={styles.eventsCarousel}>
-        <EventsCarousel
-          title='Community Events'
-          titleStyle={styles.headerText}
-        />
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.headerText}>Groups for You</Text>
       </View>
+      <View style={styles.groupsList}> 
+        {groups.map((group) => (
+          <View key={group.id} style={styles.groupItem}>
+            <GroupCard group={group} onPress={() => handleGroupPress(group)} />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+const GatherHeader = memo(() => {
+  return (
+    <View style={styles.eventsCarousel}>
+      <EventsCarousel
+        title='Community Events'
+        titleStyle={styles.headerText}
+      />
     </View>
   );
 });
@@ -101,6 +124,7 @@ export default function GatherScreen() {
         <ScrollView style={styles.scrollView}>
           <GatherHeader />
           <NewsTipsSection />
+          <GroupsForYouSection />
         </ScrollView>
       </View>
     </View>
@@ -187,5 +211,12 @@ const styles = StyleSheet.create({
   viewMoreSubtext: {
     fontSize: 14,
     color: '#000',
+  },
+  groupsList: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  groupItem: {
+    marginBottom: 12,
   },
 });
