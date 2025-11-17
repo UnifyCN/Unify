@@ -1,32 +1,43 @@
 import React, { useState } from 'react';
-import isExpoGo from '../../utils/isExpoGo';
+import isExpoGo from '../../utils/isExpoGo'; // see if we are running dev env using expo go or not
 import ForgotPassword from './ForgotPassword';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { InputField } from './InputField';
+
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { MaterialIcons } from '@expo/vector-icons';
 import Google from '../../assets/images/Google.svg';
-import { useQueryClient } from '@tanstack/react-query';
-import { getUserInfo } from '@/services/users/getUserInfo';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import {
+  ErrorMessage,
   LinkButton,
   LinksContainer,
+  ProviderButton,
   SubmitButton,
+  TextField,
   ViewHeader,
   ViewContainer,
   ViewSection,
+  ViewDivider,
   SimpleTextField,
 } from './Components';
+import { Theme } from '@/constants/Theme';
+
+function capitalize<T extends string>([first, ...rest]: T): Capitalize<T> {
+  return [first && first.toUpperCase(), rest.join('').toLowerCase()]
+    .filter(Boolean)
+    .join('') as Capitalize<T>;
+}
 
 export function SignIn({
   onSwitchToSignUp,
 }: {
   onSwitchToSignUp?: () => void;
 }): React.JSX.Element {
-  const queryClient = useQueryClient();
   // State for email tick and password eye icon toggle
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -35,6 +46,7 @@ export function SignIn({
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const insets = useSafeAreaInsets();
 
   // Method to validate if email is in valid format for the tick icon to appear
   const validateEmail = (email: string) => {
@@ -47,24 +59,11 @@ export function SignIn({
   const handleSignIn = async () => {
     setLoading(true);
     setErrorMessage(null);
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) {
-      setErrorMessage(error.message);
-      setLoading(false);
-      return;
-    }
-
-    // Prefetch user info immediately after successful login and wait for it
-    if (data?.user?.id) {
-      await queryClient.ensureQueryData({
-        queryKey: ['userInfo', data.user.id],
-        queryFn: () => getUserInfo(data.user.id),
-      });
-    }
-
+    if (error) setErrorMessage(error.message);
     setLoading(false);
   };
 
@@ -86,22 +85,11 @@ export function SignIn({
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
       if (response.data?.idToken) {
-        const { data, error } = await supabase.auth.signInWithIdToken({
+        const { error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
           token: response.data.idToken,
         });
-        if (error) {
-          setErrorMessage(error.message);
-          return;
-        }
-
-        // Prefetch user info immediately after successful Google login and wait for it
-        if (data?.user?.id) {
-          await queryClient.ensureQueryData({
-            queryKey: ['userInfo', data.user.id],
-            queryFn: () => getUserInfo(data.user.id),
-          });
-        }
+        if (error) setErrorMessage(error.message);
       } else {
         setErrorMessage('No Google idToken');
       }
@@ -121,56 +109,43 @@ export function SignIn({
 
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Log In</ViewHeader>
+      <ViewHeader style={[styles.header, {paddingTop: insets.top + 140}]}>Log In</ViewHeader>
       <ViewSection style={{ marginTop: 30 }}>
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Email Address</Text>
-          <SimpleTextField
-            value={email}
-            onChangeText={text => {
-              setEmail(text);
-              validateEmail(text);
-            }}
-            // name="email"
-            placeholder='Email address'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            autoCapitalize='none'
-          />
-          {isEmailValid && (
-            <MaterialIcons
-              name='check-circle'
-              size={24}
-              color='#333'
-              style={styles.tickIcon}
-            />
-          )}
-        </View>
-        <View>
-          <Text style={styles.label}>Password</Text>
-          <SimpleTextField
-            value={password}
-            onChangeText={setPassword}
-            // name="password"
-            placeholder='Password'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            secureTextEntry={!passwordVisible}
-            autoCapitalize='none'
-          />
-          <TouchableOpacity
-            onPress={() => setPasswordVisible(!passwordVisible)}
-            style={styles.eyeIcon}
-          >
-            <MaterialIcons
-              name={passwordVisible ? 'visibility' : 'visibility-off'}
-              size={24}
-              color='#333'
-            />
-          </TouchableOpacity>
-        </View>
+        <InputField
+          label='Email Address'
+          value={email}
+          onChangeText={text => {
+            setEmail(text);
+            validateEmail(text);
+          }}
+          placeholder='Email address'
+          showValidIcon={isEmailValid}
+          error={!!errorMessage}
+        />
+        <InputField
+          label='Password'
+          value={password}
+          onChangeText={setPassword}
+          placeholder='Password'
+          secureTextEntry
+          showPasswordToggle
+          passwordVisible={passwordVisible}
+          onTogglePassword={() => setPasswordVisible(!passwordVisible)}
+          error={!!errorMessage}
+        />
         {errorMessage && (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         )}
       </ViewSection>
+
+      
+      {/* <View style={{ alignItems: 'flex-end'}}>
+        <TouchableOpacity onPress={() => setShowForgotPassword(true)}>
+          <Text style={[styles.link, styles.linkText]}>
+            Forgot password?
+          </Text>
+        </TouchableOpacity>
+      </View> */}
 
       <SubmitButton
         disabled={!isEmailValid || !password}
@@ -182,22 +157,13 @@ export function SignIn({
         Log in
       </SubmitButton>
 
-      <LinksContainer>
-        <LinkButton
-          onPress={() => setShowForgotPassword(true)}
-          style={undefined}
-          labelStyle={[styles.link, styles.linkText]}
-        >
-          Forgot Password?
-        </LinkButton>
-      </LinksContainer>
-
       <View style={styles.orLogIn}>
         <View style={styles.lineView}></View>
-        <Text style={styles.orText}>Or Login with</Text>
+        <Text style={styles.orText}>or</Text>
         <View style={styles.lineView}></View>
       </View>
       <View style={styles.buttonBucket}>
+
         <TouchableOpacity
           style={styles.buttonWithIcon}
           onPress={handleGoogleSignIn}
@@ -220,7 +186,6 @@ export function SignIn({
           style={{
             fontSize: 14,
             lineHeight: 18,
-            textDecorationLine: 'underline',
             fontWeight: '600',
             textAlign: 'left',
             color: '#000',
@@ -238,114 +203,86 @@ const styles = {
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16 * 0.87,
-    paddingLeft: 24 * 0.87,
-    paddingRight: 24 * 0.87,
+    paddingHorizontal: 20,
   },
   header: {
-    fontSize: 34 * 0.87,
+    fontSize: 32,
     fontWeight: '700' as '700',
     color: '#000',
-    marginBottom: 7 * 0.87,
-    marginTop: 110 * 0.87,
   },
   button: {
-    backgroundColor: '#343434',
-    borderRadius: 40 * 0.87,
-    marginTop: 37 * 0.87,
-    width: 110 * 0.87,
-    height: 42 * 0.87,
-    alignSelf: 'center' as 'center',
+    backgroundColor: Theme.black,
+    borderRadius: 10,
+    marginVertical: 42,
+    width: '100%' as '100%',
+    height: 50,
     justifyContent: 'center' as 'center',
     alignItems: 'center' as 'center',
   },
   buttonText: {
     color: 'white',
     textAlign: 'center' as 'center',
-    fontSize: 16 * 0.87,
-  },
-  textField: {
-    backgroundColor: '#fff',
-    color: '#000',
-    borderColor: '#ccc',
-    borderWidth: 1 * 0.87,
-    borderRadius: 12 * 0.87,
-    padding: 8 * 0.87,
-    height: 57,
+    fontSize: 16,
   },
   errorMessage: {
+    marginTop: -14,
     color: '#f00',
-    fontSize: 14 * 0.87,
+    fontSize: 12,
+    fontWeight: '600' as '600',
   },
   link: {
     color: 'black',
+    marginTop: -14,
     textDecorationLine: 'underline' as 'underline',
   },
   linkText: {
     color: 'black',
-    fontSize: 15 * 0.87,
+    fontSize: 12,
     fontWeight: '400' as '400',
-  },
-  label: {
-    fontSize: 16 * 0.87,
-    fontWeight: '400' as '400',
-    color: '#000',
-    marginBottom: 8 * 0.87,
-    marginTop: 13 * 0.87,
-  },
-  eyeIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 62 * 0.87,
-  },
-  tickIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 60 * 0.87,
   },
   orLogIn: {
-    marginTop: 22 * 0.87,
+    marginTop: 22,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
   },
   lineView: {
     borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
-    borderTopWidth: 1 * 0.87,
+    borderTopWidth: 1,
     flex: 1,
     width: '100%' as '100%',
-    height: 1 * 0.87,
+    height: 1,
   },
   orText: {
     color: 'rgba(0, 0, 0, 0.7)',
-    fontSize: 14 * 0.87,
-    lineHeight: 18 * 0.87,
-    marginHorizontal: 10 * 0.87,
+    fontSize: 14,
+    lineHeight: 18,
+    marginHorizontal: 10,
   },
   buttonBucket: {
-    marginTop: 22 * 0.87,
+    marginTop: 22,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
-    gap: 15 * 0.87,
+    gap: 15,
   },
   buttonWithIcon: {
-    borderRadius: 10 * 0.87,
+    borderRadius: 10,
     backgroundColor: '#fff',
     borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
-    borderWidth: 1 * 0.87,
+    borderWidth: 1,
     flex: 1,
     width: '100%' as '100%',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
-    paddingHorizontal: 45 * 0.87,
-    paddingVertical: 18 * 0.87,
+    paddingHorizontal: 45,
+    paddingVertical: 18,
   },
   footer: {
-    marginTop: 50 * 0.87,
+    marginTop: 50,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
-    gap: 5 * 0.87,
+    gap: 5,
   },
 };

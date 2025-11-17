@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { supabase } from '@/lib/supabase';
-import { SimpleTextField, SubmitButton, ViewContainer } from './Components';
-import { MaterialIcons } from '@expo/vector-icons';
+import { SubmitButton, ViewContainer } from './Components';
 import BackHeader from '../BackHeader';
+import { InputField } from './InputField';
+import { Theme } from '@/constants/Theme';
+import VerifyResetCode from './VerifyResetCode';
 
 interface ForgotPasswordProps {
   onBack: () => void;
@@ -13,6 +15,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const [message, setMessage] = useState<{
     type: 'error' | 'success';
     text: string;
@@ -24,14 +27,21 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
     setIsEmailValid(emailRegex.test(email));
   };
 
+  // Show verification screen if OTP was sent
+  if (showVerification) {
+    return (
+      <VerifyResetCode
+        email={email}
+        onBack={() => setShowVerification(false)}
+      />
+    );
+  }
+
   const handleResetPassword = async () => {
     setLoading(true);
     setMessage(null);
 
     try {
-      // TODO: This does not work at all, user will be redirected back to this page instead of the reset password page
-      // https://blog.theodo.com/2023/03/supabase-reset-password-rn/ maybe this is useful
-      // I think it's because our auth wrapper wraps EVERYTHING, instead of having two stacks of unauthenticated and authenticated routes
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: 'myapp://reset-password',
       });
@@ -39,10 +49,8 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
       if (error) {
         setMessage({ type: 'error', text: error.message });
       } else {
-        setMessage({
-          type: 'success',
-          text: 'Password reset link has been sent to your email',
-        });
+        // Successfully sent OTP, show verification screen
+        setShowVerification(true);
       }
     } catch (error) {
       setMessage({
@@ -56,40 +64,24 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
 
   return (
     <ViewContainer style={styles.container}>
-      <BackHeader title='Reset Password' onBack={onBack} backIcon='x' />
+      <BackHeader title='Forgot Password?' onBack={onBack} backIcon='chevron-left' />
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter your email address and we'll send you instructions to reset your
-          password.
+          Please enter your email to reset your password
         </Text>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email Address</Text>
-          <View style={{ position: 'relative' }}>
-            <SimpleTextField
-              value={email}
-              onChangeText={text => {
-                setEmail(text);
-                validateEmail(text);
-              }}
-              placeholder='Email address'
-              style={[
-                styles.textField,
-                message?.type === 'error' && { borderColor: '#f00' },
-              ]}
-              autoCapitalize='none'
-            />
-            {isEmailValid && (
-              <MaterialIcons
-                name='check-circle'
-                size={24}
-                color='#333'
-                style={styles.tickIcon}
-              />
-            )}
-          </View>
-        </View>
+        <InputField
+          label='Email'
+          value={email}
+          onChangeText={text => {
+            setEmail(text);
+            validateEmail(text);
+          }}
+          placeholder='unify@gmail.com'
+          showValidIcon={isEmailValid}
+          error={message?.type === 'error'}
+        />
 
         {message && (
           <Text
@@ -111,7 +103,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
           style={styles.button}
           labelStyle={styles.buttonText}
         >
-          Send Reset Link
+          Send code
         </SubmitButton>
       </View>
     </ViewContainer>
@@ -125,55 +117,39 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+  },
+  heading: {
+    fontSize: 28,
+    fontWeight: '600',
+    color: '#000',
+    marginBottom: 12,
   },
   description: {
     fontSize: 16,
     color: '#666',
     marginBottom: 32,
-    marginTop: 16,
-  },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '400',
-    color: '#000',
-    marginBottom: 8,
-  },
-  textField: {
-    backgroundColor: '#fff',
-    color: '#000',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 8,
-    height: 57,
-  },
-  tickIcon: {
-    position: 'absolute',
-    right: 16,
-    top: 16,
+    lineHeight: 20,
   },
   button: {
-    backgroundColor: '#343434',
-    borderRadius: 40,
-    marginTop: 24,
-    height: 42,
-    alignSelf: 'center',
+    backgroundColor: Theme.black,
+    borderRadius: 10,
+    marginTop: 32,
+    width: '100%',
+    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 32,
   },
   buttonText: {
     color: 'white',
     textAlign: 'center',
     fontSize: 16,
+    fontWeight: '600',
   },
   message: {
     fontSize: 14,
-    marginBottom: 16,
+    marginTop: 16,
     textAlign: 'center',
   },
   errorMessage: {

@@ -11,6 +11,9 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
 import Google from '../../assets/images/Google.svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { InputField } from './InputField';
+import { Theme } from '@/constants/Theme';
 import {
   SubmitButton,
   SimpleTextField,
@@ -27,6 +30,7 @@ export function SignUp({
   onShowOTP?: (email: string, password: string) => void;
 }): React.JSX.Element {
   const queryClient = useQueryClient();
+  const insets = useSafeAreaInsets();
   // State vars
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -148,75 +152,41 @@ export function SignUp({
 
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Create account</ViewHeader>
+      <ViewHeader style={[styles.header, {paddingTop: insets.top + 90}]}>Create account</ViewHeader>
       <ViewSection style={{ marginTop: 30 }}>
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Email</Text>
-          <SimpleTextField
-            value={email}
-            onChangeText={text => {
-              setEmail(text);
-              validateEmail(text);
-            }}
-            placeholder='Your email'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            autoCapitalize='none'
-          />
-          {isEmailValid && (
-            <MaterialIcons
-              name='check-circle'
-              size={24}
-              color='black'
-              style={styles.tickIcon}
-            />
-          )}
-        </View>
-
-        {/* Password field */}
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Password</Text>
-          <SimpleTextField
-            value={password}
-            onChangeText={setPassword}
-            placeholder='Your password'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            secureTextEntry={!passwordVisible}
-            autoCapitalize='none'
-          />
-          <TouchableOpacity
-            onPress={() => setPasswordVisible(!passwordVisible)}
-            style={styles.eyeIcon}
-          >
-            <MaterialIcons
-              name={passwordVisible ? 'visibility' : 'visibility-off'}
-              size={24}
-              color='#333'
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Confirm Password */}
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Confirm Password</Text>
-          <SimpleTextField
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder='Confirm Password'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            secureTextEntry={!confirmPasswordVisible}
-            autoCapitalize='none'
-          />
-          <TouchableOpacity
-            onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-            style={styles.eyeIcon}
-          >
-            <MaterialIcons
-              name={confirmPasswordVisible ? 'visibility' : 'visibility-off'}
-              size={24}
-              color='#333'
-            />
-          </TouchableOpacity>
-        </View>
+        <InputField
+          label='Email'
+          value={email}
+          onChangeText={text => {
+            setEmail(text);
+            validateEmail(text);
+          }}
+          placeholder='Your email'
+          showValidIcon={isEmailValid}
+          error={!!errorMessage}
+        />
+        <InputField
+          label='Password'
+          value={password}
+          onChangeText={setPassword}
+          placeholder='Your password'
+          secureTextEntry
+          showPasswordToggle
+          passwordVisible={passwordVisible}
+          onTogglePassword={() => setPasswordVisible(!passwordVisible)}
+          error={!!errorMessage}
+        />
+        <InputField
+          label='Confirm Password'
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          placeholder='Confirm Password'
+          secureTextEntry
+          showPasswordToggle
+          passwordVisible={confirmPasswordVisible}
+          onTogglePassword={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+          error={!!errorMessage}
+        />
         {errorMessage && (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         )}
@@ -259,7 +229,7 @@ export function SignUp({
         ]}
         labelStyle={[styles.buttonText]}
       >
-        Sign Up
+        Create account
       </SubmitButton>
 
       <View style={styles.orSignUp}>
@@ -291,7 +261,6 @@ export function SignUp({
           style={{
             fontSize: 14,
             lineHeight: 18,
-            textDecorationLine: 'underline',
             fontWeight: '600',
             textAlign: 'left',
             color: '#000',
@@ -309,148 +278,105 @@ const styles = {
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16 * 0.87,
-    paddingLeft: 24 * 0.87,
-    paddingRight: 24 * 0.87,
+    paddingHorizontal: 20,
   },
   header: {
-    fontSize: 34 * 0.87,
+    fontSize: 32,
     fontWeight: '700' as '700',
     color: '#000',
-    marginBottom: 7 * 0.87,
-    marginTop: 110 * 0.87,
   },
   button: {
-    backgroundColor: '#343434',
-    borderRadius: 40 * 0.87,
-    marginTop: 37 * 0.87,
-    width: 110 * 0.87,
-    height: 42 * 0.87,
-    alignSelf: 'center' as 'center',
+    backgroundColor: Theme.black,
+    borderRadius: 10,
+    marginVertical: 42,
+    width: '100%' as '100%',
+    height: 50,
     justifyContent: 'center' as 'center',
     alignItems: 'center' as 'center',
   },
   buttonText: {
     color: 'white',
     textAlign: 'center' as 'center',
-    fontSize: 16 * 0.87,
-  },
-  textField: {
-    backgroundColor: '#fff',
-    color: '#000',
-    borderColor: '#ccc',
-    borderWidth: 1 * 0.87,
-    borderRadius: 12 * 0.87,
-    padding: 8 * 0.87,
-    height: 57,
+    fontSize: 16,
   },
   errorMessage: {
+    marginTop: -14,
     color: '#f00',
-    fontSize: 14 * 0.87,
-  },
-  link: {
-    color: 'black',
-    textDecorationLine: 'underline' as 'underline',
-  },
-  linkText: {
-    color: 'black',
-    fontSize: 15 * 0.87,
-    fontWeight: '400' as '400',
-  },
-  label: {
-    fontSize: 16 * 0.87,
-    fontWeight: '400' as '400',
-    color: '#000',
-    marginBottom: 8 * 0.87,
-    marginTop: 13 * 0.87,
-  },
-  eyeIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 62 * 0.87,
-  },
-  tickIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 60 * 0.87,
+    fontSize: 12,
+    fontWeight: '600' as '600',
   },
   footer: {
-    marginTop: 50 * 0.87,
+    marginTop: 50,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
-    gap: 5 * 0.87,
+    gap: 5,
   },
   // Terms and conditions checkbox style
   checkboxContainer: {
     backgroundColor: 'transparent' as 'transparent',
-    borderWidth: 0,
     padding: 0,
-    margin: 0,
-    marginVertical: 10 * 0.87,
+    marginVertical: 0,
+    marginLeft: 0,
     alignSelf: 'flex-start' as 'flex-start',
   },
   checkboxText: {
-    fontSize: 16 * 0.87,
+    fontSize: 14,
     color: '#000',
-    marginLeft: 0 * 0.87,
+    marginLeft: 0,
   },
   checkboxRow: {
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     alignSelf: 'flex-start' as 'flex-start',
-    marginVertical: 10 * 0.87,
-    marginLeft: 0,
-    paddingLeft: 0,
   },
   checkboxLinkText: {
-    fontSize: 16 * 0.87,
-    color: 'black' as 'black', // Style the link text
+    fontSize: 14,
+    color: 'black' as 'black',
     textDecorationLine: 'underline' as 'underline',
   },
   checkboxWrapper: {
-    margin: 0, // Remove wrapper margin
-    padding: 0, // Remove wrapper padding
+    margin: 0,
+    padding: 0,
   },
   buttonDisabled: {
     backgroundColor: '#E7E7E9',
   },
   orSignUp: {
-    marginTop: 22 * 0.87,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
   },
   lineView: {
     borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
-    borderTopWidth: 1 * 0.87,
+    borderTopWidth: 1,
     flex: 1,
     width: '100%' as '100%',
-    height: 1 * 0.87,
+    height: 1,
   },
   orText: {
     color: 'rgba(0, 0, 0, 0.7)',
-    fontSize: 14 * 0.87,
-    lineHeight: 18 * 0.87,
-    marginHorizontal: 10 * 0.87,
+    fontSize: 14,
+    lineHeight: 18,
+    marginHorizontal: 10,
   },
   buttonBucket: {
-    marginTop: 22 * 0.87,
+    marginTop: 22,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
-    gap: 15 * 0.87,
+    gap: 15,
   },
   buttonWithIcon: {
-    borderRadius: 10 * 0.87,
+    borderRadius: 10,
     backgroundColor: '#fff',
     borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
-    borderWidth: 1 * 0.87,
+    borderWidth: 1,
     flex: 1,
     width: '100%' as '100%',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
-    paddingHorizontal: 45 * 0.87,
-    paddingVertical: 18 * 0.87,
+    paddingHorizontal: 45,
+    paddingVertical: 18,
   },
 };
