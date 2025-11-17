@@ -18,6 +18,9 @@ interface RichTextRendererProps {
   markDefs?: any[];
   inputValues?: { [key: string]: string };
   onInputChange?: (fieldKey: string, value: string) => void;
+  questionAnswers?: { [key: string]: string | string[] };
+  onQuestionAnswer?: (questionKey: string, answer: string | string[]) => void;
+  showQuestionFeedback?: boolean;
 }
 
 export default function RichTextRenderer({
@@ -26,6 +29,9 @@ export default function RichTextRenderer({
   markDefs,
   inputValues = {},
   onInputChange,
+  questionAnswers = {},
+  onQuestionAnswer,
+  showQuestionFeedback = false,
 }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
@@ -253,10 +259,31 @@ export default function RichTextRenderer({
     noteBoxText: { fontSize: 15, color: '#3F3F3F', lineHeight: 22 },
 
     // Links
-    link: { color: '#2563EB', textDecorationLine: 'underline' },
+    link: { color: '#424242', textDecorationLine: 'underline', fontWeight: '600'},
   };
 
-  const mergedStyles = { ...defaultStyles, ...customStyles };
+  // Merge styles, ensuring header styles are always preserved
+  // If custom styles are provided, merge them but always ensure headers exist
+  // For nested renders (like question text), we need to ensure headers are always available
+  const mergedStyles = {
+    ...defaultStyles,
+    // Only spread customStyles if it exists and is an object
+    ...(customStyles && typeof customStyles === 'object' ? customStyles : {}),
+    // Always ensure header styles exist with their full default properties
+    // If custom header styles are provided, merge them with defaults to preserve all properties
+    h1: customStyles?.h1 && typeof customStyles.h1 === 'object'
+      ? { ...defaultStyles.h1, ...customStyles.h1 } 
+      : defaultStyles.h1,
+    h2: customStyles?.h2 && typeof customStyles.h2 === 'object'
+      ? { ...defaultStyles.h2, ...customStyles.h2 } 
+      : defaultStyles.h2,
+    h3: customStyles?.h3 && typeof customStyles.h3 === 'object'
+      ? { ...defaultStyles.h3, ...customStyles.h3 } 
+      : defaultStyles.h3,
+    h4: customStyles?.h4 && typeof customStyles.h4 === 'object'
+      ? { ...defaultStyles.h4, ...customStyles.h4 } 
+      : defaultStyles.h4,
+  };
 
   // Keep prev nesting-level calc
   const calculateNestingLevels = (blocks: any[]) => {
@@ -280,81 +307,126 @@ export default function RichTextRenderer({
     return nestingMap;
   };
 
-  const renderInlineText = (children: any[], markDefs?: any[]) => {
+  const renderInlineText = (children: any[], markDefs?: any[], blockMarkDefs?: any[]) => {
     if (!children || !Array.isArray(children)) return null;
+
+    // Combine markDefs from props and block-level markDefs
+    const allMarkDefs = [
+      ...(markDefs || []),
+      ...(blockMarkDefs || [])
+    ];
 
     return children.map((child, index) => {
       if (typeof child === 'string') return child;
 
       if (child._type === 'span') {
         let text: any = child.text || '';
+        let linkHref: string | null = null;
+        const decoratorStyles: any[] = [];
 
         if (child.marks) {
-          child.marks.forEach((mark: string) => {
-            switch (mark) {
-              case 'strong':
-                // ✅ allow scoped override (used by tip box)
-                text = (
-                  <Text key={index} style={mergedStyles.strong}>
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'em':
-                text = (
-                  <Text key={index} style={{ fontStyle: 'italic' }}>
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'code':
-                text = (
-                  <Text
-                    key={index}
-                    style={{
-                      fontFamily: 'monospace',
-                      backgroundColor: '#F3F4F6',
-                      paddingHorizontal: 4,
-                      borderRadius: 2,
-                    }}
-                  >
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'underline':
-                text = (
-                  <Text key={index} style={{ textDecorationLine: 'underline' }}>
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'strike-through':
-                text = (
-                  <Text
-                    key={index}
-                    style={{ textDecorationLine: 'line-through' }}
-                  >
-                    {text}
-                  </Text>
-                );
-                break;
-              case 'link': {
-                const linkDef = markDefs?.find(def => def._key === mark);
-                if (linkDef && linkDef.href) {
-                  const handleLinkPress = () => Linking.openURL(linkDef.href);
-                  text = (
-                    <TouchableOpacity key={index} onPress={handleLinkPress}>
-                      <Text style={mergedStyles.link}>{text}</Text>
-                    </TouchableOpacity>
-                  );
+          // First pass: handle annotations (link, textAlign) that need markDefs
+          child.marks.forEach((mark: string | any) => {
+            // Handle link annotation
+            if (typeof mark === 'string') {
+              // Check if mark key references a link annotation in markDefs
+              const markDef = allMarkDefs.find((def: any) => def._key === mark);
+              if (markDef && markDef._type === 'link') {
+                linkHref = markDef.href || null;
+              }
+            } else if (typeof mark === 'object' && mark !== null) {
+              // Sometimes marks can be objects directly (inline annotations)
+              const markType = (mark as any)._type || mark._type;
+              if (markType === 'link') {
+                linkHref = (mark as any).href || (mark as any).value?.href || null;
+              }
+              // Or it might be a reference object with _key that we need to look up
+              const markKey = (mark as any)._key;
+              if (markKey && !linkHref) {
+                const markDef = allMarkDefs.find((def: any) => def._key === markKey);
+                if (markDef && markDef._type === 'link') {
+                  linkHref = markDef.href || null;
                 }
-                break;
               }
             }
           });
+
+          // Second pass: collect decorator styles (strong, em, code, etc.)
+          child.marks.forEach((mark: string | any) => {
+            // Handle decorators (strong, em, code, etc.)
+            if (typeof mark === 'string') {
+              switch (mark) {
+                case 'strong':
+                  decoratorStyles.push(mergedStyles.strong);
+                  break;
+                case 'em':
+                  decoratorStyles.push({ fontStyle: 'italic' });
+                  break;
+                case 'code':
+                  decoratorStyles.push({
+                    fontFamily: 'monospace',
+                    backgroundColor: '#F3F4F6',
+                    paddingHorizontal: 4,
+                    borderRadius: 2,
+                  });
+                  break;
+                case 'underline':
+                  decoratorStyles.push({ textDecorationLine: 'underline' });
+                  break;
+                case 'strike-through':
+                  decoratorStyles.push({ textDecorationLine: 'line-through' });
+                  break;
+              }
+            }
+          });
+
+          // Merge all decorator styles into one object
+          // Important: fontStyle: 'italic' should take precedence over fontStyle: 'normal'
+          const mergedDecoratorStyle = decoratorStyles.reduce((acc, style) => {
+            const merged = { ...acc, ...style };
+            // If both styles have fontStyle, prioritize 'italic' over 'normal'
+            if (acc.fontStyle === 'italic' || style.fontStyle === 'italic') {
+              merged.fontStyle = 'italic';
+            }
+            return merged;
+          }, {});
+
+          // Apply decorators by wrapping text (only if not a link, since link will handle it)
+          if (!linkHref && decoratorStyles.length > 0) {
+            // Use merged decorator style in a single Text component
+            text = (
+              <Text key={`${index}-decorators`} style={mergedDecoratorStyle}>
+                {text}
+              </Text>
+            );
+          }
+
+          // Apply link if found, merging link styles with all decorator styles
+          if (linkHref) {
+            const handleLinkPress = () => {
+              if (linkHref) {
+                Linking.openURL(linkHref);
+              }
+            };
+            // Merge link styles with all decorator styles
+            // Ensure fontStyle: 'italic' is preserved when merging with link styles
+            const linkStyle = decoratorStyles.length > 0
+              ? { 
+                  ...mergedStyles.link, 
+                  ...mergedDecoratorStyle,
+                  // Preserve italic if it exists in decorator styles
+                  ...(mergedDecoratorStyle.fontStyle === 'italic' ? { fontStyle: 'italic' } : {})
+                }
+              : mergedStyles.link;
+            text = (
+              <TouchableOpacity key={`${index}-link`} onPress={handleLinkPress} activeOpacity={0.7}>
+                <Text style={linkStyle}>{text}</Text>
+              </TouchableOpacity>
+            );
+          }
         }
 
+        // Text alignment is now handled at block level, so we don't need to wrap here
         return text;
       }
 
@@ -398,7 +470,7 @@ export default function RichTextRenderer({
             style={[styles.listItemContainer, { marginLeft: indentLevel }]}
           >
             <Text style={listStyle}>
-              {displayBullet} {renderInlineText(block.children, markDefs)}
+              {displayBullet} {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           </View>
         );
@@ -406,48 +478,105 @@ export default function RichTextRenderer({
 
       const style = block.style || 'normal';
 
+      // Check for text alignment in block children
+      // Combine markDefs from props and block-level markDefs
+      const allMarkDefs = [
+        ...(markDefs || []),
+        ...(block.markDefs || [])
+      ];
+
+      let blockTextAlign: 'left' | 'center' | 'right' | undefined = undefined;
+      if (block.children && Array.isArray(block.children)) {
+        for (const child of block.children) {
+          if (child.marks && Array.isArray(child.marks)) {
+            for (const mark of child.marks) {
+              // Marks in Sanity are typically string keys that reference markDefs
+              if (typeof mark === 'string') {
+                // Check if mark key references a textAlign annotation in markDefs
+                const markDef = allMarkDefs.find((def: any) => def._key === mark);
+                if (markDef) {
+                  if (markDef._type === 'textAlign') {
+                    blockTextAlign = markDef.align || 'left';
+                    break;
+                  }
+                }
+              } else if (typeof mark === 'object' && mark !== null) {
+                // Sometimes marks can be objects directly (inline annotations)
+                const markType = (mark as any)._type || mark._type;
+                if (markType === 'textAlign') {
+                  blockTextAlign = (mark as any).align || (mark as any).value?.align || 'left';
+                  break;
+                }
+                // Or it might be a reference object with _key that we need to look up
+                const markKey = (mark as any)._key;
+                if (markKey) {
+                  const markDef = allMarkDefs.find((def: any) => def._key === markKey);
+                  if (markDef && markDef._type === 'textAlign') {
+                    blockTextAlign = markDef.align || 'left';
+                    break;
+                  }
+                }
+              }
+            }
+            if (blockTextAlign) break;
+          }
+        }
+      }
+
+      // Apply alignment to block style
+      // Default to 'left' if no alignment is specified
+      const finalTextAlign = blockTextAlign || 'left';
+      const blockStyle = {
+        ...mergedStyles[style],
+        textAlign: finalTextAlign,
+      };
+
       switch (style) {
         case 'h1':
           return (
-            <Text key={block._key || index} style={mergedStyles.h1}>
-              {renderInlineText(block.children, markDefs)}
+            <Text key={block._key || index} style={blockStyle}>
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'h2':
           return (
-            <Text key={block._key || index} style={mergedStyles.h2}>
-              {renderInlineText(block.children, markDefs)}
+            <Text key={block._key || index} style={blockStyle}>
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'h3':
           return (
-            <Text key={block._key || index} style={mergedStyles.h3}>
-              {renderInlineText(block.children, markDefs)}
+            <Text key={block._key || index} style={blockStyle}>
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'h4':
           return (
-            <Text key={block._key || index} style={mergedStyles.h4}>
-              {renderInlineText(block.children, markDefs)}
+            <Text key={block._key || index} style={blockStyle}>
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
         case 'blockquote':
           return (
             <View key={block._key || index} style={mergedStyles.blockquote}>
-              <Text>{renderInlineText(block.children, markDefs)}</Text>
+              <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
+                {renderInlineText(block.children, markDefs, block.markDefs)}
+              </Text>
             </View>
           );
         case 'code':
           return (
             <View key={block._key || index} style={mergedStyles.code}>
-              <Text>{renderInlineText(block.children, markDefs)}</Text>
+              <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
+                {renderInlineText(block.children, markDefs, block.markDefs)}
+              </Text>
             </View>
           );
         case 'normal':
         default:
           return (
-            <Text key={block._key || index} style={mergedStyles.normal}>
-              {renderInlineText(block.children, markDefs)}
+            <Text key={block._key || index} style={blockStyle}>
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
       }
@@ -573,6 +702,202 @@ export default function RichTextRenderer({
       );
     }
 
+    // Two options question - special layout with side-by-side cards
+    if (block._type === 'two_options_question') {
+      const currentAnswer = questionAnswers[block._key];
+      const selectedValue = currentAnswer as string | undefined;
+
+      const handleOptionSelect = (optionValue: string) => {
+        if (!onQuestionAnswer) return;
+        onQuestionAnswer(block._key, optionValue);
+      };
+
+      return (
+        <View key={block._key || index} style={styles.questionContainer}>
+          <View style={styles.questionTextContainer}>
+            <RichTextRenderer
+              blocks={block.question_text || []}
+              markDefs={markDefs}
+            />
+          </View>
+          <View style={styles.twoOptionsContainer}>
+            {(block.options || []).map((option: any) => {
+              const isSelected = selectedValue === option.value;
+              const isCorrect = option.is_correct;
+              const showFeedback = showQuestionFeedback;
+
+              let optionStyle = styles.twoOptionCard;
+
+              if (isSelected) {
+                optionStyle = styles.twoOptionCardSelected;
+              }
+
+              if (showFeedback) {
+                if (isCorrect) {
+                  optionStyle = styles.twoOptionCardCorrect;
+                } else if (isSelected && !isCorrect) {
+                  optionStyle = styles.twoOptionCardIncorrect;
+                }
+              }
+
+              return (
+                <TouchableOpacity
+                  key={option._key}
+                  style={optionStyle}
+                  onPress={() => !showFeedback && handleOptionSelect(option.value)}
+                  disabled={showFeedback}
+                >
+                  <View style={styles.twoOptionContent}>
+                    <RichTextRenderer
+                      blocks={option.text || []}
+                      markDefs={option.textMarkDefs}
+                      styles={{
+                        normal: styles.twoOptionText,
+                        strong: styles.twoOptionTextBold,
+                      }}
+                    />
+                  </View>
+                  {showFeedback && isSelected && option.explanation && (
+                    <View style={styles.twoOptionExplanation}>
+                      <RichTextRenderer
+                        blocks={option.explanation}
+                        markDefs={option.explanationMarkDefs}
+                        styles={{ normal: styles.explanationText }}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      );
+    }
+
+    // Question types for activity pages (MCQ single and multiple)
+    if (
+      block._type === 'multiple_choice_single' ||
+      block._type === 'multiple_choice_multiple'
+    ) {
+      const isMultiple = block._type === 'multiple_choice_multiple';
+      const currentAnswer = questionAnswers[block._key];
+      const isArrayAnswer = Array.isArray(currentAnswer);
+      const selectedValues = isArrayAnswer
+        ? (currentAnswer as string[])
+        : currentAnswer
+          ? [currentAnswer as string]
+          : [];
+
+      const handleOptionSelect = (optionValue: string) => {
+        if (!onQuestionAnswer) return;
+
+        if (isMultiple) {
+          const current = (questionAnswers[block._key] as string[]) || [];
+          const newAnswer = current.includes(optionValue)
+            ? current.filter(v => v !== optionValue)
+            : [...current, optionValue];
+          onQuestionAnswer(block._key, newAnswer);
+        } else {
+          onQuestionAnswer(block._key, optionValue);
+        }
+      };
+
+      return (
+        <View key={block._key || index} style={styles.questionContainer}>
+          <View style={styles.questionTextContainer}>
+            <RichTextRenderer
+              blocks={block.question_text || []}
+              markDefs={markDefs}
+            />
+          </View>
+          <View style={styles.optionsContainer}>
+            {(block.options || []).map((option: any) => {
+              const isSelected = isMultiple
+                ? selectedValues.includes(option.value)
+                : selectedValues[0] === option.value;
+              const isCorrect = option.is_correct;
+              const showFeedback = showQuestionFeedback;
+
+              let optionStyle = styles.questionOption;
+              let checkboxStyle = styles.questionCheckbox;
+
+              if (isSelected) {
+                optionStyle = styles.questionOptionSelected;
+                checkboxStyle = styles.questionCheckboxSelected;
+              }
+
+              if (showFeedback) {
+                if (isCorrect) {
+                  optionStyle = styles.questionOptionCorrect;
+                  checkboxStyle = styles.questionCheckboxCorrect;
+                } else if (isSelected && !isCorrect) {
+                  optionStyle = styles.questionOptionIncorrect;
+                  checkboxStyle = styles.questionCheckboxIncorrect;
+                }
+              }
+
+              return (
+                <TouchableOpacity
+                  key={option._key}
+                  style={optionStyle}
+                  onPress={() => !showFeedback && handleOptionSelect(option.value)}
+                  disabled={showFeedback}
+                >
+                  <View style={styles.questionOptionRow}>
+                    <View style={checkboxStyle}>
+                      {isSelected && (
+                        <Text style={styles.questionCheckmark}>✓</Text>
+                      )}
+                    </View>
+                    <View style={styles.questionOptionContent}>
+                      <RichTextRenderer
+                        blocks={option.text || []}
+                        markDefs={option.textMarkDefs}
+                        styles={{ normal: styles.questionOptionText }}
+                      />
+                    </View>
+                  </View>
+                  {showFeedback && isSelected && option.explanation && (
+                    <View style={styles.explanationContainer}>
+                      <RichTextRenderer
+                        blocks={option.explanation}
+                        markDefs={option.explanationMarkDefs}
+                        styles={{ normal: styles.explanationText }}
+                      />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      );
+    }
+
+    if (block._type === 'matching_question') {
+      // For matching questions, we'll render a simplified version
+      // Full matching logic would require more complex state management
+      return (
+        <View key={block._key || index} style={styles.questionContainer}>
+          <View style={styles.questionTextContainer}>
+            <RichTextRenderer
+              blocks={block.question_text || []}
+              markDefs={markDefs}
+            />
+          </View>
+          <View style={styles.matchingPairsContainer}>
+            {(block.matching_pairs || []).map((pair: any, pairIndex: number) => (
+              <View key={pair._key || pairIndex} style={styles.matchingPairRow}>
+                <Text style={styles.matchingPairText}>
+                  {pair.left_item} → {pair.right_item}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      );
+    }
+
     return null;
   };
 
@@ -630,4 +955,214 @@ const styles = StyleSheet.create({
     borderColor: '#9CA3AF',
   },
   smallInput: { height: 100, borderWidth: 2, borderColor: '#9CA3AF' },
+  // Question styles
+  questionContainer: {
+    marginVertical: 20,
+  },
+  questionTextContainer: {
+    marginBottom: 16,
+  },
+  optionsContainer: {
+    gap: 12,
+  },
+  questionOption: {
+    borderWidth: 1,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#fff',
+  },
+  questionOptionSelected: {
+    borderWidth: 1,
+    borderColor: '#000',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#F3F4F6',
+  },
+  questionOptionCorrect: {
+    borderWidth: 1,
+    borderColor: '#10B981',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#F3F4F6',
+  },
+  questionOptionIncorrect: {
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: '#F3F4F6',
+  },
+  questionOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  questionCheckbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckboxSelected: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 4,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckboxCorrect: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#10B981',
+    borderRadius: 4,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckboxIncorrect: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#EF4444',
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  questionCheckmark: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  questionOptionContent: {
+    flex: 1,
+  },
+  questionOptionText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+    fontWeight: '400',
+  },
+  explanationContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  explanationText: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+  matchingPairsContainer: {
+    gap: 8,
+    marginTop: 12,
+  },
+  matchingPairRow: {
+    padding: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  matchingPairText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  // Two options question styles
+  twoOptionsContainer: {
+    flexDirection: 'row',
+    gap: 12,    
+  },
+  twoOptionCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#DCDCDC',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 406,
+  },
+  twoOptionCardSelected: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#000',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 406,
+  },
+  twoOptionCardCorrect: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#10B981',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 406,
+  },
+  twoOptionCardIncorrect: {
+    flex: 1,
+    borderWidth: 2,
+    borderColor: '#EF4444',
+    borderRadius: 12,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 406,
+  },
+  twoOptionContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  twoOptionText: {
+    fontSize: 16,
+    color: '#000',
+    lineHeight: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    fontStyle: 'normal',
+  },
+  twoOptionTextBold: {
+    fontSize: 16,
+    color: '#000',
+    lineHeight: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    fontStyle: 'normal',
+  },
+  twoOptionExplanation: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    width: '100%',
+  },
 });

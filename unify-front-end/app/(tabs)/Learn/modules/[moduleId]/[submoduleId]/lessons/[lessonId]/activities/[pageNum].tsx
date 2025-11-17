@@ -30,6 +30,9 @@ export default function ActivityPageScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
+  const [questionAnswers, setQuestionAnswers] = useState<{
+    [key: string]: string | string[];
+  }>({});
   const [isSaving, setIsSaving] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
@@ -45,6 +48,13 @@ export default function ActivityPageScreen() {
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
   );
+
+  // Reset state when page changes
+  useEffect(() => {
+    setIsSubmitted(false);
+    setInputValues({});
+    setQuestionAnswers({});
+  }, [currentPage]);
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -91,6 +101,10 @@ export default function ActivityPageScreen() {
 
   const handleInputChange = (fieldKey: string, value: string) => {
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
+  };
+
+  const handleQuestionAnswer = (questionKey: string, answer: string | string[]) => {
+    setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
   };
 
   const handleSubmit = async () => {
@@ -284,13 +298,16 @@ export default function ActivityPageScreen() {
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
-        {/* Instructions with embedded input fields */}
+        {/* Instructions with embedded input fields and questions */}
         <View style={styles.instructionsContainer}>
           <RichTextRenderer
             blocks={currentPageData.instructions || []}
             markDefs={currentPageData.instructionsMarkDefs}
             inputValues={inputValues}
             onInputChange={handleInputChange}
+            questionAnswers={questionAnswers}
+            onQuestionAnswer={handleQuestionAnswer}
+            showQuestionFeedback={isSubmitted}
           />
         </View>
 
