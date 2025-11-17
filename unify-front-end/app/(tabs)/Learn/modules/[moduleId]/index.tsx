@@ -31,6 +31,7 @@ import { cachedProgressService } from '@/services/progress/cachedProgressService
 import { getLessonProgress } from '@/services/progress/progressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import Header from '@/components/Header';
 
 const safeNum = (n: any, fallback = 0) =>
@@ -551,7 +552,10 @@ export default function ModuleIndex() {
             {moduleProgressData.total_submodules} sections completed
           </Text>
           <View style={styles.progressBar}>
-            <View
+            <LinearGradient
+              colors={['#D8492C', '#FFB570']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={[
                 styles.progressFill,
                 {
@@ -559,7 +563,6 @@ export default function ModuleIndex() {
                     100,
                     Math.max(0, moduleProgressData.progress_percent)
                   )}%`,
-                  backgroundColor: '#D8492C', // Hardcoded color for this page only
                 },
               ]}
             />
@@ -1004,7 +1007,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignSelf: 'center',
   },
-  progressFill: { height: '100%', backgroundColor: '#000', borderRadius: 20 },
+  progressFill: { height: '100%', borderRadius: 20 },
 
   railContainer: { position: 'relative' },
   rail: {
