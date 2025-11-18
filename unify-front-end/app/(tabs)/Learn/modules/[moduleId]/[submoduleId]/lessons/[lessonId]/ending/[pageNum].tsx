@@ -7,8 +7,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  TextInput,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
@@ -29,8 +32,14 @@ export default function EndingPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
+
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // NEW: review modal state
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [rating, setRating] = useState<number | null>(null);
+  const [comment, setComment] = useState('');
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -88,6 +97,53 @@ export default function EndingPageScreen() {
     setShowExitModal(false);
   };
 
+  // ---- core "finish this lesson" logic, reused by review modal ----
+  const completeLessonAndNavigate = () => {
+    const totalLessonPages = lesson?.pages?.length || 0;
+    const totalActivityPages = lesson?.activity_pages?.length || 0;
+    const totalQuizPages =
+      quizzes?.reduce(
+        (acc: number, quiz: any) => acc + (quiz.questions?.length || 0),
+        0
+      ) || 0;
+    const totalEndingPages = endingPages.length;
+    const totalAllPages =
+      totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages;
+
+    // Mark lesson completed (background)
+    setIsSaving(true);
+    saveLessonCompletion(
+      lessonId || '',
+      submoduleId || '',
+      moduleId || '',
+      totalAllPages
+    ).finally(() => {
+      setIsSaving(false);
+    });
+
+    // Navigate: either back to map (last lesson) or to next lesson
+    if (isLastLesson()) {
+      router.push({
+        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+        params: { moduleId, submoduleId },
+      });
+    } else {
+      const nextLesson = getNextLesson();
+      if (nextLesson) {
+        router.push({
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+          params: {
+            moduleId,
+            submoduleId,
+            lessonId: nextLesson._id,
+            pageNum: '1',
+          },
+        });
+      }
+    }
+  };
+
   const handleNext = async () => {
     if (currentPage < totalPages) {
       // Go to next ending page
@@ -102,58 +158,8 @@ export default function EndingPageScreen() {
         },
       });
     } else {
-      // All ending pages completed, save this lesson as completed
-      const totalLessonPages = lesson?.pages?.length || 0;
-      const totalActivityPages = lesson?.activity_pages?.length || 0;
-      const totalQuizPages =
-        quizzes?.reduce(
-          (acc: number, quiz: any) => acc + (quiz.questions?.length || 0),
-          0
-        ) || 0;
-      const totalEndingPages = endingPages.length;
-      const totalAllPages =
-        totalLessonPages +
-        totalActivityPages +
-        totalQuizPages +
-        totalEndingPages;
-
-      // All ending pages completed, save this lesson as completed (in background)
-      setIsSaving(true);
-
-      // Save in background - don't block navigation
-      saveLessonCompletion(
-        lessonId || '',
-        submoduleId || '',
-        moduleId || '',
-        totalAllPages
-      ).finally(() => {
-        setIsSaving(false);
-      });
-
-      // Navigate immediately
-      // Check if this is the last lesson
-      if (isLastLesson()) {
-        // Last lesson completed, go back to map
-        router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-          params: { moduleId, submoduleId },
-        });
-      } else {
-        // Go to next lesson
-        const nextLesson = getNextLesson();
-        if (nextLesson) {
-          router.push({
-            pathname:
-              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-            params: {
-              moduleId,
-              submoduleId,
-              lessonId: nextLesson._id,
-              pageNum: '1',
-            },
-          });
-        }
-      }
+      // We're on the final ending page: show review bottom sheet on "Congratulations"
+      setShowReviewModal(true);
     }
   };
 
@@ -218,6 +224,19 @@ export default function EndingPageScreen() {
         }
       }
     }
+  };
+
+  // --- review actions ---
+  const handleSubmitReview = () => {
+    // here you could POST {rating, comment} somewhere
+    setShowReviewModal(false);
+    completeLessonAndNavigate();
+  };
+
+  const handleSkipReview = () => {
+    // tap outside or skip → still finish
+    setShowReviewModal(false);
+    completeLessonAndNavigate();
   };
 
   if (loadingLesson) {
@@ -303,7 +322,7 @@ export default function EndingPageScreen() {
       <Modal
         visible={showExitModal}
         transparent
-        animationType='fade'
+        animationType="fade"
         onRequestClose={() => setShowExitModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -333,6 +352,81 @@ export default function EndingPageScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* REVIEW BOTTOM SHEET */}
+      <Modal
+        visible={showReviewModal}
+        transparent
+        animationType="slide"
+        onRequestClose={handleSkipReview}
+      >
+        <TouchableWithoutFeedback onPress={handleSkipReview}>
+          <View style={styles.reviewOverlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.reviewContainer}>
+                {/* drag handle */}
+                <View style={styles.reviewHandle} />
+
+                <Text style={styles.reviewTitle}>Was this content helpful?</Text>
+
+                {/* stars */}
+                <View style={styles.reviewStarsRow}>
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <TouchableOpacity
+                      key={i}
+                      activeOpacity={0.8}
+                      onPress={() => setRating(i)}
+                    >
+                      <View
+                        style={[
+                          styles.starBox,
+                          rating !== null && i <= rating && styles.starBoxSelected,
+                        ]}
+                      >
+                        <Feather
+                          name="star"
+                          size={24}
+                          color={
+                            rating !== null && i <= rating
+                              ? '#D8492C'
+                              : '#B4B1B1'
+                          }
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* comment box appears after selecting rating */}
+                {rating !== null && (
+                  <View style={styles.commentBox}>
+                    <TextInput
+                      style={styles.commentInput}
+                      multiline
+                      placeholder="How can we make it better? (optional)"
+                      placeholderTextColor="#878787"
+                      value={comment}
+                      onChangeText={setComment}
+                      textAlignVertical="top"
+                    />
+                  </View>
+                )}
+
+                {/* submit button */}
+                <TouchableOpacity
+                  style={[
+                    styles.reviewSubmitBtn,
+                    { backgroundColor: moduleData?.colorTheme?.hex || '#D8492C' },
+                  ]}
+                  onPress={handleSubmitReview}
+                >
+                  <Text style={styles.reviewSubmitText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </SafeAreaView>
   );
@@ -412,7 +506,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
 
-  // Modal styles
+  // Exit modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -465,6 +559,100 @@ const styles = StyleSheet.create({
   modalSecondaryBtnText: {
     color: '#000',
     fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // REVIEW SHEET
+  reviewOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  reviewContainer: {
+    width: '100%',
+    alignSelf: 'center',
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 13,
+    paddingBottom: 20,
+    paddingHorizontal: 19,
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE',
+    minHeight: 306,
+  },
+  reviewHandle: {
+    alignSelf: 'center',
+    width: 60,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E0E0E0',
+    marginBottom: 10,
+  },
+  reviewTitle: {
+    width: 355,
+    alignSelf: 'center',
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: '600',
+    textAlign: 'center',
+    color: '#000000',
+    marginBottom: 16,
+  },
+  reviewStarsRow: {
+    width: 355,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  starBox: {
+    width: 42,
+    height: 40,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#B4B1B1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  starBoxSelected: {
+    borderColor: '#D8492C',
+  },
+  commentBox: {
+    width: 353,
+    height: 130,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#3F3F3F',
+    backgroundColor: '#FFFFFF',
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  commentInput: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#000000',
+    textAlignVertical: 'top',
+  },
+  reviewSubmitBtn: {
+    width: 355,
+    height: 46,
+    borderRadius: 10,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingHorizontal: 24,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reviewSubmitText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    lineHeight: 22,
     fontWeight: '600',
   },
 });
