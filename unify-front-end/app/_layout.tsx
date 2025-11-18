@@ -9,6 +9,7 @@ import React, { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PostHogProvider } from 'posthog-react-native';
 // import Onboarding from './onboarding';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import { UserProvider } from '@/context/UserContext';
@@ -81,50 +82,57 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView>
-        <SafeAreaProvider>
-          <ScrollContextProvider>
-            {/* {showOnboarding ? (
-              <Onboarding onFinish={() => setShowOnboarding(false)} />
-            ) : ( */}
-            <AuthWrapper>
-              <UserProvider>
-                <ThemeProvider value={DefaultTheme}>
-                  <Stack>
-                    <Stack.Screen
-                      name='(tabs)'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='account-settings'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='edit-name'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='profile'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='saved'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='reset-password'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen name='+not-found' />
-                  </Stack>
-                </ThemeProvider>
-              </UserProvider>
-            </AuthWrapper>
-            {/* )} */}
-          </ScrollContextProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </QueryClientProvider>
+    <PostHogProvider
+      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+      options={{
+        host: process.env.EXPO_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <GestureHandlerRootView>
+          <SafeAreaProvider>
+            <ScrollContextProvider>
+              {/* {showOnboarding ? (
+                <Onboarding onFinish={() => setShowOnboarding(false)} />
+              ) : ( */}
+              <AuthWrapper>
+                <UserProvider>
+                  <ThemeProvider value={DefaultTheme}>
+                    <Stack>
+                      <Stack.Screen
+                        name='(tabs)'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='account-settings'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='edit-name'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='profile'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='saved'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='reset-password'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen name='+not-found' />
+                    </Stack>
+                  </ThemeProvider>
+                </UserProvider>
+              </AuthWrapper>
+              {/* )} */}
+            </ScrollContextProvider>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </QueryClientProvider>
+    </PostHogProvider>
   );
 }

@@ -10,6 +10,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from 'expo-router';
+import { usePostHog } from 'posthog-react-native';
 import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
 import CarouselDots from '../../../components/learn/CarouselDots';
@@ -26,6 +28,7 @@ import {
 import Header from '../../../components/Header';
 
 export default function Learn() {
+  const posthog = usePostHog();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const { width } = useWindowDimensions();
@@ -41,6 +44,13 @@ export default function Learn() {
     error: lessonsError,
     refresh: refreshLessons,
   } = useInProgressLessons();
+
+  // Track screen view when Learn screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      posthog?.screen('Learn Screen');
+    }, [posthog])
+  );
 
   const onMomentumEnd = (e: any) => {
     const x = e.nativeEvent?.contentOffset?.x ?? 0;
