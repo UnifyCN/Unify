@@ -250,7 +250,6 @@ export default function ActivityPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading activity...</Text>
         </View>
@@ -261,7 +260,6 @@ export default function ActivityPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading activity page</Text>
         </View>
