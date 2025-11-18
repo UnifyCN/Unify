@@ -14,7 +14,6 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { getLessonProgress } from '@/services/progress/progressService';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import Header from '@/components/Header';
 import BookIcon from '@/assets/images/book_5.svg';
 
 export default function SubmoduleMap() {

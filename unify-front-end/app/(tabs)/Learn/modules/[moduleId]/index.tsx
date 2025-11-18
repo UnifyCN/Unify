@@ -32,7 +32,6 @@ import { getLessonProgress } from '@/services/progress/progressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Header from '@/components/Header';
 
 const safeNum = (n: any, fallback = 0) =>
   Number.isFinite(Number(n)) ? Number(n) : fallback;
@@ -451,7 +450,6 @@ export default function ModuleIndex() {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.centered}>
           <Text style={styles.muted}>Loading module…</Text>
         </View>
@@ -462,7 +460,6 @@ export default function ModuleIndex() {
   if (error || !moduleData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.centered}>
           <Text style={styles.error}>
             Error loading module: {error?.message || 'Unknown error'}
@@ -509,7 +506,6 @@ export default function ModuleIndex() {
   // === UI ===
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}

@@ -15,7 +15,6 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import Header from '@/components/Header';
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';

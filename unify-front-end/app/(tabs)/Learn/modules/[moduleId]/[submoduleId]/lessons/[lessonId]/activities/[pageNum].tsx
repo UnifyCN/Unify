@@ -17,7 +17,6 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateActivityProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
-import Header from '@/components/Header';
 
 export default function ActivityPageScreen() {
   const router = useRouter();
@@ -272,7 +271,6 @@ export default function ActivityPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}

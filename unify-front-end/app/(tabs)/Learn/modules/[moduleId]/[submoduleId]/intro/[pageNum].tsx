@@ -18,7 +18,6 @@ import { SubmoduleIntroSection } from '@/types/learn';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateIntroProgress } from '@/utils/submoduleProgress';
-import Header from '@/components/Header';
 
 const getSanityImageUrl = (assetRef: string | undefined): string | null => {
   if (!assetRef) return null;
@@ -241,7 +240,6 @@ export default function SubmoduleIntroScreen() {
   if (loadingIntro) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading intro...</Text>
         </View>
@@ -252,7 +250,6 @@ export default function SubmoduleIntroScreen() {
   if (!introData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading intro</Text>
         </View>
@@ -262,7 +259,6 @@ export default function SubmoduleIntroScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
