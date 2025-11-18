@@ -87,6 +87,7 @@ export default function RootLayout() {
       options={{
         host: process.env.EXPO_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
       }}
+      autocapture={false}
     >
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView>
