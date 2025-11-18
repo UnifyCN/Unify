@@ -80,8 +80,7 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.10",
-    "unify-front-end": "file:",
-
+    "unify-front-end": "file:"
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.15.0",
