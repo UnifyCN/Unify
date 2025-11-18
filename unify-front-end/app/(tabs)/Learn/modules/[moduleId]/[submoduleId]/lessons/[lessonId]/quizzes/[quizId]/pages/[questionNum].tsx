@@ -453,7 +453,6 @@ export default function QuizQuestionPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}

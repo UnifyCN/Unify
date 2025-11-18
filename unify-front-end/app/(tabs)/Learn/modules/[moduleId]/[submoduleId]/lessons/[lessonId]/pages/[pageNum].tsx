@@ -230,7 +230,6 @@ export default function LessonPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading lesson...</Text>
         </View>
@@ -241,7 +240,6 @@ export default function LessonPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading lesson page</Text>
         </View>
@@ -251,7 +249,6 @@ export default function LessonPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}

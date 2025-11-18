@@ -161,13 +161,14 @@ export default function SubmoduleMap() {
           }
           style={styles.backButton}
         >
-          <Feather name='arrow-left' size={24} color='#000' />
+          <Feather name='chevron-left' size={30} color='#000' />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle} numberOfLines={2}>
             {submoduleData?.title || 'Submodule'}
           </Text>
         </View>
+        <View style={{ width: 34 }} />
       </View>
 
       <View style={styles.lessonCountWrapper}>
@@ -333,27 +334,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 70,
-    gap: 12,
-    position: 'relative',
+    paddingTop: '15%',
+    justifyContent: 'space-between',
     borderTopWidth: 0,
     borderBottomWidth: 0,
     paddingBottom: 20,
   },
   backButton: {
     padding: 8,
-    marginLeft: -8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitleContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingLeft: 48,
-    paddingRight: 48,
-    paddingTop: 70,
-    paddingBottom: 20,
   },
   headerTitle: {
     fontSize: 24,

@@ -112,7 +112,7 @@ const QuizScreen = () => {
           style={styles.backToLessonButton}
           onPress={headBackPressed}
         >
-          <Feather name='chevron-left' size={25} />
+          <Feather name='chevron-left' size={30} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Key Takeaways</Text>
       </View>

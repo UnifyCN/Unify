@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 20,
+    paddingTop: '15%',
   },
   closeButton: {
     padding: 4,

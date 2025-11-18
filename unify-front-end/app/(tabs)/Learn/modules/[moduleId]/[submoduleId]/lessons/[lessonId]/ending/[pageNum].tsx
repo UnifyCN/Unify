@@ -222,7 +222,6 @@ export default function EndingPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading ending page...</Text>
         </View>
@@ -233,7 +232,6 @@ export default function EndingPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading ending page</Text>
         </View>
@@ -243,7 +241,6 @@ export default function EndingPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}

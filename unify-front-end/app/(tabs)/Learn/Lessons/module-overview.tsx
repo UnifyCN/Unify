@@ -44,7 +44,7 @@ export default function ModuleOverview() {
             onPress={() => router.back()}
             style={styles.iconBtn}
           >
-            <Feather name='chevron-left' size={24} color='#333' />
+            <Feather name='chevron-left' size={30} color='#333' />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => {}} style={styles.iconBtn}>
             <Feather name='menu' size={20} color='#333' />
