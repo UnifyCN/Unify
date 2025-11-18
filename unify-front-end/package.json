@@ -81,7 +81,7 @@
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.10",
     "unify-front-end": "file:",
-    "yarn": "^1.22.22"
+
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.15.0",
