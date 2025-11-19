@@ -31,7 +31,7 @@ const LessonCompleted = () => {
           asChild
         >
           <TouchableOpacity style={styles.backButton}>
-            <Feather name='chevron-left' size={25} />
+            <Feather name='chevron-left' size={30} />
           </TouchableOpacity>
         </Link>
         <Text style={styles.headerText}>Budgeting Level 1</Text>

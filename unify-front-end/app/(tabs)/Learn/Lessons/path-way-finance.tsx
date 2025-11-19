@@ -100,7 +100,7 @@ export default function FinanceForNewcomers() {
         <View style={styles.headerRow}>
           <Link href='/(tabs)/Learn' asChild>
             <TouchableOpacity style={styles.backButton}>
-              <Feather name='chevron-left' size={24} color='#333' />
+              <Feather name='chevron-left' size={30} color='#333' />
             </TouchableOpacity>
           </Link>
         </View>
