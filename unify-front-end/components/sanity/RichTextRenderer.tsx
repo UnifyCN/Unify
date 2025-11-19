@@ -418,10 +418,15 @@ export default function RichTextRenderer({
                   ...(mergedDecoratorStyle.fontStyle === 'italic' ? { fontStyle: 'italic' } : {})
                 }
               : mergedStyles.link;
+            // Use Text with onPress instead of TouchableOpacity to keep it inline
             text = (
-              <TouchableOpacity key={`${index}-link`} onPress={handleLinkPress} activeOpacity={0.7}>
-                <Text style={linkStyle}>{text}</Text>
-              </TouchableOpacity>
+              <Text 
+                key={`${index}-link`} 
+                style={linkStyle}
+                onPress={handleLinkPress}
+              >
+                {text}
+              </Text>
             );
           }
         }
