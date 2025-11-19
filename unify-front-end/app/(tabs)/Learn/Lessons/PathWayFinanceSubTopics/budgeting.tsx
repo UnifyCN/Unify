@@ -25,7 +25,7 @@ const Budgeting = () => {
             asChild
           >
             <TouchableOpacity style={styles.backButton}>
-              <Feather name='chevron-left' size={25} color='#FFFFFF' />
+              <Feather name='chevron-left' size={30} color='#FFFFFF' />
             </TouchableOpacity>
           </Link>
         </View>

@@ -20,7 +20,7 @@ const InProgress = () => {
         <View style={styles.backButtonAndLearnContainer}>
           <Link href='./learn/modules' asChild>
             <TouchableOpacity style={styles.backButton}>
-              <Feather name='chevron-left' size={28} color='#343434' />
+              <Feather name='chevron-left' size={30} color='#343434' />
             </TouchableOpacity>
           </Link>
           <Text style={styles.learnText}>Learn</Text>

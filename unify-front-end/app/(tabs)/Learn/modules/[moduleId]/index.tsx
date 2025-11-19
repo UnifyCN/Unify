@@ -32,7 +32,6 @@ import { getLessonProgress } from '@/services/progress/progressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Header from '@/components/Header';
 
 const safeNum = (n: any, fallback = 0) =>
   Number.isFinite(Number(n)) ? Number(n) : fallback;
@@ -451,7 +450,6 @@ export default function ModuleIndex() {
   if (isLoading || progressLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.centered}>
           <Text style={styles.muted}>Loading module…</Text>
         </View>
@@ -462,7 +460,6 @@ export default function ModuleIndex() {
   if (error || !moduleData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.centered}>
           <Text style={styles.error}>
             Error loading module: {error?.message || 'Unknown error'}
@@ -509,7 +506,6 @@ export default function ModuleIndex() {
   // === UI ===
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -532,18 +528,20 @@ export default function ModuleIndex() {
             onPress={() => router.replace('/(tabs)/Learn')}
             style={styles.backButton}
           >
-            <Feather name='arrow-left' size={26} color='#111' />
+            <Feather name='chevron-left' size={30} color='#111' />
           </TouchableOpacity>
-          <View style={{ width: 26 }} />
+          <View style={styles.titleWrap}>
+            <Text style={styles.title}>{moduleData.title}</Text>
+          </View>
+          <View style={{ width: 34 }} />
         </View>
 
-        {/* Title + description */}
-        <View style={styles.titleWrap}>
-          <Text style={styles.title}>{moduleData.title}</Text>
-          {!!moduleData.description && (
+        {/* Description */}
+        {!!moduleData.description && (
+          <View style={styles.descriptionWrap}>
             <Text style={styles.subtitle}>{moduleData.description}</Text>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Progress Card */}
         <View style={styles.progressCard} onLayout={onProgressLayout}>
@@ -943,16 +941,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 8,
+    paddingTop: '15%',
     marginBottom: 6,
   },
-  backButton: { padding: 8 },
+  backButton: { 
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
   titleWrap: {
+    flex: 1,
     alignItems: 'center',
-    marginBottom: 8,
-    width: 345,
-    alignSelf: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,
@@ -961,7 +962,12 @@ const styles = StyleSheet.create({
     color: '#2B2B2B',
     letterSpacing: 0.5,
     textAlign: 'center',
+  },
+  descriptionWrap: {
+    alignItems: 'center',
     marginBottom: 8,
+    width: 345,
+    alignSelf: 'center',
   },
   subtitle: {
     fontSize: 14,
