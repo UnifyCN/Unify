@@ -18,9 +18,7 @@ const Header = () => {
         >
           <Feather name='search' size={28} color='#000' />
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push('/account-settings')}
-        >
+        <TouchableOpacity onPress={() => router.push('/account-settings')}>
           <Feather name='settings' size={28} color='#000' />
         </TouchableOpacity>
       </View>

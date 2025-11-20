@@ -5,7 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
 interface BackHeaderProps {
-  title: string;
+  title?: string;
   onBack?: () => void;
   backIcon?: keyof typeof Feather.glyphMap;
   rightButton?: ReactNode;

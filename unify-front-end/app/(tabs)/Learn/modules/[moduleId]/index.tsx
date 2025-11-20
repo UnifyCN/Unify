@@ -917,8 +917,7 @@ export default function ModuleIndex() {
                 style={[
                   styles.modalButtonContinue,
                   {
-                    backgroundColor:
-                      moduleData?.colorTheme?.hex || '#D8492C',
+                    backgroundColor: moduleData?.colorTheme?.hex || '#D8492C',
                   },
                 ]}
                 onPress={handleDisclaimerContinue}
@@ -944,7 +943,7 @@ const styles = StyleSheet.create({
     paddingTop: '15%',
     marginBottom: 6,
   },
-  backButton: { 
+  backButton: {
     padding: 8,
     justifyContent: 'center',
     alignItems: 'center',

@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    boxShadow: '0 2.185px 34.954px 0 rgba(0, 0, 0, 0.25)'
+    boxShadow: '0 2.185px 34.954px 0 rgba(0, 0, 0, 0.25)',
   },
   notJoined: {
     backgroundColor: Theme.primaryGatherRed,
