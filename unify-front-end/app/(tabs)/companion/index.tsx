@@ -11,12 +11,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
 import { useCurrentUser } from '@/context/UserContext';
-import { useCompanion } from '@/context/CompanionContext';
 import {
   formatMessagesForUI,
   Message,
@@ -29,7 +27,6 @@ import HistoryIcon from '@/components/icons/HistoryIcon.svg';
 import BackHeader from '@/components/BackHeader';
 
 const MESSAGE_LIMIT = 3;
-const CONVERSATION_PERSISTENCE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 
 // Helper functions
 const getMessagesLeft = (
@@ -99,12 +96,6 @@ export default function CompanionScreen() {
   const { data: usage, isLoading: isLoadingUsage } = useChatbotUsage();
   const { currentUser, isLoading: isLoadingUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
-  const {
-    lastConversationId,
-    lastAccessedAt,
-    setLastConversation,
-    clearLastConversation,
-  } = useCompanion();
   const { sendMessage, isLoading, isWaitingForBot } = useSendMessage({
     messages,
     currentConversationId,
@@ -124,67 +115,13 @@ export default function CompanionScreen() {
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
   useEffect(() => {
     if (conversationId && typeof conversationId === 'string') {
-      // Clear saved conversation if navigating to a different conversation
-      if (lastConversationId && lastConversationId !== conversationId) {
-        clearLastConversation();
-      }
       setCurrentConversationId(conversationId);
     } else {
       // Clear conversation ID when starting a new conversation (no conversationId param)
       setCurrentConversationId(null);
     }
     previousMessageCountRef.current = 0;
-  }, [conversationId, lastConversationId, clearLastConversation]);
-
-  // Save conversation state when user leaves the tab
-  useFocusEffect(
-    React.useCallback(() => {
-      // This runs when the screen comes into focus
-      return () => {
-        // This cleanup function runs when the screen loses focus
-        // Save the conversation when user accesses it (even without messages)
-        if (currentConversationId) {
-          setLastConversation(currentConversationId);
-        }
-      };
-    }, [currentConversationId, setLastConversation])
-  );
-
-  // Restore conversation when screen is focused (if within 5 minutes)
-  useFocusEffect(
-    React.useCallback(() => {
-      // Only restore if there's no conversationId in URL params and no current conversation
-      if (conversationId || currentConversationId) {
-        return; // Already have a conversation
-      }
-
-      // Check if we have a saved conversation within the 5-minute window
-      if (
-        lastConversationId &&
-        lastAccessedAt &&
-        Date.now() - lastAccessedAt <= CONVERSATION_PERSISTENCE_TIMEOUT
-      ) {
-        // Restore the conversation by navigating to it
-        router.replace({
-          pathname: '/(tabs)/companion' as any,
-          params: { conversationId: lastConversationId },
-        });
-      } else if (
-        lastAccessedAt &&
-        Date.now() - lastAccessedAt > CONVERSATION_PERSISTENCE_TIMEOUT
-      ) {
-        // Clear expired conversation
-        clearLastConversation();
-      }
-    }, [
-      conversationId,
-      currentConversationId,
-      lastConversationId,
-      lastAccessedAt,
-      router,
-      clearLastConversation,
-    ])
-  );
+  }, [conversationId]);
 
   // Scroll to end only when new messages are added (not when sources expand/collapse)
   useEffect(() => {
