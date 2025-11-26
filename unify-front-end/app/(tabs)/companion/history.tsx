@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useCompanion } from '@/context/CompanionContext';
 import { useConversations } from '@/hooks/companion/useConversations';
 import {
   filterConversations,
@@ -24,6 +25,7 @@ import ChatListIcon from '@/components/icons/ChatListIcon.svg';
 
 export default function ConversationHistoryScreen() {
   const router = useRouter();
+  const { clearLastConversation } = useCompanion();
   const { data: conversations, isLoading } = useConversations();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -53,6 +55,8 @@ export default function ConversationHistoryScreen() {
   };
 
   const handleNewChatPress = () => {
+    // Clear saved conversation state when starting a new chat
+    clearLastConversation();
     router.replace('/(tabs)/companion' as any);
   };
 
