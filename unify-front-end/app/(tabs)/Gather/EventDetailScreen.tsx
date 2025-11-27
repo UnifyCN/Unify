@@ -13,9 +13,11 @@ import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
 import { Theme } from '@/constants/Theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const EventDetailScreen = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { event } = useLocalSearchParams();
   const eventData: Event = JSON.parse(event as string);
 
@@ -55,7 +57,7 @@ const EventDetailScreen = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Feather name='chevron-left' size={24} color={Theme.white} />
         </TouchableOpacity>
@@ -153,7 +155,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 36,
     paddingBottom: 16,
     backgroundColor: '#C4C4C4',
   },
