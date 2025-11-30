@@ -170,11 +170,10 @@ export default function ActivityPageScreen() {
             currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
           if (isLastLesson) {
-            // Last lesson completed, go back to map
+            // Last lesson completed, go back to module page
             router.push({
-              pathname:
-                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-              params: { moduleId, submoduleId },
+              pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+              params: { moduleId },
             });
           } else {
             // Go to next lesson
