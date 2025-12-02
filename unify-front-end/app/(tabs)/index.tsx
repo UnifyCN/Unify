@@ -1,9 +1,14 @@
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  ImageBackground,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
-import { useCurrentUser } from '@/context/UserContext';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
@@ -11,6 +16,13 @@ import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 import { memo, useState, useMemo } from 'react';
 import CreatePostButton from '@/components/posts/CreatePostButton';
+import { HorizontalCarousel } from '@/components/HorizontalCarousel';
+import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
+import { useQuery } from '@tanstack/react-query';
+import { Group } from '@/types/groups';
+import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { useRouter } from 'expo-router';
+import GroupViewMoreCard from '@/components/icons/GroupViewMoreCard.svg';
 
 interface HeaderProps {
   activeTab: string;
@@ -33,6 +45,108 @@ const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
           </Text>
         </TouchableOpacity>
       ))}
+    </View>
+  );
+});
+
+const GroupsCarousel = memo(() => {
+  const router = useRouter();
+  const { data: groups, isLoading } = useQuery({
+    queryKey: ['joined-groups'],
+    queryFn: getUserJoinedGroups,
+  });
+
+  const handleGroupPress = (group: Group) => {
+    router.push({
+      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      params: { group: JSON.stringify(group) },
+    });
+  };
+
+  const groupsArray = groups || [];
+
+  return (
+    <View style={styles.groupsCarouselContainer}>
+      <HorizontalCarousel
+        title='Your Groups'
+        titleStyle={styles.groupsCarouselTitle}
+        data={groupsArray}
+        isLoading={isLoading}
+        maxItems={3}
+        itemKeyExtractor={item => item.id}
+        renderItem={(item, index) => (
+          <>
+            <TouchableOpacity
+              style={styles.groupCardWrapper}
+              onPress={() => handleGroupPress(item)}
+              activeOpacity={0.8}
+            >
+              <ImageBackground
+                source={
+                  item.coverPhotoUrl
+                    ? { uri: item.coverPhotoUrl }
+                    : require('@/assets/images/placeholderImg.png')
+                }
+                style={styles.groupCard}
+                imageStyle={styles.groupCardImage}
+              >
+                <View style={styles.groupCardOverlay} />
+                <View style={styles.groupCardContent}>
+                  <Text
+                    style={styles.groupCardTitle}
+                    numberOfLines={1}
+                    ellipsizeMode='tail'
+                  >
+                    {item.name}
+                  </Text>
+                </View>
+              </ImageBackground>
+            </TouchableOpacity>
+            {index === Math.max(groupsArray.length - 1, 1) && (
+              // TODO: Clicking on the view more cards doesnt do anything
+              <View style={styles.viewMoreCardWrapper}>
+                <View style={styles.viewMoreContent}>
+                  <GroupViewMoreCard width={193} height={144} />
+                  <View style={styles.viewMoreTextOverlay}>
+                    <Text style={styles.viewMoreText}>Join more groups</Text>
+                    <Text style={styles.viewMoreSubtext}>
+                      There's more to check out!
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          </>
+        )}
+        renderLoadingSkeleton={() => (
+          <View style={styles.groupCardWrapper}>
+            <View style={styles.groupCardSkeleton}>
+              <SkeletonLoader
+                width='70%'
+                height={20}
+                borderRadius={4}
+                style={styles.groupCardSkeletonText}
+              />
+            </View>
+          </View>
+        )}
+        renderEmptyState={() => (
+          <>
+            <View style={styles.viewMoreCardWrapper}>
+              <View style={styles.viewMoreContent}>
+                <GroupViewMoreCard width={193} height={144} />
+                <View style={styles.viewMoreTextOverlay}>
+                  <Text style={styles.viewMoreText}>Join more groups</Text>
+                  <Text style={styles.viewMoreSubtext}>
+                    There's more to check out!
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </>
+        )}
+        showViewMore={false}
+      />
     </View>
   );
 });
@@ -101,6 +215,7 @@ export default function HomeScreen() {
 
   // Easiest way to make the header sticky
   const data = [
+    { key: 'groupsCarousel', type: 'groupsCarousel' },
     { key: 'tabs', type: 'tabs' },
     { key: 'feed', type: 'feed' },
   ];
@@ -109,6 +224,8 @@ export default function HomeScreen() {
     switch (item.type) {
       case 'tabs':
         return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+      case 'groupsCarousel':
+        return <GroupsCarousel />;
       case 'feed':
         return <View>{renderFeedContent}</View>;
       default:
@@ -125,7 +242,7 @@ export default function HomeScreen() {
           data={data}
           renderItem={renderItem}
           keyExtractor={item => item.key}
-          stickyHeaderIndices={[0]} // Make the tabs (index 0) sticky
+          stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
         />
         <CreatePostButton />
       </View>
@@ -177,5 +294,94 @@ const styles = StyleSheet.create({
     color: Theme.textInput,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  groupsCarouselContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+  },
+  groupsCarouselTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    paddingTop: 8,
+  },
+  groupCardWrapper: {
+    width: 185,
+    height: 136,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  groupCard: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+    backgroundColor: Theme.imagePlaceholder,
+  },
+  groupCardImage: {
+    borderRadius: 12,
+  },
+  groupCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 12,
+  },
+  groupCardContent: {
+    padding: 12,
+    zIndex: 1,
+  },
+  groupCardTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Theme.white,
+    lineHeight: 20,
+  },
+  viewMoreCardWrapper: {
+    width: 193,
+    height: 144,
+    marginRight: 16,
+    marginLeft: -4,
+    marginTop: -4,
+  },
+  viewMoreContent: {
+    width: 193,
+    height: 144,
+    position: 'relative',
+  },
+  viewMoreTextOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewMoreText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Theme.black,
+  },
+  viewMoreSubtext: {
+    fontSize: 10,
+    color: Theme.black,
+  },
+  groupCardSkeleton: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    backgroundColor: '#E0E0E0',
+    justifyContent: 'flex-end',
+    padding: 12,
+  },
+  groupCardSkeletonText: {
+    backgroundColor: '#D5D5D5',
   },
 });

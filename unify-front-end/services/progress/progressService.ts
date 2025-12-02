@@ -38,7 +38,7 @@ export async function getLessonProgress(
   }
 }
 
-export async function startLesson(
+async function startLesson(
   lessonId: string,
   submoduleId: string,
   moduleId: string
@@ -74,7 +74,7 @@ export async function startLesson(
   }
 }
 
-export async function updateLessonProgress(
+async function updateLessonProgress(
   lessonId: string,
   pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
   pageNumber: number,
@@ -110,7 +110,7 @@ export async function updateLessonProgress(
   }
 }
 
-export async function completeLesson(lessonId: string): Promise<void> {
+async function completeLesson(lessonId: string): Promise<void> {
   try {
     const {
       data: { user },
@@ -140,7 +140,7 @@ export async function completeLesson(lessonId: string): Promise<void> {
 // PAGE PROGRESS SERVICE
 // =============================================
 
-export async function trackPageVisit(
+async function trackPageVisit(
   lessonId: string,
   submoduleId: string,
   moduleId: string,
@@ -183,7 +183,7 @@ export async function trackPageVisit(
   }
 }
 
-export async function completePage(
+async function completePage(
   lessonId: string,
   pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
   pageKey: string
@@ -217,7 +217,7 @@ export async function completePage(
 // SUBMODULE PROGRESS SERVICE
 // =============================================
 
-export async function getSubmoduleProgress(
+async function getSubmoduleProgress(
   submoduleId: string,
   totalLessonsInSubmodule?: number
 ): Promise<UserSubmoduleProgress | null> {
@@ -297,7 +297,7 @@ export async function getSubmoduleProgress(
   }
 }
 
-export async function startSubmodule(
+async function startSubmodule(
   submoduleId: string,
   moduleId: string
 ): Promise<void> {
@@ -329,7 +329,7 @@ export async function startSubmodule(
   }
 }
 
-export async function completeSubmodule(submoduleId: string): Promise<void> {
+async function completeSubmodule(submoduleId: string): Promise<void> {
   try {
     const {
       data: { user },
@@ -441,7 +441,7 @@ export async function completeModule(moduleId: string): Promise<void> {
 // QUIZ PROGRESS SERVICE
 // =============================================
 
-export async function startQuizAttempt(
+async function startQuizAttempt(
   quizId: string,
   lessonId: string,
   submoduleId: string,
@@ -492,7 +492,7 @@ export async function startQuizAttempt(
   }
 }
 
-export async function submitQuizAnswer(
+async function submitQuizAnswer(
   attemptId: string,
   questionId: string,
   questionType: string,
@@ -528,7 +528,7 @@ export async function submitQuizAnswer(
   }
 }
 
-export async function completeQuizAttempt(
+async function completeQuizAttempt(
   attemptId: string,
   score: number,
   totalQuestions: number,
@@ -558,7 +558,7 @@ export async function completeQuizAttempt(
 // ACTIVITY INPUT SERVICE
 // =============================================
 
-export async function saveActivityInput(
+async function saveActivityInput(
   lessonId: string,
   submoduleId: string,
   moduleId: string,

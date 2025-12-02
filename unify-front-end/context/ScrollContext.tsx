@@ -12,7 +12,7 @@ type ScrollContextTuple = [SharedValue<number>, () => void];
 
 const ScrollContext = createContext<ScrollContextTuple>(null!);
 
-export const useScrollContext = () => useContext(ScrollContext);
+const useScrollContext = () => useContext(ScrollContext);
 
 export const ScrollContextProvider: React.FC<React.PropsWithChildren> = ({
   children,

@@ -175,9 +175,9 @@ const PostDetails = () => {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, paddingBottom: 60, backgroundColor: '#fff' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
+      style={{ flex: 1, backgroundColor: '#fff' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <PostDetailsHeader onBack={onBack} />
 
@@ -284,10 +284,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   commentInput: {
     flex: 1,

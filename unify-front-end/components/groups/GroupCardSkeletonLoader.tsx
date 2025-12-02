@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
-import { Theme } from '@/constants/Theme';
 
 export function GroupCardSkeletonLoader() {
   return (

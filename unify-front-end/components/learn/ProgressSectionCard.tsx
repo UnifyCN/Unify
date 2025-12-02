@@ -85,5 +85,3 @@ const styles = StyleSheet.create({
     right: 10,
   },
 });
-
-export default ProgressSectionCard;

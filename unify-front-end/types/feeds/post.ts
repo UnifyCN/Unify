@@ -11,9 +11,3 @@ export type PostData = {
   content: string;
   pictures?: React.FC[];
 };
-
-// Feed response type
-export type PostResponse = {
-  posts: PostData[];
-  next_cursor?: string;
-};
