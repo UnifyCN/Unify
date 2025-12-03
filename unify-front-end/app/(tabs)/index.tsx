@@ -72,7 +72,7 @@ const GroupsCarousel = memo(() => {
         titleStyle={styles.groupsCarouselTitle}
         data={groupsArray}
         isLoading={isLoading}
-        maxItems={3}
+        maxItems={4} // the view more card counts as an item
         itemKeyExtractor={item => item.id}
         renderItem={(item, index) => (
           <>
@@ -132,14 +132,16 @@ const GroupsCarousel = memo(() => {
         )}
         renderEmptyState={() => (
           <>
-            <View style={styles.viewMoreCardWrapper}>
-              <View style={styles.viewMoreContent}>
-                <GroupViewMoreCard width={193} height={144} />
-                <View style={styles.viewMoreTextOverlay}>
-                  <Text style={styles.viewMoreText}>Join more groups</Text>
-                  <Text style={styles.viewMoreSubtext}>
-                    There's more to check out!
-                  </Text>
+            <View style={styles.emptyContainer}>
+              <View style={styles.viewMoreCardWrapper}>
+                <View style={styles.viewMoreContent}>
+                  <GroupViewMoreCard width={193} height={144} />
+                  <View style={styles.viewMoreTextOverlay}>
+                    <Text style={styles.viewMoreText}>Join more groups</Text>
+                    <Text style={styles.viewMoreSubtext}>
+                      There's more to check out!
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -383,5 +385,10 @@ const styles = StyleSheet.create({
   },
   groupCardSkeletonText: {
     backgroundColor: '#D5D5D5',
+  },
+  emptyContainer: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'flex-start',
   },
 });

@@ -134,6 +134,8 @@ const GroupDetailScreen = () => {
         // Optimistically update UI for leaving
         await leaveGroup(groupData.id);
         setIsMember(false);
+        queryClient.resetQueries({ queryKey: ['joined-groups'] });
+        queryClient.invalidateQueries({ queryKey: ['available-groups'] });
         setGroupData(prev =>
           prev
             ? {
@@ -147,6 +149,7 @@ const GroupDetailScreen = () => {
 
         await joinGroup(groupData.id);
         queryClient.resetQueries({ queryKey: ['joined-groups'] });
+        queryClient.invalidateQueries({ queryKey: ['available-groups'] });
         setIsMember(true);
         setGroupData(prev =>
           prev
@@ -171,6 +174,7 @@ const GroupDetailScreen = () => {
       );
     } finally {
       queryClient.resetQueries({ queryKey: ['feed', 'groups'] });
+      queryClient.invalidateQueries({ queryKey: ['available-groups'] });
       setJoining(false);
     }
   };
