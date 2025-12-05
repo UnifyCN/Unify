@@ -85,7 +85,8 @@ export default function RootLayout() {
     <PostHogProvider
       apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
       options={{
-        host: process.env.EXPO_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+        host:
+          process.env.EXPO_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
       }}
       autocapture={false}
     >
@@ -122,6 +123,10 @@ export default function RootLayout() {
                       />
                       <Stack.Screen
                         name='reset-password'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='post-details'
                         options={{ headerShown: false }}
                       />
                       <Stack.Screen name='+not-found' />
