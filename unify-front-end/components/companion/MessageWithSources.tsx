@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -12,10 +13,196 @@ import { Message } from '@/helpers/companion/messageHelpers';
 
 interface MessageWithSourcesProps {
   item: Message;
+  suggestedNextSteps?: string[];
+  onSuggestionPress?: (suggestion: string) => void;
 }
+
+/**
+ * Converts a hex color to rgba format with specified opacity
+ * @param hexColor - Hex color (e.g., '#5182C7' or '5182C7')
+ * @param opacity - Opacity value from 0 to 1 (e.g., 0.08 for 8% opacity)
+ * @returns rgba color string, or original color if invalid
+ */
+const hexToRgba = (hexColor: string, opacity: number): string => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+
+  // Validate: must be 6 characters (RGB)
+  if (hex.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(hex)) {
+    console.warn(
+      `Invalid hex color format: ${hexColor}. Expected format: #RRGGBB`
+    );
+    return hexColor;
+  }
+
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
+/**
+ * Simple Markdown renderer for chat messages.
+ * Supports: ## Headers, **bold**, - bullet points, and [links](url)
+ */
+const MarkdownText: React.FC<{ text: string; isUser: boolean }> = ({
+  text,
+  isUser,
+}) => {
+  const baseColor = isUser ? '#fff' : '#333';
+
+  // Split text into lines for processing
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+
+  lines.forEach((line, lineIndex) => {
+    const trimmedLine = line.trim();
+
+    // Handle ## Headers
+    if (trimmedLine.startsWith('## ')) {
+      elements.push(
+        <Text
+          key={`line-${lineIndex}`}
+          style={[styles.markdownHeader, { color: baseColor }]}
+        >
+          {trimmedLine.substring(3)}
+        </Text>
+      );
+      return;
+    }
+
+    // Handle - Bullet points
+    if (trimmedLine.startsWith('- ')) {
+      elements.push(
+        <View key={`line-${lineIndex}`} style={styles.bulletContainer}>
+          <Text style={[styles.bulletPoint, { color: baseColor }]}>•</Text>
+          <Text style={[styles.bulletText, { color: baseColor }]}>
+            {renderInlineFormatting(trimmedLine.substring(2), baseColor)}
+          </Text>
+        </View>
+      );
+      return;
+    }
+
+    // Handle numbered lists (1., 2., etc.)
+    const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.*)$/);
+    if (numberedMatch) {
+      elements.push(
+        <View key={`line-${lineIndex}`} style={styles.bulletContainer}>
+          <Text style={[styles.bulletPoint, { color: baseColor }]}>
+            {numberedMatch[1]}.
+          </Text>
+          <Text style={[styles.bulletText, { color: baseColor }]}>
+            {renderInlineFormatting(numberedMatch[2], baseColor)}
+          </Text>
+        </View>
+      );
+      return;
+    }
+
+    // Regular line with inline formatting
+    if (trimmedLine.length > 0) {
+      elements.push(
+        <Text
+          key={`line-${lineIndex}`}
+          style={[styles.regularText, { color: baseColor }]}
+        >
+          {renderInlineFormatting(trimmedLine, baseColor)}
+        </Text>
+      );
+    } else if (lineIndex > 0 && lineIndex < lines.length - 1) {
+      // Empty line (paragraph break) - but not at start or end
+      elements.push(
+        <View key={`line-${lineIndex}`} style={styles.paragraphBreak} />
+      );
+    }
+  });
+
+  return <View style={styles.markdownContainer}>{elements}</View>;
+};
+
+/**
+ * Renders inline formatting like **bold** and [links](url)
+ */
+const renderInlineFormatting = (
+  text: string,
+  baseColor: string
+): React.ReactNode => {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let keyIndex = 0;
+
+  while (remaining.length > 0) {
+    // Check for **bold**
+    const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
+    // Check for [link](url)
+    const linkMatch = remaining.match(/\[(.+?)\]\((.+?)\)/);
+
+    // Find which comes first
+    const boldIndex = boldMatch ? remaining.indexOf(boldMatch[0]) : -1;
+    const linkIndex = linkMatch ? remaining.indexOf(linkMatch[0]) : -1;
+
+    if (boldIndex === -1 && linkIndex === -1) {
+      // No more formatting, add remaining text
+      parts.push(remaining);
+      break;
+    }
+
+    // Process whichever comes first
+    const firstMatch =
+      boldIndex !== -1 && (linkIndex === -1 || boldIndex < linkIndex)
+        ? 'bold'
+        : 'link';
+
+    if (firstMatch === 'bold' && boldMatch) {
+      // Add text before bold
+      if (boldIndex > 0) {
+        parts.push(remaining.substring(0, boldIndex));
+      }
+      // Add bold text
+      parts.push(
+        <Text key={`bold-${keyIndex++}`} style={styles.boldText}>
+          {boldMatch[1]}
+        </Text>
+      );
+      remaining = remaining.substring(boldIndex + boldMatch[0].length);
+    } else if (firstMatch === 'link' && linkMatch) {
+      // Add text before link
+      if (linkIndex > 0) {
+        parts.push(remaining.substring(0, linkIndex));
+      }
+      // Add link
+      const linkText = linkMatch[1];
+      const linkUrl = linkMatch[2];
+      parts.push(
+        <Text
+          key={`link-${keyIndex++}`}
+          style={styles.linkText}
+          onPress={() => {
+            Linking.openURL(linkUrl).catch(err =>
+              console.error('Failed to open URL:', err)
+            );
+          }}
+        >
+          {linkText}
+        </Text>
+      );
+      remaining = remaining.substring(linkIndex + linkMatch[0].length);
+    }
+  }
+
+  return parts.length === 1 && typeof parts[0] === 'string' ? (
+    parts[0]
+  ) : (
+    <>{parts}</>
+  );
+};
 
 export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
   item,
+  suggestedNextSteps,
+  onSuggestionPress,
 }) => {
   const [showSources, setShowSources] = useState(false);
 
@@ -32,14 +219,24 @@ export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
           item.isUser ? styles.userBubble : styles.botBubble,
         ]}
       >
-        <Text
-          style={[
-            styles.messageText,
-            item.isUser ? styles.userText : styles.botText,
-          ]}
-        >
-          {item.text}
-        </Text>
+        {/* Render markdown for bot messages, plain text for user */}
+        {item.isUser ? (
+          <Text style={[styles.messageText, styles.userText]}>{item.text}</Text>
+        ) : (
+          <MarkdownText text={item.text} isUser={false} />
+        )}
+
+        {/* Disclaimer section for bot messages */}
+        {!item.isUser && item.disclaimer && (
+          <View style={styles.disclaimerContainer}>
+            <Ionicons
+              name='information-circle-outline'
+              size={14}
+              color={Theme.textInput}
+            />
+            <Text style={styles.disclaimerText}>{item.disclaimer}</Text>
+          </View>
+        )}
 
         {/* Sources section for bot messages */}
         {!item.isUser && item.sources && item.sources.length > 0 && (
@@ -80,6 +277,34 @@ export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
             )}
           </View>
         )}
+
+        {/* Suggested Next Steps - Only for bot messages */}
+        {!item.isUser &&
+          suggestedNextSteps &&
+          suggestedNextSteps.length > 0 &&
+          onSuggestionPress && (
+            <View style={styles.suggestionsContainer}>
+              <Text style={styles.suggestionsTitle}>Ask a follow-up:</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.suggestionsScroll}
+              >
+                {suggestedNextSteps.map((suggestion, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.suggestionChip}
+                    onPress={() => onSuggestionPress(suggestion)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.suggestionText} numberOfLines={2}>
+                      {suggestion}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
       </View>
     </View>
   );
@@ -97,7 +322,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   messageBubble: {
-    maxWidth: '80%',
+    maxWidth: '85%',
     paddingHorizontal: 15,
     paddingVertical: 15,
     borderRadius: 20,
@@ -117,7 +342,7 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   userText: {
     color: '#fff',
@@ -125,6 +350,65 @@ const styles = StyleSheet.create({
   botText: {
     color: '#333',
   },
+  // Markdown styles
+  markdownContainer: {
+    gap: 4,
+  },
+  markdownHeader: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  regularText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  boldText: {
+    fontWeight: '700',
+  },
+  linkText: {
+    color: Theme.surfaceBlue,
+    textDecorationLine: 'underline',
+  },
+  bulletContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingLeft: 4,
+    marginVertical: 2,
+  },
+  bulletPoint: {
+    fontSize: 15,
+    lineHeight: 22,
+    marginRight: 8,
+    minWidth: 14,
+  },
+  bulletText: {
+    fontSize: 15,
+    lineHeight: 22,
+    flex: 1,
+  },
+  paragraphBreak: {
+    height: 8,
+  },
+  // Disclaimer styles
+  disclaimerContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 12,
+    gap: 8,
+  },
+  disclaimerText: {
+    fontSize: 12,
+    color: Theme.textInput,
+    flex: 1,
+    lineHeight: 18,
+    fontStyle: 'italic',
+  },
+  // Sources styles
   sourcesContainer: {
     marginTop: 12,
     borderTopWidth: 1,
@@ -155,5 +439,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Theme.surfaceBlue,
     textDecorationLine: 'underline',
+  },
+  // Suggested Next Steps styles
+  suggestionsContainer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 12,
+  },
+  suggestionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Theme.textInput,
+    marginBottom: 8,
+  },
+  suggestionsScroll: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  suggestionChip: {
+    backgroundColor: hexToRgba(Theme.surfaceBlue, 0.08), // 8% opacity
+    borderWidth: 1,
+    borderColor: Theme.surfaceBlue,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    maxWidth: 200,
+  },
+  suggestionText: {
+    fontSize: 13,
+    color: Theme.surfaceBlue,
+    fontWeight: '500',
   },
 });
