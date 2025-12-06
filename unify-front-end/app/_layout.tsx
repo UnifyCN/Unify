@@ -126,6 +126,10 @@ export default function RootLayout() {
                         name='reset-password'
                         options={{ headerShown: false }}
                       />
+                      <Stack.Screen
+                        name='post-details'
+                        options={{ headerShown: false }}
+                      />
                       <Stack.Screen name='+not-found' />
                     </Stack>
                   </PostHogProvider>
