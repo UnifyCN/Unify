@@ -136,7 +136,7 @@ export const PostItem = memo(
                 style={styles.footerItem}
                 onPress={() =>
                   router.push({
-                    pathname: '/Gather/PostDetails' as any,
+                    pathname: '/post-details',
                     params: {
                       post: JSON.stringify(post),
                     },
