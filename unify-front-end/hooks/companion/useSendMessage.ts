@@ -84,8 +84,9 @@ export const useSendMessage = ({
         updateUsage.mutate(newMessageCount);
       }
 
-      // Parse the response
-      const { answer: botResponse, sources } = parseRAGResponse(response);
+      // Parse the response (now includes queryType and disclaimer)
+      const { answer: botResponse, sources, queryType, disclaimer } =
+        parseRAGResponse(response);
 
       // Save bot message to database
       try {
@@ -94,6 +95,8 @@ export const useSendMessage = ({
           role: 'assistant',
           content: botResponse,
           sources: sources.length > 0 ? sources : undefined,
+          queryType,
+          disclaimer,
         });
       } catch (error) {
         console.error('Failed to save bot message:', error);

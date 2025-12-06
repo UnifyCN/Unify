@@ -1,4 +1,5 @@
 import { ConversationMessage } from '@/services/companion/getConversationMessages';
+import { QueryType, RAGResponse } from '@/types/chatbot';
 
 export interface Source {
   document_id: number;
@@ -12,11 +13,23 @@ export interface Message {
   isUser: boolean;
   timestamp: Date;
   sources?: Source[];
+  queryType?: QueryType;
+  disclaimer?: string;
 }
 
 export interface ConversationMessageForAPI {
   message: string;
   role: 'user' | 'assistant';
+}
+
+/**
+ * Parsed response from the RAG API
+ */
+export interface ParsedRAGResponse {
+  answer: string;
+  sources: Source[];
+  queryType?: QueryType;
+  disclaimer?: string;
 }
 
 /**
@@ -33,6 +46,8 @@ export const formatMessagesForUI = (
     isUser: msg.role === 'user',
     timestamp: new Date(msg.created_at),
     sources: msg.sources || undefined,
+    queryType: msg.query_type || undefined,
+    disclaimer: msg.disclaimer || undefined,
   }));
 };
 
@@ -58,21 +73,20 @@ export const formatMessagesForAPI = (
 };
 
 /**
- * Parses the response from the RAG API to extract answer and sources
+ * Parses the response from the RAG API to extract answer, sources, queryType, and disclaimer
  */
-export const parseRAGResponse = (
-  response: any
-): {
-  answer: string;
-  sources: Source[];
-} => {
+export const parseRAGResponse = (response: any): ParsedRAGResponse => {
   let botResponse = 'Sorry, I encountered an error. Please try again.';
   let sources: Source[] = [];
+  let queryType: QueryType | undefined;
+  let disclaimer: string | undefined;
 
-  // Handle new RAG response format
+  // Handle new RAG response format with queryType and disclaimer
   if (response && response.answer) {
     botResponse = response.answer.trim();
     sources = response.sources || [];
+    queryType = response.queryType;
+    disclaimer = response.disclaimer;
   }
   // Fallback: Handle old Gemini response format (for backward compatibility)
   else if (response && response.candidates && response.candidates[0]) {
@@ -86,5 +100,5 @@ export const parseRAGResponse = (
     }
   }
 
-  return { answer: botResponse, sources };
+  return { answer: botResponse, sources, queryType, disclaimer };
 };
