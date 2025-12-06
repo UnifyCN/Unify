@@ -103,7 +103,10 @@ export default function ActivityPageScreen() {
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
   };
 
-  const handleQuestionAnswer = (questionKey: string, answer: string | string[]) => {
+  const handleQuestionAnswer = (
+    questionKey: string,
+    answer: string | string[]
+  ) => {
     setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
   };
 

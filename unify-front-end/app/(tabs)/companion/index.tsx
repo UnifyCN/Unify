@@ -82,7 +82,7 @@ export default function CompanionScreen() {
   const [currentConversationId, setCurrentConversationId] = useState<
     string | null
   >(null);
-  
+
   const [inputText, setInputText] = useState('');
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
@@ -93,9 +93,9 @@ export default function CompanionScreen() {
 
   // Convert database messages to UI Message format
   const dbMessagesFormatted = formatMessagesForUI(dbMessages);
-  
+
   // Combine greeting message with real messages
-  const messages: Message[] = greetingMessage 
+  const messages: Message[] = greetingMessage
     ? [greetingMessage, ...dbMessagesFormatted]
     : dbMessagesFormatted;
 
@@ -114,12 +114,13 @@ export default function CompanionScreen() {
   const { data: usage, isLoading: isLoadingUsage } = useChatbotUsage();
   const { currentUser, isLoading: isLoadingUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
-  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps } = useSendMessage({
-    messages,
-    currentConversationId,
-    setCurrentConversationId,
-    isPremium,
-  });
+  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps } =
+    useSendMessage({
+      messages,
+      currentConversationId,
+      setCurrentConversationId,
+      isPremium,
+    });
 
   const messageCount = usage?.message_count ?? 0;
   const messagesLeft = getMessagesLeft(messageCount, MESSAGE_LIMIT);
@@ -199,7 +200,7 @@ export default function CompanionScreen() {
       setTimeout(() => inputRef.current?.focus(), 100);
       return;
     }
-    
+
     // For fact check, pre-fill the input so user can complete the sentence
     if (mode === 'fact_check') {
       setInputText(prompt);
@@ -207,7 +208,7 @@ export default function CompanionScreen() {
       setTimeout(() => inputRef.current?.focus(), 50);
       return;
     }
-    
+
     // For other prompts, send directly
     handleSendMessage(prompt);
   };
@@ -220,12 +221,15 @@ export default function CompanionScreen() {
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     // Only show suggestions on the last bot message
     const isLastMessage = index === messages.length - 1;
-    const showSuggestions = isLastMessage && !item.isUser && lastSuggestedNextSteps;
-    
+    const showSuggestions =
+      isLastMessage && !item.isUser && lastSuggestedNextSteps;
+
     return (
       <MessageWithSources
         item={item}
-        suggestedNextSteps={showSuggestions ? lastSuggestedNextSteps : undefined}
+        suggestedNextSteps={
+          showSuggestions ? lastSuggestedNextSteps : undefined
+        }
         onSuggestionPress={handleSuggestionClick}
       />
     );
@@ -286,9 +290,11 @@ export default function CompanionScreen() {
           {/* Bottom section - pushed to bottom with marginTop: auto */}
           <View style={styles.bottomSection}>
             {/* Starter Prompts - Only show when no messages and no greeting */}
-            {messages.length === 0 && !greetingMessage && !isLoadingMessages && (
-              <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
-            )}
+            {messages.length === 0 &&
+              !greetingMessage &&
+              !isLoadingMessages && (
+                <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
+              )}
 
             {/* Message Count Display */}
             <View style={styles.messageCountContainer}>

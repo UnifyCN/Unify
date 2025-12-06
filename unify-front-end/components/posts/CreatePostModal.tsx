@@ -30,7 +30,9 @@ export default function CreatePostModal({
 }: CreatePostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<any>(preselectedGroup || null);
+  const [selectedGroup, setSelectedGroup] = useState<any>(
+    preselectedGroup || null
+  );
   const [showGroupSelector, setShowGroupSelector] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
@@ -113,7 +115,6 @@ export default function CreatePostModal({
           }
         />
         <ScrollView style={styles.container}>
-
           <SearchButton
             placeholder={
               selectedGroup ? selectedGroup.name : 'Search for a group'

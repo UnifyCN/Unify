@@ -26,19 +26,23 @@ interface MessageWithSourcesProps {
 const addAlphaToHex = (hexColor: string, alpha: string): string => {
   // Remove # if present
   const hex = hexColor.replace('#', '');
-  
+
   // Validate: must be 6 characters (RGB)
   if (hex.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(hex)) {
-    console.warn(`Invalid hex color format: ${hexColor}. Expected format: #RRGGBB`);
+    console.warn(
+      `Invalid hex color format: ${hexColor}. Expected format: #RRGGBB`
+    );
     return hexColor; // Return original to avoid breaking
   }
-  
+
   // Validate alpha: must be 2 hex characters (00-FF)
   if (alpha.length !== 2 || !/^[0-9A-Fa-f]{2}$/.test(alpha)) {
-    console.warn(`Invalid alpha format: ${alpha}. Expected format: 2 hex digits (00-FF)`);
+    console.warn(
+      `Invalid alpha format: ${alpha}. Expected format: 2 hex digits (00-FF)`
+    );
     return `#${hex}`; // Return color without alpha
   }
-  
+
   return `#${hex}${alpha}`;
 };
 
@@ -151,8 +155,7 @@ const renderInlineFormatting = (
 
     // Process whichever comes first
     const firstMatch =
-      boldIndex !== -1 &&
-      (linkIndex === -1 || boldIndex < linkIndex)
+      boldIndex !== -1 && (linkIndex === -1 || boldIndex < linkIndex)
         ? 'bold'
         : 'link';
 
@@ -231,7 +234,7 @@ export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
         {!item.isUser && item.disclaimer && (
           <View style={styles.disclaimerContainer}>
             <Ionicons
-              name="information-circle-outline"
+              name='information-circle-outline'
               size={14}
               color={Theme.textInput}
             />
@@ -280,29 +283,32 @@ export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
         )}
 
         {/* Suggested Next Steps - Only for bot messages */}
-        {!item.isUser && suggestedNextSteps && suggestedNextSteps.length > 0 && onSuggestionPress && (
-          <View style={styles.suggestionsContainer}>
-            <Text style={styles.suggestionsTitle}>Ask a follow-up:</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.suggestionsScroll}
-            >
-              {suggestedNextSteps.map((suggestion, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.suggestionChip}
-                  onPress={() => onSuggestionPress(suggestion)}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.suggestionText} numberOfLines={2}>
-                    {suggestion}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
+        {!item.isUser &&
+          suggestedNextSteps &&
+          suggestedNextSteps.length > 0 &&
+          onSuggestionPress && (
+            <View style={styles.suggestionsContainer}>
+              <Text style={styles.suggestionsTitle}>Ask a follow-up:</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.suggestionsScroll}
+              >
+                {suggestedNextSteps.map((suggestion, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.suggestionChip}
+                    onPress={() => onSuggestionPress(suggestion)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.suggestionText} numberOfLines={2}>
+                      {suggestion}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
       </View>
     </View>
   );

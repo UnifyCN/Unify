@@ -105,5 +105,11 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
     }
   }
 
-  return { answer: botResponse, sources, queryType, disclaimer, suggestedNextSteps };
+  return {
+    answer: botResponse,
+    sources,
+    queryType,
+    disclaimer,
+    suggestedNextSteps,
+  };
 };

@@ -25,7 +25,9 @@ export const useSendMessage = ({
 }: UseSendMessageParams) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
-  const [lastSuggestedNextSteps, setLastSuggestedNextSteps] = useState<string[] | undefined>(undefined);
+  const [lastSuggestedNextSteps, setLastSuggestedNextSteps] = useState<
+    string[] | undefined
+  >(undefined);
   const { data: usage } = useChatbotUsage();
   const updateUsage = useUpdateChatbotUsage();
   const createConversation = useCreateConversation();
@@ -86,8 +88,13 @@ export const useSendMessage = ({
       }
 
       // Parse the response (includes queryType, disclaimer, and suggestedNextSteps for UI only)
-      const { answer: botResponse, sources, queryType, disclaimer, suggestedNextSteps } =
-        parseRAGResponse(response);
+      const {
+        answer: botResponse,
+        sources,
+        queryType,
+        disclaimer,
+        suggestedNextSteps,
+      } = parseRAGResponse(response);
 
       // Store suggested next steps for UI display (not persisted to DB)
       setLastSuggestedNextSteps(suggestedNextSteps);

@@ -259,7 +259,11 @@ export default function RichTextRenderer({
     noteBoxText: { fontSize: 15, color: '#3F3F3F', lineHeight: 22 },
 
     // Links
-    link: { color: '#424242', textDecorationLine: 'underline', fontWeight: '600'},
+    link: {
+      color: '#424242',
+      textDecorationLine: 'underline',
+      fontWeight: '600',
+    },
   };
 
   // Merge styles, ensuring header styles are always preserved
@@ -271,18 +275,22 @@ export default function RichTextRenderer({
     ...(customStyles && typeof customStyles === 'object' ? customStyles : {}),
     // Always ensure header styles exist with their full default properties
     // If custom header styles are provided, merge them with defaults to preserve all properties
-    h1: customStyles?.h1 && typeof customStyles.h1 === 'object'
-      ? { ...defaultStyles.h1, ...customStyles.h1 } 
-      : defaultStyles.h1,
-    h2: customStyles?.h2 && typeof customStyles.h2 === 'object'
-      ? { ...defaultStyles.h2, ...customStyles.h2 } 
-      : defaultStyles.h2,
-    h3: customStyles?.h3 && typeof customStyles.h3 === 'object'
-      ? { ...defaultStyles.h3, ...customStyles.h3 } 
-      : defaultStyles.h3,
-    h4: customStyles?.h4 && typeof customStyles.h4 === 'object'
-      ? { ...defaultStyles.h4, ...customStyles.h4 } 
-      : defaultStyles.h4,
+    h1:
+      customStyles?.h1 && typeof customStyles.h1 === 'object'
+        ? { ...defaultStyles.h1, ...customStyles.h1 }
+        : defaultStyles.h1,
+    h2:
+      customStyles?.h2 && typeof customStyles.h2 === 'object'
+        ? { ...defaultStyles.h2, ...customStyles.h2 }
+        : defaultStyles.h2,
+    h3:
+      customStyles?.h3 && typeof customStyles.h3 === 'object'
+        ? { ...defaultStyles.h3, ...customStyles.h3 }
+        : defaultStyles.h3,
+    h4:
+      customStyles?.h4 && typeof customStyles.h4 === 'object'
+        ? { ...defaultStyles.h4, ...customStyles.h4 }
+        : defaultStyles.h4,
   };
 
   // Keep prev nesting-level calc
@@ -307,14 +315,15 @@ export default function RichTextRenderer({
     return nestingMap;
   };
 
-  const renderInlineText = (children: any[], markDefs?: any[], blockMarkDefs?: any[]) => {
+  const renderInlineText = (
+    children: any[],
+    markDefs?: any[],
+    blockMarkDefs?: any[]
+  ) => {
     if (!children || !Array.isArray(children)) return null;
 
     // Combine markDefs from props and block-level markDefs
-    const allMarkDefs = [
-      ...(markDefs || []),
-      ...(blockMarkDefs || [])
-    ];
+    const allMarkDefs = [...(markDefs || []), ...(blockMarkDefs || [])];
 
     return children.map((child, index) => {
       if (typeof child === 'string') return child;
@@ -338,12 +347,15 @@ export default function RichTextRenderer({
               // Sometimes marks can be objects directly (inline annotations)
               const markType = (mark as any)._type || mark._type;
               if (markType === 'link') {
-                linkHref = (mark as any).href || (mark as any).value?.href || null;
+                linkHref =
+                  (mark as any).href || (mark as any).value?.href || null;
               }
               // Or it might be a reference object with _key that we need to look up
               const markKey = (mark as any)._key;
               if (markKey && !linkHref) {
-                const markDef = allMarkDefs.find((def: any) => def._key === markKey);
+                const markDef = allMarkDefs.find(
+                  (def: any) => def._key === markKey
+                );
                 if (markDef && markDef._type === 'link') {
                   linkHref = markDef.href || null;
                 }
@@ -410,16 +422,23 @@ export default function RichTextRenderer({
             };
             // Merge link styles with all decorator styles
             // Ensure fontStyle: 'italic' is preserved when merging with link styles
-            const linkStyle = decoratorStyles.length > 0
-              ? { 
-                  ...mergedStyles.link, 
-                  ...mergedDecoratorStyle,
-                  // Preserve italic if it exists in decorator styles
-                  ...(mergedDecoratorStyle.fontStyle === 'italic' ? { fontStyle: 'italic' } : {})
-                }
-              : mergedStyles.link;
+            const linkStyle =
+              decoratorStyles.length > 0
+                ? {
+                    ...mergedStyles.link,
+                    ...mergedDecoratorStyle,
+                    // Preserve italic if it exists in decorator styles
+                    ...(mergedDecoratorStyle.fontStyle === 'italic'
+                      ? { fontStyle: 'italic' }
+                      : {}),
+                  }
+                : mergedStyles.link;
             text = (
-              <TouchableOpacity key={`${index}-link`} onPress={handleLinkPress} activeOpacity={0.7}>
+              <TouchableOpacity
+                key={`${index}-link`}
+                onPress={handleLinkPress}
+                activeOpacity={0.7}
+              >
                 <Text style={linkStyle}>{text}</Text>
               </TouchableOpacity>
             );
@@ -470,7 +489,8 @@ export default function RichTextRenderer({
             style={[styles.listItemContainer, { marginLeft: indentLevel }]}
           >
             <Text style={listStyle}>
-              {displayBullet} {renderInlineText(block.children, markDefs, block.markDefs)}
+              {displayBullet}{' '}
+              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           </View>
         );
@@ -480,10 +500,7 @@ export default function RichTextRenderer({
 
       // Check for text alignment in block children
       // Combine markDefs from props and block-level markDefs
-      const allMarkDefs = [
-        ...(markDefs || []),
-        ...(block.markDefs || [])
-      ];
+      const allMarkDefs = [...(markDefs || []), ...(block.markDefs || [])];
 
       let blockTextAlign: 'left' | 'center' | 'right' | undefined = undefined;
       if (block.children && Array.isArray(block.children)) {
@@ -493,7 +510,9 @@ export default function RichTextRenderer({
               // Marks in Sanity are typically string keys that reference markDefs
               if (typeof mark === 'string') {
                 // Check if mark key references a textAlign annotation in markDefs
-                const markDef = allMarkDefs.find((def: any) => def._key === mark);
+                const markDef = allMarkDefs.find(
+                  (def: any) => def._key === mark
+                );
                 if (markDef) {
                   if (markDef._type === 'textAlign') {
                     blockTextAlign = markDef.align || 'left';
@@ -504,13 +523,16 @@ export default function RichTextRenderer({
                 // Sometimes marks can be objects directly (inline annotations)
                 const markType = (mark as any)._type || mark._type;
                 if (markType === 'textAlign') {
-                  blockTextAlign = (mark as any).align || (mark as any).value?.align || 'left';
+                  blockTextAlign =
+                    (mark as any).align || (mark as any).value?.align || 'left';
                   break;
                 }
                 // Or it might be a reference object with _key that we need to look up
                 const markKey = (mark as any)._key;
                 if (markKey) {
-                  const markDef = allMarkDefs.find((def: any) => def._key === markKey);
+                  const markDef = allMarkDefs.find(
+                    (def: any) => def._key === markKey
+                  );
                   if (markDef && markDef._type === 'textAlign') {
                     blockTextAlign = markDef.align || 'left';
                     break;
@@ -559,7 +581,13 @@ export default function RichTextRenderer({
         case 'blockquote':
           return (
             <View key={block._key || index} style={mergedStyles.blockquote}>
-              <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
+              <Text
+                style={
+                  blockTextAlign && blockTextAlign !== 'left'
+                    ? { textAlign: blockTextAlign }
+                    : {}
+                }
+              >
                 {renderInlineText(block.children, markDefs, block.markDefs)}
               </Text>
             </View>
@@ -567,7 +595,13 @@ export default function RichTextRenderer({
         case 'code':
           return (
             <View key={block._key || index} style={mergedStyles.code}>
-              <Text style={blockTextAlign && blockTextAlign !== 'left' ? { textAlign: blockTextAlign } : {}}>
+              <Text
+                style={
+                  blockTextAlign && blockTextAlign !== 'left'
+                    ? { textAlign: blockTextAlign }
+                    : {}
+                }
+              >
                 {renderInlineText(block.children, markDefs, block.markDefs)}
               </Text>
             </View>
@@ -744,7 +778,9 @@ export default function RichTextRenderer({
                 <TouchableOpacity
                   key={option._key}
                   style={optionStyle}
-                  onPress={() => !showFeedback && handleOptionSelect(option.value)}
+                  onPress={() =>
+                    !showFeedback && handleOptionSelect(option.value)
+                  }
                   disabled={showFeedback}
                 >
                   <View style={styles.twoOptionContent}>
@@ -840,7 +876,9 @@ export default function RichTextRenderer({
                 <TouchableOpacity
                   key={option._key}
                   style={optionStyle}
-                  onPress={() => !showFeedback && handleOptionSelect(option.value)}
+                  onPress={() =>
+                    !showFeedback && handleOptionSelect(option.value)
+                  }
                   disabled={showFeedback}
                 >
                   <View style={styles.questionOptionRow}>
@@ -886,13 +924,18 @@ export default function RichTextRenderer({
             />
           </View>
           <View style={styles.matchingPairsContainer}>
-            {(block.matching_pairs || []).map((pair: any, pairIndex: number) => (
-              <View key={pair._key || pairIndex} style={styles.matchingPairRow}>
-                <Text style={styles.matchingPairText}>
-                  {pair.left_item} → {pair.right_item}
-                </Text>
-              </View>
-            ))}
+            {(block.matching_pairs || []).map(
+              (pair: any, pairIndex: number) => (
+                <View
+                  key={pair._key || pairIndex}
+                  style={styles.matchingPairRow}
+                >
+                  <Text style={styles.matchingPairText}>
+                    {pair.left_item} → {pair.right_item}
+                  </Text>
+                </View>
+              )
+            )}
           </View>
         </View>
       );
@@ -1087,7 +1130,7 @@ const styles = StyleSheet.create({
   // Two options question styles
   twoOptionsContainer: {
     flexDirection: 'row',
-    gap: 12,    
+    gap: 12,
   },
   twoOptionCard: {
     flex: 1,

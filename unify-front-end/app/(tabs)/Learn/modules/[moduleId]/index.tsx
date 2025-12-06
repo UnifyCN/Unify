@@ -919,8 +919,7 @@ export default function ModuleIndex() {
                 style={[
                   styles.modalButtonContinue,
                   {
-                    backgroundColor:
-                      moduleData?.colorTheme?.hex || '#D8492C',
+                    backgroundColor: moduleData?.colorTheme?.hex || '#D8492C',
                   },
                 ]}
                 onPress={handleDisclaimerContinue}

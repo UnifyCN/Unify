@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-} from 'react-native';
+import { View, Text, StyleSheet, Modal } from 'react-native';
 import BackHeader from '@/components/BackHeader';
 
 export default function PostSuccessModal({ visible, onClose, postTitle }: any) {

@@ -93,8 +93,8 @@ const GroupsForYouSection = () => {
       <View style={styles.sectionHeader}>
         <Text style={styles.headerText}>Groups for You</Text>
       </View>
-      <View style={styles.groupsList}> 
-        {groups.map((group) => (
+      <View style={styles.groupsList}>
+        {groups.map(group => (
           <View key={group.id} style={styles.groupItem}>
             <GroupCard group={group} onPress={() => handleGroupPress(group)} />
           </View>
@@ -107,10 +107,7 @@ const GroupsForYouSection = () => {
 const GatherHeader = memo(() => {
   return (
     <View style={styles.eventsCarousel}>
-      <EventsCarousel
-        title='Community Events'
-        titleStyle={styles.headerText}
-      />
+      <EventsCarousel title='Community Events' titleStyle={styles.headerText} />
     </View>
   );
 });

@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Theme } from '@/constants/Theme';
 
 interface StarterPromptsProps {
@@ -49,10 +44,12 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.contentWrapper}>
-        <Text style={styles.subtitle}>Choose an option or type your question below</Text>
-        
+        <Text style={styles.subtitle}>
+          Choose an option or type your question below
+        </Text>
+
         <View style={styles.chipsContainer}>
-          {STARTER_CHIPS.map((chip) => (
+          {STARTER_CHIPS.map(chip => (
             <TouchableOpacity
               key={chip.id}
               style={[styles.chip, { backgroundColor: chip.color }]}

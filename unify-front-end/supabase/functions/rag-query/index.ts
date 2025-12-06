@@ -15,7 +15,12 @@ const NO_KB_HITS_DISCLAIMER =
   "This may not be covered in Unify's internal resources; please double-check with IRCC or a licensed immigration professional.";
 
 // Query classification types - expanded with special modes
-type QueryType = 'immigration' | 'newcomer_settlement' | 'general' | 'fact_check' | 'form_help';
+type QueryType =
+  | 'immigration'
+  | 'newcomer_settlement'
+  | 'general'
+  | 'fact_check'
+  | 'form_help';
 
 // ============================================================================
 // CLASSIFIER FUNCTION
@@ -69,7 +74,11 @@ Examples:
           contents: [
             {
               role: 'user',
-              parts: [{ text: `${classifierSystemMessage}\n\nUser question: ${prompt}` }],
+              parts: [
+                {
+                  text: `${classifierSystemMessage}\n\nUser question: ${prompt}`,
+                },
+              ],
             },
           ],
           generationConfig: {
@@ -86,7 +95,9 @@ Examples:
     }
 
     const data = await response.json();
-    const result = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase();
+    const result = data.candidates?.[0]?.content?.parts?.[0]?.text
+      ?.trim()
+      .toLowerCase();
 
     console.log('Classifier result:', result);
 
@@ -272,9 +283,12 @@ If the user asks about Canadian immigration or newcomer topics, let them know yo
 /**
  * Parse suggested next steps from the AI response
  */
-function parseSuggestionsFromResponse(answer: string): { cleanAnswer: string; suggestions: string[] } {
+function parseSuggestionsFromResponse(answer: string): {
+  cleanAnswer: string;
+  suggestions: string[];
+} {
   const suggestionsMatch = answer.match(/\[SUGGESTIONS\]:\s*(.+)$/im);
-  
+
   if (suggestionsMatch) {
     const suggestionsText = suggestionsMatch[1].trim();
     const suggestions = suggestionsText
@@ -282,13 +296,13 @@ function parseSuggestionsFromResponse(answer: string): { cleanAnswer: string; su
       .map(s => s.trim())
       .filter(s => s.length > 0)
       .slice(0, 3); // Max 3 suggestions
-    
+
     // Remove the suggestions line from the answer
     const cleanAnswer = answer.replace(/\[SUGGESTIONS\]:\s*(.+)$/im, '').trim();
-    
+
     return { cleanAnswer, suggestions };
   }
-  
+
   return { cleanAnswer: answer, suggestions: [] };
 }
 
@@ -320,14 +334,21 @@ Deno.serve(async (req: Request) => {
     console.log('Query classified as:', queryType);
 
     // Determine if we need RAG (knowledge base search)
-    const needsRAG = queryType === 'immigration' || queryType === 'newcomer_settlement' || 
-                     queryType === 'fact_check' || queryType === 'form_help';
+    const needsRAG =
+      queryType === 'immigration' ||
+      queryType === 'newcomer_settlement' ||
+      queryType === 'fact_check' ||
+      queryType === 'form_help';
 
     // ========================================================================
     // STEP 2: ROUTE BASED ON CLASSIFICATION
     // ========================================================================
     let contextText = '';
-    let sources: Array<{ document_id: number; document_title: string; url: string }> = [];
+    let sources: Array<{
+      document_id: number;
+      document_title: string;
+      url: string;
+    }> = [];
     let hasGoodKBHits = false;
     let disclaimer: string | undefined;
 
@@ -374,14 +395,12 @@ Deno.serve(async (req: Request) => {
 
       if (searchError) {
         console.error('RPC function error:', searchError);
-        const { data: fallbackChunks, error: fallbackError } = await supabase.rpc(
-          'match_chunks',
-          {
+        const { data: fallbackChunks, error: fallbackError } =
+          await supabase.rpc('match_chunks', {
             query_embedding: queryEmbedding,
             match_threshold: 0.0,
             match_count: 10,
-          }
-        );
+          });
         if (!fallbackError && fallbackChunks) {
           chunks = fallbackChunks;
         }
@@ -421,16 +440,17 @@ Deno.serve(async (req: Request) => {
         disclaimer = `${NO_KB_HITS_DISCLAIMER} ${STANDARD_DISCLAIMER}`;
       }
     } else {
-      console.log('Routing to general response (no RAG) for query type:', queryType);
+      console.log(
+        'Routing to general response (no RAG) for query type:',
+        queryType
+      );
     }
 
     // ========================================================================
     // STEP 3: BUILD CONVERSATION HISTORY
     // ========================================================================
     const recentMessages =
-      messages && Array.isArray(messages)
-        ? messages.slice(-10)
-        : [];
+      messages && Array.isArray(messages) ? messages.slice(-10) : [];
 
     const conversationHistory = recentMessages.map(
       (msg: { message: string; role: 'user' | 'assistant' }) => ({
@@ -516,7 +536,8 @@ Deno.serve(async (req: Request) => {
     }
 
     // Parse out suggestions from the response
-    const { cleanAnswer, suggestions } = parseSuggestionsFromResponse(rawAnswer);
+    const { cleanAnswer, suggestions } =
+      parseSuggestionsFromResponse(rawAnswer);
 
     // ========================================================================
     // STEP 6: RETURN RESPONSE

@@ -8,7 +8,9 @@ interface CreatePostButtonProps {
   preselectedGroup?: any;
 }
 
-export default function CreatePostButton({ preselectedGroup }: CreatePostButtonProps) {
+export default function CreatePostButton({
+  preselectedGroup,
+}: CreatePostButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
   const handlePress = () => {
@@ -25,8 +27,8 @@ export default function CreatePostButton({ preselectedGroup }: CreatePostButtonP
         <Ionicons name='add' size={24} color='white' />
       </TouchableOpacity>
 
-      <CreatePostModal 
-        visible={showModal} 
+      <CreatePostModal
+        visible={showModal}
         onClose={handleCloseCreateModal}
         preselectedGroup={preselectedGroup}
       />
