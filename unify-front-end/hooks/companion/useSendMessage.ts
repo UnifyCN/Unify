@@ -85,7 +85,7 @@ export const useSendMessage = ({
         updateUsage.mutate(newMessageCount);
       }
 
-      // Parse the response (now includes queryType, disclaimer, and suggestedNextSteps)
+      // Parse the response (includes queryType, disclaimer, and suggestedNextSteps for UI only)
       const { answer: botResponse, sources, queryType, disclaimer, suggestedNextSteps } =
         parseRAGResponse(response);
 
@@ -93,16 +93,14 @@ export const useSendMessage = ({
       setLastSuggestedNextSteps(suggestedNextSteps);
 
       // Save bot message to database
-      // Note: suggestedNextSteps is not persisted to DB, only used for immediate UI display
+      // Note: queryType, disclaimer, and suggestedNextSteps are not persisted to DB
+      // They're only used for immediate UI display
       try {
         await saveMessage.mutateAsync({
           conversationIdentifier: conversationIdToUse,
           role: 'assistant',
           content: botResponse,
           sources: sources.length > 0 ? sources : undefined,
-          queryType,
-          disclaimer,
-          suggestedNextSteps,
         });
       } catch (error) {
         console.error('Failed to save bot message:', error);

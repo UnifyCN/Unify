@@ -18,6 +18,25 @@ interface MessageWithSourcesProps {
 }
 
 /**
+ * Adds alpha channel to a hex color string
+ * @param hexColor - Hex color (e.g., '#5182C7' or '5182C7')
+ * @param alpha - Alpha value as hex string (e.g., '15' for ~8% opacity, '80' for ~50%)
+ * @returns Hex color with alpha channel, or original color if invalid
+ */
+const addAlphaToHex = (hexColor: string, alpha: string): string => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  
+  // Validate: must be 6 characters (RGB)
+  if (hex.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(hex)) {
+    console.warn(`Invalid hex color format: ${hexColor}. Expected format: #RRGGBB`);
+    return hexColor; // Return original to avoid breaking
+  }
+  
+  return `#${hex}${alpha}`;
+};
+
+/**
  * Simple Markdown renderer for chat messages.
  * Supports: ## Headers, **bold**, - bullet points, and [links](url)
  */

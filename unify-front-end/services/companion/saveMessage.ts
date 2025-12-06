@@ -6,8 +6,6 @@ export interface SaveMessageParams {
   role: 'user' | 'assistant';
   content: string;
   sources?: any; // JSONB field
-  queryType?: QueryType; // Optional metadata
-  disclaimer?: string; // Optional disclaimer text
   suggestedNextSteps?: string[]; // Optional - not persisted to DB, used for UI only
 }
 
@@ -16,8 +14,6 @@ export const saveMessage = async ({
   role,
   content,
   sources,
-  queryType,
-  disclaimer,
 }: SaveMessageParams): Promise<void> => {
   try {
     const {
@@ -42,8 +38,6 @@ export const saveMessage = async ({
     }
 
     // Insert the message
-    // Note: queryType and disclaimer are not stored in DB currently
-    // They're included in the response but not persisted
     const { error: messageError } = await supabase.from('messages').insert({
       conversation_id: conversation.id,
       role,
