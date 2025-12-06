@@ -33,6 +33,12 @@ const addAlphaToHex = (hexColor: string, alpha: string): string => {
     return hexColor; // Return original to avoid breaking
   }
   
+  // Validate alpha: must be 2 hex characters (00-FF)
+  if (alpha.length !== 2 || !/^[0-9A-Fa-f]{2}$/.test(alpha)) {
+    console.warn(`Invalid alpha format: ${alpha}. Expected format: 2 hex digits (00-FF)`);
+    return `#${hex}`; // Return color without alpha
+  }
+  
   return `#${hex}${alpha}`;
 };
 
@@ -450,7 +456,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   suggestionChip: {
-    backgroundColor: Theme.surfaceBlue + '15', // 15% opacity
+    backgroundColor: addAlphaToHex(Theme.surfaceBlue, '15'), // 15% opacity
     borderWidth: 1,
     borderColor: Theme.surfaceBlue,
     borderRadius: 16,
