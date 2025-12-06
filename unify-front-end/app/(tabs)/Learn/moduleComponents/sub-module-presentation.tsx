@@ -162,7 +162,7 @@ export default function SubModulePresentation() {
             onPress={() => router.back()}
             style={styles.iconBtn}
           >
-            <Feather name='chevron-left' size={24} color='#333' />
+            <Feather name='chevron-left' size={30} color='#333' />
           </TouchableOpacity>
         </View>
 

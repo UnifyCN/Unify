@@ -12,7 +12,6 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
-import Header from '@/components/Header';
 
 export default function SubmoduleIndex() {
   const router = useRouter();
@@ -54,7 +53,6 @@ export default function SubmoduleIndex() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
@@ -70,7 +68,7 @@ export default function SubmoduleIndex() {
             }
             style={styles.backButton}
           >
-            <Feather name='chevron-left' size={24} color='#000' />
+            <Feather name='chevron-left' size={30} color='#000' />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
@@ -133,7 +131,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    paddingTop: '15%',
     marginBottom: 20,
   },
   backButton: {

@@ -252,6 +252,7 @@ export default function CompanionScreen() {
           {/* Header */}
           <BackHeader
             title='AI Companion'
+            showBackButton={false}
             rightButton={
               <TouchableOpacity
                 onPress={() => {

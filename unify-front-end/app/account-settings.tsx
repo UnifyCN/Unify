@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Linking,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
@@ -22,6 +28,25 @@ export default function AccountSettingsPage() {
       console.error('Logout failed', err);
     }
   };
+
+  const handleGiveFeedback = () => {
+    Linking.openURL('https://unify.userjot.com').catch(err =>
+      console.error('Failed to open URL:', err)
+    );
+  };
+
+  const settingsRows = [
+    {
+      title: 'Saved',
+      icon: 'bookmark' as const,
+      onPress: () => router.push('/saved'),
+    },
+    {
+      title: 'Give Feedback',
+      icon: 'star' as const,
+      onPress: handleGiveFeedback,
+    },
+  ];
 
   return (
     <View style={styles.container}>
@@ -71,17 +96,20 @@ export default function AccountSettingsPage() {
         </View>
         <View style={styles.rowsContainer}>
           <View style={styles.settingsCard}>
-            <TouchableOpacity
-              style={styles.row}
-              onPress={() => {
-                router.push('/saved');
-              }}
-            >
-              <View style={styles.bookmarkIconContainer}>
-                <Feather name='bookmark' size={24} color={Theme.black} />
-              </View>
-              <Text style={[styles.rowText, { fontSize: 18 }]}>Saved</Text>
-            </TouchableOpacity>
+            {settingsRows.map((row, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.row}
+                onPress={row.onPress}
+              >
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name={row.icon} size={24} color={Theme.black} />
+                </View>
+                <Text style={[styles.rowText, { fontSize: 18 }]}>
+                  {row.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
           <View style={styles.divider} />
 

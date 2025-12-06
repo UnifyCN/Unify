@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
-import Header from '@/components/Header';
 
 export default function QuizzesPage() {
   const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
@@ -24,7 +23,6 @@ export default function QuizzesPage() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color='#3B82F6' />
           <Text style={styles.loadingText}>Loading quizzes...</Text>
@@ -36,7 +34,6 @@ export default function QuizzesPage() {
   if (error) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Error loading quizzes: {error.message}
@@ -49,7 +46,6 @@ export default function QuizzesPage() {
   if (!quizzes || quizzes.length === 0) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>No Quizzes Available</Text>
           <Text style={styles.emptyText}>
@@ -68,7 +64,6 @@ export default function QuizzesPage() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Quizzes</Text>

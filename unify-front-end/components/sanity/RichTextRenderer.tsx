@@ -433,14 +433,15 @@ export default function RichTextRenderer({
                       : {}),
                   }
                 : mergedStyles.link;
+            // Use Text with onPress instead of TouchableOpacity to keep it inline
             text = (
-              <TouchableOpacity
+              <Text
                 key={`${index}-link`}
+                style={linkStyle}
                 onPress={handleLinkPress}
-                activeOpacity={0.7}
               >
-                <Text style={linkStyle}>{text}</Text>
-              </TouchableOpacity>
+                {text}
+              </Text>
             );
           }
         }

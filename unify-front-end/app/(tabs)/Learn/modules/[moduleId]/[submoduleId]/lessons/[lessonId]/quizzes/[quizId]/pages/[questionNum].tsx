@@ -17,7 +17,6 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateQuizProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
-import Header from '@/components/Header';
 
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } =
@@ -454,7 +453,6 @@ export default function QuizQuestionPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}

@@ -38,7 +38,7 @@ const MainLesson = () => {
           <View style={styles.headerContentContainer}>
             <Link href='/(tabs)/Learn/modules' asChild>
               <TouchableOpacity style={styles.backButton}>
-                <Feather name='chevron-left' size={28} color='#343434' />
+                <Feather name='chevron-left' size={30} color='#343434' />
               </TouchableOpacity>
             </Link>
           </View>
