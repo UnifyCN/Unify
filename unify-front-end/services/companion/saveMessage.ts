@@ -8,6 +8,7 @@ export interface SaveMessageParams {
   sources?: any; // JSONB field
   queryType?: QueryType; // Optional metadata
   disclaimer?: string; // Optional disclaimer text
+  suggestedNextSteps?: string[]; // Optional - not persisted to DB, used for UI only
 }
 
 export const saveMessage = async ({

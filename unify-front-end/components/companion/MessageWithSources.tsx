@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -12,6 +13,8 @@ import { Message } from '@/helpers/companion/messageHelpers';
 
 interface MessageWithSourcesProps {
   item: Message;
+  suggestedNextSteps?: string[];
+  onSuggestionPress?: (suggestion: string) => void;
 }
 
 /**
@@ -174,6 +177,8 @@ const renderInlineFormatting = (
 
 export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
   item,
+  suggestedNextSteps,
+  onSuggestionPress,
 }) => {
   const [showSources, setShowSources] = useState(false);
 
@@ -246,6 +251,31 @@ export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
                 ))}
               </View>
             )}
+          </View>
+        )}
+
+        {/* Suggested Next Steps - Only for bot messages */}
+        {!item.isUser && suggestedNextSteps && suggestedNextSteps.length > 0 && onSuggestionPress && (
+          <View style={styles.suggestionsContainer}>
+            <Text style={styles.suggestionsTitle}>Ask a follow-up:</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.suggestionsScroll}
+            >
+              {suggestedNextSteps.map((suggestion, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.suggestionChip}
+                  onPress={() => onSuggestionPress(suggestion)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.suggestionText} numberOfLines={2}>
+                    {suggestion}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         )}
       </View>
@@ -382,5 +412,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Theme.surfaceBlue,
     textDecorationLine: 'underline',
+  },
+  // Suggested Next Steps styles
+  suggestionsContainer: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    paddingTop: 12,
+  },
+  suggestionsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Theme.textInput,
+    marginBottom: 8,
+  },
+  suggestionsScroll: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  suggestionChip: {
+    backgroundColor: Theme.surfaceBlue + '15', // 15% opacity
+    borderWidth: 1,
+    borderColor: Theme.surfaceBlue,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    maxWidth: 200,
+  },
+  suggestionText: {
+    fontSize: 13,
+    color: Theme.surfaceBlue,
+    fontWeight: '500',
   },
 });

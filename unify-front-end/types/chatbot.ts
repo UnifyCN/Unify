@@ -4,7 +4,12 @@ export interface ChatbotUsage {
 }
 
 // Query classification types from the RAG chatbot
-export type QueryType = 'immigration' | 'newcomer_settlement' | 'general';
+export type QueryType =
+  | 'immigration'
+  | 'newcomer_settlement'
+  | 'general'
+  | 'fact_check'
+  | 'form_help';
 
 // RAG API response structure
 export interface RAGResponse {
@@ -12,6 +17,7 @@ export interface RAGResponse {
   sources?: Source[];
   queryType: QueryType;
   disclaimer?: string;
+  suggestedNextSteps?: string[]; // AI-generated follow-up questions
 }
 
 // Source document reference

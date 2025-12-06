@@ -15,6 +15,7 @@ export interface Message {
   sources?: Source[];
   queryType?: QueryType;
   disclaimer?: string;
+  suggestedNextSteps?: string[]; // AI-generated follow-up questions
 }
 
 export interface ConversationMessageForAPI {
@@ -30,6 +31,7 @@ export interface ParsedRAGResponse {
   sources: Source[];
   queryType?: QueryType;
   disclaimer?: string;
+  suggestedNextSteps?: string[];
 }
 
 /**
@@ -48,6 +50,7 @@ export const formatMessagesForUI = (
     sources: msg.sources || undefined,
     queryType: msg.query_type || undefined,
     disclaimer: msg.disclaimer || undefined,
+    suggestedNextSteps: msg.suggested_next_steps || undefined,
   }));
 };
 
@@ -73,20 +76,22 @@ export const formatMessagesForAPI = (
 };
 
 /**
- * Parses the response from the RAG API to extract answer, sources, queryType, and disclaimer
+ * Parses the response from the RAG API to extract answer, sources, queryType, disclaimer, and suggestedNextSteps
  */
 export const parseRAGResponse = (response: any): ParsedRAGResponse => {
   let botResponse = 'Sorry, I encountered an error. Please try again.';
   let sources: Source[] = [];
   let queryType: QueryType | undefined;
   let disclaimer: string | undefined;
+  let suggestedNextSteps: string[] | undefined;
 
-  // Handle new RAG response format with queryType and disclaimer
+  // Handle new RAG response format with queryType, disclaimer, and suggestedNextSteps
   if (response && response.answer) {
     botResponse = response.answer.trim();
     sources = response.sources || [];
     queryType = response.queryType;
     disclaimer = response.disclaimer;
+    suggestedNextSteps = response.suggestedNextSteps;
   }
   // Fallback: Handle old Gemini response format (for backward compatibility)
   else if (response && response.candidates && response.candidates[0]) {
@@ -100,5 +105,5 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
     }
   }
 
-  return { answer: botResponse, sources, queryType, disclaimer };
+  return { answer: botResponse, sources, queryType, disclaimer, suggestedNextSteps };
 };

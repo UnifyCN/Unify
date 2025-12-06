@@ -21,6 +21,7 @@ import {
 } from '@/helpers/companion/messageHelpers';
 import { MessageWithSources } from '@/components/companion/MessageWithSources';
 import { TypingIndicator } from '@/components/companion/TypingIndicator';
+import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import HistoryIcon from '@/components/icons/HistoryIcon.svg';
@@ -81,22 +82,39 @@ export default function CompanionScreen() {
   const [currentConversationId, setCurrentConversationId] = useState<
     string | null
   >(null);
+  
+  const [inputText, setInputText] = useState('');
+  // Local greeting message shown when user clicks "Ask Anything"
+  const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
 
   // Fetch messages for the current conversation
   const { data: dbMessages, isLoading: isLoadingMessages } =
     useConversationMessages(currentConversationId);
 
   // Convert database messages to UI Message format
-  const messages = formatMessagesForUI(dbMessages);
+  const dbMessagesFormatted = formatMessagesForUI(dbMessages);
+  
+  // Combine greeting message with real messages
+  const messages: Message[] = greetingMessage 
+    ? [greetingMessage, ...dbMessagesFormatted]
+    : dbMessagesFormatted;
 
-  const [inputText, setInputText] = useState('');
+  // Clear greeting when real messages exist
+  useEffect(() => {
+    if (dbMessagesFormatted.length > 0 && greetingMessage) {
+      setGreetingMessage(null);
+    }
+  }, [dbMessagesFormatted.length, greetingMessage]);
+
   const flatListRef = useRef<FlatList>(null);
+  // Ref for the text input to handle focusing
+  const inputRef = useRef<TextInput>(null);
   const previousMessageCountRef = useRef<number>(0);
 
   const { data: usage, isLoading: isLoadingUsage } = useChatbotUsage();
   const { currentUser, isLoading: isLoadingUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
-  const { sendMessage, isLoading, isWaitingForBot } = useSendMessage({
+  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps } = useSendMessage({
     messages,
     currentConversationId,
     setCurrentConversationId,
@@ -139,23 +157,79 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-  const handleSendMessage = async () => {
-    if (sendButtonDisabled) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || inputText.trim();
+    if (!textToSend || isLoading || !canSend) return;
 
-    const messageText = inputText.trim();
     setInputText('');
 
     try {
-      await sendMessage(messageText);
+      await sendMessage(textToSend);
     } catch (error) {
       // Error is already logged in useSendMessage hook
-      // Could show user-friendly error message here if needed
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <MessageWithSources item={item} />
-  );
+  // Handle starter prompt selection
+  const handleStarterPromptSelect = (prompt: string, mode?: string) => {
+    // "Ask Anything" - show bot greeting message
+    if (prompt === '' && !mode) {
+      const greeting: Message = {
+        id: 'greeting-' + Date.now(),
+        text: 'Hey there, how can I help?',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setGreetingMessage(greeting);
+      // Focus input so user can type their question
+      setTimeout(() => inputRef.current?.focus(), 100);
+      return;
+    }
+
+    // "Form Help" - show bot message asking which form
+    if (mode === 'form_help') {
+      const formGreeting: Message = {
+        id: 'form-greeting-' + Date.now(),
+        text: 'Which form are you working on?',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setGreetingMessage(formGreeting);
+      // Focus input so user can type the form name
+      setTimeout(() => inputRef.current?.focus(), 100);
+      return;
+    }
+    
+    // For fact check, pre-fill the input so user can complete the sentence
+    if (mode === 'fact_check') {
+      setInputText(prompt);
+      // Focus input after setting text so user can type immediately
+      setTimeout(() => inputRef.current?.focus(), 50);
+      return;
+    }
+    
+    // For other prompts, send directly
+    handleSendMessage(prompt);
+  };
+
+  // Handle suggested next step click
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSendMessage(suggestion);
+  };
+
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
+    // Only show suggestions on the last bot message
+    const isLastMessage = index === messages.length - 1;
+    const showSuggestions = isLastMessage && !item.isUser && lastSuggestedNextSteps;
+    
+    return (
+      <MessageWithSources
+        item={item}
+        suggestedNextSteps={showSuggestions ? lastSuggestedNextSteps : undefined}
+        onSuggestionPress={handleSuggestionClick}
+      />
+    );
+  };
 
   const renderLoadingIndicator = () => {
     // Only show typing indicator when waiting for bot response (not when saving user message)
@@ -191,7 +265,7 @@ export default function CompanionScreen() {
             <View style={styles.emptyContainer}>
               <ActivityIndicator size='large' color={Theme.surfaceBlue} />
             </View>
-          ) : messages.length === 0 ? (
+          ) : messages.length === 0 && !greetingMessage ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyMessage}>
                 Hey there, how can I help?
@@ -211,6 +285,11 @@ export default function CompanionScreen() {
 
           {/* Bottom section - pushed to bottom with marginTop: auto */}
           <View style={styles.bottomSection}>
+            {/* Starter Prompts - Only show when no messages and no greeting */}
+            {messages.length === 0 && !greetingMessage && !isLoadingMessages && (
+              <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
+            )}
+
             {/* Message Count Display */}
             <View style={styles.messageCountContainer}>
               <Text
@@ -233,6 +312,7 @@ export default function CompanionScreen() {
             {/* Input */}
             <View style={styles.inputContainer}>
               <TextInput
+                ref={inputRef}
                 style={[styles.textInput, !canSend && styles.disabledInput]}
                 value={inputText}
                 onChangeText={setInputText}
@@ -249,7 +329,7 @@ export default function CompanionScreen() {
                   styles.sendButton,
                   sendButtonDisabled && styles.sendButtonDisabled,
                 ]}
-                onPress={handleSendMessage}
+                onPress={() => handleSendMessage()}
                 disabled={sendButtonDisabled}
               >
                 <View style={styles.sendIconContainer}>
