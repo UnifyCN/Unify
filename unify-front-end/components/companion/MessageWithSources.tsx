@@ -18,12 +18,12 @@ interface MessageWithSourcesProps {
 }
 
 /**
- * Adds alpha channel to a hex color string
+ * Converts a hex color to rgba format with specified opacity
  * @param hexColor - Hex color (e.g., '#5182C7' or '5182C7')
- * @param alpha - Alpha value as hex string (e.g., '15' for ~8% opacity, '80' for ~50%)
- * @returns Hex color with alpha channel, or original color if invalid
+ * @param opacity - Opacity value from 0 to 1 (e.g., 0.08 for 8% opacity)
+ * @returns rgba color string, or original color if invalid
  */
-const addAlphaToHex = (hexColor: string, alpha: string): string => {
+const hexToRgba = (hexColor: string, opacity: number): string => {
   // Remove # if present
   const hex = hexColor.replace('#', '');
 
@@ -32,18 +32,14 @@ const addAlphaToHex = (hexColor: string, alpha: string): string => {
     console.warn(
       `Invalid hex color format: ${hexColor}. Expected format: #RRGGBB`
     );
-    return hexColor; // Return original to avoid breaking
+    return hexColor;
   }
 
-  // Validate alpha: must be 2 hex characters (00-FF)
-  if (alpha.length !== 2 || !/^[0-9A-Fa-f]{2}$/.test(alpha)) {
-    console.warn(
-      `Invalid alpha format: ${alpha}. Expected format: 2 hex digits (00-FF)`
-    );
-    return `#${hex}`; // Return color without alpha
-  }
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
 
-  return `#${hex}${alpha}`;
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
 /**
@@ -462,7 +458,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   suggestionChip: {
-    backgroundColor: addAlphaToHex(Theme.surfaceBlue, '15'), // 15% opacity
+    backgroundColor: hexToRgba(Theme.surfaceBlue, 0.08), // 8% opacity
     borderWidth: 1,
     borderColor: Theme.surfaceBlue,
     borderRadius: 16,
