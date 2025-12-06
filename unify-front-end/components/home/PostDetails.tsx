@@ -15,7 +15,7 @@ import { PostData } from '@/types/feeds/post';
 import { useMutateCreateComment } from '@/hooks/posts/useMutateCreateComment';
 import { PostCommentData } from '@/types/feeds/postcomment';
 import { useCommentMetadata } from '@/hooks/useCommentMetadata';
-import PostCommentItem from './PostCommentItem';
+import PostCommentItem from '../../app/(tabs)/Gather/PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
 import { Feather } from '@expo/vector-icons';
@@ -101,6 +101,9 @@ const PostDetails = () => {
   // Get passed data
   const { post: postParam } = useLocalSearchParams();
 
+  // Router for navigation
+  const router = useRouter();
+
   const onBack = () => {
     router.back();
   };
@@ -111,9 +114,6 @@ const PostDetails = () => {
 
   // Parse the post string and type it as PostData
   const post: PostData = JSON.parse(postParam as string);
-
-  // Router for navigation
-  const router = useRouter();
 
   // Reply text box
   const [commentTextBox, setCommentTextBox] = useState('');
