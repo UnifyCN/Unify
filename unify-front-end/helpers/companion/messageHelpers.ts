@@ -48,9 +48,8 @@ export const formatMessagesForUI = (
     isUser: msg.role === 'user',
     timestamp: new Date(msg.created_at),
     sources: msg.sources || undefined,
-    queryType: msg.query_type || undefined,
-    disclaimer: msg.disclaimer || undefined,
-    suggestedNextSteps: msg.suggested_next_steps || undefined,
+    // Note: queryType, disclaimer, and suggestedNextSteps are not persisted to DB
+    // They are only available in real-time responses, not when loading from DB
   }));
 };
 
