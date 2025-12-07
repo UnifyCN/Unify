@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ interface SingleSelectQuestionProps {
   selectedValue: string | null;
   otherValue: string | null;
   onSelect: (value: string) => void;
-  onOtherChange?: (value: string) => void;
+  onOtherChange: (value: string) => void;
   required?: boolean;
   error?: string;
 }

@@ -20,7 +20,7 @@ interface MultiSelectQuestionProps {
   selectedValues: string[];
   otherValue: string | null;
   onToggle: (value: string) => void;
-  onOtherChange?: (value: string) => void;
+  onOtherChange: (value: string) => void;
   required?: boolean;
   error?: string;
 }

@@ -286,6 +286,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             selectedValue={timeInCanada}
             otherValue={null}
             onSelect={(value) => setTimeInCanada(value as TimeInCanada)}
+            onOtherChange={() => {}} // No "other" option for this question
             required
             error={errors[4]}
           />
@@ -366,6 +367,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             selectedValues={hobbies}
             otherValue={null}
             onToggle={(value) => toggleHobby(value as Hobby)}
+            onOtherChange={() => {}} // No "other" option for this question
             required={false}
           />
         );
@@ -443,7 +445,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 9:
         return <OutcomesStep onNext={handleNext} />;
       case 10:
-        return <ThankYouStep onComplete={handleSubmit} />;
+        return <ThankYouStep />;
       default:
         return null;
     }

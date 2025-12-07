@@ -2,11 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Theme } from '@/constants/Theme';
 
-interface ThankYouStepProps {
-  onComplete: () => void;
-}
-
-export default function ThankYouStep({ onComplete }: ThankYouStepProps) {
+export default function ThankYouStep() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
