@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Dimensions,
   Modal,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -33,6 +35,7 @@ export default function LessonPageScreen() {
   }>();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -83,6 +86,36 @@ export default function LessonPageScreen() {
   const isLastLesson = () => {
     const currentIndex = getCurrentLessonIndex();
     return currentIndex === (submoduleData?.lessons?.length || 0) - 1;
+  };
+
+  // Handle input focus - scroll to center the input in the visible viewport
+  const handleInputFocus = (inputY: number, inputHeight: number) => {
+    if (!scrollViewRef.current) return;
+
+    // Get screen dimensions
+    const screenHeight = Dimensions.get('window').height;
+    
+    // Calculate visible viewport (screen minus keyboard and top safe area)
+    // Account for progress bar + header area at top (~100px) and keyboard (~35% of screen)
+    const safeAreaTop = 100; // Progress bar + header area
+    const keyboardHeight = screenHeight * 0.35; // Approximate keyboard height
+    const visibleViewportHeight = screenHeight - keyboardHeight - safeAreaTop;
+    
+    // inputY is relative to ScrollView content (starts at 0 at top of content)
+    // Calculate the input's center position
+    const inputCenterY = inputY + (inputHeight / 2);
+    
+    // We want the input center to be at the center of the visible viewport
+    // Formula: scrollY + visibleViewportCenter = inputCenterY
+    // Therefore: scrollY = inputCenterY - visibleViewportCenter
+    const visibleViewportCenter = safeAreaTop + (visibleViewportHeight / 2);
+    const targetScrollY = inputCenterY - visibleViewportCenter;
+    
+    // Scroll to center the input in the visible viewport
+    scrollViewRef.current.scrollTo({
+      y: Math.max(0, targetScrollY),
+      animated: true,
+    });
   };
 
   const handleSaveAndLeave = () => {
@@ -257,31 +290,41 @@ export default function LessonPageScreen() {
         onClose={() => setShowExitModal(true)}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* Page indicator
-        {totalPages > 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              {currentPage} of {totalPages}
-            </Text>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Page indicator
+          {totalPages > 1 && (
+            <View style={styles.pageIndicatorContainer}>
+              <Text style={styles.pageIndicator}>
+                {currentPage} of {totalPages}
+              </Text>
+            </View>
+          )} */}
+
+          {/* Page title */}
+          <Text style={styles.pageTitle}>{currentPageData.title}</Text>
+
+          {/* Page contents */}
+          <View style={styles.content}>
+            <RichTextRenderer
+              blocks={currentPageData.content || []}
+              markDefs={currentPageData.markDefs}
+              styles={{ normal: styles.contentText }}
+              scrollViewRef={scrollViewRef}
+              onInputFocus={handleInputFocus}
+            />
           </View>
-        )} */}
-
-        {/* Page title */}
-        <Text style={styles.pageTitle}>{currentPageData.title}</Text>
-
-        {/* Page contents */}
-        <View style={styles.content}>
-          <RichTextRenderer
-            blocks={currentPageData.content || []}
-            markDefs={currentPageData.markDefs}
-            styles={{ normal: styles.contentText }}
-          />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Navigation buttons - anchored at bottom */}
       <View style={styles.navigationContainer}>
