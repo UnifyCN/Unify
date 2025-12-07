@@ -60,4 +60,3 @@ export const getOnboardingProfile = async (
     throw error;
   }
 };
-

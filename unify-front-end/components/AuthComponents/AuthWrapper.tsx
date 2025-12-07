@@ -23,10 +23,8 @@ export default function AuthWrapper({ children }: Props) {
   const queryClient = useQueryClient();
 
   // Get onboarding profile for authenticated users
-  const {
-    data: onboardingProfile,
-    isLoading: isLoadingOnboarding,
-  } = useOnboardingProfile(session?.user?.id);
+  const { data: onboardingProfile, isLoading: isLoadingOnboarding } =
+    useOnboardingProfile(session?.user?.id);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

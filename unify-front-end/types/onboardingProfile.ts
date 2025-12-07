@@ -92,4 +92,3 @@ export interface OnboardingProfileInput {
   wants_reminders?: boolean;
   onboarding_completed?: boolean;
 }
-

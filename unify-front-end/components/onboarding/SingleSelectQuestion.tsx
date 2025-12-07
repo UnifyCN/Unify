@@ -83,7 +83,7 @@ export default function SingleSelectQuestion({
         <View style={styles.otherInputContainer}>
           <TextInput
             style={styles.otherInput}
-            placeholder="Please specify..."
+            placeholder='Please specify...'
             value={otherValue || ''}
             onChangeText={onOtherChange}
             placeholderTextColor={Theme.textInput}
@@ -168,4 +168,3 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
 });
-

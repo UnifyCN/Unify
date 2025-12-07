@@ -62,4 +62,3 @@ export const saveOnboardingProfile = async (
     throw error;
   }
 };
-

@@ -52,10 +52,7 @@ export default function MultiSelectQuestion({
           return (
             <TouchableOpacity
               key={option.value}
-              style={[
-                styles.option,
-                isSelected && styles.optionSelected,
-              ]}
+              style={[styles.option, isSelected && styles.optionSelected]}
               onPress={() => onToggle(option.value)}
             >
               <View style={styles.checkboxContainer}>
@@ -65,9 +62,7 @@ export default function MultiSelectQuestion({
                     isSelected && styles.checkboxSelected,
                   ]}
                 >
-                  {isSelected && (
-                    <Text style={styles.checkmark}>✓</Text>
-                  )}
+                  {isSelected && <Text style={styles.checkmark}>✓</Text>}
                 </View>
                 <Text
                   style={[
@@ -87,7 +82,7 @@ export default function MultiSelectQuestion({
         <View style={styles.otherInputContainer}>
           <TextInput
             style={styles.otherInput}
-            placeholder="Please specify..."
+            placeholder='Please specify...'
             value={otherValue || ''}
             onChangeText={onOtherChange}
             placeholderTextColor={Theme.textInput}
@@ -172,4 +167,3 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
 });
-

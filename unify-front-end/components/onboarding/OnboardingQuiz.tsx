@@ -230,9 +230,12 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 2:
         return (
           <SingleSelectQuestion
-            question="What best describes your situation in Canada?"
+            question='What best describes your situation in Canada?'
             options={[
-              { value: 'international_student', label: "I'm an international student" },
+              {
+                value: 'international_student',
+                label: "I'm an international student",
+              },
               {
                 value: 'skilled_worker',
                 label: "I'm a skilled worker / PR / immigrant",
@@ -245,7 +248,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ]}
             selectedValue={persona}
             otherValue={personaOther}
-            onSelect={(value) => setPersona(value as Persona)}
+            onSelect={value => setPersona(value as Persona)}
             onOtherChange={setPersonaOther}
             required
             error={errors[2]}
@@ -254,7 +257,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 3:
         return (
           <SingleSelectQuestion
-            question="How did you hear about Unify?"
+            question='How did you hear about Unify?'
             options={[
               { value: 'facebook_instagram', label: 'Facebook / Instagram' },
               { value: 'google_search', label: 'Google Search' },
@@ -266,7 +269,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ]}
             selectedValue={referralSource}
             otherValue={referralSourceOther}
-            onSelect={(value) => setReferralSource(value as ReferralSource)}
+            onSelect={value => setReferralSource(value as ReferralSource)}
             onOtherChange={setReferralSourceOther}
             required
             error={errors[3]}
@@ -275,7 +278,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 4:
         return (
           <SingleSelectQuestion
-            question="How long have you been in Canada?"
+            question='How long have you been in Canada?'
             options={[
               { value: 'not_arrived', label: "I haven't arrived yet" },
               { value: 'less_than_1_year', label: 'Less than 1 year' },
@@ -285,7 +288,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ]}
             selectedValue={timeInCanada}
             otherValue={null}
-            onSelect={(value) => setTimeInCanada(value as TimeInCanada)}
+            onSelect={value => setTimeInCanada(value as TimeInCanada)}
             onOtherChange={() => {}} // No "other" option for this question
             required
             error={errors[4]}
@@ -294,7 +297,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 5:
         return (
           <MultiSelectQuestion
-            question="What do you want to accomplish? (Select all that apply)"
+            question='What do you want to accomplish? (Select all that apply)'
             options={[
               { value: 'learn_something', label: 'Learn something new' },
               {
@@ -305,11 +308,15 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
                 value: 'quick_answers',
                 label: 'Quick, trustworthy answers to my questions',
               },
-              { value: 'something_else', label: 'Something else', hasOther: true },
+              {
+                value: 'something_else',
+                label: 'Something else',
+                hasOther: true,
+              },
             ]}
             selectedValues={goals}
             otherValue={goalsOther}
-            onToggle={(value) => toggleGoal(value as Goal)}
+            onToggle={value => toggleGoal(value as Goal)}
             onOtherChange={setGoalsOther}
             required
             error={errors[5]}
@@ -318,7 +325,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 6:
         return (
           <MultiSelectQuestion
-            question="Which topic would you like to explore? (Select all that apply)"
+            question='Which topic would you like to explore? (Select all that apply)'
             options={[
               {
                 value: 'documents',
@@ -338,7 +345,9 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ]}
             selectedValues={learningInterests}
             otherValue={learningInterestsOther}
-            onToggle={(value) => toggleLearningInterest(value as LearningInterest)}
+            onToggle={value =>
+              toggleLearningInterest(value as LearningInterest)
+            }
             onOtherChange={setLearningInterestsOther}
             required
             error={errors[6]}
@@ -347,7 +356,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 7:
         return (
           <MultiSelectQuestion
-            question="What are your hobbies and interests? (Select all that apply)"
+            question='What are your hobbies and interests? (Select all that apply)'
             options={[
               {
                 value: 'career_growth',
@@ -366,7 +375,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ]}
             selectedValues={hobbies}
             otherValue={null}
-            onToggle={(value) => toggleHobby(value as Hobby)}
+            onToggle={value => toggleHobby(value as Hobby)}
             onOtherChange={() => {}} // No "other" option for this question
             required={false}
           />
@@ -471,7 +480,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             onPress={handleBack}
             disabled={isLoading}
           >
-            <Feather name="chevron-left" size={24} color={Theme.black} />
+            <Feather name='chevron-left' size={24} color={Theme.black} />
             <Text style={styles.navButtonText}>Back</Text>
           </TouchableOpacity>
         )}
@@ -486,7 +495,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ) : (
               <>
                 <Text style={styles.nextButtonText}>Next</Text>
-                <Feather name="chevron-right" size={24} color={Theme.white} />
+                <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
           </TouchableOpacity>
@@ -502,7 +511,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ) : (
               <>
                 <Text style={styles.nextButtonText}>Continue</Text>
-                <Feather name="chevron-right" size={24} color={Theme.white} />
+                <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
           </TouchableOpacity>
@@ -518,7 +527,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ) : (
               <>
                 <Text style={styles.nextButtonText}>Explore Unify</Text>
-                <Feather name="chevron-right" size={24} color={Theme.white} />
+                <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
           </TouchableOpacity>
@@ -646,4 +655,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

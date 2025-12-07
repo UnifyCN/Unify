@@ -50,4 +50,3 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
   },
 });
-

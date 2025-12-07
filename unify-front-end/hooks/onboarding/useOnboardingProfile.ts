@@ -10,4 +10,3 @@ export const useOnboardingProfile = (userId?: string) => {
     gcTime: 1000 * 60 * 10, // 10 minutes
   });
 };
-

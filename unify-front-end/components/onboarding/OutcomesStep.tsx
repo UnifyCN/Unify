@@ -10,14 +10,17 @@ export default function OutcomesStep({ onNext }: OutcomesStepProps) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Here's what you can achieve in 3 months</Text>
+        <Text style={styles.title}>
+          Here's what you can achieve in 3 months
+        </Text>
         <View style={styles.outcomesContainer}>
           <View style={styles.outcomeItem}>
             <Text style={styles.outcomeHeading}>
               Navigate Canada with confidence
             </Text>
             <Text style={styles.outcomeSubtext}>
-              Master essential skills and knowledge to feel at home in your new country
+              Master essential skills and knowledge to feel at home in your new
+              country
             </Text>
           </View>
           <View style={styles.outcomeItem}>
@@ -25,7 +28,8 @@ export default function OutcomesStep({ onNext }: OutcomesStepProps) {
               Get fast, trustworthy answers
             </Text>
             <Text style={styles.outcomeSubtext}>
-              Access reliable information and expert guidance whenever you need it
+              Access reliable information and expert guidance whenever you need
+              it
             </Text>
           </View>
           <View style={styles.outcomeItem}>
@@ -33,7 +37,8 @@ export default function OutcomesStep({ onNext }: OutcomesStepProps) {
               Build your community & support network
             </Text>
             <Text style={styles.outcomeSubtext}>
-              Connect with others on similar journeys and create lasting friendships
+              Connect with others on similar journeys and create lasting
+              friendships
             </Text>
           </View>
         </View>
@@ -84,4 +89,3 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
-

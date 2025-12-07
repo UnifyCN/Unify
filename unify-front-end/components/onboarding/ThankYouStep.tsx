@@ -9,7 +9,7 @@ export default function ThankYouStep() {
         <Image
           source={require('../../assets/images/logo-with-name.png')}
           style={styles.logo}
-          resizeMode="contain"
+          resizeMode='contain'
         />
         <Text style={styles.headline}>
           Your journey to Canada,{' '}
@@ -61,4 +61,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 });
-
