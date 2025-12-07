@@ -89,8 +89,8 @@ export default function RootLayout() {
             {/* {showOnboarding ? (
               <Onboarding onFinish={() => setShowOnboarding(false)} />
             ) : ( */}
-            <AuthWrapper>
-              <UserProvider>
+            <UserProvider>
+              <AuthWrapper>
                 <ThemeProvider value={DefaultTheme}>
                   <PostHogProvider
                     apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
@@ -134,8 +134,8 @@ export default function RootLayout() {
                     </Stack>
                   </PostHogProvider>
                 </ThemeProvider>
-              </UserProvider>
-            </AuthWrapper>
+              </AuthWrapper>
+            </UserProvider>
             {/* )} */}
           </ScrollContextProvider>
         </SafeAreaProvider>
