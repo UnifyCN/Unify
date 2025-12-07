@@ -13,11 +13,6 @@
     "updates": {
       "url": "https://u.expo.dev/3772d4d9-79dd-4848-9691-bae1b19eefb8"
     },
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "bundleIdentifier": "com.anonymous.unifyfrontend",
       "googleServicesFile": "./GoogleService_ios.plist",
@@ -46,7 +41,19 @@
           "photosPermission": "The app accesses your photos to let you share and change your profile picture."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/images/splash-icon-light.png",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
