@@ -75,7 +75,7 @@ export default function Learn() {
   }, [refreshLessons]);
   return (
     <View style={styles.root}>
-      <Header />
+      <Header showSearchIcon={false} />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView
