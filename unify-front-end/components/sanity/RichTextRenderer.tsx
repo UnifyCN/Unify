@@ -9,6 +9,7 @@ import {
   Linking,
   TextInput,
   findNodeHandle,
+  UIManager,
 } from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
@@ -710,17 +711,17 @@ export default function RichTextRenderer({
       const isMid = block._type === 'mid_input_box';
       const isSmall = block._type === 'small_input_box';
 
-      let inputContainerRef: View | null = null;
+      let inputTextInputRef: TextInput | null = null;
 
       return (
         <View
           key={block._key || index}
           style={mergedStyles.inputFieldContainer}
-          ref={(ref) => {
-            inputContainerRef = ref;
-          }}
         >
           <TextInput
+            ref={(ref) => {
+              inputTextInputRef = ref;
+            }}
             style={[
               {
                 borderWidth: 1,
@@ -743,19 +744,18 @@ export default function RichTextRenderer({
             multiline={isLarge}
             numberOfLines={isLarge ? 4 : 1}
             onFocus={() => {
-              // Measure the input container position relative to ScrollView
-              if (inputContainerRef && scrollViewRef?.current) {
+              // Measure the actual TextInput position relative to ScrollView
+              if (inputTextInputRef && scrollViewRef?.current) {
                 const scrollViewHandle = findNodeHandle(scrollViewRef.current);
-                if (scrollViewHandle && inputContainerRef) {
-                  inputContainerRef.measureLayout(
+                const textInputHandle = findNodeHandle(inputTextInputRef);
+                if (scrollViewHandle && textInputHandle) {
+                  // Use UIManager.measureLayout for proper native component measurement
+                  UIManager.measureLayout(
+                    textInputHandle,
                     scrollViewHandle,
-                    (x, y, width, height) => {
-                      // y is now relative to ScrollView content, which is what we need
-                      onInputFocus?.(y, height);
-                    },
                     () => {
-                      // Fallback: use absolute position and calculate relative position
-                      inputContainerRef?.measure((x, y, width, height, pageX, pageY) => {
+                      // Error callback - fallback to measure
+                      inputTextInputRef?.measure((x, y, width, height, pageX, pageY) => {
                         // Try to get ScrollView position to calculate relative Y
                         if (scrollViewRef.current) {
                           const scrollViewHandle = findNodeHandle(scrollViewRef.current);
@@ -773,12 +773,22 @@ export default function RichTextRenderer({
                           onInputFocus?.(pageY, height);
                         }
                       });
+                    },
+                    (x, y, width, height) => {
+                      // Success callback - y is now relative to ScrollView content
+                      // y is the top of the TextInput relative to ScrollView content
+                      onInputFocus?.(y, height);
                     }
                   );
+                } else if (inputTextInputRef) {
+                  // Fallback if handles can't be obtained
+                  inputTextInputRef.measure((x, y, width, height, pageX, pageY) => {
+                    onInputFocus?.(pageY, height);
+                  });
                 }
-              } else if (inputContainerRef) {
+              } else if (inputTextInputRef) {
                 // Fallback if no scrollViewRef provided
-                inputContainerRef.measure((x, y, width, height, pageX, pageY) => {
+                inputTextInputRef.measure((x, y, width, height, pageX, pageY) => {
                   onInputFocus?.(pageY, height);
                 });
               }
