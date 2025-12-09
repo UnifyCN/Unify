@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase';
 import { SignIn } from './SignIn';
 import { SignUp } from './SignUp';
 import OTPVerification from './OTPConfirmation';
+import OnboardingQuiz from '../onboarding/OnboardingQuiz';
+import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
+import { useQueryClient } from '@tanstack/react-query';
 
 type Props = {
   children: React.ReactNode;
@@ -17,6 +20,11 @@ export default function AuthWrapper({ children }: Props) {
   const [showOTP, setShowOTP] = useState(false);
   const [otpEmail, setOtpEmail] = useState('');
   const [otpPassword, setOtpPassword] = useState('');
+  const queryClient = useQueryClient();
+
+  // Get onboarding profile for authenticated users
+  const { data: onboardingProfile, isLoading: isLoadingOnboarding } =
+    useOnboardingProfile(session?.user?.id);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,10 +36,16 @@ export default function AuthWrapper({ children }: Props) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      // Invalidate onboarding profile when auth state changes
+      if (session?.user?.id) {
+        queryClient.invalidateQueries({
+          queryKey: ['onboardingProfile', session.user.id],
+        });
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   const handleShowOTP = (email: string, password: string) => {
     setOtpEmail(email);
@@ -48,7 +62,16 @@ export default function AuthWrapper({ children }: Props) {
     setShowOTP(false);
   };
 
-  if (loading) {
+  const handleOnboardingComplete = () => {
+    // Invalidate onboarding profile to refetch
+    if (session?.user?.id) {
+      queryClient.invalidateQueries({
+        queryKey: ['onboardingProfile', session.user.id],
+      });
+    }
+  };
+
+  if (loading || (session && isLoadingOnboarding)) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size='large' />
@@ -78,5 +101,15 @@ export default function AuthWrapper({ children }: Props) {
     );
   }
 
+  // Check if onboarding is completed
+  const isOnboardingCompleted =
+    onboardingProfile?.onboarding_completed ?? false;
+
+  // If authenticated but onboarding not completed, show onboarding quiz
+  if (!isOnboardingCompleted) {
+    return <OnboardingQuiz onComplete={handleOnboardingComplete} />;
+  }
+
+  // If authenticated and onboarding completed, show main app
   return <>{children}</>;
 }

@@ -42,6 +42,7 @@ out/
 # IDE and Editor files
 .vscode/
 .idea/
+.cursor/plans/
 *.swp
 *.swo
 *~
