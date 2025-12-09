@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -382,6 +383,42 @@ export default function ActivityPageScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Exit modal */}
+      <Modal
+        visible={showExitModal}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setShowExitModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              Take a break from this activity?
+            </Text>
+            <Text style={styles.modalDesc}>
+              No worries, your progress will be saved!{'\n'}
+              You can pick up right where you left off.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={handleSaveAndLeave}
+            >
+              <Text style={styles.modalPrimaryBtnText}>
+                Save progress & leave
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={handleContinue}
+            >
+              <Text style={styles.modalSecondaryBtnText}>Continue Activity</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -523,5 +560,61 @@ const styles = StyleSheet.create({
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   nextBtnDisabled: {
     opacity: 0.7,
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalPrimaryBtn: {
+    width: '100%',
+    backgroundColor: '#575757',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalPrimaryBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSecondaryBtn: {
+    width: '100%',
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalSecondaryBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityQuizQuestions } from '@/hooks/sanity/useSanityQuizzes';
@@ -49,6 +50,7 @@ export default function QuizQuestionPage() {
   );
   const [completedPairs, setCompletedPairs] = useState<string[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -457,7 +459,7 @@ export default function QuizQuestionPage() {
         totalPages={progress.totalPages}
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
-        onClose={() => router.back()}
+        onClose={() => setShowExitModal(true)}
       />
 
       <ScrollView
@@ -734,6 +736,48 @@ export default function QuizQuestionPage() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Exit modal */}
+      <Modal
+        visible={showExitModal}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setShowExitModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              Take a break from this quiz?
+            </Text>
+            <Text style={styles.modalDesc}>
+              No worries, your progress will be saved!{'\n'}
+              You can pick up right where you left off.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={() => {
+                setShowExitModal(false);
+                router.push({
+                  pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+                  params: { moduleId, submoduleId },
+                });
+              }}
+            >
+              <Text style={styles.modalPrimaryBtnText}>
+                Save progress & leave
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={() => setShowExitModal(false)}
+            >
+              <Text style={styles.modalSecondaryBtnText}>Continue Quiz</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1058,5 +1102,61 @@ const styles = StyleSheet.create({
     minHeight: 80,
     marginTop: 20,
     marginBottom: 30,
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalPrimaryBtn: {
+    width: '100%',
+    backgroundColor: '#575757',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalPrimaryBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSecondaryBtn: {
+    width: '100%',
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalSecondaryBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
