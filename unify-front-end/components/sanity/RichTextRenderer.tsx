@@ -100,7 +100,7 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0, 
       color: '#374151',
-      marginBottom: 20, // Consistent spacing between paragraphs
+      marginBottom: 5, // Consistent spacing between paragraphs
     },
 
     // Lists
