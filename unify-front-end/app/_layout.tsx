@@ -82,23 +82,25 @@ export default function RootLayout() {
   }
 
   return (
-    <PostHogProvider
-      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
-      options={{
-        host: process.env.EXPO_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-      }}
-      autocapture={false}
-    >
-      <QueryClientProvider client={queryClient}>
-        <GestureHandlerRootView>
-          <SafeAreaProvider>
-            <ScrollContextProvider>
-              {/* {showOnboarding ? (
-                <Onboarding onFinish={() => setShowOnboarding(false)} />
-              ) : ( */}
-              <AuthWrapper>
-                <UserProvider>
-                  <ThemeProvider value={DefaultTheme}>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView>
+        <SafeAreaProvider>
+          <ScrollContextProvider>
+            {/* {showOnboarding ? (
+              <Onboarding onFinish={() => setShowOnboarding(false)} />
+            ) : ( */}
+            <AuthWrapper>
+              <UserProvider>
+                <ThemeProvider value={DefaultTheme}>
+                  <PostHogProvider
+                    apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+                    options={{
+                      host:
+                        process.env.EXPO_PUBLIC_POSTHOG_HOST ||
+                        'https://us.i.posthog.com',
+                    }}
+                    autocapture={{ captureScreens: false }}
+                  >
                     <Stack>
                       <Stack.Screen
                         name='(tabs)'
@@ -124,16 +126,20 @@ export default function RootLayout() {
                         name='reset-password'
                         options={{ headerShown: false }}
                       />
+                      <Stack.Screen
+                        name='post-details'
+                        options={{ headerShown: false }}
+                      />
                       <Stack.Screen name='+not-found' />
                     </Stack>
-                  </ThemeProvider>
-                </UserProvider>
-              </AuthWrapper>
-              {/* )} */}
-            </ScrollContextProvider>
-          </SafeAreaProvider>
-        </GestureHandlerRootView>
-      </QueryClientProvider>
-    </PostHogProvider>
+                  </PostHogProvider>
+                </ThemeProvider>
+              </UserProvider>
+            </AuthWrapper>
+            {/* )} */}
+          </ScrollContextProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

@@ -5,7 +5,11 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UnifyLogo from '@/components/icons/UnifyLogo.svg';
 
-const Header = () => {
+interface HeaderProps {
+  showSearchIcon?: boolean;
+}
+
+const Header = ({ showSearchIcon = true }: HeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -13,11 +17,13 @@ const Header = () => {
     <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
       <UnifyLogo width={28} height={28} />
       <View style={styles.rightButtons}>
-        <TouchableOpacity
-          onPress={() => router.push('/(tabs)/Gather/SearchScreen')}
-        >
-          <Feather name='search' size={28} color='#000' />
-        </TouchableOpacity>
+        {showSearchIcon && (
+          <TouchableOpacity
+            onPress={() => router.push('/(tabs)/Gather/SearchScreen')}
+          >
+            <Feather name='search' size={28} color='#000' />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={() => router.push('/account-settings')}>
           <Feather name='settings' size={28} color='#000' />
         </TouchableOpacity>

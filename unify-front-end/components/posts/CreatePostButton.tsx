@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import CreatePostIcon from '@/assets/images/create-post.svg';
 import CreatePostModal from './CreatePostModal';
 import { Theme } from '@/constants/Theme';
 
@@ -24,7 +24,7 @@ export default function CreatePostButton({
   return (
     <>
       <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
-        <Ionicons name='add' size={24} color='white' />
+        <CreatePostIcon width={27} height={27} />
       </TouchableOpacity>
 
       <CreatePostModal
