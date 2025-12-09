@@ -18,7 +18,7 @@ export interface CurrentProgress {
 /**
  * Calculate the total number of pages in a submodule
  */
-export function calculateSubmodulePageCounts(
+function calculateSubmodulePageCounts(
   submoduleData: SanitySubmoduleWithLessons | null
 ): SubmodulePageCounts {
   if (!submoduleData) {

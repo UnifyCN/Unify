@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     height: 161,
     borderRadius: 9.37,
     marginBottom: 20,
-    backgroundColor: '#D3D3D3',
+    backgroundColor: Theme.imagePlaceholder,
   },
   descriptionText: {
     fontSize: 14,

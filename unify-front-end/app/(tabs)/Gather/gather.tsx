@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
 import GroupCard from './GroupCard';
-import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
+import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';
 import { GroupCardSkeletonLoader } from '@/components/groups/GroupCardSkeletonLoader';
@@ -15,8 +15,8 @@ const GroupsForYouSection = () => {
   const router = useRouter();
 
   const { data: groups, isLoading } = useQuery({
-    queryKey: ['joined-groups'],
-    queryFn: getUserJoinedGroups,
+    queryKey: ['available-groups'],
+    queryFn: getAvailableGroups,
   });
 
   const handleGroupPress = (group: Group) => {

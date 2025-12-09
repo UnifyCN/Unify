@@ -57,22 +57,16 @@ export const sanityClient = {
   },
 };
 
-// Custom image builder
-export const imageBuilder = {
-  image: (source: any) => {
-    if (source && source.asset && source.asset._ref) {
-      const imageId = source.asset._ref
-        .replace('image-', '')
-        .replace('-jpg', '.jpg')
-        .replace('-png', '.png')
-        .replace('-webp', '.webp');
-      return `https://cdn.sanity.io/images/${projectId}/${dataset}/${imageId}`;
-    }
-    return '';
-  },
-};
-
 // Helper function to get image URL
-export const urlFor = (source: any) => imageBuilder.image(source);
-
-export default sanityClient;
+// Helper function to get image URL
+export const urlFor = (source: any) => {
+  if (source && source.asset && source.asset._ref) {
+    const imageId = source.asset._ref
+      .replace('image-', '')
+      .replace('-jpg', '.jpg')
+      .replace('-png', '.png')
+      .replace('-webp', '.webp');
+    return `https://cdn.sanity.io/images/${projectId}/${dataset}/${imageId}`;
+  }
+  return '';
+};

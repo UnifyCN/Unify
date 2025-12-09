@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { NewsDetails } from '@/types/news';
+import { Theme } from '@/constants/Theme';
 
 interface NewsCardProps {
   news: NewsDetails;
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
   newsImagePlaceholder: {
     width: 100,
     height: 132,
-    backgroundColor: '#D3D3D3',
+    backgroundColor: Theme.imagePlaceholder,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
   },

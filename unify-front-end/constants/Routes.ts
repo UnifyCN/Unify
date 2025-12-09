@@ -4,10 +4,3 @@ export const HIDDEN_TAB_BAR_ROUTES = [
   'AccountSettings',
   'post-details',
 ];
-
-// Routes where the chatbot should be disabled
-export const DISABLED_CHATBOT_ROUTES = [
-  'gather',
-  'EventDetailScreen',
-  'profile',
-];

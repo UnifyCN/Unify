@@ -1,6 +1,6 @@
 // New types for the updated schema without stages
 
-export interface SubmoduleIntro {
+interface SubmoduleIntro {
   id: string;
   submodule_id: string;
   order_num: number;
@@ -69,9 +69,9 @@ export interface LessonPageContent {
   content: any;
 }
 
-export type LessonType = 'flashcards' | 'dropdown' | 'video' | 'other';
+type LessonType = 'flashcards' | 'dropdown' | 'video' | 'other';
 
-export interface SubmoduleLessonsData {
+interface SubmoduleLessonsData {
   submodule_id: string;
   submodule_title: string;
   submodule_description: string;
@@ -82,7 +82,7 @@ export interface SubmoduleLessonsData {
   lessons: Lesson[];
 }
 
-export interface SubmoduleInfo {
+interface SubmoduleInfo {
   id: string;
   title: string;
   description: string;
@@ -94,7 +94,7 @@ export interface SubmoduleInfo {
   completed_lessons: number;
 }
 
-export interface Module {
+interface Module {
   id: string;
   title: string;
   description: string;
@@ -135,12 +135,12 @@ export interface QuizOptionContent {
   italic?: boolean;
 }
 
-export interface QuizQuestionContent {
+interface QuizQuestionContent {
   type: 'text';
   content: QuizOptionContent[];
 }
 
-export interface QuizData {
+interface QuizData {
   quiz: Quiz;
   questions: QuizQuestion[];
 }
