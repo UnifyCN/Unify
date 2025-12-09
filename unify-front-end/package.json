@@ -60,7 +60,7 @@
     "generate-random-username": "^2.0.1",
     "lucide-react-native": "^0.542.0",
     "or": "^0.2.0",
-    "posthog-react-native": "^4.12.0",
+    "posthog-react-native": "^4.14.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
