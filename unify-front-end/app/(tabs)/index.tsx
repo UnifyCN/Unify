@@ -178,21 +178,24 @@ export default function HomeScreen() {
         );
       case 'Groups':
         return (
-          <FeedWithHook
-            key={`groups-${activeTab}`}
-            useFeedHook={useGroupsFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No groups here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    You haven't joined any groups yet.{'\n'}
-                    Join a group to see their posts!
-                  </Text>
-                }
-              />
-            }
-          />
+          <>
+            <GroupsCarousel />
+            <FeedWithHook
+              key={`groups-${activeTab}`}
+              useFeedHook={useGroupsFeed}
+              ListEmptyComponent={
+                <EmptyFeedMessage
+                  message='No groups here...'
+                  submessage={
+                    <Text style={styles.emptyMessageSubtext}>
+                      You haven't joined any groups yet.{'\n'}
+                      Join a group to see their posts!
+                    </Text>
+                  }
+                />
+              }
+            />
+          </>
         );
       default:
         return (
@@ -217,7 +220,6 @@ export default function HomeScreen() {
 
   // Easiest way to make the header sticky
   const data = [
-    { key: 'groupsCarousel', type: 'groupsCarousel' },
     { key: 'tabs', type: 'tabs' },
     { key: 'feed', type: 'feed' },
   ];
@@ -226,8 +228,6 @@ export default function HomeScreen() {
     switch (item.type) {
       case 'tabs':
         return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
-      case 'groupsCarousel':
-        return <GroupsCarousel />;
       case 'feed':
         return <View>{renderFeedContent}</View>;
       default:
@@ -244,7 +244,7 @@ export default function HomeScreen() {
           data={data}
           renderItem={renderItem}
           keyExtractor={item => item.key}
-          stickyHeaderIndices={[1]} // Make the tabs (index 1) sticky
+          stickyHeaderIndices={[0]} // Make the tabs (index 0) sticky
         />
         <CreatePostButton />
       </View>
@@ -299,8 +299,9 @@ const styles = StyleSheet.create({
   },
   groupsCarouselContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
     backgroundColor: '#fff',
+    paddingTop: 8,
+    marginBottom: -16,
   },
   groupsCarouselTitle: {
     fontSize: 24,
