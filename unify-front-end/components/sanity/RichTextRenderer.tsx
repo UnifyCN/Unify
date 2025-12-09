@@ -98,9 +98,9 @@ export default function RichTextRenderer({
       fontStyle: 'normal',
       fontSize: 14,
       lineHeight: 20,
-      letterSpacing: 0, // set your token here if not 0
+      letterSpacing: 0, 
       color: '#374151',
-      marginBottom: 0,
+      marginBottom: 20, // Consistent spacing between paragraphs
     },
 
     // Lists
@@ -112,7 +112,7 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
-      marginBottom: 3,
+      marginBottom: 10, // Spacing between bullet items
       marginTop: 0,
     },
     number: {
@@ -123,7 +123,7 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
-      marginBottom: 4,
+      marginBottom: 3, // Spacing between numbered items
     },
 
     strong: {
@@ -454,7 +454,24 @@ export default function RichTextRenderer({
     });
   };
 
-  const renderBlock = (block: any, index: number, nestingLevel: number = 0) => {
+  // Helper function to check if a block is empty (skip line)
+  const isEmptyBlock = (block: any): boolean => {
+    if (block._type !== 'block' || block.listItem) return false;
+    if (!block.children || !Array.isArray(block.children)) return true;
+    
+    // Check if all children have empty or whitespace-only text
+    const hasContent = block.children.some((child: any) => {
+      if (typeof child === 'string') return child.trim().length > 0;
+      if (child._type === 'span' && child.text) {
+        return child.text.trim().length > 0;
+      }
+      return false;
+    });
+    
+    return !hasContent;
+  };
+
+  const renderBlock = (block: any, index: number, nestingLevel: number = 0, isLastInList: boolean = false, afterSkipLine: boolean = false, isFirstInList: boolean = false) => {
     if (
       block._type === 'large_input_box' ||
       block._type === 'mid_input_box' ||
@@ -463,12 +480,28 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'block') {
+      // Handle empty blocks (skip lines) - render as spacing element
+      if (isEmptyBlock(block)) {
+        return (
+          <View
+            key={block._key || index}
+            style={styles.skipLineSpacer}
+          />
+        );
+      }
+
       // Keep prev bullet/number behavior
       if (block.listItem) {
-        const listStyle =
+        const baseListStyle =
           block.listItem === 'bullet'
             ? mergedStyles.bullet
             : mergedStyles.number;
+        
+        // Remove marginBottom from last item in list to ensure consistent spacing
+        const listStyle = isLastInList
+          ? { ...baseListStyle, marginBottom: 0 }
+          : baseListStyle;
+        
         const bullet =
           block.listItem === 'bullet'
             ? '•'
@@ -484,10 +517,15 @@ export default function RichTextRenderer({
           else displayBullet = '▫';
         }
 
+        // Adjust spacing for last item in list to match paragraph spacing (20px)
+        const containerStyle = isLastInList
+          ? [styles.listItemContainer, { marginLeft: indentLevel, marginBottom: 20 }]
+          : [styles.listItemContainer, { marginLeft: indentLevel }];
+
         return (
           <View
             key={block._key || index}
-            style={[styles.listItemContainer, { marginLeft: indentLevel }]}
+            style={containerStyle}
           >
             <Text style={listStyle}>
               {displayBullet}{' '}
@@ -947,22 +985,60 @@ export default function RichTextRenderer({
 
   const nestingLevels = calculateNestingLevels(blocks);
 
+  // Helper to check if a block is the last item in a list
+  const isLastListItem = (index: number): boolean => {
+    const currentBlock = blocks[index];
+    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+      return false;
+    }
+    
+    // Check if next block is not a list item (or doesn't exist)
+    const nextBlock = blocks[index + 1];
+    return !nextBlock || nextBlock._type !== 'block' || !nextBlock.listItem;
+  };
+
+  // Helper to check if the previous block was a skip line
+  const isAfterSkipLine = (index: number): boolean => {
+    if (index === 0) return false;
+    const previousBlock = blocks[index - 1];
+    return previousBlock && isEmptyBlock(previousBlock);
+  };
+
+  // Helper to check if this is the first item in a list (after a skip line or paragraph)
+  const isFirstListItem = (index: number): boolean => {
+    const currentBlock = blocks[index];
+    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+      return false;
+    }
+    
+    // Check if previous block is not a list item
+    if (index === 0) return true;
+    const previousBlock = blocks[index - 1];
+    return !previousBlock || previousBlock._type !== 'block' || !previousBlock.listItem;
+  };
+
   return (
     <View style={styles.container}>
       {blocks
-        .map((block, index) => (
-          <React.Fragment key={block._key || index}>
-            {renderBlock(block, index, nestingLevels[block._key || index] || 0)}
-          </React.Fragment>
-        ))
+        .map((block, index) => {
+          const isLastInList = isLastListItem(index);
+          const afterSkipLine = isAfterSkipLine(index);
+          const isFirstInList = isFirstListItem(index);
+          return (
+            <React.Fragment key={block._key || index}>
+              {renderBlock(block, index, nestingLevels[block._key || index] || 0, isLastInList, afterSkipLine, isFirstInList)}
+            </React.Fragment>
+          );
+        })
         .filter(Boolean)}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  listItemContainer: { marginBottom: 4 },
+  container: { flex: 1 }, // No gap - spacing handled by individual block margins
+  listItemContainer: { marginBottom: 0 }, // Spacing between list items handled by bullet marginBottom
+  skipLineSpacer: { height: 20, marginBottom: 0 }, // Skip lines create consistent 20px spacing
   inputFieldContainer: {
     marginVertical: 12,
     borderWidth: 1,
