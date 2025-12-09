@@ -102,7 +102,7 @@ const GroupsCarousel = memo(() => {
                 </View>
               </ImageBackground>
             </TouchableOpacity>
-            {index === Math.max(groupsArray.length - 1, 1) && (
+            {index === groupsArray.length - 1 && (
               // TODO: Clicking on the view more cards doesnt do anything
               <View style={styles.viewMoreCardWrapper}>
                 <View style={styles.viewMoreContent}>
