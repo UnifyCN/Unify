@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,14 @@ import {
   TouchableOpacity,
   Linking,
   TextInput,
+  Modal,
+  Dimensions,
+  ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 
 interface RichTextRendererProps {
   blocks: any[];
@@ -34,6 +39,13 @@ export default function RichTextRenderer({
   showQuestionFeedback = false,
 }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
+
+  // Image viewer modal state
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
 
   // Create numbering map for ordered lists (keep prev behavior)
   const createNumberingMap = (blocks: any[]) => {
@@ -668,7 +680,15 @@ export default function RichTextRenderer({
       return (
         <View key={block._key || index} style={mergedStyles.imageSection}>
           {imageUrl ? (
-            <Image source={{ uri: imageUrl }} style={mergedStyles.image} />
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedImage(imageUrl);
+                setImageZoom(1);
+              }}
+              activeOpacity={0.9}
+            >
+              <Image source={{ uri: imageUrl }} style={mergedStyles.image} />
+            </TouchableOpacity>
           ) : (
             <View style={mergedStyles.imagePlaceholder}>
               <Text style={mergedStyles.imagePlaceholderText}>Image</Text>
@@ -1018,6 +1038,20 @@ export default function RichTextRenderer({
     return !previousBlock || previousBlock._type !== 'block' || !previousBlock.listItem;
   };
 
+  const handleZoomIn = () => {
+    setImageZoom(prev => Math.min(prev + 0.5, 5)); // Max 5x zoom
+  };
+
+  const handleZoomOut = () => {
+    setImageZoom(prev => Math.max(prev - 0.5, 0.5)); // Min 0.5x zoom
+  };
+
+  const handleCloseImageModal = () => {
+    setSelectedImage(null);
+    setImageZoom(1);
+    setImageDimensions(null);
+  };
+
   return (
     <View style={styles.container}>
       {blocks
@@ -1032,6 +1066,90 @@ export default function RichTextRenderer({
           );
         })
         .filter(Boolean)}
+
+      {/* Image Viewer Modal */}
+      <Modal
+        visible={selectedImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseImageModal}
+      >
+        <SafeAreaView style={styles.imageModalOverlay}>
+          {/* Top bar with close button and zoom controls */}
+          <View style={styles.imageModalHeader}>
+            <TouchableOpacity
+              onPress={handleCloseImageModal}
+              style={styles.imageModalCloseButton}
+            >
+              <Feather name="x" size={20} color="#878787" />
+            </TouchableOpacity>
+            <View style={styles.imageModalZoomControls}>
+              <TouchableOpacity
+                onPress={handleZoomOut}
+                style={styles.imageModalZoomButton}
+                disabled={imageZoom <= 0.5}
+              >
+                <Feather
+                  name="zoom-out"
+                  size={20}
+                  color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleZoomIn}
+                style={styles.imageModalZoomButton}
+                disabled={imageZoom >= 5}
+              >
+                <Feather
+                  name="zoom-in"
+                  size={20}
+                  color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Scrollable image container */}
+          <ScrollView
+            contentContainerStyle={styles.imageModalScrollContent}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            bounces={true}
+          >
+            {selectedImage && (
+              <View
+                style={{
+                  transform: [{ scale: imageZoom }],
+                }}
+              >
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={[
+                    styles.imageModalImage,
+                    imageDimensions
+                      ? {
+                          width: imageDimensions.width,
+                          height: imageDimensions.height,
+                        }
+                      : {
+                          width: screenWidth,
+                          height: screenHeight * 0.7,
+                        },
+                  ]}
+                  resizeMode="contain"
+                  onLoad={(e) => {
+                    const { width, height } = e.nativeEvent.source;
+                    if (width && height) {
+                      // Use full original image dimensions (no size limits)
+                      setImageDimensions({ width, height });
+                    }
+                  }}
+                />
+              </View>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 }
@@ -1285,5 +1403,43 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     width: '100%',
+  },
+
+  // Image viewer modal styles
+  imageModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+  },
+  imageModalHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    zIndex: 10,
+  },
+  imageModalCloseButton: {
+    padding: 4,
+  },
+  imageModalZoomControls: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  imageModalZoomButton: {
+    padding: 4,
+  },
+  imageModalScrollContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: Dimensions.get('window').height,
+  },
+  imageModalImage: {
+    // Width and height set dynamically based on zoom
   },
 });
