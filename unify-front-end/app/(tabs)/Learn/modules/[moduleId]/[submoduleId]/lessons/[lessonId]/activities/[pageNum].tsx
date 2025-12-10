@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 353, // Figma width
     maxWidth: '100%',
-    minHeight: 80, // Figma baseline, still grows with content
+    minHeight: 30, // Match one line height (lineHeight: 20), grows with content
     marginTop: 0,
     marginBottom: 30,
   },
