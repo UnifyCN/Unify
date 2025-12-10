@@ -216,11 +216,12 @@ export default function RichTextRenderer({
       borderLeftColor: '#3F3F3F',
       paddingLeft: 15,
       paddingRight: 0,
-      paddingVertical: 0,
+      paddingTop: 5, // 5px margin on top
+      paddingBottom: 5, // 5px margin on bottom
       alignSelf: 'center',
       width: 353,
       maxWidth: '100%',
-      minHeight: 40, // adaptable; grows with content
+      minHeight: 30, // 5px top + 20px (one line) + 5px bottom = 30px minimum
       marginTop: 0,
       marginBottom: 30,
     },
