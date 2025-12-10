@@ -762,14 +762,14 @@ export default function RichTextRenderer({
                 marginBottom: 30,
               },
               isLarge && { height: 300, textAlignVertical: 'top' },
-              isMid && { height: 150, textAlignVertical: 'top' },
-              isSmall && { height: 80 },
+              isMid && { height: 160, textAlignVertical: 'top' },
+              isSmall && { height: 60, textAlignVertical: 'top' },
             ]}
             placeholder={(block.placeholder = 'Type Here')}
             value={inputValues[block._key] || ''}
             onChangeText={value => onInputChange?.(block._key, value)}
-            multiline={isLarge}
-            numberOfLines={isLarge ? 4 : 1}
+            multiline={true}
+            numberOfLines={isLarge ? 10 : isMid ? 6 : 3}
           />
         </View>
       );
