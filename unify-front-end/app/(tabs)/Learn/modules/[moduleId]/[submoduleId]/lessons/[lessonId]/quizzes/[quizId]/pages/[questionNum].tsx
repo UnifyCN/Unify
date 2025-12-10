@@ -466,13 +466,6 @@ export default function QuizQuestionPage() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Question counter */}
-        <View style={styles.questionCounterContainer}>
-          <Text style={styles.questionCounter}>
-            Question {currentQuestionIndex + 1} of {totalQuestions}
-          </Text>
-        </View>
-
         {/* Question Content */}
         <View style={styles.content}>
           {/* Quiz Title */}
