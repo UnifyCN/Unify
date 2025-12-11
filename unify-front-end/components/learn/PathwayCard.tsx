@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Blob3 from '../../assets/images/Blob3.svg';
 
 type Props = {
   title: string;
@@ -37,6 +38,15 @@ export default function PathwayCard({
   const CardInner = (
     <>
       <View style={[styles.banner, { backgroundColor }]}>
+        {/* Blob3 background overlay */}
+        <View style={styles.blobContainer}>
+          <Blob3 
+            width={160} 
+            height={160}
+            fill="#FFFFFF"
+            opacity={0.3}
+          />
+        </View>
         <View style={styles.iconContainer}>
           <MaterialCommunityIcons name={iconName as any} size={32} color="#FFFFFF" />
         </View>
@@ -88,6 +98,16 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     position: 'relative',
     justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  blobContainer: {
+    position: 'absolute',
+    top: -58,
+    right: -70,
+    width: 160,
+    height: 160,
+    overflow: 'hidden',
+    transform: [{ rotate: '-40deg' }],
   },
   iconContainer: {
     position: 'absolute',
