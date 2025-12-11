@@ -62,7 +62,7 @@ export default function ModuleIndex() {
   } = useSanityModuleWithSubmodules(moduleId || '');
 
   // Progress tracking
-  const { moduleProgress, isLoading: progressLoading } = useModuleProgress(
+  const { moduleProgress, isLoading: progressLoading, refreshProgress } = useModuleProgress(
     moduleId || ''
   );
   const [submoduleProgresses, setSubmoduleProgresses] = useState<{
@@ -71,6 +71,7 @@ export default function ModuleIndex() {
   const [submoduleHrefs, setSubmoduleHrefs] = useState<{
     [key: string]: string;
   }>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Disclaimer modal state
   const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -348,31 +349,54 @@ export default function ModuleIndex() {
     useCallback(() => {
       let cancelled = false;
       const run = async () => {
-        if (!moduleData?.submodules) return;
-        const progressData: { [key: string]: any } = {};
-        for (const submodule of moduleData.submodules) {
-          try {
-            progressData[submodule._id] =
-              await cachedProgressService.getSubmoduleProgress(
-                moduleId || '',
-                submodule._id
-              );
-          } catch {
-            progressData[submodule._id] = {
-              is_completed: false,
-              progress_percent: 0,
-              completed_lessons: 0,
-              total_lessons: submodule.lessons?.length || 0,
-            };
-          }
+        // Set loading state
+        if (!cancelled) {
+          setIsRefreshing(true);
         }
-        if (!cancelled) setSubmoduleProgresses(progressData);
+        
+        try {
+          // Refresh overall module progress
+          if (!cancelled) {
+            await refreshProgress();
+          }
+          
+          if (!moduleData?.submodules) {
+            if (!cancelled) setIsRefreshing(false);
+            return;
+          }
+          
+          const progressData: { [key: string]: any } = {};
+          for (const submodule of moduleData.submodules) {
+            try {
+              progressData[submodule._id] =
+                await cachedProgressService.getSubmoduleProgress(
+                  moduleId || '',
+                  submodule._id
+                );
+            } catch {
+              progressData[submodule._id] = {
+                is_completed: false,
+                progress_percent: 0,
+                completed_lessons: 0,
+                total_lessons: submodule.lessons?.length || 0,
+              };
+            }
+          }
+          if (!cancelled) {
+            setSubmoduleProgresses(progressData);
+            setIsRefreshing(false);
+          }
+        } catch (error) {
+          console.error('Error refreshing progress:', error);
+          if (!cancelled) setIsRefreshing(false);
+        }
       };
       run();
       return () => {
         cancelled = true;
+        setIsRefreshing(false);
       };
-    }, [moduleId, moduleData?.submodules])
+    }, [moduleId, moduleData?.submodules, refreshProgress])
   );
 
   // rail start/end calculations
@@ -447,7 +471,7 @@ export default function ModuleIndex() {
     return Math.max(0, railEnd - progressBottom);
   }, [railEnd, progressBottom]);
 
-  if (isLoading || progressLoading) {
+  if (isLoading || progressLoading || isRefreshing) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.centered}>

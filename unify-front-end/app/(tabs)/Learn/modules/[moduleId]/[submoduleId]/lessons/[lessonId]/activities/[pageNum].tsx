@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions,
-  Keyboard,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -37,7 +34,6 @@ export default function ActivityPageScreen() {
     [key: string]: string | string[];
   }>({});
   const [isSaving, setIsSaving] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -112,61 +108,6 @@ export default function ActivityPageScreen() {
     answer: string | string[]
   ) => {
     setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
-  };
-
-  // Track keyboard height
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-      }
-    );
-    const keyboardWillHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        setKeyboardHeight(0);
-      }
-    );
-
-    return () => {
-      keyboardWillShowListener.remove();
-      keyboardWillHideListener.remove();
-    };
-  }, []);
-
-  // Handle input focus - scroll to center the input in the visible viewport
-  const handleInputFocus = (inputY: number, inputHeight: number) => {
-    if (!scrollViewRef.current) return;
-
-    // Use a small delay to ensure keyboard has started appearing and measurements are accurate
-    setTimeout(() => {
-      if (!scrollViewRef.current) return;
-
-      // Get screen dimensions
-      const screenHeight = Dimensions.get('window').height;
-      
-      // Use tracked keyboard height, or fallback to estimate
-      const currentKeyboardHeight = keyboardHeight || screenHeight * 0.35;
-
-      const headerHeight = 80;
-      const bottomNavHeight = 83 + 100;
-
-      const visibleViewportHeight = screenHeight - currentKeyboardHeight - headerHeight - bottomNavHeight;
-
-      const inputCenterY = inputY + (inputHeight / 2);
-      const visibleViewportCenter = headerHeight + (visibleViewportHeight / 2);
-
-      const targetScrollY = inputCenterY - visibleViewportCenter;
-      
-      // Scroll to center the input in the visible viewport
-      scrollViewRef.current.scrollTo({
-        y: Math.max(0, targetScrollY),
-        animated: true,
-      });
-    }, Platform.OS === 'ios' ? 250 : 100);
   };
 
   const handleSubmit = async () => {
@@ -340,43 +281,25 @@ export default function ActivityPageScreen() {
         onClose={() => setShowExitModal(true)}
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Page indicator */}
-          {totalPages > 1 && (
-            <View style={styles.pageIndicatorContainer}>
-              <Text style={styles.pageIndicator}>
-                Activity {currentPage} of {totalPages}
-              </Text>
-            </View>
-          )}
+        {/* Page title */}
+        <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
-          {/* Page title */}
-          <Text style={styles.pageTitle}>{currentPageData.title}</Text>
-
-          {/* Instructions with embedded input fields and questions */}
-          <View style={styles.instructionsContainer}>
-            <RichTextRenderer
-              blocks={currentPageData.instructions || []}
-              markDefs={currentPageData.instructionsMarkDefs}
-              inputValues={inputValues}
-              onInputChange={handleInputChange}
-              questionAnswers={questionAnswers}
-              onQuestionAnswer={handleQuestionAnswer}
-              showQuestionFeedback={isSubmitted}
-              scrollViewRef={scrollViewRef}
-              onInputFocus={handleInputFocus}
-            />
-          </View>
+        {/* Instructions with embedded input fields and questions */}
+        <View style={styles.instructionsContainer}>
+          <RichTextRenderer
+            blocks={currentPageData.instructions || []}
+            markDefs={currentPageData.instructionsMarkDefs}
+            inputValues={inputValues}
+            onInputChange={handleInputChange}
+            questionAnswers={questionAnswers}
+            onQuestionAnswer={handleQuestionAnswer}
+            showQuestionFeedback={isSubmitted}
+          />
+        </View>
 
         {/* Answer box (if available and submitted) */}
         {currentPageData.answer_box && isSubmitted && (
@@ -423,8 +346,7 @@ export default function ActivityPageScreen() {
             />
           </View>
         )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </ScrollView>
 
       {/* Navigation buttons - anchored at bottom */}
       <View style={styles.navigationContainer}>
@@ -452,6 +374,42 @@ export default function ActivityPageScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Exit modal */}
+      <Modal
+        visible={showExitModal}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setShowExitModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              Take a break from this activity?
+            </Text>
+            <Text style={styles.modalDesc}>
+              No worries, your progress will be saved!{'\n'}
+              You can pick up right where you left off.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={handleSaveAndLeave}
+            >
+              <Text style={styles.modalPrimaryBtnText}>
+                Save progress & leave
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={handleContinue}
+            >
+              <Text style={styles.modalSecondaryBtnText}>Continue Activity</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -535,7 +493,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 353, // Figma width
     maxWidth: '100%',
-    minHeight: 80, // Figma baseline, still grows with content
+    minHeight: 30, // Match one line height (lineHeight: 20), grows with content
     marginTop: 0,
     marginBottom: 30,
   },
@@ -593,5 +551,61 @@ const styles = StyleSheet.create({
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   nextBtnDisabled: {
     opacity: 0.7,
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalPrimaryBtn: {
+    width: '100%',
+    backgroundColor: '#575757',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalPrimaryBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSecondaryBtn: {
+    width: '100%',
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalSecondaryBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

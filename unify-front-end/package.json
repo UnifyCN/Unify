@@ -19,6 +19,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.908.0",
     "@expo/vector-icons": "^14.0.2",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-google-signin/google-signin": "^15.0.0",
     "@react-navigation/native": "^7.0.0",

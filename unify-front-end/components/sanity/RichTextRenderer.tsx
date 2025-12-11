@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,14 @@ import {
   TouchableOpacity,
   Linking,
   TextInput,
-  findNodeHandle,
-  UIManager,
+  Modal,
+  Dimensions,
+  ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 
 interface RichTextRendererProps {
   blocks: any[];
@@ -23,8 +26,6 @@ interface RichTextRendererProps {
   questionAnswers?: { [key: string]: string | string[] };
   onQuestionAnswer?: (questionKey: string, answer: string | string[]) => void;
   showQuestionFeedback?: boolean;
-  scrollViewRef?: React.RefObject<any>;
-  onInputFocus?: (y: number, height: number) => void;
 }
 
 export default function RichTextRenderer({
@@ -36,9 +37,14 @@ export default function RichTextRenderer({
   questionAnswers = {},
   onQuestionAnswer,
   showQuestionFeedback = false,
-  scrollViewRef,
-  onInputFocus,
 }: RichTextRendererProps) {
+  // Image viewer modal state
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+
   if (!blocks || !Array.isArray(blocks)) return null;
 
   // Create numbering map for ordered lists (keep prev behavior)
@@ -104,9 +110,9 @@ export default function RichTextRenderer({
       fontStyle: 'normal',
       fontSize: 14,
       lineHeight: 20,
-      letterSpacing: 0, // set your token here if not 0
+      letterSpacing: 0, 
       color: '#374151',
-      marginBottom: 0,
+      marginBottom: 5, // Consistent spacing between paragraphs
     },
 
     // Lists
@@ -118,7 +124,7 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
-      marginBottom: 3,
+      marginBottom: 10, // Spacing between bullet items
       marginTop: 0,
     },
     number: {
@@ -129,7 +135,7 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
-      marginBottom: 4,
+      marginBottom: 3, // Spacing between numbered items
     },
 
     strong: {
@@ -222,11 +228,12 @@ export default function RichTextRenderer({
       borderLeftColor: '#3F3F3F',
       paddingLeft: 15,
       paddingRight: 0,
-      paddingVertical: 0,
+      paddingTop: 5, // 5px margin on top
+      paddingBottom: 5, // 5px margin on bottom
       alignSelf: 'center',
       width: 353,
       maxWidth: '100%',
-      minHeight: 40, // adaptable; grows with content
+      minHeight: 30, // 5px top + 20px (one line) + 5px bottom = 30px minimum
       marginTop: 0,
       marginBottom: 30,
     },
@@ -460,7 +467,24 @@ export default function RichTextRenderer({
     });
   };
 
-  const renderBlock = (block: any, index: number, nestingLevel: number = 0) => {
+  // Helper function to check if a block is empty (skip line)
+  const isEmptyBlock = (block: any): boolean => {
+    if (block._type !== 'block' || block.listItem) return false;
+    if (!block.children || !Array.isArray(block.children)) return true;
+    
+    // Check if all children have empty or whitespace-only text
+    const hasContent = block.children.some((child: any) => {
+      if (typeof child === 'string') return child.trim().length > 0;
+      if (child._type === 'span' && child.text) {
+        return child.text.trim().length > 0;
+      }
+      return false;
+    });
+    
+    return !hasContent;
+  };
+
+  const renderBlock = (block: any, index: number, nestingLevel: number = 0, isLastInList: boolean = false, afterSkipLine: boolean = false, isFirstInList: boolean = false) => {
     if (
       block._type === 'large_input_box' ||
       block._type === 'mid_input_box' ||
@@ -469,12 +493,28 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'block') {
+      // Handle empty blocks (skip lines) - render as spacing element
+      if (isEmptyBlock(block)) {
+        return (
+          <View
+            key={block._key || index}
+            style={styles.skipLineSpacer}
+          />
+        );
+      }
+
       // Keep prev bullet/number behavior
       if (block.listItem) {
-        const listStyle =
+        const baseListStyle =
           block.listItem === 'bullet'
             ? mergedStyles.bullet
             : mergedStyles.number;
+        
+        // Remove marginBottom from last item in list to ensure consistent spacing
+        const listStyle = isLastInList
+          ? { ...baseListStyle, marginBottom: 0 }
+          : baseListStyle;
+        
         const bullet =
           block.listItem === 'bullet'
             ? '•'
@@ -490,10 +530,15 @@ export default function RichTextRenderer({
           else displayBullet = '▫';
         }
 
+        // Adjust spacing for last item in list to match paragraph spacing (20px)
+        const containerStyle = isLastInList
+          ? [styles.listItemContainer, { marginLeft: indentLevel, marginBottom: 20 }]
+          : [styles.listItemContainer, { marginLeft: indentLevel }];
+
         return (
           <View
             key={block._key || index}
-            style={[styles.listItemContainer, { marginLeft: indentLevel }]}
+            style={containerStyle}
           >
             <Text style={listStyle}>
               {displayBullet}{' '}
@@ -635,7 +680,15 @@ export default function RichTextRenderer({
       return (
         <View key={block._key || index} style={mergedStyles.imageSection}>
           {imageUrl ? (
-            <Image source={{ uri: imageUrl }} style={mergedStyles.image} />
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedImage(imageUrl);
+                setImageZoom(1);
+              }}
+              activeOpacity={0.9}
+            >
+              <Image source={{ uri: imageUrl }} style={mergedStyles.image} />
+            </TouchableOpacity>
           ) : (
             <View style={mergedStyles.imagePlaceholder}>
               <Text style={mergedStyles.imagePlaceholderText}>Image</Text>
@@ -711,17 +764,12 @@ export default function RichTextRenderer({
       const isMid = block._type === 'mid_input_box';
       const isSmall = block._type === 'small_input_box';
 
-      let inputTextInputRef: TextInput | null = null;
-
       return (
         <View
           key={block._key || index}
           style={mergedStyles.inputFieldContainer}
         >
           <TextInput
-            ref={(ref) => {
-              inputTextInputRef = ref;
-            }}
             style={[
               {
                 borderWidth: 1,
@@ -735,64 +783,14 @@ export default function RichTextRenderer({
                 marginBottom: 30,
               },
               isLarge && { height: 300, textAlignVertical: 'top' },
-              isMid && { height: 150, textAlignVertical: 'top' },
-              isSmall && { height: 80 },
+              isMid && { height: 160, textAlignVertical: 'top' },
+              isSmall && { height: 60, textAlignVertical: 'top' },
             ]}
             placeholder={(block.placeholder = 'Type Here')}
             value={inputValues[block._key] || ''}
             onChangeText={value => onInputChange?.(block._key, value)}
-            multiline={isLarge}
-            numberOfLines={isLarge ? 4 : 1}
-            onFocus={() => {
-              // Measure the actual TextInput position relative to ScrollView
-              if (inputTextInputRef && scrollViewRef?.current) {
-                const scrollViewHandle = findNodeHandle(scrollViewRef.current);
-                const textInputHandle = findNodeHandle(inputTextInputRef);
-                if (scrollViewHandle && textInputHandle) {
-                  // Use UIManager.measureLayout for proper native component measurement
-                  UIManager.measureLayout(
-                    textInputHandle,
-                    scrollViewHandle,
-                    () => {
-                      // Error callback - fallback to measure
-                      inputTextInputRef?.measure((x, y, width, height, pageX, pageY) => {
-                        // Try to get ScrollView position to calculate relative Y
-                        if (scrollViewRef.current) {
-                          const scrollViewHandle = findNodeHandle(scrollViewRef.current);
-                          if (scrollViewHandle) {
-                            // Measure ScrollView position
-                            (scrollViewRef.current as any).measure?.((sx: number, sy: number, sw: number, sh: number, spx: number, spy: number) => {
-                              const relativeY = pageY - spy;
-                              onInputFocus?.(relativeY, height);
-                            });
-                          } else {
-                            // Last resort: use pageY (absolute position)
-                            onInputFocus?.(pageY, height);
-                          }
-                        } else {
-                          onInputFocus?.(pageY, height);
-                        }
-                      });
-                    },
-                    (x, y, width, height) => {
-                      // Success callback - y is now relative to ScrollView content
-                      // y is the top of the TextInput relative to ScrollView content
-                      onInputFocus?.(y, height);
-                    }
-                  );
-                } else if (inputTextInputRef) {
-                  // Fallback if handles can't be obtained
-                  inputTextInputRef.measure((x, y, width, height, pageX, pageY) => {
-                    onInputFocus?.(pageY, height);
-                  });
-                }
-              } else if (inputTextInputRef) {
-                // Fallback if no scrollViewRef provided
-                inputTextInputRef.measure((x, y, width, height, pageX, pageY) => {
-                  onInputFocus?.(pageY, height);
-                });
-              }
-            }}
+            multiline={true}
+            numberOfLines={isLarge ? 10 : isMid ? 6 : 3}
           />
         </View>
       );
@@ -1008,22 +1006,158 @@ export default function RichTextRenderer({
 
   const nestingLevels = calculateNestingLevels(blocks);
 
+  // Helper to check if a block is the last item in a list
+  const isLastListItem = (index: number): boolean => {
+    const currentBlock = blocks[index];
+    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+      return false;
+    }
+    
+    // Check if next block is not a list item (or doesn't exist)
+    const nextBlock = blocks[index + 1];
+    return !nextBlock || nextBlock._type !== 'block' || !nextBlock.listItem;
+  };
+
+  // Helper to check if the previous block was a skip line
+  const isAfterSkipLine = (index: number): boolean => {
+    if (index === 0) return false;
+    const previousBlock = blocks[index - 1];
+    return previousBlock && isEmptyBlock(previousBlock);
+  };
+
+  // Helper to check if this is the first item in a list (after a skip line or paragraph)
+  const isFirstListItem = (index: number): boolean => {
+    const currentBlock = blocks[index];
+    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+      return false;
+    }
+    
+    // Check if previous block is not a list item
+    if (index === 0) return true;
+    const previousBlock = blocks[index - 1];
+    return !previousBlock || previousBlock._type !== 'block' || !previousBlock.listItem;
+  };
+
+  const handleZoomIn = () => {
+    setImageZoom(prev => Math.min(prev + 0.5, 5)); // Max 5x zoom
+  };
+
+  const handleZoomOut = () => {
+    setImageZoom(prev => Math.max(prev - 0.5, 0.5)); // Min 0.5x zoom
+  };
+
+  const handleCloseImageModal = () => {
+    setSelectedImage(null);
+    setImageZoom(1);
+    setImageDimensions(null);
+  };
+
   return (
     <View style={styles.container}>
       {blocks
-        .map((block, index) => (
-          <React.Fragment key={block._key || index}>
-            {renderBlock(block, index, nestingLevels[block._key || index] || 0)}
-          </React.Fragment>
-        ))
+        .map((block, index) => {
+          const isLastInList = isLastListItem(index);
+          const afterSkipLine = isAfterSkipLine(index);
+          const isFirstInList = isFirstListItem(index);
+          return (
+            <React.Fragment key={block._key || index}>
+              {renderBlock(block, index, nestingLevels[block._key || index] || 0, isLastInList, afterSkipLine, isFirstInList)}
+            </React.Fragment>
+          );
+        })
         .filter(Boolean)}
+
+      {/* Image Viewer Modal */}
+      <Modal
+        visible={selectedImage !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseImageModal}
+      >
+        <SafeAreaView style={styles.imageModalOverlay}>
+          {/* Top bar with close button and zoom controls */}
+          <View style={styles.imageModalHeader}>
+            <TouchableOpacity
+              onPress={handleCloseImageModal}
+              style={styles.imageModalCloseButton}
+            >
+              <Feather name="x" size={20} color="#878787" />
+            </TouchableOpacity>
+            <View style={styles.imageModalZoomControls}>
+              <TouchableOpacity
+                onPress={handleZoomOut}
+                style={styles.imageModalZoomButton}
+                disabled={imageZoom <= 0.5}
+              >
+                <Feather
+                  name="zoom-out"
+                  size={20}
+                  color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleZoomIn}
+                style={styles.imageModalZoomButton}
+                disabled={imageZoom >= 5}
+              >
+                <Feather
+                  name="zoom-in"
+                  size={20}
+                  color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Scrollable image container */}
+          <ScrollView
+            contentContainerStyle={styles.imageModalScrollContent}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            bounces={true}
+          >
+            {selectedImage && (
+              <View
+                style={{
+                  transform: [{ scale: imageZoom }],
+                }}
+              >
+                <Image
+                  source={{ uri: selectedImage }}
+                  style={[
+                    styles.imageModalImage,
+                    imageDimensions
+                      ? {
+                          width: imageDimensions.width,
+                          height: imageDimensions.height,
+                        }
+                      : {
+                          width: screenWidth,
+                          height: screenHeight * 0.7,
+                        },
+                  ]}
+                  resizeMode="contain"
+                  onLoad={(e) => {
+                    const { width, height } = e.nativeEvent.source;
+                    if (width && height) {
+                      // Use full original image dimensions (no size limits)
+                      setImageDimensions({ width, height });
+                    }
+                  }}
+                />
+              </View>
+            )}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  listItemContainer: { marginBottom: 4 },
+  container: { flex: 1 }, // No gap - spacing handled by individual block margins
+  listItemContainer: { marginBottom: 0 }, // Spacing between list items handled by bullet marginBottom
+  skipLineSpacer: { height: 20, marginBottom: 0 }, // Skip lines create consistent 20px spacing
   inputFieldContainer: {
     marginVertical: 12,
     borderWidth: 1,
@@ -1269,5 +1403,43 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     width: '100%',
+  },
+
+  // Image viewer modal styles
+  imageModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+  },
+  imageModalHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    zIndex: 10,
+  },
+  imageModalCloseButton: {
+    padding: 4,
+  },
+  imageModalZoomControls: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  imageModalZoomButton: {
+    padding: 4,
+  },
+  imageModalScrollContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: Dimensions.get('window').height,
+  },
+  imageModalImage: {
+    // Width and height set dynamically based on zoom
   },
 });

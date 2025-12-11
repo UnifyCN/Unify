@@ -1,36 +1,52 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import type { LinkProps } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 type Props = {
   title: string;
   modulesLabel: string;
   href?: LinkProps['href'];
-  coverImageUrl?: string;
+  colorTheme?: string;
+  icon?: string;
+};
+
+// Map Material UI icon names to MaterialCommunityIcons outline variants
+const mapIconName = (iconName: string): string => {
+  const iconMap: { [key: string]: string } = {
+    AccountBalanceOutlined: 'bank-outline',
+    AssignmentIndOutlined: 'account-tie-outline',
+    CottageOutlined: 'home-outline',
+    ArticleOutlined: 'file-document-outline',
+    PassportOutlined: 'passport',
+  };
+  return iconMap[iconName] || 'bank-outline';
 };
 
 export default function PathwayCard({
   title,
   modulesLabel,
   href,
-  coverImageUrl,
+  colorTheme,
+  icon,
 }: Props) {
+  const backgroundColor = colorTheme || '#d9d9d9';
+  const iconName = mapIconName(icon || 'AccountBalanceOutlined');
+
   const CardInner = (
     <>
-      <View style={styles.banner}>
-        {coverImageUrl ? (
-          <Image
-            source={{ uri: coverImageUrl }}
-            style={styles.bannerImage}
-            resizeMode='cover'
-          />
-        ) : null}
+      <View style={[styles.banner, { backgroundColor }]}>
+        <View style={styles.iconContainer}>
+          <MaterialCommunityIcons name={iconName as any} size={32} color="#FFFFFF" />
+        </View>
+        <View style={styles.contentContainer}>
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+          <Text style={styles.meta}>{modulesLabel}</Text>
+        </View>
       </View>
-      <Text style={styles.title} numberOfLines={2}>
-        {title}
-      </Text>
-      <Text style={styles.meta}>{modulesLabel}</Text>
     </>
   );
 
@@ -49,13 +65,14 @@ export default function PathwayCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: '48%',
+    width: 172,
+    height: 118,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#fff',
     paddingTop: 0,
-    paddingHorizontal: 12,
-    paddingBottom: 12,
+    paddingHorizontal: 0,
+    paddingBottom: 0,
     shadowColor: '#575757',
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -63,21 +80,38 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   banner: {
-    height: 100,
-    // make banner flush with card edges
-    marginHorizontal: -12,
-    backgroundColor: '#d9d9d9',
-    marginBottom: 12,
-    overflow: 'hidden',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  bannerImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 20,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    position: 'relative',
+    justifyContent: 'flex-end',
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#000', marginBottom: 6 },
-  meta: { fontSize: 12, color: '#000' },
+  iconContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 16,
+    zIndex: 1,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  contentContainer: {
+    marginTop: 'auto',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 0,
+    lineHeight: 24,
+  },
+  meta: {
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
 });
