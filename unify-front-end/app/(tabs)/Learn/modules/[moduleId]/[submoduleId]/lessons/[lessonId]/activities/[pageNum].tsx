@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,10 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
+  Keyboard,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -33,6 +37,7 @@ export default function ActivityPageScreen() {
     [key: string]: string | string[];
   }>({});
   const [isSaving, setIsSaving] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -107,6 +112,61 @@ export default function ActivityPageScreen() {
     answer: string | string[]
   ) => {
     setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
+  };
+
+  // Track keyboard height
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      (e) => {
+        setKeyboardHeight(e.endCoordinates.height);
+      }
+    );
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
+        setKeyboardHeight(0);
+      }
+    );
+
+    return () => {
+      keyboardWillShowListener.remove();
+      keyboardWillHideListener.remove();
+    };
+  }, []);
+
+  // Handle input focus - scroll to center the input in the visible viewport
+  const handleInputFocus = (inputY: number, inputHeight: number) => {
+    if (!scrollViewRef.current) return;
+
+    // Use a small delay to ensure keyboard has started appearing and measurements are accurate
+    setTimeout(() => {
+      if (!scrollViewRef.current) return;
+
+      // Get screen dimensions
+      const screenHeight = Dimensions.get('window').height;
+      
+      // Use tracked keyboard height, or fallback to estimate
+      const currentKeyboardHeight = keyboardHeight || screenHeight * 0.35;
+
+      const headerHeight = 80;
+      const bottomNavHeight = 83 + 100;
+
+      const visibleViewportHeight = screenHeight - currentKeyboardHeight - headerHeight - bottomNavHeight;
+
+      const inputCenterY = inputY + (inputHeight / 2);
+      const visibleViewportCenter = headerHeight + (visibleViewportHeight / 2);
+
+      const targetScrollY = inputCenterY - visibleViewportCenter;
+      
+      // Scroll to center the input in the visible viewport
+      scrollViewRef.current.scrollTo({
+        y: Math.max(0, targetScrollY),
+        animated: true,
+      });
+    }, Platform.OS === 'ios' ? 250 : 100);
   };
 
   const handleSubmit = async () => {
@@ -280,34 +340,43 @@ export default function ActivityPageScreen() {
         onClose={() => setShowExitModal(true)}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
-        {/* Page indicator */}
-        {totalPages > 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              Activity {currentPage} of {totalPages}
-            </Text>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Page indicator */}
+          {totalPages > 1 && (
+            <View style={styles.pageIndicatorContainer}>
+              <Text style={styles.pageIndicator}>
+                Activity {currentPage} of {totalPages}
+              </Text>
+            </View>
+          )}
+
+          {/* Page title */}
+          <Text style={styles.pageTitle}>{currentPageData.title}</Text>
+
+          {/* Instructions with embedded input fields and questions */}
+          <View style={styles.instructionsContainer}>
+            <RichTextRenderer
+              blocks={currentPageData.instructions || []}
+              markDefs={currentPageData.instructionsMarkDefs}
+              inputValues={inputValues}
+              onInputChange={handleInputChange}
+              questionAnswers={questionAnswers}
+              onQuestionAnswer={handleQuestionAnswer}
+              showQuestionFeedback={isSubmitted}
+              scrollViewRef={scrollViewRef}
+              onInputFocus={handleInputFocus}
+            />
           </View>
-        )}
-
-        {/* Page title */}
-        <Text style={styles.pageTitle}>{currentPageData.title}</Text>
-
-        {/* Instructions with embedded input fields and questions */}
-        <View style={styles.instructionsContainer}>
-          <RichTextRenderer
-            blocks={currentPageData.instructions || []}
-            markDefs={currentPageData.instructionsMarkDefs}
-            inputValues={inputValues}
-            onInputChange={handleInputChange}
-            questionAnswers={questionAnswers}
-            onQuestionAnswer={handleQuestionAnswer}
-            showQuestionFeedback={isSubmitted}
-          />
-        </View>
 
         {/* Answer box (if available and submitted) */}
         {currentPageData.answer_box && isSubmitted && (
@@ -354,7 +423,8 @@ export default function ActivityPageScreen() {
             />
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Navigation buttons - anchored at bottom */}
       <View style={styles.navigationContainer}>

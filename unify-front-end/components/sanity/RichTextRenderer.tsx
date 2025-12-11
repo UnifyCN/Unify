@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Linking,
   TextInput,
+  findNodeHandle,
+  UIManager,
 } from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
@@ -21,6 +23,8 @@ interface RichTextRendererProps {
   questionAnswers?: { [key: string]: string | string[] };
   onQuestionAnswer?: (questionKey: string, answer: string | string[]) => void;
   showQuestionFeedback?: boolean;
+  scrollViewRef?: React.RefObject<any>;
+  onInputFocus?: (y: number, height: number) => void;
 }
 
 export default function RichTextRenderer({
@@ -32,6 +36,8 @@ export default function RichTextRenderer({
   questionAnswers = {},
   onQuestionAnswer,
   showQuestionFeedback = false,
+  scrollViewRef,
+  onInputFocus,
 }: RichTextRendererProps) {
   if (!blocks || !Array.isArray(blocks)) return null;
 
@@ -705,12 +711,17 @@ export default function RichTextRenderer({
       const isMid = block._type === 'mid_input_box';
       const isSmall = block._type === 'small_input_box';
 
+      let inputTextInputRef: TextInput | null = null;
+
       return (
         <View
           key={block._key || index}
           style={mergedStyles.inputFieldContainer}
         >
           <TextInput
+            ref={(ref) => {
+              inputTextInputRef = ref;
+            }}
             style={[
               {
                 borderWidth: 1,
@@ -732,6 +743,56 @@ export default function RichTextRenderer({
             onChangeText={value => onInputChange?.(block._key, value)}
             multiline={isLarge}
             numberOfLines={isLarge ? 4 : 1}
+            onFocus={() => {
+              // Measure the actual TextInput position relative to ScrollView
+              if (inputTextInputRef && scrollViewRef?.current) {
+                const scrollViewHandle = findNodeHandle(scrollViewRef.current);
+                const textInputHandle = findNodeHandle(inputTextInputRef);
+                if (scrollViewHandle && textInputHandle) {
+                  // Use UIManager.measureLayout for proper native component measurement
+                  UIManager.measureLayout(
+                    textInputHandle,
+                    scrollViewHandle,
+                    () => {
+                      // Error callback - fallback to measure
+                      inputTextInputRef?.measure((x, y, width, height, pageX, pageY) => {
+                        // Try to get ScrollView position to calculate relative Y
+                        if (scrollViewRef.current) {
+                          const scrollViewHandle = findNodeHandle(scrollViewRef.current);
+                          if (scrollViewHandle) {
+                            // Measure ScrollView position
+                            (scrollViewRef.current as any).measure?.((sx: number, sy: number, sw: number, sh: number, spx: number, spy: number) => {
+                              const relativeY = pageY - spy;
+                              onInputFocus?.(relativeY, height);
+                            });
+                          } else {
+                            // Last resort: use pageY (absolute position)
+                            onInputFocus?.(pageY, height);
+                          }
+                        } else {
+                          onInputFocus?.(pageY, height);
+                        }
+                      });
+                    },
+                    (x, y, width, height) => {
+                      // Success callback - y is now relative to ScrollView content
+                      // y is the top of the TextInput relative to ScrollView content
+                      onInputFocus?.(y, height);
+                    }
+                  );
+                } else if (inputTextInputRef) {
+                  // Fallback if handles can't be obtained
+                  inputTextInputRef.measure((x, y, width, height, pageX, pageY) => {
+                    onInputFocus?.(pageY, height);
+                  });
+                }
+              } else if (inputTextInputRef) {
+                // Fallback if no scrollViewRef provided
+                inputTextInputRef.measure((x, y, width, height, pageX, pageY) => {
+                  onInputFocus?.(pageY, height);
+                });
+              }
+            }}
           />
         </View>
       );
