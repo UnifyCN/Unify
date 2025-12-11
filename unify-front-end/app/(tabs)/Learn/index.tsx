@@ -140,8 +140,11 @@ export default function Learn() {
                         <LessonHeroCard
                           moduleTitle={lesson.moduleTitle}
                           submoduleTitle={lesson.submoduleTitle}
-                          submoduleCount={submoduleCount}
+                          currentPage={lesson.currentPage || 1}
+                          totalPages={lesson.totalPages || 8}
                           coverImageUrl={coverImageUrl}
+                          colorHex={module?.colorTheme?.hex}
+                          icon={module?.icon}
                           href={lesson.href as any}
                         />
                       </View>

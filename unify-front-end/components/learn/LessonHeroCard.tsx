@@ -1,55 +1,74 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link, Href } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface LessonHeroCardProps {
   moduleTitle?: string;
   submoduleTitle?: string;
-  submoduleCount?: number;
+  currentPage?: number;
+  totalPages?: number;
   coverImageUrl?: string;
   colorHex?: string;
+  icon?: string;
   href?: Href;
 }
+
+// Map Material UI icon names to MaterialCommunityIcons outline variants
+const mapIconName = (iconName: string): string => {
+  const iconMap: { [key: string]: string } = {
+    AccountBalanceOutlined: 'bank-outline',
+    AssignmentIndOutlined: 'account-tie-outline',
+    CottageOutlined: 'home-outline',
+    ArticleOutlined: 'file-document-outline',
+    PassportOutlined: 'passport',
+  };
+  return iconMap[iconName] || 'bank-outline';
+};
 
 export default function LessonHeroCard({
   moduleTitle = 'Finance',
   submoduleTitle = 'Types of Banks & Credit Unions',
-  submoduleCount = 0,
+  currentPage = 1,
+  totalPages = 8,
   coverImageUrl,
   colorHex,
+  icon,
   href,
 }: LessonHeroCardProps) {
-  const lessonsText = submoduleCount === 1 ? 'Lesson' : 'Lessons';
+  const iconName = mapIconName(icon || 'AccountBalanceOutlined');
 
   const cardContent = (
     <View style={styles.card}>
-      <View style={styles.banner}>
-        {coverImageUrl ? (
-          <Image
-            source={{ uri: coverImageUrl }}
-            style={styles.bannerImage}
-            resizeMode='cover'
+      <View style={styles.content}>
+        {/* Icon on top-left */}
+        <View style={styles.iconContainer}>
+          <MaterialCommunityIcons 
+            name={iconName as any} 
+            size={36} 
+            color={colorHex || '#000000'} 
           />
-        ) : null}
-        <View style={styles.bannerOverlay} />
-        <View style={styles.bannerTextWrap}>
-          <Text style={styles.metaText}>
-            {moduleTitle} • {submoduleCount} {lessonsText}
-          </Text>
-          <Text style={styles.title}>{submoduleTitle}</Text>
         </View>
+        
         {href && (
-          <View style={styles.resumeButtonContainer}>
+          <View style={styles.continueButtonContainer}>
             <View
               style={[
-                styles.resumeButton,
+                styles.continueButton,
                 colorHex ? { backgroundColor: colorHex } : null,
               ]}
             >
-              <Text style={styles.resumeButtonText}>Resume</Text>
+              <Text style={styles.continueButtonText}>Continue</Text>
             </View>
           </View>
         )}
+
+        <View style={styles.textContainer}>
+          <Text style={styles.metaText}>
+            {moduleTitle} • Lesson {currentPage} out {totalPages}
+          </Text>
+          <Text style={styles.title}>{submoduleTitle}</Text>
+        </View>
       </View>
     </View>
   );
@@ -85,43 +104,35 @@ const styles = StyleSheet.create({
     elevation: 2,
     overflow: 'hidden',
   },
-  banner: {
-    height: 160,
+  content: {
+    minHeight: 160,
     borderRadius: 16,
-    backgroundColor: '#bdbdbd',
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
+    backgroundColor: '#fff',
     padding: 20,
     position: 'relative',
   },
-  bannerImage: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  bannerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  bannerTextWrap: {
-    // place text at the bottom-left inside the banner
-    alignSelf: 'flex-start',
-    position: 'relative',
+  iconContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
     zIndex: 1,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  metaText: { color: 'rgba(255,255,255,0.95)', fontSize: 12 },
-  title: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    lineHeight: 28,
-    marginTop: 4,
-  },
-  resumeButtonContainer: {
+  continueButtonContainer: {
     position: 'absolute',
     top: 20,
     right: 20,
     zIndex: 2,
+    width: 101,
+    height: 36,
+    borderRadius: 10,
   },
-  resumeButton: {
+  continueButton: {
+    width: '100%',
+    height: '100%',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -131,10 +142,32 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  resumeButtonText: {
+  continueButtonText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0,
+    lineHeight: 22,
+  },
+  textContainer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    zIndex: 1,
+  },
+  metaText: { 
+    color: '#000000', 
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000000',
+    lineHeight: 28,
   },
 });
