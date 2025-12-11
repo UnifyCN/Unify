@@ -38,14 +38,14 @@ export default function RichTextRenderer({
   onQuestionAnswer,
   showQuestionFeedback = false,
 }: RichTextRendererProps) {
-  if (!blocks || !Array.isArray(blocks)) return null;
-
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageZoom, setImageZoom] = useState(1);
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
+
+  if (!blocks || !Array.isArray(blocks)) return null;
 
   // Create numbering map for ordered lists (keep prev behavior)
   const createNumberingMap = (blocks: any[]) => {
