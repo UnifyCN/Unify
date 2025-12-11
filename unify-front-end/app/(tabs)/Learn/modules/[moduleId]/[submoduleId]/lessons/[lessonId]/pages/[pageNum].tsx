@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,6 @@ import {
   Dimensions,
   Modal,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -36,7 +33,6 @@ export default function LessonPageScreen() {
   }>();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -87,77 +83,6 @@ export default function LessonPageScreen() {
   const isLastLesson = () => {
     const currentIndex = getCurrentLessonIndex();
     return currentIndex === (submoduleData?.lessons?.length || 0) - 1;
-  };
-
-  // Track keyboard height
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
-
-  useEffect(() => {
-    const keyboardWillShowListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => {
-        setKeyboardHeight(e.endCoordinates.height);
-      }
-    );
-    const keyboardWillHideListener = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        setKeyboardHeight(0);
-      }
-    );
-
-    return () => {
-      keyboardWillShowListener.remove();
-      keyboardWillHideListener.remove();
-    };
-  }, []);
-
-  // Handle input focus - scroll to center the input in the visible viewport
-  const handleInputFocus = (inputY: number, inputHeight: number) => {
-    if (!scrollViewRef.current) return;
-
-    // Use a small delay to ensure keyboard has started appearing and measurements are accurate
-    setTimeout(() => {
-      if (!scrollViewRef.current) return;
-
-      // Get screen dimensions
-      const screenHeight = Dimensions.get('window').height;
-      
-      // Use tracked keyboard height, or fallback to estimate
-      const currentKeyboardHeight = keyboardHeight || screenHeight * 0.35;
-      
-      // Account for progress bar + header area at top
-      // SubmoduleProgressBar is typically around 60-80px, plus some padding
-      const headerHeight = 80;
-      
-      // Account for bottom navigation buttons
-      // navigationContainer: paddingVertical 20 + button height (~48px) + paddingBottom 15 = ~83px
-      // Add extra padding (20px) to ensure input is clearly visible above buttons
-      const bottomNavHeight = 83 + 20;
-      
-      // Calculate visible viewport height (screen minus keyboard, header, and bottom nav)
-      const visibleViewportHeight = screenHeight - currentKeyboardHeight - headerHeight - bottomNavHeight;
-      
-      // inputY is relative to ScrollView content (starts at 0 at top of content)
-      // Calculate the input's center position (accounting for the input's own height)
-      const inputCenterY = inputY + (inputHeight / 2);
-      
-      // We want the input center to be at the center of the visible viewport
-      // The visible viewport starts at headerHeight and has height visibleViewportHeight
-      // So the center of visible viewport is: headerHeight + (visibleViewportHeight / 2)
-      const visibleViewportCenter = headerHeight + (visibleViewportHeight / 2);
-      
-      // Calculate target scroll position
-      // Formula: scrollY + visibleViewportCenter = inputCenterY
-      // Therefore: scrollY = inputCenterY - visibleViewportCenter
-      const targetScrollY = inputCenterY - visibleViewportCenter;
-      
-      // Scroll to center the input in the visible viewport
-      scrollViewRef.current.scrollTo({
-        y: Math.max(0, targetScrollY),
-        animated: true,
-      });
-    }, Platform.OS === 'ios' ? 250 : 100);
   };
 
   const handleSaveAndLeave = () => {
@@ -332,41 +257,22 @@ export default function LessonPageScreen() {
         onClose={() => setShowExitModal(true)}
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Page indicator
-          {totalPages > 1 && (
-            <View style={styles.pageIndicatorContainer}>
-              <Text style={styles.pageIndicator}>
-                {currentPage} of {totalPages}
-              </Text>
-            </View>
-          )} */}
+        {/* Page title */}
+        <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
-          {/* Page title */}
-          <Text style={styles.pageTitle}>{currentPageData.title}</Text>
-
-          {/* Page contents */}
-          <View style={styles.content}>
-            <RichTextRenderer
-              blocks={currentPageData.content || []}
-              markDefs={currentPageData.markDefs}
-              styles={{ normal: styles.contentText }}
-              scrollViewRef={scrollViewRef}
-              onInputFocus={handleInputFocus}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {/* Page contents */}
+        <View style={styles.content}>
+          <RichTextRenderer
+            blocks={currentPageData.content || []}
+            markDefs={currentPageData.markDefs}
+            styles={{ normal: styles.contentText }}
+          />
+        </View>
+      </ScrollView>
 
       {/* Navigation buttons - anchored at bottom */}
       <View style={styles.navigationContainer}>

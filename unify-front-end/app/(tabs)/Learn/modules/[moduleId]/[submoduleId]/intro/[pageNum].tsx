@@ -272,15 +272,6 @@ export default function SubmoduleIntroScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page indicator */}
-        {totalPages && totalPages >= 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              {currentPage} of {totalPages}
-            </Text>
-          </View>
-        )}
-
         {/* Title */}
         <Text style={styles.title}>{introData?.title}</Text>
 
@@ -361,12 +352,13 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 30,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '600',
     color: '#000',
     marginBottom: 20,
-    lineHeight: 30,
+    lineHeight: 40,
     textAlign: 'center',
+    marginTop: 20,
   },
 
   content: {

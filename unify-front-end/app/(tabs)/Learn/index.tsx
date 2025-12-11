@@ -85,6 +85,9 @@ export default function Learn() {
           }
         >
           <Text style={styles.pageTitle}>Ready to learn?</Text>
+          <Text style={styles.pageSubtitle}>
+            Get started with lessons to understand the basics of Canadian culture and how to settle in as newcomer
+          </Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}
 
@@ -140,8 +143,13 @@ export default function Learn() {
                         <LessonHeroCard
                           moduleTitle={lesson.moduleTitle}
                           submoduleTitle={lesson.submoduleTitle}
-                          submoduleCount={submoduleCount}
+                          currentPage={lesson.currentPage || 1}
+                          totalPages={lesson.totalPages || 8}
+                          currentSection={lesson.currentSection || 1}
+                          totalSections={lesson.totalSections || 1}
                           coverImageUrl={coverImageUrl}
+                          colorHex={module?.colorTheme?.hex}
+                          icon={module?.icon}
                           href={lesson.href as any}
                         />
                       </View>
@@ -174,16 +182,16 @@ export default function Learn() {
             ) : error ? (
               <Text style={styles.errorText}>Error loading modules</Text>
             ) : modules && modules.length > 0 ? (
-              modules.map(module => {
+              modules.map((module, index) => {
                 return (
                   <PathwayCard
                     key={module._id}
                     title={module.title}
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
                     href={`/(tabs)/Learn/modules/${module._id}` as any}
-                    coverImageUrl={
-                      module.coverPhoto ? urlFor(module.coverPhoto) : undefined
-                    }
+                    colorTheme={module.colorTheme?.hex}
+                    icon={module.icon}
+                    index={index}
                   />
                 );
               })
@@ -205,7 +213,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 2,
+    marginBottom: 8,
+  },
+  pageSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#000',
+    lineHeight: 20,
+    marginBottom: 10,
   },
   heroWrapper: { marginTop: 8 },
   pathwaysGrid: {

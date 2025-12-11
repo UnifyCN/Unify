@@ -14,6 +14,8 @@ interface ContinueLesson {
   currentPage: number;
   totalPages: number;
   progressPercent: number;
+  currentSection: number;
+  totalSections: number;
   href: string;
 }
 
@@ -148,6 +150,13 @@ export function useInProgressLessons() {
 
           const currentPage = lessonProgress?.current_page_number || 1;
 
+          // Calculate section (submodule) number and total sections
+          const submoduleIndex = module.submodules.findIndex(
+            (s: any) => s._id === activeSubmodule._id
+          );
+          const currentSection = submoduleIndex >= 0 ? submoduleIndex + 1 : 1;
+          const totalSections = module.submodules?.length || 0;
+
           availableLessons.push({
             id: activeLesson._id,
             title: activeLesson.title || 'Untitled Lesson',
@@ -159,6 +168,8 @@ export function useInProgressLessons() {
             currentPage: currentPage,
             totalPages: totalPages,
             progressPercent: progressPercent,
+            currentSection: currentSection,
+            totalSections: totalSections,
             href: `/(tabs)/Learn/modules/${module._id}/${activeSubmodule._id}/lessons/${activeLesson._id}/pages/${currentPage}` as any,
           });
         }

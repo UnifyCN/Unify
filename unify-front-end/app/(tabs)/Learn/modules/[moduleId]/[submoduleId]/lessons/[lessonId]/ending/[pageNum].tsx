@@ -254,15 +254,6 @@ export default function EndingPageScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page indicator */}
-        {totalPages > 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              {currentPage} of {totalPages}
-            </Text>
-          </View>
-        )}
-
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 

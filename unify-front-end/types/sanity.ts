@@ -45,6 +45,7 @@ export interface SanityModule extends SanityDocument {
   colorTheme?: {
     hex: string;
   };
+  icon?: string;
 }
 
 // Submodule type
