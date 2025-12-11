@@ -8,6 +8,8 @@ interface LessonHeroCardProps {
   submoduleTitle?: string;
   currentPage?: number;
   totalPages?: number;
+  currentSection?: number;
+  totalSections?: number;
   coverImageUrl?: string;
   colorHex?: string;
   icon?: string;
@@ -31,6 +33,8 @@ export default function LessonHeroCard({
   submoduleTitle = 'Types of Banks & Credit Unions',
   currentPage = 1,
   totalPages = 8,
+  currentSection = 1,
+  totalSections = 4,
   coverImageUrl,
   colorHex,
   icon,
@@ -65,7 +69,7 @@ export default function LessonHeroCard({
 
         <View style={styles.textContainer}>
           <Text style={styles.metaText}>
-            {moduleTitle} • Lesson {currentPage} out {totalPages}
+            {moduleTitle} • Section {currentSection} out of {totalSections}
           </Text>
           <Text style={styles.title}>{submoduleTitle}</Text>
         </View>
@@ -94,14 +98,12 @@ export default function LessonHeroCard({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
+    borderWidth: 0.8,
+    borderColor: '#CDCBCB',
     borderRadius: 16,
     padding: 0,
     marginRight: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
     overflow: 'hidden',
   },
   content: {

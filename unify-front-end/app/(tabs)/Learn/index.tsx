@@ -145,6 +145,8 @@ export default function Learn() {
                           submoduleTitle={lesson.submoduleTitle}
                           currentPage={lesson.currentPage || 1}
                           totalPages={lesson.totalPages || 8}
+                          currentSection={lesson.currentSection || 1}
+                          totalSections={lesson.totalSections || 1}
                           coverImageUrl={coverImageUrl}
                           colorHex={module?.colorTheme?.hex}
                           icon={module?.icon}
@@ -218,7 +220,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#000',
     lineHeight: 20,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   heroWrapper: { marginTop: 8 },
   pathwaysGrid: {
