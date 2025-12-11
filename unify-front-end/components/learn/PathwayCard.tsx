@@ -6,6 +6,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Blob3 from '../../assets/images/Blob3.svg';
 import Blob8 from '../../assets/images/Blob8.svg';
 import Blob10 from '../../assets/images/Blob10.svg';
+import Blob11 from '../../assets/images/Blob11.svg';
+import Blob12 from '../../assets/images/Blob12.svg';
 
 type Props = {
   title: string;
@@ -39,15 +41,15 @@ export default function PathwayCard({
   const backgroundColor = colorTheme || '#d9d9d9';
   const iconName = mapIconName(icon || 'AccountBalanceOutlined');
   
-  // Cycle through blobs: Blob3, Blob8, Blob10, repeat
-  const blobIndex = index % 3;
-  const BlobComponent = blobIndex === 0 ? Blob3 : blobIndex === 1 ? Blob8 : Blob10;
+  // Cycle through blobs: Blob3, Blob8, Blob10, Blob11, Blob12, repeat
+  const blobIndex = index % 5;
+  const BlobComponent = blobIndex === 0 ? Blob3 : blobIndex === 1 ? Blob8 : blobIndex === 2 ? Blob10 : blobIndex === 3 ? Blob11 : Blob12;
 
   const CardInner = (
     <>
       <View style={[styles.banner, { backgroundColor }]}>
-        {/* Blob background overlay - cycles through Blob3, Blob8, Blob10 */}
-        <View style={blobIndex === 0 ? styles.blob3Container : blobIndex === 1 ? styles.blob8Container : styles.blob10Container}>
+        {/* Blob background overlay - cycles through Blob3, Blob8, Blob10, Blob11, Blob12 */}
+        <View style={blobIndex === 0 ? styles.blob3Container : blobIndex === 1 ? styles.blob8Container : blobIndex === 2 ? styles.blob10Container : blobIndex === 3 ? styles.blob11Container : styles.blob12Container}>
           <BlobComponent 
             width={160} 
             height={160}
@@ -110,21 +112,21 @@ const styles = StyleSheet.create({
   },
   blob3Container: {
     position: 'absolute',
-    top: -58,
+    top: -68,
     right: -70,
     width: 160,
     height: 160,
     overflow: 'hidden',
-    transform: [{ rotate: '-40deg' }],
+    transform: [{ rotate: '-45deg' }],
   },
   blob8Container: {
     position: 'absolute',
-    top: -65,
-    right: -70,
+    top: -75,
+    right: -75,
     width: 160,
     height: 160,
     overflow: 'hidden',
-    transform: [{ rotate: '-40deg' }],
+    transform: [{ rotate: '35deg' }],
   },
   blob10Container: {
     position: 'absolute',
@@ -134,6 +136,24 @@ const styles = StyleSheet.create({
     height: 160,
     overflow: 'hidden',
     transform: [{ rotate: '45deg' }],
+  },
+  blob11Container: {
+    position: 'absolute',
+    top: -100,
+    right: 86,
+    width: 160,
+    height: 160,
+    overflow: 'hidden',
+    transform: [{ rotate: '-35deg' }],
+  },
+  blob12Container: {
+    position: 'absolute',
+    top: -58,
+    right: -70,
+    width: 160,
+    height: 160,
+    overflow: 'hidden',
+    transform: [{ rotate: '-40deg' }],
   },
   iconContainer: {
     position: 'absolute',
