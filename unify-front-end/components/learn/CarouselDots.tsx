@@ -46,7 +46,7 @@ export default function CarouselDots({
 const styles = StyleSheet.create({
   container: {
     marginTop: 12,
-    marginBottom: 8,
+    marginBottom: 4,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
