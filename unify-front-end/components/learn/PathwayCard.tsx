@@ -4,6 +4,8 @@ import { Link } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Blob3 from '../../assets/images/Blob3.svg';
+import Blob8 from '../../assets/images/Blob8.svg';
+import Blob10 from '../../assets/images/Blob10.svg';
 
 type Props = {
   title: string;
@@ -11,6 +13,7 @@ type Props = {
   href?: LinkProps['href'];
   colorTheme?: string;
   icon?: string;
+  index?: number;
 };
 
 // Map Material UI icon names to MaterialCommunityIcons outline variants
@@ -31,16 +34,21 @@ export default function PathwayCard({
   href,
   colorTheme,
   icon,
+  index = 0,
 }: Props) {
   const backgroundColor = colorTheme || '#d9d9d9';
   const iconName = mapIconName(icon || 'AccountBalanceOutlined');
+  
+  // Cycle through blobs: Blob3, Blob8, Blob10, repeat
+  const blobIndex = index % 3;
+  const BlobComponent = blobIndex === 0 ? Blob3 : blobIndex === 1 ? Blob8 : Blob10;
 
   const CardInner = (
     <>
       <View style={[styles.banner, { backgroundColor }]}>
-        {/* Blob3 background overlay */}
-        <View style={styles.blobContainer}>
-          <Blob3 
+        {/* Blob background overlay - cycles through Blob3, Blob8, Blob10 */}
+        <View style={blobIndex === 0 ? styles.blob3Container : blobIndex === 1 ? styles.blob8Container : styles.blob10Container}>
+          <BlobComponent 
             width={160} 
             height={160}
             fill="#FFFFFF"
@@ -100,7 +108,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     overflow: 'hidden',
   },
-  blobContainer: {
+  blob3Container: {
     position: 'absolute',
     top: -58,
     right: -70,
@@ -108,6 +116,24 @@ const styles = StyleSheet.create({
     height: 160,
     overflow: 'hidden',
     transform: [{ rotate: '-40deg' }],
+  },
+  blob8Container: {
+    position: 'absolute',
+    top: -65,
+    right: -70,
+    width: 160,
+    height: 160,
+    overflow: 'hidden',
+    transform: [{ rotate: '-40deg' }],
+  },
+  blob10Container: {
+    position: 'absolute',
+    top: -80,
+    right: 90,
+    width: 160,
+    height: 160,
+    overflow: 'hidden',
+    transform: [{ rotate: '45deg' }],
   },
   iconContainer: {
     position: 'absolute',

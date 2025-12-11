@@ -174,7 +174,7 @@ export default function Learn() {
             ) : error ? (
               <Text style={styles.errorText}>Error loading modules</Text>
             ) : modules && modules.length > 0 ? (
-              modules.map(module => {
+              modules.map((module, index) => {
                 return (
                   <PathwayCard
                     key={module._id}
@@ -183,6 +183,7 @@ export default function Learn() {
                     href={`/(tabs)/Learn/modules/${module._id}` as any}
                     colorTheme={module.colorTheme?.hex}
                     icon={module.icon}
+                    index={index}
                   />
                 );
               })
