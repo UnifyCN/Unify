@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   metaText: { 
     color: '#000000', 
-    fontSize: 12,
+    fontSize: 14,
     marginBottom: 4,
   },
   title: {
