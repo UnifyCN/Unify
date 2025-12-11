@@ -85,6 +85,9 @@ export default function Learn() {
           }
         >
           <Text style={styles.pageTitle}>Ready to learn?</Text>
+          <Text style={styles.pageSubtitle}>
+            Get started with lessons to understand the basics of Canadian culture and how to settle in as newcomer
+          </Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}
 
@@ -208,7 +211,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 2,
+    marginBottom: 8,
+  },
+  pageSubtitle: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: '#000',
+    lineHeight: 20,
+    marginBottom: 16,
   },
   heroWrapper: { marginTop: 8 },
   pathwaysGrid: {
