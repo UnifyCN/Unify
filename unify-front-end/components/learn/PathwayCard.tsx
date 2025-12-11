@@ -148,12 +148,12 @@ const styles = StyleSheet.create({
   },
   blob12Container: {
     position: 'absolute',
-    top: -58,
-    right: -70,
+    top: 10,
+    right: 42,
     width: 160,
     height: 160,
     overflow: 'hidden',
-    transform: [{ rotate: '-40deg' }],
+    transform: [{ rotate: '13deg' }],
   },
   iconContainer: {
     position: 'absolute',
