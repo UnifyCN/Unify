@@ -10,7 +10,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   Modal,
   ViewStyle,
 } from 'react-native';
@@ -31,7 +30,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TIMELINE_LEFT_WIDTH = 24;
 const DOT_SIZE = 16;
 const LINE_WIDTH = 2;
@@ -82,7 +80,7 @@ const getSectionStyles = (
   }
 
   // Line Above Style (connects from prev dot to this dot)
-  let lineAboveStyle: any[] = [styles.lineSegment];
+  let lineAboveStyle: ViewStyle[] = [styles.lineSegment];
   if (prevSection) {
     if (
       prevSection.uiState === 'completed' &&
@@ -101,7 +99,7 @@ const getSectionStyles = (
   }
 
   // Line Below Style (connects from this dot to next dot)
-  let lineBelowStyle: any[] = [styles.lineSegment];
+  let lineBelowStyle: ViewStyle[] = [styles.lineSegment];
   if (nextSection) {
     if (
       section.uiState === 'completed' &&
@@ -657,14 +655,16 @@ export default function ModuleIndex() {
 
           {/* CTA Button - only show on opened card */}
           {isOpened && section.ctaLabel && (
-            <TouchableOpacity
-              style={styles.ctaButton}
-              onPress={() => navigateToSection(section)}
-            >
-              <Text style={[styles.ctaText, { color: subjectColor }]}>
-                {section.ctaLabel}
-              </Text>
-            </TouchableOpacity>
+            <View onStartShouldSetResponder={() => true}>
+              <TouchableOpacity
+                style={styles.ctaButton}
+                onPress={() => navigateToSection(section)}
+              >
+                <Text style={[styles.ctaText, { color: subjectColor }]}>
+                  {section.ctaLabel}
+                </Text>
+              </TouchableOpacity>
+            </View>
           )}
         </TouchableOpacity>
       </View>
