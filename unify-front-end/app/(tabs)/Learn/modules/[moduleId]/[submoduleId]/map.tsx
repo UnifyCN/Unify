@@ -316,15 +316,38 @@ export default function SubmoduleMap() {
           activeOpacity={isLocked ? 1 : 0.8}
           onPress={() => {
             if (!isLocked) {
-              router.push({
-                pathname:
-                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
-                params: {
-                  moduleId,
-                  submoduleId,
-                  lessonId: lesson.id,
-                },
-              });
+              // Check if this is the first lesson and submodule has intro pages
+              const isFirstLesson = index === 0;
+              const hasIntroPages = submoduleData?.intro_pages && submoduleData.intro_pages.length > 0;
+              
+              // Check if submodule has been started (any lesson has progress)
+              const hasSubmoduleProgress = Object.values(lessonProgresses).some(
+                p => p?.is_in_progress || p?.progress_percent > 0 || p?.is_completed
+              );
+              
+              // If first lesson, has intro pages, and submodule hasn't been started, go to intro
+              if (isFirstLesson && hasIntroPages && !hasSubmoduleProgress) {
+                router.push({
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+                  params: {
+                    moduleId,
+                    submoduleId,
+                    pageNum: '1',
+                  },
+                });
+              } else {
+                // Otherwise, go directly to lesson
+                router.push({
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
+                  params: {
+                    moduleId,
+                    submoduleId,
+                    lessonId: lesson.id,
+                  },
+                });
+              }
             }
           }}
           style={[

@@ -251,14 +251,8 @@ export default function ModuleIndex() {
               progressData[submodule._id] = progress;
 
               if (!progress?.progress_percent || progress.progress_percent === 0) {
-                const hasIntro = submodule.intro_pages && submodule.intro_pages.length > 0;
-                if (hasIntro) {
-                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
-                } else if (submodule.lessons && submodule.lessons.length > 0) {
-                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
-                } else {
-                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
-                }
+                // Always navigate to map page for new submodules
+                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
                 return;
               }
 
@@ -341,14 +335,8 @@ export default function ModuleIndex() {
               } else if (activeLesson) {
                 hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/1`;
               } else {
-                const hasIntro = submodule.intro_pages && submodule.intro_pages.length > 0;
-                if (hasIntro) {
-                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
-                } else if (submodule.lessons && submodule.lessons.length > 0) {
-                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
-                } else {
-                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
-                }
+                // Always navigate to map page if no active lesson found
+                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
               }
             } catch (err) {
               console.error(`Error processing submodule ${submodule._id}:`, err);
@@ -586,8 +574,9 @@ export default function ModuleIndex() {
     if (href) {
       router.push(href as any);
     } else {
+      // Default to map page if no href is set
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
         params: { moduleId, submoduleId: section.id },
       });
     }
