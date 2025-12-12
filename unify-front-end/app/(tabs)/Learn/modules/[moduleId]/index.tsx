@@ -26,6 +26,11 @@ import { cachedProgressService } from '@/services/progress/cachedProgressService
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Blob3 from '@/assets/images/Blob3.svg';
+import Blob8 from '@/assets/images/Blob8.svg';
+import Blob10 from '@/assets/images/Blob10.svg';
+import Blob11 from '@/assets/images/Blob11.svg';
+import Blob12 from '@/assets/images/Blob12.svg';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -132,7 +137,7 @@ const getSectionStyles = (
 export default function ModuleIndex() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { moduleId } = useLocalSearchParams<{ moduleId: string }>();
+  const { moduleId, blobIndex } = useLocalSearchParams<{ moduleId: string; blobIndex?: string }>();
   const {
     data: moduleData,
     isLoading,
@@ -159,6 +164,10 @@ export default function ModuleIndex() {
 
   // Subject color from Sanity
   const subjectColor = moduleData?.colorTheme?.hex || DEFAULT_COLOR;
+
+  // Determine which blob to use based on blobIndex param, or default to 0
+  const blobIndexNum = blobIndex ? parseInt(blobIndex, 10) % 5 : 0;
+  const BlobComponent = blobIndexNum === 0 ? Blob3 : blobIndexNum === 1 ? Blob8 : blobIndexNum === 2 ? Blob10 : blobIndexNum === 3 ? Blob11 : Blob12;
 
   // Check if disclaimer should be shown (first time opening this module with 0% progress)
   useEffect(() => {
@@ -706,6 +715,15 @@ export default function ModuleIndex() {
     <View style={styles.container}>
       {/* Colored Header */}
       <View style={[styles.header, { backgroundColor: subjectColor, paddingTop: insets.top }]}>
+        {/* Blob background overlay */}
+        <View style={blobIndexNum === 0 ? styles.blob3Container : blobIndexNum === 1 ? styles.blob8Container : blobIndexNum === 2 ? styles.blob10Container : blobIndexNum === 3 ? styles.blob11Container : styles.blob12Container}>
+          <BlobComponent 
+            width={400} 
+            height={400}
+            fill="#FFFFFF"
+            opacity={0.3}
+          />
+        </View>
         <View style={styles.headerTopRow}>
           <TouchableOpacity
             onPress={() => router.replace('/(tabs)/Learn')}
@@ -802,6 +820,8 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
+    position: 'relative',
+    overflow: 'hidden',
   },
   headerTopRow: {
     flexDirection: 'row',
@@ -847,6 +867,53 @@ const styles = StyleSheet.create({
     height: 47,
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 1,
+  },
+  // Blob containers - scaled up 2.5x from PathwayCard (160x160 -> 400x400)
+  blob3Container: {
+    position: 'absolute',
+    top: -170,
+    right: -175,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '-45deg' }],
+  },
+  blob8Container: {
+    position: 'absolute',
+    top: -187.5,
+    right: -187.5,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '35deg' }],
+  },
+  blob10Container: {
+    position: 'absolute',
+    top: -200,
+    right: 225,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '45deg' }],
+  },
+  blob11Container: {
+    position: 'absolute',
+    top: -250,
+    right: 215,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '-35deg' }],
+  },
+  blob12Container: {
+    position: 'absolute',
+    top: 25,
+    right: 105,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '13deg' }],
   },
 
   // Scroll
