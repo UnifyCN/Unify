@@ -465,21 +465,21 @@ const styles = StyleSheet.create({
   },
   headerSubjectName: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '600',
     color: '#000000',
   },
   headerSectionInfo: {
     marginTop: 8,
-    paddingLeft: 0, // Aligned with chevron
+    paddingLeft: 16, // Aligned with chevron
   },
   sectionNumber: {
-    fontSize: 16,
+    fontSize: 24,
     fontWeight: '400',
     color: '#000000',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
     color: '#000000',
     marginBottom: 8,
