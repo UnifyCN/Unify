@@ -24,7 +24,7 @@ import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -35,9 +35,18 @@ const DOT_SIZE = 16;
 const LINE_WIDTH = 2;
 const DEFAULT_COLOR = '#4A7C59'; // Fallback green if no colorTheme
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+// Map Material UI icon names to MaterialCommunityIcons outline variants
+const mapIconName = (iconName: string): string => {
+  const iconMap: { [key: string]: string } = {
+    AccountBalanceOutlined: 'bank-outline',
+    AssignmentIndOutlined: 'account-tie-outline',
+    CottageOutlined: 'home-outline',
+    ArticleOutlined: 'file-document-outline',
+    PassportOutlined: 'passport',
+  };
+  return iconMap[iconName] || 'bank-outline';
+};
+
 type SectionUIState = 'completed' | 'active' | 'unlocked' | 'locked';
 
 interface SectionViewModel {
@@ -51,9 +60,6 @@ interface SectionViewModel {
   unlocked: boolean;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 const getSectionStyles = (
   section: SectionViewModel,
   prevSection: SectionViewModel | null,
@@ -707,7 +713,16 @@ export default function ModuleIndex() {
           >
             <Feather name="chevron-left" size={28} color="#FFFFFF" />
           </TouchableOpacity>
-          <View style={styles.headerRightPlaceholder} />
+          {moduleData.icon && (
+            <View style={styles.headerIconContainer}>
+              <MaterialCommunityIcons
+                name={mapIconName(moduleData.icon) as any}
+                size={30}
+                color="#FFFFFF"
+              />
+            </View>
+          )}
+          {!moduleData.icon && <View style={styles.headerRightPlaceholder} />}
         </View>
 
         <View style={styles.headerTitleWrap}>
@@ -791,8 +806,9 @@ const styles = StyleSheet.create({
   headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 15,
   },
   backButton: {
     width: 44,
@@ -825,6 +841,12 @@ const styles = StyleSheet.create({
   },
   headerRightPlaceholder: {
     width: 44,
+  },
+  headerIconContainer: {
+    width: 47,
+    height: 47,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Scroll
