@@ -183,12 +183,13 @@ export default function Learn() {
               <Text style={styles.errorText}>Error loading modules</Text>
             ) : modules && modules.length > 0 ? (
               modules.map((module, index) => {
+                const blobIndex = index % 5;
                 return (
                   <PathwayCard
                     key={module._id}
                     title={module.title}
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
-                    href={`/(tabs)/Learn/modules/${module._id}` as any}
+                    href={`/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any}
                     colorTheme={module.colorTheme?.hex}
                     icon={module.icon}
                     index={index}

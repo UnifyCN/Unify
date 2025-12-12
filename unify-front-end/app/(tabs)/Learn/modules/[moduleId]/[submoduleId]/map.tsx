@@ -6,18 +6,123 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Dimensions,
+  ViewStyle,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
-import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { getLessonProgress } from '@/services/progress/progressService';
-import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import BookIcon from '@/assets/images/book_5.svg';
+import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────────────────────────────────────
+const TIMELINE_LEFT_WIDTH = 24;
+const DOT_SIZE = 16;
+const LINE_WIDTH = 2;
+const DEFAULT_COLOR = '#4A7C59'; // Fallback green if no colorTheme
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────────────────────────
+type LessonUIState = 'completed' | 'active' | 'locked';
+
+interface LessonProgress {
+  is_completed: boolean;
+  is_in_progress: boolean;
+  progress_percent: number;
+}
+
+interface LessonViewModel {
+  id: string;
+  title: string;
+  lessonNumber: string;
+  uiState: LessonUIState;
+  progressPercent: number;
+  isCompleted: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+const getLessonStyles = (
+  lesson: LessonViewModel,
+  prevLesson: LessonViewModel | null,
+  nextLesson: LessonViewModel | null,
+  subjectColor: string,
+  isLastLesson: boolean
+) => {
+  // Dot Style
+  let dotStyle: ViewStyle[] = [styles.dot];
+  if (lesson.uiState === 'completed') {
+    dotStyle.push({ backgroundColor: subjectColor });
+  } else if (lesson.uiState === 'active') {
+    dotStyle.push({
+      backgroundColor: '#FFFFFF',
+      borderWidth: 2,
+      borderColor: subjectColor,
+    });
+  } else {
+    // Locked
+    dotStyle.push({
+      backgroundColor: '#FFFFFF',
+      borderWidth: 2,
+      borderColor: '#D1D1D1',
+    });
+  }
+
+  // Line Above Style (connects from prev dot to this dot)
+  let lineAboveStyle: ViewStyle[] = [styles.lineSegment];
+  if (prevLesson) {
+    if (
+      prevLesson.uiState === 'completed' &&
+      lesson.uiState === 'completed'
+    ) {
+      lineAboveStyle.push({ backgroundColor: subjectColor });
+    } else if (
+      prevLesson.uiState === 'completed' &&
+      lesson.uiState === 'active'
+    ) {
+      // Completed → Active: SOLID subject-color (not dotted)
+      lineAboveStyle.push({ backgroundColor: subjectColor });
+    } else {
+      lineAboveStyle.push(styles.lineDotted);
+    }
+  }
+
+  // Line Below Style (connects from this dot to next dot)
+  // Critical: For the last lesson, never render lineBelow
+  let lineBelowStyle: ViewStyle[] = [styles.lineSegment];
+  if (!isLastLesson && nextLesson) {
+    if (
+      lesson.uiState === 'completed' &&
+      nextLesson.uiState === 'completed'
+    ) {
+      lineBelowStyle.push({ backgroundColor: subjectColor });
+    } else if (
+      lesson.uiState === 'completed' &&
+      nextLesson.uiState === 'active'
+    ) {
+      // Completed → Active: SOLID subject-color (not dotted)
+      lineBelowStyle.push({ backgroundColor: subjectColor });
+    } else {
+      lineBelowStyle.push(styles.lineDotted);
+    }
+  } else {
+    // Last lesson: return empty array to prevent rendering
+    lineBelowStyle = [];
+  }
+
+  return { dotStyle, lineAboveStyle, lineBelowStyle };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────────────────────────────────────────
 export default function SubmoduleMap() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
     submoduleId: string;
@@ -30,28 +135,35 @@ export default function SubmoduleMap() {
   } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
 
-  // Add state for expanded lessons (using Set to allow multiple)
-  const [expandedLessonIndices, setExpandedLessonIndices] = useState<
-    Set<number>
-  >(new Set());
-
   // Progress tracking state
   const [lessonProgresses, setLessonProgresses] = useState<{
-    [key: string]: any;
+    [key: string]: LessonProgress | null;
   }>({});
   const [progressLoading, setProgressLoading] = useState(true);
+
+  // Subject color from Sanity
+  const subjectColor = moduleData?.colorTheme?.hex || DEFAULT_COLOR;
 
   // Fetch lesson progress data
   useEffect(() => {
     if (submoduleData?.lessons) {
       const fetchLessonProgress = async () => {
         setProgressLoading(true);
-        const progressData: { [key: string]: any } = {};
+        const progressData: { [key: string]: LessonProgress | null } = {};
 
         for (const lesson of submoduleData.lessons) {
           try {
             const progress = await getLessonProgress(lesson._id);
-            progressData[lesson._id] = progress;
+            // Extract only the fields we use from UserLessonProgress
+            if (progress) {
+              progressData[lesson._id] = {
+                is_completed: progress.is_completed,
+                is_in_progress: progress.is_in_progress,
+                progress_percent: progress.progress_percent,
+              };
+            } else {
+              progressData[lesson._id] = null;
+            }
           } catch (error) {
             console.error(
               `Error fetching progress for lesson ${lesson._id}:`,
@@ -96,45 +208,7 @@ export default function SubmoduleMap() {
     );
   }
 
-  // Determine lesson states based on progress data
-  const circles = submoduleData.lessons.map(
-    (lesson: any, index: number, arr: any[]) => {
-      const progress = lessonProgresses[lesson._id];
-      const isCompleted = progress?.is_completed || false;
-      const isInProgress = progress?.is_in_progress || false;
-
-      // Determine if lesson is active (next in line or in progress)
-      let isActive = false;
-      if (isInProgress) {
-        isActive = true; // Currently in progress
-      } else if (index === 0) {
-        isActive = true; // First lesson is always active
-      } else {
-        // Check if previous lesson is completed
-        const previousLesson = arr[index - 1];
-        const previousProgress = lessonProgresses[previousLesson._id];
-        const previousCompleted = previousProgress?.is_completed || false;
-        isActive = previousCompleted; // Active if previous is completed
-      }
-
-      // Determine if lesson is blocked (non-active)
-      const blocked = !isActive && !isCompleted;
-
-      return {
-        id: lesson._id, // Use Sanity _id
-        title: lesson.title,
-        orderNumber: lesson.order, // Use Sanity order field
-        index: index + 1,
-        isCompleted,
-        isNext: isActive && !isInProgress, // Next in line
-        inProgress: isInProgress,
-        blocked,
-        progressPercent: progress?.progress_percent || 0,
-      };
-    }
-  );
-
-  // Find the next lesson based on progress
+  // Find the next lesson based on progress (existing logic - keep unchanged)
   const nextLesson = submoduleData.lessons.find((lesson: any) => {
     const progress = lessonProgresses[lesson._id];
     return (
@@ -148,340 +222,436 @@ export default function SubmoduleMap() {
     );
   });
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      {/* Back button and submodule title container */}
-      <View style={styles.titleContainer}>
+  // Build lesson view models with explicit UI states
+  const lessons: LessonViewModel[] = submoduleData.lessons.map(
+    (lesson: any, index: number) => {
+      const progress = lessonProgresses[lesson._id];
+      const isCompleted = progress?.is_completed || false;
+      const progressPercent = progress?.progress_percent ?? 0; // Fallback to 0
+
+      // Format lesson number with fallbacks
+      // Ensure format is submodule.order.lesson.order (e.g., "1.1", "1.2")
+      let lessonNumber = '';
+      if (submoduleData?.order != null && lesson.order != null) {
+        // Ensure lesson.order is treated as a number, not string
+        const subOrder = typeof submoduleData.order === 'number' ? submoduleData.order : parseInt(String(submoduleData.order), 10);
+        const lesOrder = typeof lesson.order === 'number' ? lesson.order : parseInt(String(lesson.order), 10);
+        if (!isNaN(subOrder) && !isNaN(lesOrder)) {
+          lessonNumber = `${subOrder}.${lesOrder}`;
+        } else if (!isNaN(lesOrder)) {
+          lessonNumber = `${lesOrder}`;
+        }
+      } else if (lesson.order != null) {
+        const lesOrder = typeof lesson.order === 'number' ? lesson.order : parseInt(String(lesson.order), 10);
+        if (!isNaN(lesOrder)) {
+          lessonNumber = `${lesOrder}`;
+        }
+      }
+      // If both are missing, lessonNumber remains empty string
+
+      // Determine UI state using nextLesson (ensures only one active)
+      let uiState: LessonUIState;
+      if (isCompleted) {
+        uiState = 'completed';
+      } else if (lesson._id === nextLesson?._id) {
+        uiState = 'active'; // Only the nextLesson is active
+      } else {
+        uiState = 'locked'; // All other non-completed lessons are locked
+      }
+
+      // Remove any "Lesson X.X:" prefix from title if present
+      let cleanTitle = lesson.title || '';
+      // Remove patterns like "Lesson 1.1:", "Lesson 1.1.1:", etc.
+      cleanTitle = cleanTitle.replace(/^Lesson\s+\d+(\.\d+)*:\s*/i, '');
+
+      return {
+        id: lesson._id,
+        title: cleanTitle, // Clean title without prefix
+        lessonNumber,
+        uiState,
+        progressPercent,
+        isCompleted,
+      };
+    }
+  );
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Render helpers
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Lesson card
+  const renderLessonCard = (lesson: LessonViewModel, index: number) => {
+    const isActive = lesson.uiState === 'active';
+    const isLocked = lesson.uiState === 'locked';
+    const isFirst = index === 0;
+    const isLast = index === lessons.length - 1;
+
+    const { dotStyle, lineAboveStyle, lineBelowStyle } = getLessonStyles(
+      lesson,
+      isFirst ? null : lessons[index - 1],
+      isLast ? null : lessons[index + 1],
+      subjectColor,
+      isLast
+    );
+
+    const progressPercent = Math.max(0, Math.min(100, lesson.progressPercent)); // Clamp 0-100, never NaN
+
+    return (
+      <View key={lesson.id} style={styles.lessonRow}>
+        {/* Left timeline column with lines and dot */}
+        <View style={styles.timelineColumn}>
+          {/* Main Part: Aligns with card content */}
+          <View style={styles.timelineContent}>
+            {/* Line above dot */}
+            <View style={styles.lineHalf}>
+              {!isFirst && <View style={[...lineAboveStyle, { flex: 1 }]} />}
+            </View>
+
+            {/* Dot */}
+            <View style={dotStyle} />
+
+            {/* Line below dot */}
+            <View style={styles.lineHalf}>
+              {!isLast && lineBelowStyle.length > 0 && (
+                <View style={[...lineBelowStyle, { flex: 1 }]} />
+              )}
+            </View>
+          </View>
+
+          {/* Gap Extension Part: Extends line through the padding */}
+          {!isLast && lineBelowStyle.length > 0 && (
+            <View style={styles.timelineGap}>
+              <View style={[...lineBelowStyle, { flex: 1 }]} />
+            </View>
+          )}
+        </View>
+
+        {/* Card */}
         <TouchableOpacity
-          onPress={() =>
-            router.replace({
-              pathname: '/(tabs)/Learn/modules/[moduleId]',
-              params: { moduleId },
-            })
-          }
-          style={styles.backButton}
+          activeOpacity={isLocked ? 1 : 0.8}
+          onPress={() => {
+            if (!isLocked) {
+              // Check if this is the first lesson and submodule has intro pages
+              const isFirstLesson = index === 0;
+              const hasIntroPages = submoduleData?.intro_pages && submoduleData.intro_pages.length > 0;
+              
+              // Check if submodule has been started (any lesson has progress)
+              const hasSubmoduleProgress = Object.values(lessonProgresses).some(
+                p => p?.is_in_progress || (p?.progress_percent ?? 0) > 0 || p?.is_completed
+              );
+              
+              // If first lesson, has intro pages, and submodule hasn't been started, go to intro
+              if (isFirstLesson && hasIntroPages && !hasSubmoduleProgress) {
+                router.push({
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+                  params: {
+                    moduleId,
+                    submoduleId,
+                    pageNum: '1',
+                  },
+                });
+              } else {
+                // Otherwise, go directly to lesson
+                router.push({
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
+                  params: {
+                    moduleId,
+                    submoduleId,
+                    lessonId: lesson.id,
+                  },
+                });
+              }
+            }
+          }}
+          style={[
+            styles.card,
+            isActive && { backgroundColor: subjectColor, borderColor: subjectColor },
+            isLocked && styles.cardLocked,
+          ]}
         >
-          <Feather name='chevron-left' size={30} color='#000' />
+          {lesson.lessonNumber && (
+            <Text
+              style={[
+                styles.lessonNumber,
+                isActive && styles.lessonNumberActive,
+                isLocked && styles.textLocked,
+              ]}
+            >
+              {lesson.lessonNumber}
+            </Text>
+          )}
+          <Text
+            style={[
+              styles.lessonTitle,
+              isActive && styles.lessonTitleActive,
+              isLocked && styles.textLocked,
+            ]}
+          >
+            {lesson.title}
+          </Text>
+
+          {/* Progress bar - only show on active lesson */}
+          {isActive && (
+            <View style={styles.progressBarContainer}>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    { width: `${progressPercent}%`, backgroundColor: subjectColor },
+                  ]}
+                />
+              </View>
+            </View>
+          )}
         </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle} numberOfLines={2}>
+      </View>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Main render
+  // ─────────────────────────────────────────────────────────────────────────────
+  return (
+    <View style={styles.container}>
+      {/* Header - White background */}
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <View style={styles.headerTopRow}>
+          <TouchableOpacity
+            onPress={() =>
+              router.replace({
+                pathname: '/(tabs)/Learn/modules/[moduleId]',
+                params: { moduleId },
+              })
+            }
+            style={styles.backButton}
+          >
+            <Feather name="chevron-left" size={28} color="#000000" />
+          </TouchableOpacity>
+          <View style={styles.headerTitleCenter}>
+            <Text style={styles.headerSubjectName}>
+              {moduleData?.title || 'Subject'}
+            </Text>
+          </View>
+          <View style={styles.headerRightPlaceholder} />
+        </View>
+
+        <View style={styles.headerSectionInfo}>
+          {submoduleData?.order != null && (
+            <Text style={styles.sectionNumber}>
+              Section {submoduleData.order}
+            </Text>
+          )}
+          <Text style={styles.sectionTitle}>
             {submoduleData?.title || 'Submodule'}
           </Text>
-        </View>
-        <View style={{ width: 34 }} />
-      </View>
-
-      <View style={styles.lessonCountWrapper}>
-        <View style={styles.lessonCountContainer}>
-          <BookIcon width={14} height={19} />
-          <Text style={styles.lessonCount}>
-            {submoduleData.lessons?.length || 0} Lessons
-          </Text>
+          {submoduleData?.description && (
+            <Text style={styles.sectionDescription} numberOfLines={3}>
+              {submoduleData.description}
+            </Text>
+          )}
         </View>
       </View>
 
+      {/* Lessons list with timeline */}
       <ScrollView
-        contentContainerStyle={styles.container}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Lesson Cards */}
-        <View style={styles.lessonsContainer}>
-          {circles.map((c, i) => {
-            const lesson = submoduleData.lessons[i];
-            const isExpanded = expandedLessonIndices.has(i);
-            const isActive = c.isNext || c.inProgress;
-
-            return (
-              <View key={c.id} style={styles.lessonCardWrapper}>
-                {/* Top Card - Header Only */}
-                <TouchableOpacity
-                  style={[
-                    styles.lessonCardHeader,
-                    c.blocked && styles.lessonCardBlocked,
-                    isActive && !c.blocked && styles.lessonCardActive,
-                  ]}
-                  onPress={() => {
-                    if (!c.blocked) {
-                      setExpandedLessonIndices(prev => {
-                        const newSet = new Set(prev);
-                        if (isExpanded) {
-                          newSet.delete(i);
-                        } else {
-                          newSet.add(i);
-                        }
-                        return newSet;
-                      });
-                    }
-                  }}
-                  disabled={c.blocked}
-                  activeOpacity={0.7}
-                >
-                  {/* Circle Indicator */}
-                  <View
-                    style={[
-                      styles.lessonCircle,
-                      c.isCompleted && styles.lessonCircleCompleted,
-                      c.blocked && styles.lessonCircleBlocked,
-                      isActive &&
-                        !c.blocked &&
-                        !c.isCompleted &&
-                        styles.lessonCircleActive,
-                    ]}
-                  >
-                    {c.isCompleted ? (
-                      <Feather name='check' size={20} color='#fff' />
-                    ) : (
-                      <Text
-                        style={[
-                          styles.lessonCircleText,
-                          c.blocked && styles.lessonCircleTextBlocked,
-                          isActive &&
-                            !c.blocked &&
-                            styles.lessonCircleTextActive,
-                        ]}
-                      >
-                        {c.orderNumber}
-                      </Text>
-                    )}
-                  </View>
-
-                  {/* Lesson Title */}
-                  <Text
-                    style={[
-                      styles.lessonTitle,
-                      c.blocked && styles.lessonTitleBlocked,
-                    ]}
-                  >
-                    {lesson.title.slice(12)}
-                  </Text>
-
-                  {/* Expand/Collapse Icon */}
-                  {!c.blocked && (
-                    <View style={styles.chevronContainer}>
-                      <MaterialIcons
-                        name={isExpanded ? 'arrow-drop-up' : 'arrow-drop-down'}
-                        size={24}
-                        color='#000'
-                      />
-                    </View>
-                  )}
-                </TouchableOpacity>
-
-                {/* Bottom Card - Expanded Content */}
-                {isExpanded && !c.blocked && (
-                  <View style={styles.lessonCardContent}>
-                    <Text style={styles.lessonDescription}>
-                      {lesson.description || 'No description available.'}
-                    </Text>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.lessonButton,
-                        { backgroundColor: '#D8492C' },
-                      ]}
-                      onPress={() => {
-                        router.push({
-                          pathname:
-                            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
-                          params: {
-                            moduleId,
-                            submoduleId,
-                            lessonId: lesson._id,
-                          },
-                        });
-                      }}
-                    >
-                      <Text style={styles.lessonButtonText}>
-                        {c.isCompleted
-                          ? 'Retake Lesson'
-                          : c.inProgress
-                            ? 'Continue Lesson'
-                            : 'Start Lesson'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
-
-        {/* Footer spacing */}
-        <View style={{ height: 24 }} />
+        {lessons.map((lesson, index) => renderLessonCard(lesson, index))}
+        <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-const { width } = Dimensions.get('window');
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#F4F4F4',
-  },
   container: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 40,
-    minHeight: '100%',
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
 
   // Header
-  titleContainer: {
+  header: {
+    backgroundColor: '#FFFFFF',
+    paddingBottom: 24,
+    paddingHorizontal: 16,
+  },
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingTop: '15%',
-    justifyContent: 'space-between',
-    borderTopWidth: 0,
-    borderBottomWidth: 0,
-    paddingBottom: 20,
+    paddingTop: 12,
   },
   backButton: {
-    padding: 8,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  headerTitleContainer: {
+  headerTitleCenter: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {
+  headerRightPlaceholder: {
+    width: 44,
+  },
+  headerSubjectName: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#343434',
-    lineHeight: 32,
-    textAlign: 'center',
-    letterSpacing: 0.2,
+    color: '#000000',
   },
-  lessonCountWrapper: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerSectionInfo: {
+    marginTop: 8,
+    paddingLeft: 16, // Aligned with chevron
   },
-  lessonCountContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
+  sectionNumber: {
+    fontSize: 24,
+    fontWeight: '400',
+    color: '#000000',
+    marginBottom: 2,
   },
-  lessonCount: {
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  sectionDescription: {
     fontSize: 14,
-    color: '#000',
-    fontWeight: '600',
+    fontWeight: '400',
+    color: '#000000',
+    lineHeight: 20,
   },
 
-  // Lesson Cards
-  lessonsContainer: {
-    gap: 12,
+  // Scroll
+  scrollView: {
+    flex: 1,
   },
-  lessonCardWrapper: {
-    gap: 6,
-    alignSelf: 'stretch',
+  scrollContent: {
+    paddingTop: 20,
+    paddingLeft: 16,
+    paddingRight: 32,
   },
-  lessonCardHeader: {
+
+  // Lesson row
+  lessonRow: {
     flexDirection: 'row',
+    minHeight: 70,
+    paddingBottom: 18, // Increased gap between cards
+  },
+
+  // Timeline column
+  timelineColumn: {
+    width: TIMELINE_LEFT_WIDTH,
     alignItems: 'center',
-    padding: 16,
-    gap: 12,
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    minHeight: 72,
-    alignSelf: 'stretch',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+    flexDirection: 'column',
   },
-  lessonCardBlocked: {
-    opacity: 0.6,
-  },
-  lessonCardActive: {},
-  lessonCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 200,
-    backgroundColor: '#E5E5E5',
+  timelineContent: {
+    flex: 1, // Matches card height
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
-  lessonCircleCompleted: {
-    backgroundColor: '#D8492C',
+  timelineGap: {
+    height: 18, // Matches lessonRow paddingBottom
+    width: '100%',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: -18,
   },
-  lessonCircleBlocked: {
-    backgroundColor: '#E5E5E5',
+  lineHalf: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
   },
-  lessonCircleActive: {
-    backgroundColor: '#D8492C',
+  lineSegment: {
+    width: LINE_WIDTH,
+    backgroundColor: '#D1D1D1',
   },
-  lessonCircleText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#000',
+  lineDotted: {
+    backgroundColor: 'transparent',
+    borderLeftWidth: LINE_WIDTH,
+    borderColor: '#D1D1D1',
+    borderStyle: 'dotted',
+    width: 0, // borderLeftWidth takes space
   },
-  lessonCircleTextBlocked: {
-    color: '#9CA3AF',
+
+  // Dots
+  dot: {
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF', // default
   },
-  lessonCircleTextActive: {
-    color: '#fff',
+
+  // Card
+  card: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 14, // Increased padding for bigger cards
+    marginLeft: 16, // Explicit gap from timeline
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cardLocked: {
+    opacity: 0.5,
+  },
+  lessonNumber: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 2,
+  },
+  lessonNumberActive: {
+    color: '#FFFFFF',
   },
   lessonTitle: {
-    flex: 1,
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
-    flexShrink: 1,
+    color: '#1A1A1A',
   },
-  lessonTitleBlocked: {
-    color: '#9CA3AF',
+  lessonTitleActive: {
+    color: '#FFFFFF',
   },
-  chevronContainer: {
-    // Container for chevron alignment
+  textLocked: {
+    color: '#AAAAAA',
   },
-  lessonCardContent: {
-    backgroundColor: '#fff',
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
-    marginTop: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
+
+  // Progress bar
+  progressBarContainer: {
+    marginTop: 8,
+    width: '100%',
   },
-  lessonDescription: {
-    fontSize: 14,
-    color: '#000',
-    lineHeight: 20,
-    marginBottom: 16,
-    fontWeight: '400',
-    marginLeft: 5,
+  progressBarTrack: {
+    height: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
+    overflow: 'hidden',
   },
-  lessonButton: {
-    backgroundColor: '#D8492C',
-    borderRadius: 10,
-    paddingVertical: 11,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 5,
-  },
-  lessonButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 2,
   },
 
   // Loading and Error States
+  safe: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -497,8 +667,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#EF4444',
     textAlign: 'center',
-  },
-  textBlocked: {
-    color: '#BDBDBD',
   },
 });
