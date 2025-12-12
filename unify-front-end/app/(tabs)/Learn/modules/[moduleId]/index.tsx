@@ -258,7 +258,8 @@ export default function ModuleIndex() {
 
               const { data: lessonProgresses } = await progressClient
                 .from('user_lesson_progress')
-                .select('*')
+                .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
+                .eq('user_id', user.id)
                 .eq('sanity_submodule_id', submodule._id);
 
               const lessonProgressData: { [key: string]: any } = {};
@@ -420,10 +421,10 @@ export default function ModuleIndex() {
 
   // Initialize openedCardId to the current active section
   useEffect(() => {
-    if (currentIndex >= 0 && moduleData?.submodules?.[currentIndex]) {
+    if (openedCardId == null && currentIndex >= 0 && moduleData?.submodules?.[currentIndex]) {
       setOpenedCardId(moduleData.submodules[currentIndex]._id);
     }
-  }, [currentIndex, moduleData?.submodules]);
+  }, [openedCardId, currentIndex, moduleData?.submodules]);
 
   // Build section view models with explicit UI states
   const sections: SectionViewModel[] = useMemo(() => {
@@ -432,7 +433,10 @@ export default function ModuleIndex() {
     return moduleData.submodules.map((s, i) => {
       const progress = submoduleProgresses[s._id];
       const isCompleted = progress?.is_completed || false;
-      const progressPercent = progress?.progress_percent || 0;
+      // Coerce/clamp progressPercent to ensure it's a valid number in 0-100 range
+      const raw = progress?.progress_percent;
+      const n = typeof raw === 'number' ? raw : Number(raw);
+      const progressPercent = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
       const unlocked =
         i === 0 ||
         (i > 0 && submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
@@ -492,7 +496,8 @@ export default function ModuleIndex() {
         if (user) {
           const { data: lessonProgresses } = await progressClient
             .from('user_lesson_progress')
-            .select('*')
+            .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
+            .eq('user_id', user.id)
             .eq('sanity_submodule_id', section.id);
 
           const submodule = moduleData?.submodules?.find(s => s._id === section.id);

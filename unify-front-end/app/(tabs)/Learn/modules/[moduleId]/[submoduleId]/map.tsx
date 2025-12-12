@@ -28,6 +28,12 @@ const DEFAULT_COLOR = '#4A7C59'; // Fallback green if no colorTheme
 // ─────────────────────────────────────────────────────────────────────────────
 type LessonUIState = 'completed' | 'active' | 'locked';
 
+interface LessonProgress {
+  is_completed: boolean;
+  is_in_progress: boolean;
+  progress_percent: number;
+}
+
 interface LessonViewModel {
   id: string;
   title: string;
@@ -131,7 +137,7 @@ export default function SubmoduleMap() {
 
   // Progress tracking state
   const [lessonProgresses, setLessonProgresses] = useState<{
-    [key: string]: any;
+    [key: string]: LessonProgress | null;
   }>({});
   const [progressLoading, setProgressLoading] = useState(true);
 
@@ -143,12 +149,21 @@ export default function SubmoduleMap() {
     if (submoduleData?.lessons) {
       const fetchLessonProgress = async () => {
         setProgressLoading(true);
-        const progressData: { [key: string]: any } = {};
+        const progressData: { [key: string]: LessonProgress | null } = {};
 
         for (const lesson of submoduleData.lessons) {
           try {
             const progress = await getLessonProgress(lesson._id);
-            progressData[lesson._id] = progress;
+            // Extract only the fields we use from UserLessonProgress
+            if (progress) {
+              progressData[lesson._id] = {
+                is_completed: progress.is_completed,
+                is_in_progress: progress.is_in_progress,
+                progress_percent: progress.progress_percent,
+              };
+            } else {
+              progressData[lesson._id] = null;
+            }
           } catch (error) {
             console.error(
               `Error fetching progress for lesson ${lesson._id}:`,
@@ -322,7 +337,7 @@ export default function SubmoduleMap() {
               
               // Check if submodule has been started (any lesson has progress)
               const hasSubmoduleProgress = Object.values(lessonProgresses).some(
-                p => p?.is_in_progress || p?.progress_percent > 0 || p?.is_completed
+                p => p?.is_in_progress || (p?.progress_percent ?? 0) > 0 || p?.is_completed
               );
               
               // If first lesson, has intro pages, and submodule hasn't been started, go to intro
