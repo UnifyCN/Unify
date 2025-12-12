@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   ImageBackground,
+  Dimensions,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
@@ -23,6 +24,7 @@ import { Group } from '@/types/groups';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { useRouter } from 'expo-router';
 import GroupViewMoreCard from '@/components/icons/GroupViewMoreCard.svg';
+import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 
 interface HeaderProps {
   activeTab: string;
@@ -51,6 +53,8 @@ const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
 
 const GroupsCarousel = memo(() => {
   const router = useRouter();
+  const { width: screenWidth } = Dimensions.get('window');
+  const fullCardWidth = screenWidth - 40; // 20px padding on each side
   const { data: groups, isLoading } = useQuery({
     queryKey: ['joined-groups'],
     queryFn: getUserJoinedGroups,
@@ -61,6 +65,10 @@ const GroupsCarousel = memo(() => {
       pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
       params: { group: JSON.stringify(group) },
     });
+  };
+
+  const handleViewMoreGroupsPress = () => {
+    router.push('/(tabs)/Gather' as any);
   };
 
   const groupsArray = groups || [];
@@ -103,18 +111,21 @@ const GroupsCarousel = memo(() => {
               </ImageBackground>
             </TouchableOpacity>
             {index === groupsArray.length - 1 && (
-              // TODO: Clicking on the view more cards doesnt do anything
-              <View style={styles.viewMoreCardWrapper}>
+              <TouchableOpacity
+                style={styles.viewMoreCardWrapper}
+                onPress={handleViewMoreGroupsPress}
+                activeOpacity={0.8}
+              >
                 <View style={styles.viewMoreContent}>
                   <GroupViewMoreCard width={193} height={144} />
                   <View style={styles.viewMoreTextOverlay}>
-                    <Text style={styles.viewMoreText}>Join more groups</Text>
+                    <Text style={styles.viewMoreText}>Join groups!</Text>
                     <Text style={styles.viewMoreSubtext}>
                       There's more to check out!
                     </Text>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
           </>
         )}
@@ -133,17 +144,21 @@ const GroupsCarousel = memo(() => {
         renderEmptyState={() => (
           <>
             <View style={styles.emptyContainer}>
-              <View style={styles.viewMoreCardWrapper}>
-                <View style={styles.viewMoreContent}>
-                  <GroupViewMoreCard width={193} height={144} />
+              <TouchableOpacity
+                style={styles.viewMoreCardWrapperFullWidth}
+                onPress={handleViewMoreGroupsPress}
+                activeOpacity={0.8}
+              >
+                <View style={styles.viewMoreContentFullWidth}>
+                  <ViewMoreCardNews width={fullCardWidth} height={144} />
                   <View style={styles.viewMoreTextOverlay}>
-                    <Text style={styles.viewMoreText}>Join more groups</Text>
+                    <Text style={styles.viewMoreText}>Join groups!</Text>
                     <Text style={styles.viewMoreSubtext}>
                       There's more to check out!
                     </Text>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             </View>
           </>
         )}
@@ -185,7 +200,7 @@ export default function HomeScreen() {
               useFeedHook={useGroupsFeed}
               ListEmptyComponent={
                 <EmptyFeedMessage
-                  message='No groups here...'
+                  message='No group posts here...'
                   submessage={
                     <Text style={styles.emptyMessageSubtext}>
                       You haven't joined any groups yet.{'\n'}
@@ -368,12 +383,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   viewMoreText: {
-    fontSize: 12,
+    fontSize: 18,
     fontWeight: '600',
     color: Theme.black,
   },
   viewMoreSubtext: {
-    fontSize: 10,
+    fontSize: 14,
     color: Theme.black,
   },
   groupCardSkeleton: {
@@ -391,5 +406,17 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'flex-start',
+  },
+  viewMoreCardWrapperFullWidth: {
+    width: '100%',
+    height: 144,
+    marginRight: 0,
+    marginLeft: 0,
+    marginTop: 0,
+  },
+  viewMoreContentFullWidth: {
+    width: '100%',
+    height: 144,
+    position: 'relative',
   },
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 
 interface StarterPromptsProps {
@@ -11,7 +12,7 @@ interface StarterChip {
   label: string;
   prompt: string;
   mode?: string;
-  color: string;
+  iconName: keyof typeof Feather.glyphMap;
 }
 
 const STARTER_CHIPS: StarterChip[] = [
@@ -20,21 +21,21 @@ const STARTER_CHIPS: StarterChip[] = [
     label: 'Fact Check',
     prompt: 'I heard that ',
     mode: 'fact_check',
-    color: '#E3F2FD', // Light Blue
+    iconName: 'search',
   },
   {
     id: 'form_help',
     label: 'Form Help',
     prompt: '',
     mode: 'form_help',
-    color: '#F3E5F5', // Light Purple
+    iconName: 'file-text',
   },
   {
     id: 'question',
     label: 'Ask Anything',
     prompt: '',
     mode: undefined,
-    color: '#FFF3E0', // Light Orange
+    iconName: 'message-circle',
   },
 ];
 
@@ -43,23 +44,31 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.contentWrapper}>
-        <Text style={styles.subtitle}>
-          Choose an option or type your question below
-        </Text>
-
-        <View style={styles.chipsContainer}>
-          {STARTER_CHIPS.map(chip => (
+      <View style={styles.card}>
+        {STARTER_CHIPS.map((chip, index) => (
+          <React.Fragment key={chip.id}>
             <TouchableOpacity
-              key={chip.id}
-              style={[styles.chip, { backgroundColor: chip.color }]}
+              style={styles.chip}
               onPress={() => onPromptSelect(chip.prompt, chip.mode)}
               activeOpacity={0.7}
             >
+              <Feather
+                name={chip.iconName}
+                size={18}
+                color={Theme.textInput}
+                style={styles.icon}
+              />
               <Text style={styles.chipLabel}>{chip.label}</Text>
+              <Feather
+                name="chevron-right"
+                size={18}
+                color={Theme.textInput}
+                style={styles.chevron}
+              />
             </TouchableOpacity>
-          ))}
-        </View>
+            {index < STARTER_CHIPS.length - 1 && <View style={styles.divider} />}
+          </React.Fragment>
+        ))}
       </View>
     </View>
   );
@@ -67,40 +76,44 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
+    paddingVertical: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
     backgroundColor: '#fff',
   },
-  contentWrapper: {
-    alignItems: 'center',
-    width: '100%',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Theme.textInput,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  chipsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingHorizontal: 16,
-    gap: 8,
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginHorizontal: 20,
+    overflow: 'hidden',
   },
   chip: {
-    flex: 1,
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    width: '100%',
+    minHeight: 56,
+  },
+  icon: {
+    marginRight: 12,
   },
   chipLabel: {
-    fontSize: 13,
-    fontWeight: '600',
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '400',
     color: Theme.black,
-    textAlign: 'center',
+    textAlign: 'left',
+  },
+  chevron: {
+    marginLeft: 8,
+    opacity: 0.5,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginLeft: 50,
   },
 });

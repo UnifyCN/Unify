@@ -25,7 +25,7 @@ import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import HistoryIcon from '@/components/icons/HistoryIcon.svg';
-import BackHeader from '@/components/BackHeader';
+import CompanionHeader from '@/components/CompanionHeader';
 
 const MESSAGE_LIMIT = 3;
 
@@ -250,7 +250,7 @@ export default function CompanionScreen() {
       >
         <View style={styles.contentWrapper}>
           {/* Header */}
-          <BackHeader
+          <CompanionHeader
             title='AI Companion'
             showBackButton={false}
             rightButton={
@@ -265,6 +265,15 @@ export default function CompanionScreen() {
             }
           />
 
+          {/* Context sentence - only show when no messages */}
+          {messages.length === 0 && !greetingMessage && !isLoadingMessages && (
+            <View style={styles.contextContainer}>
+              <Text style={styles.contextText}>
+                Ask questions, check facts, or get help with forms.
+              </Text>
+            </View>
+          )}
+
           {/* Messages - takes up available space */}
           {isLoadingMessages || (isLoading && messages.length === 0) ? (
             <View style={styles.emptyContainer}>
@@ -273,7 +282,7 @@ export default function CompanionScreen() {
           ) : messages.length === 0 && !greetingMessage ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyMessage}>
-                Hey there, how can I help?
+                How can I help you today?
               </Text>
             </View>
           ) : (
@@ -367,7 +376,7 @@ export default function CompanionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.backgroundChatbot,
+    backgroundColor: Theme.white,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -380,10 +389,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   emptyMessage: {
-    fontSize: 24,
+    fontSize: 20,
+    fontWeight: '400',
     color: Theme.black,
+    textAlign: 'center',
   },
   messagesList: {
     flex: 1,
@@ -458,6 +470,18 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: 4,
+  },
+  contextContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 0,
+    paddingBottom: 4,
+    maxWidth: '100%',
+  },
+  contextText: {
+    fontSize: 14,
+    color: Theme.textInput,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   disclaimerContainer: {
     paddingHorizontal: 15,
