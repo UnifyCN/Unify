@@ -25,7 +25,7 @@ import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import HistoryIcon from '@/components/icons/HistoryIcon.svg';
-import BackHeader from '@/components/BackHeader';
+import CompanionHeader from '@/components/CompanionHeader';
 
 const MESSAGE_LIMIT = 3;
 
@@ -250,7 +250,7 @@ export default function CompanionScreen() {
       >
         <View style={styles.contentWrapper}>
           {/* Header */}
-          <BackHeader
+          <CompanionHeader
             title='AI Companion'
             showBackButton={false}
             rightButton={
@@ -476,7 +476,6 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 4,
     maxWidth: '100%',
-    marginTop: -12,
   },
   contextText: {
     fontSize: 14,
