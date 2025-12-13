@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   pageIndicator: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#6B7280',
   },
@@ -366,8 +366,8 @@ const styles = StyleSheet.create({
   contentText: {
     fontWeight: 400,
     color: '#424242',
-    marginBottom: 20,
-    fontSize: 14,
+    marginBottom: 15,
+    fontSize: 18,
     lineHeight: 20,
   },
 
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalDesc: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#6B7280',
     lineHeight: 20,
     textAlign: 'center',

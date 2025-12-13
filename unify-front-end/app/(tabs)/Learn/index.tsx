@@ -86,7 +86,7 @@ export default function Learn() {
         >
           <Text style={styles.pageTitle}>Ready to learn?</Text>
           <Text style={styles.pageSubtitle}>
-            Get started with lessons to understand the basics of Canadian culture and how to settle in as newcomer
+            Get started with lessons to understand the basics of Canadian culture and how to settle in as newcomer.
           </Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}
@@ -172,7 +172,7 @@ export default function Learn() {
             </View>
           )}
 
-          <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
+          <SectionHeader title='Subjects' style={{ marginTop: 15}} />
           <View style={styles.pathwaysGrid}>
             {isLoading ? (
               <>
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   pageSubtitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
     color: '#000',
     lineHeight: 20,
@@ -228,8 +228,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 12,
+    justifyContent: 'space-between',
   },
   errorText: {
     color: '#FF3B30',

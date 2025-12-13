@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   emptyMessage: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '400',
     color: Theme.black,
     textAlign: 'center',

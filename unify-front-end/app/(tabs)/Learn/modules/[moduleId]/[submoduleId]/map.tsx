@@ -353,15 +353,15 @@ export default function SubmoduleMap() {
                 });
               } else {
                 // Otherwise, go directly to lesson
-                router.push({
-                  pathname:
-                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
-                  params: {
-                    moduleId,
-                    submoduleId,
-                    lessonId: lesson.id,
-                  },
-                });
+              router.push({
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  lessonId: lesson.id,
+                },
+              });
               }
             }
           }}
@@ -575,11 +575,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D1D1',
   },
   lineDotted: {
-    backgroundColor: 'transparent',
-    borderLeftWidth: LINE_WIDTH,
-    borderColor: '#D1D1D1',
-    borderStyle: 'dotted',
-    width: 0, // borderLeftWidth takes space
+    width: LINE_WIDTH,
+    backgroundColor: '#D1D1D1',
+    opacity: 0.4, // Reduced opacity to indicate inactive state
   },
 
   // Dots

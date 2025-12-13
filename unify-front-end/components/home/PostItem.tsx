@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#000',
     textAlign: 'left',
-    gap: 5,
+    gap: 7,
     lineHeight: 16,
   },
   headshot: {
@@ -204,7 +204,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   name: {
-    fontSize: 12,
+    fontSize: 16,
+    fontWeight: 600,
     color: Theme.black,
   },
   group: {
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
   },
   time: {
     paddingTop: 2,
-    fontSize: 10,
+    fontSize: 14,
     color: Theme.textPostTime,
     fontWeight: '500',
   },
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     color: '#FE0034',
   },
   description: {
-    fontSize: 14,
+    fontSize: 16,
     lineHeight: 20,
   },
   footer: {

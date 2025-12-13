@@ -108,7 +108,7 @@ export default function RichTextRenderer({
       fontFamily: 'Font Family',
       fontWeight: '400', // Regular
       fontStyle: 'normal',
-      fontSize: 14,
+      fontSize: 18,
       lineHeight: 20,
       letterSpacing: 0, 
       color: '#374151',
@@ -120,7 +120,7 @@ export default function RichTextRenderer({
       fontFamily: 'Font Family',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
+      fontSize: 18,
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
@@ -131,7 +131,7 @@ export default function RichTextRenderer({
       fontFamily: 'Font Family',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
+      fontSize: 18,
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
@@ -142,7 +142,7 @@ export default function RichTextRenderer({
       fontFamily: 'Font Family',
       fontWeight: '700', // Semi-Bold
       fontStyle: 'normal',
-      fontSize: 14,
+      fontSize: 18,
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
@@ -152,7 +152,7 @@ export default function RichTextRenderer({
       fontSize: 16,
       color: '#6B7280',
       fontStyle: 'italic',
-      lineHeight: 24,
+      lineHeight: 15,
       marginBottom: 16,
       marginTop: 16,
       paddingLeft: 16,
@@ -162,7 +162,7 @@ export default function RichTextRenderer({
 
     // Code
     code: {
-      fontSize: 14,
+      fontSize: 16,
       color: '#1F2937',
       backgroundColor: '#F3F4F6',
       padding: 8,
@@ -194,8 +194,9 @@ export default function RichTextRenderer({
     exampleBox: {
       backgroundColor: '#EAEAEA',
       borderRadius: 10,
-      padding: 25,
-      marginVertical: 16,
+      padding: 15,
+      marginVertical: 5,
+      marginBottom: 25,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.05,
@@ -205,17 +206,17 @@ export default function RichTextRenderer({
       borderColor: '#C9C9C9',
     },
     exampleBoxTitle: {
-      fontSize: 14,
+      fontSize: 18,
       fontWeight: '700',
       color: '#374151',
-      marginBottom: 12,
+      marginBottom: 8,
       textTransform: 'uppercase',
     },
     exampleText: {
       fontFamily: 'Font Family',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
+      fontSize: 18,
       lineHeight: 20,
       letterSpacing: 0,
       color: '#374151',
@@ -269,7 +270,7 @@ export default function RichTextRenderer({
       shadowRadius: 2,
       elevation: 1,
     },
-    noteBoxText: { fontSize: 15, color: '#3F3F3F', lineHeight: 22 },
+    noteBoxText: { fontSize: 16, color: '#3F3F3F', lineHeight: 22 },
 
     // Links
     link: {
@@ -777,7 +778,7 @@ export default function RichTextRenderer({
                 borderRadius: 8,
                 paddingHorizontal: 20,
                 paddingVertical: 20,
-                fontSize: 16,
+                fontSize: 18,
                 backgroundColor: '#fff',
                 minHeight: 44,
                 marginBottom: 30,

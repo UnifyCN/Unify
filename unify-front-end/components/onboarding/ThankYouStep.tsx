@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     color: Theme.primaryGatherRed,
   },
   body: {
-    fontSize: 16,
+    fontSize: 20,
     color: Theme.textInput,
     textAlign: 'center',
     lineHeight: 24,
