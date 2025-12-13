@@ -172,7 +172,7 @@ export default function Learn() {
             </View>
           )}
 
-          <SectionHeader title='Subjects' style={{ marginTop: 15}} />
+          <SectionHeader title='Subjects' style={{ marginTop: 15 }} />
           <View style={styles.pathwaysGrid}>
             {isLoading ? (
               <>
