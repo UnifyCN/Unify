@@ -86,7 +86,7 @@ export default function Learn() {
         >
           <Text style={styles.pageTitle}>Ready to learn?</Text>
           <Text style={styles.pageSubtitle}>
-            Get started with lessons to understand the basics of Canadian culture and how to settle in as newcomer.
+            Get started with lessons to understand the basics of Canadian culture and how to settle in as a newcomer.
           </Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}

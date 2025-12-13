@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
     color: '#424242',
     marginBottom: 15,
     fontSize: 18,
-    lineHeight: 20,
+    lineHeight: 27,
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },

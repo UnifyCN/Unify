@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: '600',
     color: Theme.black,
   },
   group: {

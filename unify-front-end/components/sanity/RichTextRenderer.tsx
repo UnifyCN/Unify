@@ -109,7 +109,7 @@ export default function RichTextRenderer({
       fontWeight: '400', // Regular
       fontStyle: 'normal',
       fontSize: 18,
-      lineHeight: 20,
+      lineHeight: 27,
       letterSpacing: 0, 
       color: '#374151',
       marginBottom: 5, // Consistent spacing between paragraphs
@@ -152,7 +152,7 @@ export default function RichTextRenderer({
       fontSize: 16,
       color: '#6B7280',
       fontStyle: 'italic',
-      lineHeight: 15,
+      lineHeight: 24,
       marginBottom: 16,
       marginTop: 16,
       paddingLeft: 16,
@@ -270,7 +270,7 @@ export default function RichTextRenderer({
       shadowRadius: 2,
       elevation: 1,
     },
-    noteBoxText: { fontSize: 16, color: '#3F3F3F', lineHeight: 22 },
+    noteBoxText: { fontSize: 16, color: '#3F3F3F', lineHeight: 24 },
 
     // Links
     link: {

@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   contentText: {
     fontSize: 18,
-    fontWeight: 400,
+    fontWeight: '400',
     color: '#424242',
     marginBottom: 15,
   },

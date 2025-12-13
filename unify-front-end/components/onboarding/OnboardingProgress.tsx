@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   },
   stepText: {
     fontSize: 16,
-    fontWeight: 600,
+    fontWeight: '600',
     color: Theme.textInput,
     textAlign: 'center',
   },

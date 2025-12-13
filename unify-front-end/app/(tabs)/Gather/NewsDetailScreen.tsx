@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
   metadata: {
-    fontSize: 14,
+    fontSize: 16,
     color: Theme.black,
     marginBottom: 20,
     lineHeight: 20,
@@ -164,13 +164,13 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 18,
     color: Theme.black,
-    lineHeight: 20,
+    lineHeight: 27,
     fontWeight: '600',
   },
   contentText: {
     fontSize: 18,
     color: Theme.black,
-    lineHeight: 25,
+    lineHeight: 27,
   },
   errorContainer: {
     flex: 1,

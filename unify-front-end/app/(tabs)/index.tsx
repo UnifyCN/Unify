@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5E5',
-    paddingTop: 7,
+    paddingTop: 8,
   },
   tab: {
     backgroundColor: 'transparent',
