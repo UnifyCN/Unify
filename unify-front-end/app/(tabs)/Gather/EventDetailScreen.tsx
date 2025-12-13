@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#C4C4C4',
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#000',
   },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#343434',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   detailRow: {
     flexDirection: 'row',
@@ -218,26 +218,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailTitle: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     color: '#000',
     marginBottom: 2,
   },
   detailSubtitle: {
-    fontSize: 12,
+    fontSize: 16,
     color: '#979797',
   },
   aboutSection: {
-    marginTop: 20,
+    marginTop: 10,
   },
   aboutTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '600',
     color: '#000',
     marginBottom: 12,
   },
   aboutText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#000',
     lineHeight: 24,
     marginBottom: 12,

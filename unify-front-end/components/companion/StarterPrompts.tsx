@@ -68,7 +68,7 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
             </TouchableOpacity>
             {index < STARTER_CHIPS.length - 1 && <View style={styles.divider} />}
           </React.Fragment>
-        ))}
+          ))}
       </View>
     </View>
   );

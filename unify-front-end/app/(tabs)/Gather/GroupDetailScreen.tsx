@@ -313,7 +313,7 @@ const GroupDetailScreen = () => {
               submessage={
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: 18,
                     color: Theme.textInput,
                     textAlign: 'center',
                     lineHeight: 20,
@@ -419,12 +419,12 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   eventTitle: {
-    fontSize: 25,
+    fontSize: 24,
     fontWeight: '600',
     color: '#343434',
   },
   aboutText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#000',
     lineHeight: 24,
   },
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   joinText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 20,
     lineHeight: 22,
     fontWeight: '600',
     alignSelf: 'center',
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
   },
   emptyState: {

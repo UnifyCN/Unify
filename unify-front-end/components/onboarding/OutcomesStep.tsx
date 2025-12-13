@@ -11,7 +11,7 @@ export default function OutcomesStep({ onNext }: OutcomesStepProps) {
     <View style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>
-          Here's what you can achieve in 3 months
+          Here's what you can achieve in 3 months:
         </Text>
         <View style={styles.outcomesContainer}>
           <View style={styles.outcomeItem}>

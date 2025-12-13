@@ -846,7 +846,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   headerDescription: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
     color: '#FFFFFF',
     opacity: 0.9,
@@ -956,11 +956,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D1D1',
   },
   lineDotted: {
-    backgroundColor: 'transparent',
-    borderLeftWidth: LINE_WIDTH,
-    borderColor: '#D1D1D1',
-    borderStyle: 'dotted',
-    width: 0, // borderLeftWidth takes space
+    width: LINE_WIDTH,
+    backgroundColor: '#D1D1D1',
+    opacity: 0.4, // Reduced opacity to indicate inactive state
   },
 
   // Dots

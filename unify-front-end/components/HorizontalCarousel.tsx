@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   carousel: {
-    marginBottom: 20,
+    marginBottom: 30,
   },
   carouselContent: {
     paddingHorizontal: 0,

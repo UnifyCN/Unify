@@ -14,7 +14,7 @@ const Header = ({ showSearchIcon = true }: HeaderProps) => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
+    <View style={[styles.header, { paddingTop: insets.top + 7}]}>
       <UnifyLogo width={28} height={28} />
       <View style={styles.rightButtons}>
         {showSearchIcon && (

@@ -138,12 +138,13 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
   metadata: {
-    fontSize: 14,
+    fontSize: 16,
     color: Theme.black,
     marginBottom: 20,
     lineHeight: 20,
   },
   authorText: {
+    fontSize: 16,
     fontWeight: '700',
   },
   articleImage: {
@@ -161,15 +162,15 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.imagePlaceholder,
   },
   descriptionText: {
-    fontSize: 14,
+    fontSize: 18,
     color: Theme.black,
-    lineHeight: 20,
+    lineHeight: 27,
     fontWeight: '600',
   },
   contentText: {
-    fontSize: 14,
+    fontSize: 18,
     color: Theme.black,
-    lineHeight: 20,
+    lineHeight: 27,
   },
   errorContainer: {
     flex: 1,
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   linkText: {
-    fontSize: 14,
+    fontSize: 16,
     color: Theme.surfaceBlue,
     textDecorationLine: 'underline',
   },

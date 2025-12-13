@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 24,
-    fontWeight: '400',
+    fontWeight: '600',
   },
   eventsCarousel: {
     marginTop: 27,

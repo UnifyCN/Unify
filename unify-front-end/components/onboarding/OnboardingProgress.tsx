@@ -28,7 +28,7 @@ export default function OnboardingProgress({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 80,
     paddingBottom: 16,
   },
   progressBarContainer: {
@@ -44,7 +44,8 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   stepText: {
-    fontSize: 12,
+    fontSize: 16,
+    fontWeight: '600',
     color: Theme.textInput,
     textAlign: 'center',
   },
