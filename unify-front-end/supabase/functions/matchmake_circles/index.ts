@@ -1,9 +1,9 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-import {
-  COMMUNITY_CIRCLE_DURATION_DAYS,
-  COMMUNITY_CIRCLE_SIZE,
-} from '../../../../matching/pools.ts';
+
+// Constants (matching pools.ts)
+const COMMUNITY_CIRCLE_SIZE = 4;
+const COMMUNITY_CIRCLE_DURATION_DAYS = 14;
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -30,7 +30,7 @@ const responseHeaders = {
   'Content-Type': 'application/json',
 };
 
-Deno.serve(async req => {
+Deno.serve(async (req: Request) => {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
@@ -390,7 +390,7 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
     return 0;
   }
 
-  const circleIds = data.map(circle => circle.id as string);
+  const circleIds = data.map((circle: { id: string }) => circle.id as string);
 
   const { error: updateError } = await supabase
     .from('community_circles')
@@ -404,7 +404,7 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
   await supabase
     .from('community_messages')
     .insert(
-      circleIds.map(circleId => ({
+      circleIds.map((circleId: string) => ({
         circle_id: circleId,
         sender_user_id: null,
         content: CLOSING_MESSAGE,
@@ -422,10 +422,10 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
   }
 
   const activeMembers =
-    members?.filter(member => member.left_at === null) ?? [];
+    members?.filter((member: { left_at: string | null }) => member.left_at === null) ?? [];
   if (activeMembers.length > 0) {
     await supabase.from('community_notifications').insert(
-      activeMembers.map(member => ({
+      activeMembers.map((member: { user_id: string; circle_id: string }) => ({
         user_id: member.user_id,
         type: 'circle_ended',
         title: 'Your circle has wrapped up',
