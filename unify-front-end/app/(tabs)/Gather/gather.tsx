@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';
 import { GroupCardSkeletonLoader } from '@/components/groups/GroupCardSkeletonLoader';
 import { NewsCarousel } from '@/components/news/NewsCarousel';
+import { CommunityMatchingEntryCard } from '@/ui/communityMatching/EntryCard';
 
 const GroupsForYouSection = () => {
   const router = useRouter();
@@ -69,12 +70,18 @@ const GatherHeader = memo(() => {
 });
 
 export default function GatherScreen() {
+  const router = useRouter();
   return (
     <View style={styles.root}>
       <Header />
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          <View style={styles.entryWrapper}>
+            <CommunityMatchingEntryCard
+              onPress={() => router.push('/community-matching')}
+            />
+          </View>
           <GatherHeader />
           <NewsCarousel />
           <GroupsForYouSection />
@@ -95,6 +102,12 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  entryWrapper: {
+    marginTop: 16,
+  },
   searchButton: {
     marginHorizontal: 20,
     marginTop: 20,
@@ -111,7 +124,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   eventsCarousel: {
-    marginTop: 27,
+    marginTop: 8,
     paddingHorizontal: 20,
   },
   section: {
