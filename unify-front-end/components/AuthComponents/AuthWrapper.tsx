@@ -63,12 +63,9 @@ export default function AuthWrapper({ children }: Props) {
   };
 
   const handleOnboardingComplete = () => {
-    // Invalidate onboarding profile to refetch
-    if (session?.user?.id) {
-      queryClient.invalidateQueries({
-        queryKey: ['onboardingProfile', session.user.id],
-      });
-    }
+    // No-op: cache is already updated by mutation's onSuccess via setQueryData
+    // React Query will automatically trigger re-render in AuthWrapper
+    // when the cache is updated, so no refetch is needed
   };
 
   if (loading || (session && isLoadingOnboarding)) {
