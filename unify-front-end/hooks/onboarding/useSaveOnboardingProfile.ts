@@ -16,13 +16,14 @@ export const useSaveOnboardingProfile = () => {
   >({
     mutationFn: ({ userId, data }) => saveOnboardingProfile(userId, data),
     onSuccess: (data, variables) => {
-      // Invalidate and refetch onboarding profile
+      // Optimistically update the cache immediately
+      queryClient.setQueryData(
+        ['onboardingProfile', variables.userId],
+        data
+      );
+      // Also invalidate to ensure consistency
       queryClient.invalidateQueries({
         queryKey: ['onboardingProfile', variables.userId],
-      });
-      // Also invalidate for current user (no userId provided)
-      queryClient.invalidateQueries({
-        queryKey: ['onboardingProfile'],
       });
     },
   });

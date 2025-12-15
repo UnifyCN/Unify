@@ -62,10 +62,14 @@ export default function AuthWrapper({ children }: Props) {
     setShowOTP(false);
   };
 
-  const handleOnboardingComplete = () => {
-    // Invalidate onboarding profile to refetch
+  const handleOnboardingComplete = async () => {
+    // Invalidate and wait for refetch to complete
     if (session?.user?.id) {
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
+        queryKey: ['onboardingProfile', session.user.id],
+      });
+      // Refetch immediately to ensure we have the latest data
+      await queryClient.refetchQueries({
         queryKey: ['onboardingProfile', session.user.id],
       });
     }

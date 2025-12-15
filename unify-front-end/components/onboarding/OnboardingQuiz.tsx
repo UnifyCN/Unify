@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -164,6 +165,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const handleSubmit = async () => {
     if (!currentUser) {
       console.error('No user found');
+      Alert.alert('Error', 'Please sign in to continue');
       return;
     }
 
@@ -190,10 +192,17 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         },
       });
 
+      // Wait a bit to ensure the database write is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
-      // You might want to show an error message to the user here
+      Alert.alert(
+        'Error',
+        'Failed to save your onboarding information. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 

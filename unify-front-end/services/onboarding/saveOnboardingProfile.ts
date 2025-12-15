@@ -26,6 +26,11 @@ export const saveOnboardingProfile = async (
       onboarding_completed: data.onboarding_completed ?? false,
     };
 
+    // Set onboarding_completed_at if completing onboarding
+    if (data.onboarding_completed) {
+      supabaseData.onboarding_completed_at = new Date().toISOString();
+    }
+
     // Upsert the profile
     const { data: result, error } = await supabase
       .from('user_onboarding_profiles')
