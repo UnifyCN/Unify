@@ -192,9 +192,6 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         },
       });
 
-      // Wait a bit to ensure the database write is complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
