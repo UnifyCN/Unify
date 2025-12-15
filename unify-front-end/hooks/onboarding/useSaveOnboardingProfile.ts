@@ -4,7 +4,6 @@ import {
   OnboardingProfileInput,
   UserOnboardingProfile,
 } from '@/types/onboardingProfile';
-import { supabase } from '@/lib/supabase';
 
 export const useSaveOnboardingProfile = () => {
   const queryClient = useQueryClient();
@@ -16,13 +15,12 @@ export const useSaveOnboardingProfile = () => {
   >({
     mutationFn: ({ userId, data }) => saveOnboardingProfile(userId, data),
     onSuccess: (data, variables) => {
-      // Update the cache with the authoritative mutation response
-      // handleOnboardingComplete will refetch to ensure consistency
+      // Update cache with authoritative mutation response
+      // React Query will automatically notify subscribers (AuthWrapper) to re-render
       queryClient.setQueryData(
         ['onboardingProfile', variables.userId],
         data
       );
-      // Removed invalidateQueries - handleOnboardingComplete handles refetch
     },
   });
 };

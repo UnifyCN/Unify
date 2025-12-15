@@ -62,17 +62,10 @@ export default function AuthWrapper({ children }: Props) {
     setShowOTP(false);
   };
 
-  const handleOnboardingComplete = async () => {
-    // Invalidate and wait for refetch to complete
-    if (session?.user?.id) {
-      await queryClient.invalidateQueries({
-        queryKey: ['onboardingProfile', session.user.id],
-      });
-      // Refetch immediately to ensure we have the latest data
-      await queryClient.refetchQueries({
-        queryKey: ['onboardingProfile', session.user.id],
-      });
-    }
+  const handleOnboardingComplete = () => {
+    // No-op: cache is already updated by mutation's onSuccess via setQueryData
+    // React Query will automatically trigger re-render in AuthWrapper
+    // when the cache is updated, so no refetch is needed
   };
 
   if (loading || (session && isLoadingOnboarding)) {
