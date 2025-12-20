@@ -14,6 +14,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import StarFilled from '@/components/StarFilled';
+import StarOutline from '@/components/StarOutline';
 
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
@@ -385,11 +387,11 @@ export default function EndingPageScreen() {
                         onPress={() => setRating(i)}
                         style={styles.starTouch}
                       >
-                        <AntDesign
-                          name={selected ? 'star' : 'staro'}
-                          size={40}
-                          color={selected ? '#D8492C' : '#B4B1B1'}
-                        />
+                        {selected ? (
+                          <StarFilled size={36} color="#D8492C" />
+                        ) : (
+                          <StarOutline size={36} color="#B4B1B1" />
+                        )}
                       </TouchableOpacity>
 
                     );
@@ -601,7 +603,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flexDirection: 'row',
     gap: 10, // closer stars
-    marginBottom: 16,
+    marginBottom: 23,
   },
   starBoxSelected: {
     borderColor: '#D8492C',
