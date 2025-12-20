@@ -11,7 +11,10 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
@@ -19,6 +22,7 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import Header from '@/components/Header';
+
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
@@ -36,12 +40,12 @@ export default function EndingPageScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // NEW: review modal state
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState('');
 
-  const currentPage = parseInt(pageNum || '1');
+  const currentPage = parseInt(pageNum || '1', 10);
+
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
     lessonId || ''
   );
@@ -158,7 +162,9 @@ export default function EndingPageScreen() {
         },
       });
     } else {
-      // We're on the final ending page: show review bottom sheet on "Congratulations"
+      // We're on the final ending page: show review bottom sheet
+      setRating(null);
+      setComment('');
       setShowReviewModal(true);
     }
   };
@@ -177,7 +183,7 @@ export default function EndingPageScreen() {
         },
       });
     } else {
-      // First ending page, go back to last quiz
+      // First ending page, go back to last quiz/activity/lesson page
       if (quizzes && quizzes.length > 0) {
         const sortedQuizzes = [...quizzes].sort(
           (a, b) => a.order_number - b.order_number
@@ -196,7 +202,6 @@ export default function EndingPageScreen() {
           },
         });
       } else if (lesson?.activity_pages && lesson.activity_pages.length > 0) {
-        // No quizzes, go back to last activity page
         router.push({
           pathname:
             '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/activities/[pageNum]' as any,
@@ -208,7 +213,6 @@ export default function EndingPageScreen() {
           },
         });
       } else {
-        // No quizzes or activities, go back to last lesson page
         const totalLessonPages = lesson?.pages?.length || 0;
         if (totalLessonPages > 0) {
           router.push({
@@ -228,13 +232,12 @@ export default function EndingPageScreen() {
 
   // --- review actions ---
   const handleSubmitReview = () => {
-    // here you could POST {rating, comment} somewhere
+    // TODO: here you could POST {rating, comment}
     setShowReviewModal(false);
     completeLessonAndNavigate();
   };
 
   const handleSkipReview = () => {
-    // tap outside or skip → still finish
     setShowReviewModal(false);
     completeLessonAndNavigate();
   };
@@ -264,6 +267,7 @@ export default function EndingPageScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <Header />
+
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -365,37 +369,31 @@ export default function EndingPageScreen() {
           <View style={styles.reviewOverlay}>
             <TouchableWithoutFeedback onPress={() => {}}>
               <View style={styles.reviewContainer}>
-                {/* drag handle */}
                 <View style={styles.reviewHandle} />
 
                 <Text style={styles.reviewTitle}>Was this content helpful?</Text>
 
                 {/* stars */}
                 <View style={styles.reviewStarsRow}>
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <TouchableOpacity
-                      key={i}
-                      activeOpacity={0.8}
-                      onPress={() => setRating(i)}
-                    >
-                      <View
-                        style={[
-                          styles.starBox,
-                          rating !== null && i <= rating && styles.starBoxSelected,
-                        ]}
+                  {[1, 2, 3, 4, 5].map(i => {
+                    const selected = rating !== null && i <= rating;
+
+                    return (
+                      <TouchableOpacity
+                        key={i}
+                        activeOpacity={0.8}
+                        onPress={() => setRating(i)}
+                        style={styles.starTouch}
                       >
-                        <Feather
-                          name="star"
-                          size={24}
-                          color={
-                            rating !== null && i <= rating
-                              ? '#D8492C'
-                              : '#B4B1B1'
-                          }
+                        <AntDesign
+                          name={selected ? 'star' : 'staro'}
+                          size={40}
+                          color={selected ? '#D8492C' : '#B4B1B1'}
                         />
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                      </TouchableOpacity>
+
+                    );
+                  })}
                 </View>
 
                 {/* comment box appears after selecting rating */}
@@ -463,7 +461,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   contentText: {
-    fontWeight: 600,
+    fontWeight: '600',
     color: '#424242',
     marginBottom: 15,
   },
@@ -575,11 +573,11 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 13,
-    paddingBottom: 20,
+    paddingBottom: 10,
     paddingHorizontal: 19,
     borderTopWidth: 1,
     borderTopColor: '#EEEEEE',
-    minHeight: 306,
+    minHeight: 230,
   },
   reviewHandle: {
     alignSelf: 'center',
@@ -600,26 +598,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   reviewStarsRow: {
-    width: 355,
     alignSelf: 'center',
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10, // closer stars
     marginBottom: 16,
-  },
-  starBox: {
-    width: 42,
-    height: 40,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: '#B4B1B1',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   starBoxSelected: {
     borderColor: '#D8492C',
   },
+  starTouch: {
+  paddingHorizontal: 15,
+  paddingVertical: 5, // touch-friendly area without visual box
+  },
   commentBox: {
-    width: 353,
+    width: '100%',
     height: 130,
     borderRadius: 10,
     borderWidth: 1,
@@ -639,13 +631,12 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   reviewSubmitBtn: {
-    width: 355,
+    width: '100%',
     height: 46,
     borderRadius: 10,
     paddingTop: 12,
     paddingBottom: 12,
     paddingHorizontal: 24,
-    alignSelf: 'center',
     justifyContent: 'center',
     alignItems: 'center',
   },
