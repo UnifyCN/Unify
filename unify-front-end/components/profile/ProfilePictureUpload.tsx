@@ -144,11 +144,11 @@ export const ProfilePictureUpload = ({
       const buffer = new Uint8Array(arrayBuffer);
 
       // Upload to S3
-      const uploadResult = await uploadProfilePicture(buffer, userId);
-
-      if (uploadResult.success && uploadResult.url) {
+      const uploadResult = await uploadProfilePicture(buffer, "image/jpeg");
+      
+      if (uploadResult.success && uploadResult.key) {
         // Update the database
-        const updateResult = await updateProfilePicture(uploadResult.url);
+        const updateResult = await updateProfilePicture(uploadResult.key);
 
         if (updateResult.success) {
           // Delete old profile picture from S3 if it exists
@@ -197,6 +197,7 @@ export const ProfilePictureUpload = ({
               if (currentPictureUrl) {
                 await deleteProfilePicture(currentPictureUrl);
               }
+              await updateProfilePicture(null);
 
               // Update the database
               const updateResult = await updateProfilePicture(null);
