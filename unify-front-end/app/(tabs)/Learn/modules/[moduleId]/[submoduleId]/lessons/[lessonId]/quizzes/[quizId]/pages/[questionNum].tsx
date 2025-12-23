@@ -739,9 +739,7 @@ export default function QuizQuestionPage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              Take a break from this quiz?
-            </Text>
+            <Text style={styles.modalTitle}>Take a break from this quiz?</Text>
             <Text style={styles.modalDesc}>
               No worries, your progress will be saved!{'\n'}
               You can pick up right where you left off.
@@ -752,7 +750,8 @@ export default function QuizQuestionPage() {
               onPress={() => {
                 setShowExitModal(false);
                 router.push({
-                  pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
                   params: { moduleId, submoduleId },
                 });
               }}

@@ -56,9 +56,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dot: { 
-    width: 8, 
-    height: 8, 
+  dot: {
+    width: 8,
+    height: 8,
     borderRadius: 5,
     backgroundColor: '#d0d0d0',
   },
@@ -68,10 +68,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#9B9797',
   },
-  dotInactive: { 
+  dotInactive: {
     backgroundColor: '#d0d0d0',
   },
-  itemSpacing: { 
+  itemSpacing: {
     marginRight: 6,
   },
 });

@@ -14,8 +14,8 @@ import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { useCurrentUser } from '@/context/UserContext';
-import { useQuery } from "@tanstack/react-query";
-import { getProfilePictureUrl } from "@/services/s3/uploadProfilePicture";
+import { useQuery } from '@tanstack/react-query';
+import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -53,12 +53,11 @@ export default function AccountSettingsPage() {
   const profilePictureKey = currentUser?.profilePictureUrl ?? null;
 
   const { data: signedProfileUrl } = useQuery({
-    queryKey: ["profilePictureSignedUrl", profilePictureKey],
+    queryKey: ['profilePictureSignedUrl', profilePictureKey],
     enabled: !!profilePictureKey,
     queryFn: () => getProfilePictureUrl(profilePictureKey as string),
     staleTime: 4 * 60 * 1000,
   });
-
 
   return (
     <View style={styles.container}>

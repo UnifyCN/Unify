@@ -17,10 +17,7 @@ export const useSaveOnboardingProfile = () => {
     onSuccess: (data, variables) => {
       // Update cache with authoritative mutation response
       // React Query will automatically notify subscribers (AuthWrapper) to re-render
-      queryClient.setQueryData(
-        ['onboardingProfile', variables.userId],
-        data
-      );
+      queryClient.setQueryData(['onboardingProfile', variables.userId], data);
     },
   });
 };

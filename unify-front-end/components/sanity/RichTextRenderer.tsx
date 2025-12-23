@@ -41,7 +41,10 @@ export default function RichTextRenderer({
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageZoom, setImageZoom] = useState(1);
-  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
 
@@ -110,7 +113,7 @@ export default function RichTextRenderer({
       fontStyle: 'normal',
       fontSize: 18,
       lineHeight: 27,
-      letterSpacing: 0, 
+      letterSpacing: 0,
       color: '#374151',
       marginBottom: 5, // Consistent spacing between paragraphs
     },
@@ -472,7 +475,7 @@ export default function RichTextRenderer({
   const isEmptyBlock = (block: any): boolean => {
     if (block._type !== 'block' || block.listItem) return false;
     if (!block.children || !Array.isArray(block.children)) return true;
-    
+
     // Check if all children have empty or whitespace-only text
     const hasContent = block.children.some((child: any) => {
       if (typeof child === 'string') return child.trim().length > 0;
@@ -481,11 +484,18 @@ export default function RichTextRenderer({
       }
       return false;
     });
-    
+
     return !hasContent;
   };
 
-  const renderBlock = (block: any, index: number, nestingLevel: number = 0, isLastInList: boolean = false, afterSkipLine: boolean = false, isFirstInList: boolean = false) => {
+  const renderBlock = (
+    block: any,
+    index: number,
+    nestingLevel: number = 0,
+    isLastInList: boolean = false,
+    afterSkipLine: boolean = false,
+    isFirstInList: boolean = false
+  ) => {
     if (
       block._type === 'large_input_box' ||
       block._type === 'mid_input_box' ||
@@ -496,12 +506,7 @@ export default function RichTextRenderer({
     if (block._type === 'block') {
       // Handle empty blocks (skip lines) - render as spacing element
       if (isEmptyBlock(block)) {
-        return (
-          <View
-            key={block._key || index}
-            style={styles.skipLineSpacer}
-          />
-        );
+        return <View key={block._key || index} style={styles.skipLineSpacer} />;
       }
 
       // Keep prev bullet/number behavior
@@ -510,12 +515,12 @@ export default function RichTextRenderer({
           block.listItem === 'bullet'
             ? mergedStyles.bullet
             : mergedStyles.number;
-        
+
         // Remove marginBottom from last item in list to ensure consistent spacing
         const listStyle = isLastInList
           ? { ...baseListStyle, marginBottom: 0 }
           : baseListStyle;
-        
+
         const bullet =
           block.listItem === 'bullet'
             ? '•'
@@ -533,14 +538,14 @@ export default function RichTextRenderer({
 
         // Adjust spacing for last item in list to match paragraph spacing (20px)
         const containerStyle = isLastInList
-          ? [styles.listItemContainer, { marginLeft: indentLevel, marginBottom: 20 }]
+          ? [
+              styles.listItemContainer,
+              { marginLeft: indentLevel, marginBottom: 20 },
+            ]
           : [styles.listItemContainer, { marginLeft: indentLevel }];
 
         return (
-          <View
-            key={block._key || index}
-            style={containerStyle}
-          >
+          <View key={block._key || index} style={containerStyle}>
             <Text style={listStyle}>
               {displayBullet}{' '}
               {renderInlineText(block.children, markDefs, block.markDefs)}
@@ -1010,10 +1015,14 @@ export default function RichTextRenderer({
   // Helper to check if a block is the last item in a list
   const isLastListItem = (index: number): boolean => {
     const currentBlock = blocks[index];
-    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+    if (
+      !currentBlock ||
+      currentBlock._type !== 'block' ||
+      !currentBlock.listItem
+    ) {
       return false;
     }
-    
+
     // Check if next block is not a list item (or doesn't exist)
     const nextBlock = blocks[index + 1];
     return !nextBlock || nextBlock._type !== 'block' || !nextBlock.listItem;
@@ -1029,14 +1038,22 @@ export default function RichTextRenderer({
   // Helper to check if this is the first item in a list (after a skip line or paragraph)
   const isFirstListItem = (index: number): boolean => {
     const currentBlock = blocks[index];
-    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+    if (
+      !currentBlock ||
+      currentBlock._type !== 'block' ||
+      !currentBlock.listItem
+    ) {
       return false;
     }
-    
+
     // Check if previous block is not a list item
     if (index === 0) return true;
     const previousBlock = blocks[index - 1];
-    return !previousBlock || previousBlock._type !== 'block' || !previousBlock.listItem;
+    return (
+      !previousBlock ||
+      previousBlock._type !== 'block' ||
+      !previousBlock.listItem
+    );
   };
 
   const handleZoomIn = () => {
@@ -1062,7 +1079,14 @@ export default function RichTextRenderer({
           const isFirstInList = isFirstListItem(index);
           return (
             <React.Fragment key={block._key || index}>
-              {renderBlock(block, index, nestingLevels[block._key || index] || 0, isLastInList, afterSkipLine, isFirstInList)}
+              {renderBlock(
+                block,
+                index,
+                nestingLevels[block._key || index] || 0,
+                isLastInList,
+                afterSkipLine,
+                isFirstInList
+              )}
             </React.Fragment>
           );
         })
@@ -1072,7 +1096,7 @@ export default function RichTextRenderer({
       <Modal
         visible={selectedImage !== null}
         transparent={true}
-        animationType="fade"
+        animationType='fade'
         onRequestClose={handleCloseImageModal}
       >
         <SafeAreaView style={styles.imageModalOverlay}>
@@ -1082,7 +1106,7 @@ export default function RichTextRenderer({
               onPress={handleCloseImageModal}
               style={styles.imageModalCloseButton}
             >
-              <Feather name="x" size={20} color="#878787" />
+              <Feather name='x' size={20} color='#878787' />
             </TouchableOpacity>
             <View style={styles.imageModalZoomControls}>
               <TouchableOpacity
@@ -1091,7 +1115,7 @@ export default function RichTextRenderer({
                 disabled={imageZoom <= 0.5}
               >
                 <Feather
-                  name="zoom-out"
+                  name='zoom-out'
                   size={20}
                   color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
                 />
@@ -1102,7 +1126,7 @@ export default function RichTextRenderer({
                 disabled={imageZoom >= 5}
               >
                 <Feather
-                  name="zoom-in"
+                  name='zoom-in'
                   size={20}
                   color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
                 />
@@ -1137,8 +1161,8 @@ export default function RichTextRenderer({
                           height: screenHeight * 0.7,
                         },
                   ]}
-                  resizeMode="contain"
-                  onLoad={(e) => {
+                  resizeMode='contain'
+                  onLoad={e => {
                     const { width, height } = e.nativeEvent.source;
                     if (width && height) {
                       // Use full original image dimensions (no size limits)

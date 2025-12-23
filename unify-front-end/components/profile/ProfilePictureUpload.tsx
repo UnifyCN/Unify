@@ -144,8 +144,8 @@ export const ProfilePictureUpload = ({
       const buffer = new Uint8Array(arrayBuffer);
 
       // Upload to S3
-      const uploadResult = await uploadProfilePicture(buffer, "image/jpeg");
-      
+      const uploadResult = await uploadProfilePicture(buffer, 'image/jpeg');
+
       if (uploadResult.success && uploadResult.key) {
         // Update the database
         const updateResult = await updateProfilePicture(uploadResult.key);

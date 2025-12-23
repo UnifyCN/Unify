@@ -405,7 +405,9 @@ export default function ActivityPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>Continue Activity</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                Continue Activity
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
