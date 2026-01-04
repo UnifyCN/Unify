@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Google from '../../assets/images/Google.svg';
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
+import { generateUsername } from '../../utils/usernameGenerator';
 import {
   LinkButton,
   LinksContainer,
@@ -94,12 +95,14 @@ export function SignIn({
       return;
     }
 
+    setLoading(true);
+    setErrorMessage(null);
+
     try {
       if (Platform.OS === 'android') {
         await GoogleSignin.hasPlayServices();
       }
       await GoogleSignin.signIn();
-      //CHANGE
       const { idToken } = await GoogleSignin.getTokens();
       if (idToken) {
         const { data, error } = await supabase.auth.signInWithIdToken({
@@ -108,11 +111,37 @@ export function SignIn({
         });
         if (error) {
           setErrorMessage(error.message);
+          setLoading(false);
           return;
         }
 
-        // Prefetch user info immediately after successful Google login and wait for it
+        // Create user record if it doesn't exist (for Google sign-in users)
         if (data?.user?.id) {
+          // Check if user exists in public.users
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', data.user.id)
+            .single();
+
+          // If user doesn't exist, create them
+          if (!existingUser) {
+            const username = generateUsername();
+            const { error: insertError } = await supabase.from('users').insert({
+              id: data.user.id,
+              email: data.user.email,
+              username: username,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+
+            if (insertError) {
+              console.error('Error creating user record:', insertError);
+              // Continue anyway - user is authenticated
+            }
+          }
+
+          // Prefetch user info immediately after successful Google login
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
@@ -122,13 +151,18 @@ export function SignIn({
         setErrorMessage('No Google idToken');
       }
     } catch (error: any) {
-      if (error?.code === statusCodes.IN_PROGRESS) return; // already in progress
+      if (error?.code === statusCodes.IN_PROGRESS) {
+        setLoading(false);
+        return; // already in progress
+      }
       if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         setErrorMessage('Google Play Services not available');
+        setLoading(false);
         return;
       }
       setErrorMessage(error?.message || 'Google sign-in failed');
     }
+    setLoading(false);
   };
 
   if (showForgotPassword) {
