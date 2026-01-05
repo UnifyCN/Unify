@@ -11,7 +11,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
 import Google from '../../assets/images/Google.svg';
-import { generateUsername } from '../../utils/usernameGenerator';
+import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
   SubmitButton,
   SimpleTextField,
@@ -139,29 +139,7 @@ export function SignUp({
 
         // Create user record if it doesn't exist (for Google sign-up users)
         if (data?.user?.id) {
-          // Check if user exists in public.users
-          const { data: existingUser } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', data.user.id)
-            .single();
-
-          // If user doesn't exist, create them
-          if (!existingUser) {
-            const username = generateUsername();
-            const { error: insertError } = await supabase.from('users').insert({
-              id: data.user.id,
-              email: data.user.email,
-              username: username,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
-
-            if (insertError) {
-              console.error('Error creating user record:', insertError);
-              // Continue anyway - user is authenticated
-            }
-          }
+          await createUserIfNotExists(data.user.id, data.user.email);
 
           // Prefetch user info immediately after successful Google signup/login
           await queryClient.ensureQueryData({

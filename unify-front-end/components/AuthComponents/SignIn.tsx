@@ -13,7 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Google from '../../assets/images/Google.svg';
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
-import { generateUsername } from '../../utils/usernameGenerator';
+import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
   LinkButton,
   LinksContainer,
@@ -117,29 +117,7 @@ export function SignIn({
 
         // Create user record if it doesn't exist (for Google sign-in users)
         if (data?.user?.id) {
-          // Check if user exists in public.users
-          const { data: existingUser } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', data.user.id)
-            .single();
-
-          // If user doesn't exist, create them
-          if (!existingUser) {
-            const username = generateUsername();
-            const { error: insertError } = await supabase.from('users').insert({
-              id: data.user.id,
-              email: data.user.email,
-              username: username,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            });
-
-            if (insertError) {
-              console.error('Error creating user record:', insertError);
-              // Continue anyway - user is authenticated
-            }
-          }
+          await createUserIfNotExists(data.user.id, data.user.email);
 
           // Prefetch user info immediately after successful Google login
           await queryClient.ensureQueryData({
