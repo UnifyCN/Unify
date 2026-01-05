@@ -157,6 +157,10 @@ export function SignUp({
           setErrorMessage('Unable to retrieve email from Google account');
           setLoading(false);
           return;
+        } else if (!data?.user?.id) {
+          setErrorMessage('Unable to retrieve user information from Google');
+          setLoading(false);
+          return;
         }
       } else {
         setErrorMessage('No Google idToken');
