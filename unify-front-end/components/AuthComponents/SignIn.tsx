@@ -116,14 +116,25 @@ export function SignIn({
         }
 
         // Create user record if it doesn't exist (for Google sign-in users)
-        if (data?.user?.id) {
-          await createUserIfNotExists(data.user.id, data.user.email);
+        if (data?.user?.id && data?.user?.email) {
+          try {
+            await createUserIfNotExists(data.user.id, data.user.email);
+          } catch (userCreationError: any) {
+            console.error('Failed to create user record:', userCreationError);
+            setErrorMessage(userCreationError?.message || 'Failed to complete sign-in setup');
+            setLoading(false);
+            return;
+          }
 
           // Prefetch user info immediately after successful Google login
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+        } else if (data?.user?.id && !data?.user?.email) {
+          setErrorMessage('Unable to retrieve email from Google account');
+          setLoading(false);
+          return;
         }
       } else {
         setErrorMessage('No Google idToken');

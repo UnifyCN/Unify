@@ -1,6 +1,10 @@
 import generateRandomUsername from 'generate-random-username';
 import { supabase } from '../lib/supabase';
 
+/**
+ * Generates a unique username that doesn't exist in the database.
+ * Throws an error if unable to generate after multiple attempts or on DB errors.
+ */
 export const generateUsername = async (): Promise<string> => {
   const maxLength = 15;
   const maxAttempts = 10;
@@ -16,13 +20,16 @@ export const generateUsername = async (): Promise<string> => {
         digits: 1,
       });
     } else {
-      // Last 5 tries: fallback with random suffix (e.g. "CoolTiger123")
+      // Last 5 tries: fallback with high-entropy random suffix (5 digits = 100,000 possibilities)
       const base = generateRandomUsername({
         capitalize: true,
         separator: '',
         digits: 0,
-      }).substring(0, 10); // Shorten base to make room for suffix
-      username = `${base}${Math.floor(Math.random() * 1000)}`;
+      }).substring(0, 9); // Shorten base to 9 chars to leave room for 5-digit suffix
+      const suffix = Math.floor(Math.random() * 100000)
+        .toString()
+        .padStart(5, '0');
+      username = `${base}${suffix}`;
     }
 
     // Ensure strict length limit
@@ -37,7 +44,14 @@ export const generateUsername = async (): Promise<string> => {
       .eq('username', username)
       .maybeSingle();
 
-    if (!error && !data) {
+    // Handle DB errors explicitly - don't silently continue
+    if (error) {
+      console.error('Database error checking username availability:', error);
+      throw new Error(`Failed to check username availability: ${error.message}`);
+    }
+
+    // Username is available
+    if (!data) {
       return username;
     }
   }

@@ -83,7 +83,20 @@ export default function OTPVerification({
 
       if (session) {
         // Create user record using shared helper
-        await createUserIfNotExists(session.user.id, session.user.email);
+        if (!session.user.email) {
+          setErrorMessage('Unable to retrieve email from verified session');
+          setLoading(false);
+          return;
+        }
+        
+        try {
+          await createUserIfNotExists(session.user.id, session.user.email);
+        } catch (userCreationError: any) {
+          console.error('Failed to create user record:', userCreationError);
+          setErrorMessage(userCreationError?.message || 'Failed to complete account setup');
+          setLoading(false);
+          return;
+        }
 
         // NOTE: just alert for now, until we have a UI designed for thos
         Alert.alert('Success', 'Email verified successfully!', [
