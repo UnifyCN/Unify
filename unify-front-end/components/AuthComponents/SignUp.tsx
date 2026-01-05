@@ -40,10 +40,11 @@ export function SignUp({
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
 
-  const validateEmail = (email: string) => {
+  const validateEmail = (emailInput: string) => {
     // Simple email validation regex
+    // Trim before testing to match handleSignUp behavior
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setIsEmailValid(emailRegex.test(email));
+    setIsEmailValid(emailRegex.test(emailInput.trim()));
   };
 
   const handleSignUp = async () => {
@@ -66,13 +67,25 @@ export function SignUp({
     setErrorMessage(null);
 
     try {
+      // Normalize email: trim whitespace and lowercase for consistency
+      const normalizedEmail = email.trim().toLowerCase();
+
       // Check if email exists in the users table
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('email')
-        .eq('email', email.toLowerCase())
+        .eq('email', normalizedEmail)
         .single();
 
+      // Handle real database errors (not the expected "not found" error)
+      if (checkError && checkError.code !== 'PGRST116') {
+        setErrorMessage('Failed to verify email availability');
+        setLoading(false);
+        return;
+      }
+
+      // PGRST116 means no user found (email is available), which is expected
+      // If existingUser exists, email is already taken
       if (existingUser) {
         setErrorMessage('An account with this email already exists');
         setLoading(false);
@@ -81,7 +94,7 @@ export function SignUp({
 
       // If we get here, the email doesn't exist, so proceed with signup
       const { data, error } = await supabase.auth.signUp({
-        email: email,
+        email: normalizedEmail,
         password: password,
       });
 
@@ -122,7 +135,7 @@ export function SignUp({
 
     try {
       if (Platform.OS === 'android') {
-        await GoogleSignin.hasPlayServices();
+      await GoogleSignin.hasPlayServices();
       }
       await GoogleSignin.signIn();
       const { idToken } = await GoogleSignin.getTokens();
