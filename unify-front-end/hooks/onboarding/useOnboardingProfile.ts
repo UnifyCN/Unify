@@ -6,6 +6,7 @@ export const useOnboardingProfile = (userId?: string) => {
   return useQuery<UserOnboardingProfile | null, Error>({
     queryKey: ['onboardingProfile', userId],
     queryFn: () => getOnboardingProfile(userId),
+    enabled: !!userId, // Only fetch when userId is provided
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes
   });
