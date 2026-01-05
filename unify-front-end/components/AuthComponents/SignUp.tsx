@@ -77,6 +77,15 @@ export function SignUp({
         .eq('email', normalizedEmail)
         .single();
 
+      // Handle real database errors (not the expected "not found" error)
+      if (checkError && checkError.code !== 'PGRST116') {
+        setErrorMessage('Failed to verify email availability');
+        setLoading(false);
+        return;
+      }
+
+      // PGRST116 means no user found (email is available), which is expected
+      // If existingUser exists, email is already taken
       if (existingUser) {
         setErrorMessage('An account with this email already exists');
         setLoading(false);
