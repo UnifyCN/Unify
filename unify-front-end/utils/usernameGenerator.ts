@@ -2,37 +2,45 @@ import generateRandomUsername from 'generate-random-username';
 import { supabase } from '../lib/supabase';
 
 export const generateUsername = async (): Promise<string> => {
-  const maxLength = 15; // Maximum allowed length
-  const maxAttempts = 10; // Prevent infinite loops
+  const maxLength = 15;
+  const maxAttempts = 10;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const username = generateRandomUsername({
-      capitalize: true,
-      separator: '',
-      digits: 1,
-    });
+    let username: string;
 
-    // Check if username is within our length limit
-    if (username.length <= maxLength) {
-      // Check if username already exists in the database
-      const { data, error } = await supabase
-        .from('users')
-        .select('username')
-        .eq('username', username)
-        .maybeSingle();
+    if (attempt < 5) {
+      // First 5 tries: clean username (e.g. "CoolTiger1")
+      username = generateRandomUsername({
+        capitalize: true,
+        separator: '',
+        digits: 1,
+      });
+    } else {
+      // Last 5 tries: fallback with random suffix (e.g. "CoolTiger123")
+      const base = generateRandomUsername({
+        capitalize: true,
+        separator: '',
+        digits: 0,
+      }).substring(0, 10); // Shorten base to make room for suffix
+      username = `${base}${Math.floor(Math.random() * 1000)}`;
+    }
 
-      if (!error && !data) {
-        return username;
-      }
+    // Ensure strict length limit
+    if (username.length > maxLength) {
+      username = username.substring(0, maxLength);
+    }
+
+    // Check availability in DB
+    const { data, error } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (!error && !data) {
+      return username;
     }
   }
 
-  // Fallback: if we can't generate a unique short enough username, add a random suffix
-  const fallbackUsername = generateRandomUsername({
-    capitalize: true,
-    separator: '',
-    digits: 0,
-  }).substring(0, 10);
-  
-  return `${fallbackUsername}${Math.floor(Math.random() * 1000)}`;
+  throw new Error('Failed to generate a unique username after multiple attempts');
 };
