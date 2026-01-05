@@ -43,26 +43,27 @@ export function SignIn({
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Method to validate if email is in valid format for the tick icon to appear
+  // Trim before testing to match handleSignIn behavior
   const validateEmail = (emailInput: string) => {
-    setIsEmailValid(emailRegex.test(emailInput));
+    setIsEmailValid(emailRegex.test(emailInput.trim()));
   };
 
   // Supabase sign in
   const handleSignIn = async () => {
     setErrorMessage(null);
 
-    // Trim email only (emails don't have valid whitespace)
+    // Normalize email: trim whitespace and lowercase for consistency
     // Do NOT trim password - it may legitimately contain leading/trailing spaces
-    const trimmedEmail = email.trim();
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Check for empty fields - show generic error
-    if (!trimmedEmail || !password) {
+    if (!normalizedEmail || !password) {
       setErrorMessage('Invalid login credentials');
       return;
     }
 
     // Check for invalid email format - show same generic error
-    if (!emailRegex.test(trimmedEmail)) {
+    if (!emailRegex.test(normalizedEmail)) {
       setErrorMessage('Invalid login credentials');
       return;
     }
@@ -70,7 +71,7 @@ export function SignIn({
     // Only attempt authentication if both fields are valid
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: trimmedEmail,
+      email: normalizedEmail,
       password: password, // Use password as-is to match signup behavior
     });
     if (error) {
