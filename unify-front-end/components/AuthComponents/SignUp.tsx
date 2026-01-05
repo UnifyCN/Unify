@@ -122,7 +122,7 @@ export function SignUp({
 
     try {
       if (Platform.OS === 'android') {
-        await GoogleSignin.hasPlayServices();
+      await GoogleSignin.hasPlayServices();
       }
       await GoogleSignin.signIn();
       const { idToken } = await GoogleSignin.getTokens();

@@ -51,12 +51,12 @@ export function SignIn({
   const handleSignIn = async () => {
     setErrorMessage(null);
 
-    // Trim inputs first
+    // Trim email only (emails don't have valid whitespace)
+    // Do NOT trim password - it may legitimately contain leading/trailing spaces
     const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
 
     // Check for empty fields - show generic error
-    if (!trimmedEmail || !trimmedPassword) {
+    if (!trimmedEmail || !password) {
       setErrorMessage('Invalid login credentials');
       return;
     }
@@ -71,7 +71,7 @@ export function SignIn({
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
       email: trimmedEmail,
-      password: trimmedPassword,
+      password: password, // Use password as-is to match signup behavior
     });
     if (error) {
       setErrorMessage('Invalid login credentials');
