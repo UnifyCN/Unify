@@ -1,9 +1,4 @@
-import React, {
-  useMemo,
-  useState,
-  useEffect,
-  useCallback,
-} from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -137,7 +132,10 @@ const getSectionStyles = (
 export default function ModuleIndex() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { moduleId, blobIndex } = useLocalSearchParams<{ moduleId: string; blobIndex?: string }>();
+  const { moduleId, blobIndex } = useLocalSearchParams<{
+    moduleId: string;
+    blobIndex?: string;
+  }>();
   const {
     data: moduleData,
     isLoading,
@@ -145,9 +143,11 @@ export default function ModuleIndex() {
   } = useSanityModuleWithSubmodules(moduleId || '');
 
   // Progress tracking
-  const { moduleProgress, isLoading: progressLoading, refreshProgress } = useModuleProgress(
-    moduleId || ''
-  );
+  const {
+    moduleProgress,
+    isLoading: progressLoading,
+    refreshProgress,
+  } = useModuleProgress(moduleId || '');
   const [submoduleProgresses, setSubmoduleProgresses] = useState<{
     [key: string]: any;
   }>({});
@@ -167,7 +167,16 @@ export default function ModuleIndex() {
 
   // Determine which blob to use based on blobIndex param, or default to 0
   const blobIndexNum = blobIndex ? parseInt(blobIndex, 10) % 5 : 0;
-  const BlobComponent = blobIndexNum === 0 ? Blob3 : blobIndexNum === 1 ? Blob8 : blobIndexNum === 2 ? Blob10 : blobIndexNum === 3 ? Blob11 : Blob12;
+  const BlobComponent =
+    blobIndexNum === 0
+      ? Blob3
+      : blobIndexNum === 1
+        ? Blob8
+        : blobIndexNum === 2
+          ? Blob10
+          : blobIndexNum === 3
+            ? Blob11
+            : Blob12;
 
   // Check if disclaimer should be shown (first time opening this module with 0% progress)
   useEffect(() => {
@@ -250,15 +259,21 @@ export default function ModuleIndex() {
               );
               progressData[submodule._id] = progress;
 
-              if (!progress?.progress_percent || progress.progress_percent === 0) {
+              if (
+                !progress?.progress_percent ||
+                progress.progress_percent === 0
+              ) {
                 // Always navigate to map page for new submodules
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
+                hrefData[submodule._id] =
+                  `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
                 return;
               }
 
               const { data: lessonProgresses } = await progressClient
                 .from('user_lesson_progress')
-                .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
+                .select(
+                  'sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number'
+                )
                 .eq('user_id', user.id)
                 .eq('sanity_submodule_id', submodule._id);
 
@@ -300,8 +315,10 @@ export default function ModuleIndex() {
                     isActive = true;
                   } else {
                     const previousLesson = submodule.lessons[i - 1];
-                    const previousProgress = lessonProgressData[previousLesson._id];
-                    const previousCompleted = previousProgress?.is_completed || false;
+                    const previousProgress =
+                      lessonProgressData[previousLesson._id];
+                    const previousCompleted =
+                      previousProgress?.is_completed || false;
                     isActive = previousCompleted;
                   }
 
@@ -317,8 +334,10 @@ export default function ModuleIndex() {
               }
 
               if (activeLesson && activeLessonProgress?.is_in_progress) {
-                const currentPageType = activeLessonProgress?.current_page_type || 'lesson';
-                const currentPageNumber = activeLessonProgress?.current_page_number || 1;
+                const currentPageType =
+                  activeLessonProgress?.current_page_type || 'lesson';
+                const currentPageNumber =
+                  activeLessonProgress?.current_page_number || 1;
 
                 let href = '';
                 if (currentPageType === 'intro') {
@@ -327,27 +346,34 @@ export default function ModuleIndex() {
                   href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
                 } else if (currentPageType === 'quiz') {
                   const quizId = activeLessonProgress?.current_quiz_id || '';
-                  const questionNumber = activeLessonProgress?.current_question_number || 1;
+                  const questionNumber =
+                    activeLessonProgress?.current_question_number || 1;
                   href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
                 } else {
                   href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
                 }
                 hrefData[submodule._id] = href;
               } else if (activeLesson) {
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/1`;
+                hrefData[submodule._id] =
+                  `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/1`;
               } else {
                 // Always navigate to map page if no active lesson found
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
+                hrefData[submodule._id] =
+                  `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
               }
             } catch (err) {
-              console.error(`Error processing submodule ${submodule._id}:`, err);
+              console.error(
+                `Error processing submodule ${submodule._id}:`,
+                err
+              );
               progressData[submodule._id] = {
                 is_completed: false,
                 progress_percent: 0,
                 completed_lessons: 0,
                 total_lessons: submodule.lessons?.length || 0,
               };
-              hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
+              hrefData[submodule._id] =
+                `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
             }
           })
         );
@@ -378,10 +404,11 @@ export default function ModuleIndex() {
           const progressData: { [key: string]: any } = {};
           for (const submodule of moduleData.submodules) {
             try {
-              progressData[submodule._id] = await cachedProgressService.getSubmoduleProgress(
-                moduleId || '',
-                submodule._id
-              );
+              progressData[submodule._id] =
+                await cachedProgressService.getSubmoduleProgress(
+                  moduleId || '',
+                  submodule._id
+                );
             } catch {
               progressData[submodule._id] = {
                 is_completed: false,
@@ -421,7 +448,11 @@ export default function ModuleIndex() {
 
   // Initialize openedCardId to the current active section
   useEffect(() => {
-    if (openedCardId == null && currentIndex >= 0 && moduleData?.submodules?.[currentIndex]) {
+    if (
+      openedCardId == null &&
+      currentIndex >= 0 &&
+      moduleData?.submodules?.[currentIndex]
+    ) {
       setOpenedCardId(moduleData.submodules[currentIndex]._id);
     }
   }, [openedCardId, currentIndex, moduleData?.submodules]);
@@ -436,10 +467,13 @@ export default function ModuleIndex() {
       // Coerce/clamp progressPercent to ensure it's a valid number in 0-100 range
       const raw = progress?.progress_percent;
       const n = typeof raw === 'number' ? raw : Number(raw);
-      const progressPercent = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+      const progressPercent = Number.isFinite(n)
+        ? Math.max(0, Math.min(100, n))
+        : 0;
       const unlocked =
         i === 0 ||
-        (i > 0 && submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+        (i > 0 &&
+          submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
 
       // Determine UI state
       let uiState: SectionUIState;
@@ -492,15 +526,21 @@ export default function ModuleIndex() {
     // Calculate href on-demand if needed
     if (!href && section.progressPercent > 0) {
       try {
-        const { data: { user } } = await progressClient.auth.getUser();
+        const {
+          data: { user },
+        } = await progressClient.auth.getUser();
         if (user) {
           const { data: lessonProgresses } = await progressClient
             .from('user_lesson_progress')
-            .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
+            .select(
+              'sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number'
+            )
             .eq('user_id', user.id)
             .eq('sanity_submodule_id', section.id);
 
-          const submodule = moduleData?.submodules?.find(s => s._id === section.id);
+          const submodule = moduleData?.submodules?.find(
+            s => s._id === section.id
+          );
           if (submodule?.lessons && lessonProgresses) {
             const lessonProgressData: { [key: string]: any } = {};
             for (const lessonProgress of lessonProgresses) {
@@ -514,7 +554,10 @@ export default function ModuleIndex() {
 
             for (const lesson of submodule.lessons) {
               if (!lessonProgressData[lesson._id]) {
-                lessonProgressData[lesson._id] = { is_completed: false, is_in_progress: false };
+                lessonProgressData[lesson._id] = {
+                  is_completed: false,
+                  is_in_progress: false,
+                };
               }
             }
 
@@ -540,16 +583,19 @@ export default function ModuleIndex() {
 
               if (isActive && !isCompleted) {
                 activeLesson = lesson;
-                activeLessonProgress = lessonProgresses?.find(
-                  (p: any) => p.sanity_lesson_id === lesson._id
-                ) || lessonProgress;
+                activeLessonProgress =
+                  lessonProgresses?.find(
+                    (p: any) => p.sanity_lesson_id === lesson._id
+                  ) || lessonProgress;
                 break;
               }
             }
 
             if (activeLesson && activeLessonProgress?.is_in_progress) {
-              const currentPageType = activeLessonProgress?.current_page_type || 'lesson';
-              const currentPageNumber = activeLessonProgress?.current_page_number || 1;
+              const currentPageType =
+                activeLessonProgress?.current_page_type || 'lesson';
+              const currentPageNumber =
+                activeLessonProgress?.current_page_number || 1;
 
               if (currentPageType === 'intro') {
                 href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/intro/${currentPageNumber}`;
@@ -557,7 +603,8 @@ export default function ModuleIndex() {
                 href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
               } else if (currentPageType === 'quiz') {
                 const quizId = activeLessonProgress?.current_quiz_id || '';
-                const questionNumber = activeLessonProgress?.current_question_number || 1;
+                const questionNumber =
+                  activeLessonProgress?.current_question_number || 1;
                 href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
               } else {
                 href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
@@ -639,7 +686,10 @@ export default function ModuleIndex() {
           onPress={() => handleCardTap(section)}
           style={[
             styles.card,
-            isOpened && { backgroundColor: subjectColor, borderColor: subjectColor },
+            isOpened && {
+              backgroundColor: subjectColor,
+              borderColor: subjectColor,
+            },
             isLocked && styles.cardLocked,
           ]}
         >
@@ -697,7 +747,7 @@ export default function ModuleIndex() {
         <Text style={styles.errorText}>
           Error loading module: {error?.message || 'Unknown error'}
         </Text>
-        <Link href="/(tabs)/Learn">Go back to Learn</Link>
+        <Link href='/(tabs)/Learn'>Go back to Learn</Link>
       </View>
     );
   }
@@ -708,13 +758,30 @@ export default function ModuleIndex() {
   return (
     <View style={styles.container}>
       {/* Colored Header */}
-      <View style={[styles.header, { backgroundColor: subjectColor, paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: subjectColor, paddingTop: insets.top },
+        ]}
+      >
         {/* Blob background overlay */}
-        <View style={blobIndexNum === 0 ? styles.blob3Container : blobIndexNum === 1 ? styles.blob8Container : blobIndexNum === 2 ? styles.blob10Container : blobIndexNum === 3 ? styles.blob11Container : styles.blob12Container}>
-          <BlobComponent 
-            width={400} 
+        <View
+          style={
+            blobIndexNum === 0
+              ? styles.blob3Container
+              : blobIndexNum === 1
+                ? styles.blob8Container
+                : blobIndexNum === 2
+                  ? styles.blob10Container
+                  : blobIndexNum === 3
+                    ? styles.blob11Container
+                    : styles.blob12Container
+          }
+        >
+          <BlobComponent
+            width={400}
             height={400}
-            fill="#FFFFFF"
+            fill='#FFFFFF'
             opacity={0.3}
           />
         </View>
@@ -723,14 +790,14 @@ export default function ModuleIndex() {
             onPress={() => router.replace('/(tabs)/Learn')}
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#FFFFFF" />
+            <Feather name='chevron-left' size={28} color='#FFFFFF' />
           </TouchableOpacity>
           {moduleData.icon && (
             <View style={styles.headerIconContainer}>
               <MaterialCommunityIcons
                 name={mapIconName(moduleData.icon) as any}
                 size={30}
-                color="#FFFFFF"
+                color='#FFFFFF'
               />
             </View>
           )}
@@ -764,7 +831,7 @@ export default function ModuleIndex() {
       <Modal
         visible={showDisclaimer}
         transparent={true}
-        animationType="fade"
+        animationType='fade'
         onRequestClose={handleDisclaimerBack}
       >
         <View style={styles.modalOverlay}>
@@ -774,9 +841,9 @@ export default function ModuleIndex() {
               <Text style={styles.modalText}>
                 This module is for educational purposes only. Unify does not
                 provide legal or financial advice and makes no guarantee of
-                accuracy, completeness, or applicability. Always verify
-                current requirements with official sources such as IRCC or
-                qualified professionals.
+                accuracy, completeness, or applicability. Always verify current
+                requirements with official sources such as IRCC or qualified
+                professionals.
               </Text>
             </View>
             <View style={styles.modalButtons}>
@@ -787,7 +854,10 @@ export default function ModuleIndex() {
                 <Text style={styles.modalButtonBackText}>Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButtonContinue, { backgroundColor: subjectColor }]}
+                style={[
+                  styles.modalButtonContinue,
+                  { backgroundColor: subjectColor },
+                ]}
                 onPress={handleDisclaimerContinue}
               >
                 <Text style={styles.modalButtonContinueText}>Continue</Text>

@@ -47,13 +47,13 @@ export default function LessonHeroCard({
       <View style={styles.content}>
         {/* Icon on top-left */}
         <View style={styles.iconContainer}>
-          <MaterialCommunityIcons 
-            name={iconName as any} 
-            size={36} 
-            color={colorHex || '#000000'} 
+          <MaterialCommunityIcons
+            name={iconName as any}
+            size={36}
+            color={colorHex || '#000000'}
           />
         </View>
-        
+
         {href && (
           <View style={styles.continueButtonContainer}>
             <View
@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1,
   },
-  metaText: { 
-    color: '#000000', 
+  metaText: {
+    color: '#000000',
     fontSize: 14,
     marginBottom: 4,
   },

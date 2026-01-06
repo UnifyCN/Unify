@@ -1,6 +1,15 @@
-import React, { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { memo, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+  Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import Save from '@/assets/images/Save.svg';
@@ -9,11 +18,14 @@ import Comment from '@/assets/images/Comment.svg';
 import { PostData } from '@/types/feeds/post';
 import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
+import { useMutateDeletePost } from '@/hooks/posts/useMutateDeletePost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
+import { useCurrentUser } from '@/context/UserContext';
+import { Permissions } from '@/types/permissions';
 
 export interface PostItemProps {
   post: PostData;
@@ -25,14 +37,29 @@ export interface PostItemProps {
     commentCount: number;
   };
   metadataLoading?: boolean;
+  isAbleToDelete?: boolean;
 }
 export const PostItem = memo(
-  ({ post, metadata, shouldHideContent, metadataLoading }: PostItemProps) => {
+  ({
+    post,
+    metadata,
+    shouldHideContent,
+    metadataLoading,
+    isAbleToDelete = true,
+  }: PostItemProps) => {
     const router = useRouter();
+    const { currentUser } = useCurrentUser();
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
     // Use batch-loaded metadata (no individual queries needed)
     const likePostMutation = useMutateLikePost();
     const savePostMutation = useMutateSavePost();
+    const deletePostMutation = useMutateDeletePost();
+
+    const isAdmin = currentUser?.permissions === Permissions.ADMIN;
+    const isPartner = currentUser?.permissions === Permissions.PARTNER;
+    const ownsPost = currentUser?.id === String(post.user.id);
+    const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
 
     const toggleLike = (postId: number, isLiked: boolean) => {
       likePostMutation.mutate({ postId, isLiked });
@@ -44,6 +71,37 @@ export const PostItem = memo(
 
     const navigateToUserProfile = () => {
       router.push(`/profile?userId=${post.user.id}`);
+    };
+
+    const handleDeletePost = () => {
+      Alert.alert(
+        'Delete Post',
+        'Are you sure you want to delete this post? This action cannot be undone.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => setDeleteModalVisible(false),
+          },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => {
+              deletePostMutation.mutate(post.id, {
+                onSuccess: () => {
+                  setDeleteModalVisible(false);
+                },
+                onError: error => {
+                  Alert.alert(
+                    'Error',
+                    error.message || 'Failed to delete post'
+                  );
+                },
+              });
+            },
+          },
+        ]
+      );
     };
 
     // Use batch-loaded metadata with loading state
@@ -78,25 +136,35 @@ export const PostItem = memo(
           <View style={styles.postContent}>
             {/* Header */}
             <View style={styles.header}>
-              <TouchableOpacity onPress={navigateToUserProfile}>
-                <Text style={styles.name}>{post.user.name}</Text>
-              </TouchableOpacity>
-              {post.group && (
-                <>
-                  <ChevronRight color={Theme.black} width={6} height={12} />
-                  <TouchableOpacity
-                    onPress={() =>
-                      router.push({
-                        pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
-                        params: { groupName: post.group },
-                      })
-                    }
-                  >
-                    <Text style={styles.group}>{post.group}</Text>
-                  </TouchableOpacity>
-                </>
+              <View style={styles.headerLeft}>
+                <TouchableOpacity onPress={navigateToUserProfile}>
+                  <Text style={styles.name}>{post.user.name}</Text>
+                </TouchableOpacity>
+                {post.group && (
+                  <>
+                    <ChevronRight color={Theme.black} width={6} height={12} />
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+                          params: { groupName: post.group },
+                        })
+                      }
+                    >
+                      <Text style={styles.group}>{post.group}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+                <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+              </View>
+              {canDelete && (
+                <TouchableOpacity
+                  onPress={() => setDeleteModalVisible(true)}
+                  style={styles.menuButton}
+                >
+                  <Feather name='more-vertical' size={20} color={Theme.black} />
+                </TouchableOpacity>
               )}
-              <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
             </View>
 
             {/* Title */}
@@ -170,6 +238,48 @@ export const PostItem = memo(
           </View>
         </View>
         <View style={styles.divider} />
+
+        {/* Delete Modal */}
+        <Modal
+          animationType='fade'
+          transparent={true}
+          visible={deleteModalVisible}
+          onRequestClose={() => setDeleteModalVisible(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setDeleteModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <Pressable
+                style={styles.modalContent}
+                onPress={e => e.stopPropagation()}
+              >
+                <View style={styles.dragHandle} />
+                <TouchableOpacity
+                  style={styles.modalOption}
+                  onPress={handleDeletePost}
+                >
+                  <Feather
+                    name='trash-2'
+                    size={20}
+                    color='#FF3B30'
+                    style={styles.optionIcon}
+                  />
+                  <Text style={[styles.modalOptionText, styles.deleteText]}>
+                    Delete Post
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalOption}
+                  onPress={() => setDeleteModalVisible(false)}
+                >
+                  <Text style={styles.modalOptionText}>Cancel</Text>
+                </TouchableOpacity>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Modal>
       </View>
     );
   }
@@ -190,11 +300,20 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     fontSize: 12,
     color: '#000',
     textAlign: 'left',
-    gap: 7,
     lineHeight: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    flex: 1,
+  },
+  menuButton: {
+    padding: 4,
   },
   headshot: {
     width: 29,
@@ -254,5 +373,46 @@ const styles = StyleSheet.create({
   },
   replyContainer: {
     flexDirection: 'row',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Theme.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
+  },
+  dragHandle: {
+    width: 77,
+    height: 5,
+    backgroundColor: Theme.textInactiveTab,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  optionIcon: {
+    marginRight: 8,
+  },
+  modalOptionText: {
+    fontSize: 18,
+    color: Theme.black,
+    fontWeight: '500',
+    flex: 1,
+  },
+  deleteText: {
+    color: '#FF3B30',
   },
 });

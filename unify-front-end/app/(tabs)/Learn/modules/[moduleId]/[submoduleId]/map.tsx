@@ -75,10 +75,7 @@ const getLessonStyles = (
   // Line Above Style (connects from prev dot to this dot)
   let lineAboveStyle: ViewStyle[] = [styles.lineSegment];
   if (prevLesson) {
-    if (
-      prevLesson.uiState === 'completed' &&
-      lesson.uiState === 'completed'
-    ) {
+    if (prevLesson.uiState === 'completed' && lesson.uiState === 'completed') {
       lineAboveStyle.push({ backgroundColor: subjectColor });
     } else if (
       prevLesson.uiState === 'completed' &&
@@ -95,10 +92,7 @@ const getLessonStyles = (
   // Critical: For the last lesson, never render lineBelow
   let lineBelowStyle: ViewStyle[] = [styles.lineSegment];
   if (!isLastLesson && nextLesson) {
-    if (
-      lesson.uiState === 'completed' &&
-      nextLesson.uiState === 'completed'
-    ) {
+    if (lesson.uiState === 'completed' && nextLesson.uiState === 'completed') {
       lineBelowStyle.push({ backgroundColor: subjectColor });
     } else if (
       lesson.uiState === 'completed' &&
@@ -234,15 +228,24 @@ export default function SubmoduleMap() {
       let lessonNumber = '';
       if (submoduleData?.order != null && lesson.order != null) {
         // Ensure lesson.order is treated as a number, not string
-        const subOrder = typeof submoduleData.order === 'number' ? submoduleData.order : parseInt(String(submoduleData.order), 10);
-        const lesOrder = typeof lesson.order === 'number' ? lesson.order : parseInt(String(lesson.order), 10);
+        const subOrder =
+          typeof submoduleData.order === 'number'
+            ? submoduleData.order
+            : parseInt(String(submoduleData.order), 10);
+        const lesOrder =
+          typeof lesson.order === 'number'
+            ? lesson.order
+            : parseInt(String(lesson.order), 10);
         if (!isNaN(subOrder) && !isNaN(lesOrder)) {
           lessonNumber = `${subOrder}.${lesOrder}`;
         } else if (!isNaN(lesOrder)) {
           lessonNumber = `${lesOrder}`;
         }
       } else if (lesson.order != null) {
-        const lesOrder = typeof lesson.order === 'number' ? lesson.order : parseInt(String(lesson.order), 10);
+        const lesOrder =
+          typeof lesson.order === 'number'
+            ? lesson.order
+            : parseInt(String(lesson.order), 10);
         if (!isNaN(lesOrder)) {
           lessonNumber = `${lesOrder}`;
         }
@@ -333,13 +336,18 @@ export default function SubmoduleMap() {
             if (!isLocked) {
               // Check if this is the first lesson and submodule has intro pages
               const isFirstLesson = index === 0;
-              const hasIntroPages = submoduleData?.intro_pages && submoduleData.intro_pages.length > 0;
-              
+              const hasIntroPages =
+                submoduleData?.intro_pages &&
+                submoduleData.intro_pages.length > 0;
+
               // Check if submodule has been started (any lesson has progress)
               const hasSubmoduleProgress = Object.values(lessonProgresses).some(
-                p => p?.is_in_progress || (p?.progress_percent ?? 0) > 0 || p?.is_completed
+                p =>
+                  p?.is_in_progress ||
+                  (p?.progress_percent ?? 0) > 0 ||
+                  p?.is_completed
               );
-              
+
               // If first lesson, has intro pages, and submodule hasn't been started, go to intro
               if (isFirstLesson && hasIntroPages && !hasSubmoduleProgress) {
                 router.push({
@@ -353,21 +361,24 @@ export default function SubmoduleMap() {
                 });
               } else {
                 // Otherwise, go directly to lesson
-              router.push({
-                pathname:
-                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
-                params: {
-                  moduleId,
-                  submoduleId,
-                  lessonId: lesson.id,
-                },
-              });
+                router.push({
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
+                  params: {
+                    moduleId,
+                    submoduleId,
+                    lessonId: lesson.id,
+                  },
+                });
               }
             }
           }}
           style={[
             styles.card,
-            isActive && { backgroundColor: subjectColor, borderColor: subjectColor },
+            isActive && {
+              backgroundColor: subjectColor,
+              borderColor: subjectColor,
+            },
             isLocked && styles.cardLocked,
           ]}
         >
@@ -399,7 +410,10 @@ export default function SubmoduleMap() {
                 <View
                   style={[
                     styles.progressBarFill,
-                    { width: `${progressPercent}%`, backgroundColor: subjectColor },
+                    {
+                      width: `${progressPercent}%`,
+                      backgroundColor: subjectColor,
+                    },
                   ]}
                 />
               </View>
@@ -427,7 +441,7 @@ export default function SubmoduleMap() {
             }
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#000000" />
+            <Feather name='chevron-left' size={28} color='#000000' />
           </TouchableOpacity>
           <View style={styles.headerTitleCenter}>
             <Text style={styles.headerSubjectName}>

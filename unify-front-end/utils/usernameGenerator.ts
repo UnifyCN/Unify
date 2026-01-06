@@ -47,7 +47,9 @@ export const generateUsername = async (): Promise<string> => {
     // Handle DB errors explicitly - don't silently continue
     if (error) {
       console.error('Database error checking username availability:', error);
-      throw new Error(`Failed to check username availability: ${error.message}`);
+      throw new Error(
+        `Failed to check username availability: ${error.message}`
+      );
     }
 
     // Username is available
@@ -56,5 +58,7 @@ export const generateUsername = async (): Promise<string> => {
     }
   }
 
-  throw new Error('Failed to generate a unique username after multiple attempts');
+  throw new Error(
+    'Failed to generate a unique username after multiple attempts'
+  );
 };

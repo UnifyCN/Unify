@@ -17,7 +17,9 @@ export const createUserIfNotExists = async (
     throw new Error('userId is required to create user record');
   }
   if (!email) {
-    throw new Error('email is required to create user record (UNIQUE constraint)');
+    throw new Error(
+      'email is required to create user record (UNIQUE constraint)'
+    );
   }
 
   // 1. Check if user already exists in public.users
@@ -29,7 +31,9 @@ export const createUserIfNotExists = async (
 
   if (fetchError) {
     console.error('Error checking user existence:', fetchError);
-    throw new Error(`Database error checking user existence: ${fetchError.message}`);
+    throw new Error(
+      `Database error checking user existence: ${fetchError.message}`
+    );
   }
 
   if (existingUser) return;
@@ -94,6 +98,10 @@ export const createUserIfNotExists = async (
   }
 
   // Exhausted all retries due to username collisions
-  console.error('Failed to create user record after max retries due to username collisions');
-  throw lastError || new Error('Failed to create user record after max retries');
+  console.error(
+    'Failed to create user record after max retries due to username collisions'
+  );
+  throw (
+    lastError || new Error('Failed to create user record after max retries')
+  );
 };

@@ -7,6 +7,7 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     profile_picture_url TEXT,
     is_premium BOOLEAN DEFAULT FALSE NOT NULL,
+    permissions TEXT CHECK (permissions in ('admin', 'partner', 'user')) DEFAULT 'user',
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMPTZ,
     PRIMARY KEY (id)

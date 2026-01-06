@@ -86,7 +86,8 @@ export default function Learn() {
         >
           <Text style={styles.pageTitle}>Ready to learn?</Text>
           <Text style={styles.pageSubtitle}>
-            Get started with lessons to understand the basics of Canadian culture and how to settle in as a newcomer.
+            Get started with lessons to understand the basics of Canadian
+            culture and how to settle in as a newcomer.
           </Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}
@@ -189,7 +190,9 @@ export default function Learn() {
                     key={module._id}
                     title={module.title}
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
-                    href={`/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any}
+                    href={
+                      `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                    }
                     colorTheme={module.colorTheme?.hex}
                     icon={module.icon}
                     index={index}
