@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Tabs, useRouter, usePathname } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
@@ -10,6 +10,8 @@ import CommunityIcon from '@/components/icons/CommunityIcon';
 import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
 import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
+import { usePostHog } from 'posthog-react-native';
+import { AnalyticsEvents } from '@/utils/analytics';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
   return (
@@ -36,6 +38,24 @@ export default function TabLayout() {
   const router = useRouter();
   const pathname = usePathname();
   const [currentTab, setCurrentTab] = useState('index');
+  const previousTabRef = useRef('index');
+  const posthog = usePostHog();
+
+  // Map route names to display names
+  const getTabDisplayName = (routeName: string) => {
+    switch (routeName) {
+      case 'index':
+        return 'Home';
+      case 'Gather':
+        return 'Community';
+      case 'companion':
+        return 'Companion';
+      case 'Learn':
+        return 'Learn';
+      default:
+        return routeName;
+    }
+  };
 
   return (
     <>
@@ -58,7 +78,17 @@ export default function TabLayout() {
         }}
         screenListeners={{
           tabPress: e => {
-            const routeName = e.target?.split('-')[0];
+            const routeName = e.target?.split('-')[0] || 'index';
+            
+            // Track tab switch
+            if (routeName !== previousTabRef.current) {
+              posthog?.capture(AnalyticsEvents.TAB_SWITCHED, {
+                from_tab: getTabDisplayName(previousTabRef.current),
+                to_tab: getTabDisplayName(routeName),
+              });
+              previousTabRef.current = routeName;
+            }
+
             if (routeName === 'Gather') {
               // If already on Gather tab, replace to main screen
               if (currentTab === 'Gather') {

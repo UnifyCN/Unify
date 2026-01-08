@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,9 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateQuizProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } =
@@ -28,7 +31,7 @@ export default function QuizQuestionPage() {
       quizId: string;
       questionNum: string;
     }>();
-
+  const { trackScreen, capture } = useAnalytics();
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
   const { data: quizzes } = useSanityLessonQuizzes(lessonId);
@@ -51,6 +54,7 @@ export default function QuizQuestionPage() {
   const [completedPairs, setCompletedPairs] = useState<string[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -66,7 +70,12 @@ export default function QuizQuestionPage() {
     setMatchedPairs({});
     setCompletedPairs([]);
     setIncorrectPairs([]);
+    setIsNavigating(false);
   }, [currentQuestionIndex]);
+  const totalQuestions = questions?.length || 0;
+  // Get current quiz data
+  const currentQuiz = quizzes?.find(q => q._id === quizId);
+  const quizTitle = currentQuiz?.title;
 
   // Calculate progress for the progress bar
   const progress = calculateQuizProgress(
@@ -74,6 +83,24 @@ export default function QuizQuestionPage() {
     lessonId || '',
     quizId || '',
     currentQuestionIndex + 1
+  );
+
+  // Track screen view
+  const TRACKING_THROTTLE_MS = 500;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+  
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${quizId}-${currentQuestionIndex}`;
+      // Only track if: data is loaded, throttle passed, AND this is a different question than last tracked
+      if (quizTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
+        trackScreen(`Quiz: ${quizTitle} - Q${currentQuestionIndex + 1}/${totalQuestions}`);
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [quizTitle, quizId, currentQuestionIndex, totalQuestions, trackScreen])
   );
 
   if (isLoading) {
@@ -93,11 +120,19 @@ export default function QuizQuestionPage() {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
-  const totalQuestions = questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
-  // Get current quiz data
-  const currentQuiz = quizzes?.find(q => q._id === quizId);
+  const trackQuizCompletion = () => {
+    if (moduleId && submoduleId && lessonId && quizId) {
+      capture('quiz_completed', {
+        module_id: moduleId,
+        submodule_id: submoduleId,
+        lesson_id: lessonId,
+        quiz_id: quizId,
+        quiz_title: currentQuiz?.title,
+      });
+    }
+  };
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
@@ -219,15 +254,21 @@ export default function QuizQuestionPage() {
   };
 
   const handleNext = async () => {
+    if (isNavigating) return;
+
     if (currentQuestion.question_type === 'matching') {
       // For matching questions, go directly to next question since all pairs are completed
       // No need for submission logic - proceed to navigation
       if (isLastQuestion) {
+        setIsNavigating(true);
         // Quiz completed, check if there are more quizzes or go to next lesson
         const sortedQuizzes =
           quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
         const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
         const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
+
+        // Track quiz completion
+        trackQuizCompletion();
 
         if (nextQuiz) {
           // Go to next quiz
@@ -292,6 +333,7 @@ export default function QuizQuestionPage() {
           }
         }
       } else {
+        setIsNavigating(true);
         // Go to next question in same quiz
         router.push({
           pathname:
@@ -342,11 +384,15 @@ export default function QuizQuestionPage() {
     } else {
       // Already submitted and correct - proceed to next
       if (isLastQuestion) {
+        setIsNavigating(true);
         // Quiz completed, check if there are more quizzes or go to next lesson
         const sortedQuizzes =
           quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
         const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
         const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
+
+        // Track quiz completion
+        trackQuizCompletion();
 
         if (nextQuiz) {
           // Go to next quiz
@@ -411,6 +457,7 @@ export default function QuizQuestionPage() {
           }
         }
       } else {
+        setIsNavigating(true);
         // Go to next question
         router.push({
           pathname:

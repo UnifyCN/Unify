@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,9 @@ import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 export default function EndingPageScreen() {
   const router = useRouter();
@@ -28,6 +31,7 @@ export default function EndingPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
+  const { trackScreen, trackLessonCompleted } = useAnalytics();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -56,6 +60,25 @@ export default function EndingPageScreen() {
     submoduleData || null,
     lessonId || '',
     currentPage
+  );
+
+  // Track screen view
+  const TRACKING_THROTTLE_MS = 500;
+  const lessonTitle = lesson?.title;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${lessonId}-${currentPage}`;
+      // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
+      if (lessonTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
+        trackScreen(`Ending Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [lessonTitle, lessonId, currentPage, totalPages, trackScreen])
   );
 
   // Helper functions for sequential navigation
@@ -128,6 +151,11 @@ export default function EndingPageScreen() {
       ).finally(() => {
         setIsSaving(false);
       });
+
+      // Track lesson completion
+      if (moduleId && submoduleId && lessonId) {
+        trackLessonCompleted(moduleId, submoduleId, lessonId);
+      }
 
       // Navigate immediately
       // Check if this is the last lesson

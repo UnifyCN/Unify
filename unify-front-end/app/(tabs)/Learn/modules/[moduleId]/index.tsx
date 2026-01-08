@@ -3,6 +3,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
 import {
   View,
@@ -31,6 +32,7 @@ import Blob8 from '@/assets/images/Blob8.svg';
 import Blob10 from '@/assets/images/Blob10.svg';
 import Blob11 from '@/assets/images/Blob11.svg';
 import Blob12 from '@/assets/images/Blob12.svg';
+import { useAnalytics } from '@/utils/analytics';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -136,6 +138,7 @@ const getSectionStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ModuleIndex() {
   const router = useRouter();
+  const { trackScreen, capture } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { moduleId, blobIndex } = useLocalSearchParams<{ moduleId: string; blobIndex?: string }>();
   const {
@@ -406,6 +409,26 @@ export default function ModuleIndex() {
         setIsRefreshing(false);
       };
     }, [moduleId, moduleData?.submodules, refreshProgress])
+  );
+
+  // Track module view
+  const moduleTitle = moduleData?.title;
+  const submoduleCount = moduleData?.submodules?.length || 0;
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (moduleTitle && moduleId && now - lastTrackedRef.current > 500) {
+        trackScreen(`Module: ${moduleTitle}`);
+        capture('module_viewed', {
+          module_id: moduleId,
+          module_title: moduleTitle,
+          submodule_count: submoduleCount,
+        });
+        lastTrackedRef.current = now;
+      }
+    }, [moduleTitle, submoduleCount, moduleId, trackScreen, capture])
   );
 
   // Which submodule is the next one the user should do?

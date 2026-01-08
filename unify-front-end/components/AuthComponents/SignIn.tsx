@@ -23,6 +23,7 @@ import {
   ViewSection,
   SimpleTextField,
 } from './Components';
+import { useAnalytics } from '@/utils/analytics';
 
 export function SignIn({
   onSwitchToSignUp,
@@ -30,6 +31,8 @@ export function SignIn({
   onSwitchToSignUp?: () => void;
 }): React.JSX.Element {
   const queryClient = useQueryClient();
+  const { trackSignInCompleted, trackSignInFailed, trackGoogleSignInUsed } =
+    useAnalytics();
   // State for email tick and password eye icon toggle
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -59,12 +62,14 @@ export function SignIn({
     // Check for empty fields - show generic error
     if (!normalizedEmail || !password) {
       setErrorMessage('Invalid login credentials');
+      trackSignInFailed('empty_fields');
       return;
     }
 
     // Check for invalid email format - show same generic error
     if (!emailRegex.test(normalizedEmail)) {
       setErrorMessage('Invalid login credentials');
+      trackSignInFailed('invalid_email');
       return;
     }
 
@@ -76,6 +81,7 @@ export function SignIn({
     });
     if (error) {
       setErrorMessage('Invalid login credentials');
+      trackSignInFailed(error.code || 'signin_failed');
       setLoading(false);
       return;
     }
@@ -88,6 +94,7 @@ export function SignIn({
       });
     }
 
+    trackSignInCompleted();
     setLoading(false);
   };
 
@@ -117,6 +124,7 @@ export function SignIn({
 
     setLoading(true);
     setErrorMessage(null);
+    trackGoogleSignInUsed('sign_in');
 
     try {
       if (Platform.OS === 'android') {

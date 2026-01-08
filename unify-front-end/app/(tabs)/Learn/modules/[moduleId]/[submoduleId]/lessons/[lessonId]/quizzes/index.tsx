@@ -8,8 +8,10 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
+import { useAnalytics } from '@/utils/analytics';
+import { useCallback, useRef } from 'react';
 
 export default function QuizzesPage() {
   const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
@@ -18,7 +20,24 @@ export default function QuizzesPage() {
     lessonId: string;
   }>();
 
+  const { trackScreen, capture } = useAnalytics();
   const { data: quizzes, isLoading, error } = useSanityLessonQuizzes(lessonId);
+  const hasTrackedRef = useRef<boolean>(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Track screen view once per focus
+      if (!hasTrackedRef.current) {
+        trackScreen('Quizzes List');
+        hasTrackedRef.current = true;
+      }
+      
+      // Reset on blur so returning to this screen will track again
+      return () => {
+        hasTrackedRef.current = false;
+      };
+    }, [trackScreen])
+  );
 
   if (isLoading) {
     return (
@@ -78,6 +97,13 @@ export default function QuizzesPage() {
               key={quiz._id}
               style={styles.quizCard}
               onPress={() => {
+                capture('quiz_card_clicked', {
+                  module_id: moduleId,
+                  submodule_id: submoduleId,
+                  lesson_id: lessonId,
+                  quiz_id: quiz._id,
+                  quiz_title: quiz.title,
+                });
                 router.push({
                   pathname:
                     '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,

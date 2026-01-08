@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,9 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { getLessonProgress } from '@/services/progress/progressService';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -122,6 +125,7 @@ const getLessonStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SubmoduleMap() {
   const router = useRouter();
+  const { trackScreen, trackSubmoduleViewed, trackLessonStarted } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
@@ -143,6 +147,21 @@ export default function SubmoduleMap() {
 
   // Subject color from Sanity
   const subjectColor = moduleData?.colorTheme?.hex || DEFAULT_COLOR;
+
+  // Track submodule map view
+  const submoduleTitle = submoduleData?.title;
+  const lastTrackedRef = useRef<number>(0);
+  
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (submoduleTitle && moduleId && submoduleId && now - lastTrackedRef.current > 500) {
+        trackScreen(`Map: ${submoduleTitle}`);
+        trackSubmoduleViewed(moduleId, submoduleId, submoduleTitle);
+        lastTrackedRef.current = now;
+      }
+    }, [submoduleTitle, moduleId, submoduleId, trackScreen, trackSubmoduleViewed])
+  );
 
   // Fetch lesson progress data
   useEffect(() => {
@@ -353,6 +372,9 @@ export default function SubmoduleMap() {
                 });
               } else {
                 // Otherwise, go directly to lesson
+                if (moduleId && submoduleId) {
+                  trackLessonStarted(moduleId, submoduleId, lesson.id, lesson.title);
+                }
               router.push({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
