@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
@@ -11,6 +11,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
 import Google from '../../assets/images/Google.svg';
+import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
   SubmitButton,
   SimpleTextField,
@@ -39,10 +40,11 @@ export function SignUp({
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
 
-  const validateEmail = (email: string) => {
+  const validateEmail = (emailInput: string) => {
     // Simple email validation regex
+    // Trim before testing to match handleSignUp behavior
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setIsEmailValid(emailRegex.test(email));
+    setIsEmailValid(emailRegex.test(emailInput.trim()));
   };
 
   const handleSignUp = async () => {
@@ -65,13 +67,25 @@ export function SignUp({
     setErrorMessage(null);
 
     try {
+      // Normalize email: trim whitespace and lowercase for consistency
+      const normalizedEmail = email.trim().toLowerCase();
+
       // Check if email exists in the users table
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('email')
-        .eq('email', email.toLowerCase())
+        .eq('email', normalizedEmail)
         .single();
 
+      // Handle real database errors (not the expected "not found" error)
+      if (checkError && checkError.code !== 'PGRST116') {
+        setErrorMessage('Failed to verify email availability');
+        setLoading(false);
+        return;
+      }
+
+      // PGRST116 means no user found (email is available), which is expected
+      // If existingUser exists, email is already taken
       if (existingUser) {
         setErrorMessage('An account with this email already exists');
         setLoading(false);
@@ -80,7 +94,7 @@ export function SignUp({
 
       // If we get here, the email doesn't exist, so proceed with signup
       const { data, error } = await supabase.auth.signUp({
-        email: email,
+        email: normalizedEmail,
         password: password,
       });
 
@@ -102,9 +116,11 @@ export function SignUp({
   // Configure Google Sign-In once on mount
   React.useEffect(() => {
     GoogleSignin.configure({
+      iosClientId:
+        '718278262223-rfq8s91jg7o9lmif54gcuibf4732ce7l.apps.googleusercontent.com',
       webClientId:
         '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
-      scopes: ['email', 'profile'],
+      scopes: ['email', 'profile', 'openid'],
       offlineAccess: true,
       forceCodeForRefreshToken: false,
     });
@@ -113,37 +129,68 @@ export function SignUp({
   // Google sign-in logic
   const handleGoogleSignIn = async () => {
     if (isExpoGo) return; // Not supported in Expo Go
+
+    setLoading(true);
+    setErrorMessage(null);
+
     try {
+      if (Platform.OS === 'android') {
       await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-      if (response.data?.idToken) {
+      }
+      await GoogleSignin.signIn();
+      const { idToken } = await GoogleSignin.getTokens();
+      if (idToken) {
         const { data, error } = await supabase.auth.signInWithIdToken({
           provider: 'google',
-          token: response.data.idToken,
+          token: idToken,
         });
         if (error) {
           setErrorMessage(error.message);
+          setLoading(false);
           return;
         }
 
-        // Prefetch user info immediately after successful Google signup/login and wait for it
-        if (data?.user?.id) {
+        // Create user record if it doesn't exist (for Google sign-up users)
+        if (data?.user?.id && data?.user?.email) {
+          try {
+            await createUserIfNotExists(data.user.id, data.user.email);
+          } catch (userCreationError: any) {
+            console.error('Failed to create user record:', userCreationError);
+            setErrorMessage(userCreationError?.message || 'Failed to complete sign-up setup');
+            setLoading(false);
+            return;
+          }
+
+          // Prefetch user info immediately after successful Google signup/login
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+        } else if (data?.user?.id && !data?.user?.email) {
+          setErrorMessage('Unable to retrieve email from Google account');
+          setLoading(false);
+          return;
+        } else if (!data?.user?.id) {
+          setErrorMessage('Unable to retrieve user information from Google');
+          setLoading(false);
+          return;
         }
       } else {
         setErrorMessage('No Google idToken');
       }
     } catch (error: any) {
-      if (error?.code === statusCodes.IN_PROGRESS) return; // already in progress
+      if (error?.code === statusCodes.IN_PROGRESS) {
+        setLoading(false);
+        return; // already in progress
+      }
       if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         setErrorMessage('Google Play Services not available');
+        setLoading(false);
         return;
       }
       setErrorMessage(error?.message || 'Google sign-in failed');
     }
+    setLoading(false);
   };
 
   return (

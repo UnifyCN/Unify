@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
-import { generateUsername } from '../../utils/usernameGenerator';
+import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
   ViewHeader,
   ViewContainer,
@@ -82,24 +82,20 @@ export default function OTPVerification({
       }
 
       if (session) {
-        // Create user record and set username after successful verification
+        // Create user record using shared helper
+        if (!session.user.email) {
+          setErrorMessage('Unable to retrieve email from verified session');
+          setLoading(false);
+          return;
+        }
+        
         try {
-          const username = generateUsername();
-          const { error: insertError } = await supabase.from('users').insert({
-            id: session.user.id,
-            email: session.user.email,
-            username: username,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-
-          if (insertError) {
-            console.error('Error creating user record:', insertError);
-            // Continue anyway - user is verified, just database record failed
-          }
-        } catch (error) {
-          console.error('Error creating user record:', error);
-          // Continue anyway - user is verified
+          await createUserIfNotExists(session.user.id, session.user.email);
+        } catch (userCreationError: any) {
+          console.error('Failed to create user record:', userCreationError);
+          setErrorMessage(userCreationError?.message || 'Failed to complete account setup');
+          setLoading(false);
+          return;
         }
 
         // NOTE: just alert for now, until we have a UI designed for thos

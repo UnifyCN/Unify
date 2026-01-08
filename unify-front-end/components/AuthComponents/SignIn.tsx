@@ -13,6 +13,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Google from '../../assets/images/Google.svg';
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
+import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
   LinkButton,
   LinksContainer,
@@ -38,23 +39,43 @@ export function SignIn({
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
 
+  // Simple email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   // Method to validate if email is in valid format for the tick icon to appear
-  const validateEmail = (email: string) => {
-    // Simple email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setIsEmailValid(emailRegex.test(email));
+  // Trim before testing to match handleSignIn behavior
+  const validateEmail = (emailInput: string) => {
+    setIsEmailValid(emailRegex.test(emailInput.trim()));
   };
 
   // Supabase sign in
   const handleSignIn = async () => {
-    setLoading(true);
     setErrorMessage(null);
+
+    // Normalize email: trim whitespace and lowercase for consistency
+    // Do NOT trim password - it may legitimately contain leading/trailing spaces
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check for empty fields - show generic error
+    if (!normalizedEmail || !password) {
+      setErrorMessage('Invalid login credentials');
+      return;
+    }
+
+    // Check for invalid email format - show same generic error
+    if (!emailRegex.test(normalizedEmail)) {
+      setErrorMessage('Invalid login credentials');
+      return;
+    }
+
+    // Only attempt authentication if both fields are valid
+    setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: normalizedEmail,
+      password: password, // Use password as-is to match signup behavior
     });
     if (error) {
-      setErrorMessage(error.message);
+      setErrorMessage('Invalid login credentials');
       setLoading(false);
       return;
     }
@@ -87,19 +108,21 @@ export function SignIn({
   // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
     if (isExpoGo) {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-      });
-      if (error) setErrorMessage(error.message);
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+        });
+        if (error) setErrorMessage(error.message);
       return;
     }
+
+    setLoading(true);
+    setErrorMessage(null);
 
     try {
       if (Platform.OS === 'android') {
         await GoogleSignin.hasPlayServices();
       }
       await GoogleSignin.signIn();
-      //CHANGE
       const { idToken } = await GoogleSignin.getTokens();
       if (idToken) {
         const { data, error } = await supabase.auth.signInWithIdToken({
@@ -108,27 +131,51 @@ export function SignIn({
         });
         if (error) {
           setErrorMessage(error.message);
+          setLoading(false);
           return;
         }
 
-        // Prefetch user info immediately after successful Google login and wait for it
-        if (data?.user?.id) {
-          await queryClient.ensureQueryData({
-            queryKey: ['userInfo', data.user.id],
-            queryFn: () => getUserInfo(data.user.id),
-          });
+        // Create user record if it doesn't exist (for Google sign-in users)
+        if (data?.user?.id && data?.user?.email) {
+          try {
+            await createUserIfNotExists(data.user.id, data.user.email);
+          } catch (userCreationError: any) {
+            console.error('Failed to create user record:', userCreationError);
+            setErrorMessage(userCreationError?.message || 'Failed to complete sign-in setup');
+            setLoading(false);
+            return;
+          }
+
+          // Prefetch user info immediately after successful Google login
+            await queryClient.ensureQueryData({
+              queryKey: ['userInfo', data.user.id],
+              queryFn: () => getUserInfo(data.user.id),
+            });
+        } else if (data?.user?.id && !data?.user?.email) {
+          setErrorMessage('Unable to retrieve email from Google account');
+          setLoading(false);
+          return;
+        } else if (!data?.user?.id) {
+          setErrorMessage('Unable to retrieve user information from Google');
+          setLoading(false);
+          return;
         }
       } else {
         setErrorMessage('No Google idToken');
       }
     } catch (error: any) {
-      if (error?.code === statusCodes.IN_PROGRESS) return; // already in progress
+      if (error?.code === statusCodes.IN_PROGRESS) {
+        setLoading(false);
+        return; // already in progress
+      }
       if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         setErrorMessage('Google Play Services not available');
+        setLoading(false);
         return;
       }
       setErrorMessage(error?.message || 'Google sign-in failed');
     }
+    setLoading(false);
   };
 
   if (showForgotPassword) {
@@ -189,7 +236,6 @@ export function SignIn({
       </ViewSection>
 
       <SubmitButton
-        disabled={!isEmailValid || !password}
         loading={loading}
         onPress={handleSignIn}
         style={[styles.button]}

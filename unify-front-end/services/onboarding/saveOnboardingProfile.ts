@@ -26,6 +26,7 @@ export const saveOnboardingProfile = async (
       onboarding_completed: data.onboarding_completed ?? false,
     };
 
+
     // Upsert the profile
     const { data: result, error } = await supabase
       .from('user_onboarding_profiles')

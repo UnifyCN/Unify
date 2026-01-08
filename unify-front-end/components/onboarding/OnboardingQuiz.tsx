@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -16,7 +17,7 @@ import MultiSelectQuestion from './MultiSelectQuestion';
 import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
-import { useCurrentUser } from '@/context/UserContext';
+import { supabase } from '@/lib/supabase';
 import {
   Persona,
   ReferralSource,
@@ -33,7 +34,6 @@ interface OnboardingQuizProps {
 const TOTAL_STEPS = 10;
 
 export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
-  const { currentUser } = useCurrentUser();
   const saveMutation = useSaveOnboardingProfile();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -162,8 +162,12 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   };
 
   const handleSubmit = async () => {
-    if (!currentUser) {
-      console.error('No user found');
+    // Get user ID directly from Supabase auth (more reliable than UserContext)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('No authenticated user found:', authError);
+      Alert.alert('Error', 'Please sign in to continue');
       return;
     }
 
@@ -173,7 +177,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
     try {
       await saveMutation.mutateAsync({
-        userId: currentUser.id,
+        userId: user.id,  // Use user.id from Supabase auth directly
         data: {
           persona,
           persona_other: personaOther,
@@ -193,7 +197,11 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
-      // You might want to show an error message to the user here
+      Alert.alert(
+        'Error',
+        'Failed to save your onboarding information. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
