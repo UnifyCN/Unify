@@ -30,9 +30,25 @@ export const deletePost = async (
     const isPartner = userData?.permissions === 'partner';
 
     // If not admin or partner, deny access
-    // Ownership checks are handled in the frontend
     if (!isAdmin && !isPartner) {
       throw new Error('Only admin and partner users can delete posts');
+    }
+
+    // Partners can only delete their own posts
+    if (isPartner) {
+      const { data: postData, error: postError } = await supabase
+        .from('posts')
+        .select('user_id')
+        .eq('id', postId)
+        .single();
+
+      if (postError) {
+        throw new Error(`Failed to verify post ownership: ${postError.message}`);
+      }
+
+      if (postData?.user_id !== user.id) {
+        throw new Error('Partners can only delete their own posts');
+      }
     }
 
     // Delete the post (cascade will handle related records)

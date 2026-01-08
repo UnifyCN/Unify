@@ -52,6 +52,7 @@ export const createUserIfNotExists = async (
       id: userId,
       email: email,
       username: username,
+      permissions: 'user',
       created_at: timestamp,
       updated_at: timestamp,
     });
