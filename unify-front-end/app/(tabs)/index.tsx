@@ -15,7 +15,7 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
 import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
-import { memo, useState, useMemo, useCallback, useRef } from 'react';
+import { memo, useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import { HorizontalCarousel } from '@/components/HorizontalCarousel';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
@@ -184,13 +184,19 @@ export default function HomeScreen() {
   const isFocused = useIsFocused();
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
+  const activeTabRef = useRef(activeTab);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
 
   // Track screen view on focus - only once per focus, with debounce
   useFocusEffect(
     useCallback(() => {
       const now = Date.now();
       if (now - lastTrackedRef.current > 500) {
-        trackScreen(activeTab);
+        trackScreen(activeTabRef.current);
         lastTrackedRef.current = now;
       }
       hasTrackedInitialFocus.current = true;

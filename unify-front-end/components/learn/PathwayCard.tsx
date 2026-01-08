@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Blob3 from '../../assets/images/Blob3.svg';

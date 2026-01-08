@@ -138,7 +138,7 @@ const getSectionStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ModuleIndex() {
   const router = useRouter();
-  const { trackScreen, capture } = useAnalytics();
+  const { trackScreen, trackModuleViewed } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { moduleId, blobIndex } = useLocalSearchParams<{ moduleId: string; blobIndex?: string }>();
   const {
@@ -421,14 +421,10 @@ export default function ModuleIndex() {
       const now = Date.now();
       if (moduleTitle && moduleId && now - lastTrackedRef.current > 500) {
         trackScreen(`Module: ${moduleTitle}`);
-        capture('module_viewed', {
-          module_id: moduleId,
-          module_title: moduleTitle,
-          submodule_count: submoduleCount,
-        });
+        trackModuleViewed(moduleId, moduleTitle, submoduleCount);
         lastTrackedRef.current = now;
       }
-    }, [moduleTitle, submoduleCount, moduleId, trackScreen, capture])
+    }, [moduleTitle, submoduleCount, moduleId, trackScreen, trackModuleViewed])
   );
 
   // Which submodule is the next one the user should do?

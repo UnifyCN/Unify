@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
-import { useAnalytics } from '@/utils/analytics';
+import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
 import { useCallback, useRef } from 'react';
 
 export default function QuizzesPage() {
@@ -97,7 +97,7 @@ export default function QuizzesPage() {
               key={quiz._id}
               style={styles.quizCard}
               onPress={() => {
-                capture('quiz_card_clicked', {
+                capture(AnalyticsEvents.QUIZ_CARD_CLICKED, {
                   module_id: moduleId,
                   submodule_id: submoduleId,
                   lesson_id: lessonId,

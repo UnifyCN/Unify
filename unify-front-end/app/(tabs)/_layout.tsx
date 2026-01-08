@@ -10,8 +10,7 @@ import CommunityIcon from '@/components/icons/CommunityIcon';
 import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
 import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
-import { usePostHog } from 'posthog-react-native';
-import { AnalyticsEvents } from '@/utils/analytics';
+import { useAnalytics } from '@/utils/analytics';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
   return (
@@ -39,7 +38,7 @@ export default function TabLayout() {
   const pathname = usePathname();
   const [currentTab, setCurrentTab] = useState('index');
   const previousTabRef = useRef('index');
-  const posthog = usePostHog();
+  const { trackTabSwitch } = useAnalytics();
 
   // Map route names to display names
   const getTabDisplayName = (routeName: string) => {
@@ -82,10 +81,10 @@ export default function TabLayout() {
             
             // Track tab switch
             if (routeName !== previousTabRef.current) {
-              posthog?.capture(AnalyticsEvents.TAB_SWITCHED, {
-                from_tab: getTabDisplayName(previousTabRef.current),
-                to_tab: getTabDisplayName(routeName),
-              });
+              trackTabSwitch(
+                getTabDisplayName(previousTabRef.current),
+                getTabDisplayName(routeName)
+              );
               previousTabRef.current = routeName;
             }
 

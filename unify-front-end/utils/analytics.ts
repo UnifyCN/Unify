@@ -216,10 +216,11 @@ export function useAnalytics() {
     },
     
     // Learning
-    trackModuleViewed: (moduleId: string, moduleTitle?: string) => {
+    trackModuleViewed: (moduleId: string, moduleTitle?: string, submoduleCount?: number) => {
       posthog?.capture(AnalyticsEvents.MODULE_VIEWED, {
         module_id: moduleId,
         ...(moduleTitle && { module_title: moduleTitle }),
+        ...(submoduleCount !== undefined && { submodule_count: submoduleCount }),
       });
     },
     trackSubmoduleStarted: (moduleId: string, submoduleId: string) => {

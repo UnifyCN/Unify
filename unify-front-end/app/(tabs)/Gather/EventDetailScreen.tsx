@@ -22,16 +22,35 @@ const EventDetailScreen = () => {
   const insets = useSafeAreaInsets();
   const { event } = useLocalSearchParams();
   
-  // Memoize parsed event data to avoid JSON.parse on every render
-  const eventData: Event = useMemo(() => JSON.parse(event as string), [event]);
+  // Memoize parsed event data with safety handling
+  const eventData: Event | null = useMemo(() => {
+    try {
+      if (!event) return null;
+      return JSON.parse(event as string);
+    } catch (error) {
+      console.error('Failed to parse event data:', error);
+      return null;
+    }
+  }, [event]);
   
   const { trackEventViewed, trackEventShared, trackEventExternalLinkClicked } =
     useAnalytics();
 
+  // Handle redirect if event data is missing or invalid
+  useEffect(() => {
+    if (!eventData) {
+      router.back();
+    }
+  }, [eventData, router]);
+
   // Track event view on mount
   useEffect(() => {
-    trackEventViewed(eventData.id.toString(), eventData.title);
-  }, [eventData.id, eventData.title, trackEventViewed]);
+    if (eventData) {
+      trackEventViewed(eventData.id.toString(), eventData.title);
+    }
+  }, [eventData, trackEventViewed]);
+
+  if (!eventData) return null;
 
   const handleExternalLink = () => {
     if (eventData.externalLink) {

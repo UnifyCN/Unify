@@ -75,10 +75,17 @@ export default function LessonPageScreen() {
     useCallback(() => {
       const now = Date.now();
       const pageKey = `${lessonId}-${currentPage}`;
-      // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
-      if (lessonTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
+      // Only track if: all IDs exist, data is loaded, throttle passed, AND this is a different page than last tracked
+      if (
+        moduleId &&
+        submoduleId &&
+        lessonId &&
+        lessonTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
         trackScreen(`Lesson Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
-        trackLessonPageViewed(moduleId!, submoduleId!, lessonId!, currentPage, totalPages);
+        trackLessonPageViewed(moduleId, submoduleId, lessonId, currentPage, totalPages);
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }
