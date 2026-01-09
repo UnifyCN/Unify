@@ -1,14 +1,16 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
 import type { CommunityMessage } from '@/types/matching';
 
 interface CircleMessageBubbleProps {
   message: CommunityMessage;
   isOwn: boolean;
+  onPressSender?: (userId: string) => void;
 }
 
 export function CircleMessageBubble({
   message,
   isOwn,
+  onPressSender,
 }: CircleMessageBubbleProps) {
   if (!message.sender_user_id) {
     return (
@@ -20,6 +22,12 @@ export function CircleMessageBubble({
     );
   }
 
+  const handlePressSender = () => {
+    if (onPressSender && message.sender_user_id) {
+      onPressSender(message.sender_user_id);
+    }
+  };
+
   return (
     <View
       style={[
@@ -27,6 +35,27 @@ export function CircleMessageBubble({
         isOwn ? styles.rowOwn : styles.rowOther,
       ]}
     >
+      {!isOwn && (
+        <TouchableOpacity 
+          onPress={handlePressSender}
+          activeOpacity={0.8}
+          style={styles.avatarContainer}
+        >
+          {message.sender?.profile_picture_url ? (
+            <Image 
+              source={{ uri: message.sender.profile_picture_url }} 
+              style={styles.avatar}
+            />
+          ) : (
+            <View style={[styles.avatar, styles.avatarFallback]}>
+              <Text style={styles.avatarText}>
+                {message.sender?.username?.[0]?.toUpperCase() || '?'}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      )}
+
       <View
         style={[
           styles.bubble,
@@ -34,9 +63,11 @@ export function CircleMessageBubble({
         ]}
       >
         {!isOwn && (
-          <Text style={styles.senderName}>
-            {message.sender?.username || 'Circle member'}
-          </Text>
+          <TouchableOpacity onPress={handlePressSender}>
+            <Text style={styles.senderName}>
+              {message.sender?.username || 'Circle member'}
+            </Text>
+          </TouchableOpacity>
         )}
         <Text
           style={[
@@ -61,9 +92,30 @@ const styles = StyleSheet.create({
   },
   rowOther: {
     alignItems: 'flex-start',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  avatarContainer: {
+    marginTop: 4,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E5E7EB',
+  },
+  avatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFE0CC',
+  },
+  avatarText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9A3412',
   },
   bubble: {
-    maxWidth: '82%',
+    maxWidth: '75%',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,

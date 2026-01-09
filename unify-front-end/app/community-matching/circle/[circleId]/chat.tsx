@@ -11,6 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Modal,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -28,6 +29,8 @@ import type {
   CommunityMessage,
 } from '@/types/matching';
 import { CircleMessageBubble } from '@/ui/communityMatching/CircleMessageBubble';
+import { FollowButton } from '@/components/profile/FollowButton';
+import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import BackHeader from '@/components/BackHeader';
@@ -47,6 +50,7 @@ export default function CircleChatScreen() {
   // Presence tracking state
   const [onlineMembers, setOnlineMembers] = useState<Set<string>>(new Set());
   const [typingMembers, setTypingMembers] = useState<Set<string>>(new Set());
+  const [selectedMember, setSelectedMember] = useState<CommunityCircleMemberProfile | null>(null);
   const presenceChannelRef = useRef<RealtimeChannel | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
@@ -271,9 +275,30 @@ export default function CircleChatScreen() {
     );
   };
 
+  const handleMemberPress = (userId: string) => {
+    const member = memberLookup[userId];
+    if (member && member.user_id !== currentUser?.id) {
+      setSelectedMember(member);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedMember(null);
+  };
+
+  const viewFullProfile = () => {
+    if (selectedMember) {
+      handleCloseModal();
+      router.push({
+        pathname: '/profile',
+        params: { userId: selectedMember.user_id } 
+      });
+    }
+  };
+
   const renderItem = ({ item }: { item: CommunityMessage }) => {
     const isOwn = item.sender_user_id === currentUser?.id;
-    return <CircleMessageBubble message={item} isOwn={isOwn} />;
+    return <CircleMessageBubble message={item} isOwn={isOwn} onPressSender={handleMemberPress} />;
   };
 
   // Handle text input with typing indicator broadcast
@@ -317,9 +342,9 @@ export default function CircleChatScreen() {
   const inputDisabled =
     circle?.status === 'ended' || membership?.left_at !== null;
 
+
   return (
     <View style={styles.root}>
-
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
@@ -334,12 +359,16 @@ export default function CircleChatScreen() {
           }
         />
 
-        {/* Online members presence bar */}
+        {/* Online members presence bar - Make clickable */}
         {onlineMembers.size > 0 && (
           <View style={styles.presenceBar}>
             <View style={styles.presenceAvatars}>
               {members?.filter(m => onlineMembers.has(m.user_id)).slice(0, 4).map(member => (
-                <View key={member.user_id} style={styles.presenceAvatar}>
+                <TouchableOpacity 
+                  key={member.user_id} 
+                  style={styles.presenceAvatar}
+                  onPress={() => handleMemberPress(member.user_id)}
+                >
                   {member.user.profile_picture_url ? (
                     <Image 
                       source={{ uri: member.user.profile_picture_url }} 
@@ -353,7 +382,7 @@ export default function CircleChatScreen() {
                     </View>
                   )}
                   <View style={styles.onlineDot} />
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
             <Text style={styles.presenceText}>
@@ -385,7 +414,16 @@ export default function CircleChatScreen() {
             ref={flatListRef}
             data={messages}
             keyExtractor={item => item.id}
-            renderItem={renderItem}
+            renderItem={({ item }) => {
+               const isOwn = item.sender_user_id === currentUser?.id;
+               return (
+                 <CircleMessageBubble 
+                   message={item} 
+                   isOwn={isOwn} 
+                   onPressSender={handleMemberPress}
+                 />
+               );
+            }}
             contentContainerStyle={styles.messagesList}
           />
         )}
@@ -430,8 +468,73 @@ export default function CircleChatScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
 
+      {/* Member Identity Modal */}
+      {selectedMember && (
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={!!selectedMember}
+          onRequestClose={handleCloseModal}
+        >
+          <TouchableOpacity 
+            style={styles.modalOverlay} 
+            activeOpacity={1} 
+            onPress={handleCloseModal}
+          >
+            <TouchableOpacity 
+              activeOpacity={1} 
+              onPress={(e) => e.stopPropagation()}
+              style={styles.modalContent}
+            >
+              <View style={styles.modalHeader}>
+                {selectedMember.user.profile_picture_url ? (
+                  <Image 
+                    source={{ uri: selectedMember.user.profile_picture_url }} 
+                    style={styles.modalAvatar} 
+                  />
+                ) : (
+                  <View style={[styles.modalAvatar, styles.modalAvatarFallback]}>
+                    <Text style={styles.modalAvatarText}>
+                      {selectedMember.user.username?.[0]?.toUpperCase() || '?'}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.modalUserInfo}>
+                  <Text style={styles.modalUsername}>{selectedMember.user.username}</Text>
+                  <Text style={styles.modalRole}>{formatPersonaLabel(circle?.persona)}</Text>
+                </View>
+                <TouchableOpacity onPress={handleCloseModal} style={styles.modalCloseBtn}>
+                  <Feather name="x" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.commonGroundSection}>
+                <Text style={styles.commonGroundTitle}>Shared Journey</Text>
+                <View style={styles.commonGroundItem}>
+                  <Feather name="map-pin" size={16} color="#588DD1" />
+                  <Text style={styles.commonGroundText}>
+                    You both arrived in Canada <Text style={styles.highlight}>{formatTimeInCanadaLabel(circle?.time_in_canada)}</Text>
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity 
+                  style={styles.viewProfileBtn}
+                  onPress={viewFullProfile}
+                >
+                  <Text style={styles.viewProfileText}>View Profile</Text>
+                </TouchableOpacity>
+                <View style={styles.modalFollowBtn}>
+                  <FollowButton targetUserId={selectedMember.user_id} />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
+      )}
+    </View>
   );
 }
 
@@ -583,5 +686,109 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontStyle: 'italic',
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    gap: 16,
+  },
+  modalAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#E5E7EB',
+  },
+  modalAvatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFE0CC',
+  },
+  modalAvatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#9A3412',
+  },
+  modalUserInfo: {
+    flex: 1,
+  },
+  modalUsername: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  modalRole: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  commonGroundSection: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+  },
+  commonGroundTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  commonGroundItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  commonGroundText: {
+    fontSize: 15,
+    color: '#374151',
+    lineHeight: 20,
+    flex: 1,
+  },
+  highlight: {
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  viewProfileBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  viewProfileText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  modalFollowBtn: {
+    flex: 1,
+  },
 });
+
 

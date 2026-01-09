@@ -36,6 +36,7 @@
     "expo-linear-gradient": "~14.0.2",
     "expo-linking": "~7.0.5",
     "expo-localization": "~16.0.1",
+    "expo-notifications": "~0.29.14",
     "expo-router": "~4.0.21",
     "expo-splash-screen": "~0.29.24",
     "expo-status-bar": "~2.0.1",
@@ -49,6 +50,7 @@
     "react-hook-form": "^7.67.0",
     "react-native": "0.76.9",
     "react-native-circular-progress-indicator": "^4.4.2",
+    "react-native-confetti-cannon": "^1.5.2",
     "react-native-elements": "^3.4.3",
     "react-native-gesture-handler": "~2.20.2",
     "react-native-paper": "^5.13.3",
@@ -58,8 +60,7 @@
     "react-native-svg": "15.8.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
-    "react-native-web": "~0.19.10",
-    "expo-notifications": "~0.29.14"
+    "react-native-web": "~0.19.10"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

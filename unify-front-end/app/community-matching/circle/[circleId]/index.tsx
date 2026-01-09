@@ -8,7 +8,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from 'react-native';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -187,6 +189,13 @@ export default function CircleDetailsScreen() {
 
   return (
     <View style={styles.root}>
+      {!isActive && (
+        <ConfettiCannon 
+          count={200} 
+          origin={{x: Dimensions.get('window').width / 2, y: 0}} 
+          fadeOut={true}
+        />
+      )}
       <BackHeader title="" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
 
@@ -233,13 +242,41 @@ export default function CircleDetailsScreen() {
           </View>
         )}
 
+        {/* Graduation / Ended State */}
         {!isActive && (
-          <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>Circle closed</Text>
-            <Text style={styles.infoBody}>
-              Follow your favorite members and rejoin matching to meet new
-              people.
-            </Text>
+          <View style={styles.graduationCard}>
+            <View style={styles.graduationHeader}>
+              <Text style={styles.graduationTitle}>🎉 Circle Completed!</Text>
+              <Text style={styles.graduationSubtitle}>
+                You've shared 14 days of growth. Keep the support going by following your circle mates.
+              </Text>
+            </View>
+            
+            <View style={styles.graduationMembers}>
+              {members?.filter(m => m.user_id !== currentUser?.id).map((member) => (
+                <View key={member.id} style={styles.graduationMemberRow}>
+                  <View style={styles.graduationMemberInfo}>
+                    {member.user.profile_picture_url ? (
+                      <Image
+                        source={{ uri: member.user.profile_picture_url }}
+                        style={styles.graduationAvatar}
+                      />
+                    ) : (
+                      <View style={[styles.graduationAvatar, styles.avatarFallback]}>
+                        <Text style={styles.avatarFallbackText}>
+                          {member.user.username?.[0]?.toUpperCase() || '?'}
+                        </Text>
+                      </View>
+                    )}
+                    <View>
+                      <Text style={styles.graduationMemberName}>{member.user.username}</Text>
+                      <Text style={styles.graduationMemberRole}>{formatPersonaLabel(circle.persona)}</Text>
+                    </View>
+                  </View>
+                  <FollowButton targetUserId={member.user_id} />
+                </View>
+              ))}
+            </View>
           </View>
         )}
 
@@ -497,5 +534,67 @@ const styles = StyleSheet.create({
   leaveText: {
     color: '#E74C3C',
     fontWeight: '600',
+  },
+  graduationCard: {
+    marginTop: 24,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  graduationHeader: {
+    padding: 20,
+    backgroundColor: '#F0F9FF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    alignItems: 'center',
+    gap: 8,
+  },
+  graduationTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#0C4A6E',
+    textAlign: 'center',
+  },
+  graduationSubtitle: {
+    fontSize: 15,
+    color: '#475569',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  graduationMembers: {
+    padding: 16,
+    gap: 16,
+  },
+  graduationMemberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  graduationMemberInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  graduationAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#CBD5E1',
+  },
+  graduationMemberName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
+  graduationMemberRole: {
+    fontSize: 13,
+    color: '#64748B',
   },
 });

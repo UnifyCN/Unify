@@ -348,7 +348,9 @@ verify_jwt = false
 import_map = "./functions/matchmake_circles/deno.json"
 entrypoint = "./functions/matchmake_circles/index.ts"
 
-[[functions.matchmake_circles.triggers]]
-type = "cron"
-name = "community-matching-schedule"
-value = "*/3 * * * *"
+# Cron trigger for scheduled matchmaking - configure in Supabase Dashboard
+# [[functions.matchmake_circles.triggers]]
+# type = "cron"
+# name = "community-matching-schedule"
+# value = "*/3 * * * *"
+
