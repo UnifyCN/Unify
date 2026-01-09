@@ -3,13 +3,13 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '@/context/UserContext';
@@ -26,6 +26,8 @@ import type {
   CommunityCircleMemberProfile,
 } from '@/types/matching';
 import { FollowButton } from '@/components/profile/FollowButton';
+import BackHeader from '@/components/BackHeader';
+
 
 export default function CircleDetailsScreen() {
   const router = useRouter();
@@ -142,17 +144,30 @@ export default function CircleDetailsScreen() {
     return `${format(start)} — ${format(end)}`;
   }, [circle]);
 
+  const countdownText = useMemo(() => {
+    if (!circle || circle.status === 'ended') return null;
+    const now = new Date();
+    const end = new Date(circle.ends_at);
+    const diffMs = end.getTime() - now.getTime();
+    if (diffMs <= 0) return 'Ending soon';
+    const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    if (days > 0) return `${days} day${days === 1 ? '' : 's'} left`;
+    return `${hours} hour${hours === 1 ? '' : 's'} left`;
+  }, [circle]);
+
   if (circleLoading || membersLoading || membershipLoading) {
     return (
-      <SafeAreaView style={styles.centered}>
+      <View style={styles.centered}>
         <ActivityIndicator size='large' />
-      </SafeAreaView>
+      </View>
     );
+
   }
 
   if (circleError || !circle) {
     return (
-      <SafeAreaView style={styles.centered}>
+      <View style={styles.centered}>
         <Text style={styles.errorText}>
           We couldn’t find this circle. It may have ended or been removed.
         </Text>
@@ -162,19 +177,20 @@ export default function CircleDetailsScreen() {
         >
           <Text style={styles.primaryButtonText}>Back to matching</Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     );
+
   }
 
   const showJoinButton = isActive && !hasJoinedChat && !hasLeftCircle;
   const showChatButton = hasJoinedChat && !hasLeftCircle;
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
+      <BackHeader title="" onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ Back</Text>
-        </TouchableOpacity>
+
+
         <Text style={styles.heading}>
           {formatPersonaLabel(circle.persona)}
         </Text>
@@ -182,6 +198,13 @@ export default function CircleDetailsScreen() {
           {formatTimeInCanadaLabel(circle.time_in_canada)}
         </Text>
         <Text style={styles.meta}>{formattedDates}</Text>
+        {countdownText && (
+          <View style={styles.countdownContainer}>
+            <View style={styles.countdownBadge}>
+              <Text style={styles.countdownText}>⏱️ {countdownText}</Text>
+            </View>
+          </View>
+        )}
         <View
           style={[
             styles.statusPill,
@@ -191,7 +214,7 @@ export default function CircleDetailsScreen() {
           <Text
             style={isActive ? styles.statusActiveText : styles.statusEndedText}
           >
-            {circle.status === 'active' ? 'Active (14 days)' : 'Circle ended'}
+            {circle.status === 'active' ? 'Active Circle' : 'Circle ended'}
           </Text>
         </View>
 
@@ -292,7 +315,8 @@ export default function CircleDetailsScreen() {
           </TouchableOpacity>
         )}
       </View>
-    </SafeAreaView>
+    </View>
+
   );
 }
 
@@ -340,6 +364,22 @@ const styles = StyleSheet.create({
     color: '#6E6E6E',
     marginTop: 8,
   },
+  countdownContainer: {
+    marginTop: 10,
+  },
+  countdownBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EBF4FF',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+  },
+  countdownText: {
+    color: '#588DD1',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+
   statusPill: {
     alignSelf: 'flex-start',
     paddingHorizontal: 14,
@@ -435,12 +475,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   primaryButton: {
-    backgroundColor: '#FF7A18',
+    backgroundColor: '#588DD1',
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   primaryButtonText: {
     color: '#fff',
     fontSize: 16,

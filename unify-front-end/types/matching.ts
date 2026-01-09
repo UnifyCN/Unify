@@ -57,3 +57,20 @@ export interface CommunityMessage {
     profile_picture_url: string | null;
   } | null;
 }
+
+export type CommunityNotificationType =
+  | 'circle_matched'
+  | 'circle_ended'
+  | 'circle_ending_soon';
+
+export interface CommunityNotification {
+  id: string;
+  user_id: string;
+  type: CommunityNotificationType;
+  title: string;
+  body: string;
+  data: { circle_id?: string } | null;
+  read_at: string | null;
+  created_at: string;
+}
+

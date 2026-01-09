@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '@/context/UserContext';
@@ -30,6 +31,8 @@ import type {
 import { CircleMessageBubble } from '@/ui/communityMatching/CircleMessageBubble';
 import { formatPersonaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
+import BackHeader from '@/components/BackHeader';
+
 
 export default function CircleChatScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
@@ -93,6 +96,7 @@ export default function CircleChatScreen() {
 
   useEffect(() => {
     if (!circleId) return;
+    
     const channel = supabase
       .channel(`community-messages-${circleId}`)
       .on(
@@ -104,30 +108,39 @@ export default function CircleChatScreen() {
           filter: `circle_id=eq.${circleId}`,
         },
         payload => {
-          setMessages(prev => [
-            ...prev,
-            {
-              id: payload.new.id,
-              circle_id: payload.new.circle_id,
-              sender_user_id: payload.new.sender_user_id,
-              content: payload.new.content,
-              created_at: payload.new.created_at,
-              sender: payload.new.sender_user_id
-                ? {
-                    id: payload.new.sender_user_id,
-                    username:
-                      memberLookup[payload.new.sender_user_id]?.user
-                        .username || 'Circle member',
-                    profile_picture_url:
-                      memberLookup[payload.new.sender_user_id]?.user
-                        .profile_picture_url || null,
-                  }
-                : null,
-            },
-          ]);
+          // Avoid duplicates (in case optimistic update already added it)
+          setMessages(prev => {
+            const exists = prev.some(m => m.id === payload.new.id);
+            if (exists) {
+              return prev;
+            }
+            return [
+              ...prev,
+              {
+                id: payload.new.id,
+                circle_id: payload.new.circle_id,
+                sender_user_id: payload.new.sender_user_id,
+                content: payload.new.content,
+                created_at: payload.new.created_at,
+                sender: payload.new.sender_user_id
+                  ? {
+                      id: payload.new.sender_user_id,
+                      username:
+                        memberLookup[payload.new.sender_user_id]?.user
+                          .username || 'Circle member',
+                      profile_picture_url:
+                        memberLookup[payload.new.sender_user_id]?.user
+                          .profile_picture_url || null,
+                    }
+                  : null,
+              },
+            ];
+          });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -135,7 +148,7 @@ export default function CircleChatScreen() {
   }, [circleId, memberLookup]);
 
   useEffect(() => {
-    if (flatListRef.current) {
+    if (flatListRef.current && messages.length > 0) {
       flatListRef.current.scrollToEnd({ animated: true });
     }
   }, [messages]);
@@ -145,12 +158,37 @@ export default function CircleChatScreen() {
     if (!trimmed || !circleId || circle?.status === 'ended') {
       return;
     }
+    
+    // Clear input immediately for better UX
+    setText('');
     setIsSending(true);
+    
+    // Optimistically add the message to the list
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: CommunityMessage = {
+      id: tempId,
+      circle_id: circleId as string,
+      sender_user_id: currentUser?.id || '',
+      content: trimmed,
+      created_at: new Date().toISOString(),
+      sender: currentUser ? {
+        id: currentUser.id,
+        username: currentUser.username || 'You',
+        profile_picture_url: currentUser.profilePictureUrl || null,
+      } : null,
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    
     try {
       await sendCircleMessage(circleId as string, trimmed);
-      setText('');
+      // The realtime subscription will handle updating the message with the real ID,
+      // or the duplicate check will skip it if the temp message already exists.
+      // We'll remove the temp message when the real one comes in.
     } catch (error) {
       console.error('Failed to send message', error);
+      // Remove the optimistic message on failure
+      setMessages(prev => prev.filter(m => m.id !== tempId));
       Alert.alert('Message not sent', 'Please try again.');
     } finally {
       setIsSending(false);
@@ -193,22 +231,22 @@ export default function CircleChatScreen() {
     circle?.status === 'ended' || membership?.left_at !== null;
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.backText}>‹ Circle</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {formatPersonaLabel(circle?.persona)} chat
-          </Text>
-          <TouchableOpacity onPress={handleLeave}>
-            <Text style={styles.leaveText}>Leave</Text>
-          </TouchableOpacity>
-        </View>
+        <BackHeader 
+          title=""
+          onBack={() => router.back()}
+          rightButton={
+            <TouchableOpacity onPress={handleLeave} style={styles.headerIcon}>
+              <Feather name="more-horizontal" size={24} color="#6B7280" />
+            </TouchableOpacity>
+          }
+        />
+
         {circle?.status === 'ended' && (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>
@@ -236,35 +274,39 @@ export default function CircleChatScreen() {
             contentContainerStyle={styles.messagesList}
           />
         )}
-        <View style={styles.inputRow}>
-          <TextInput
-            style={[
-              styles.input,
-              inputDisabled && styles.inputDisabled,
-            ]}
-            placeholder='Say hello...'
-            value={text}
-            onChangeText={setText}
-            editable={!inputDisabled}
-            multiline
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              (!text.trim() || inputDisabled) && styles.sendButtonDisabled,
-            ]}
-            onPress={handleSend}
-            disabled={!text.trim() || isSending || inputDisabled}
-          >
-            {isSending ? (
-              <ActivityIndicator color='#fff' />
-            ) : (
-              <Text style={styles.sendText}>Send</Text>
-            )}
-          </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[
+                styles.input,
+                inputDisabled && styles.inputDisabled,
+              ]}
+              placeholder='Message...'
+              placeholderTextColor="#9CA3AF"
+              value={text}
+              onChangeText={setText}
+              editable={!inputDisabled}
+              multiline
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                (!text.trim() || inputDisabled) && styles.sendButtonDisabled,
+              ]}
+              onPress={handleSend}
+              disabled={!text.trim() || isSending || inputDisabled}
+            >
+              {isSending ? (
+                <ActivityIndicator color='#fff' size="small" />
+              ) : (
+                <Feather name="arrow-up" size={20} color="#fff" />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
+
   );
 }
 
@@ -311,40 +353,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   messagesList: {
-    paddingVertical: 12,
+    paddingVertical: 16,
+    paddingBottom: 24,
   },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  inputContainer: {
     padding: 16,
+    backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E6E6E6',
-    gap: 12,
+    borderColor: '#F3F4F6',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 24,
+    padding: 6,
+    gap: 8,
   },
   input: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 40,
     maxHeight: 120,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 16,
+    color: '#1F2937',
   },
   inputDisabled: {
-    backgroundColor: '#F5F5F5',
+    opacity: 0.6,
   },
   sendButton: {
-    backgroundColor: '#FF7A18',
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#588DD1',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: '#FEB58A',
+    backgroundColor: '#CBD5E1',
   },
-  sendText: {
-    color: '#fff',
-    fontWeight: '600',
+  headerIcon: {
+    padding: 4,
   },
 });

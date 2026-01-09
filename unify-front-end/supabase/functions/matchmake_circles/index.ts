@@ -21,10 +21,13 @@ type MatchHistoryRow = {
 };
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const HOUR_IN_MS = 60 * 60 * 1000;
 const WELCOME_MESSAGE =
   'You have a new Unify Circle! Take a moment to introduce yourself and share what you hope to learn over the next 14 days.';
 const CLOSING_MESSAGE =
   'This circle has wrapped up. Say thanks, follow one another, and keep the support going in DMs or future circles.';
+const DAY_13_REMINDER_MESSAGE =
+  'One day left! Make the most of your final moments together. Consider exchanging contact info or following each other.';
 
 const responseHeaders = {
   'Content-Type': 'application/json',
@@ -57,10 +60,19 @@ Deno.serve(async (req: Request) => {
       }>,
       failures: [] as Array<{ poolKey: string; reason: string }>,
       expiredCirclesClosed: 0,
+      day13RemindersSent: 0,
+      circlesDeleted: 0,
     };
 
+    // Lifecycle operations: close expired → send day 13 reminders → delete old circles
     const closedResult = await closeExpiredCircles(supabase);
     summary.expiredCirclesClosed = closedResult;
+
+    const reminderResult = await sendDay13Reminders(supabase);
+    summary.day13RemindersSent = reminderResult;
+
+    const deletedResult = await deleteEndedCircles(supabase);
+    summary.circlesDeleted = deletedResult;
 
     const waitlistEntries = await fetchWaitlist(supabase);
     if (waitlistEntries.length === 0) {
@@ -434,6 +446,154 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
       }))
     );
 
+  }
+
+  return circleIds.length;
+}
+
+/**
+ * Send Day 13 reminders to users whose circles end within 24 hours.
+ * Only sends reminder once per circle (tracked by day_13_reminder_sent column).
+ */
+async function sendDay13Reminders(supabase: SupabaseClient) {
+  const now = new Date();
+  const in24Hours = new Date(now.getTime() + DAY_IN_MS);
+  
+  // Find active circles that end within 24 hours and haven't received reminder yet
+  const { data, error } = await supabase
+    .from('community_circles')
+    .select('id')
+    .eq('status', 'active')
+    .eq('day_13_reminder_sent', false)
+    .lte('ends_at', in24Hours.toISOString())
+    .gt('ends_at', now.toISOString());
+
+  if (error) {
+    console.error('Failed to fetch circles needing Day 13 reminder', error);
+    return 0;
+  }
+
+  if (!data || data.length === 0) {
+    return 0;
+  }
+
+  const circleIds = data.map((circle: { id: string }) => circle.id as string);
+
+  // Mark circles as having sent reminder (do this first to prevent duplicates)
+  const { error: updateError } = await supabase
+    .from('community_circles')
+    .update({ day_13_reminder_sent: true })
+    .in('id', circleIds);
+
+  if (updateError) {
+    console.error('Failed to mark circles as reminder sent', updateError);
+    return 0;
+  }
+
+  // Get active members of these circles
+  const { data: members, error: membersError } = await supabase
+    .from('community_circle_members')
+    .select('circle_id, user_id, left_at')
+    .in('circle_id', circleIds);
+
+  if (membersError) {
+    console.error('Failed to fetch members for Day 13 reminder', membersError);
+    return circleIds.length;
+  }
+
+  const activeMembers =
+    members?.filter((member: { left_at: string | null }) => member.left_at === null) ?? [];
+
+  if (activeMembers.length > 0) {
+    // Insert in-app notifications
+    const { error: notificationError } = await supabase
+      .from('community_notifications')
+      .insert(
+        activeMembers.map((member: { user_id: string; circle_id: string }) => ({
+          user_id: member.user_id,
+          type: 'circle_ending_soon',
+          title: 'One day left in your circle!',
+          body: 'Make the most of your final moments. Consider exchanging contact info or following each other.',
+          data: { circle_id: member.circle_id },
+        }))
+      );
+
+    if (notificationError) {
+      console.error('Failed to insert Day 13 reminder notifications', notificationError);
+    }
+  }
+
+  return circleIds.length;
+}
+
+/**
+ * Delete circles that have been ended for at least 1 hour (grace period).
+ * Removes messages, members, notifications, and the circle itself.
+ */
+async function deleteEndedCircles(supabase: SupabaseClient) {
+  const gracePeriodAgo = new Date(Date.now() - HOUR_IN_MS);
+  
+  // Find ended circles where ends_at is before the grace period
+  const { data, error } = await supabase
+    .from('community_circles')
+    .select('id')
+    .eq('status', 'ended')
+    .lt('ends_at', gracePeriodAgo.toISOString());
+
+  if (error) {
+    console.error('Failed to fetch circles for deletion', error);
+    return 0;
+  }
+
+  if (!data || data.length === 0) {
+    return 0;
+  }
+
+  const circleIds = data.map((circle: { id: string }) => circle.id as string);
+
+  // Delete in order due to foreign key constraints:
+  // 1. Delete messages
+  const { error: messagesError } = await supabase
+    .from('community_messages')
+    .delete()
+    .in('circle_id', circleIds);
+
+  if (messagesError) {
+    console.error('Failed to delete circle messages', messagesError);
+  }
+
+  // 2. Delete members
+  const { error: membersError } = await supabase
+    .from('community_circle_members')
+    .delete()
+    .in('circle_id', circleIds);
+
+  if (membersError) {
+    console.error('Failed to delete circle members', membersError);
+  }
+
+  // 3. Delete notifications referencing these circles
+  // Note: This uses a JSONB query to find notifications with matching circle_id
+  for (const circleId of circleIds) {
+    const { error: notifError } = await supabase
+      .from('community_notifications')
+      .delete()
+      .eq('data->>circle_id', circleId);
+    
+    if (notifError) {
+      console.error('Failed to delete notifications for circle', circleId, notifError);
+    }
+  }
+
+  // 4. Delete the circles themselves
+  const { error: circlesError } = await supabase
+    .from('community_circles')
+    .delete()
+    .in('id', circleIds);
+
+  if (circlesError) {
+    console.error('Failed to delete circles', circlesError);
+    return 0;
   }
 
   return circleIds.length;

@@ -65,43 +65,46 @@ const styles = StyleSheet.create({
   bubble: {
     maxWidth: '82%',
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 18,
+    paddingHorizontal: 16,
+    borderRadius: 20,
   },
   bubbleOwn: {
-    backgroundColor: '#FF7A18',
+    backgroundColor: '#588DD1', // Blue theme
     borderBottomRightRadius: 4,
   },
   bubbleOther: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F3F4F6', // Lighter grey
     borderBottomLeftRadius: 4,
   },
   messageText: {
-    color: '#1F1300',
+    color: '#1F2937', // Darker text
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   messageTextOwn: {
     color: '#fff',
   },
   senderName: {
-    color: '#6E6E6E',
+    color: '#6B7280',
     fontSize: 12,
     marginBottom: 4,
+    fontWeight: '500',
   },
   systemRow: {
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 12, // Increased spacing
+    paddingHorizontal: 24,
   },
   systemBubble: {
-    backgroundColor: '#FFF4E4',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    backgroundColor: '#EFF6FF', // Very light blue
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
   },
   systemText: {
-    color: '#7C4A00',
+    color: '#3B82F6', // Blue text
     fontSize: 13,
     textAlign: 'center',
+    lineHeight: 18,
   },
 });

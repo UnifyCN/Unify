@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import {
   ActivityIndicator,
-  SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
+import { Feather } from '@expo/vector-icons';
 import { useCurrentUser } from '@/context/UserContext';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import {
@@ -20,6 +21,53 @@ import {
   formatPersonaLabel,
   formatTimeInCanadaLabel,
 } from '@/matching/pools';
+import BackHeader from '@/components/BackHeader';
+
+// Feature highlight component
+function FeatureItem({ icon, title, description }: { icon: string; title: string; description: string }) {
+  return (
+    <View style={featureStyles.item}>
+      <View style={featureStyles.iconCircle}>
+        <Feather name={icon as any} size={20} color="#588DD1" />
+      </View>
+      <View style={featureStyles.textContainer}>
+        <Text style={featureStyles.title}>{title}</Text>
+        <Text style={featureStyles.description}>{description}</Text>
+      </View>
+    </View>
+  );
+}
+
+const featureStyles = StyleSheet.create({
+  item: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    paddingVertical: 14,
+  },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#EBF4FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  description: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+  },
+});
 
 export default function CommunityMatchingHome() {
   const router = useRouter();
@@ -66,9 +114,9 @@ export default function CommunityMatchingHome() {
 
   if (onboardingLoading || waitlistLoading || circleLoading) {
     return (
-      <SafeAreaView style={styles.centered}>
-        <ActivityIndicator size='large' />
-      </SafeAreaView>
+      <View style={styles.centered}>
+        <ActivityIndicator size='large' color="#588DD1" />
+      </View>
     );
   }
 
@@ -77,57 +125,114 @@ export default function CommunityMatchingHome() {
 
   if (!hasPersona) {
     return (
-      <SafeAreaView style={styles.root}>
-        <View style={styles.content}>
-          <Text style={styles.pageTitle}>Complete onboarding first</Text>
-          <Text style={styles.body}>
-            We use your persona and time-in-Canada info to match you with the
-            right peers. Finish onboarding to unlock Community Matching.
+      <View style={styles.root}>
+        <BackHeader title="" onBack={() => router.back()} />
+        <View style={styles.incompleteContainer}>
+          <View style={styles.incompleteIconCircle}>
+            <Feather name="user-check" size={32} color="#588DD1" />
+          </View>
+          <Text style={styles.incompleteTitle}>Complete your profile</Text>
+          <Text style={styles.incompleteBody}>
+            We use your background and experience to match you with the right peers. Complete onboarding to unlock Unify Circles.
           </Text>
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={() =>
               router.push('/community-matching/complete-onboarding' as const)
             }
+            activeOpacity={0.8}
           >
-            <Text style={styles.primaryButtonText}>
-              Complete onboarding to join matching
-            </Text>
+            <Text style={styles.primaryButtonText}>Complete onboarding</Text>
+            <Feather name="arrow-right" size={18} color="#fff" />
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.content}>
-        <Text style={styles.pageEyebrow}>Community Matching</Text>
-        <Text style={styles.pageTitle}>Meet your Unify Circle</Text>
-        <Text style={styles.body}>
-          Join a group of four newcomers with the same interests in
-          Canada. Circles run for 14 days.
-        </Text>
-        <View style={styles.poolPill}>
-          <Text style={styles.poolPillText}>
-            {formatPersonaLabel(onboardingProfile?.persona)} •{' '}
-            {formatTimeInCanadaLabel(onboardingProfile?.time_in_canada)}
+    <View style={styles.root}>
+      <BackHeader title="" onBack={() => router.back()} />
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Hero section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroIconContainer}>
+            <View style={styles.heroIconRing} />
+            <View style={styles.heroIconCircle}>
+              <Feather name="users" size={28} color="#fff" />
+            </View>
+          </View>
+          <Text style={styles.heroTitle}>Unify Circles</Text>
+          <Text style={styles.heroSubtitle}>
+            Connect with 3 newcomers who share your journey. Chat, support each other, and grow together for 14 days.
           </Text>
         </View>
+
+        {/* Your matching profile card */}
+        <View style={styles.profileCard}>
+          <View style={styles.profileCardHeader}>
+            <Feather name="target" size={18} color="#588DD1" />
+            <Text style={styles.profileCardLabel}>Your matching profile</Text>
+          </View>
+          <View style={styles.profileCardContent}>
+            <View style={styles.profileRow}>
+              <Feather name="user" size={16} color="#6B7280" />
+              <Text style={styles.profileText}>
+                {formatPersonaLabel(onboardingProfile?.persona)}
+              </Text>
+            </View>
+            <View style={styles.profileRow}>
+              <Feather name="calendar" size={16} color="#6B7280" />
+              <Text style={styles.profileText}>
+                {formatTimeInCanadaLabel(onboardingProfile?.time_in_canada)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* How it works section */}
+        <View style={styles.featuresSection}>
+          <Text style={styles.sectionTitle}>How it works</Text>
+          <FeatureItem 
+            icon="users"
+            title="Get matched"
+            description="We'll pair you with 3 newcomers on a similar journey"
+          />
+          <FeatureItem 
+            icon="message-circle"
+            title="Chat together"
+            description="Share experiences, ask questions, and support each other"
+          />
+          <FeatureItem 
+            icon="calendar"
+            title="14-day journey"
+            description="Build meaningful connections over two weeks"
+          />
+        </View>
+      </ScrollView>
+
+      {/* Fixed footer with CTA */}
+      <View style={styles.footer}>
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={() => router.push('/community-matching/onboarding' as const)}
+          activeOpacity={0.8}
         >
           <Text style={styles.primaryButtonText}>Start matching</Text>
+          <Feather name="arrow-right" size={18} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={() => router.back()}
+          activeOpacity={0.6}
         >
-          <Text style={styles.secondaryText}>Back to Community tab</Text>
+          <Text style={styles.secondaryText}>Back to Community</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -142,46 +247,125 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  content: {
-    flex: 1,
+  scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 32,
-    gap: 16,
+    paddingTop: 8,
+    paddingBottom: 180,
   },
-  pageEyebrow: {
-    color: '#588DD1',
-    fontSize: 15,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+  // Hero section
+  heroSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
   },
-  pageTitle: {
+  heroIconContainer: {
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  heroIconRing: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#E0ECFA',
+  },
+  heroIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#588DD1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#588DD1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  heroTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1F1300',
+    color: '#111827',
+    marginBottom: 8,
   },
-  body: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#4A3F35',
+  heroSubtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 8,
   },
-  poolPill: {
-    backgroundColor: '#FFF4E4',
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    alignSelf: 'flex-start',
-    marginTop: 6,
+  // Profile card
+  profileCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  poolPillText: {
-    color: '#7C4A00',
+  profileCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  profileCardLabel: {
+    fontSize: 14,
     fontWeight: '600',
+    color: '#588DD1',
+  },
+  profileCardContent: {
+    gap: 10,
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  profileText: {
+    fontSize: 15,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  // Features section
+  featuresSection: {
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  // Footer
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 24,
+    paddingBottom: 34,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    gap: 12,
   },
   primaryButton: {
-    marginTop: 20,
-    backgroundColor: '#FF7A18',
-    borderRadius: 16,
-    paddingVertical: 14,
+    backgroundColor: '#588DD1',
+    borderRadius: 14,
+    paddingVertical: 16,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#588DD1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 3,
   },
   primaryButtonText: {
     color: '#fff',
@@ -190,11 +374,40 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     alignItems: 'center',
-    marginTop: 4,
+    paddingVertical: 8,
   },
   secondaryText: {
-    color: '#6E6E6E',
+    color: '#6B7280',
     fontSize: 14,
-    textDecorationLine: 'underline',
+    fontWeight: '500',
+  },
+  // Incomplete onboarding state
+  incompleteContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 16,
+  },
+  incompleteIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#EBF4FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  incompleteTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    textAlign: 'center',
+  },
+  incompleteBody: {
+    fontSize: 15,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Alert, SafeAreaView, StyleSheet } from 'react-native';
+import { Alert, View, StyleSheet } from 'react-native';
+
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { MatchingOnboardingQuiz } from '@/ui/communityMatching/MatchingOnboardingQuiz';
 import { joinCommunityWaitlist } from '@/services/matching/waitlist';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { useCurrentUser } from '@/context/UserContext';
+import BackHeader from '@/components/BackHeader';
+
 
 export default function MatchingOnboardingScreen() {
   const router = useRouter();
@@ -55,14 +58,18 @@ export default function MatchingOnboardingScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
+      <BackHeader title="" onBack={() => router.back()} />
       <MatchingOnboardingQuiz
+
+
         onComplete={handleComplete}
         isSubmitting={isSubmitting}
       />
-    </SafeAreaView>
+    </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   root: {
