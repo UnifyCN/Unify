@@ -30,6 +30,15 @@ const CLOSING_MESSAGE =
 const DAY_13_REMINDER_MESSAGE =
   'One day left! Make the most of your final moments together. Consider exchanging contact info or following each other.';
 
+// Ice breaker prompts configuration - sent automatically based on circle age
+const ICE_BREAKER_PROMPTS: Record<number, string> = {
+  1: "👋 Let's break the ice! Share one thing that surprised you about Canada.",
+  3: "💼 What's your biggest challenge right now? Let's help each other!",
+  7: "🎉 You're halfway through! What's one tip you've learned from this circle?",
+  10: "🌟 Share a win from this week, no matter how small!",
+  12: "📱 Only 2 days left! Consider exchanging contact info to stay in touch.",
+};
+
 const responseHeaders = {
   'Content-Type': 'application/json',
 };
@@ -62,15 +71,19 @@ Deno.serve(async (req: Request) => {
       failures: [] as Array<{ poolKey: string; reason: string }>,
       expiredCirclesClosed: 0,
       day13RemindersSent: 0,
+      iceBreakersSent: 0,
       circlesDeleted: 0,
     };
 
-    // Lifecycle operations: close expired → send day 13 reminders → delete old circles
+    // Lifecycle operations: close expired → send day 13 reminders → ice breakers → delete old circles
     const closedResult = await closeExpiredCircles(supabase);
     summary.expiredCirclesClosed = closedResult;
 
     const reminderResult = await sendDay13Reminders(supabase);
     summary.day13RemindersSent = reminderResult;
+
+    const iceBreakersResult = await sendIceBreakerPrompts(supabase);
+    summary.iceBreakersSent = iceBreakersResult;
 
     const deletedResult = await deleteEndedCircles(supabase);
     summary.circlesDeleted = deletedResult;
@@ -347,6 +360,15 @@ async function createCircleForGroup(
     console.error('Failed to record in-app notifications', notificationError);
   }
 
+  // Send push notifications to all members
+  await sendPushNotifications(
+    supabase,
+    memberIds,
+    "You've been matched! 🎉",
+    'Your Unify Circle is ready. Tap to meet your group.',
+    { type: 'circle_matched', circle_id: circleId }
+  );
+
   const { error: messageError } = await supabase.from('community_messages').insert({
     circle_id: circleId,
     sender_user_id: null,
@@ -599,3 +621,132 @@ async function deleteEndedCircles(supabase: SupabaseClient) {
 
   return circleIds.length;
 }
+
+/**
+ * Send push notifications via Expo Push API
+ */
+async function sendPushNotifications(
+  supabase: SupabaseClient,
+  userIds: string[],
+  title: string,
+  body: string,
+  data?: Record<string, unknown>
+): Promise<void> {
+  if (!userIds.length) return;
+
+  // Fetch push tokens for all users
+  const { data: tokens, error } = await supabase
+    .from('push_tokens')
+    .select('token')
+    .in('user_id', userIds);
+
+  if (error) {
+    console.error('Failed to fetch push tokens', error);
+    return;
+  }
+
+  if (!tokens || tokens.length === 0) {
+    console.log('No push tokens found for users', userIds);
+    return;
+  }
+
+  const messages = tokens.map(({ token }: { token: string }) => ({
+    to: token,
+    sound: 'default',
+    title,
+    body,
+    data: data || {},
+  }));
+
+  // Send to Expo Push API
+  try {
+    const response = await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messages),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to send push notifications', await response.text());
+    } else {
+      console.log(`Sent ${messages.length} push notifications`);
+    }
+  } catch (err) {
+    console.error('Push notification error', err);
+  }
+}
+
+/**
+ * Send ice breaker prompts to circles based on their age
+ */
+async function sendIceBreakerPrompts(supabase: SupabaseClient): Promise<number> {
+  const now = new Date();
+  let promptsSent = 0;
+
+  // Get all active circles with their last ice breaker day
+  const { data: circles, error } = await supabase
+    .from('community_circles')
+    .select('id, created_at, last_ice_breaker_day')
+    .eq('status', 'active');
+
+  if (error) {
+    console.error('Failed to fetch circles for ice breakers', error);
+    return 0;
+  }
+
+  if (!circles || circles.length === 0) {
+    return 0;
+  }
+
+  const promptDays = Object.keys(ICE_BREAKER_PROMPTS)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  for (const circle of circles) {
+    const createdAt = new Date(circle.created_at);
+    const daysSinceCreation = Math.floor(
+      (now.getTime() - createdAt.getTime()) / DAY_IN_MS
+    );
+
+    const lastDay = circle.last_ice_breaker_day || 0;
+
+    // Find the next prompt that should be sent
+    for (const day of promptDays) {
+      if (day <= daysSinceCreation && day > lastDay) {
+        const message = ICE_BREAKER_PROMPTS[day];
+
+        // Insert the ice breaker message
+        const { error: msgError } = await supabase
+          .from('community_messages')
+          .insert({
+            circle_id: circle.id,
+            sender_user_id: null, // System message
+            content: message,
+          });
+
+        if (msgError) {
+          console.error('Failed to insert ice breaker message', msgError);
+          continue;
+        }
+
+        // Update the last sent day
+        const { error: updateError } = await supabase
+          .from('community_circles')
+          .update({ last_ice_breaker_day: day })
+          .eq('id', circle.id);
+
+        if (updateError) {
+          console.error('Failed to update last_ice_breaker_day', updateError);
+        }
+
+        promptsSent++;
+        break; // Only send one prompt per run per circle
+      }
+    }
+  }
+
+  return promptsSent;
+}
+

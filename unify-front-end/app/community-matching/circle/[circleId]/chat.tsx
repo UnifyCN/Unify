@@ -3,9 +3,9 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
@@ -24,13 +24,12 @@ import {
 } from '@/services/matching/circles';
 import { fetchCircleMessages, sendCircleMessage } from '@/services/matching/messages';
 import type {
-  CommunityCircle,
   CommunityCircleMemberProfile,
   CommunityMessage,
 } from '@/types/matching';
 import { CircleMessageBubble } from '@/ui/communityMatching/CircleMessageBubble';
-import { formatPersonaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import BackHeader from '@/components/BackHeader';
 
 
@@ -44,6 +43,12 @@ export default function CircleChatScreen() {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const flatListRef = useRef<FlatList<CommunityMessage>>(null);
+  
+  // Presence tracking state
+  const [onlineMembers, setOnlineMembers] = useState<Set<string>>(new Set());
+  const [typingMembers, setTypingMembers] = useState<Set<string>>(new Set());
+  const presenceChannelRef = useRef<RealtimeChannel | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const { data: circle } = useQuery({
     queryKey: ['community-circle', circleId],
@@ -147,6 +152,50 @@ export default function CircleChatScreen() {
     };
   }, [circleId, memberLookup]);
 
+  // Presence tracking for online status and typing indicators
+  useEffect(() => {
+    if (!circleId || !currentUser) return;
+
+    const presenceChannel = supabase.channel(`presence-${circleId}`)
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const online = new Set<string>();
+        const typing = new Set<string>();
+        
+        Object.values(state).forEach((users: unknown) => {
+          const presenceUsers = users as Array<{ user_id?: string; is_typing?: boolean }>;
+          presenceUsers.forEach((user) => {
+            if (user.user_id && user.user_id !== currentUser.id) {
+              online.add(user.user_id);
+              if (user.is_typing) {
+                typing.add(user.user_id);
+              }
+            }
+          });
+        });
+        
+        setOnlineMembers(online);
+        setTypingMembers(typing);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            user_id: currentUser.id,
+            username: currentUser.username,
+            is_typing: false,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    presenceChannelRef.current = presenceChannel;
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+      presenceChannelRef.current = null;
+    };
+  }, [circleId, currentUser]);
+
   useEffect(() => {
     if (flatListRef.current && messages.length > 0) {
       flatListRef.current.scrollToEnd({ animated: true });
@@ -227,6 +276,44 @@ export default function CircleChatScreen() {
     return <CircleMessageBubble message={item} isOwn={isOwn} />;
   };
 
+  // Handle text input with typing indicator broadcast
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+    
+    // Broadcast typing status
+    if (presenceChannelRef.current && currentUser) {
+      presenceChannelRef.current.track({
+        user_id: currentUser.id,
+        username: currentUser.username,
+        is_typing: newText.length > 0,
+        online_at: new Date().toISOString(),
+      });
+
+      // Clear typing indicator after 2 seconds of inactivity
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      typingTimeoutRef.current = setTimeout(() => {
+        if (presenceChannelRef.current && currentUser) {
+          presenceChannelRef.current.track({
+            user_id: currentUser.id,
+            username: currentUser.username,
+            is_typing: false,
+            online_at: new Date().toISOString(),
+          });
+        }
+      }, 2000);
+    }
+  };
+
+  // Get typing member names for display
+  const typingMemberNames = useMemo(() => {
+    return Array.from(typingMembers)
+      .map(id => memberLookup[id]?.user?.username)
+      .filter(Boolean)
+      .slice(0, 2);
+  }, [typingMembers, memberLookup]);
+
   const inputDisabled =
     circle?.status === 'ended' || membership?.left_at !== null;
 
@@ -246,6 +333,34 @@ export default function CircleChatScreen() {
             </TouchableOpacity>
           }
         />
+
+        {/* Online members presence bar */}
+        {onlineMembers.size > 0 && (
+          <View style={styles.presenceBar}>
+            <View style={styles.presenceAvatars}>
+              {members?.filter(m => onlineMembers.has(m.user_id)).slice(0, 4).map(member => (
+                <View key={member.user_id} style={styles.presenceAvatar}>
+                  {member.user.profile_picture_url ? (
+                    <Image 
+                      source={{ uri: member.user.profile_picture_url }} 
+                      style={styles.presenceAvatarImg} 
+                    />
+                  ) : (
+                    <View style={[styles.presenceAvatarImg, styles.presenceAvatarFallback]}>
+                      <Text style={styles.presenceAvatarText}>
+                        {member.user.username?.[0]?.toUpperCase() || '?'}
+                      </Text>
+                    </View>
+                  )}
+                  <View style={styles.onlineDot} />
+                </View>
+              ))}
+            </View>
+            <Text style={styles.presenceText}>
+              {onlineMembers.size} online
+            </Text>
+          </View>
+        )}
 
         {circle?.status === 'ended' && (
           <View style={styles.banner}>
@@ -274,6 +389,16 @@ export default function CircleChatScreen() {
             contentContainerStyle={styles.messagesList}
           />
         )}
+
+        {/* Typing indicator */}
+        {typingMemberNames.length > 0 && (
+          <View style={styles.typingIndicator}>
+            <Text style={styles.typingText}>
+              {typingMemberNames.join(', ')} {typingMemberNames.length > 1 ? 'are' : 'is'} typing...
+            </Text>
+          </View>
+        )}
+
         <View style={styles.inputContainer}>
           <View style={styles.inputWrapper}>
             <TextInput
@@ -284,7 +409,7 @@ export default function CircleChatScreen() {
               placeholder='Message...'
               placeholderTextColor="#9CA3AF"
               value={text}
-              onChangeText={setText}
+              onChangeText={handleTextChange}
               editable={!inputDisabled}
               multiline
             />
@@ -396,4 +521,67 @@ const styles = StyleSheet.create({
   headerIcon: {
     padding: 4,
   },
+  // Presence bar styles
+  presenceBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#F8FAFC',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E2E8F0',
+  },
+  presenceAvatars: {
+    flexDirection: 'row',
+    marginRight: 8,
+  },
+  presenceAvatar: {
+    position: 'relative',
+    marginRight: -6,
+  },
+  presenceAvatarImg: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  presenceAvatarFallback: {
+    backgroundColor: '#588DD1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  presenceAvatarText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  onlineDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#22C55E',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  presenceText: {
+    marginLeft: 8,
+    fontSize: 13,
+    color: '#64748B',
+  },
+  // Typing indicator styles
+  typingIndicator: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: '#F8FAFC',
+  },
+  typingText: {
+    fontSize: 13,
+    color: '#64748B',
+    fontStyle: 'italic',
+  },
 });
+

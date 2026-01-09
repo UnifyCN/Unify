@@ -13,6 +13,7 @@ import { PostHogProvider } from 'posthog-react-native';
 // import Onboarding from './onboarding';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import { UserProvider } from '@/context/UserContext';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -101,45 +102,7 @@ export default function RootLayout() {
                     }}
                     autocapture={{ captureScreens: false }}
                   >
-                    <Stack>
-                      <Stack.Screen
-                        name='(tabs)'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='account-settings'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='edit-name'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='profile'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='saved'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='reset-password'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='post-details'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='notifications'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='community-matching'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen name='+not-found' />
-                    </Stack>
+                    <AppContent />
                   </PostHogProvider>
                 </ThemeProvider>
               </AuthWrapper>
@@ -151,3 +114,54 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+
+/**
+ * Inner component that has access to UserContext for push notifications
+ */
+function AppContent() {
+  // Initialize push notifications (requires UserContext)
+  usePushNotifications();
+
+  return (
+    <Stack>
+      <Stack.Screen
+        name='(tabs)'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='account-settings'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='edit-name'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='profile'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='saved'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='reset-password'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='post-details'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='notifications'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='community-matching'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name='+not-found' />
+    </Stack>
+  );
+}
+
