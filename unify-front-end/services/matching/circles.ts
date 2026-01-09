@@ -49,21 +49,25 @@ export const getActiveCircleMembership = async (): Promise<
   if (!data) {
     return null;
   }
+  
+  // Cast to any to handle joined data structure
+  const row = data as any;
+  const circle = row.community_circles;
 
   return {
-    id: data.id,
-    circle_id: data.circle_id,
-    user_id: data.user_id,
-    joined_at: data.joined_at,
-    left_at: data.left_at,
+    id: row.id,
+    circle_id: row.circle_id,
+    user_id: row.user_id,
+    joined_at: row.joined_at,
+    left_at: row.left_at,
     circle: {
-      id: data.community_circles.id,
-      pool_key: data.community_circles.pool_key,
-      persona: data.community_circles.persona,
-      time_in_canada: data.community_circles.time_in_canada,
-      created_at: data.community_circles.created_at,
-      ends_at: data.community_circles.ends_at,
-      status: data.community_circles.status,
+      id: circle.id,
+      pool_key: circle.pool_key,
+      persona: circle.persona,
+      time_in_canada: circle.time_in_canada,
+      created_at: circle.created_at,
+      ends_at: circle.ends_at,
+      status: circle.status,
     } as CommunityCircle,
   };
 };
@@ -111,18 +115,22 @@ export const getCircleMembers = async (
   }
 
   return (
-    data?.map(row => ({
-      id: row.id,
-      circle_id: row.circle_id,
-      user_id: row.user_id,
-      joined_at: row.joined_at,
-      left_at: row.left_at,
-      user: {
-        id: row.users.id,
-        username: row.users.username,
-        profile_picture_url: row.users.profile_picture_url,
-      },
-    })) ?? []
+    data?.map(row => {
+      const r = row as any;
+      const user = r.users;
+      return {
+        id: r.id,
+        circle_id: r.circle_id,
+        user_id: r.user_id,
+        joined_at: r.joined_at,
+        left_at: r.left_at,
+        user: {
+          id: user.id,
+          username: user.username,
+          profile_picture_url: user.profile_picture_url,
+        },
+      };
+    }) ?? []
   );
 };
 
@@ -211,20 +219,28 @@ export const getMembershipForCircle = async (
     return null;
   }
 
+  // Cast to any to avoid deep instantiation TS errors on join properties
+  const row = data as any;
+  const circle = row.community_circles;
+
+  if (!circle) {
+    return null;
+  }
+
   return {
-    id: data.id,
-    circle_id: data.circle_id,
-    user_id: data.user_id,
-    joined_at: data.joined_at,
-    left_at: data.left_at,
+    id: row.id,
+    circle_id: row.circle_id,
+    user_id: row.user_id,
+    joined_at: row.joined_at,
+    left_at: row.left_at,
     circle: {
-      id: data.community_circles.id,
-      pool_key: data.community_circles.pool_key,
-      persona: data.community_circles.persona,
-      time_in_canada: data.community_circles.time_in_canada,
-      created_at: data.community_circles.created_at,
-      ends_at: data.community_circles.ends_at,
-      status: data.community_circles.status,
-    },
+      id: circle.id,
+      pool_key: circle.pool_key,
+      persona: circle.persona,
+      time_in_canada: circle.time_in_canada,
+      created_at: circle.created_at,
+      ends_at: circle.ends_at,
+      status: circle.status,
+    } as CommunityCircle,
   };
 };

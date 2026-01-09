@@ -28,20 +28,24 @@ export const fetchCircleMessages = async (
   }
 
   return (
-    data?.map(row => ({
-      id: row.id,
-      circle_id: row.circle_id,
-      sender_user_id: row.sender_user_id,
-      content: row.content,
-      created_at: row.created_at,
-      sender: row.users
-        ? {
-            id: row.users.id,
-            username: row.users.username,
-            profile_picture_url: row.users.profile_picture_url,
-          }
-        : null,
-    })) ?? []
+    data?.map(row => {
+      const r = row as any;
+      const user = r.users;
+      return {
+        id: r.id,
+        circle_id: r.circle_id,
+        sender_user_id: r.sender_user_id,
+        content: r.content,
+        created_at: r.created_at,
+        sender: user
+          ? {
+              id: user.id,
+              username: user.username,
+              profile_picture_url: user.profile_picture_url,
+            }
+          : null,
+      };
+    }) ?? []
   );
 };
 
