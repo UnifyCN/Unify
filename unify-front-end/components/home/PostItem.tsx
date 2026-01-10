@@ -26,6 +26,7 @@ import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
 import { useCurrentUser } from '@/context/UserContext';
 import { Permissions } from '@/types/permissions';
+import { useAnalytics } from '@/utils/analytics';
 
 export interface PostItemProps {
   post: PostData;
@@ -50,6 +51,13 @@ export const PostItem = memo(
     const router = useRouter();
     const { currentUser } = useCurrentUser();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const {
+      trackPostLike,
+      trackPostUnlike,
+      trackPostSave,
+      trackPostUnsave,
+      trackPostCommentOpened,
+    } = useAnalytics();
 
     // Use batch-loaded metadata (no individual queries needed)
     const likePostMutation = useMutateLikePost();
@@ -62,10 +70,20 @@ export const PostItem = memo(
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
 
     const toggleLike = (postId: number, isLiked: boolean) => {
+      if (isLiked) {
+        trackPostUnlike(postId.toString());
+      } else {
+        trackPostLike(postId.toString());
+      }
       likePostMutation.mutate({ postId, isLiked });
     };
 
     const toggleSave = (postId: number, isSaved: boolean) => {
+      if (isSaved) {
+        trackPostUnsave(postId.toString());
+      } else {
+        trackPostSave(postId.toString());
+      }
       savePostMutation.mutate({ postId, isSaved });
     };
 
@@ -102,6 +120,16 @@ export const PostItem = memo(
           },
         ]
       );
+    };
+
+    const navigateToComments = () => {
+      trackPostCommentOpened(post.id.toString());
+      router.push({
+        pathname: '/post-details',
+        params: {
+          post: JSON.stringify(post),
+        },
+      });
     };
 
     // Use batch-loaded metadata with loading state
@@ -202,14 +230,7 @@ export const PostItem = memo(
               </View>
               <TouchableOpacity
                 style={styles.footerItem}
-                onPress={() =>
-                  router.push({
-                    pathname: '/post-details',
-                    params: {
-                      post: JSON.stringify(post),
-                    },
-                  })
-                }
+                onPress={navigateToComments}
               >
                 <Comment width={20} height={20} fill='gray' />
                 {showMetadataLoading ? (

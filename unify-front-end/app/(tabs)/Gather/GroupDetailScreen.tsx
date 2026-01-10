@@ -29,6 +29,7 @@ import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import { Theme } from '@/constants/Theme';
+import { useAnalytics } from '@/utils/analytics';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -42,14 +43,24 @@ const GroupDetailScreen = () => {
   const [isAtTop, setIsAtTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const headerOpacity = useRef(new Animated.Value(0)).current;
+  const hasTrackedView = useRef(false);
 
   const queryClient = useQueryClient();
+  const { trackGroupViewed, trackGroupJoined, trackGroupLeft } = useAnalytics();
 
   useEffect(() => {
     // Reset header opacity when component mounts
     headerOpacity.setValue(0);
     setIsAtTop(true);
   }, [headerOpacity]);
+
+  // Track group view when groupData is available
+  useEffect(() => {
+    if (groupData && !hasTrackedView.current) {
+      trackGroupViewed(groupData.id.toString(), groupData.name);
+      hasTrackedView.current = true;
+    }
+  }, [groupData, trackGroupViewed]);
 
   useEffect(() => {
     let mounted = true;
@@ -133,6 +144,7 @@ const GroupDetailScreen = () => {
       if (isMember) {
         // Optimistically update UI for leaving
         await leaveGroup(groupData.id);
+        trackGroupLeft(groupData.id.toString(), groupData.name);
         setIsMember(false);
         queryClient.resetQueries({ queryKey: ['joined-groups'] });
         queryClient.invalidateQueries({ queryKey: ['available-groups'] });
@@ -146,8 +158,8 @@ const GroupDetailScreen = () => {
         );
       } else {
         // Optimistically update UI for joining
-
         await joinGroup(groupData.id);
+        trackGroupJoined(groupData.id.toString(), groupData.name);
         queryClient.resetQueries({ queryKey: ['joined-groups'] });
         queryClient.invalidateQueries({ queryKey: ['available-groups'] });
         setIsMember(true);

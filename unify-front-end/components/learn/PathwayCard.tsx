@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Blob3 from '../../assets/images/Blob3.svg';
@@ -8,6 +8,7 @@ import Blob8 from '../../assets/images/Blob8.svg';
 import Blob10 from '../../assets/images/Blob10.svg';
 import Blob11 from '../../assets/images/Blob11.svg';
 import Blob12 from '../../assets/images/Blob12.svg';
+import { useAnalytics } from '@/utils/analytics';
 
 type Props = {
   title: string;
@@ -16,6 +17,7 @@ type Props = {
   colorTheme?: string;
   icon?: string;
   index?: number;
+  moduleId?: string;
 };
 
 // Map Material UI icon names to MaterialCommunityIcons outline variants
@@ -37,7 +39,10 @@ export default function PathwayCard({
   colorTheme,
   icon,
   index = 0,
+  moduleId,
 }: Props) {
+  const router = useRouter();
+  const { trackModuleCardClicked } = useAnalytics();
   const backgroundColor = colorTheme || '#d9d9d9';
   const iconName = mapIconName(icon || 'AccountBalanceOutlined');
 
@@ -97,11 +102,18 @@ export default function PathwayCard({
 
   if (href) {
     return (
-      <Link href={href} asChild>
-        <TouchableOpacity activeOpacity={0.85} style={styles.card}>
-          {CardInner}
-        </TouchableOpacity>
-      </Link>
+      <TouchableOpacity 
+        activeOpacity={0.85} 
+        style={styles.card}
+        onPress={() => {
+          if (moduleId) {
+            trackModuleCardClicked(moduleId, title);
+          }
+          router.push(href);
+        }}
+      >
+        {CardInner}
+      </TouchableOpacity>
     );
   }
 
