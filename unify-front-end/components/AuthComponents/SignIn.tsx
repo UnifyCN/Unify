@@ -115,10 +115,10 @@ export function SignIn({
   // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
     if (isExpoGo) {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-        });
-        if (error) setErrorMessage(error.message);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      if (error) setErrorMessage(error.message);
       return;
     }
 
@@ -149,16 +149,18 @@ export function SignIn({
             await createUserIfNotExists(data.user.id, data.user.email);
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
-            setErrorMessage(userCreationError?.message || 'Failed to complete sign-in setup');
+            setErrorMessage(
+              userCreationError?.message || 'Failed to complete sign-in setup'
+            );
             setLoading(false);
             return;
           }
 
           // Prefetch user info immediately after successful Google login
-            await queryClient.ensureQueryData({
-              queryKey: ['userInfo', data.user.id],
-              queryFn: () => getUserInfo(data.user.id),
-            });
+          await queryClient.ensureQueryData({
+            queryKey: ['userInfo', data.user.id],
+            queryFn: () => getUserInfo(data.user.id),
+          });
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage('Unable to retrieve email from Google account');
           setLoading(false);

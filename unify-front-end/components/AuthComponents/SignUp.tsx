@@ -157,7 +157,7 @@ export function SignUp({
 
     try {
       if (Platform.OS === 'android') {
-      await GoogleSignin.hasPlayServices();
+        await GoogleSignin.hasPlayServices();
       }
       await GoogleSignin.signIn();
       const { idToken } = await GoogleSignin.getTokens();
@@ -178,7 +178,9 @@ export function SignUp({
             await createUserIfNotExists(data.user.id, data.user.email);
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
-            setErrorMessage(userCreationError?.message || 'Failed to complete sign-up setup');
+            setErrorMessage(
+              userCreationError?.message || 'Failed to complete sign-up setup'
+            );
             setLoading(false);
             return;
           }

@@ -163,8 +163,11 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
   const handleSubmit = async () => {
     // Get user ID directly from Supabase auth (more reliable than UserContext)
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
     if (authError || !user) {
       console.error('No authenticated user found:', authError);
       Alert.alert('Error', 'Please sign in to continue');
@@ -177,7 +180,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
     try {
       await saveMutation.mutateAsync({
-        userId: user.id,  // Use user.id from Supabase auth directly
+        userId: user.id, // Use user.id from Supabase auth directly
         data: {
           persona,
           persona_other: personaOther,

@@ -88,12 +88,14 @@ export default function OTPVerification({
           setLoading(false);
           return;
         }
-        
+
         try {
           await createUserIfNotExists(session.user.id, session.user.email);
         } catch (userCreationError: any) {
           console.error('Failed to create user record:', userCreationError);
-          setErrorMessage(userCreationError?.message || 'Failed to complete account setup');
+          setErrorMessage(
+            userCreationError?.message || 'Failed to complete account setup'
+          );
           setLoading(false);
           return;
         }

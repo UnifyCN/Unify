@@ -308,9 +308,7 @@ export default function CompanionScreen() {
             </View>
           ) : messages.length === 0 && !greetingMessage ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyMessage}>
-                How can I help you today?
-              </Text>
+              <Text style={styles.emptyMessage}>How can I help you today?</Text>
             </View>
           ) : (
             <FlatList

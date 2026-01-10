@@ -60,15 +60,17 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
               />
               <Text style={styles.chipLabel}>{chip.label}</Text>
               <Feather
-                name="chevron-right"
+                name='chevron-right'
                 size={18}
                 color={Theme.textInput}
                 style={styles.chevron}
               />
             </TouchableOpacity>
-            {index < STARTER_CHIPS.length - 1 && <View style={styles.divider} />}
+            {index < STARTER_CHIPS.length - 1 && (
+              <View style={styles.divider} />
+            )}
           </React.Fragment>
-          ))}
+        ))}
       </View>
     </View>
   );
