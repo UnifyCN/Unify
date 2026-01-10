@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback, useRef } from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -10,6 +10,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';
 import { GroupCardSkeletonLoader } from '@/components/groups/GroupCardSkeletonLoader';
 import { NewsCarousel } from '@/components/news/NewsCarousel';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAnalytics } from '@/utils/analytics';
 
 const GroupsForYouSection = () => {
   const router = useRouter();
@@ -69,6 +71,21 @@ const GatherHeader = memo(() => {
 });
 
 export default function GatherScreen() {
+  const { trackScreen } = useAnalytics();
+  const lastTrackedRef = useRef<number>(0);
+
+  // Track screen view on focus - with debounce to prevent duplicates
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      // Only track if more than 500ms since last track (prevents rapid focus/blur duplicates)
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen('Community');
+        lastTrackedRef.current = now;
+      }
+    }, [trackScreen])
+  );
+
   return (
     <View style={styles.root}>
       <Header />
