@@ -279,7 +279,7 @@ export default function WaitingRoomScreen() {
 
   return (
     <View style={styles.root}>
-      <BackHeader title="" onBack={() => router.back()} />
+      <BackHeader title="" onBack={() => router.replace('/(tabs)/Gather/gather' as Href)} />
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

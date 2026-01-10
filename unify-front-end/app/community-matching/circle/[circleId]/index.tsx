@@ -137,6 +137,10 @@ export default function CircleDetailsScreen() {
     router.push(`/community-matching/circle/${circleId}/chat` as const);
   }, [router, circleId]);
 
+  const handleMemberPress = useCallback((userId: string) => {
+    router.push(`/profile?userId=${userId}` as const);
+  }, [router]);
+
   const formattedDates = useMemo(() => {
     if (!circle) return null;
     const start = new Date(circle.created_at);
@@ -171,7 +175,7 @@ export default function CircleDetailsScreen() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>
-          We couldn’t find this circle. It may have ended or been removed.
+          We couldn't find this circle. It may have ended or been removed.
         </Text>
         <TouchableOpacity
           style={styles.primaryButton}
@@ -231,7 +235,7 @@ export default function CircleDetailsScreen() {
           <View style={styles.infoCard}>
             <Text style={styles.infoTitle}>You left this circle</Text>
             <Text style={styles.infoBody}>
-              Rejoin matching whenever you’re ready for a new circle.
+              Rejoin matching whenever you're ready for a new circle.
             </Text>
             <TouchableOpacity
               style={[styles.primaryButton, styles.infoButton]}
@@ -255,7 +259,10 @@ export default function CircleDetailsScreen() {
             <View style={styles.graduationMembers}>
               {members?.filter(m => m.user_id !== currentUser?.id).map((member) => (
                 <View key={member.id} style={styles.graduationMemberRow}>
-                  <View style={styles.graduationMemberInfo}>
+                  <TouchableOpacity
+                    onPress={() => handleMemberPress(member.user_id)}
+                    style={styles.graduationMemberInfo}
+                  >
                     {member.user.profile_picture_url ? (
                       <Image
                         source={{ uri: member.user.profile_picture_url }}
@@ -272,7 +279,7 @@ export default function CircleDetailsScreen() {
                       <Text style={styles.graduationMemberName}>{member.user.username}</Text>
                       <Text style={styles.graduationMemberRole}>{formatPersonaLabel(circle.persona)}</Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                   <FollowButton targetUserId={member.user_id} />
                 </View>
               ))}
@@ -293,28 +300,34 @@ export default function CircleDetailsScreen() {
             ? 'Left the circle'
             : member.joined_at
               ? 'In chat'
-              : 'Hasn’t joined chat yet';
+              : "Hasn't joined chat yet";
           return (
             <View key={member.id} style={styles.memberRow}>
-              {member.user.profile_picture_url ? (
-                <Image
-                  source={{ uri: member.user.profile_picture_url }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <View style={[styles.avatar, styles.avatarFallback]}>
-                  <Text style={styles.avatarFallbackText}>
-                    {member.user.username?.[0]?.toUpperCase() || '?'}
+              <TouchableOpacity
+                onPress={() => handleMemberPress(member.user_id)}
+                style={styles.memberTouchable}
+                disabled={isSelf}
+              >
+                {member.user.profile_picture_url ? (
+                  <Image
+                    source={{ uri: member.user.profile_picture_url }}
+                    style={styles.avatar}
+                  />
+                ) : (
+                  <View style={[styles.avatar, styles.avatarFallback]}>
+                    <Text style={styles.avatarFallbackText}>
+                      {member.user.username?.[0]?.toUpperCase() || '?'}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.memberInfo}>
+                  <Text style={styles.memberName}>
+                    {member.user.username}
+                    {isSelf && ' (You)'}
                   </Text>
+                  <Text style={styles.memberStatus}>{statusText}</Text>
                 </View>
-              )}
-              <View style={styles.memberInfo}>
-                <Text style={styles.memberName}>
-                  {member.user.username}
-                  {isSelf && ' (You)'}
-                </Text>
-                <Text style={styles.memberStatus}>{statusText}</Text>
-              </View>
+              </TouchableOpacity>
               {!isSelf && circle.status === 'ended' && (
                 <FollowButton targetUserId={member.user_id} />
               )}
@@ -473,10 +486,15 @@ const styles = StyleSheet.create({
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: '#E6E6E6',
+  },
+  memberTouchable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
   },
   avatar: {
     width: 48,
