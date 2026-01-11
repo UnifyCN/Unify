@@ -251,8 +251,12 @@ export default function ModuleIndex() {
               progressData[submodule._id] = progress;
 
               if (!progress?.progress_percent || progress.progress_percent === 0) {
-                // Always navigate to map page for new submodules
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
+                // Always navigate to first lesson or intro for new submodules (skip map)
+                if (submodule.intro_pages && submodule.intro_pages.length > 0) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
+                } else if (submodule.lessons && submodule.lessons.length > 0) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
+                }
                 return;
               }
 
@@ -336,8 +340,12 @@ export default function ModuleIndex() {
               } else if (activeLesson) {
                 hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/1`;
               } else {
-                // Always navigate to map page if no active lesson found
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
+                // Fallback to first lesson or intro if no active lesson found (skip map)
+                if (submodule.intro_pages && submodule.intro_pages.length > 0) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
+                } else if (submodule.lessons && submodule.lessons.length > 0) {
+                  hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
+                }
               }
             } catch (err) {
               console.error(`Error processing submodule ${submodule._id}:`, err);
@@ -579,11 +587,21 @@ export default function ModuleIndex() {
     if (href) {
       router.push(href as any);
     } else {
-      // Default to map page if no href is set
-      router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-        params: { moduleId, submoduleId: section.id },
-      });
+      // Default to first lesson or intro page if no href is set (skip map)
+      const submodule = moduleData?.submodules?.find(s => s._id === section.id);
+      if (submodule?.intro_pages && submodule.intro_pages.length > 0) {
+        // Start with intro pages if they exist
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+          params: { moduleId, submoduleId: section.id, pageNum: '1' },
+        });
+      } else if (submodule?.lessons && submodule.lessons.length > 0) {
+        // Otherwise start with first lesson
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+          params: { moduleId, submoduleId: section.id, lessonId: submodule.lessons[0]._id, pageNum: '1' },
+        });
+      }
     }
   };
 

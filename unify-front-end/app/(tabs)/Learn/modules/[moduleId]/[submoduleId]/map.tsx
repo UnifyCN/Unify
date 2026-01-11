@@ -431,7 +431,7 @@ export default function SubmoduleMap() {
           </TouchableOpacity>
           <View style={styles.headerTitleCenter}>
             <Text style={styles.headerSubjectName}>
-              {moduleData?.title || 'Subject'}
+              {moduleData?.title|| 'Subject'}
             </Text>
           </View>
           <View style={styles.headerRightPlaceholder} />
