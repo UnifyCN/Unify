@@ -26,6 +26,7 @@ import { cachedProgressService } from '@/services/progress/cachedProgressService
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModuleIndexSkeletonLoader } from '@/components/learn/module-index-skeleton-loader';
 import Blob3 from '@/assets/images/Blob3.svg';
 import Blob8 from '@/assets/images/Blob8.svg';
 import Blob10 from '@/assets/images/Blob10.svg';
@@ -220,13 +221,21 @@ export default function ModuleIndex() {
       const hrefData: { [key: string]: string } = {};
 
       try {
-        const {
-          data: { user },
-          error: userError,
-        } = await progressClient.auth.getUser();
+        let user = null;
+        let userError = null;
+        
+        try {
+          const userResult = await progressClient.auth.getUser();
+          user = userResult?.data?.user || null;
+          userError = userResult?.error || null;
+        } catch (authError: any) {
+          console.error('[ModuleIndex] Error getting user:', authError);
+          userError = authError;
+          // Continue with cached progress for non-authenticated users
+        }
         
         if (userError) {
-          console.error('[ModuleIndex] Error getting user:', userError);
+          console.error('[ModuleIndex] User error:', userError);
           // Continue with cached progress for non-authenticated users
         }
         
@@ -274,13 +283,14 @@ export default function ModuleIndex() {
           return;
         }
 
-        await Promise.all(
-          moduleData.submodules.map(async submodule => {
-            if (!submodule?._id) {
-              return;
-            }
-            
-            try {
+        try {
+          await Promise.all(
+            moduleData.submodules.map(async submodule => {
+              if (!submodule?._id) {
+                return;
+              }
+              
+              try {
               const progress = await cachedProgressService.getSubmoduleProgress(
                 moduleId || '',
                 submodule._id
@@ -306,14 +316,26 @@ export default function ModuleIndex() {
                 return;
               }
 
-              const { data: lessonProgresses, error: progressError } = await progressClient
-                .from('user_lesson_progress')
-                .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
-                .eq('user_id', user.id)
-                .eq('sanity_submodule_id', submodule._id);
+              let lessonProgresses = null;
+              let progressError = null;
+              
+              try {
+                const progressResult = await progressClient
+                  .from('user_lesson_progress')
+                  .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
+                  .eq('user_id', user.id)
+                  .eq('sanity_submodule_id', submodule._id);
+                
+                lessonProgresses = progressResult?.data || null;
+                progressError = progressResult?.error || null;
+              } catch (queryError: any) {
+                console.error(`Error fetching lesson progress for submodule ${submodule._id}:`, queryError);
+                progressError = queryError;
+                lessonProgresses = null;
+              }
 
               if (progressError) {
-                console.error(`Error fetching lesson progress for submodule ${submodule._id}:`, progressError);
+                console.error(`Progress error for submodule ${submodule._id}:`, progressError);
                 // Continue with default fallback
               }
 
@@ -427,7 +449,11 @@ export default function ModuleIndex() {
               }
             }
           })
-        );
+          );
+        } catch (promiseError: any) {
+          console.error('[ModuleIndex] Error in Promise.all:', promiseError);
+          // Continue with whatever data we have so far
+        }
 
         if (!cancelled) {
           setSubmoduleProgresses(progressData);
@@ -480,19 +506,33 @@ export default function ModuleIndex() {
           }
 
           const progressData: { [key: string]: any } = {};
-          for (const submodule of moduleData.submodules) {
-            try {
-              progressData[submodule._id] = await cachedProgressService.getSubmoduleProgress(
-                moduleId || '',
-                submodule._id
-              );
-            } catch {
-              progressData[submodule._id] = {
-                is_completed: false,
-                progress_percent: 0,
-                completed_lessons: 0,
-                total_lessons: submodule.lessons?.length || 0,
-              };
+          if (Array.isArray(moduleData.submodules)) {
+            for (const submodule of moduleData.submodules) {
+              if (!submodule?._id) continue;
+              try {
+                const progress = await cachedProgressService.getSubmoduleProgress(
+                  moduleId || '',
+                  submodule._id
+                );
+                if (progress) {
+                  progressData[submodule._id] = progress;
+                } else {
+                  progressData[submodule._id] = {
+                    is_completed: false,
+                    progress_percent: 0,
+                    completed_lessons: 0,
+                    total_lessons: Array.isArray(submodule.lessons) ? submodule.lessons.length : 0,
+                  };
+                }
+              } catch (err: any) {
+                console.error(`Error refreshing progress for submodule ${submodule._id}:`, err);
+                progressData[submodule._id] = {
+                  is_completed: false,
+                  progress_percent: 0,
+                  completed_lessons: 0,
+                  total_lessons: Array.isArray(submodule.lessons) ? submodule.lessons.length : 0,
+                };
+              }
             }
           }
           if (!cancelled) {
@@ -617,36 +657,61 @@ export default function ModuleIndex() {
     }
   };
 
-  // Navigate to section
+    // Navigate to section
   const navigateToSection = async (section: SectionViewModel) => {
-    if (!section?.id || !moduleId) {
-      console.error('[ModuleIndex] Missing required params for navigation');
-      return;
-    }
+    try {
+      if (!section?.id || !moduleId) {
+        console.error('[ModuleIndex] Missing required params for navigation');
+        return;
+      }
 
-    let href = submoduleHrefs[section.id];
+      let href = submoduleHrefs[section.id];
 
     // Calculate href on-demand if needed
     if (!href && section.progressPercent > 0) {
       try {
-        const { data: { user }, error: userError } = await progressClient.auth.getUser();
+        let user = null;
+        let userError = null;
+        
+        try {
+          const userResult = await progressClient.auth.getUser();
+          user = userResult?.data?.user || null;
+          userError = userResult?.error || null;
+        } catch (authError: any) {
+          console.error('[ModuleIndex] Error getting user in navigateToSection:', authError);
+          userError = authError;
+        }
         
         if (userError) {
-          console.error('[ModuleIndex] Error getting user:', userError);
+          console.error('[ModuleIndex] User error in navigateToSection:', userError);
           // Fall through to default navigation
         } else if (user) {
-          const { data: lessonProgresses, error: progressError } = await progressClient
-            .from('user_lesson_progress')
-            .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
-            .eq('user_id', user.id)
-            .eq('sanity_submodule_id', section.id);
+          let lessonProgresses = null;
+          let progressError = null;
+          
+          try {
+            const progressResult = await progressClient
+              .from('user_lesson_progress')
+              .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
+              .eq('user_id', user.id)
+              .eq('sanity_submodule_id', section.id);
+            
+            lessonProgresses = progressResult?.data || null;
+            progressError = progressResult?.error || null;
+          } catch (queryError: any) {
+            console.error('[ModuleIndex] Error fetching lesson progress in navigateToSection:', queryError);
+            progressError = queryError;
+            lessonProgresses = null;
+          }
 
-          if (progressError) {
-            console.error('[ModuleIndex] Error fetching lesson progress:', progressError);
-            // Fall through to default navigation
+          if (progressError || !lessonProgresses) {
+            if (progressError) {
+              console.error('[ModuleIndex] Error fetching lesson progress:', progressError);
+            }
+            // Fall through to default navigation - will be handled below
           } else {
             const submodule = moduleData?.submodules?.find(s => s?._id === section.id);
-            if (submodule?.lessons && Array.isArray(lessonProgresses)) {
+            if (submodule?.lessons && Array.isArray(lessonProgresses) && lessonProgresses.length >= 0) {
               const lessonProgressData: { [key: string]: any } = {};
               
               // Safely process lesson progress data
@@ -765,8 +830,23 @@ export default function ModuleIndex() {
           console.error('[ModuleIndex] No valid navigation path found for section:', section.id);
         }
       }
-    } catch (navError) {
-      console.error('[ModuleIndex] Error navigating to section:', navError);
+      } catch (navError: any) {
+        console.error('[ModuleIndex] Error navigating to section:', navError);
+        // Final fallback: try to navigate to module index if all else fails
+        try {
+          router.replace('/(tabs)/Learn');
+        } catch (fallbackError: any) {
+          console.error('[ModuleIndex] Error in fallback navigation:', fallbackError);
+        }
+      }
+    } catch (outerError: any) {
+      console.error('[ModuleIndex] Outer error in navigateToSection:', outerError);
+      // Final fallback: try to navigate to module index if all else fails
+      try {
+        router.replace('/(tabs)/Learn');
+      } catch (fallbackError: any) {
+        console.error('[ModuleIndex] Error in fallback navigation:', fallbackError);
+      }
     }
   };
 
@@ -867,11 +947,7 @@ export default function ModuleIndex() {
   // Loading / Error states
   // ─────────────────────────────────────────────────────────────────────────────
   if (isLoading || progressLoading || isRefreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading module…</Text>
-      </View>
-    );
+    return <ModuleIndexSkeletonLoader />;
   }
 
   if (error || !moduleData) {
