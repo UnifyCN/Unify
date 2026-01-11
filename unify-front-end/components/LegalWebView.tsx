@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
-import { WebView, WebViewNavigation } from 'react-native-webview';
+import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
-import { Linking } from 'react-native';
 
 interface LegalWebViewProps {
   url: string;
@@ -39,21 +39,31 @@ export default function LegalWebView({
   const [error, setError] = useState(false);
   const [key, setKey] = useState(0); // For retry functionality
 
-  const handleNavigationStateChange = (navState: WebViewNavigation) => {
-    // Allow navigation within the allowed domain
-    const isAllowed = navState.url.includes(allowedDomain);
-    if (!isAllowed && navState.url !== 'about:blank') {
-      // Open external links in system browser
-      Linking.openURL(navState.url);
-      return false;
-    }
-    return true;
-  };
-
   const handleShouldStartLoad = (event: { url: string }) => {
-    const isAllowed = event.url.includes(allowedDomain);
-    if (!isAllowed && event.url !== 'about:blank') {
-      Linking.openURL(event.url);
+    if (event.url === 'about:blank') {
+      return true;
+    }
+
+    let isAllowed = false;
+    let isValidUrl = true;
+    try {
+      const urlObj = new URL(event.url);
+      // Check hostname ends with the allowed domain (handles subdomains)
+      isAllowed =
+        urlObj.hostname === allowedDomain ||
+        urlObj.hostname.endsWith('.' + allowedDomain);
+    } catch {
+      // Invalid URL, don't allow and don't try to open externally
+      isAllowed = false;
+      isValidUrl = false;
+    }
+
+    if (!isAllowed) {
+      if (isValidUrl) {
+        Linking.openURL(event.url).catch(() => {
+          // Silently fail if URL cannot be opened
+        });
+      }
       return false;
     }
     return true;
@@ -104,7 +114,6 @@ export default function LegalWebView({
                 setError(true);
               }}
               onShouldStartLoadWithRequest={handleShouldStartLoad}
-              onNavigationStateChange={handleNavigationStateChange}
               javaScriptEnabled={true}
               domStorageEnabled={true}
               startInLoadingState={false}

@@ -49,9 +49,10 @@ export default function LegalConsentModal({
 
     try {
       await onAccept();
-      // Success - modal will be dismissed by parent
+      // Success - parent will dismiss modal
     } catch (err: any) {
       setError(err?.message || 'Failed to save. Please try again.');
+    } finally {
       setLoading(false);
     }
   };

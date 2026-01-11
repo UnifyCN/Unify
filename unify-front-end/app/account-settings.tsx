@@ -56,6 +56,8 @@ export default function AccountSettingsPage() {
     },
   ];
 
+  // Note: pathname uses 'as any' because expo-router generates types at build time
+  // and legal-document.tsx may not be included in the typed routes yet
   const legalRows = [
     {
       title: 'Privacy Policy',
@@ -63,7 +65,7 @@ export default function AccountSettingsPage() {
       onPress: () =>
         router.push({
           pathname: '/legal-document' as any,
-          params: { doc: 'privacyPolicy' },
+          params: { doc: 'privacyPolicy' satisfies LegalDocumentType },
         }),
     },
     {
@@ -72,7 +74,7 @@ export default function AccountSettingsPage() {
       onPress: () =>
         router.push({
           pathname: '/legal-document' as any,
-          params: { doc: 'communityGuidelines' },
+          params: { doc: 'communityGuidelines' satisfies LegalDocumentType },
         }),
     },
   ];
@@ -134,7 +136,7 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={[styles.rowText, { fontSize: 18 }]}>
+                <Text style={styles.rowText}>
                   {row.title}
                 </Text>
               </TouchableOpacity>
@@ -154,7 +156,7 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={[styles.rowText, { fontSize: 18 }]}>
+                <Text style={styles.rowText}>
                   {row.title}
                 </Text>
               </TouchableOpacity>
@@ -163,7 +165,7 @@ export default function AccountSettingsPage() {
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={onLogout}>
-            <Text style={styles.rowText}>Log out</Text>
+            <Text style={styles.rowText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -244,7 +246,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rowText: {
-    fontSize: 16,
+    fontSize: 18,
     color: Theme.black,
   },
   divider: {

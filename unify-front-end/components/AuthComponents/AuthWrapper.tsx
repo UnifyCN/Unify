@@ -33,7 +33,7 @@ async function fetchUserLegalStatus(
 
   if (error) {
     console.error('Error fetching user legal status:', error);
-    return null;
+    throw error;
   }
   return data;
 }
@@ -65,7 +65,6 @@ export default function AuthWrapper({ children }: Props) {
   const [otpEmail, setOtpEmail] = useState('');
   const [otpPassword, setOtpPassword] = useState('');
   const [legalAcceptedAt, setLegalAcceptedAt] = useState<string | undefined>();
-  const [showLegalConsentModal, setShowLegalConsentModal] = useState(false);
   const queryClient = useQueryClient();
 
   // Get onboarding profile for authenticated users
@@ -143,12 +142,10 @@ export default function AuthWrapper({ children }: Props) {
     queryClient.invalidateQueries({
       queryKey: ['userLegalStatus', session.user.id],
     });
-    setShowLegalConsentModal(false);
   };
 
   const handleLegalConsentCancel = async () => {
     // Sign out the user and return to auth screen
-    setShowLegalConsentModal(false);
     await supabase.auth.signOut();
   };
 
