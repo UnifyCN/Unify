@@ -6,6 +6,7 @@ import {
   Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LegalDocumentType } from '@/utils/legalUrls';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
@@ -52,6 +53,27 @@ export default function AccountSettingsPage() {
       title: 'Give Feedback',
       icon: 'star' as const,
       onPress: handleGiveFeedback,
+    },
+  ];
+
+  const legalRows = [
+    {
+      title: 'Privacy Policy',
+      icon: 'file-text' as const,
+      onPress: () =>
+        router.push({
+          pathname: '/legal-document' as any,
+          params: { doc: 'privacyPolicy' },
+        }),
+    },
+    {
+      title: 'Community Guidelines',
+      icon: 'users' as const,
+      onPress: () =>
+        router.push({
+          pathname: '/legal-document' as any,
+          params: { doc: 'communityGuidelines' },
+        }),
     },
   ];
 
@@ -104,6 +126,26 @@ export default function AccountSettingsPage() {
         <View style={styles.rowsContainer}>
           <View style={styles.settingsCard}>
             {settingsRows.map((row, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.row}
+                onPress={row.onPress}
+              >
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name={row.icon} size={24} color={Theme.black} />
+                </View>
+                <Text style={[styles.rowText, { fontSize: 18 }]}>
+                  {row.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.divider} />
+
+          {/* Legal Section */}
+          <Text style={styles.sectionTitle}>Legal</Text>
+          <View style={styles.settingsCard}>
+            {legalRows.map((row, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.row}
@@ -208,5 +250,12 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#e4e4e4',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.textInput,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });
