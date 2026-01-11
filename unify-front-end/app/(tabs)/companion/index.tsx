@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,8 @@ import { Theme } from '@/constants/Theme';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import HistoryIcon from '@/components/icons/HistoryIcon.svg';
 import CompanionHeader from '@/components/CompanionHeader';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAnalytics } from '@/utils/analytics';
 
 const MESSAGE_LIMIT = 3;
 
@@ -77,6 +79,25 @@ export default function CompanionScreen() {
     conversationId?: string;
   }>();
   const router = useRouter();
+  const {
+    trackScreen,
+    trackCompanionMessageSent,
+    trackCompanionStarterPromptUsed,
+    trackCompanionSuggestionClicked,
+    trackCompanionHistoryViewed,
+  } = useAnalytics();
+  const lastTrackedRef = useRef<number>(0);
+
+  // Track screen view on focus - with debounce to prevent duplicates
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen('Companion');
+        lastTrackedRef.current = now;
+      }
+    }, [trackScreen])
+  );
 
   // Current conversation ID (UUID) - either from query param or newly created
   const [currentConversationId, setCurrentConversationId] = useState<
@@ -163,6 +184,7 @@ export default function CompanionScreen() {
     if (!textToSend || isLoading || !canSend) return;
 
     setInputText('');
+    trackCompanionMessageSent(textToSend.length);
 
     try {
       await sendMessage(textToSend);
@@ -173,6 +195,9 @@ export default function CompanionScreen() {
 
   // Handle starter prompt selection
   const handleStarterPromptSelect = (prompt: string, mode?: string) => {
+    // Track the starter prompt usage (empty prompt defaults to 'Ask Anything')
+    trackCompanionStarterPromptUsed(prompt || 'Ask Anything', mode);
+
     // "Ask Anything" - show bot greeting message
     if (prompt === '' && !mode) {
       const greeting: Message = {
@@ -215,6 +240,7 @@ export default function CompanionScreen() {
 
   // Handle suggested next step click
   const handleSuggestionClick = (suggestion: string) => {
+    trackCompanionSuggestionClicked(suggestion);
     handleSendMessage(suggestion);
   };
 
@@ -256,6 +282,7 @@ export default function CompanionScreen() {
             rightButton={
               <TouchableOpacity
                 onPress={() => {
+                  trackCompanionHistoryViewed();
                   router.push('/(tabs)/companion/history' as any);
                 }}
                 style={styles.headerButton}
@@ -281,9 +308,7 @@ export default function CompanionScreen() {
             </View>
           ) : messages.length === 0 && !greetingMessage ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyMessage}>
-                How can I help you today?
-              </Text>
+              <Text style={styles.emptyMessage}>How can I help you today?</Text>
             </View>
           ) : (
             <FlatList

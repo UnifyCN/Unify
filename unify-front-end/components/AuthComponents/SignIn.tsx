@@ -23,6 +23,7 @@ import {
   ViewSection,
   SimpleTextField,
 } from './Components';
+import { useAnalytics } from '@/utils/analytics';
 
 export function SignIn({
   onSwitchToSignUp,
@@ -30,6 +31,8 @@ export function SignIn({
   onSwitchToSignUp?: () => void;
 }): React.JSX.Element {
   const queryClient = useQueryClient();
+  const { trackSignInCompleted, trackSignInFailed, trackGoogleSignInUsed } =
+    useAnalytics();
   // State for email tick and password eye icon toggle
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -59,12 +62,14 @@ export function SignIn({
     // Check for empty fields - show generic error
     if (!normalizedEmail || !password) {
       setErrorMessage('Invalid login credentials');
+      trackSignInFailed('empty_fields');
       return;
     }
 
     // Check for invalid email format - show same generic error
     if (!emailRegex.test(normalizedEmail)) {
       setErrorMessage('Invalid login credentials');
+      trackSignInFailed('invalid_email');
       return;
     }
 
@@ -76,6 +81,7 @@ export function SignIn({
     });
     if (error) {
       setErrorMessage('Invalid login credentials');
+      trackSignInFailed(error.code || 'signin_failed');
       setLoading(false);
       return;
     }
@@ -88,6 +94,7 @@ export function SignIn({
       });
     }
 
+    trackSignInCompleted();
     setLoading(false);
   };
 
@@ -108,15 +115,16 @@ export function SignIn({
   // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
     if (isExpoGo) {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-        });
-        if (error) setErrorMessage(error.message);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+      });
+      if (error) setErrorMessage(error.message);
       return;
     }
 
     setLoading(true);
     setErrorMessage(null);
+    trackGoogleSignInUsed('sign_in');
 
     try {
       if (Platform.OS === 'android') {
@@ -141,16 +149,18 @@ export function SignIn({
             await createUserIfNotExists(data.user.id, data.user.email);
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
-            setErrorMessage(userCreationError?.message || 'Failed to complete sign-in setup');
+            setErrorMessage(
+              userCreationError?.message || 'Failed to complete sign-in setup'
+            );
             setLoading(false);
             return;
           }
 
           // Prefetch user info immediately after successful Google login
-            await queryClient.ensureQueryData({
-              queryKey: ['userInfo', data.user.id],
-              queryFn: () => getUserInfo(data.user.id),
-            });
+          await queryClient.ensureQueryData({
+            queryKey: ['userInfo', data.user.id],
+            queryFn: () => getUserInfo(data.user.id),
+          });
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage('Unable to retrieve email from Google account');
           setLoading(false);

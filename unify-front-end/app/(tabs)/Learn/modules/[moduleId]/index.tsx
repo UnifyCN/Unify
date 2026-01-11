@@ -3,6 +3,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
 import {
   View,
@@ -32,6 +33,7 @@ import Blob8 from '@/assets/images/Blob8.svg';
 import Blob10 from '@/assets/images/Blob10.svg';
 import Blob11 from '@/assets/images/Blob11.svg';
 import Blob12 from '@/assets/images/Blob12.svg';
+import { useAnalytics } from '@/utils/analytics';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -137,8 +139,12 @@ const getSectionStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ModuleIndex() {
   const router = useRouter();
+  const { trackScreen, trackModuleViewed } = useAnalytics();
   const insets = useSafeAreaInsets();
-  const { moduleId, blobIndex } = useLocalSearchParams<{ moduleId: string; blobIndex?: string }>();
+  const { moduleId, blobIndex } = useLocalSearchParams<{
+    moduleId: string;
+    blobIndex?: string;
+  }>();
   const {
     data: moduleData,
     isLoading,
@@ -146,9 +152,11 @@ export default function ModuleIndex() {
   } = useSanityModuleWithSubmodules(moduleId || '');
 
   // Progress tracking
-  const { moduleProgress, isLoading: progressLoading, refreshProgress } = useModuleProgress(
-    moduleId || ''
-  );
+  const {
+    moduleProgress,
+    isLoading: progressLoading,
+    refreshProgress,
+  } = useModuleProgress(moduleId || '');
   const [submoduleProgresses, setSubmoduleProgresses] = useState<{
     [key: string]: any;
   }>({});
@@ -168,7 +176,16 @@ export default function ModuleIndex() {
 
   // Determine which blob to use based on blobIndex param, or default to 0
   const blobIndexNum = blobIndex ? parseInt(blobIndex, 10) % 5 : 0;
-  const BlobComponent = blobIndexNum === 0 ? Blob3 : blobIndexNum === 1 ? Blob8 : blobIndexNum === 2 ? Blob10 : blobIndexNum === 3 ? Blob11 : Blob12;
+  const BlobComponent =
+    blobIndexNum === 0
+      ? Blob3
+      : blobIndexNum === 1
+        ? Blob8
+        : blobIndexNum === 2
+          ? Blob10
+          : blobIndexNum === 3
+            ? Blob11
+            : Blob12;
 
   // Check if disclaimer should be shown (first time opening this module with 0% progress)
   useEffect(() => {
@@ -552,6 +569,22 @@ export default function ModuleIndex() {
     }, [moduleId, moduleData?.submodules, refreshProgress])
   );
 
+  // Track module view
+  const moduleTitle = moduleData?.title;
+  const submoduleCount = moduleData?.submodules?.length || 0;
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (moduleTitle && moduleId && now - lastTrackedRef.current > 500) {
+        trackScreen(`Module: ${moduleTitle}`);
+        trackModuleViewed(moduleId, moduleTitle, submoduleCount);
+        lastTrackedRef.current = now;
+      }
+    }, [moduleTitle, submoduleCount, moduleId, trackScreen, trackModuleViewed])
+  );
+
   // Which submodule is the next one the user should do?
   const currentIndex = useMemo(() => {
     if (!moduleData?.submodules) return -1;
@@ -608,10 +641,13 @@ export default function ModuleIndex() {
       // Coerce/clamp progressPercent to ensure it's a valid number in 0-100 range
       const raw = progress?.progress_percent;
       const n = typeof raw === 'number' ? raw : Number(raw);
-      const progressPercent = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
+      const progressPercent = Number.isFinite(n)
+        ? Math.max(0, Math.min(100, n))
+        : 0;
       const unlocked =
         i === 0 ||
-        (i > 0 && submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+        (i > 0 &&
+          submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
 
       // Determine UI state
       let uiState: SectionUIState;
@@ -902,7 +938,10 @@ export default function ModuleIndex() {
           onPress={() => handleCardTap(section)}
           style={[
             styles.card,
-            isOpened && { backgroundColor: subjectColor, borderColor: subjectColor },
+            isOpened && {
+              backgroundColor: subjectColor,
+              borderColor: subjectColor,
+            },
             isLocked && styles.cardLocked,
           ]}
         >
@@ -956,7 +995,7 @@ export default function ModuleIndex() {
         <Text style={styles.errorText}>
           Error loading module: {error?.message || 'Unknown error'}
         </Text>
-        <Link href="/(tabs)/Learn">Go back to Learn</Link>
+        <Link href='/(tabs)/Learn'>Go back to Learn</Link>
       </View>
     );
   }
@@ -967,13 +1006,30 @@ export default function ModuleIndex() {
   return (
     <View style={styles.container}>
       {/* Colored Header */}
-      <View style={[styles.header, { backgroundColor: subjectColor, paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: subjectColor, paddingTop: insets.top },
+        ]}
+      >
         {/* Blob background overlay */}
-        <View style={blobIndexNum === 0 ? styles.blob3Container : blobIndexNum === 1 ? styles.blob8Container : blobIndexNum === 2 ? styles.blob10Container : blobIndexNum === 3 ? styles.blob11Container : styles.blob12Container}>
-          <BlobComponent 
-            width={400} 
+        <View
+          style={
+            blobIndexNum === 0
+              ? styles.blob3Container
+              : blobIndexNum === 1
+                ? styles.blob8Container
+                : blobIndexNum === 2
+                  ? styles.blob10Container
+                  : blobIndexNum === 3
+                    ? styles.blob11Container
+                    : styles.blob12Container
+          }
+        >
+          <BlobComponent
+            width={400}
             height={400}
-            fill="#FFFFFF"
+            fill='#FFFFFF'
             opacity={0.3}
           />
         </View>
@@ -982,14 +1038,14 @@ export default function ModuleIndex() {
             onPress={() => router.replace('/(tabs)/Learn')}
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#FFFFFF" />
+            <Feather name='chevron-left' size={28} color='#FFFFFF' />
           </TouchableOpacity>
           {moduleData.icon && (
             <View style={styles.headerIconContainer}>
               <MaterialCommunityIcons
                 name={mapIconName(moduleData.icon) as any}
                 size={30}
-                color="#FFFFFF"
+                color='#FFFFFF'
               />
             </View>
           )}
@@ -1023,7 +1079,7 @@ export default function ModuleIndex() {
       <Modal
         visible={showDisclaimer}
         transparent={true}
-        animationType="fade"
+        animationType='fade'
         onRequestClose={handleDisclaimerBack}
       >
         <View style={styles.modalOverlay}>
@@ -1033,9 +1089,9 @@ export default function ModuleIndex() {
               <Text style={styles.modalText}>
                 This module is for educational purposes only. Unify does not
                 provide legal or financial advice and makes no guarantee of
-                accuracy, completeness, or applicability. Always verify
-                current requirements with official sources such as IRCC or
-                qualified professionals.
+                accuracy, completeness, or applicability. Always verify current
+                requirements with official sources such as IRCC or qualified
+                professionals.
               </Text>
             </View>
             <View style={styles.modalButtons}>
@@ -1046,7 +1102,10 @@ export default function ModuleIndex() {
                 <Text style={styles.modalButtonBackText}>Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButtonContinue, { backgroundColor: subjectColor }]}
+                style={[
+                  styles.modalButtonContinue,
+                  { backgroundColor: subjectColor },
+                ]}
                 onPress={handleDisclaimerContinue}
               >
                 <Text style={styles.modalButtonContinueText}>Continue</Text>

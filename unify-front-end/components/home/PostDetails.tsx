@@ -168,9 +168,10 @@ const PostDetails = () => {
         comment={item}
         metadata={commentMetadata?.[item.id]}
         metadataLoading={commentMetadataLoading}
+        postAuthorId={post.user.id.toString()}
       />
     ),
-    [commentMetadata, commentMetadataLoading]
+    [commentMetadata, commentMetadataLoading, post.user.id]
   );
 
   return (
@@ -197,6 +198,7 @@ const PostDetails = () => {
                 commentCount,
               }}
               metadataLoading={postMetadataLoading}
+              isAbleToDelete={false}
             />
 
             <View style={styles.largeDivider} />
