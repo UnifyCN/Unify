@@ -15,10 +15,8 @@ import {
   useTheme,
   Divider,
 } from 'react-native-paper';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react-native';
 
 const styles = {
-  signOutButton: { marginVertical: 32, marginHorizontal: 16 },
   viewHeader: { marginBottom: 16 },
   viewDivider: { marginVertical: 16 },
   errorMessageBox: {
@@ -199,24 +197,3 @@ export function ViewDivider() {
   return <Divider style={styles.viewDivider} />;
 }
 
-export function SignOutButton() {
-  const { signOut } = useAuthenticator();
-  return (
-    <Button onPress={signOut} style={styles.signOutButton}>
-      Sign Out
-    </Button>
-  );
-}
-
-export function Container({
-  style,
-  ...props
-}: React.ComponentProps<typeof Authenticator.Container>) {
-  const theme = useTheme();
-  return (
-    <Authenticator.Container
-      {...props}
-      style={[{ backgroundColor: 'white' }, style]}
-    />
-  );
-}
