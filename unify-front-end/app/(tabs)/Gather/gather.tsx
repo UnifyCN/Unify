@@ -1,5 +1,5 @@
-import { memo, useCallback, useRef } from 'react';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { memo, useCallback, useRef, useState } from 'react';
+import { StyleSheet, View, Text, ScrollView, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
@@ -12,9 +12,12 @@ import { GroupCardSkeletonLoader } from '@/components/groups/GroupCardSkeletonLo
 import { NewsCarousel } from '@/components/news/NewsCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
+import RequestGroupModal from '@/components/groups/RequestGroupModal';
+
 
 const GroupsForYouSection = () => {
   const router = useRouter();
+  const [requestOpen, setRequestOpen] = useState(false);
 
   const { data: groups, isLoading } = useQuery({
     queryKey: ['available-groups'],
@@ -49,7 +52,7 @@ const GroupsForYouSection = () => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.headerText}>Groups for You</Text>
+        <Text style={styles.headerText}>Groups for You </Text>
       </View>
       <View style={styles.groupsList}>
         {groups.map(group => (
@@ -57,7 +60,20 @@ const GroupsForYouSection = () => {
             <GroupCard group={group} onPress={() => handleGroupPress(group)} />
           </View>
         ))}
+
+        {/*Button for requesting groups, edit here if needed xdd*/}
+        <Pressable 
+        onPress={() => setRequestOpen(true)}
+        style={({ pressed }) => [
+          styles.requestButton,
+          pressed ? { opacity: 0.85 } : null,
+        ]}
+        >
+          <Text>Request a Group</Text>
+        </Pressable>
       </View>
+
+      <RequestGroupModal visible={requestOpen} onClose={() => setRequestOpen(false)}/>
     </View>
   );
 };
@@ -152,5 +168,19 @@ const styles = StyleSheet.create({
   },
   groupItem: {
     marginBottom: 12,
+  },
+  requestButton: {
+    marginTop: 4,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  requestButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
