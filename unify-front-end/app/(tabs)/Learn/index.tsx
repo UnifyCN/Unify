@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from 'expo-router';
-import { usePostHog } from 'posthog-react-native';
+import { useAnalytics } from '@/utils/analytics';
 import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
 import CarouselDots from '../../../components/learn/CarouselDots';
@@ -28,7 +28,7 @@ import {
 import Header from '../../../components/Header';
 
 export default function Learn() {
-  const posthog = usePostHog();
+  const { trackScreen } = useAnalytics();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const { width } = useWindowDimensions();
@@ -44,12 +44,17 @@ export default function Learn() {
     error: lessonsError,
     refresh: refreshLessons,
   } = useInProgressLessons();
+  const lastTrackedRef = React.useRef<number>(0);
 
-  // Track screen view when Learn screen is focused
+  // Track screen view when Learn screen is focused - with debounce
   useFocusEffect(
     React.useCallback(() => {
-      posthog?.screen('Learn Screen');
-    }, [posthog])
+      const now = Date.now();
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen('Learn Screen');
+        lastTrackedRef.current = now;
+      }
+    }, [trackScreen])
   );
 
   const onMomentumEnd = (e: any) => {
@@ -196,6 +201,7 @@ export default function Learn() {
                     colorTheme={module.colorTheme?.hex}
                     icon={module.icon}
                     index={index}
+                    moduleId={module._id}
                   />
                 );
               })

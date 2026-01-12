@@ -9,11 +9,12 @@ import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { useCurrentUser } from '@/context/UserContext';
+import { useAnalytics } from '@/utils/analytics';
 import { useQuery } from '@tanstack/react-query';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 
@@ -21,6 +22,12 @@ export default function AccountSettingsPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
+  const { trackScreen } = useAnalytics();
+
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreen('Account Settings');
+  }, [trackScreen]);
 
   const onLogout = async () => {
     try {
