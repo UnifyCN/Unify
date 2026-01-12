@@ -26,6 +26,11 @@ import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import Header from '@/components/Header';
 
 
+// Temp stuff:
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
+
+
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
@@ -101,6 +106,38 @@ export default function EndingPageScreen() {
 
   const handleContinue = () => {
     setShowExitModal(false);
+  };
+
+
+  //TEMP
+  // ✅ PEGA AQUÍ ESTA FUNCIÓN
+  const handleClearStorage = () => {
+    Alert.alert(
+      'Borrar storage?',
+      'Esto borrará TODOS los datos guardados localmente en este dispositivo (progreso, preferencias, etc.).',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Borrar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await AsyncStorage.clear();
+
+              // Opcional: resetea UI
+              setRating(null);
+              setComment('');
+              setShowReviewModal(false);
+              setShowExitModal(false);
+
+              Alert.alert('Listo', 'Storage limpiado.');
+            } catch (e) {
+              Alert.alert('Error', 'No se pudo limpiar el storage.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   // ---- core "finish this lesson" logic, reused by review modal ----
@@ -270,6 +307,15 @@ export default function EndingPageScreen() {
     <SafeAreaView style={styles.safe}>
       <Header />
 
+      
+      <TouchableOpacity
+        style={styles.clearStorageBtn}
+        onPress={handleClearStorage}
+      >
+        <Text style={styles.clearStorageBtnText}>Clear Storage</Text>
+      </TouchableOpacity>
+      
+
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -376,7 +422,12 @@ export default function EndingPageScreen() {
                 <Text style={styles.reviewTitle}>Was this content helpful?</Text>
 
                 {/* stars */}
-                <View style={styles.reviewStarsRow}>
+                <View
+                  style={[
+                    styles.reviewStarsRow,
+                    rating === null ? styles.starsSpacingNoComment : styles.starsSpacingWithComment,
+                  ]}
+                >
                   {[1, 2, 3, 4, 5].map(i => {
                     const selected = rating !== null && i <= rating;
 
@@ -587,24 +638,34 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: '#E0E0E0',
-    marginBottom: 10,
+    marginBottom: 18,
   },
   reviewTitle: {
-    width: 355,
     alignSelf: 'center',
+    width: '100%',
     fontSize: 24,
     lineHeight: 32,
     fontWeight: '600',
     textAlign: 'center',
     color: '#000000',
-    marginBottom: 16,
+    marginBottom: 25,
+    marginTop: 18,
   },
   reviewStarsRow: {
     alignSelf: 'center',
     flexDirection: 'row',
     gap: 10, // closer stars
-    marginBottom: 23,
   },
+
+  starsSpacingNoComment: {
+  marginBottom: 35, // <- Figma ~40
+  },
+  starsSpacingWithComment: {
+  marginBottom: 20, // <- cuando aparece comment box, el espacio baja
+  },
+
+
+
   starBoxSelected: {
     borderColor: '#D8492C',
   },
@@ -623,7 +684,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 24,
     alignSelf: 'center',
-    marginBottom: 16,
+    marginBottom: 25,
   },
   commentInput: {
     flex: 1,
@@ -641,6 +702,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 0,
+    marginBottom: 45,
   },
   reviewSubmitText: {
     color: '#FFFFFF',
@@ -648,4 +711,20 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '600',
   },
+
+
+  clearStorageBtn: {
+  position: 'absolute',
+  top: 120,
+  right: 16,
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  borderRadius: 10,
+  backgroundColor: '#DC2626',
+  zIndex: 999,
+},
+clearStorageBtnText: {
+  color: '#fff',
+  fontWeight: '700',
+},
 });
