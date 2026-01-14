@@ -13,6 +13,7 @@ import {
 } from 'react-native-paper';
 
 const styles = {
+  signOutButton: { marginVertical: 32, marginHorizontal: 16 },
   viewHeader: { marginBottom: 16 },
   viewDivider: { marginVertical: 16 },
   errorMessageBox: {
@@ -158,8 +159,3 @@ export function ViewContainer({ children, style, ...props }: ViewProps) {
     </View>
   );
 }
-
-export function ViewDivider() {
-  return <Divider style={styles.viewDivider} />;
-}
-
