@@ -195,15 +195,17 @@ export const PostItem = memo(
               )}
             </View>
 
-            {/* Title */}
-            <View>
-              <Text style={styles.title}>{post.title}</Text>
-            </View>
+            {/* Title and Content - Clickable to navigate to post details */}
+            <TouchableOpacity onPress={navigateToComments} activeOpacity={0.5}>
+              <View>
+                <Text style={styles.title}>{post.title}</Text>
+              </View>
 
-            {/* Content */}
-            {!shouldHideContent && (
-              <Text style={styles.description}>{post.content}</Text>
-            )}
+              {/* Content */}
+              {!shouldHideContent && (
+                <Text style={styles.description}>{post.content}</Text>
+              )}
+            </TouchableOpacity>
 
             {/* Footer */}
             <View style={styles.footer}>
