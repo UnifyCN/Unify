@@ -15,6 +15,8 @@ import { Theme } from '@/constants/Theme';
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
+import { useQuery } from '@tanstack/react-query';
+import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
@@ -55,6 +57,15 @@ export default function AccountSettingsPage() {
     },
   ];
 
+  const profilePictureKey = currentUser?.profilePictureUrl ?? null;
+
+  const { data: signedProfileUrl } = useQuery({
+    queryKey: ['profilePictureSignedUrl', profilePictureKey],
+    enabled: !!profilePictureKey,
+    queryFn: () => getProfilePictureUrl(profilePictureKey as string),
+    staleTime: 4 * 60 * 1000,
+  });
+
   return (
     <View style={styles.container}>
       <BackHeader title='Profile' onBack={() => router.back()} />
@@ -66,7 +77,7 @@ export default function AccountSettingsPage() {
               activeOpacity={0.8}
             >
               <Avatar
-                profilePictureUrl={currentUser?.profilePictureUrl}
+                profilePictureUrl={signedProfileUrl}
                 username={currentUser?.username || ''}
                 size={93}
                 style={styles.avatar}
