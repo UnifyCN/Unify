@@ -1,10 +1,5 @@
 import { supabase } from '@/lib/supabase';
 
-// Check if Supabase is available
-export const isGeminiAvailable = () => {
-  return !!supabase;
-};
-
 interface ConversationMessage {
   message: string;
   role: 'user' | 'assistant';

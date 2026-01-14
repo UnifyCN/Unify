@@ -1,4 +1,4 @@
-export const formatSocialMediaTime = (timestamp: string | Date): string => {
+const formatSocialMediaTime = (timestamp: string | Date): string => {
   const now = new Date();
   const postDate = new Date(timestamp);
   const diffInSeconds = Math.floor((now.getTime() - postDate.getTime()) / 1000);
@@ -44,7 +44,7 @@ export const formatSocialMediaTime = (timestamp: string | Date): string => {
 };
 
 // Alternative: Format as absolute date (e.g., "Dec 15, 2023")
-export const formatAbsoluteDate = (timestamp: string | Date): string => {
+const formatAbsoluteDate = (timestamp: string | Date): string => {
   const postDate = new Date(timestamp);
   const now = new Date();
 

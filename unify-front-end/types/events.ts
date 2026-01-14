@@ -22,7 +22,7 @@ enum EventType {
 }
 
 // TODO: Add more event genres later maybe
-export enum EventGenre {
+enum EventGenre {
   SOCIALS = 'Socials',
   FINANCE = 'Finance',
   EMPLOYMENT = 'Employment',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -23,12 +23,14 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import Header from '@/components/Header';
-
+import Header from '@/components/Header'
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 export default function EndingPageScreen() {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function EndingPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
-
+  const { trackScreen, trackLessonCompleted } = useAnalytics();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -72,6 +74,25 @@ export default function EndingPageScreen() {
     submoduleData || null,
     lessonId || '',
     currentPage
+  );
+
+  // Track screen view
+  const TRACKING_THROTTLE_MS = 500;
+  const lessonTitle = lesson?.title;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${lessonId}-${currentPage}`;
+      // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
+      if (lessonTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
+        trackScreen(`Ending Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [lessonTitle, lessonId, currentPage, totalPages, trackScreen])
   );
 
   // Helper functions for sequential navigation
@@ -248,7 +269,6 @@ export default function EndingPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading ending page...</Text>
         </View>
@@ -259,7 +279,6 @@ export default function EndingPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading ending page</Text>
         </View>
@@ -284,15 +303,6 @@ export default function EndingPageScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page indicator */}
-        {totalPages > 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              {currentPage} of {totalPages}
-            </Text>
-          </View>
-        )}
-
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
@@ -394,7 +404,7 @@ export default function EndingPageScreen() {
                         style={styles.starTouch}
                       >
                         {selected ? (
-                          <StarFilled size={40} color="#D8492C" />
+                          <StarFilled size={40} color={moduleData?.colorTheme?.hex || '#575757'} />
                         ) : (
                           <StarOutline size={40} color="#B4B1B1" />
                         )}
@@ -469,7 +479,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   contentText: {
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '400',
     color: '#424242',
     marginBottom: 15,
   },

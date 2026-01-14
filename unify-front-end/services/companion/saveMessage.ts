@@ -1,10 +1,12 @@
 import { supabase } from '@/lib/supabase';
+import { QueryType } from '@/types/chatbot';
 
 export interface SaveMessageParams {
   conversationIdentifier: string;
   role: 'user' | 'assistant';
   content: string;
   sources?: any; // JSONB field
+  suggestedNextSteps?: string[]; // Optional - not persisted to DB, used for UI only
 }
 
 export const saveMessage = async ({

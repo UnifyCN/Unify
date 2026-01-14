@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -17,7 +18,9 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateActivityProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
-import Header from '@/components/Header';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 export default function ActivityPageScreen() {
   const router = useRouter();
@@ -27,9 +30,13 @@ export default function ActivityPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
+  const { trackScreen, trackActivityCompleted } = useAnalytics();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
+  const [questionAnswers, setQuestionAnswers] = useState<{
+    [key: string]: string | string[];
+  }>({});
   const [isSaving, setIsSaving] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
@@ -46,6 +53,13 @@ export default function ActivityPageScreen() {
     submoduleId || ''
   );
 
+  // Reset state when page changes
+  useEffect(() => {
+    setIsSubmitted(false);
+    setInputValues({});
+    setQuestionAnswers({});
+  }, [currentPage]);
+
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
   const currentPageData = lesson?.activity_pages?.[currentPage - 1];
@@ -56,6 +70,25 @@ export default function ActivityPageScreen() {
     submoduleData || null,
     lessonId || '',
     currentPage
+  );
+
+  // Track activity page view
+  const TRACKING_THROTTLE_MS = 500;
+  const lessonTitle = lesson?.title;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${lessonId}-${currentPage}`;
+      // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
+      if (lessonTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
+        trackScreen(`Activity Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [lessonTitle, lessonId, currentPage, totalPages, trackScreen])
   );
 
   // Helper functions for sequential navigation
@@ -93,8 +126,18 @@ export default function ActivityPageScreen() {
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
   };
 
+  const handleQuestionAnswer = (
+    questionKey: string,
+    answer: string | string[]
+  ) => {
+    setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
+  };
+
   const handleSubmit = async () => {
     setIsSubmitted(true);
+    if (moduleId && submoduleId && lessonId && currentPageData?._key) {
+      trackActivityCompleted(moduleId, submoduleId, lessonId, currentPageData._key);
+    }
   };
 
   const handleNext = async () => {
@@ -154,11 +197,10 @@ export default function ActivityPageScreen() {
             currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
           if (isLastLesson) {
-            // Last lesson completed, go back to map
+            // Last lesson completed, go back to module page
             router.push({
-              pathname:
-                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-              params: { moduleId, submoduleId },
+              pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+              params: { moduleId },
             });
           } else {
             // Go to next lesson
@@ -237,7 +279,6 @@ export default function ActivityPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading activity...</Text>
         </View>
@@ -248,7 +289,6 @@ export default function ActivityPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading activity page</Text>
         </View>
@@ -258,7 +298,6 @@ export default function ActivityPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -272,25 +311,19 @@ export default function ActivityPageScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page indicator */}
-        {totalPages > 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              Activity {currentPage} of {totalPages}
-            </Text>
-          </View>
-        )}
-
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
-        {/* Instructions with embedded input fields */}
+        {/* Instructions with embedded input fields and questions */}
         <View style={styles.instructionsContainer}>
           <RichTextRenderer
             blocks={currentPageData.instructions || []}
             markDefs={currentPageData.instructionsMarkDefs}
             inputValues={inputValues}
             onInputChange={handleInputChange}
+            questionAnswers={questionAnswers}
+            onQuestionAnswer={handleQuestionAnswer}
+            showQuestionFeedback={isSubmitted}
           />
         </View>
 
@@ -367,6 +400,44 @@ export default function ActivityPageScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Exit modal */}
+      <Modal
+        visible={showExitModal}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setShowExitModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              Take a break from this activity?
+            </Text>
+            <Text style={styles.modalDesc}>
+              No worries, your progress will be saved!{'\n'}
+              You can pick up right where you left off.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={handleSaveAndLeave}
+            >
+              <Text style={styles.modalPrimaryBtnText}>
+                Save progress & leave
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={handleContinue}
+            >
+              <Text style={styles.modalSecondaryBtnText}>
+                Continue Activity
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -450,7 +521,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: 353, // Figma width
     maxWidth: '100%',
-    minHeight: 80, // Figma baseline, still grows with content
+    minHeight: 30, // Match one line height (lineHeight: 20), grows with content
     marginTop: 0,
     marginBottom: 30,
   },
@@ -508,5 +579,61 @@ const styles = StyleSheet.create({
   nextBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   nextBtnDisabled: {
     opacity: 0.7,
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalPrimaryBtn: {
+    width: '100%',
+    backgroundColor: '#575757',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalPrimaryBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSecondaryBtn: {
+    width: '100%',
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalSecondaryBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

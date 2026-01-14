@@ -7,13 +7,9 @@ import {
   ButtonProps,
   Headline,
   HeadlineProps,
-  HelperText,
   Text,
-  TextProps,
-  // TextInput,
   TextInputProps,
   useTheme,
-  Divider,
 } from 'react-native-paper';
 
 const styles = {
@@ -40,7 +36,7 @@ export interface TextFieldProps
   type?: 'email' | 'default' | 'password' | 'phone';
 }
 
-export function TextField({
+function TextField({
   control,
   error,
   name,
@@ -127,14 +123,6 @@ export function SubmitButton({
   );
 }
 
-export function ProviderButton({ children, ...props }: ButtonProps) {
-  return (
-    <Button {...props} mode='outlined'>
-      {children}
-    </Button>
-  );
-}
-
 export function ViewHeader({ children, style, ...props }: HeadlineProps) {
   return (
     <Headline {...props} style={[style]}>
@@ -157,28 +145,6 @@ export function LinksContainer({ children, style, ...props }: ViewProps) {
 
 export function LinkButton({ labelStyle, ...props }: ButtonProps) {
   return <Button {...props} labelStyle={labelStyle} />;
-}
-
-export function ErrorMessage({ children, style, ...props }: TextProps<string>) {
-  const theme = useTheme();
-
-  if (!children) return null;
-
-  return (
-    <Text
-      {...props}
-      style={[
-        // {
-        //   backgroundColor: theme.colors.errorContainer,
-        //   borderRadius: theme.roundness,
-        // },
-        styles.errorMessage,
-        style,
-      ]}
-    >
-      {children}
-    </Text>
-  );
 }
 
 export function ViewContainer({ children, style, ...props }: ViewProps) {

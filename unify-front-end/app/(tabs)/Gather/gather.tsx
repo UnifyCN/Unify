@@ -1,80 +1,24 @@
-import { memo } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import { memo, useCallback, useRef } from 'react';
+import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
-import SearchButton from '@/components/SearchButton';
-import { Theme } from '@/constants/Theme';
-import { NewsCard } from '@/components/home/NewsCard';
-import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 import GroupCard from './GroupCard';
-import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
+import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';
-
-const NewsTipsSection = () => {
-  const router = useRouter();
-
-  const handleViewMore = () => {
-    // TODO: Navigate to News & Tips screen when available
-    // router.push('/(tabs)/NewsTipsScreen');
-  };
-
-  return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.headerText}>News & Tips</Text>
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: 20, paddingVertical: 2 }}
-      >
-        <NewsCard
-          title='Navigating Winter Roads'
-          description='New to snow? ICBC article to help you avoid issues on the icy, winter roads.'
-        />
-        <NewsCard
-          title='Financial Planning Tips'
-          description='Essential tips for managing your finances in Canada.'
-        />
-        <TouchableOpacity
-          style={styles.viewMoreCardContainer}
-          onPress={handleViewMore}
-          activeOpacity={0.8}
-        >
-          <View style={styles.viewMoreContent}>
-            <ViewMoreCardNews width={332} height={132} />
-            <View style={styles.viewMoreTextOverlay}>
-              <Text style={styles.viewMoreText}>
-                View more news{' '}
-                <Feather name='arrow-right' size={16} color='#000' />
-              </Text>
-              <Text style={styles.viewMoreSubtext}>
-                There's more to check out!
-              </Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
-  );
-};
+import { GroupCardSkeletonLoader } from '@/components/groups/GroupCardSkeletonLoader';
+import { NewsCarousel } from '@/components/news/NewsCarousel';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAnalytics } from '@/utils/analytics';
 
 const GroupsForYouSection = () => {
   const router = useRouter();
 
-  const { data: groups } = useQuery({
-    queryKey: ['joined-groups'],
-    queryFn: getUserJoinedGroups,
+  const { data: groups, isLoading } = useQuery({
+    queryKey: ['available-groups'],
+    queryFn: getAvailableGroups,
   });
 
   const handleGroupPress = (group: Group) => {
@@ -83,6 +27,20 @@ const GroupsForYouSection = () => {
       params: { group: JSON.stringify(group) },
     });
   };
+
+  if (isLoading) {
+    return (
+      <View style={styles.section}>
+        <View style={styles.groupsList}>
+          {[1, 2, 3].map(i => (
+            <View key={i} style={styles.groupItem}>
+              <GroupCardSkeletonLoader />
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  }
 
   if (!groups || groups.length === 0) {
     return null;
@@ -93,8 +51,8 @@ const GroupsForYouSection = () => {
       <View style={styles.sectionHeader}>
         <Text style={styles.headerText}>Groups for You</Text>
       </View>
-      <View style={styles.groupsList}> 
-        {groups.map((group) => (
+      <View style={styles.groupsList}>
+        {groups.map(group => (
           <View key={group.id} style={styles.groupItem}>
             <GroupCard group={group} onPress={() => handleGroupPress(group)} />
           </View>
@@ -107,15 +65,27 @@ const GroupsForYouSection = () => {
 const GatherHeader = memo(() => {
   return (
     <View style={styles.eventsCarousel}>
-      <EventsCarousel
-        title='Community Events'
-        titleStyle={styles.headerText}
-      />
+      <EventsCarousel title='Community Events' titleStyle={styles.headerText} />
     </View>
   );
 });
 
 export default function GatherScreen() {
+  const { trackScreen } = useAnalytics();
+  const lastTrackedRef = useRef<number>(0);
+
+  // Track screen view on focus - with debounce to prevent duplicates
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      // Only track if more than 500ms since last track (prevents rapid focus/blur duplicates)
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen('Community');
+        lastTrackedRef.current = now;
+      }
+    }, [trackScreen])
+  );
+
   return (
     <View style={styles.root}>
       <Header />
@@ -123,7 +93,7 @@ export default function GatherScreen() {
         <StatusBar style='dark' />
         <ScrollView style={styles.scrollView}>
           <GatherHeader />
-          <NewsTipsSection />
+          <NewsCarousel />
           <GroupsForYouSection />
         </ScrollView>
       </View>
@@ -155,7 +125,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 24,
-    fontWeight: '400',
+    fontWeight: '600',
   },
   eventsCarousel: {
     marginTop: 27,
@@ -175,42 +145,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#000',
     fontWeight: '600',
-  },
-  viewMoreCardContainer: {
-    width: 332,
-    height: 132,
-    marginRight: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
-  },
-  viewMoreContent: {
-    width: 332,
-    height: 132,
-    position: 'relative',
-  },
-  viewMoreTextOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 4,
-  },
-  viewMoreText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-  },
-  viewMoreSubtext: {
-    fontSize: 14,
-    color: '#000',
   },
   groupsList: {
     paddingHorizontal: 20,

@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEvents } from '@/hooks/events/useEvents';
@@ -14,6 +8,7 @@ import { SkeletonLoader } from './SkeletonLoader';
 import { Theme } from '@/constants/Theme';
 import ViewMoreCardEvents from '@/components/icons/ViewMoreCardEvents.svg';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
+import { HorizontalCarousel } from './HorizontalCarousel';
 
 // Skeleton loader component for events
 const EventSkeletonCard = () => {
@@ -96,7 +91,6 @@ export const EventsCarousel = ({
       return eventDate >= now;
     }) || [];
 
-  const displayEvents = upcomingEvents.slice(0, maxEvents);
   const handleEventPress = (event: any) => {
     router.push({
       pathname: '/(tabs)/Gather/EventDetailScreen',
@@ -110,62 +104,36 @@ export const EventsCarousel = ({
 
   return (
     <View style={style}>
-      <View style={styles.header}>
-        <Text style={[styles.headerText, titleStyle]}>{title}</Text>
-        {showViewMore && (
-          <TouchableOpacity onPress={handleViewMore}>
-            <Feather name='chevron-right' size={24} color='#000' />
-          </TouchableOpacity>
+      <HorizontalCarousel
+        title={title}
+        titleStyle={titleStyle}
+        data={upcomingEvents}
+        isLoading={isLoading}
+        maxItems={maxEvents}
+        itemKeyExtractor={item => item.id}
+        renderItem={item => (
+          <EventCard event={item} onPress={() => handleEventPress(item)} />
         )}
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.eventsCarousel}
-        contentContainerStyle={[
-          styles.eventsCarouselContent,
-          upcomingEvents.length === 0 &&
-            !isLoading &&
-            styles.eventsCarouselContentEmpty,
-          contentContainerStyle,
-        ]}
-      >
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            {Array.from({ length: 2 }).map((_, index) => (
-              <EventSkeletonCard key={`skeleton-${index}`} />
-            ))}
-          </View>
-        )}
-        {!isLoading && upcomingEvents.length === 0 && (
-          <View style={styles.emptyEventsContainer}>
-            <EmptyFeedMessage
-              icon={<Feather name='calendar' size={24} color='#B4B1B1' />}
-              message='No events available'
-              submessage={
-                <Text
-                  style={{
-                    fontSize: 14,
-                    color: Theme.textInput,
-                    textAlign: 'center',
-                    lineHeight: 20,
-                  }}
-                >
-                  Check back later for new events
-                </Text>
-              }
-            />
-          </View>
-        )}
-        {displayEvents.map(event => (
-          <EventCard
-            key={event.id}
-            event={event}
-            onPress={() => handleEventPress(event)}
+        renderLoadingSkeleton={() => <EventSkeletonCard />}
+        renderEmptyState={() => (
+          <EmptyFeedMessage
+            icon={<Feather name='calendar' size={24} color='#B4B1B1' />}
+            message='No events available'
+            submessage={
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: Theme.textInput,
+                  textAlign: 'center',
+                  lineHeight: 20,
+                }}
+              >
+                Check back later for new events
+              </Text>
+            }
           />
-        ))}
-        {upcomingEvents.length > maxEvents && (
+        )}
+        renderViewMore={() => (
           <TouchableOpacity
             style={styles.viewMoreCard}
             onPress={handleViewMore}
@@ -189,45 +157,18 @@ export const EventsCarousel = ({
             </View>
           </TouchableOpacity>
         )}
-      </ScrollView>
+        onViewMore={showViewMore ? handleViewMore : undefined}
+        showViewMore={showViewMore}
+        scrollViewStyle={styles.eventsCarousel}
+        contentContainerStyle={contentContainerStyle}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  headerText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
   eventsCarousel: {
     marginBottom: 20,
-  },
-  eventsCarouselContent: {
-    paddingHorizontal: 0,
-    gap: 12,
-  },
-  eventsCarouselContentEmpty: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-  },
-  loadingContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    overflow: 'hidden',
-    width: '100%',
-  },
-  emptyEventsContainer: {
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   viewMoreCard: {
     width: 248,

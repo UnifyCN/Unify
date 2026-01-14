@@ -10,9 +10,3 @@ export type PostCommentData = {
   profilePictureUrl?: string;
   like_count: number;
 };
-
-// Feed response type
-export type PostCommentResponse = {
-  comments: PostCommentData[];
-  next_cursor?: string;
-};

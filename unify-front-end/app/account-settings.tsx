@@ -1,18 +1,33 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Linking,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { useCurrentUser } from '@/context/UserContext';
+import { useAnalytics } from '@/utils/analytics';
+import { useQuery } from '@tanstack/react-query';
+import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
+  const { trackScreen } = useAnalytics();
+
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreen('Account Settings');
+  }, [trackScreen]);
 
   const onLogout = async () => {
     try {
@@ -22,6 +37,34 @@ export default function AccountSettingsPage() {
       console.error('Logout failed', err);
     }
   };
+
+  const handleGiveFeedback = () => {
+    Linking.openURL('https://unify.userjot.com').catch(err =>
+      console.error('Failed to open URL:', err)
+    );
+  };
+
+  const settingsRows = [
+    {
+      title: 'Saved',
+      icon: 'bookmark' as const,
+      onPress: () => router.push('/saved'),
+    },
+    {
+      title: 'Give Feedback',
+      icon: 'star' as const,
+      onPress: handleGiveFeedback,
+    },
+  ];
+
+  const profilePictureKey = currentUser?.profilePictureUrl ?? null;
+
+  const { data: signedProfileUrl } = useQuery({
+    queryKey: ['profilePictureSignedUrl', profilePictureKey],
+    enabled: !!profilePictureKey,
+    queryFn: () => getProfilePictureUrl(profilePictureKey as string),
+    staleTime: 4 * 60 * 1000,
+  });
 
   return (
     <View style={styles.container}>
@@ -34,7 +77,7 @@ export default function AccountSettingsPage() {
               activeOpacity={0.8}
             >
               <Avatar
-                profilePictureUrl={currentUser?.profilePictureUrl}
+                profilePictureUrl={signedProfileUrl}
                 username={currentUser?.username || ''}
                 size={93}
                 style={styles.avatar}
@@ -71,17 +114,20 @@ export default function AccountSettingsPage() {
         </View>
         <View style={styles.rowsContainer}>
           <View style={styles.settingsCard}>
-            <TouchableOpacity
-              style={styles.row}
-              onPress={() => {
-                router.push('/saved');
-              }}
-            >
-              <View style={styles.bookmarkIconContainer}>
-                <Feather name='bookmark' size={24} color={Theme.black} />
-              </View>
-              <Text style={[styles.rowText, { fontSize: 18 }]}>Saved</Text>
-            </TouchableOpacity>
+            {settingsRows.map((row, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.row}
+                onPress={row.onPress}
+              >
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name={row.icon} size={24} color={Theme.black} />
+                </View>
+                <Text style={[styles.rowText, { fontSize: 18 }]}>
+                  {row.title}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
           <View style={styles.divider} />
 

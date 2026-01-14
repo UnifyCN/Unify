@@ -10,6 +10,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from 'expo-router';
+import { useAnalytics } from '@/utils/analytics';
 import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
 import CarouselDots from '../../../components/learn/CarouselDots';
@@ -26,6 +28,7 @@ import {
 import Header from '../../../components/Header';
 
 export default function Learn() {
+  const { trackScreen } = useAnalytics();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const { width } = useWindowDimensions();
@@ -41,6 +44,18 @@ export default function Learn() {
     error: lessonsError,
     refresh: refreshLessons,
   } = useInProgressLessons();
+  const lastTrackedRef = React.useRef<number>(0);
+
+  // Track screen view when Learn screen is focused - with debounce
+  useFocusEffect(
+    React.useCallback(() => {
+      const now = Date.now();
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen('Learn Screen');
+        lastTrackedRef.current = now;
+      }
+    }, [trackScreen])
+  );
 
   const onMomentumEnd = (e: any) => {
     const x = e.nativeEvent?.contentOffset?.x ?? 0;
@@ -65,7 +80,7 @@ export default function Learn() {
   }, [refreshLessons]);
   return (
     <View style={styles.root}>
-      <Header />
+      <Header showSearchIcon={false} />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView
@@ -74,7 +89,11 @@ export default function Learn() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          <Text style={styles.pageTitle}>Ready To Learn?</Text>
+          <Text style={styles.pageTitle}>Ready to learn?</Text>
+          <Text style={styles.pageSubtitle}>
+            Get started with lessons to understand the basics of Canadian
+            culture and how to settle in as a newcomer.
+          </Text>
 
           {/* <SearchBar placeholder='Search for a lesson' /> */}
 
@@ -130,8 +149,13 @@ export default function Learn() {
                         <LessonHeroCard
                           moduleTitle={lesson.moduleTitle}
                           submoduleTitle={lesson.submoduleTitle}
-                          submoduleCount={submoduleCount}
+                          currentPage={lesson.currentPage || 1}
+                          totalPages={lesson.totalPages || 8}
+                          currentSection={lesson.currentSection || 1}
+                          totalSections={lesson.totalSections || 1}
                           coverImageUrl={coverImageUrl}
+                          colorHex={module?.colorTheme?.hex}
+                          icon={module?.icon}
                           href={lesson.href as any}
                         />
                       </View>
@@ -154,7 +178,7 @@ export default function Learn() {
             </View>
           )}
 
-          <SectionHeader title='Subjects' style={{ marginTop: 24 }} />
+          <SectionHeader title='Subjects' style={{ marginTop: 15 }} />
           <View style={styles.pathwaysGrid}>
             {isLoading ? (
               <>
@@ -164,16 +188,20 @@ export default function Learn() {
             ) : error ? (
               <Text style={styles.errorText}>Error loading modules</Text>
             ) : modules && modules.length > 0 ? (
-              modules.map(module => {
+              modules.map((module, index) => {
+                const blobIndex = index % 5;
                 return (
                   <PathwayCard
                     key={module._id}
                     title={module.title}
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
-                    href={`/(tabs)/Learn/modules/${module._id}` as any}
-                    coverImageUrl={
-                      module.coverPhoto ? urlFor(module.coverPhoto) : undefined
+                    href={
+                      `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
                     }
+                    colorTheme={module.colorTheme?.hex}
+                    icon={module.icon}
+                    index={index}
+                    moduleId={module._id}
                   />
                 );
               })
@@ -195,15 +223,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 2,
+    marginBottom: 8,
+  },
+  pageSubtitle: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#000',
+    lineHeight: 20,
+    marginBottom: 10,
   },
   heroWrapper: { marginTop: 8 },
   pathwaysGrid: {
     marginTop: 12,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 12,
+    justifyContent: 'space-between',
   },
   errorText: {
     color: '#FF3B30',

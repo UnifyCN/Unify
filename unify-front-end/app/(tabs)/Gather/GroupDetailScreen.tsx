@@ -29,6 +29,7 @@ import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import { Theme } from '@/constants/Theme';
+import { useAnalytics } from '@/utils/analytics';
 
 const GroupDetailScreen = () => {
   const router = useRouter();
@@ -42,14 +43,24 @@ const GroupDetailScreen = () => {
   const [isAtTop, setIsAtTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const headerOpacity = useRef(new Animated.Value(0)).current;
+  const hasTrackedView = useRef(false);
 
   const queryClient = useQueryClient();
+  const { trackGroupViewed, trackGroupJoined, trackGroupLeft } = useAnalytics();
 
   useEffect(() => {
     // Reset header opacity when component mounts
     headerOpacity.setValue(0);
     setIsAtTop(true);
   }, [headerOpacity]);
+
+  // Track group view when groupData is available
+  useEffect(() => {
+    if (groupData && !hasTrackedView.current) {
+      trackGroupViewed(groupData.id.toString(), groupData.name);
+      hasTrackedView.current = true;
+    }
+  }, [groupData, trackGroupViewed]);
 
   useEffect(() => {
     let mounted = true;
@@ -133,7 +144,10 @@ const GroupDetailScreen = () => {
       if (isMember) {
         // Optimistically update UI for leaving
         await leaveGroup(groupData.id);
+        trackGroupLeft(groupData.id.toString(), groupData.name);
         setIsMember(false);
+        queryClient.resetQueries({ queryKey: ['joined-groups'] });
+        queryClient.invalidateQueries({ queryKey: ['available-groups'] });
         setGroupData(prev =>
           prev
             ? {
@@ -144,9 +158,10 @@ const GroupDetailScreen = () => {
         );
       } else {
         // Optimistically update UI for joining
-
         await joinGroup(groupData.id);
+        trackGroupJoined(groupData.id.toString(), groupData.name);
         queryClient.resetQueries({ queryKey: ['joined-groups'] });
+        queryClient.invalidateQueries({ queryKey: ['available-groups'] });
         setIsMember(true);
         setGroupData(prev =>
           prev
@@ -171,6 +186,7 @@ const GroupDetailScreen = () => {
       );
     } finally {
       queryClient.resetQueries({ queryKey: ['feed', 'groups'] });
+      queryClient.invalidateQueries({ queryKey: ['available-groups'] });
       setJoining(false);
     }
   };
@@ -309,7 +325,7 @@ const GroupDetailScreen = () => {
               submessage={
                 <Text
                   style={{
-                    fontSize: 14,
+                    fontSize: 18,
                     color: Theme.textInput,
                     textAlign: 'center',
                     lineHeight: 20,
@@ -415,12 +431,12 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   eventTitle: {
-    fontSize: 25,
+    fontSize: 24,
     fontWeight: '600',
     color: '#343434',
   },
   aboutText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#000',
     lineHeight: 24,
   },
@@ -438,14 +454,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    boxShadow: '0 2.185px 34.954px 0 rgba(0, 0, 0, 0.25)'
+    boxShadow: '0 2.185px 34.954px 0 rgba(0, 0, 0, 0.25)',
   },
   notJoined: {
     backgroundColor: Theme.primaryGatherRed,
   },
   joinText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 20,
     lineHeight: 22,
     fontWeight: '600',
     alignSelf: 'center',
@@ -457,7 +473,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
   },
   emptyState: {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,9 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import Header from '@/components/Header';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
@@ -32,6 +34,7 @@ export default function LessonPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
+  const { trackScreen, trackLessonPageViewed } = useAnalytics();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -60,6 +63,33 @@ export default function LessonPageScreen() {
     submoduleData || null,
     lessonId || '',
     currentPage
+  );
+  
+  const TRACKING_THROTTLE_MS = 500;
+  const lessonTitle = lesson?.title;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+
+  // Track page view
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${lessonId}-${currentPage}`;
+      // Only track if: all IDs exist, data is loaded, throttle passed, AND this is a different page than last tracked
+      if (
+        moduleId &&
+        submoduleId &&
+        lessonId &&
+        lessonTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(`Lesson Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
+        trackLessonPageViewed(moduleId, submoduleId, lessonId, currentPage, totalPages);
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [lessonTitle, moduleId, submoduleId, lessonId, currentPage, totalPages, trackScreen, trackLessonPageViewed])
   );
 
   // Helper functions for sequential navigation
@@ -162,11 +192,10 @@ export default function LessonPageScreen() {
             // Navigate immediately
             // Check if this is the last lesson
             if (isLastLesson()) {
-              // Last lesson completed, go back to map
+              // Last lesson completed, go back to module page
               router.push({
-                pathname:
-                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-                params: { moduleId, submoduleId },
+                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+                params: { moduleId },
               });
             } else {
               // Go to next lesson
@@ -231,7 +260,6 @@ export default function LessonPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading lesson...</Text>
         </View>
@@ -242,7 +270,6 @@ export default function LessonPageScreen() {
   if (!lesson || !currentPageData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading lesson page</Text>
         </View>
@@ -252,7 +279,6 @@ export default function LessonPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -266,15 +292,6 @@ export default function LessonPageScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page indicator
-        {totalPages > 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              {currentPage} of {totalPages}
-            </Text>
-          </View>
-        )} */}
-
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
@@ -358,7 +375,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   pageIndicator: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: '#6B7280',
   },
@@ -380,9 +397,9 @@ const styles = StyleSheet.create({
   contentText: {
     fontWeight: 400,
     color: '#424242',
-    marginBottom: 20,
-    fontSize: 14,
-    lineHeight: 20,
+    marginBottom: 15,
+    fontSize: 18,
+    lineHeight: 27,
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -447,7 +464,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalDesc: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#6B7280',
     lineHeight: 20,
     textAlign: 'center',

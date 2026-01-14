@@ -13,14 +13,48 @@ import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
 import { Theme } from '@/constants/Theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect, useMemo } from 'react';
+import { useAnalytics } from '@/utils/analytics';
 
 const EventDetailScreen = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { event } = useLocalSearchParams();
-  const eventData: Event = JSON.parse(event as string);
+  
+  // Memoize parsed event data with safety handling
+  const eventData: Event | null = useMemo(() => {
+    try {
+      if (!event) return null;
+      return JSON.parse(event as string);
+    } catch (error) {
+      console.error('Failed to parse event data:', error);
+      return null;
+    }
+  }, [event]);
+  
+  const { trackEventViewed, trackEventShared, trackEventExternalLinkClicked } =
+    useAnalytics();
+
+  // Handle redirect if event data is missing or invalid
+  useEffect(() => {
+    if (!eventData) {
+      router.back();
+    }
+  }, [eventData, router]);
+
+  // Track event view on mount
+  useEffect(() => {
+    if (eventData) {
+      trackEventViewed(eventData.id.toString(), eventData.title);
+    }
+  }, [eventData, trackEventViewed]);
+
+  if (!eventData) return null;
 
   const handleExternalLink = () => {
     if (eventData.externalLink) {
+      trackEventExternalLinkClicked(eventData.id.toString(), eventData.title);
       Linking.openURL(eventData.externalLink);
     }
   };
@@ -28,6 +62,7 @@ const EventDetailScreen = () => {
   // Using react native built in share
   const handleShare = async () => {
     try {
+      trackEventShared(eventData.id.toString(), eventData.title);
       const shareMessage = [
         `Check out this event: ${eventData.title}`,
         `📅 ${formatEventDate(eventData.eventDatetime)}`,
@@ -55,7 +90,7 @@ const EventDetailScreen = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
         <TouchableOpacity onPress={() => router.back()}>
           <Feather name='chevron-left' size={24} color={Theme.white} />
         </TouchableOpacity>
@@ -153,12 +188,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 36,
     paddingBottom: 16,
     backgroundColor: '#C4C4C4',
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#000',
   },
@@ -196,7 +230,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#343434',
-    marginBottom: 8,
+    marginBottom: 16,
   },
   detailRow: {
     flexDirection: 'row',
@@ -217,26 +251,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailTitle: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     color: '#000',
     marginBottom: 2,
   },
   detailSubtitle: {
-    fontSize: 12,
+    fontSize: 16,
     color: '#979797',
   },
   aboutSection: {
-    marginTop: 20,
+    marginTop: 10,
   },
   aboutTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '600',
     color: '#000',
     marginBottom: 12,
   },
   aboutText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#000',
     lineHeight: 24,
     marginBottom: 12,
