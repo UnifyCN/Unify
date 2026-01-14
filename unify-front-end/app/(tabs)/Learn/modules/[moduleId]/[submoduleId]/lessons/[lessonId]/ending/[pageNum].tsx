@@ -26,11 +26,6 @@ import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import Header from '@/components/Header';
 
 
-// Temp stuff:
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
-
-
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
@@ -108,37 +103,6 @@ export default function EndingPageScreen() {
     setShowExitModal(false);
   };
 
-
-  //TEMP
-  // ✅ PEGA AQUÍ ESTA FUNCIÓN
-  const handleClearStorage = () => {
-    Alert.alert(
-      'Borrar storage?',
-      'Esto borrará TODOS los datos guardados localmente en este dispositivo (progreso, preferencias, etc.).',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Borrar',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.clear();
-
-              // Opcional: resetea UI
-              setRating(null);
-              setComment('');
-              setShowReviewModal(false);
-              setShowExitModal(false);
-
-              Alert.alert('Listo', 'Storage limpiado.');
-            } catch (e) {
-              Alert.alert('Error', 'No se pudo limpiar el storage.');
-            }
-          },
-        },
-      ]
-    );
-  };
 
   // ---- core "finish this lesson" logic, reused by review modal ----
   const completeLessonAndNavigate = () => {
@@ -307,15 +271,6 @@ export default function EndingPageScreen() {
     <SafeAreaView style={styles.safe}>
       <Header />
 
-      
-      <TouchableOpacity
-        style={styles.clearStorageBtn}
-        onPress={handleClearStorage}
-      >
-        <Text style={styles.clearStorageBtnText}>Clear Storage</Text>
-      </TouchableOpacity>
-      
-
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -439,9 +394,9 @@ export default function EndingPageScreen() {
                         style={styles.starTouch}
                       >
                         {selected ? (
-                          <StarFilled size={36} color="#D8492C" />
+                          <StarFilled size={40} color="#D8492C" />
                         ) : (
-                          <StarOutline size={36} color="#B4B1B1" />
+                          <StarOutline size={40} color="#B4B1B1" />
                         )}
                       </TouchableOpacity>
 
@@ -650,11 +605,12 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginBottom: 25,
     marginTop: 18,
+    letterSpacing: 1.2,
   },
   reviewStarsRow: {
     alignSelf: 'center',
     flexDirection: 'row',
-    gap: 10, // closer stars
+    gap: 8, // closer stars
   },
 
   starsSpacingNoComment: {
@@ -712,19 +668,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-
-  clearStorageBtn: {
-  position: 'absolute',
-  top: 120,
-  right: 16,
-  paddingVertical: 8,
-  paddingHorizontal: 12,
-  borderRadius: 10,
-  backgroundColor: '#DC2626',
-  zIndex: 999,
-},
-clearStorageBtnText: {
-  color: '#fff',
-  fontWeight: '700',
-},
 });
