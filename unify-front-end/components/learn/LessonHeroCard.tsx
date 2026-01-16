@@ -15,14 +15,36 @@ interface LessonHeroCardProps {
   href?: Href;
 }
 
-// Map Material UI icon names to MaterialCommunityIcons outline variants
+// Map Sanity icon values (snake_case) to MaterialCommunityIcons outline variants
 const mapIconName = (iconName: string): string => {
   const iconMap: { [key: string]: string } = {
+    // Original icons (keeping for backward compatibility)
     AccountBalanceOutlined: 'bank-outline',
     AssignmentIndOutlined: 'account-tie-outline',
     CottageOutlined: 'home-outline',
     ArticleOutlined: 'file-document-outline',
     PassportOutlined: 'passport',
+    // New Sanity icon values (snake_case)
+    account_balance: 'bank-outline',
+    assignment_ind: 'account-tie-outline',
+    cottage: 'home-outline',
+    article: 'file-document-outline',
+    passport: 'passport',
+    school: 'school-outline',
+    book: 'book-outline',
+    work: 'briefcase-outline',
+    computer: 'laptop-outline',
+    business: 'office-building-outline',
+    science: 'flask-outline',
+    language: 'translate',
+    history: 'clock-time-four-outline',
+    psychology: 'brain',
+    menu_book: 'book-open-page-variant',
+    auto_stories: 'book-open-outline',
+    calculate: 'calculator-outline',
+    palette: 'palette-outline',
+    music_note: 'music-note-outline',
+    sports_esports: 'gamepad-variant-outline',
   };
   return iconMap[iconName] || 'bank-outline';
 };
@@ -38,7 +60,7 @@ export default function LessonHeroCard({
   icon,
   href,
 }: LessonHeroCardProps) {
-  const iconName = mapIconName(icon || 'AccountBalanceOutlined');
+  const iconName = mapIconName(icon || 'account_balance');
 
   const cardContent = (
     <View style={styles.card}>
