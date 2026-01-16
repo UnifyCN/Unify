@@ -10,7 +10,6 @@ interface LessonHeroCardProps {
   totalPages?: number;
   currentSection?: number;
   totalSections?: number;
-  coverImageUrl?: string;
   colorHex?: string;
   icon?: string;
   href?: Href;
@@ -35,7 +34,6 @@ export default function LessonHeroCard({
   totalPages = 8,
   currentSection = 1,
   totalSections = 4,
-  coverImageUrl,
   colorHex,
   icon,
   href,
