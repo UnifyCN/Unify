@@ -12,10 +12,10 @@ export const updateUsername = async (
       throw new Error('User not authenticated');
     }
 
-    // Validate username format (alphanumeric, 1-20 characters)
-    if (!/^[a-zA-Z0-9]{1,20}$/.test(username)) {
+    // Validate username format (alphanumeric with spaces, 1-20 characters)
+    if (!/^[a-zA-Z0-9 ]{1,20}$/.test(username)) {
       throw new Error(
-        'Username must be 1-20 characters and contain only letters and numbers'
+        'Username must be 1-20 characters and contain only letters, numbers, and spaces'
       );
     }
 
