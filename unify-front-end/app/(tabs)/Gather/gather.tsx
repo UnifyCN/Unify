@@ -46,13 +46,31 @@ const GroupsForYouSection = () => {
   }
 
   if (!groups || groups.length === 0) {
-    return null;
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.headerText}>Groups for You</Text>
+        </View>
+        <View style={styles.groupsList}>
+          <Pressable
+            onPress={() => setRequestOpen(true)}
+            style={({ pressed }) => [
+              styles.requestButton,
+              pressed ? { opacity: 0.85 } : null,
+            ]}
+          >
+            <Text style={styles.requestButtonText}>Request a Group</Text>
+          </Pressable>
+        </View>
+        <RequestGroupModal visible={requestOpen} onClose={() => setRequestOpen(false)} />
+      </View>
+    );
   }
 
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.headerText}>Groups for You </Text>
+        <Text style={styles.headerText}>Groups for You</Text>
       </View>
       <View style={styles.groupsList}>
         {groups.map(group => (
@@ -60,20 +78,17 @@ const GroupsForYouSection = () => {
             <GroupCard group={group} onPress={() => handleGroupPress(group)} />
           </View>
         ))}
-
-        {/*Button for requesting groups, edit here if needed xdd*/}
-        <Pressable 
-        onPress={() => setRequestOpen(true)}
-        style={({ pressed }) => [
-          styles.requestButton,
-          pressed ? { opacity: 0.85 } : null,
-        ]}
+        <Pressable
+          onPress={() => setRequestOpen(true)}
+          style={({ pressed }) => [
+            styles.requestButton,
+            pressed ? { opacity: 0.85 } : null,
+          ]}
         >
-          <Text>Request a Group</Text>
+          <Text style={styles.requestButtonText}>Request a Group</Text>
         </Pressable>
       </View>
-
-      <RequestGroupModal visible={requestOpen} onClose={() => setRequestOpen(false)}/>
+      <RequestGroupModal visible={requestOpen} onClose={() => setRequestOpen(false)} />
     </View>
   );
 };

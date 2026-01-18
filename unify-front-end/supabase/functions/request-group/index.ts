@@ -18,6 +18,22 @@ function badRequest(msg: string) {
   });
 }
 
+// Basic email validation
+function isValidEmail(email: string): boolean {
+  // Simple but robust regex for email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 254;
+}
+
+// Sanitize string for use in email subject (prevent header injection)
+function sanitizeForSubject(str: string): string {
+  return str
+    .replace(/[\r\n\t]/g, ' ')  // Replace CR, LF, TAB with space
+    .replace(/[\x00-\x1f\x7f]/g, '')  // Remove other control characters
+    .trim()
+    .slice(0, 100);  // Limit length
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -43,6 +59,14 @@ Deno.serve(async (req: Request) => {
     return badRequest('Missing required fields.');
   }
 
+  // Validate email format
+  if (!isValidEmail(requesterEmail.trim())) {
+    return badRequest('Invalid requesterEmail format.');
+  }
+
+  // Sanitize groupName for use in email subject
+  const sanitizedGroupName = sanitizeForSubject(groupName);
+
   const html = `
     <div style="font-family: Arial, sans-serif; line-height:1.4">
       <h2>New Group Request</h2>
@@ -67,7 +91,7 @@ Deno.serve(async (req: Request) => {
     body: JSON.stringify({
       from: RESEND_FROM,
       to: RESEND_TO,
-      subject: `Group Request: ${groupName}`,
+      subject: `Group Request: ${sanitizedGroupName}`,
       html,
       reply_to: requesterEmail,
     }),
