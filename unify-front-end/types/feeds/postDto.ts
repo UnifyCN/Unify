@@ -5,6 +5,9 @@ export interface PostDto {
   created_at: string;
   user_id: number;
   group_id: number | null;
+  is_pinned?: boolean;
+  pinned_at?: string | null;
+  pinned_by?: string | null;
   users: {
     id: number;
     username: string;
