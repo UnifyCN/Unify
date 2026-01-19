@@ -111,10 +111,10 @@ export default function ActivityPageScreen() {
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
-    // Navigate to submodule map
+    // Navigate to module index (skip map)
     router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-      params: { moduleId, submoduleId },
+      pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+      params: { moduleId },
     });
   };
 
@@ -265,11 +265,10 @@ export default function ActivityPageScreen() {
             },
           });
         } else {
-          // First lesson, go back to map
+          // First lesson, go back to module index (skip map)
           router.push({
-            pathname:
-              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-            params: { moduleId, submoduleId },
+            pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+            params: { moduleId },
           });
         }
       }

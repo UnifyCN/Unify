@@ -53,10 +53,10 @@ export default function SubmoduleIntroScreen() {
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
-    // Navigate to submodule map
+    // Navigate to module index (skip map)
     router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-      params: { moduleId, submoduleId },
+      pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+      params: { moduleId },
     });
   };
 
@@ -99,10 +99,10 @@ export default function SubmoduleIntroScreen() {
           params: { moduleId, submoduleId, lessonId: firstLesson._id },
         });
       } else {
-        // Fallback to map if no lessons
+        // Fallback to module index if no lessons (skip map)
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-          params: { moduleId, submoduleId },
+          pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+          params: { moduleId },
         });
       }
     }

@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 
 export const updateProfilePicture = async (
-  profilePictureUrl: string | null
+  profilePictureKey: string | null
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const {
@@ -14,7 +14,7 @@ export const updateProfilePicture = async (
 
     const { error } = await supabase
       .from('users')
-      .update({ profile_picture_url: profilePictureUrl })
+      .update({ profile_picture_url: profilePictureKey })
       .eq('id', user.id);
 
     if (error) {

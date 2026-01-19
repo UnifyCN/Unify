@@ -796,10 +796,10 @@ export default function QuizQuestionPage() {
               style={styles.modalPrimaryBtn}
               onPress={() => {
                 setShowExitModal(false);
+                // Navigate to module index (skip map)
                 router.push({
-                  pathname:
-                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-                  params: { moduleId, submoduleId },
+                  pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+                  params: { moduleId },
                 });
               }}
             >

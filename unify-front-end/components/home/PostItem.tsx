@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import Save from '@/assets/images/Save.svg';
@@ -19,6 +19,7 @@ import { PostData } from '@/types/feeds/post';
 import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { useMutateDeletePost } from '@/hooks/posts/useMutateDeletePost';
+import { useMutatePinPost } from '@/hooks/posts/useMutatePinPost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { Avatar } from '@/components/Avatar';
@@ -63,11 +64,30 @@ export const PostItem = memo(
     const likePostMutation = useMutateLikePost();
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
+    const pinPostMutation = useMutatePinPost();
 
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
+    const canPin = isAdmin; // Only admins can pin/unpin
+
+    const handlePinPost = () => {
+      pinPostMutation.mutate(
+        { postId: post.id, isPinned: post.isPinned ?? false },
+        {
+          onSuccess: () => {
+            setDeleteModalVisible(false);
+          },
+          onError: (error) => {
+            Alert.alert(
+              'Error',
+              error.message || `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
+            );
+          },
+        }
+      );
+    };
 
     const toggleLike = (postId: number, isLiked: boolean) => {
       if (isLiked) {
@@ -184,6 +204,11 @@ export const PostItem = memo(
                   </>
                 )}
                 <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+                {post.isPinned && (
+                  <View style={styles.pinnedBadge}>
+                    <Text style={styles.pinnedText}>Pinned</Text>
+                  </View>
+                )}
               </View>
               {canDelete && (
                 <TouchableOpacity
@@ -195,15 +220,17 @@ export const PostItem = memo(
               )}
             </View>
 
-            {/* Title */}
-            <View>
-              <Text style={styles.title}>{post.title}</Text>
-            </View>
+            {/* Title and Content - Clickable to navigate to post details */}
+            <TouchableOpacity onPress={navigateToComments} activeOpacity={0.5}>
+              <View>
+                <Text style={styles.title}>{post.title}</Text>
+              </View>
 
-            {/* Content */}
-            {!shouldHideContent && (
-              <Text style={styles.description}>{post.content}</Text>
-            )}
+              {/* Content */}
+              {!shouldHideContent && (
+                <Text style={styles.description}>{post.content}</Text>
+              )}
+            </TouchableOpacity>
 
             {/* Footer */}
             <View style={styles.footer}>
@@ -291,6 +318,25 @@ export const PostItem = memo(
                     Delete Post
                   </Text>
                 </TouchableOpacity>
+                {canPin && (
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={handlePinPost}
+                    disabled={pinPostMutation.isPending}
+                  >
+                    <MaterialCommunityIcons
+                      name='pin'
+                      size={20}
+                      color={Theme.black}
+                      style={styles.optionIcon}
+                    />
+                    <Text style={styles.modalOptionText}>
+                      {pinPostMutation.isPending
+                        ? (post.isPinned ? 'Unpinning...' : 'Pinning...')
+                        : (post.isPinned ? 'Unpin Post' : 'Pin Post')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => setDeleteModalVisible(false)}
@@ -422,7 +468,7 @@ const styles = StyleSheet.create({
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingVertical: 8,
   },
   optionIcon: {
     marginRight: 8,
@@ -435,5 +481,17 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: '#FF3B30',
+  },
+  pinnedBadge: {
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  pinnedText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
   },
 });
