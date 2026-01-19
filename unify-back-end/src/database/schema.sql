@@ -1,7 +1,7 @@
 -- Users table
 CREATE TABLE users (
     id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
-    username TEXT UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9]{1,20}$'),
+    username TEXT UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9 ]{1,20}$'),
     pronouns TEXT,
     biography TEXT,
     email VARCHAR(100) UNIQUE NOT NULL,
