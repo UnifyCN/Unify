@@ -73,6 +73,7 @@ export const PostItem = memo(
     const canPin = isAdmin; // Only admins can pin/unpin
 
     const handlePinPost = () => {
+      // ... same implementation
       pinPostMutation.mutate(
         { postId: post.id, isPinned: post.isPinned ?? false },
         {
@@ -90,6 +91,7 @@ export const PostItem = memo(
     };
 
     const toggleLike = (postId: number, isLiked: boolean) => {
+      // ... same implementation
       if (isLiked) {
         trackPostUnlike(postId.toString());
       } else {
@@ -99,6 +101,7 @@ export const PostItem = memo(
     };
 
     const toggleSave = (postId: number, isSaved: boolean) => {
+      // ... same implementation
       if (isSaved) {
         trackPostUnsave(postId.toString());
       } else {
@@ -177,7 +180,7 @@ export const PostItem = memo(
             <Avatar
               profilePictureUrl={post.user.profilePictureUrl}
               username={post.user.username}
-              size={29}
+              size={40}
             />
           </TouchableOpacity>
           {/* Post Content */}
@@ -190,7 +193,7 @@ export const PostItem = memo(
                 </TouchableOpacity>
                 {post.group && (
                   <>
-                    <ChevronRight color={Theme.black} width={6} height={12} />
+                    <Text style={styles.dotSeparator}>•</Text>
                     <TouchableOpacity
                       onPress={() =>
                         router.push({
@@ -203,6 +206,7 @@ export const PostItem = memo(
                     </TouchableOpacity>
                   </>
                 )}
+                <Text style={styles.dotSeparator}>•</Text>
                 <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
                 {post.isPinned && (
                   <View style={styles.pinnedBadge}>
@@ -215,7 +219,7 @@ export const PostItem = memo(
                   onPress={() => setDeleteModalVisible(true)}
                   style={styles.menuButton}
                 >
-                  <Feather name='more-vertical' size={20} color={Theme.black} />
+                  <Feather name='more-vertical' size={20} color={'#999'} />
                 </TouchableOpacity>
               )}
             </View>
@@ -242,6 +246,7 @@ export const PostItem = memo(
                     }
                   }}
                   disabled={showMetadataLoading}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
                   {isLiked ? (
                     <Like_Fill width={20} height={20} />
@@ -258,6 +263,7 @@ export const PostItem = memo(
               <TouchableOpacity
                 style={styles.footerItem}
                 onPress={navigateToComments}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <Comment width={20} height={20} fill='gray' />
                 {showMetadataLoading ? (
@@ -273,6 +279,7 @@ export const PostItem = memo(
                   }
                 }}
                 disabled={showMetadataLoading}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 {showMetadataLoading ? (
                   <SkeletonLoader width={20} height={20} borderRadius={4} />
@@ -357,89 +364,88 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 22,
+    paddingVertical: 16,
     gap: 12,
   },
   postContent: {
     flex: 1,
-    gap: 10,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    fontSize: 12,
-    color: '#000',
-    textAlign: 'left',
-    lineHeight: 16,
+    marginBottom: 6,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
     flex: 1,
+    flexWrap: 'wrap',
   },
   menuButton: {
     padding: 4,
+    marginLeft: 4,
   },
   headshot: {
-    width: 29,
-    height: 29,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
   },
   name: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Theme.black,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000',
   },
   group: {
-    fontWeight: '600',
+    fontWeight: '400',
+    fontSize: 14,
+    color: '#000',
+  },
+  dotSeparator: {
     fontSize: 12,
-    color: Theme.black,
+    color: '#999',
+    marginHorizontal: 6,
   },
   time: {
-    paddingTop: 2,
     fontSize: 14,
-    color: Theme.textPostTime,
-    fontWeight: '500',
+    color: '#999',
+    fontWeight: '400',
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     lineHeight: 22,
-  },
-  replyUser: {
-    fontSize: 16,
-    textAlign: 'left',
-    color: '#FE0034',
+    marginBottom: 4,
+    color: '#000',
   },
   description: {
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 22,
+    color: '#333',
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
-    gap: 25,
+    gap: 24,
+    marginTop: 4,
   },
   footerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '500',
   },
   divider: {
     width: '100%',
     height: 1,
-    backgroundColor: '#E5E5E5',
-  },
-  replyContainer: {
-    flexDirection: 'row',
+    backgroundColor: '#F2F2F2',
   },
   modalOverlay: {
     flex: 1,
@@ -458,40 +464,41 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   dragHandle: {
-    width: 77,
-    height: 5,
-    backgroundColor: Theme.textInactiveTab,
+    width: 36,
+    height: 4,
+    backgroundColor: '#E5E5E5',
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: 20,
+    marginTop: 8,
   },
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 16,
   },
   optionIcon: {
-    marginRight: 8,
+    marginRight: 16,
   },
   modalOptionText: {
-    fontSize: 18,
-    color: Theme.black,
-    fontWeight: '500',
+    fontSize: 17,
+    color: '#000',
+    fontWeight: '400',
     flex: 1,
   },
   deleteText: {
     color: '#FF3B30',
   },
   pinnedBadge: {
-    backgroundColor: '#F0F0F0',
-    paddingHorizontal: 8,
+    backgroundColor: '#F2F2F2',
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    marginLeft: 4,
+    marginLeft: 8,
   },
   pinnedText: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 11,
+    fontWeight: '600',
     color: '#666',
   },
 });

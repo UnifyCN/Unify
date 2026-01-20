@@ -1,18 +1,20 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 
 interface EmptyFeedMessageProps {
   message: string;
   submessage?: React.ReactNode;
   icon?: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
 }
 
 const EmptyFeedMessage = ({
   message,
   submessage,
   icon,
+  style,
 }: EmptyFeedMessageProps) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {icon && <View style={styles.iconContainer}>{icon}</View>}
       <Text style={styles.message}>{message}</Text>
       {submessage}

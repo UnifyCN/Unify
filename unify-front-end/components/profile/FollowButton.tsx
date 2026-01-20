@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { useFollowUser } from '@/hooks/users/useFollowUser';
 import { useFollowStatus } from '@/hooks/users/useFollowStatus';
 import { Theme } from '@/constants/Theme';
 
 interface FollowButtonProps {
   targetUserId: string;
+  style?: StyleProp<ViewStyle>;
 }
 
-export const FollowButton = ({ targetUserId }: FollowButtonProps) => {
+export const FollowButton = ({ targetUserId, style }: FollowButtonProps) => {
   const { data: isFollowing } = useFollowStatus(targetUserId);
   const followUserMutation = useFollowUser();
 
@@ -39,6 +40,7 @@ export const FollowButton = ({ targetUserId }: FollowButtonProps) => {
       style={[
         styles.button,
         localIsFollowing ? styles.followingButton : styles.followButton,
+        style,
       ]}
       onPress={handleFollowToggle}
       disabled={followUserMutation.isPending}
@@ -52,12 +54,12 @@ export const FollowButton = ({ targetUserId }: FollowButtonProps) => {
 
 const styles = StyleSheet.create({
   button: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 64,
+    minWidth: 72,
   },
   followButton: {
     backgroundColor: Theme.primaryGatherRed,
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Theme.white,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
 });

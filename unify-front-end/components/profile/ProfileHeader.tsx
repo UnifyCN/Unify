@@ -19,37 +19,28 @@ export const ProfileHeader = ({
 }: ProfileHeaderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+
   if (!userInfo) {
     return (
       <View style={styles.container}>
-        {/* Left Section - Loading User Info */}
-        <View style={styles.leftSection}>
-          {/* Loading Username */}
-          <SkeletonLoader width={120} height={24} style={{ marginBottom: 8 }} />
-
-          {/* Loading Stats */}
-          <View style={[styles.statsContainer, { marginBottom: 8 }]}>
-            <SkeletonLoader width={15} height={12} style={{ marginRight: 4 }} />
-            <SkeletonLoader width={40} height={12} />
-            <Text style={styles.bullet}> • </Text>
-            <SkeletonLoader width={15} height={12} style={{ marginRight: 4 }} />
-            <SkeletonLoader width={40} height={12} />
-          </View>
-
-          {/* Loading Follow/Edit Button */}
-          <SkeletonLoader width={80} height={24} style={{ marginTop: 8 }} />
+        {/* Left Section - Loading Profile Picture */}
+        <View style={styles.avatarSection}>
+          <SkeletonLoader
+            width={80}
+            height={80}
+            borderRadius={40}
+            style={styles.profilePicture}
+          />
         </View>
 
-        {/* Right Section - Loading Profile Picture */}
-        <View style={styles.rightSection}>
-          <View style={styles.profilePictureContainer}>
-            <SkeletonLoader
-              width={93}
-              height={93}
-              borderRadius={46.5}
-              style={styles.profilePicture}
-            />
+        {/* Right Section - Loading User Info */}
+        <View style={styles.infoSection}>
+          <SkeletonLoader width={120} height={24} style={{ marginBottom: 8 }} />
+          <View style={[styles.statsContainer, { marginBottom: 12 }]}>
+            <SkeletonLoader width={80} height={16} style={{ marginRight: 16 }} />
+            <SkeletonLoader width={80} height={16} />
           </View>
+          <SkeletonLoader width={100} height={32} />
         </View>
       </View>
     );
@@ -57,47 +48,15 @@ export const ProfileHeader = ({
 
   return (
     <View style={styles.container}>
-      {/* Left Section - User Info */}
-      <View style={styles.leftSection}>
-        <Text style={styles.username}>{userInfo.username}</Text>
-
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          <Text style={styles.statNumber}>{userInfo.followerCount} </Text>
-          <Text style={styles.statLabel}>followers</Text>
-          <Text style={styles.bullet}> • </Text>
-          <Text style={styles.statNumber}>{userInfo.followingCount} </Text>
-          <Text style={styles.statLabel}>following</Text>
-        </View>
-
-        {/* Follow Button or Edit Profile Button */}
-        {!isCurrentUser && isCurrentUser !== null && (
-          <View style={styles.followButtonContainer}>
-            <FollowButton targetUserId={userInfo.id} />
-          </View>
-        )}
-        {isCurrentUser && (
-          <View style={styles.followButtonContainer}>
-            <TouchableOpacity
-              style={styles.editProfileButton}
-              onPress={() => router.push('/account-settings')}
-            >
-              <Text style={styles.editProfileButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {/* Right Section - Profile Picture */}
-      <View style={styles.rightSection}>
+      {/* Left Section - Profile Picture */}
+      <View style={styles.avatarSection}>
         <View style={styles.profilePictureContainer}>
           <Avatar
             profilePictureUrl={userInfo.profilePictureUrl}
             username={userInfo.username}
-            size={93}
+            size={80}
             style={styles.profilePicture}
           />
-          {/* Profile Picture Upload Component for Current User */}
           {isCurrentUser && (
             <>
               <TouchableOpacity
@@ -114,6 +73,41 @@ export const ProfileHeader = ({
           )}
         </View>
       </View>
+
+      {/* Right Section - User Info */}
+      <View style={styles.infoSection}>
+        <Text style={styles.username}>{userInfo.username}</Text>
+
+        {/* Stats */}
+        <View style={styles.statsContainer}>
+          <TouchableOpacity style={styles.statItem}>
+            <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
+            <Text style={styles.statLabel}>Followers</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.statItem}>
+            <Text style={styles.statNumber}>{userInfo.followingCount}</Text>
+            <Text style={styles.statLabel}>Following</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Action Button */}
+        <View style={styles.actionButtonContainer}>
+          {!isCurrentUser && isCurrentUser !== null && (
+            <FollowButton
+              targetUserId={userInfo.id}
+              style={{ width: '65%' }}
+            />
+          )}
+          {isCurrentUser && (
+            <TouchableOpacity
+              style={styles.editProfileButton}
+              onPress={() => router.push('/account-settings')}
+            >
+              <Text style={styles.editProfileButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
     </View>
   );
 };
@@ -122,79 +116,24 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingVertical: 20,
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'flex-start',
   },
-  leftSection: {
+  avatarSection: {
+    marginRight: 20,
+  },
+  infoSection: {
     flex: 1,
-  },
-  rightSection: {
-    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 4, 
   },
   profilePictureContainer: {
-    marginBottom: 0,
     position: 'relative',
   },
   profilePicture: {
-    width: 93,
-    height: 93,
-    borderRadius: 46.5,
-    backgroundColor: '#E5E5E5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#D0D0D0',
-  },
-  profilePictureText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#666',
-  },
-  userInfoContainer: {
-    alignItems: 'flex-start',
-    marginBottom: 0,
-  },
-  username: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 2,
-    color: '#000',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statNumber: {
-    fontSize: 12,
-    color: '#000',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#000',
-  },
-  bullet: {
-    fontSize: 12,
-    color: '#000',
-    marginHorizontal: 4,
-  },
-  followButtonContainer: {
-    alignSelf: 'flex-start',
-    marginTop: 'auto',
-  },
-  followButton: {
-    backgroundColor: '#333',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  followButtonText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '600',
+    borderWidth: 1,
+    borderColor: '#F2F2F2',
   },
   avatarButton: {
     position: 'absolute',
@@ -202,20 +141,52 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 46.5,
+    borderRadius: 40,
+  },
+  username: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+    lineHeight: 24,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  statNumber: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#000',
+    marginRight: 4,
+  },
+  statLabel: {
+    fontSize: 15,
+    color: '#666',
+    fontWeight: '400',
+  },
+  actionButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
   },
   editProfileButton: {
-    backgroundColor: Theme.black,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 10,
+    backgroundColor: '#F2F2F2',
+    paddingVertical: 8,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 64,
+    width: '100%',
   },
   editProfileButtonText: {
-    color: Theme.white,
-    fontSize: 12,
+    color: '#000',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

@@ -230,6 +230,7 @@ export default function HomeScreen() {
             ListEmptyComponent={
               <EmptyFeedMessage
                 message='No posts here...'
+                style={{ height: Dimensions.get('window').height * 0.5 }}
                 submessage={
                   <Text style={styles.emptyMessageSubtext}>
                     You haven't followed any users yet.{'\n'}
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   emptyMessageSubtext: {
-    fontSize: 14,
+    fontSize: 16,
     color: Theme.textInput,
     textAlign: 'center',
     lineHeight: 20,
