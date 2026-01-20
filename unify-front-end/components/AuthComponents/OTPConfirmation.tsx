@@ -21,6 +21,8 @@ import {
 interface OTPVerificationProps {
   email: string;
   password: string;
+  /** Timestamp when the user accepted legal documents during signup */
+  legalAcceptedAt?: string;
   onVerificationSuccess?: () => void;
   onBackToSignUp?: () => void;
 }
@@ -28,6 +30,7 @@ interface OTPVerificationProps {
 export default function OTPVerification({
   email,
   password,
+  legalAcceptedAt,
   onVerificationSuccess,
   onBackToSignUp,
 }: OTPVerificationProps) {
@@ -90,7 +93,10 @@ export default function OTPVerification({
         }
 
         try {
-          await createUserIfNotExists(session.user.id, session.user.email);
+          await createUserIfNotExists(session.user.id, session.user.email, {
+            privacyPolicyAcceptedAt: legalAcceptedAt,
+            communityGuidelinesAcceptedAt: legalAcceptedAt,
+          });
         } catch (userCreationError: any) {
           console.error('Failed to create user record:', userCreationError);
           setErrorMessage(

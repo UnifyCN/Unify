@@ -130,6 +130,10 @@ export default function RootLayout() {
                         name='post-details'
                         options={{ headerShown: false }}
                       />
+                      <Stack.Screen
+                        name='legal-document'
+                        options={{ headerShown: false }}
+                      />
                       <Stack.Screen name='+not-found' />
                     </Stack>
                   </PostHogProvider>

@@ -6,11 +6,18 @@ import { generateUsername } from './usernameGenerator';
  * Consolidates check-and-insert logic with identical timestamps.
  * Handles username collisions by retrying with a new username.
  *
+ * @param userId - The auth user ID
+ * @param email - The user's email address
+ * @param options - Optional parameters for legal acceptance timestamps
  * @throws Error if unable to create user record after retries or on critical failures
  */
 export const createUserIfNotExists = async (
   userId: string,
-  email: string
+  email: string,
+  options?: {
+    privacyPolicyAcceptedAt?: string;
+    communityGuidelinesAcceptedAt?: string;
+  }
 ): Promise<void> => {
   // Validate required parameters
   if (!userId) {
@@ -55,6 +62,12 @@ export const createUserIfNotExists = async (
       permissions: 'user',
       created_at: timestamp,
       updated_at: timestamp,
+      ...(options?.privacyPolicyAcceptedAt && {
+        privacy_policy_accepted_at: options.privacyPolicyAcceptedAt,
+      }),
+      ...(options?.communityGuidelinesAcceptedAt && {
+        community_guidelines_accepted_at: options.communityGuidelinesAcceptedAt,
+      }),
     });
 
     if (!insertError) return; // Success
