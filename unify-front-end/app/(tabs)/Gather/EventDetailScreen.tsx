@@ -150,6 +150,19 @@ const EventDetailScreen = () => {
             </View>
           </View>
 
+          {/* Hosted By */}
+          {eventData.hostedBy && (
+            <View style={styles.detailRow}>
+              <View style={styles.detailIcon}>
+                <Feather name='user' size={20} color='#000' />
+              </View>
+              <View style={styles.detailContent}>
+                <Text style={styles.detailTitle}>Hosted by</Text>
+                <Text style={styles.detailSubtitle}>{eventData.hostedBy}</Text>
+              </View>
+            </View>
+          )}
+
           {/* About Event */}
           <View style={styles.aboutSection}>
             <Text style={styles.aboutTitle}>About Event</Text>

@@ -184,6 +184,7 @@ CREATE TABLE events (
     event_end_datetime TIMESTAMPTZ,
     location TEXT NOT NULL,
     address TEXT NOT NULL,
+    hosted_by TEXT,
     event_type TEXT CHECK (event_type IN ('in-person', 'online', 'hybrid')) NOT NULL,
     cover_photo_url TEXT,
     external_link TEXT,
