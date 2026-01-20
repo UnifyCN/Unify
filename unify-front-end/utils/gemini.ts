@@ -9,7 +9,8 @@ interface ConversationMessage {
 export const callGeminiAPI = async (
   prompt: string,
   conversationIdentifier?: string,
-  messages?: ConversationMessage[]
+  messages?: ConversationMessage[],
+  userId?: string
 ) => {
   try {
     const { data, error } = await supabase.functions.invoke('rag-query', {
@@ -17,6 +18,7 @@ export const callGeminiAPI = async (
         prompt,
         conversationIdentifier,
         messages: messages || [],
+        userId,
       },
     });
 

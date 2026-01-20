@@ -9,6 +9,7 @@ import {
   formatMessagesForAPI,
   parseRAGResponse,
 } from '@/helpers/companion/messageHelpers';
+import { supabase } from '@/lib/supabase';
 
 interface UseSendMessageParams {
   messages: Message[];
@@ -37,6 +38,12 @@ export const useSendMessage = ({
     setIsLoading(true);
 
     try {
+      // Get current user ID
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const userId = user?.id;
+
       let conversationIdToUse = currentConversationId;
 
       // If no conversation exists yet, create a new one with title generated from first message
@@ -74,11 +81,12 @@ export const useSendMessage = ({
       // Format messages for RAG API (last 10 messages for context)
       const conversationMessages = formatMessagesForAPI(messages, messageText);
 
-      // Call the Gemini API through Supabase edge function with conversation context
+      // Call the Gemini API through Supabase edge function with conversation context and user ID
       const response = await callGeminiAPI(
         messageText,
         conversationIdToUse,
-        conversationMessages
+        conversationMessages,
+        userId
       );
 
       // Update usage count only for non-premium users

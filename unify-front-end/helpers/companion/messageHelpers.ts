@@ -55,23 +55,20 @@ export const formatMessagesForUI = (
 
 /**
  * Formats messages for RAG API context (last 10 messages)
+ * Only includes messages that are already in the conversation (not the current one being sent)
  */
 export const formatMessagesForAPI = (
   messages: Message[],
   currentUserMessage: string
 ): ConversationMessageForAPI[] => {
-  return [
-    ...messages
-      .slice(-9) // Get last 9 messages (we'll add current one)
-      .map(msg => ({
-        message: msg.text,
-        role: msg.isUser ? ('user' as const) : ('assistant' as const),
-      })),
-    {
-      message: currentUserMessage,
-      role: 'user' as const,
-    },
-  ].slice(-10); // Ensure we only send last 10 total
+  // Get the last 10 messages from the conversation history (excluding current message)
+  // The current message will be added separately by the edge function
+  return messages
+    .slice(-10)
+    .map(msg => ({
+      message: msg.text,
+      role: msg.isUser ? ('user' as const) : ('assistant' as const),
+    }));
 };
 
 /**

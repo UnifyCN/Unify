@@ -132,6 +132,13 @@ Example: [SUGGESTIONS]: How do I open a TFSA? | What's the contribution limit? |
 function buildImmigrationSystemInstruction(contextText: string): string {
   return `You are Unify's AI assistant, helping newcomers to Canada navigate immigration and settlement topics. You are friendly, supportive, and knowledgeable.
 
+CRITICAL - YOU HAVE ACCESS TO:
+1. The FULL conversation history with this user (all previous messages in this chat)
+2. The user's personal profile including their situation in Canada, goals, and interests
+3. Knowledge base articles about Canadian immigration
+
+You MUST use this information when answering. If relevant, include details of the user's personal profile while answering.
+
 CONTEXT FROM KNOWLEDGE BASE:
 ${contextText}
 
@@ -165,6 +172,12 @@ CRITICAL GUARDRAILS:
  */
 function buildImmigrationNoKBInstruction(): string {
   return `You are Unify's AI assistant, helping newcomers to Canada navigate immigration and settlement topics. You are friendly, supportive, and knowledgeable.
+
+CRITICAL - YOU HAVE ACCESS TO:
+1. The FULL conversation history with this user (all previous messages in this chat)
+2. The user's personal profile including their situation in Canada, goals, and interests
+
+You MUST use this information when answering. If relevant, include details of the user's personal profile while answering.
 
 CRITICAL: BREVITY IS KEY
 Users are on mobile. Keep responses short and scannable. Avoid walls of text. Each section should be 2-3 sentences MAX. Get to the point quickly.
@@ -200,6 +213,8 @@ function buildFactCheckInstruction(contextText: string): string {
     : '';
 
   return `You are Unify's AI assistant in FACT CHECK mode. The user wants to verify a claim or rumor they heard about Canadian immigration or settlement.
+
+IMPORTANT: You have access to the user's conversation history and their personal profile information. USE this context when relevant.
 
 ${kbContext}
 CRITICAL: BE RIGOROUS AND CITE SOURCES
@@ -239,6 +254,8 @@ function buildFormHelpInstruction(contextText: string): string {
 
   return `You are Unify's AI assistant in FORM HELP mode. The user needs help understanding an immigration form.
 
+IMPORTANT: You have access to the user's conversation history and their personal profile information. USE this context to provide personalized guidance.
+
 ${kbContext}
 CRITICAL: EDUCATIONAL ONLY - NEVER TELL THEM WHAT TO WRITE
 Your job is to EXPLAIN what questions mean and what information is being asked for. You are NOT providing legal advice or telling them how to answer.
@@ -271,6 +288,12 @@ NEVER DO:
  */
 function buildGeneralSystemInstruction(): string {
   return `You are Unify's AI assistant. You are helpful, friendly, and conversational.
+
+CRITICAL - YOU HAVE ACCESS TO:
+1. The FULL conversation history with this user (all previous messages)
+2. The user's personal profile information
+
+You MUST use this information when answering. If relevant, include details of the user's personal profile while answering.
 
 GUARDRAILS:
 1. **NO PROFESSIONAL ADVICE**: Do not provide legal, medical, or financial advice. For such topics, recommend consulting appropriate professionals.
@@ -312,10 +335,11 @@ function parseSuggestionsFromResponse(answer: string): {
 
 Deno.serve(async (req: Request) => {
   try {
-    const { prompt, conversationIdentifier, messages } = await req.json();
+    const { prompt, conversationIdentifier, messages, userId } = await req.json();
     console.log('Question asked:', prompt);
     console.log('Conversation identifier:', conversationIdentifier);
     console.log('Previous messages count:', messages?.length || 0);
+    console.log('User ID:', userId);
 
     const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
@@ -326,6 +350,56 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // ========================================================================
+    // FETCH USER ONBOARDING PROFILE
+    // ========================================================================
+    let userProfileContext = '';
+    let userProfileMetadata: any = null;
+    
+    if (userId) {
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('user_onboarding_profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (!profileError && profile) {
+          console.log('Fetched user onboarding profile');
+          
+          // Remove metadata fields that aren't useful for AI context
+          const { id, created_at, updated_at, onboarding_completed, onboarding_completed_at, ...relevantProfile } = profile;
+          
+          // Remove null/empty fields to keep context clean
+          const cleanedProfile: any = {};
+          Object.entries(relevantProfile).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+              // Skip empty arrays
+              if (Array.isArray(value) && value.length === 0) return;
+              // Skip empty strings
+              if (typeof value === 'string' && value.trim() === '') return;
+              cleanedProfile[key] = value;
+            }
+          });
+          
+          if (Object.keys(cleanedProfile).length > 0) {
+            userProfileMetadata = cleanedProfile;
+            userProfileContext = `\n\nUSER PROFILE METADATA:\n${JSON.stringify(cleanedProfile, null, 2)}\n\nThis is the user's onboarding profile. Use this information to personalize your responses. Interpret the field names naturally (e.g., 'persona' = their immigration status, 'time_in_canada' = how long they've been here, 'goals' = what they want to achieve, etc.). Make your responses relevant to their specific situation.`;
+            console.log('User profile metadata:', JSON.stringify(cleanedProfile));
+          } else {
+            console.log('No relevant profile data found');
+          }
+        } else {
+          console.log('No profile data found for user:', userId);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        // Continue without profile context if there's an error
+      }
+    } else {
+      console.log('No userId provided, skipping profile fetch');
+    }
 
     // ========================================================================
     // STEP 1: CLASSIFY THE QUERY (runs BEFORE embeddings to save costs)
@@ -458,6 +532,8 @@ Deno.serve(async (req: Request) => {
         parts: [{ text: msg.message }],
       })
     );
+    
+    console.log('Conversation history messages:', conversationHistory.length);
 
     // ========================================================================
     // STEP 4: BUILD SYSTEM INSTRUCTION BASED ON QUERY TYPE
@@ -483,21 +559,53 @@ Deno.serve(async (req: Request) => {
         systemInstruction = buildGeneralSystemInstruction();
     }
 
-    // Add preprompt if available
-    const fullSystemInstruction = preprompt
-      ? `${preprompt}\n\n${systemInstruction}`
-      : systemInstruction;
+    // Add user profile context and preprompt if available
+    // Profile context goes FIRST so the AI sees it immediately
+    let fullSystemInstruction = '';
+    
+    if (preprompt) {
+      fullSystemInstruction = `${preprompt}\n\n`;
+    }
+    
+    if (userProfileContext) {
+      fullSystemInstruction += `${userProfileContext}\n\n`;
+    } else {
+      // Add explicit note if no profile is available
+      fullSystemInstruction += `\nNOTE: No user profile information is currently available.\n\n`;
+    }
+    
+    fullSystemInstruction += systemInstruction;
+    
+    console.log('Has user profile context:', !!userProfileContext);
+    console.log('Conversation history messages:', conversationHistory.length);
+    console.log('Full system instruction length:', fullSystemInstruction.length);
+    
+    if (!userProfileContext && conversationHistory.length === 0) {
+      console.warn('WARNING: No user profile AND no conversation history available!');
+    }
 
     // ========================================================================
     // STEP 5: BUILD REQUEST AND CALL GEMINI
     // ========================================================================
     const contents = [];
-    contents.push(...conversationHistory);
-
-    const currentPrompt = `${fullSystemInstruction}\n\nUser question: ${prompt}`;
+    
+    // Add system instruction as first message (Gemini uses this as context)
     contents.push({
       role: 'user',
-      parts: [{ text: currentPrompt }],
+      parts: [{ text: fullSystemInstruction }],
+    });
+    contents.push({
+      role: 'model',
+      parts: [{ text: 'Understood. I have access to the full conversation history and user profile. I will use this context in my responses and will NOT claim I lack access to previous conversations or personal information.' }],
+    });
+    
+    // Add conversation history
+    contents.push(...conversationHistory);
+
+    // Add current user question
+    contents.push({
+      role: 'user',
+      parts: [{ text: prompt }],
     });
 
     const requestBody = {
