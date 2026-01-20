@@ -21,7 +21,6 @@ import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
-
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
@@ -64,7 +63,7 @@ export default function LessonPageScreen() {
     lessonId || '',
     currentPage
   );
-  
+
   const TRACKING_THROTTLE_MS = 500;
   const lessonTitle = lesson?.title;
   const lastTrackedPageRef = useRef<string>('');
@@ -84,12 +83,29 @@ export default function LessonPageScreen() {
         now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
         lastTrackedPageRef.current !== pageKey
       ) {
-        trackScreen(`Lesson Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
-        trackLessonPageViewed(moduleId, submoduleId, lessonId, currentPage, totalPages);
+        trackScreen(
+          `Lesson Page: ${lessonTitle} - ${currentPage}/${totalPages}`
+        );
+        trackLessonPageViewed(
+          moduleId,
+          submoduleId,
+          lessonId,
+          currentPage,
+          totalPages
+        );
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }
-    }, [lessonTitle, moduleId, submoduleId, lessonId, currentPage, totalPages, trackScreen, trackLessonPageViewed])
+    }, [
+      lessonTitle,
+      moduleId,
+      submoduleId,
+      lessonId,
+      currentPage,
+      totalPages,
+      trackScreen,
+      trackLessonPageViewed,
+    ])
   );
 
   // Helper functions for sequential navigation

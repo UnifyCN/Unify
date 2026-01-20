@@ -21,7 +21,6 @@ import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
-
 export default function ActivityPageScreen() {
   const router = useRouter();
   const { moduleId, submoduleId, lessonId, pageNum } = useLocalSearchParams<{
@@ -83,8 +82,14 @@ export default function ActivityPageScreen() {
       const now = Date.now();
       const pageKey = `${lessonId}-${currentPage}`;
       // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
-      if (lessonTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
-        trackScreen(`Activity Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
+      if (
+        lessonTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(
+          `Activity Page: ${lessonTitle} - ${currentPage}/${totalPages}`
+        );
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }
@@ -136,7 +141,12 @@ export default function ActivityPageScreen() {
   const handleSubmit = async () => {
     setIsSubmitted(true);
     if (moduleId && submoduleId && lessonId && currentPageData?._key) {
-      trackActivityCompleted(moduleId, submoduleId, lessonId, currentPageData._key);
+      trackActivityCompleted(
+        moduleId,
+        submoduleId,
+        lessonId,
+        currentPageData._key
+      );
     }
   };
 

@@ -21,7 +21,7 @@ const EventDetailScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { event } = useLocalSearchParams();
-  
+
   // Memoize parsed event data with safety handling
   const eventData: Event | null = useMemo(() => {
     try {
@@ -32,7 +32,7 @@ const EventDetailScreen = () => {
       return null;
     }
   }, [event]);
-  
+
   const { trackEventViewed, trackEventShared, trackEventExternalLinkClicked } =
     useAnalytics();
 

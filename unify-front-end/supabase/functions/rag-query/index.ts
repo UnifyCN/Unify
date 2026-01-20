@@ -335,7 +335,8 @@ function parseSuggestionsFromResponse(answer: string): {
 
 Deno.serve(async (req: Request) => {
   try {
-    const { prompt, conversationIdentifier, messages, userId } = await req.json();
+    const { prompt, conversationIdentifier, messages, userId } =
+      await req.json();
     console.log('Question asked:', prompt);
     console.log('Conversation identifier:', conversationIdentifier);
     console.log('Previous messages count:', messages?.length || 0);
@@ -356,7 +357,7 @@ Deno.serve(async (req: Request) => {
     // ========================================================================
     let userProfileContext = '';
     let userProfileMetadata: any = null;
-    
+
     if (userId) {
       try {
         const { data: profile, error: profileError } = await supabase
@@ -367,10 +368,17 @@ Deno.serve(async (req: Request) => {
 
         if (!profileError && profile) {
           console.log('Fetched user onboarding profile');
-          
+
           // Remove metadata fields that aren't useful for AI context
-          const { id, created_at, updated_at, onboarding_completed, onboarding_completed_at, ...relevantProfile } = profile;
-          
+          const {
+            id,
+            created_at,
+            updated_at,
+            onboarding_completed,
+            onboarding_completed_at,
+            ...relevantProfile
+          } = profile;
+
           // Remove null/empty fields to keep context clean
           const cleanedProfile: any = {};
           Object.entries(relevantProfile).forEach(([key, value]) => {
@@ -382,11 +390,14 @@ Deno.serve(async (req: Request) => {
               cleanedProfile[key] = value;
             }
           });
-          
+
           if (Object.keys(cleanedProfile).length > 0) {
             userProfileMetadata = cleanedProfile;
             userProfileContext = `\n\nUSER PROFILE METADATA:\n${JSON.stringify(cleanedProfile, null, 2)}\n\nThis is the user's onboarding profile. Use this information to personalize your responses. Interpret the field names naturally (e.g., 'persona' = their immigration status, 'time_in_canada' = how long they've been here, 'goals' = what they want to achieve, etc.). Make your responses relevant to their specific situation.`;
-            console.log('User profile metadata:', JSON.stringify(cleanedProfile));
+            console.log(
+              'User profile metadata:',
+              JSON.stringify(cleanedProfile)
+            );
           } else {
             console.log('No relevant profile data found');
           }
@@ -532,7 +543,7 @@ Deno.serve(async (req: Request) => {
         parts: [{ text: msg.message }],
       })
     );
-    
+
     console.log('Conversation history messages:', conversationHistory.length);
 
     // ========================================================================
@@ -562,33 +573,38 @@ Deno.serve(async (req: Request) => {
     // Add user profile context and preprompt if available
     // Profile context goes FIRST so the AI sees it immediately
     let fullSystemInstruction = '';
-    
+
     if (preprompt) {
       fullSystemInstruction = `${preprompt}\n\n`;
     }
-    
+
     if (userProfileContext) {
       fullSystemInstruction += `${userProfileContext}\n\n`;
     } else {
       // Add explicit note if no profile is available
       fullSystemInstruction += `\nNOTE: No user profile information is currently available.\n\n`;
     }
-    
+
     fullSystemInstruction += systemInstruction;
-    
+
     console.log('Has user profile context:', !!userProfileContext);
     console.log('Conversation history messages:', conversationHistory.length);
-    console.log('Full system instruction length:', fullSystemInstruction.length);
-    
+    console.log(
+      'Full system instruction length:',
+      fullSystemInstruction.length
+    );
+
     if (!userProfileContext && conversationHistory.length === 0) {
-      console.warn('WARNING: No user profile AND no conversation history available!');
+      console.warn(
+        'WARNING: No user profile AND no conversation history available!'
+      );
     }
 
     // ========================================================================
     // STEP 5: BUILD REQUEST AND CALL GEMINI
     // ========================================================================
     const contents = [];
-    
+
     // Add system instruction as first message (Gemini uses this as context)
     contents.push({
       role: 'user',
@@ -596,9 +612,13 @@ Deno.serve(async (req: Request) => {
     });
     contents.push({
       role: 'model',
-      parts: [{ text: 'Understood. I have access to the full conversation history and user profile. I will use this context in my responses and will NOT claim I lack access to previous conversations or personal information.' }],
+      parts: [
+        {
+          text: 'Understood. I have access to the full conversation history and user profile. I will use this context in my responses and will NOT claim I lack access to previous conversations or personal information.',
+        },
+      ],
     });
-    
+
     // Add conversation history
     contents.push(...conversationHistory);
 

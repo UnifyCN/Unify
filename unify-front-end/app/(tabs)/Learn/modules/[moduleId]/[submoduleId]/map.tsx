@@ -119,7 +119,8 @@ const getLessonStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SubmoduleMap() {
   const router = useRouter();
-  const { trackScreen, trackSubmoduleViewed, trackLessonStarted } = useAnalytics();
+  const { trackScreen, trackSubmoduleViewed, trackLessonStarted } =
+    useAnalytics();
   const insets = useSafeAreaInsets();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
@@ -145,16 +146,27 @@ export default function SubmoduleMap() {
   // Track submodule map view
   const submoduleTitle = submoduleData?.title;
   const lastTrackedRef = useRef<number>(0);
-  
+
   useFocusEffect(
     useCallback(() => {
       const now = Date.now();
-      if (submoduleTitle && moduleId && submoduleId && now - lastTrackedRef.current > 500) {
+      if (
+        submoduleTitle &&
+        moduleId &&
+        submoduleId &&
+        now - lastTrackedRef.current > 500
+      ) {
         trackScreen(`Map: ${submoduleTitle}`);
         trackSubmoduleViewed(moduleId, submoduleId, submoduleTitle);
         lastTrackedRef.current = now;
       }
-    }, [submoduleTitle, moduleId, submoduleId, trackScreen, trackSubmoduleViewed])
+    }, [
+      submoduleTitle,
+      moduleId,
+      submoduleId,
+      trackScreen,
+      trackSubmoduleViewed,
+    ])
   );
 
   // Fetch lesson progress data
@@ -382,7 +394,12 @@ export default function SubmoduleMap() {
                 // Otherwise, go directly to lesson
                 // Track lesson start event
                 if (moduleId && submoduleId) {
-                  trackLessonStarted(moduleId, submoduleId, lesson.id, lesson.title);
+                  trackLessonStarted(
+                    moduleId,
+                    submoduleId,
+                    lesson.id,
+                    lesson.title
+                  );
                 }
                 router.push({
                   pathname:

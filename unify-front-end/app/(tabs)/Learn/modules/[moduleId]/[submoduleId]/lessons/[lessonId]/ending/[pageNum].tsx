@@ -22,7 +22,6 @@ import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
-
 export default function EndingPageScreen() {
   const router = useRouter();
   const { moduleId, submoduleId, lessonId, pageNum } = useLocalSearchParams<{
@@ -73,8 +72,14 @@ export default function EndingPageScreen() {
       const now = Date.now();
       const pageKey = `${lessonId}-${currentPage}`;
       // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
-      if (lessonTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
-        trackScreen(`Ending Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
+      if (
+        lessonTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(
+          `Ending Page: ${lessonTitle} - ${currentPage}/${totalPages}`
+        );
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }

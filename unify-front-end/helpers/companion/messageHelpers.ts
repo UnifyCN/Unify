@@ -63,12 +63,10 @@ export const formatMessagesForAPI = (
 ): ConversationMessageForAPI[] => {
   // Get the last 10 messages from the conversation history (excluding current message)
   // The current message will be added separately by the edge function
-  return messages
-    .slice(-10)
-    .map(msg => ({
-      message: msg.text,
-      role: msg.isUser ? ('user' as const) : ('assistant' as const),
-    }));
+  return messages.slice(-10).map(msg => ({
+    message: msg.text,
+    role: msg.isUser ? ('user' as const) : ('assistant' as const),
+  }));
 };
 
 /**
