@@ -6,6 +6,7 @@ export type Event = {
   eventEndDatetime: string | null;
   location: string;
   address: string | null;
+  hostedBy: string | null;
   eventType: EventType;
   genre: EventGenre | null;
   coverPhotoUrl: string | null;
