@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
@@ -28,12 +28,21 @@ const Feed = ({
   ListHeaderComponent,
   ListEmptyComponent,
 }: FeedProps) => {
-  const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
-
-  const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
-    allPosts.map((post: PostData) => post.id)
+  // Memoize allPosts to avoid recalculating on every render
+  const allPosts = useMemo(
+    () => data?.pages?.flatMap((page: any) => page.posts) ?? [],
+    [data?.pages]
   );
 
+  // Memoize post IDs array to avoid creating new array reference on every render
+  const postIds = useMemo(
+    () => allPosts.map((post: PostData) => post.id),
+    [allPosts]
+  );
+
+  const { data: metadata, isLoading: metadataLoading } = usePostMetadata(postIds);
+
+  // Memoize renderPost callback with stable dependencies
   const renderPost = useCallback(
     ({ item }: { item: PostData }) => {
       return (
@@ -47,11 +56,21 @@ const Feed = ({
     [metadata, metadataLoading]
   );
 
-  const handleLoadMore = () => {
+  // Memoize handleLoadMore to avoid recreating on every render
+  const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && fetchNextPage) {
       fetchNextPage();
     }
-  };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Memoize contentContainerStyle to avoid recreating object on every render
+  const contentContainerStyle = useMemo(
+    () =>
+      allPosts.length === 0 && ListEmptyComponent
+        ? styles.emptyContentContainer
+        : undefined,
+    [allPosts.length, ListEmptyComponent]
+  );
 
   if (isLoading && allPosts.length === 0) {
     return (
@@ -67,10 +86,16 @@ const Feed = ({
     );
   }
 
+  // Memoize keyExtractor to avoid recreating function on every render
+  const keyExtractor = useCallback(
+    (item: PostData) => item.id.toString(),
+    []
+  );
+
   return (
     <FlatList
       data={allPosts}
-      keyExtractor={item => item.id.toString()}
+      keyExtractor={keyExtractor}
       renderItem={renderPost}
       onEndReached={handleLoadMore}
       onEndReachedThreshold={0.5}
@@ -89,6 +114,13 @@ const Feed = ({
           </View>
         ) : null
       }
+      contentContainerStyle={contentContainerStyle}
+      // Performance optimizations
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={10}
+      updateCellsBatchingPeriod={50}
+      initialNumToRender={10}
+      windowSize={10}
     />
   );
 };
@@ -100,6 +132,9 @@ const styles = StyleSheet.create({
   loadingFooter: {
     padding: 20,
     alignItems: 'center',
+  },
+  emptyContentContainer: {
+    flexGrow: 1,
   },
 });
 

@@ -24,7 +24,7 @@ const EmptyFeedMessage = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 20,
+    paddingTop: 200,
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

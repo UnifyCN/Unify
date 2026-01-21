@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,17 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
+
+// Dynamically import WebView to handle cases where native module isn't available (e.g., Expo Go)
+let WebView: any = null;
+try {
+  WebView = require('react-native-webview').WebView;
+} catch {
+  // WebView not available - will fall back to browser
+}
 
 interface LegalWebViewProps {
   url: string;
@@ -27,6 +34,7 @@ interface LegalWebViewProps {
  * - Loading spinner
  * - Error state with retry
  * - Navigation restricted to allowed domain
+ * - Graceful fallback to browser when WebView is unavailable (e.g., in Expo Go)
  */
 export default function LegalWebView({
   url,
@@ -38,6 +46,17 @@ export default function LegalWebView({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [key, setKey] = useState(0); // For retry functionality
+  const [webViewAvailable, setWebViewAvailable] = useState(WebView !== null);
+
+  // If WebView isn't available, open in browser and close
+  useEffect(() => {
+    if (!webViewAvailable) {
+      Linking.openURL(url).catch(() => {
+        // If browser fails to open, show error state
+        setError(true);
+      });
+    }
+  }, [webViewAvailable, url]);
 
   const handleShouldStartLoad = (event: { url: string }) => {
     if (event.url === 'about:blank') {
@@ -70,10 +89,58 @@ export default function LegalWebView({
   };
 
   const handleRetry = () => {
+    if (!webViewAvailable) {
+      // Try opening in browser again
+      Linking.openURL(url).catch(() => {
+        setError(true);
+      });
+      return;
+    }
     setError(false);
     setLoading(true);
     setKey(prev => prev + 1);
   };
+
+  const handleOpenInBrowser = () => {
+    Linking.openURL(url).catch(() => {
+      // Silently fail
+    });
+    onClose();
+  };
+
+  // Fallback UI when WebView isn't available
+  if (!webViewAvailable) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <Feather name="x" size={24} color={Theme.black} />
+          </TouchableOpacity>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={styles.content}>
+          <View style={styles.fallbackContainer}>
+            <Feather name="external-link" size={48} color={Theme.textInput} />
+            <Text style={styles.fallbackText}>
+              Opening in your browser...
+            </Text>
+            <Text style={styles.fallbackSubtext}>
+              If the page doesn't open automatically, tap the button below.
+            </Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleOpenInBrowser}>
+              <Text style={styles.retryButtonText}>Open in Browser</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.closeTextButton} onPress={onClose}>
+              <Text style={styles.closeTextButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -194,5 +261,33 @@ const styles = StyleSheet.create({
     color: Theme.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  fallbackContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  fallbackText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Theme.black,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  fallbackSubtext: {
+    fontSize: 14,
+    color: Theme.textInput,
+    marginTop: 8,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  closeTextButton: {
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  closeTextButtonText: {
+    fontSize: 16,
+    color: Theme.textInput,
   },
 });
