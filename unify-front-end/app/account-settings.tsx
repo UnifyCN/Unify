@@ -47,7 +47,7 @@ export default function AccountSettingsPage() {
 
   const settingsRows = [
     {
-      title: 'Saved',
+      title: 'Saved Posts',
       icon: 'bookmark' as const,
       onPress: () => router.push('/saved'),
     },

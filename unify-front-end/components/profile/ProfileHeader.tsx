@@ -64,10 +64,10 @@ export const ProfileHeader = ({
         {/* Stats */}
         <View style={styles.statsContainer}>
           <Text style={styles.statNumber}>{userInfo.followerCount} </Text>
-          <Text style={styles.statLabel}>followers</Text>
+          <Text style={styles.statLabel}>Followers</Text>
           <Text style={styles.bullet}> • </Text>
           <Text style={styles.statNumber}>{userInfo.followingCount} </Text>
-          <Text style={styles.statLabel}>following</Text>
+          <Text style={styles.statLabel}>Following</Text>
         </View>
 
         {/* Follow Button or Edit Profile Button */}
@@ -164,18 +164,18 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   statNumber: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#000',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#000',
   },
   bullet: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#000',
     marginHorizontal: 4,
   },
@@ -206,8 +206,8 @@ const styles = StyleSheet.create({
   },
   editProfileButton: {
     backgroundColor: Theme.black,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   editProfileButtonText: {
     color: Theme.white,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
 });

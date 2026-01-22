@@ -194,12 +194,13 @@ const styles = StyleSheet.create({
     zIndex: 1000,
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5E5',
+    paddingTop: 8,
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
-    paddingBottom: 12,
+    paddingVertical: 8,
     marginHorizontal: 20,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     borderBottomColor: Theme.primaryGatherRed,
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: Theme.textInactiveTab,
   },

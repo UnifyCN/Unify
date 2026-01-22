@@ -1,0 +1,134 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Theme } from '@/constants/Theme';
+
+type DestinationType = '4u' | 'group';
+
+interface DestinationToggleProps {
+  destination: DestinationType;
+  selectedGroup: any | null;
+  onDestinationChange: (destination: DestinationType) => void;
+  onClearGroup: () => void;
+}
+
+export default function DestinationToggle({
+  destination,
+  selectedGroup,
+  onDestinationChange,
+  onClearGroup,
+}: DestinationToggleProps) {
+  return (
+    <View style={styles.container}>
+      <View style={styles.toggleContainer}>
+        <TouchableOpacity
+          style={[
+            styles.togglePill,
+            destination === '4u' && styles.togglePillActive,
+          ]}
+          onPress={() => onDestinationChange('4u')}
+        >
+          <Text
+            style={[
+              styles.toggleText,
+              destination === '4u' && styles.toggleTextActive,
+            ]}
+          >
+            For You
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.togglePill,
+            destination === 'group' && styles.togglePillActive,
+          ]}
+          onPress={() => onDestinationChange('group')}
+        >
+          <Text
+            style={[
+              styles.toggleText,
+              destination === 'group' && styles.toggleTextActive,
+            ]}
+          >
+            Group
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.indicatorContainer}>
+        {destination === '4u' ? (
+          <Text style={styles.indicatorText}>Posting to For You feed</Text>
+        ) : selectedGroup ? (
+          <View style={styles.groupIndicator}>
+            <Text style={styles.groupIndicatorText}>
+              Posting to {selectedGroup.name}
+            </Text>
+            <TouchableOpacity onPress={onClearGroup} style={styles.clearButton}>
+              <Text style={styles.clearButtonText}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={styles.indicatorText}>Select a group to post</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 12,
+  },
+  togglePill: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: Theme.borderInfoText,
+    backgroundColor: 'transparent',
+  },
+  togglePillActive: {
+    backgroundColor: Theme.primaryGatherRed,
+    borderColor: Theme.primaryGatherRed,
+  },
+  toggleText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Theme.textAlternateGray,
+  },
+  toggleTextActive: {
+    color: '#fff',
+  },
+  indicatorContainer: {
+    marginTop: 4,
+    minHeight: 20,
+  },
+  indicatorText: {
+    fontSize: 14,
+    color: Theme.textAlternateGray,
+    fontStyle: 'italic',
+  },
+  groupIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  groupIndicatorText: {
+    fontSize: 14,
+    color: Theme.black,
+    fontWeight: '500',
+  },
+  clearButton: {
+    padding: 4,
+  },
+  clearButtonText: {
+    fontSize: 16,
+    color: Theme.textAlternateGray,
+    fontWeight: '600',
+  },
+});
