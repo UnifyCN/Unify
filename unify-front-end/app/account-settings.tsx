@@ -47,6 +47,11 @@ export default function AccountSettingsPage() {
 
   const settingsRows = [
     {
+      title: 'View Profile',
+      icon: 'user' as const,
+      onPress: () => router.push(`/profile?userId=${currentUser?.id}`),
+    },
+    {
       title: 'Saved Posts',
       icon: 'bookmark' as const,
       onPress: () => router.push('/saved'),
@@ -92,7 +97,7 @@ export default function AccountSettingsPage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Profile' onBack={() => router.back()} />
+      <BackHeader title='Settings' onBack={() => router.back()} />
       <View style={styles.content}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
