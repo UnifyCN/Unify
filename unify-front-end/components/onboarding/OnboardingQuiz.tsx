@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -21,7 +22,6 @@ import { supabase } from '@/lib/supabase';
 import {
   Persona,
   ReferralSource,
-  TimeInCanada,
   Goal,
   LearningInterest,
   Hobby,
@@ -47,7 +47,9 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const [referralSourceOther, setReferralSourceOther] = useState<string | null>(
     null
   );
-  const [timeInCanada, setTimeInCanada] = useState<TimeInCanada | null>(null);
+  const [arrivalMonth, setArrivalMonth] = useState<string>('');
+  const [arrivalYear, setArrivalYear] = useState<string>('');
+
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalsOther, setGoalsOther] = useState<string | null>(null);
   const [learningInterests, setLearningInterests] = useState<
@@ -61,6 +63,17 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
   // Validation errors
   const [errors, setErrors] = useState<Record<number, string>>({});
+
+  const buildArrivalDate = () => {
+    if (!arrivalMonth || !arrivalYear) return null;
+
+    const month = Number(arrivalMonth);
+    const year = Number(arrivalYear);
+
+    if (month < 1 || month > 12) return null;
+
+    return new Date(Date.UTC(year, month - 1, 1)).toISOString();
+  };
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<number, string> = {};
@@ -90,9 +103,23 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           return false;
         }
         break;
-      case 4: // Time in Canada
-        if (!timeInCanada) {
-          newErrors[4] = 'Please select an option';
+      case 4:
+        const month = Number(arrivalMonth);
+        const year = Number(arrivalYear);
+
+        if (
+          !arrivalMonth ||
+          !arrivalYear ||
+          Number.isNaN(month) ||
+          Number.isNaN(year)
+        ) {
+          newErrors[4] = 'Please enter a valid month and year';
+          setErrors(newErrors);
+          return false;
+        }
+
+        if (month < 1 || month > 12) {
+          newErrors[4] = 'Month must be between 1 and 12';
           setErrors(newErrors);
           return false;
         }
@@ -178,6 +205,8 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       return;
     }
 
+    const arrivalDate = buildArrivalDate();
+
     try {
       await saveMutation.mutateAsync({
         userId: user.id, // Use user.id from Supabase auth directly
@@ -186,7 +215,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           persona_other: personaOther,
           referral_source: referralSource,
           referral_source_other: referralSourceOther,
-          time_in_canada: timeInCanada,
+          arrival_date: arrivalDate,
           goals,
           goals_other: goalsOther,
           learning_interests: learningInterests,
@@ -288,22 +317,40 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         );
       case 4:
         return (
-          <SingleSelectQuestion
-            question='How long have you been in Canada?'
-            options={[
-              { value: 'not_arrived', label: "I haven't arrived yet" },
-              { value: 'less_than_1_year', label: 'Less than 1 year' },
-              { value: '1_to_2_years', label: '1–2 years' },
-              { value: '2_to_3_years', label: '2–3 years' },
-              { value: '3_plus_years', label: '3+ years' },
-            ]}
-            selectedValue={timeInCanada}
-            otherValue={null}
-            onSelect={value => setTimeInCanada(value as TimeInCanada)}
-            onOtherChange={() => {}} // No "other" option for this question
-            required
-            error={errors[4]}
-          />
+          <View style={styles.container}>
+            <Text style={styles.question}>
+              When did you arrive, or when will you arrive in Canada?
+            </Text>
+
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TextInput
+                style={[styles.dateInput, { flex: 1 }]}
+                placeholder='MM'
+                keyboardType='number-pad'
+                maxLength={2}
+                value={arrivalMonth}
+                onChangeText={text => {
+                  const digits = text.replace(/[^0-9]/g, '');
+                  setArrivalMonth(digits);
+                }}
+              />
+
+              <TextInput
+                style={[styles.dateInput, { flex: 3 }]}
+                placeholder='YYYY'
+                keyboardType='number-pad'
+                maxLength={4}
+                value={arrivalYear}
+                onChangeText={text => {
+                  const digits = text.replace(/[^0-9]/g, '');
+                  setArrivalYear(digits);
+                }}
+              />
+            </View>
+            {errors[4] && (
+              <Text style={[styles.errorText, { paddingTop: 8 }]}>{errors[4]}</Text>
+            )}
+          </View>
         );
       case 5:
         return (
@@ -664,5 +711,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Theme.white,
     fontWeight: '600',
+  },
+  dateInputContainer: {
+    marginTop: 16,
+  },
+  dateInput: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Theme.borderInfoText,
+    backgroundColor: Theme.white,
+    fontSize: 16,
+    color: Theme.black,
   },
 });
