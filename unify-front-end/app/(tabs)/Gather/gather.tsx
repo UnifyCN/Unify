@@ -14,7 +14,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import RequestGroupModal from '@/components/groups/RequestGroupModal';
 
-
 const GroupsForYouSection = () => {
   const router = useRouter();
   const [requestOpen, setRequestOpen] = useState(false);
@@ -62,7 +61,10 @@ const GroupsForYouSection = () => {
             <Text style={styles.requestButtonText}>Request a Group</Text>
           </Pressable>
         </View>
-        <RequestGroupModal visible={requestOpen} onClose={() => setRequestOpen(false)} />
+        <RequestGroupModal
+          visible={requestOpen}
+          onClose={() => setRequestOpen(false)}
+        />
       </View>
     );
   }
@@ -88,7 +90,10 @@ const GroupsForYouSection = () => {
           <Text style={styles.requestButtonText}>Request a Group</Text>
         </Pressable>
       </View>
-      <RequestGroupModal visible={requestOpen} onClose={() => setRequestOpen(false)} />
+      <RequestGroupModal
+        visible={requestOpen}
+        onClose={() => setRequestOpen(false)}
+      />
     </View>
   );
 };

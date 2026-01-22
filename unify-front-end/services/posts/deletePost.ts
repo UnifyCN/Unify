@@ -43,7 +43,9 @@ export const deletePost = async (
         .single();
 
       if (postError) {
-        throw new Error(`Failed to verify post ownership: ${postError.message}`);
+        throw new Error(
+          `Failed to verify post ownership: ${postError.message}`
+        );
       }
 
       if (postData?.user_id !== user.id) {

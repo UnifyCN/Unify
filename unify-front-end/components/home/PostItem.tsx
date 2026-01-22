@@ -79,10 +79,11 @@ export const PostItem = memo(
           onSuccess: () => {
             setDeleteModalVisible(false);
           },
-          onError: (error) => {
+          onError: error => {
             Alert.alert(
               'Error',
-              error.message || `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
+              error.message ||
+                `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
             );
           },
         }
@@ -332,8 +333,12 @@ export const PostItem = memo(
                     />
                     <Text style={styles.modalOptionText}>
                       {pinPostMutation.isPending
-                        ? (post.isPinned ? 'Unpinning...' : 'Pinning...')
-                        : (post.isPinned ? 'Unpin Post' : 'Pin Post')}
+                        ? post.isPinned
+                          ? 'Unpinning...'
+                          : 'Pinning...'
+                        : post.isPinned
+                          ? 'Unpin Post'
+                          : 'Pin Post'}
                     </Text>
                   </TouchableOpacity>
                 )}

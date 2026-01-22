@@ -102,8 +102,8 @@ export default function PathwayCard({
 
   if (href) {
     return (
-      <TouchableOpacity 
-        activeOpacity={0.85} 
+      <TouchableOpacity
+        activeOpacity={0.85}
         style={styles.card}
         onPress={() => {
           if (moduleId) {

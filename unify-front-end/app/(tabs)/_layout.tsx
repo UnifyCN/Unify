@@ -78,7 +78,7 @@ export default function TabLayout() {
         screenListeners={{
           tabPress: e => {
             const routeName = e.target?.split('-')[0] || 'index';
-            
+
             // Track tab switch
             if (routeName !== previousTabRef.current) {
               trackTabSwitch(

@@ -36,13 +36,19 @@ class CachedProgressService {
         const userResult = await progressClient.auth.getUser();
         user = userResult?.data?.user || null;
         if (userResult?.error) {
-          console.error('Error getting user in cachedProgressService:', userResult.error);
+          console.error(
+            'Error getting user in cachedProgressService:',
+            userResult.error
+          );
         }
       } catch (authError: any) {
-        console.error('Exception getting user in cachedProgressService:', authError);
+        console.error(
+          'Exception getting user in cachedProgressService:',
+          authError
+        );
         return this.cache; // Return stale cache on auth error
       }
-      
+
       if (!user) {
         return {};
       }
@@ -50,13 +56,13 @@ class CachedProgressService {
       // Fetch all lesson progress
       let lessonProgresses = null;
       let lessonError = null;
-      
+
       try {
         const progressResult = await progressClient
           .from('user_lesson_progress')
           .select('*')
           .eq('user_id', user.id);
-        
+
         lessonProgresses = progressResult?.data || null;
         lessonError = progressResult?.error || null;
       } catch (queryError: any) {
@@ -88,7 +94,7 @@ class CachedProgressService {
         console.error('Error fetching from Sanity:', sanityError);
         return this.cache; // Return stale cache on Sanity error
       }
-      
+
       if (!modulesData || !Array.isArray(modulesData)) {
         console.error('Invalid Sanity data returned');
         return this.cache;
@@ -107,7 +113,7 @@ class CachedProgressService {
         progressData[module._id] = {};
 
         if (!Array.isArray(module.submodules)) return;
-        
+
         module.submodules.forEach((submodule: any) => {
           if (!submodule?._id) return;
           const totalLessons = submodule.lessons?.length || 0;
@@ -156,7 +162,7 @@ class CachedProgressService {
           last_updated: new Date().toISOString(),
         };
       }
-      
+
       const progressData = await this.getProgressData();
       return (
         progressData[moduleId]?.[submoduleId] || {

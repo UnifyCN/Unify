@@ -19,6 +19,7 @@ import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
 import { supabase } from '@/lib/supabase';
+import MonthYearPicker from 'react-native-month-year-picker';
 import {
   Persona,
   ReferralSource,
@@ -47,8 +48,8 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const [referralSourceOther, setReferralSourceOther] = useState<string | null>(
     null
   );
-  const [arrivalMonth, setArrivalMonth] = useState<string>('');
-  const [arrivalYear, setArrivalYear] = useState<string>('');
+  const [showPicker, setShowPicker] = useState(false);
+  const [arrivalDate, setArrivalDate] = useState<Date | null>(null);
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalsOther, setGoalsOther] = useState<string | null>(null);
@@ -65,14 +66,10 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const [errors, setErrors] = useState<Record<number, string>>({});
 
   const buildArrivalDate = () => {
-    if (!arrivalMonth || !arrivalYear) return null;
-
-    const month = Number(arrivalMonth);
-    const year = Number(arrivalYear);
-
-    if (month < 1 || month > 12) return null;
-
-    return new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    if (!arrivalDate) return null;
+    return new Date(
+      Date.UTC(arrivalDate.getFullYear(), arrivalDate.getMonth(), 1)
+    ).toISOString();
   };
 
   const validateStep = (step: number): boolean => {
@@ -103,27 +100,14 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           return false;
         }
         break;
-      case 4:
-        const month = Number(arrivalMonth);
-        const year = Number(arrivalYear);
-
-        if (
-          !arrivalMonth ||
-          !arrivalYear ||
-          Number.isNaN(month) ||
-          Number.isNaN(year)
-        ) {
-          newErrors[4] = 'Please enter a valid month and year';
-          setErrors(newErrors);
-          return false;
-        }
-
-        if (month < 1 || month > 12) {
-          newErrors[4] = 'Month must be between 1 and 12';
+      case 4: // Arrival date
+        if (!arrivalDate) {
+          newErrors[4] = 'Please select a month and year';
           setErrors(newErrors);
           return false;
         }
         break;
+
       case 5: // Goals
         if (goals.length === 0) {
           newErrors[5] = 'Please select at least one option';
@@ -322,33 +306,37 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
               When did you arrive, or when will you arrive in Canada?
             </Text>
 
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <TextInput
-                style={[styles.dateInput, { flex: 1 }]}
-                placeholder='MM'
-                keyboardType='number-pad'
-                maxLength={2}
-                value={arrivalMonth}
-                onChangeText={text => {
-                  const digits = text.replace(/[^0-9]/g, '');
-                  setArrivalMonth(digits);
-                }}
-              />
+            {errors[4] && <Text style={styles.errorText}>{errors[4]}</Text>}
 
-              <TextInput
-                style={[styles.dateInput, { flex: 3 }]}
-                placeholder='YYYY'
-                keyboardType='number-pad'
-                maxLength={4}
-                value={arrivalYear}
-                onChangeText={text => {
-                  const digits = text.replace(/[^0-9]/g, '');
-                  setArrivalYear(digits);
+            <TouchableOpacity
+              style={[styles.dateInput, { marginTop: 8 }]}
+              onPress={() => setShowPicker(true)}
+            >
+              <Text
+                style={{ color: arrivalDate ? Theme.black : Theme.textInput }}
+              >
+                {arrivalDate
+                  ? arrivalDate.toLocaleDateString(undefined, {
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                  : 'Select month and year'}
+              </Text>
+            </TouchableOpacity>
+
+            {showPicker && (
+              <MonthYearPicker
+                onChange={(event, date) => {
+                  setShowPicker(false);
+                  if (date) {
+                    setArrivalDate(date);
+                  }
                 }}
+                value={arrivalDate ?? new Date()}
+                minimumDate={new Date(new Date().getFullYear() - 20, 0)}
+                maximumDate={new Date(new Date().getFullYear() + 10, 11)}
+                locale='en'
               />
-            </View>
-            {errors[4] && (
-              <Text style={[styles.errorText, { paddingTop: 8 }]}>{errors[4]}</Text>
             )}
           </View>
         );

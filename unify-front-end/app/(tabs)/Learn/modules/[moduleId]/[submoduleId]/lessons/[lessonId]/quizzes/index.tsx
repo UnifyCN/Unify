@@ -31,7 +31,7 @@ export default function QuizzesPage() {
         trackScreen('Quizzes List');
         hasTrackedRef.current = true;
       }
-      
+
       // Reset on blur so returning to this screen will track again
       return () => {
         hasTrackedRef.current = false;

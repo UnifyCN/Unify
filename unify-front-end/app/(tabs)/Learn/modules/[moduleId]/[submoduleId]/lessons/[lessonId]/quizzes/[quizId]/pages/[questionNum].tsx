@@ -21,7 +21,6 @@ import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
-
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } =
     useLocalSearchParams<{
@@ -89,14 +88,20 @@ export default function QuizQuestionPage() {
   const TRACKING_THROTTLE_MS = 500;
   const lastTrackedPageRef = useRef<string>('');
   const lastTrackedRef = useRef<number>(0);
-  
+
   useFocusEffect(
     useCallback(() => {
       const now = Date.now();
       const pageKey = `${quizId}-${currentQuestionIndex}`;
       // Only track if: data is loaded, throttle passed, AND this is a different question than last tracked
-      if (quizTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
-        trackScreen(`Quiz: ${quizTitle} - Q${currentQuestionIndex + 1}/${totalQuestions}`);
+      if (
+        quizTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(
+          `Quiz: ${quizTitle} - Q${currentQuestionIndex + 1}/${totalQuestions}`
+        );
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }
