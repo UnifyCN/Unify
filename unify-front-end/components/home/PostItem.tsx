@@ -105,11 +105,19 @@ export const PostItem = memo(
         trackPostUnsave(postId.toString());
       } else {
         trackPostSave(postId.toString());
-        showToast('Post saved! Find it in Settings > Saved Posts', () => {
-          router.push('/saved');
-        });
       }
-      savePostMutation.mutate({ postId, isSaved });
+      savePostMutation.mutate(
+        { postId, isSaved },
+        {
+          onSuccess: () => {
+            if (!isSaved) {
+              showToast('Post saved! Find it in Settings > Saved Posts', () => {
+                router.push('/saved');
+              });
+            }
+          },
+        }
+      );
     };
 
     const navigateToUserProfile = () => {

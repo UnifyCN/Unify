@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -22,6 +22,7 @@ import { Theme } from '@/constants/Theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CLOSE_THRESHOLD = 100;
+const ANIMATION_DURATION = 200;
 
 interface BottomSheetProps {
   visible: boolean;
@@ -39,22 +40,30 @@ export default function BottomSheet({
   const sheetHeight = SCREEN_HEIGHT * snapPoint;
   const translateY = useSharedValue(sheetHeight);
   const opacity = useSharedValue(0);
+  const [shouldRender, setShouldRender] = useState(visible);
 
   useEffect(() => {
     if (visible) {
+      // Mount immediately when becoming visible
+      setShouldRender(true);
       // Animate to 0 to show the sheet
       translateY.value = withSpring(0, {
         damping: 20,
         stiffness: 90,
       });
-      opacity.value = withTiming(1, { duration: 200 });
-    } else {
-      // Animate down to hide the sheet
+      opacity.value = withTiming(1, { duration: ANIMATION_DURATION });
+    } else if (shouldRender) {
+      // Animate down to hide the sheet, then unmount
       translateY.value = withSpring(sheetHeight, {
         damping: 20,
         stiffness: 90,
       });
-      opacity.value = withTiming(0, { duration: 200 });
+      opacity.value = withTiming(0, { duration: ANIMATION_DURATION });
+      // Wait for animation to complete before unmounting
+      const timeout = setTimeout(() => {
+        setShouldRender(false);
+      }, 300); // Slightly longer than animation to ensure completion
+      return () => clearTimeout(timeout);
     }
   }, [visible, sheetHeight]);
 
@@ -74,7 +83,7 @@ export default function BottomSheet({
           damping: 20,
           stiffness: 90,
         });
-        opacity.value = withTiming(0, { duration: 200 });
+        opacity.value = withTiming(0, { duration: ANIMATION_DURATION });
         runOnJS(onClose)();
       } else {
         translateY.value = withSpring(0, {
@@ -96,11 +105,11 @@ export default function BottomSheet({
     };
   });
 
-  if (!visible) return null;
+  if (!shouldRender) return null;
 
   return (
     <Modal
-      visible={visible}
+      visible={shouldRender}
       transparent
       animationType="none"
       statusBarTranslucent
@@ -112,7 +121,7 @@ export default function BottomSheet({
         </TouchableWithoutFeedback>
 
         <GestureDetector gesture={panGesture}>
-          <Animated.View style={[styles.sheet, animatedSheetStyle]}>
+          <Animated.View style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}>
             <View style={styles.dragHandle} />
             <View style={styles.content}>{children}</View>
           </Animated.View>
@@ -135,7 +144,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: SCREEN_HEIGHT * 0.65,
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,

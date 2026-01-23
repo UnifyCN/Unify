@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Theme } from '@/constants/Theme';
+import { Group } from '@/types/groups';
 
 type DestinationType = '4u' | 'group';
 
 interface DestinationToggleProps {
   destination: DestinationType;
-  selectedGroup: any | null;
+  selectedGroup: Group | null;
   onDestinationChange: (destination: DestinationType) => void;
   onClearGroup: () => void;
 }

@@ -17,13 +17,14 @@ import DestinationToggle from './DestinationToggle';
 import { Theme } from '@/constants/Theme';
 import BackHeader from '@/components/BackHeader';
 import { useToast } from '@/context/ToastContext';
+import { Group } from '@/types/groups';
 
 type DestinationType = '4u' | 'group';
 
 interface CreatePostModalProps {
   visible: boolean;
   onClose: () => void;
-  preselectedGroup?: any;
+  preselectedGroup?: Group | null;
 }
 
 const TITLE_MAX_LENGTH = 100;
@@ -36,7 +37,7 @@ export default function CreatePostModal({
 }: CreatePostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<any>(
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(
     preselectedGroup || null
   );
   const [destination, setDestination] = useState<DestinationType>(
@@ -74,7 +75,7 @@ export default function CreatePostModal({
       {
         title: title.trim(),
         content: content.trim(),
-        group_id: destination === '4u' ? null : selectedGroup?.id,
+        group_id: destination === '4u' ? null : String(selectedGroup?.id),
       },
       {
         onSuccess: () => {
@@ -91,6 +92,7 @@ export default function CreatePostModal({
           setContent('');
           setSelectedGroup(null);
           setDestination('4u');
+          setShowGroupSelector(false);
 
           // Close modal and show toast
           onClose();
@@ -118,10 +120,11 @@ export default function CreatePostModal({
     setContent('');
     setSelectedGroup(null);
     setDestination('4u');
+    setShowGroupSelector(false);
     onClose();
   };
 
-  const handleGroupSelect = (group: any) => {
+  const handleGroupSelect = (group: Group) => {
     setSelectedGroup(group);
     setDestination('group');
     setShowGroupSelector(false);

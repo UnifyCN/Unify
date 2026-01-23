@@ -49,7 +49,11 @@ export default function AccountSettingsPage() {
     {
       title: 'View Profile',
       icon: 'user' as const,
-      onPress: () => router.push(`/profile?userId=${currentUser?.id}`),
+      onPress: () => {
+        if (currentUser?.id) {
+          router.push(`/profile?userId=${currentUser.id}`);
+        }
+      },
     },
     {
       title: 'Saved Posts',

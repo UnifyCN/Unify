@@ -21,7 +21,7 @@ import { Group } from '@/types/groups';
 interface GroupSelectionSheetProps {
   visible: boolean;
   onClose: () => void;
-  onGroupSelect: (group: any) => void;
+  onGroupSelect: (group: Group) => void;
 }
 
 export default function GroupSelectionSheet({
