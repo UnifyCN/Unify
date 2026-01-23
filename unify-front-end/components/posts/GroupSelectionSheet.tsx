@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
@@ -38,6 +39,7 @@ export default function GroupSelectionSheet({
     queryKey: ['joined-groups'],
     queryFn: getUserJoinedGroups,
     enabled: visible,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch available groups (groups user hasn't joined)
@@ -45,6 +47,7 @@ export default function GroupSelectionSheet({
     queryKey: ['available-groups'],
     queryFn: getAvailableGroups,
     enabled: visible,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Join group mutation
@@ -92,7 +95,10 @@ export default function GroupSelectionSheet({
       // After joining, select the group for posting
       handleGroupSelect(group);
     } catch (error) {
-      console.error('Failed to join group:', error);
+      Alert.alert(
+        'Failed to Join',
+        error instanceof Error ? error.message : 'Could not join group. Please try again.'
+      );
     } finally {
       setJoiningGroupId(null);
     }
@@ -109,8 +115,9 @@ export default function GroupSelectionSheet({
     <TouchableOpacity
       key={group.id}
       style={styles.groupOption}
-      onPress={() => (isJoined ? handleGroupSelect(group) : null)}
-      activeOpacity={isJoined ? 0.7 : 1}
+      onPress={() => handleGroupSelect(group)}
+      activeOpacity={0.7}
+      disabled={!isJoined}
     >
       <Avatar
         profilePictureUrl={group.coverPhotoUrl || undefined}

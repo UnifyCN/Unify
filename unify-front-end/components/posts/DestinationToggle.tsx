@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { Group } from '@/types/groups';
 
@@ -64,7 +65,7 @@ export default function DestinationToggle({
               Posting to {selectedGroup.name}
             </Text>
             <TouchableOpacity onPress={onClearGroup} style={styles.clearButton}>
-              <Text style={styles.clearButtonText}>✕</Text>
+              <Feather name="x" size={16} color={Theme.textAlternateGray} />
             </TouchableOpacity>
           </View>
         ) : (

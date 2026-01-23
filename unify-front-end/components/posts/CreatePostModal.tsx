@@ -99,6 +99,8 @@ export default function CreatePostModal({
           showToast(toastMessage);
 
           // Navigate to destination
+          // Note: "as any" required due to expo-router typed routes limitation
+          // where route types are generated at build time
           if (postedToGroup && groupToNavigate) {
             router.push({
               pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
