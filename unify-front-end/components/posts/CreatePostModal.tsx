@@ -49,16 +49,18 @@ export default function CreatePostModal({
   const { showToast } = useToast();
   const createPostMutation = useMutateCreatePost();
 
-  // Update destination when preselectedGroup changes
+  // Restore preselectedGroup when modal opens or preselectedGroup changes
   useEffect(() => {
-    if (preselectedGroup) {
-      setSelectedGroup(preselectedGroup);
-      setDestination('group');
-    } else {
-      setSelectedGroup(null);
-      setDestination('4u');
+    if (visible) {
+      if (preselectedGroup) {
+        setSelectedGroup(preselectedGroup);
+        setDestination('group');
+      } else {
+        setSelectedGroup(null);
+        setDestination('4u');
+      }
     }
-  }, [preselectedGroup]);
+  }, [visible, preselectedGroup]);
 
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) {

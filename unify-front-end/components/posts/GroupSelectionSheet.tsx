@@ -212,10 +212,21 @@ export default function GroupSelectionSheet({
                 (!filteredAvailableGroups ||
                   filteredAvailableGroups.length === 0) && (
                   <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyTitle}>No groups available</Text>
-                    <Text style={styles.emptySubtitle}>
-                      Check back later for new groups to join!
-                    </Text>
+                    {searchText.trim() ? (
+                      <>
+                        <Text style={styles.emptyTitle}>No groups match your search</Text>
+                        <Text style={styles.emptySubtitle}>
+                          Try a different search term
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Text style={styles.emptyTitle}>No groups available</Text>
+                        <Text style={styles.emptySubtitle}>
+                          Check back later for new groups to join!
+                        </Text>
+                      </>
+                    )}
                   </View>
                 )}
             </>
