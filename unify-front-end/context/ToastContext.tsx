@@ -12,12 +12,14 @@ import {
   StyleSheet,
   Animated,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 
 interface ToastContextType {
-  showToast: (message: string) => void;
+  showToast: (message: string, onPress?: () => void) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -27,6 +29,7 @@ const ANIMATION_DURATION = 250;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [message, setMessage] = useState<string | null>(null);
+  const [onPressCallback, setOnPressCallback] = useState<(() => void) | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const translateY = useRef(new Animated.Value(100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -48,17 +51,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     ]).start(() => {
       setIsVisible(false);
       setMessage(null);
+      setOnPressCallback(null);
     });
   }, [translateY, opacity]);
 
   const showToast = useCallback(
-    (msg: string) => {
+    (msg: string, onPress?: () => void) => {
       // Clear any existing timeout
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
 
       setMessage(msg);
+      setOnPressCallback(() => onPress || null);
       setIsVisible(true);
 
       // Reset animation values
@@ -87,6 +92,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     [translateY, opacity, hideToast]
   );
 
+  const handleToastPress = useCallback(() => {
+    if (onPressCallback) {
+      hideToast();
+      onPressCallback();
+    }
+  }, [onPressCallback, hideToast]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -109,11 +121,18 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               bottom: Math.max(insets.bottom, 16) + (Platform.OS === 'ios' ? 80 : 70),
             },
           ]}
-          pointerEvents="none"
         >
-          <View style={styles.toast}>
+          <TouchableOpacity
+            style={styles.toast}
+            onPress={handleToastPress}
+            activeOpacity={onPressCallback ? 0.8 : 1}
+            disabled={!onPressCallback}
+          >
             <Text style={styles.toastText}>{message}</Text>
-          </View>
+            {onPressCallback && (
+              <Feather name="chevron-right" size={18} color={Theme.black} style={styles.chevron} />
+            )}
+          </TouchableOpacity>
         </Animated.View>
       )}
     </ToastContext.Provider>
@@ -137,11 +156,13 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   toast: {
-    backgroundColor: Theme.black,
+    backgroundColor: Theme.white,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 25,
     maxWidth: '85%',
+    flexDirection: 'row',
+    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -152,9 +173,12 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   toastText: {
-    color: Theme.white,
+    color: Theme.black,
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  chevron: {
+    marginLeft: 4,
   },
 });
