@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -6,7 +7,11 @@ import {
   ImageBackground,
   Dimensions,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
@@ -34,11 +39,28 @@ interface HeaderProps {
   onTabChange?: (tab: string) => void;
 }
 
+const TABS = ['For You', 'Following', 'Groups'];
+
 const FeedTabs = memo(
   ({ activeTab, setActiveTab, onTabChange }: HeaderProps) => {
+    const activeIndex = TABS.indexOf(activeTab);
+    const indicatorPosition = useSharedValue(activeIndex);
+    const tabWidth = Dimensions.get('window').width / 3;
+
+    React.useEffect(() => {
+      indicatorPosition.value = withSpring(activeIndex, {
+        damping: 20,
+        stiffness: 200,
+      });
+    }, [activeIndex]);
+
+    const indicatorStyle = useAnimatedStyle(() => ({
+      transform: [{ translateX: indicatorPosition.value * tabWidth }],
+    }));
+
     return (
       <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map(tab => (
+        {TABS.map((tab, index) => (
           <TouchableOpacity
             key={tab}
             onPress={() => {
@@ -47,7 +69,7 @@ const FeedTabs = memo(
               }
               setActiveTab(tab);
             }}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            style={styles.tab}
           >
             <Text
               style={[styles.tabText, activeTab === tab && styles.activeTabText]}
@@ -56,6 +78,7 @@ const FeedTabs = memo(
             </Text>
           </TouchableOpacity>
         ))}
+        <Animated.View style={[styles.tabIndicator, indicatorStyle]} />
       </View>
     );
   }
@@ -347,8 +370,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     marginHorizontal: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 20,
+    width: Dimensions.get('window').width / 3 - 40,
+    height: 2,
+    backgroundColor: Theme.primaryGatherRed,
+    borderRadius: 1,
   },
   activeTab: {
     borderBottomColor: Theme.primaryGatherRed,
