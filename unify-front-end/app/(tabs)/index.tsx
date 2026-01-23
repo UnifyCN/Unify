@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   StyleSheet,
   View,
@@ -6,6 +5,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -40,23 +40,29 @@ interface HeaderProps {
 }
 
 const TABS = ['For You', 'Following', 'Groups'];
+const TAB_MARGIN_HORIZONTAL = 20;
 
 const FeedTabs = memo(
   ({ activeTab, setActiveTab, onTabChange }: HeaderProps) => {
-    const activeIndex = TABS.indexOf(activeTab);
+    const { width } = useWindowDimensions();
+    const activeIndex = Math.max(0, TABS.indexOf(activeTab));
     const indicatorPosition = useSharedValue(activeIndex);
-    const tabWidth = Dimensions.get('window').width / 3;
+    const tabWidth = width / TABS.length;
+    const indicatorWidth = tabWidth - TAB_MARGIN_HORIZONTAL * 2;
 
-    React.useEffect(() => {
+    useEffect(() => {
       indicatorPosition.value = withSpring(activeIndex, {
         damping: 20,
         stiffness: 200,
       });
     }, [activeIndex]);
 
-    const indicatorStyle = useAnimatedStyle(() => ({
-      transform: [{ translateX: indicatorPosition.value * tabWidth }],
-    }));
+    const indicatorStyle = useAnimatedStyle(
+      () => ({
+        transform: [{ translateX: indicatorPosition.value * tabWidth }],
+      }),
+      [tabWidth]
+    );
 
     return (
       <View style={styles.tabs}>
@@ -78,7 +84,13 @@ const FeedTabs = memo(
             </Text>
           </TouchableOpacity>
         ))}
-        <Animated.View style={[styles.tabIndicator, indicatorStyle]} />
+        <Animated.View
+          style={[
+            styles.tabIndicator,
+            indicatorStyle,
+            { left: TAB_MARGIN_HORIZONTAL, width: indicatorWidth },
+          ]}
+        />
       </View>
     );
   }
@@ -369,13 +381,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
-    marginHorizontal: 20,
+    marginHorizontal: TAB_MARGIN_HORIZONTAL,
   },
   tabIndicator: {
     position: 'absolute',
     bottom: 0,
-    left: 20,
-    width: Dimensions.get('window').width / 3 - 40,
     height: 2,
     backgroundColor: Theme.primaryGatherRed,
     borderRadius: 1,
