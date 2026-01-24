@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Dimensions,
   ScrollView,
   SafeAreaView,
+  Platform,
 } from 'react-native';
 import {
   PinchGestureHandler,
@@ -52,6 +53,36 @@ export default function RichTextRenderer({
   const baseZoomRef = useRef(1); // Track base zoom for pinch gestures
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
+
+  // Matching question state - track per question using block _key
+  const [matchingQuestionState, setMatchingQuestionState] = useState<{
+    [questionKey: string]: {
+      selectedLeftItem: string | null;
+      selectedRightItem: string | null;
+      matchedPairs: { [key: string]: string };
+      completedPairs: string[];
+      incorrectPairs: string[];
+    };
+  }>({});
+
+  // Generate scrambled right items for each matching question using useMemo
+  const scrambledRightItemsMap = useMemo(() => {
+    const map: { [questionKey: string]: string[] } = {};
+    blocks.forEach((block, idx) => {
+      if (block._type === 'matching_question') {
+        const questionKey = block._key || `matching-${idx}`;
+        const rightItems = (block.matching_pairs || []).map((pair: any) => pair.right_item);
+        // Scramble right items using Fisher-Yates shuffle
+        const scrambled = [...rightItems];
+        for (let i = scrambled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [scrambled[i], scrambled[j]] = [scrambled[j], scrambled[i]];
+        }
+        map[questionKey] = scrambled;
+      }
+    });
+    return map;
+  }, [blocks]);
 
   if (!blocks || !Array.isArray(blocks)) return null;
 
@@ -676,12 +707,14 @@ export default function RichTextRenderer({
           const finalBlockStyle = isFirstBlock
             ? { ...blockStyle, marginTop: 8 }
             : blockStyle;
+          const textProps: any = {
+            style: finalBlockStyle,
+          };
+          if (Platform.OS === 'android') {
+            textProps.includeFontPadding = false;
+          }
           return (
-            <Text 
-              key={block._key || index} 
-              style={finalBlockStyle}
-              includeFontPadding={false}
-            >
+            <Text key={block._key || index} {...textProps}>
               {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
@@ -993,8 +1026,109 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'matching_question') {
-      // For matching questions, we'll render a simplified version
-      // Full matching logic would require more complex state management
+      const questionKey = block._key || `matching-${index}`;
+      
+      // Get state for this question, initialize if needed
+      const questionState = matchingQuestionState[questionKey] || {
+        selectedLeftItem: null,
+        selectedRightItem: null,
+        matchedPairs: {},
+        completedPairs: [],
+        incorrectPairs: [],
+      };
+      
+      // Get scrambled right items for this question
+      const scrambledRightItems = scrambledRightItemsMap[questionKey] || 
+        (block.matching_pairs || []).map((pair: any) => pair.right_item);
+
+      const { selectedLeftItem, selectedRightItem, completedPairs, incorrectPairs } = questionState;
+
+      const handleMatchingItemSelect = (item: string, side: 'left' | 'right') => {
+        if (completedPairs.includes(item)) return;
+
+        setMatchingQuestionState(prev => {
+          const current = prev[questionKey] || {
+            selectedLeftItem: null,
+            selectedRightItem: null,
+            matchedPairs: {},
+            completedPairs: [],
+            incorrectPairs: [],
+          };
+          
+          if (side === 'left') {
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                selectedLeftItem: current.selectedLeftItem === item ? null : item,
+                incorrectPairs: [], // Clear incorrect pairs on new selection
+              },
+            };
+          } else {
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                selectedRightItem: current.selectedRightItem === item ? null : item,
+                incorrectPairs: [], // Clear incorrect pairs on new selection
+              },
+            };
+          }
+        });
+      };
+
+      const handleMatchingCheck = () => {
+        if (!selectedLeftItem || !selectedRightItem) return;
+
+        const correctMatch = (block.matching_pairs || []).find(
+          (pair: any) =>
+            pair.left_item === selectedLeftItem &&
+            pair.right_item === selectedRightItem
+        );
+
+        setMatchingQuestionState(prev => {
+          const current = prev[questionKey] || {
+            selectedLeftItem: null,
+            selectedRightItem: null,
+            matchedPairs: {},
+            completedPairs: [],
+            incorrectPairs: [],
+          };
+          
+          if (correctMatch) {
+            // Correct match
+            const newCompletedPairs = [...current.completedPairs, selectedLeftItem, selectedRightItem];
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                matchedPairs: {
+                  ...current.matchedPairs,
+                  [selectedLeftItem]: selectedRightItem,
+                },
+                completedPairs: newCompletedPairs,
+                selectedLeftItem: null,
+                selectedRightItem: null,
+                incorrectPairs: current.incorrectPairs.filter(
+                  item => item !== selectedLeftItem && item !== selectedRightItem
+                ),
+              },
+            };
+          } else {
+            // Incorrect match
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                incorrectPairs: [...current.incorrectPairs, selectedLeftItem, selectedRightItem],
+                selectedLeftItem: null,
+                selectedRightItem: null,
+              },
+            };
+          }
+        });
+      };
+
       return (
         <View key={block._key || index} style={styles.questionContainer}>
           <View style={styles.questionTextContainer}>
@@ -1003,19 +1137,81 @@ export default function RichTextRenderer({
               markDefs={markDefs}
             />
           </View>
-          <View style={styles.matchingPairsContainer}>
-            {(block.matching_pairs || []).map(
-              (pair: any, pairIndex: number) => (
-                <View
-                  key={pair._key || pairIndex}
-                  style={styles.matchingPairRow}
-                >
-                  <Text style={styles.matchingPairText}>
-                    {pair.left_item} → {pair.right_item}
-                  </Text>
-                </View>
-              )
-            )}
+          <View style={styles.matchingContainer}>
+            <View style={styles.matchingGrid}>
+              {/* Left Column */}
+              <View style={styles.matchingColumn}>
+                {(block.matching_pairs || []).map(
+                  (pair: any, pairIndex: number) => (
+                    <TouchableOpacity
+                      key={`left-${pairIndex}`}
+                      style={[
+                        styles.matchingItem,
+                        selectedLeftItem === pair.left_item &&
+                          styles.matchingItemSelected,
+                        completedPairs.includes(pair.left_item) &&
+                          styles.matchingItemCompleted,
+                        incorrectPairs.includes(pair.left_item) &&
+                          styles.matchingItemIncorrect,
+                      ]}
+                      onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
+                      disabled={completedPairs.includes(pair.left_item)}
+                    >
+                      <Text style={styles.matchingItemText}>
+                        {pair.left_item}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+
+              {/* Right Column - Scrambled */}
+              <View style={styles.matchingColumn}>
+                {scrambledRightItems.map(
+                  (rightItem: string, itemIndex: number) => (
+                    <TouchableOpacity
+                      key={`right-${itemIndex}-${rightItem}`}
+                      style={[
+                        styles.matchingItem,
+                        selectedRightItem === rightItem &&
+                          styles.matchingItemSelected,
+                        completedPairs.includes(rightItem) &&
+                          styles.matchingItemCompleted,
+                        incorrectPairs.includes(rightItem) &&
+                          styles.matchingItemIncorrect,
+                      ]}
+                      onPress={() => handleMatchingItemSelect(rightItem, 'right')}
+                      disabled={completedPairs.includes(rightItem)}
+                    >
+                      <Text style={styles.matchingItemText}>
+                        {rightItem}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+            </View>
+
+            {/* Check Button */}
+            <TouchableOpacity
+              style={[
+                styles.matchingCheckButton,
+                (!selectedLeftItem || !selectedRightItem) &&
+                  styles.matchingCheckButtonDisabled,
+              ]}
+              onPress={handleMatchingCheck}
+              disabled={!selectedLeftItem || !selectedRightItem}
+            >
+              <Text
+                style={[
+                  styles.matchingCheckButtonText,
+                  (!selectedLeftItem || !selectedRightItem) &&
+                    styles.matchingCheckButtonTextDisabled,
+                ]}
+              >
+                Check
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       );
@@ -1395,6 +1591,69 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     lineHeight: 20,
+  },
+  // Matching question styles (same as quiz)
+  matchingContainer: {
+    marginTop: 20,
+  },
+  matchingGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 20,
+  },
+  matchingColumn: {
+    flex: 1,
+    gap: 12,
+  },
+  matchingItem: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    padding: 16,
+    minWidth: 170,
+    minHeight: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchingItemSelected: {
+    borderColor: '#575757',
+    backgroundColor: '#F3F4F6',
+  },
+  matchingItemCompleted: {
+    borderColor: '#10B981',
+    backgroundColor: '#ECFDF5',
+    opacity: 0.7,
+  },
+  matchingItemIncorrect: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  matchingItemText: {
+    fontSize: 14,
+    color: '#374151',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  matchingCheckButton: {
+    backgroundColor: '#575757',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  matchingCheckButtonDisabled: {
+    backgroundColor: '#F3F4F6',
+  },
+  matchingCheckButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  matchingCheckButtonTextDisabled: {
+    color: '#9CA3AF',
   },
   // Two options question styles
   twoOptionsContainer: {
