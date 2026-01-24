@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -18,10 +19,10 @@ import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
 import { supabase } from '@/lib/supabase';
+import MonthYearPicker from 'react-native-month-year-picker';
 import {
   Persona,
   ReferralSource,
-  TimeInCanada,
   Goal,
   LearningInterest,
   Hobby,
@@ -47,7 +48,9 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const [referralSourceOther, setReferralSourceOther] = useState<string | null>(
     null
   );
-  const [timeInCanada, setTimeInCanada] = useState<TimeInCanada | null>(null);
+  const [showPicker, setShowPicker] = useState(false);
+  const [arrivalDate, setArrivalDate] = useState<Date | null>(null);
+
   const [goals, setGoals] = useState<Goal[]>([]);
   const [goalsOther, setGoalsOther] = useState<string | null>(null);
   const [learningInterests, setLearningInterests] = useState<
@@ -61,6 +64,13 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
   // Validation errors
   const [errors, setErrors] = useState<Record<number, string>>({});
+
+  const buildArrivalDate = () => {
+    if (!arrivalDate) return null;
+    return new Date(
+      Date.UTC(arrivalDate.getFullYear(), arrivalDate.getMonth(), 1)
+    ).toISOString();
+  };
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<number, string> = {};
@@ -90,13 +100,14 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           return false;
         }
         break;
-      case 4: // Time in Canada
-        if (!timeInCanada) {
-          newErrors[4] = 'Please select an option';
+      case 4: // Arrival date
+        if (!arrivalDate) {
+          newErrors[4] = 'Please select a month and year';
           setErrors(newErrors);
           return false;
         }
         break;
+
       case 5: // Goals
         if (goals.length === 0) {
           newErrors[5] = 'Please select at least one option';
@@ -178,6 +189,8 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       return;
     }
 
+    const arrivalDate = buildArrivalDate();
+
     try {
       await saveMutation.mutateAsync({
         userId: user.id, // Use user.id from Supabase auth directly
@@ -186,7 +199,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           persona_other: personaOther,
           referral_source: referralSource,
           referral_source_other: referralSourceOther,
-          time_in_canada: timeInCanada,
+          arrival_date: arrivalDate,
           goals,
           goals_other: goalsOther,
           learning_interests: learningInterests,
@@ -288,22 +301,44 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         );
       case 4:
         return (
-          <SingleSelectQuestion
-            question='How long have you been in Canada?'
-            options={[
-              { value: 'not_arrived', label: "I haven't arrived yet" },
-              { value: 'less_than_1_year', label: 'Less than 1 year' },
-              { value: '1_to_2_years', label: '1–2 years' },
-              { value: '2_to_3_years', label: '2–3 years' },
-              { value: '3_plus_years', label: '3+ years' },
-            ]}
-            selectedValue={timeInCanada}
-            otherValue={null}
-            onSelect={value => setTimeInCanada(value as TimeInCanada)}
-            onOtherChange={() => {}} // No "other" option for this question
-            required
-            error={errors[4]}
-          />
+          <View style={styles.container}>
+            <Text style={styles.question}>
+              When did you arrive, or when will you arrive in Canada?
+            </Text>
+
+            {errors[4] && <Text style={styles.errorText}>{errors[4]}</Text>}
+
+            <TouchableOpacity
+              style={[styles.dateInput, { marginTop: 8 }]}
+              onPress={() => setShowPicker(true)}
+            >
+              <Text
+                style={{ color: arrivalDate ? Theme.black : Theme.textInput }}
+              >
+                {arrivalDate
+                  ? arrivalDate.toLocaleDateString(undefined, {
+                      month: 'long',
+                      year: 'numeric',
+                    })
+                  : 'Select month and year'}
+              </Text>
+            </TouchableOpacity>
+
+            {showPicker && (
+              <MonthYearPicker
+                onChange={(event, date) => {
+                  setShowPicker(false);
+                  if (date) {
+                    setArrivalDate(date);
+                  }
+                }}
+                value={arrivalDate ?? new Date()}
+                minimumDate={new Date(new Date().getFullYear() - 20, 0)}
+                maximumDate={new Date(new Date().getFullYear() + 10, 11)}
+                locale='en'
+              />
+            )}
+          </View>
         );
       case 5:
         return (
@@ -664,5 +699,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Theme.white,
     fontWeight: '600',
+  },
+  dateInputContainer: {
+    marginTop: 16,
+  },
+  dateInput: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Theme.borderInfoText,
+    backgroundColor: Theme.white,
+    fontSize: 16,
+    color: Theme.black,
   },
 });

@@ -94,12 +94,7 @@ export function ModuleIndexSkeletonLoader() {
         </View>
 
         {/* Card */}
-        <View
-          style={[
-            styles.card,
-            isOpened && styles.cardOpened,
-          ]}
-        >
+        <View style={[styles.card, isOpened && styles.cardOpened]}>
           <SkeletonBox
             width={isOpened ? '85%' : '75%'}
             height={16}
@@ -112,9 +107,7 @@ export function ModuleIndexSkeletonLoader() {
           />
 
           {/* CTA Button skeleton - only show on opened card */}
-          {isOpened && (
-            <SkeletonBox width={80} height={30} borderRadius={16} />
-          )}
+          {isOpened && <SkeletonBox width={80} height={30} borderRadius={16} />}
         </View>
       </View>
     );
@@ -132,7 +125,7 @@ export function ModuleIndexSkeletonLoader() {
         <View style={styles.headerTopRow}>
           {/* Back button skeleton */}
           <SkeletonBox width={44} height={44} borderRadius={22} />
-          
+
           {/* Icon container skeleton */}
           <SkeletonBox width={47} height={47} borderRadius={23.5} />
         </View>
@@ -144,9 +137,19 @@ export function ModuleIndexSkeletonLoader() {
 
         <View style={styles.headerDescriptionWrap}>
           {/* Description skeleton - 3 lines */}
-          <SkeletonBox width="90%" height={16} borderRadius={4} style={{ marginBottom: 4 }} />
-          <SkeletonBox width="85%" height={16} borderRadius={4} style={{ marginBottom: 4 }} />
-          <SkeletonBox width="60%" height={16} borderRadius={4} />
+          <SkeletonBox
+            width='90%'
+            height={16}
+            borderRadius={4}
+            style={{ marginBottom: 4 }}
+          />
+          <SkeletonBox
+            width='85%'
+            height={16}
+            borderRadius={4}
+            style={{ marginBottom: 4 }}
+          />
+          <SkeletonBox width='60%' height={16} borderRadius={4} />
         </View>
       </View>
 
@@ -156,7 +159,9 @@ export function ModuleIndexSkeletonLoader() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {[0, 1, 2, 3, 4].map((index) => renderSkeletonSection(index, index === 1))}
+        {[0, 1, 2, 3, 4].map(index =>
+          renderSkeletonSection(index, index === 1)
+        )}
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>

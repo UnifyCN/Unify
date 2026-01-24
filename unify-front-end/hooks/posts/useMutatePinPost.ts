@@ -22,7 +22,7 @@ export const useMutatePinPost = () => {
       // Invalidate For You feed to refetch with new pin order
       queryClient.invalidateQueries({ queryKey: ['feed', 'forYou'] });
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Error toggling pin status:', error);
     },
   });
