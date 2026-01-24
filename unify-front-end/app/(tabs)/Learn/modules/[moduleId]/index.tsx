@@ -1240,7 +1240,7 @@ export default function ModuleIndex() {
 
         {moduleData.description && (
           <View style={styles.headerDescriptionWrap}>
-            <Text style={styles.headerDescription} numberOfLines={3}>
+            <Text style={styles.headerDescription}>
               {moduleData.description}
             </Text>
           </View>
