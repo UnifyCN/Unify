@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 
@@ -7,21 +13,34 @@ interface StarterPromptsProps {
   onPromptSelect: (prompt: string, mode?: string) => void;
 }
 
-interface StarterChip {
+interface StarterCard {
   id: string;
   label: string;
   prompt: string;
   mode?: string;
   iconName: keyof typeof Feather.glyphMap;
+  iconBackground: string;
+  description: string;
 }
 
-const STARTER_CHIPS: StarterChip[] = [
+const STARTER_CARDS: StarterCard[] = [
+  {
+    id: 'question',
+    label: 'Ask Anything',
+    prompt: '',
+    mode: undefined,
+    iconName: 'message-circle',
+    iconBackground: '#E3A0C9',
+    description: 'Get answers to any immigration question.',
+  },
   {
     id: 'fact_check',
     label: 'Fact Check',
     prompt: 'I heard that ',
     mode: 'fact_check',
     iconName: 'search',
+    iconBackground: '#4F7BCB',
+    description: "Verify info you've heard or read.",
   },
   {
     id: 'form_help',
@@ -29,13 +48,8 @@ const STARTER_CHIPS: StarterChip[] = [
     prompt: '',
     mode: 'form_help',
     iconName: 'file-text',
-  },
-  {
-    id: 'question',
-    label: 'Ask Anything',
-    prompt: '',
-    mode: undefined,
-    iconName: 'message-circle',
+    iconBackground: '#F0A04B',
+    description: 'Step-by-step guidance on any form.',
   },
 ];
 
@@ -44,78 +58,86 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        {STARTER_CHIPS.map((chip, index) => (
-          <React.Fragment key={chip.id}>
-            <TouchableOpacity
-              style={styles.chip}
-              onPress={() => onPromptSelect(chip.prompt, chip.mode)}
-              activeOpacity={0.7}
-            >
-              <Feather
-                name={chip.iconName}
-                size={18}
-                color={Theme.textInput}
-                style={styles.icon}
-              />
-              <Text style={styles.chipLabel}>{chip.label}</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {STARTER_CARDS.map(card => (
+          <TouchableOpacity
+            key={card.id}
+            style={styles.card}
+            onPress={() => onPromptSelect(card.prompt, card.mode)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardHeader}>
+              <View
+                style={[
+                  styles.iconBadge,
+                  { backgroundColor: card.iconBackground },
+                ]}
+              >
+                <Feather name={card.iconName} size={16} color={Theme.white} />
+              </View>
+              <Text style={styles.cardLabel}>{card.label}</Text>
               <Feather
                 name='chevron-right'
-                size={18}
-                color={Theme.textInput}
-                style={styles.chevron}
+                size={16}
+                color={Theme.textInactiveTab}
               />
-            </TouchableOpacity>
-            {index < STARTER_CHIPS.length - 1 && (
-              <View style={styles.divider} />
-            )}
-          </React.Fragment>
+            </View>
+            <Text style={styles.cardDescription} numberOfLines={2}>
+              {card.description}
+            </Text>
+          </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 20,
-    paddingTop: 8,
-    paddingBottom: 16,
-    backgroundColor: '#fff',
+    paddingTop: 10,
+    paddingBottom: 12,
+    backgroundColor: Theme.white,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingRight: 32,
   },
   card: {
-    backgroundColor: '#fff',
+    width: 170,
+    minHeight: 108,
+    backgroundColor: Theme.white,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    marginHorizontal: 20,
-    overflow: 'hidden',
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    width: '100%',
-    minHeight: 56,
-  },
-  icon: {
+    padding: 12,
     marginRight: 12,
   },
-  chipLabel: {
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBadge: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  cardLabel: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '400',
+    fontWeight: '600',
     color: Theme.black,
-    textAlign: 'left',
   },
-  chevron: {
-    marginLeft: 8,
-    opacity: 0.5,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    marginLeft: 50,
+  cardDescription: {
+    marginTop: 10,
+    fontSize: 12,
+    color: Theme.textInput,
+    lineHeight: 16,
   },
 });
