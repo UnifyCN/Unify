@@ -41,7 +41,7 @@ const mapIconName = (iconName: string): string => {
     psychology: 'brain',
     menu_book: 'book-open-page-variant',
     auto_stories: 'book-open-outline',
-    calculate: 'calculator-outline',
+    calculate: 'calculator',
     palette: 'palette-outline',
     music_note: 'music-note-outline',
     sports_esports: 'gamepad-variant-outline',

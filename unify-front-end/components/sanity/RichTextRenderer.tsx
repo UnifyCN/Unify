@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,10 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
+import {
+  PinchGestureHandler,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
@@ -45,6 +49,7 @@ export default function RichTextRenderer({
     width: number;
     height: number;
   } | null>(null);
+  const baseZoomRef = useRef(1); // Track base zoom for pinch gestures
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
 
@@ -666,8 +671,17 @@ export default function RichTextRenderer({
           );
         case 'normal':
         default:
+          // Add marginTop to first block to prevent text clipping
+          const isFirstBlock = index === 0;
+          const finalBlockStyle = isFirstBlock
+            ? { ...blockStyle, marginTop: 8 }
+            : blockStyle;
           return (
-            <Text key={block._key || index} style={blockStyle}>
+            <Text 
+              key={block._key || index} 
+              style={finalBlockStyle}
+              includeFontPadding={false}
+            >
               {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
@@ -1057,16 +1071,42 @@ export default function RichTextRenderer({
   };
 
   const handleZoomIn = () => {
-    setImageZoom(prev => Math.min(prev + 0.5, 5)); // Max 5x zoom
+    const newZoom = Math.min(imageZoom + 0.5, 5); // Max 5x zoom
+    setImageZoom(newZoom);
+    baseZoomRef.current = newZoom; // Update base zoom for pinch
   };
 
   const handleZoomOut = () => {
-    setImageZoom(prev => Math.max(prev - 0.5, 0.5)); // Min 0.5x zoom
+    const newZoom = Math.max(imageZoom - 0.5, 0.5); // Min 0.5x zoom
+    setImageZoom(newZoom);
+    baseZoomRef.current = newZoom; // Update base zoom for pinch
+  };
+
+  const handlePinchGesture = (event: any) => {
+    const { scale } = event.nativeEvent;
+    const newZoom = Math.max(
+      0.5,
+      Math.min(5, baseZoomRef.current * scale)
+    );
+    setImageZoom(newZoom);
+  };
+
+  const handlePinchGestureStateChange = (event: any) => {
+    const { state } = event.nativeEvent;
+    // State 2 is BEGAN - capture current zoom as base when gesture starts
+    if (state === 2) {
+      baseZoomRef.current = imageZoom;
+    }
+    // State 5 is END - finalize zoom when gesture ends
+    if (state === 5) {
+      baseZoomRef.current = imageZoom;
+    }
   };
 
   const handleCloseImageModal = () => {
     setSelectedImage(null);
     setImageZoom(1);
+    baseZoomRef.current = 1;
     setImageDimensions(null);
   };
 
@@ -1099,88 +1139,96 @@ export default function RichTextRenderer({
         animationType='fade'
         onRequestClose={handleCloseImageModal}
       >
-        <SafeAreaView style={styles.imageModalOverlay}>
-          {/* Top bar with close button and zoom controls */}
-          <View style={styles.imageModalHeader}>
-            <TouchableOpacity
-              onPress={handleCloseImageModal}
-              style={styles.imageModalCloseButton}
-            >
-              <Feather name='x' size={20} color='#878787' />
-            </TouchableOpacity>
-            <View style={styles.imageModalZoomControls}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaView style={styles.imageModalOverlay}>
+            {/* Top bar with close button and zoom controls */}
+            <View style={styles.imageModalHeader}>
               <TouchableOpacity
-                onPress={handleZoomOut}
-                style={styles.imageModalZoomButton}
-                disabled={imageZoom <= 0.5}
+                onPress={handleCloseImageModal}
+                style={styles.imageModalCloseButton}
               >
-                <Feather
-                  name='zoom-out'
-                  size={20}
-                  color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
-                />
+                <Feather name='x' size={20} color='#878787' />
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleZoomIn}
-                style={styles.imageModalZoomButton}
-                disabled={imageZoom >= 5}
-              >
-                <Feather
-                  name='zoom-in'
-                  size={20}
-                  color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Scrollable image container */}
-          <ScrollView
-            contentContainerStyle={styles.imageModalScrollContent}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            bounces={true}
-          >
-            {selectedImage && (
-              <View
-                style={{
-                  transform: [{ scale: imageZoom }],
-                }}
-              >
-                <Image
-                  source={{ uri: selectedImage }}
-                  style={[
-                    styles.imageModalImage,
-                    imageDimensions
-                      ? {
-                          width: imageDimensions.width,
-                          height: imageDimensions.height,
-                        }
-                      : {
-                          width: screenWidth,
-                          height: screenHeight * 0.7,
-                        },
-                  ]}
-                  resizeMode='contain'
-                  onLoad={e => {
-                    const { width, height } = e.nativeEvent.source;
-                    if (width && height) {
-                      // Use full original image dimensions (no size limits)
-                      setImageDimensions({ width, height });
-                    }
-                  }}
-                />
+              <View style={styles.imageModalZoomControls}>
+                <TouchableOpacity
+                  onPress={handleZoomOut}
+                  style={styles.imageModalZoomButton}
+                  disabled={imageZoom <= 0.5}
+                >
+                  <Feather
+                    name='zoom-out'
+                    size={20}
+                    color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleZoomIn}
+                  style={styles.imageModalZoomButton}
+                  disabled={imageZoom >= 5}
+                >
+                  <Feather
+                    name='zoom-in'
+                    size={20}
+                    color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
+                  />
+                </TouchableOpacity>
               </View>
-            )}
-          </ScrollView>
-        </SafeAreaView>
+            </View>
+
+            {/* Scrollable image container with pinch gesture */}
+            <PinchGestureHandler
+              onGestureEvent={handlePinchGesture}
+              onHandlerStateChange={handlePinchGestureStateChange}
+            >
+              <ScrollView
+                contentContainerStyle={styles.imageModalScrollContent}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                bounces={true}
+                scrollEnabled={imageZoom > 1}
+              >
+                {selectedImage && (
+                  <View
+                    style={{
+                      transform: [{ scale: imageZoom }],
+                    }}
+                  >
+                    <Image
+                      source={{ uri: selectedImage }}
+                      style={[
+                        styles.imageModalImage,
+                        imageDimensions
+                          ? {
+                              width: imageDimensions.width,
+                              height: imageDimensions.height,
+                            }
+                          : {
+                              width: screenWidth,
+                              height: screenHeight * 0.7,
+                            },
+                      ]}
+                      resizeMode='contain'
+                      onLoad={e => {
+                        const { width, height } = e.nativeEvent.source;
+                        if (width && height) {
+                          // Use full original image dimensions (no size limits)
+                          setImageDimensions({ width, height });
+                        }
+                      }}
+                    />
+                  </View>
+                )}
+              </ScrollView>
+            </PinchGestureHandler>
+          </SafeAreaView>
+        </GestureHandlerRootView>
       </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 }, // No gap - spacing handled by individual block margins
+  container: { flex: 1, paddingTop: 4 }, // Add top padding to prevent text clipping
   listItemContainer: { marginBottom: 0 }, // Spacing between list items handled by bullet marginBottom
   skipLineSpacer: { height: 20, marginBottom: 0 }, // Skip lines create consistent 20px spacing
   inputFieldContainer: {
