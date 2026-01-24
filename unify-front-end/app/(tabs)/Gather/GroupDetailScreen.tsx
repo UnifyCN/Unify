@@ -48,6 +48,21 @@ const GroupDetailScreen = () => {
   const queryClient = useQueryClient();
   const { trackGroupViewed, trackGroupJoined, trackGroupLeft } = useAnalytics();
 
+  // Update groupData when group param changes
+  useEffect(() => {
+    if (group) {
+      try {
+        const parsedGroup = JSON.parse(group as string) as Group;
+        setGroupData(parsedGroup);
+        // Reset state when group changes
+        setIsMember(null);
+        hasTrackedView.current = false;
+      } catch (error) {
+        console.error('Failed to parse group data:', error);
+      }
+    }
+  }, [group]);
+
   useEffect(() => {
     // Reset header opacity when component mounts
     headerOpacity.setValue(0);
