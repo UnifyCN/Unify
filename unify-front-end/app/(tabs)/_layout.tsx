@@ -49,6 +49,8 @@ export default function TabLayout() {
         return 'Community';
       case 'companion':
         return 'Companion';
+      case 'Checklist':
+        return 'Checklist';
       case 'Learn':
         return 'Learn';
       default:
@@ -136,6 +138,19 @@ export default function TabLayout() {
               <TabIcon
                 IconComponent={CompanionIcon}
                 title='Companion'
+                focused={focused}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='Checklist'
+          options={{
+            title: 'Checklist',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                IconComponent={CompanionIcon} // TODO: Change this
+                title='Checklist'
                 focused={focused}
               />
             ),
