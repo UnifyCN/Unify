@@ -715,11 +715,8 @@ export default function ModuleIndex() {
       const progress = submoduleProgresses[submodule._id];
       const isCompleted = progress?.is_completed || false;
 
-      // Check if unlocked (first section is always unlocked, or previous is completed)
-      const unlocked =
-        i === 0 ||
-        (i > 0 &&
-          submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+      // All sections are now unlocked at all times
+      const unlocked = true;
 
       // If unlocked and not completed, this is the section to highlight (Start or Continue)
       if (unlocked && !isCompleted) {
@@ -764,10 +761,8 @@ export default function ModuleIndex() {
       const progressPercent = Number.isFinite(n)
         ? Math.max(0, Math.min(100, n))
         : 0;
-      const unlocked =
-        i === 0 ||
-        (i > 0 &&
-          submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+      // All sections are now unlocked at all times
+      const unlocked = true;
 
       // Determine UI state
       let uiState: SectionUIState;
@@ -802,7 +797,7 @@ export default function ModuleIndex() {
 
   // Handle card tap
   const handleCardTap = async (section: SectionViewModel) => {
-    if (section.uiState === 'locked') return;
+    // All sections are now unlocked, so no need to check locked state
 
     // If tapping the already-opened card, navigate
     if (openedCardId === section.id) {
