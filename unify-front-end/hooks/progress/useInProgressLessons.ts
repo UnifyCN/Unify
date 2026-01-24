@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useEffect, useRef } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { sanityClient } from '@/sanity-custom';
+import { progressEventEmitter } from '@/utils/progressEventEmitter';
 
 interface ContinueLesson {
   id: string;
@@ -202,17 +202,26 @@ export function useInProgressLessons() {
     }
   };
 
-  // Fetch on mount
+  // Track if this is the first mount
+  const isFirstMount = useRef(true);
+
+  // Fetch on mount (first time only)
   useEffect(() => {
-    fetchInProgressLessons();
+    if (isFirstMount.current) {
+      fetchInProgressLessons();
+      isFirstMount.current = false;
+    }
   }, []);
 
-  // Refresh when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
+  // Subscribe to progress update events
+  useEffect(() => {
+    const unsubscribe = progressEventEmitter.subscribe(() => {
+      // Only refetch when progress is logged to the database
       fetchInProgressLessons();
-    }, [])
-  );
+    });
+
+    return unsubscribe;
+  }, []);
 
   return {
     lessons,
