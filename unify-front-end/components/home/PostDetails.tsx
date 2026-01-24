@@ -186,7 +186,7 @@ const PostDetails = () => {
         data={commentsData}
         keyExtractor={item => item.id.toString()}
         renderItem={renderPost}
-        contentContainerStyle={{ paddingTop: 80, paddingBottom: 25 }}
+        contentContainerStyle={{ paddingTop: 100, paddingBottom: 25 }}
         ListHeaderComponent={
           <>
             <PostItem

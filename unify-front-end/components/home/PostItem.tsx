@@ -26,6 +26,7 @@ import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
 import { useCurrentUser } from '@/context/UserContext';
+import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
 import AnimatedIconButton from '@/components/AnimatedIconButton';
@@ -52,6 +53,7 @@ export const PostItem = memo(
   }: PostItemProps) => {
     const router = useRouter();
     const { currentUser } = useCurrentUser();
+    const { showToast } = useToast();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const {
       trackPostLike,
@@ -106,7 +108,18 @@ export const PostItem = memo(
       } else {
         trackPostSave(postId.toString());
       }
-      savePostMutation.mutate({ postId, isSaved });
+      savePostMutation.mutate(
+        { postId, isSaved },
+        {
+          onSuccess: () => {
+            if (!isSaved) {
+              showToast('Post saved! Find it in Settings > Saved Posts', () => {
+                router.push('/saved');
+              });
+            }
+          },
+        }
+      );
     };
 
     const navigateToUserProfile = () => {
@@ -179,7 +192,7 @@ export const PostItem = memo(
             <Avatar
               profilePictureUrl={post.user.profilePictureUrl}
               username={post.user.username}
-              size={29}
+              size={40}
             />
           </TouchableOpacity>
           {/* Post Content */}
@@ -192,7 +205,7 @@ export const PostItem = memo(
                 </TouchableOpacity>
                 {post.group && (
                   <>
-                    <ChevronRight color={Theme.black} width={6} height={12} />
+                    <ChevronRight color={Theme.textAlternateGray} width={6} height={14} />
                     <TouchableOpacity
                       onPress={() =>
                         router.push({
@@ -223,7 +236,11 @@ export const PostItem = memo(
             </View>
 
             {/* Title and Content - Clickable to navigate to post details */}
-            <TouchableOpacity onPress={navigateToComments} activeOpacity={0.5}>
+            <TouchableOpacity
+              onPress={navigateToComments}
+              activeOpacity={0.5}
+              style={styles.postBody}
+            >
               <View>
                 <Text style={styles.title}>{post.title}</Text>
               </View>
@@ -363,12 +380,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 22,
+    paddingTop: 16,
+    paddingBottom: 12,
     gap: 12,
   },
   postContent: {
     flex: 1,
-    gap: 10,
   },
   header: {
     flexDirection: 'row',
@@ -378,6 +395,7 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'left',
     lineHeight: 16,
+    marginBottom: 6,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -389,8 +407,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headshot: {
-    width: 29,
-    height: 29,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
@@ -402,11 +420,11 @@ const styles = StyleSheet.create({
   },
   group: {
     fontWeight: '600',
-    fontSize: 12,
+    fontSize: 14,
     color: Theme.black,
   },
   time: {
-    paddingTop: 2,
+    paddingTop: 0,
     fontSize: 14,
     color: Theme.textPostTime,
     fontWeight: '500',
@@ -423,7 +441,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 22,
+    marginTop: 4,
+  },
+  postBody: {
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',

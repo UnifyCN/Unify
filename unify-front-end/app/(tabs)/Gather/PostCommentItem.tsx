@@ -113,7 +113,7 @@ const PostCommentItem = memo(
             <Avatar
               profilePictureUrl={comment.profilePictureUrl}
               username={comment.username}
-              size={29}
+              size={40}
             />
           </TouchableOpacity>
 
@@ -222,12 +222,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 22,
+    paddingTop: 16,
+    paddingBottom: 12,
     gap: 12,
   },
   postContent: {
     flex: 1,
-    gap: 10,
   },
   header: {
     flexDirection: 'row',
@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'left',
     lineHeight: 16,
+    marginBottom: 6,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -248,25 +249,28 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headshot: {
-    width: 29,
-    height: 29,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
   },
   name: {
-    fontSize: 12,
+    fontSize: 16,
+    fontWeight: '600',
     color: Theme.black,
   },
   time: {
     paddingTop: 2,
-    fontSize: 10,
+    fontSize: 14,
     color: Theme.textPostTime,
     fontWeight: '500',
   },
   description: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 16,
+    lineHeight: 22,
+    marginTop: 4,
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
