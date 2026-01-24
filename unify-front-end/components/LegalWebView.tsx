@@ -80,7 +80,7 @@ export default function LegalWebView({
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Feather name="x" size={24} color={Theme.black} />
+          <Feather name='x' size={24} color={Theme.black} />
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>
           {title}
@@ -92,7 +92,7 @@ export default function LegalWebView({
       <View style={styles.content}>
         {error ? (
           <View style={styles.errorContainer}>
-            <Feather name="alert-circle" size={48} color={Theme.textInput} />
+            <Feather name='alert-circle' size={48} color={Theme.textInput} />
             <Text style={styles.errorText}>Couldn't load the document</Text>
             <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
               <Text style={styles.retryButtonText}>Retry</Text>
@@ -121,7 +121,10 @@ export default function LegalWebView({
             />
             {loading && (
               <View style={styles.loadingOverlay}>
-                <ActivityIndicator size="large" color={Theme.primaryGatherRed} />
+                <ActivityIndicator
+                  size='large'
+                  color={Theme.primaryGatherRed}
+                />
               </View>
             )}
           </>

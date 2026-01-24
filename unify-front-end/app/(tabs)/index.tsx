@@ -5,8 +5,13 @@ import {
   TouchableOpacity,
   ImageBackground,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
@@ -34,11 +39,34 @@ interface HeaderProps {
   onTabChange?: (tab: string) => void;
 }
 
+const TABS = ['For You', 'Following', 'Groups'];
+const TAB_MARGIN_HORIZONTAL = 20;
+
 const FeedTabs = memo(
   ({ activeTab, setActiveTab, onTabChange }: HeaderProps) => {
+    const { width } = useWindowDimensions();
+    const activeIndex = Math.max(0, TABS.indexOf(activeTab));
+    const indicatorPosition = useSharedValue(activeIndex);
+    const tabWidth = width / TABS.length;
+    const indicatorWidth = tabWidth - TAB_MARGIN_HORIZONTAL * 2;
+
+    useEffect(() => {
+      indicatorPosition.value = withSpring(activeIndex, {
+        damping: 20,
+        stiffness: 200,
+      });
+    }, [activeIndex]);
+
+    const indicatorStyle = useAnimatedStyle(
+      () => ({
+        transform: [{ translateX: indicatorPosition.value * tabWidth }],
+      }),
+      [tabWidth]
+    );
+
     return (
       <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map(tab => (
+        {TABS.map((tab, index) => (
           <TouchableOpacity
             key={tab}
             onPress={() => {
@@ -47,15 +75,25 @@ const FeedTabs = memo(
               }
               setActiveTab(tab);
             }}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            style={styles.tab}
           >
             <Text
-              style={[styles.tabText, activeTab === tab && styles.activeTabText]}
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
             >
               {tab}
             </Text>
           </TouchableOpacity>
         ))}
+        <Animated.View
+          style={[
+            styles.tabIndicator,
+            indicatorStyle,
+            { left: TAB_MARGIN_HORIZONTAL, width: indicatorWidth },
+          ]}
+        />
       </View>
     );
   }
@@ -200,7 +238,7 @@ export default function HomeScreen() {
         lastTrackedRef.current = now;
       }
       hasTrackedInitialFocus.current = true;
-      
+
       return () => {
         hasTrackedInitialFocus.current = false;
       };
@@ -211,7 +249,7 @@ export default function HomeScreen() {
   const handleFeedTabChange = useCallback(
     (tab: string) => {
       if (!isFocused) return;
-      
+
       const tabName = tab as 'For You' | 'Following' | 'Groups';
       trackFeedTabSwitched(tabName);
       // Also update the screen name for the new tab
@@ -346,9 +384,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
-    marginHorizontal: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    marginHorizontal: TAB_MARGIN_HORIZONTAL,
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    height: 2,
+    backgroundColor: Theme.primaryGatherRed,
+    borderRadius: 1,
   },
   activeTab: {
     borderBottomColor: Theme.primaryGatherRed,

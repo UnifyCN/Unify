@@ -29,6 +29,7 @@ import { useCurrentUser } from '@/context/UserContext';
 import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
+import AnimatedIconButton from '@/components/AnimatedIconButton';
 
 export interface PostItemProps {
   post: PostData;
@@ -81,10 +82,11 @@ export const PostItem = memo(
           onSuccess: () => {
             setDeleteModalVisible(false);
           },
-          onError: (error) => {
+          onError: error => {
             Alert.alert(
               'Error',
-              error.message || `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
+              error.message ||
+                `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
             );
           },
         }
@@ -252,7 +254,7 @@ export const PostItem = memo(
             {/* Footer */}
             <View style={styles.footer}>
               <View style={styles.footerItem}>
-                <TouchableOpacity
+                <AnimatedIconButton
                   onPress={() => {
                     if (isLiked !== undefined && !showMetadataLoading) {
                       toggleLike(post.id, isLiked);
@@ -265,7 +267,7 @@ export const PostItem = memo(
                   ) : (
                     <Like width={20} height={20} />
                   )}
-                </TouchableOpacity>
+                </AnimatedIconButton>
                 {showMetadataLoading ? (
                   <SkeletonLoader width={20} height={14} />
                 ) : (
@@ -283,7 +285,7 @@ export const PostItem = memo(
                   <Text style={styles.footerText}>{commentCount}</Text>
                 )}
               </TouchableOpacity>
-              <TouchableOpacity
+              <AnimatedIconButton
                 onPress={() => {
                   if (isSaved !== undefined && !showMetadataLoading) {
                     toggleSave(post.id, isSaved);
@@ -298,7 +300,7 @@ export const PostItem = memo(
                 ) : (
                   <Save width={20} height={20} />
                 )}
-              </TouchableOpacity>
+              </AnimatedIconButton>
             </View>
           </View>
         </View>
@@ -349,8 +351,12 @@ export const PostItem = memo(
                     />
                     <Text style={styles.modalOptionText}>
                       {pinPostMutation.isPending
-                        ? (post.isPinned ? 'Unpinning...' : 'Pinning...')
-                        : (post.isPinned ? 'Unpin Post' : 'Pin Post')}
+                        ? post.isPinned
+                          ? 'Unpinning...'
+                          : 'Pinning...'
+                        : post.isPinned
+                          ? 'Unpin Post'
+                          : 'Pin Post'}
                     </Text>
                   </TouchableOpacity>
                 )}

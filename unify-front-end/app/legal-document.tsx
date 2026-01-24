@@ -1,11 +1,7 @@
 import React from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import LegalWebView from '@/components/LegalWebView';
-import {
-  LEGAL_URLS,
-  LEGAL_TITLES,
-  LegalDocumentType,
-} from '@/utils/legalUrls';
+import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
 
 /**
  * Route: /legal-document?doc=privacyPolicy|communityGuidelines

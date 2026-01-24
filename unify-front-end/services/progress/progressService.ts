@@ -371,18 +371,21 @@ export async function getModuleProgress(
       const userResult = await progressClient.auth.getUser();
       user = userResult?.data?.user || null;
       if (userResult?.error) {
-        console.error('Error getting user in getModuleProgress:', userResult.error);
+        console.error(
+          'Error getting user in getModuleProgress:',
+          userResult.error
+        );
       }
     } catch (authError: any) {
       console.error('Exception getting user in getModuleProgress:', authError);
       return null;
     }
-    
+
     if (!user) return null;
 
     let data = null;
     let error = null;
-    
+
     try {
       const result = await progressClient
         .from('user_module_progress')
@@ -390,7 +393,7 @@ export async function getModuleProgress(
         .eq('user_id', user.id)
         .eq('sanity_module_id', moduleId)
         .single();
-      
+
       data = result?.data || null;
       error = result?.error || null;
     } catch (queryError: any) {

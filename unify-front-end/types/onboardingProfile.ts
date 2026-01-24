@@ -13,13 +13,6 @@ export type ReferralSource =
   | 'tiktok'
   | 'other';
 
-export type TimeInCanada =
-  | 'not_arrived'
-  | 'less_than_1_year'
-  | '1_to_2_years'
-  | '2_to_3_years'
-  | '3_plus_years';
-
 export type Goal =
   | 'learn_something'
   | 'build_community'
@@ -58,7 +51,7 @@ export interface UserOnboardingProfile {
   persona_other: string | null;
   referral_source: ReferralSource | null;
   referral_source_other: string | null;
-  time_in_canada: TimeInCanada | null;
+  arrival_date: string | null;
 
   // Multi-select fields
   goals: Goal[];
@@ -83,7 +76,7 @@ export interface OnboardingProfileInput {
   persona_other?: string | null;
   referral_source?: ReferralSource | null;
   referral_source_other?: string | null;
-  time_in_canada?: TimeInCanada | null;
+  arrival_date?: string | null;
   goals?: Goal[];
   goals_other?: string | null;
   learning_interests?: LearningInterest[];

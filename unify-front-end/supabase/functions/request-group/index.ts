@@ -1,7 +1,6 @@
-
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const RESEND_FROM = Deno.env.get('RESEND_FROM'); // e.g. "Unify <noreply@unifysocial.ca>"
-const RESEND_TO = Deno.env.get('RESEND_TO');     // "contact@unifysocial.ca"
+const RESEND_TO = Deno.env.get('RESEND_TO'); // "contact@unifysocial.ca"
 
 type Payload = {
   groupName: string;
@@ -28,10 +27,10 @@ function isValidEmail(email: string): boolean {
 // Sanitize string for use in email subject (prevent header injection)
 function sanitizeForSubject(str: string): string {
   return str
-    .replace(/[\r\n\t]/g, ' ')  // Replace CR, LF, TAB with space
-    .replace(/[\x00-\x1f\x7f]/g, '')  // Remove other control characters
+    .replace(/[\r\n\t]/g, ' ') // Replace CR, LF, TAB with space
+    .replace(/[\x00-\x1f\x7f]/g, '') // Remove other control characters
     .trim()
-    .slice(0, 100);  // Limit length
+    .slice(0, 100); // Limit length
 }
 
 Deno.serve(async (req: Request) => {
@@ -53,9 +52,15 @@ Deno.serve(async (req: Request) => {
     return badRequest('Invalid JSON.');
   }
 
-  const { groupName, audience, reason, requesterEmail, extraNotes } = body ?? {};
+  const { groupName, audience, reason, requesterEmail, extraNotes } =
+    body ?? {};
 
-  if (!groupName?.trim() || !audience?.trim() || !reason?.trim() || !requesterEmail?.trim()) {
+  if (
+    !groupName?.trim() ||
+    !audience?.trim() ||
+    !reason?.trim() ||
+    !requesterEmail?.trim()
+  ) {
     return badRequest('Missing required fields.');
   }
 
@@ -100,10 +105,13 @@ Deno.serve(async (req: Request) => {
   const data = await resendRes.json().catch(() => ({}));
 
   if (!resendRes.ok) {
-    return new Response(JSON.stringify({ error: 'Resend error', details: data }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: 'Resend error', details: data }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 
   return new Response(JSON.stringify({ ok: true, data }), {

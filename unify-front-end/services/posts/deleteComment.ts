@@ -21,7 +21,9 @@ export const deleteComment = async (
       .single();
 
     if (userError) {
-      throw new Error(`Failed to verify user permissions: ${userError.message}`);
+      throw new Error(
+        `Failed to verify user permissions: ${userError.message}`
+      );
     }
 
     const isAdmin = userData?.permissions === 'admin';
@@ -54,7 +56,9 @@ export const deleteComment = async (
       const ownsPost = postData?.user_id === user.id;
 
       if (!ownsComment && !ownsPost) {
-        throw new Error('Partners can only delete their own comments or comments on their posts');
+        throw new Error(
+          'Partners can only delete their own comments or comments on their posts'
+        );
       }
     } else {
       // Regular users cannot delete comments

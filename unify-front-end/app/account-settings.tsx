@@ -156,9 +156,7 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>
-                  {row.title}
-                </Text>
+                <Text style={styles.rowText}>{row.title}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -176,9 +174,7 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>
-                  {row.title}
-                </Text>
+                <Text style={styles.rowText}>{row.title}</Text>
               </TouchableOpacity>
             ))}
           </View>

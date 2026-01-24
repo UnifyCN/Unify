@@ -76,7 +76,9 @@ export function SignUp({
     }
 
     if (!isChecked) {
-      setErrorMessage('Please accept the Privacy Policy and Community Guidelines');
+      setErrorMessage(
+        'Please accept the Privacy Policy and Community Guidelines'
+      );
       trackSignUpFailed('terms_not_accepted');
       return;
     }
