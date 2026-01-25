@@ -43,7 +43,7 @@ export const getOnboardingProfile = async (
       persona_other: data.persona_other,
       referral_source: data.referral_source,
       referral_source_other: data.referral_source_other,
-      time_in_canada: data.time_in_canada,
+      arrival_date: data.arrival_date,
       goals: data.goals || [],
       goals_other: data.goals_other,
       learning_interests: data.learning_interests || [],

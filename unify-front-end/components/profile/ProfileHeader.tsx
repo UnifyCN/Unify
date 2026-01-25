@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
@@ -59,31 +60,33 @@ export const ProfileHeader = ({
     <View style={styles.container}>
       {/* Left Section - User Info */}
       <View style={styles.leftSection}>
-        <Text style={styles.username}>{userInfo.username}</Text>
+        {/* Username - tappable for current user */}
+        {isCurrentUser ? (
+          <TouchableOpacity
+            style={styles.usernameRow}
+            onPress={() => router.push('/edit-name')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.username}>{userInfo.username}</Text>
+            <Feather name="edit-3" size={18} color={Theme.black} />
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.username}>{userInfo.username}</Text>
+        )}
 
         {/* Stats */}
         <View style={styles.statsContainer}>
           <Text style={styles.statNumber}>{userInfo.followerCount} </Text>
-          <Text style={styles.statLabel}>followers</Text>
+          <Text style={styles.statLabel}>Followers</Text>
           <Text style={styles.bullet}> • </Text>
           <Text style={styles.statNumber}>{userInfo.followingCount} </Text>
-          <Text style={styles.statLabel}>following</Text>
+          <Text style={styles.statLabel}>Following</Text>
         </View>
 
-        {/* Follow Button or Edit Profile Button */}
+        {/* Follow Button (only for other users) */}
         {!isCurrentUser && isCurrentUser !== null && (
           <View style={styles.followButtonContainer}>
             <FollowButton targetUserId={userInfo.id} />
-          </View>
-        )}
-        {isCurrentUser && (
-          <View style={styles.followButtonContainer}>
-            <TouchableOpacity
-              style={styles.editProfileButton}
-              onPress={() => router.push('/account-settings')}
-            >
-              <Text style={styles.editProfileButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -101,9 +104,13 @@ export const ProfileHeader = ({
           {isCurrentUser && (
             <>
               <TouchableOpacity
-                style={styles.avatarButton}
+                style={styles.cameraButton}
                 onPress={() => setModalVisible(true)}
-              />
+              >
+                <View style={styles.cameraIconContainer}>
+                  <Feather name="camera" size={18} color={Theme.white} />
+                </View>
+              </TouchableOpacity>
               <ProfilePictureUpload
                 currentPictureUrl={userInfo.profilePictureUrl}
                 userId={userInfo.id}
@@ -161,21 +168,27 @@ const styles = StyleSheet.create({
     marginBottom: 2,
     color: '#000',
   },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
+  },
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   statNumber: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#000',
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#000',
   },
   bullet: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#000',
     marginHorizontal: 4,
   },
@@ -196,26 +209,19 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
   },
-  avatarButton: {
+  cameraButton: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
     bottom: 0,
-    borderRadius: 46.5,
+    right: 0,
   },
-  editProfileButton: {
-    backgroundColor: Theme.black,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 10,
-    alignItems: 'center',
+  cameraIconContainer: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: Theme.primaryGatherRed,
+    borderWidth: 2,
+    borderColor: '#fff',
     justifyContent: 'center',
-    minWidth: 64,
-  },
-  editProfileButtonText: {
-    color: Theme.white,
-    fontSize: 12,
-    fontWeight: '600',
+    alignItems: 'center',
   },
 });

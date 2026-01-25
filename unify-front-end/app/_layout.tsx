@@ -14,6 +14,7 @@ import { PostHogProvider } from 'posthog-react-native';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import { UserProvider } from '@/context/UserContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { ToastProvider } from '@/context/ToastContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -86,7 +87,8 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
         <SafeAreaProvider>
-          <ScrollContextProvider>
+          <ToastProvider>
+            <ScrollContextProvider>
             {/* {showOnboarding ? (
               <Onboarding onFinish={() => setShowOnboarding(false)} />
             ) : ( */}
@@ -108,7 +110,8 @@ export default function RootLayout() {
               </AuthWrapper>
             </UserProvider>
             {/* )} */}
-          </ScrollContextProvider>
+            </ScrollContextProvider>
+          </ToastProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
@@ -158,6 +161,10 @@ function AppContent() {
       />
       <Stack.Screen
         name='community-matching'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='legal-document'
         options={{ headerShown: false }}
       />
       <Stack.Screen name='+not-found' />

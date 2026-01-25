@@ -16,7 +16,7 @@ const Header = ({ showSearchIcon = true }: HeaderProps) => {
   const unreadCount = useUnreadNotificationCount();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 7}]}>
+    <View style={[styles.header, { paddingTop: insets.top + 7 }]}>
       <UnifyLogo width={28} height={28} />
       <View style={styles.rightButtons}>
         {showSearchIcon && (

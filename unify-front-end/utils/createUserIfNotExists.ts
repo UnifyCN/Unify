@@ -6,18 +6,27 @@ import { generateUsername } from './usernameGenerator';
  * Consolidates check-and-insert logic with identical timestamps.
  * Handles username collisions by retrying with a new username.
  *
+ * @param userId - The auth user ID
+ * @param email - The user's email address
+ * @param options - Optional parameters for legal acceptance timestamps
  * @throws Error if unable to create user record after retries or on critical failures
  */
 export const createUserIfNotExists = async (
   userId: string,
-  email: string
+  email: string,
+  options?: {
+    privacyPolicyAcceptedAt?: string;
+    communityGuidelinesAcceptedAt?: string;
+  }
 ): Promise<void> => {
   // Validate required parameters
   if (!userId) {
     throw new Error('userId is required to create user record');
   }
   if (!email) {
-    throw new Error('email is required to create user record (UNIQUE constraint)');
+    throw new Error(
+      'email is required to create user record (UNIQUE constraint)'
+    );
   }
 
   // 1. Check if user already exists in public.users
@@ -29,7 +38,9 @@ export const createUserIfNotExists = async (
 
   if (fetchError) {
     console.error('Error checking user existence:', fetchError);
-    throw new Error(`Database error checking user existence: ${fetchError.message}`);
+    throw new Error(
+      `Database error checking user existence: ${fetchError.message}`
+    );
   }
 
   if (existingUser) return;
@@ -48,8 +59,15 @@ export const createUserIfNotExists = async (
       id: userId,
       email: email,
       username: username,
+      permissions: 'user',
       created_at: timestamp,
       updated_at: timestamp,
+      ...(options?.privacyPolicyAcceptedAt && {
+        privacy_policy_accepted_at: options.privacyPolicyAcceptedAt,
+      }),
+      ...(options?.communityGuidelinesAcceptedAt && {
+        community_guidelines_accepted_at: options.communityGuidelinesAcceptedAt,
+      }),
     });
 
     if (!insertError) return; // Success
@@ -94,6 +112,10 @@ export const createUserIfNotExists = async (
   }
 
   // Exhausted all retries due to username collisions
-  console.error('Failed to create user record after max retries due to username collisions');
-  throw lastError || new Error('Failed to create user record after max retries');
+  console.error(
+    'Failed to create user record after max retries due to username collisions'
+  );
+  throw (
+    lastError || new Error('Failed to create user record after max retries')
+  );
 };

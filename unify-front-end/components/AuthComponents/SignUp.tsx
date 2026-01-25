@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, Platform, Modal } from 'react-native';
 import { CheckBox } from 'react-native-elements';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
@@ -19,15 +19,24 @@ import {
   ViewContainer,
   ViewSection,
 } from './Components';
+import { useAnalytics } from '@/utils/analytics';
+import LegalWebView from '@/components/LegalWebView';
+import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
 
 export function SignUp({
   onSwitchToSignIn,
   onShowOTP,
 }: {
   onSwitchToSignIn?: () => void;
-  onShowOTP?: (email: string, password: string) => void;
+  onShowOTP?: (email: string, password: string, acceptedAt: string) => void;
 }): React.JSX.Element {
   const queryClient = useQueryClient();
+  const {
+    trackSignUpStarted,
+    trackSignUpCompleted,
+    trackSignUpFailed,
+    trackGoogleSignInUsed,
+  } = useAnalytics();
   // State vars
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -39,6 +48,12 @@ export function SignUp({
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
+  const [webViewDoc, setWebViewDoc] = useState<LegalDocumentType | null>(null);
+
+  // Track sign up started on mount
+  useEffect(() => {
+    trackSignUpStarted();
+  }, [trackSignUpStarted]);
 
   const validateEmail = (emailInput: string) => {
     // Simple email validation regex
@@ -50,16 +65,21 @@ export function SignUp({
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
       setErrorMessage('Passwords do not match');
+      trackSignUpFailed('passwords_mismatch');
       return;
     }
 
     if (!isEmailValid) {
       setErrorMessage('Please enter a valid email address');
+      trackSignUpFailed('invalid_email');
       return;
     }
 
     if (!isChecked) {
-      setErrorMessage('Please accept the terms and privacy policy');
+      setErrorMessage(
+        'Please accept the Privacy Policy and Community Guidelines'
+      );
+      trackSignUpFailed('terms_not_accepted');
       return;
     }
 
@@ -80,6 +100,7 @@ export function SignUp({
       // Handle real database errors (not the expected "not found" error)
       if (checkError && checkError.code !== 'PGRST116') {
         setErrorMessage('Failed to verify email availability');
+        trackSignUpFailed('email_check_failed');
         setLoading(false);
         return;
       }
@@ -88,6 +109,7 @@ export function SignUp({
       // If existingUser exists, email is already taken
       if (existingUser) {
         setErrorMessage('An account with this email already exists');
+        trackSignUpFailed('email_already_exists');
         setLoading(false);
         return;
       }
@@ -100,17 +122,22 @@ export function SignUp({
 
       if (error) {
         setErrorMessage(error.message);
+        trackSignUpFailed(error.code || 'signup_failed');
         setLoading(false);
         return;
       }
 
-      // If successful, show OTP verification screen
-      onShowOTP?.(email, password);
+      // If successful, show OTP verification screen with acceptance timestamp
+      trackSignUpCompleted();
+      const acceptedAt = new Date().toISOString();
+      onShowOTP?.(normalizedEmail, password, acceptedAt);
+      // Early return to avoid calling setLoading(false) after component may have unmounted
+      return;
     } catch (error) {
       setErrorMessage('An error occurred during sign up.');
+      trackSignUpFailed('unknown_error');
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   // Configure Google Sign-In once on mount
@@ -132,10 +159,11 @@ export function SignUp({
 
     setLoading(true);
     setErrorMessage(null);
+    trackGoogleSignInUsed('sign_up');
 
     try {
       if (Platform.OS === 'android') {
-      await GoogleSignin.hasPlayServices();
+        await GoogleSignin.hasPlayServices();
       }
       await GoogleSignin.signIn();
       const { idToken } = await GoogleSignin.getTokens();
@@ -156,7 +184,9 @@ export function SignUp({
             await createUserIfNotExists(data.user.id, data.user.email);
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
-            setErrorMessage(userCreationError?.message || 'Failed to complete sign-up setup');
+            setErrorMessage(
+              userCreationError?.message || 'Failed to complete sign-up setup'
+            );
             setLoading(false);
             return;
           }
@@ -269,7 +299,7 @@ export function SignUp({
         )}
       </ViewSection>
 
-      {/* Terms and conditions checkbox */}
+      {/* Privacy Policy and Community Guidelines checkbox */}
       <View style={styles.checkboxRow}>
         <CheckBox
           checked={isChecked}
@@ -283,17 +313,33 @@ export function SignUp({
           wrapperStyle={styles.checkboxWrapper}
         />
         <Text style={styles.checkboxText}>
-          I accept the{' '}
+          I agree to the{' '}
           <Text
             style={styles.checkboxLinkText}
-            onPress={() => {
-              // Leave the link empty for now
-            }}
+            onPress={() => setWebViewDoc('privacyPolicy')}
           >
-            terms and privacy policy
+            Privacy Policy
+          </Text>
+          {' and '}
+          <Text
+            style={styles.checkboxLinkText}
+            onPress={() => setWebViewDoc('communityGuidelines')}
+          >
+            Community Guidelines
           </Text>
         </Text>
       </View>
+
+      {/* Legal Document WebView Modal */}
+      <Modal visible={webViewDoc !== null} animationType='slide'>
+        {webViewDoc && (
+          <LegalWebView
+            url={LEGAL_URLS[webViewDoc]}
+            title={LEGAL_TITLES[webViewDoc]}
+            onClose={() => setWebViewDoc(null)}
+          />
+        )}
+      </Modal>
 
       <SubmitButton
         disabled={!isEmailValid || !password || !confirmPassword || !isChecked}

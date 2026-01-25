@@ -16,7 +16,7 @@ export const saveOnboardingProfile = async (
       persona_other: data.persona_other ?? null,
       referral_source: data.referral_source ?? null,
       referral_source_other: data.referral_source_other ?? null,
-      time_in_canada: data.time_in_canada ?? null,
+      arrival_date: data.arrival_date ?? null,
       goals: data.goals || [],
       goals_other: data.goals_other ?? null,
       learning_interests: data.learning_interests || [],
@@ -25,7 +25,6 @@ export const saveOnboardingProfile = async (
       wants_reminders: data.wants_reminders ?? false,
       onboarding_completed: data.onboarding_completed ?? false,
     };
-
 
     // Upsert the profile
     const { data: result, error } = await supabase
@@ -46,7 +45,7 @@ export const saveOnboardingProfile = async (
       persona_other: result.persona_other,
       referral_source: result.referral_source,
       referral_source_other: result.referral_source_other,
-      time_in_canada: result.time_in_canada,
+      arrival_date: result.arrival_date,
       goals: result.goals || [],
       goals_other: result.goals_other,
       learning_interests: result.learning_interests || [],

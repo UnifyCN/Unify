@@ -9,7 +9,7 @@ import { Theme } from '@/constants/Theme';
 export default function SavedPostsPage() {
   return (
     <View style={styles.container}>
-      <BackHeader title='Saved' />
+      <BackHeader title='Saved Posts' />
       <FeedWithHook
         useFeedHook={useGetSavedPosts}
         ListEmptyComponent={

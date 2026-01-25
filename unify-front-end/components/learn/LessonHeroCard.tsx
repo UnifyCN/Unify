@@ -10,20 +10,41 @@ interface LessonHeroCardProps {
   totalPages?: number;
   currentSection?: number;
   totalSections?: number;
-  coverImageUrl?: string;
   colorHex?: string;
   icon?: string;
   href?: Href;
 }
 
-// Map Material UI icon names to MaterialCommunityIcons outline variants
+// Map Sanity icon values (snake_case) to MaterialCommunityIcons outline variants
 const mapIconName = (iconName: string): string => {
   const iconMap: { [key: string]: string } = {
+    // Original icons (keeping for backward compatibility)
     AccountBalanceOutlined: 'bank-outline',
     AssignmentIndOutlined: 'account-tie-outline',
     CottageOutlined: 'home-outline',
     ArticleOutlined: 'file-document-outline',
     PassportOutlined: 'passport',
+    // New Sanity icon values (snake_case)
+    account_balance: 'bank-outline',
+    assignment_ind: 'account-tie-outline',
+    cottage: 'home-outline',
+    article: 'file-document-outline',
+    passport: 'passport',
+    school: 'school-outline',
+    book: 'book-outline',
+    work: 'briefcase-outline',
+    computer: 'laptop-outline',
+    business: 'office-building-outline',
+    science: 'flask-outline',
+    language: 'translate',
+    history: 'clock-time-four-outline',
+    psychology: 'brain',
+    menu_book: 'book-open-page-variant',
+    auto_stories: 'book-open-outline',
+    calculate: 'calculator',
+    palette: 'palette-outline',
+    music_note: 'music-note-outline',
+    sports_esports: 'gamepad-variant-outline',
   };
   return iconMap[iconName] || 'bank-outline';
 };
@@ -35,25 +56,24 @@ export default function LessonHeroCard({
   totalPages = 8,
   currentSection = 1,
   totalSections = 4,
-  coverImageUrl,
   colorHex,
   icon,
   href,
 }: LessonHeroCardProps) {
-  const iconName = mapIconName(icon || 'AccountBalanceOutlined');
+  const iconName = mapIconName(icon || 'account_balance');
 
   const cardContent = (
     <View style={styles.card}>
       <View style={styles.content}>
         {/* Icon on top-left */}
         <View style={styles.iconContainer}>
-          <MaterialCommunityIcons 
-            name={iconName as any} 
-            size={36} 
-            color={colorHex || '#000000'} 
+          <MaterialCommunityIcons
+            name={iconName as any}
+            size={36}
+            color={colorHex || '#000000'}
           />
         </View>
-        
+
         {href && (
           <View style={styles.continueButtonContainer}>
             <View
@@ -161,8 +181,8 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1,
   },
-  metaText: { 
-    color: '#000000', 
+  metaText: {
+    color: '#000000',
     fontSize: 14,
     marginBottom: 4,
   },

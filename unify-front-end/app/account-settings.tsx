@@ -6,19 +6,29 @@ import {
   Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LegalDocumentType } from '@/utils/legalUrls';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { useCurrentUser } from '@/context/UserContext';
+import { useAnalytics } from '@/utils/analytics';
+import { useQuery } from '@tanstack/react-query';
+import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
+  const { trackScreen } = useAnalytics();
+
+  // Track screen view on mount
+  useEffect(() => {
+    trackScreen('Account Settings');
+  }, [trackScreen]);
 
   const onLogout = async () => {
     try {
@@ -37,7 +47,16 @@ export default function AccountSettingsPage() {
 
   const settingsRows = [
     {
-      title: 'Saved',
+      title: 'View Profile',
+      icon: 'user' as const,
+      onPress: () => {
+        if (currentUser?.id) {
+          router.push(`/profile?userId=${currentUser.id}`);
+        }
+      },
+    },
+    {
+      title: 'Saved Posts',
       icon: 'bookmark' as const,
       onPress: () => router.push('/saved'),
     },
@@ -48,9 +67,41 @@ export default function AccountSettingsPage() {
     },
   ];
 
+  // Note: pathname uses 'as any' because expo-router generates types at build time
+  // and legal-document.tsx may not be included in the typed routes yet
+  const legalRows = [
+    {
+      title: 'Privacy Policy',
+      icon: 'file-text' as const,
+      onPress: () =>
+        router.push({
+          pathname: '/legal-document' as any,
+          params: { doc: 'privacyPolicy' satisfies LegalDocumentType },
+        }),
+    },
+    {
+      title: 'Community Guidelines',
+      icon: 'users' as const,
+      onPress: () =>
+        router.push({
+          pathname: '/legal-document' as any,
+          params: { doc: 'communityGuidelines' satisfies LegalDocumentType },
+        }),
+    },
+  ];
+
+  const profilePictureKey = currentUser?.profilePictureUrl ?? null;
+
+  const { data: signedProfileUrl } = useQuery({
+    queryKey: ['profilePictureSignedUrl', profilePictureKey],
+    enabled: !!profilePictureKey,
+    queryFn: () => getProfilePictureUrl(profilePictureKey as string),
+    staleTime: 4 * 60 * 1000,
+  });
+
   return (
     <View style={styles.container}>
-      <BackHeader title='Profile' onBack={() => router.back()} />
+      <BackHeader title='Settings' onBack={() => router.back()} />
       <View style={styles.content}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
@@ -59,7 +110,7 @@ export default function AccountSettingsPage() {
               activeOpacity={0.8}
             >
               <Avatar
-                profilePictureUrl={currentUser?.profilePictureUrl}
+                profilePictureUrl={signedProfileUrl}
                 username={currentUser?.username || ''}
                 size={93}
                 style={styles.avatar}
@@ -105,16 +156,32 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={[styles.rowText, { fontSize: 18 }]}>
-                  {row.title}
-                </Text>
+                <Text style={styles.rowText}>{row.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.divider} />
+
+          {/* Legal Section */}
+          <Text style={styles.sectionTitle}>Legal</Text>
+          <View style={styles.settingsCard}>
+            {legalRows.map((row, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.row}
+                onPress={row.onPress}
+              >
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name={row.icon} size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>{row.title}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={onLogout}>
-            <Text style={styles.rowText}>Log out</Text>
+            <Text style={styles.rowText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -195,11 +262,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rowText: {
-    fontSize: 16,
+    fontSize: 18,
     color: Theme.black,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#e4e4e4',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.textInput,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

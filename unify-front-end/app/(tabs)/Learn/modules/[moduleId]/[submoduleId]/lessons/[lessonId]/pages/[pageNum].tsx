@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
@@ -31,6 +33,7 @@ export default function LessonPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
+  const { trackScreen, trackLessonPageViewed } = useAnalytics();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -61,6 +64,50 @@ export default function LessonPageScreen() {
     currentPage
   );
 
+  const TRACKING_THROTTLE_MS = 500;
+  const lessonTitle = lesson?.title;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+
+  // Track page view
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${lessonId}-${currentPage}`;
+      // Only track if: all IDs exist, data is loaded, throttle passed, AND this is a different page than last tracked
+      if (
+        moduleId &&
+        submoduleId &&
+        lessonId &&
+        lessonTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(
+          `Lesson Page: ${lessonTitle} - ${currentPage}/${totalPages}`
+        );
+        trackLessonPageViewed(
+          moduleId,
+          submoduleId,
+          lessonId,
+          currentPage,
+          totalPages
+        );
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [
+      lessonTitle,
+      moduleId,
+      submoduleId,
+      lessonId,
+      currentPage,
+      totalPages,
+      trackScreen,
+      trackLessonPageViewed,
+    ])
+  );
+
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
     if (!submoduleData?.lessons) return -1;
@@ -87,10 +134,10 @@ export default function LessonPageScreen() {
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
-    // Navigate to submodule map
+    // Navigate to module index (skip map)
     router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-      params: { moduleId, submoduleId },
+      pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+      params: { moduleId },
     });
   };
 
@@ -217,10 +264,10 @@ export default function LessonPageScreen() {
           },
         });
       } else {
-        // First lesson, go back to map
+        // First lesson, go back to module index (skip map)
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-          params: { moduleId, submoduleId },
+          pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+          params: { moduleId },
         });
       }
     }

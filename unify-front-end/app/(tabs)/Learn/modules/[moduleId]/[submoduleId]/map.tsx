@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,9 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { getLessonProgress } from '@/services/progress/progressService';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from 'expo-router';
+import { useCallback } from 'react';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -75,10 +78,7 @@ const getLessonStyles = (
   // Line Above Style (connects from prev dot to this dot)
   let lineAboveStyle: ViewStyle[] = [styles.lineSegment];
   if (prevLesson) {
-    if (
-      prevLesson.uiState === 'completed' &&
-      lesson.uiState === 'completed'
-    ) {
+    if (prevLesson.uiState === 'completed' && lesson.uiState === 'completed') {
       lineAboveStyle.push({ backgroundColor: subjectColor });
     } else if (
       prevLesson.uiState === 'completed' &&
@@ -95,10 +95,7 @@ const getLessonStyles = (
   // Critical: For the last lesson, never render lineBelow
   let lineBelowStyle: ViewStyle[] = [styles.lineSegment];
   if (!isLastLesson && nextLesson) {
-    if (
-      lesson.uiState === 'completed' &&
-      nextLesson.uiState === 'completed'
-    ) {
+    if (lesson.uiState === 'completed' && nextLesson.uiState === 'completed') {
       lineBelowStyle.push({ backgroundColor: subjectColor });
     } else if (
       lesson.uiState === 'completed' &&
@@ -122,6 +119,8 @@ const getLessonStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SubmoduleMap() {
   const router = useRouter();
+  const { trackScreen, trackSubmoduleViewed, trackLessonStarted } =
+    useAnalytics();
   const insets = useSafeAreaInsets();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
@@ -143,6 +142,32 @@ export default function SubmoduleMap() {
 
   // Subject color from Sanity
   const subjectColor = moduleData?.colorTheme?.hex || DEFAULT_COLOR;
+
+  // Track submodule map view
+  const submoduleTitle = submoduleData?.title;
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (
+        submoduleTitle &&
+        moduleId &&
+        submoduleId &&
+        now - lastTrackedRef.current > 500
+      ) {
+        trackScreen(`Map: ${submoduleTitle}`);
+        trackSubmoduleViewed(moduleId, submoduleId, submoduleTitle);
+        lastTrackedRef.current = now;
+      }
+    }, [
+      submoduleTitle,
+      moduleId,
+      submoduleId,
+      trackScreen,
+      trackSubmoduleViewed,
+    ])
+  );
 
   // Fetch lesson progress data
   useEffect(() => {
@@ -208,18 +233,10 @@ export default function SubmoduleMap() {
     );
   }
 
-  // Find the next lesson based on progress (existing logic - keep unchanged)
+  // Find the first non-completed lesson (all lessons are now unlocked)
   const nextLesson = submoduleData.lessons.find((lesson: any) => {
     const progress = lessonProgresses[lesson._id];
-    return (
-      !progress?.is_completed &&
-      (progress?.is_in_progress ||
-        submoduleData.lessons.indexOf(lesson) === 0 ||
-        (submoduleData.lessons.indexOf(lesson) > 0 &&
-          lessonProgresses[
-            submoduleData.lessons[submoduleData.lessons.indexOf(lesson) - 1]._id
-          ]?.is_completed))
-    );
+    return !progress?.is_completed;
   });
 
   // Build lesson view models with explicit UI states
@@ -234,29 +251,38 @@ export default function SubmoduleMap() {
       let lessonNumber = '';
       if (submoduleData?.order != null && lesson.order != null) {
         // Ensure lesson.order is treated as a number, not string
-        const subOrder = typeof submoduleData.order === 'number' ? submoduleData.order : parseInt(String(submoduleData.order), 10);
-        const lesOrder = typeof lesson.order === 'number' ? lesson.order : parseInt(String(lesson.order), 10);
+        const subOrder =
+          typeof submoduleData.order === 'number'
+            ? submoduleData.order
+            : parseInt(String(submoduleData.order), 10);
+        const lesOrder =
+          typeof lesson.order === 'number'
+            ? lesson.order
+            : parseInt(String(lesson.order), 10);
         if (!isNaN(subOrder) && !isNaN(lesOrder)) {
           lessonNumber = `${subOrder}.${lesOrder}`;
         } else if (!isNaN(lesOrder)) {
           lessonNumber = `${lesOrder}`;
         }
       } else if (lesson.order != null) {
-        const lesOrder = typeof lesson.order === 'number' ? lesson.order : parseInt(String(lesson.order), 10);
+        const lesOrder =
+          typeof lesson.order === 'number'
+            ? lesson.order
+            : parseInt(String(lesson.order), 10);
         if (!isNaN(lesOrder)) {
           lessonNumber = `${lesOrder}`;
         }
       }
       // If both are missing, lessonNumber remains empty string
 
-      // Determine UI state using nextLesson (ensures only one active)
+      // Determine UI state - all lessons are now unlocked
       let uiState: LessonUIState;
       if (isCompleted) {
         uiState = 'completed';
-      } else if (lesson._id === nextLesson?._id) {
-        uiState = 'active'; // Only the nextLesson is active
+      } else if (progressPercent > 0) {
+        uiState = 'active'; // Lesson in progress
       } else {
-        uiState = 'locked'; // All other non-completed lessons are locked
+        uiState = 'active'; // All lessons are unlocked and active
       }
 
       // Remove any "Lesson X.X:" prefix from title if present
@@ -328,31 +354,45 @@ export default function SubmoduleMap() {
 
         {/* Card */}
         <TouchableOpacity
-          activeOpacity={isLocked ? 1 : 0.8}
+          activeOpacity={0.8}
           onPress={() => {
-            if (!isLocked) {
-              // Check if this is the first lesson and submodule has intro pages
-              const isFirstLesson = index === 0;
-              const hasIntroPages = submoduleData?.intro_pages && submoduleData.intro_pages.length > 0;
-              
-              // Check if submodule has been started (any lesson has progress)
-              const hasSubmoduleProgress = Object.values(lessonProgresses).some(
-                p => p?.is_in_progress || (p?.progress_percent ?? 0) > 0 || p?.is_completed
-              );
-              
-              // If first lesson, has intro pages, and submodule hasn't been started, go to intro
-              if (isFirstLesson && hasIntroPages && !hasSubmoduleProgress) {
-                router.push({
-                  pathname:
-                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
-                  params: {
-                    moduleId,
-                    submoduleId,
-                    pageNum: '1',
-                  },
-                });
-              } else {
-                // Otherwise, go directly to lesson
+            // All lessons are now unlocked
+            // Check if this is the first lesson and submodule has intro pages
+            const isFirstLesson = index === 0;
+            const hasIntroPages =
+              submoduleData?.intro_pages &&
+              submoduleData.intro_pages.length > 0;
+
+            // Check if submodule has been started (any lesson has progress)
+            const hasSubmoduleProgress = Object.values(lessonProgresses).some(
+              p =>
+                p?.is_in_progress ||
+                (p?.progress_percent ?? 0) > 0 ||
+                p?.is_completed
+            );
+
+            // If first lesson, has intro pages, and submodule hasn't been started, go to intro
+            if (isFirstLesson && hasIntroPages && !hasSubmoduleProgress) {
+              router.push({
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  pageNum: '1',
+                },
+              });
+            } else {
+              // Otherwise, go directly to lesson
+              // Track lesson start event
+              if (moduleId && submoduleId) {
+                trackLessonStarted(
+                  moduleId,
+                  submoduleId,
+                  lesson.id,
+                  lesson.title
+                );
+              }
               router.push({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
@@ -362,12 +402,14 @@ export default function SubmoduleMap() {
                   lessonId: lesson.id,
                 },
               });
-              }
             }
           }}
           style={[
             styles.card,
-            isActive && { backgroundColor: subjectColor, borderColor: subjectColor },
+            isActive && {
+              backgroundColor: subjectColor,
+              borderColor: subjectColor,
+            },
             isLocked && styles.cardLocked,
           ]}
         >
@@ -399,7 +441,10 @@ export default function SubmoduleMap() {
                 <View
                   style={[
                     styles.progressBarFill,
-                    { width: `${progressPercent}%`, backgroundColor: subjectColor },
+                    {
+                      width: `${progressPercent}%`,
+                      backgroundColor: subjectColor,
+                    },
                   ]}
                 />
               </View>
@@ -427,7 +472,7 @@ export default function SubmoduleMap() {
             }
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#000000" />
+            <Feather name='chevron-left' size={28} color='#000000' />
           </TouchableOpacity>
           <View style={styles.headerTitleCenter}>
             <Text style={styles.headerSubjectName}>

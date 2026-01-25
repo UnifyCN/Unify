@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Blob3 from '../../assets/images/Blob3.svg';
@@ -8,6 +8,7 @@ import Blob8 from '../../assets/images/Blob8.svg';
 import Blob10 from '../../assets/images/Blob10.svg';
 import Blob11 from '../../assets/images/Blob11.svg';
 import Blob12 from '../../assets/images/Blob12.svg';
+import { useAnalytics } from '@/utils/analytics';
 
 type Props = {
   title: string;
@@ -16,16 +17,39 @@ type Props = {
   colorTheme?: string;
   icon?: string;
   index?: number;
+  moduleId?: string;
 };
 
-// Map Material UI icon names to MaterialCommunityIcons outline variants
+// Map Sanity icon values (snake_case) to MaterialCommunityIcons outline variants
 const mapIconName = (iconName: string): string => {
   const iconMap: { [key: string]: string } = {
+    // Original icons (keeping for backward compatibility)
     AccountBalanceOutlined: 'bank-outline',
     AssignmentIndOutlined: 'account-tie-outline',
     CottageOutlined: 'home-outline',
     ArticleOutlined: 'file-document-outline',
     PassportOutlined: 'passport',
+    // New Sanity icon values (snake_case)
+    account_balance: 'bank-outline',
+    assignment_ind: 'account-tie-outline',
+    cottage: 'home-outline',
+    article: 'file-document-outline',
+    passport: 'passport',
+    school: 'school-outline',
+    book: 'book-outline',
+    work: 'briefcase-outline',
+    computer: 'laptop-outline',
+    business: 'office-building-outline',
+    science: 'flask-outline',
+    language: 'translate',
+    history: 'clock-time-four-outline',
+    psychology: 'brain',
+    menu_book: 'book-open-page-variant',
+    auto_stories: 'book-open-outline',
+    calculate: 'calculator',
+    palette: 'palette-outline',
+    music_note: 'music-note-outline',
+    sports_esports: 'gamepad-variant-outline',
   };
   return iconMap[iconName] || 'bank-outline';
 };
@@ -37,28 +61,56 @@ export default function PathwayCard({
   colorTheme,
   icon,
   index = 0,
+  moduleId,
 }: Props) {
+  const router = useRouter();
+  const { trackModuleCardClicked } = useAnalytics();
   const backgroundColor = colorTheme || '#d9d9d9';
-  const iconName = mapIconName(icon || 'AccountBalanceOutlined');
-  
+  const iconName = mapIconName(icon || 'account_balance');
+
   // Cycle through blobs: Blob3, Blob8, Blob10, Blob11, Blob12, repeat
   const blobIndex = index % 5;
-  const BlobComponent = blobIndex === 0 ? Blob3 : blobIndex === 1 ? Blob8 : blobIndex === 2 ? Blob10 : blobIndex === 3 ? Blob11 : Blob12;
+  const BlobComponent =
+    blobIndex === 0
+      ? Blob3
+      : blobIndex === 1
+        ? Blob8
+        : blobIndex === 2
+          ? Blob10
+          : blobIndex === 3
+            ? Blob11
+            : Blob12;
 
   const CardInner = (
     <>
       <View style={[styles.banner, { backgroundColor }]}>
         {/* Blob background overlay - cycles through Blob3, Blob8, Blob10, Blob11, Blob12 */}
-        <View style={blobIndex === 0 ? styles.blob3Container : blobIndex === 1 ? styles.blob8Container : blobIndex === 2 ? styles.blob10Container : blobIndex === 3 ? styles.blob11Container : styles.blob12Container}>
-          <BlobComponent 
-            width={160} 
+        <View
+          style={
+            blobIndex === 0
+              ? styles.blob3Container
+              : blobIndex === 1
+                ? styles.blob8Container
+                : blobIndex === 2
+                  ? styles.blob10Container
+                  : blobIndex === 3
+                    ? styles.blob11Container
+                    : styles.blob12Container
+          }
+        >
+          <BlobComponent
+            width={160}
             height={160}
-            fill="#FFFFFF"
+            fill='#FFFFFF'
             opacity={0.3}
           />
         </View>
         <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name={iconName as any} size={32} color="#FFFFFF" />
+          <MaterialCommunityIcons
+            name={iconName as any}
+            size={32}
+            color='#FFFFFF'
+          />
         </View>
         <View style={styles.contentContainer}>
           <Text style={styles.title} numberOfLines={2}>
@@ -72,11 +124,18 @@ export default function PathwayCard({
 
   if (href) {
     return (
-      <Link href={href} asChild>
-        <TouchableOpacity activeOpacity={0.85} style={styles.card}>
-          {CardInner}
-        </TouchableOpacity>
-      </Link>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        style={styles.card}
+        onPress={() => {
+          if (moduleId) {
+            trackModuleCardClicked(moduleId, title);
+          }
+          router.push(href);
+        }}
+      >
+        {CardInner}
+      </TouchableOpacity>
     );
   }
 

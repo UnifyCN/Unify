@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,25 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
-import PostSuccessModal from './PostSuccessModal';
-import SelectGroupModal from './SelectGroupModal';
+import GroupSelectionSheet from './GroupSelectionSheet';
+import DestinationToggle from './DestinationToggle';
 import { Theme } from '@/constants/Theme';
-import SearchButton from '@/components/SearchButton';
 import BackHeader from '@/components/BackHeader';
+import { useToast } from '@/context/ToastContext';
+import { Group } from '@/types/groups';
+
+type DestinationType = '4u' | 'group';
 
 interface CreatePostModalProps {
   visible: boolean;
   onClose: () => void;
-  preselectedGroup?: any;
+  preselectedGroup?: Group | null;
 }
+
+const TITLE_MAX_LENGTH = 100;
+const CONTENT_MAX_LENGTH = 2000;
 
 export default function CreatePostModal({
   visible,
@@ -30,13 +37,30 @@ export default function CreatePostModal({
 }: CreatePostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<any>(
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(
     preselectedGroup || null
   );
+  const [destination, setDestination] = useState<DestinationType>(
+    preselectedGroup ? 'group' : '4u'
+  );
   const [showGroupSelector, setShowGroupSelector] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const router = useRouter();
+  const { showToast } = useToast();
   const createPostMutation = useMutateCreatePost();
+
+  // Restore preselectedGroup when modal opens or preselectedGroup changes
+  useEffect(() => {
+    if (visible) {
+      if (preselectedGroup) {
+        setSelectedGroup(preselectedGroup);
+        setDestination('group');
+      } else {
+        setSelectedGroup(null);
+        setDestination('4u');
+      }
+    }
+  }, [visible, preselectedGroup]);
 
   const handleSubmit = () => {
     if (!title.trim() || !content.trim()) {
@@ -44,21 +68,49 @@ export default function CreatePostModal({
       return;
     }
 
+    if (destination === 'group' && !selectedGroup) {
+      Alert.alert('Error', 'Please select a group to post to');
+      return;
+    }
+
     createPostMutation.mutate(
       {
         title: title.trim(),
         content: content.trim(),
-        group_id: selectedGroup?.id,
+        group_id: destination === '4u' ? null : String(selectedGroup?.id),
       },
       {
         onSuccess: () => {
+          const postedToGroup = destination === 'group' && selectedGroup;
+          const toastMessage = postedToGroup
+            ? `Posted to ${selectedGroup.name}`
+            : 'Posted to For You';
+
+          // Store group info before resetting
+          const groupToNavigate = selectedGroup;
+
           // Reset form
           setTitle('');
           setContent('');
           setSelectedGroup(null);
-          // Close create post modal first, then show success
+          setDestination('4u');
+          setShowGroupSelector(false);
+
+          // Close modal and show toast
           onClose();
-          setShowSuccessModal(true);
+          showToast(toastMessage);
+
+          // Navigate to destination
+          // Note: "as any" required due to expo-router typed routes limitation
+          // where route types are generated at build time
+          if (postedToGroup && groupToNavigate) {
+            router.push({
+              pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+              params: { group: JSON.stringify(groupToNavigate) },
+            });
+          } else {
+            router.push('/(tabs)' as any);
+          }
         },
         onError: _ => {
           Alert.alert('Error', 'Failed to create post. Please try again.');
@@ -71,29 +123,42 @@ export default function CreatePostModal({
     setTitle('');
     setContent('');
     setSelectedGroup(null);
+    setDestination('4u');
+    setShowGroupSelector(false);
     onClose();
   };
 
-  const handleSuccessClose = () => {
-    setShowSuccessModal(false);
+  const handleGroupSelect = (group: Group) => {
+    setSelectedGroup(group);
+    setDestination('group');
+    setShowGroupSelector(false);
   };
 
-  const handleGroupSelect = (group: any) => {
-    setSelectedGroup(group);
-    setShowGroupSelector(false);
+  const handleDestinationChange = (newDestination: DestinationType) => {
+    setDestination(newDestination);
+    if (newDestination === '4u') {
+      setSelectedGroup(null);
+    } else {
+      setShowGroupSelector(true);
+    }
+  };
+
+  const handleClearGroup = () => {
+    setSelectedGroup(null);
+    setDestination('4u');
   };
 
   return (
     <>
       <Modal
         visible={visible}
-        animationType='none'
+        animationType="none"
         statusBarTranslucent
         onRequestClose={handleCancel}
       >
         <BackHeader
-          title=''
-          backIcon='x'
+          title=""
+          backIcon="x"
           onBack={handleCancel}
           rightButton={
             <TouchableOpacity
@@ -107,7 +172,7 @@ export default function CreatePostModal({
               }
             >
               {createPostMutation.isPending ? (
-                <ActivityIndicator size='small' color='white' />
+                <ActivityIndicator size="small" color="white" />
               ) : (
                 <Text style={styles.postButtonText}>Post</Text>
               )}
@@ -115,48 +180,66 @@ export default function CreatePostModal({
           }
         />
         <ScrollView style={styles.container}>
-          <SearchButton
-            placeholder={
-              selectedGroup ? selectedGroup.name : 'Search for a group'
-            }
-            onPress={() => setShowGroupSelector(true)}
-            placeholderStyle={
-              selectedGroup ? styles.groupSelectorText : styles.groupBlankText
-            }
-            iconSize={20}
+          <DestinationToggle
+            destination={destination}
+            selectedGroup={selectedGroup}
+            onDestinationChange={handleDestinationChange}
+            onClearGroup={handleClearGroup}
           />
 
-          <TextInput
-            style={styles.titleInput}
-            placeholder='Title'
-            placeholderTextColor={Theme.black}
-            value={title}
-            onChangeText={setTitle}
-            multiline
-          />
+          {/* Title Input */}
+          <View style={styles.titleContainer}>
+            <TextInput
+              style={styles.titleInput}
+              placeholder="Title"
+              placeholderTextColor={Theme.textAlternateGray}
+              value={title}
+              onChangeText={setTitle}
+              multiline
+              maxLength={TITLE_MAX_LENGTH}
+            />
+            <Text
+              style={[
+                styles.charCount,
+                title.length > TITLE_MAX_LENGTH * 0.9 && styles.charCountWarning,
+              ]}
+            >
+              {title.length}/{TITLE_MAX_LENGTH}
+            </Text>
+          </View>
 
-          <TextInput
-            style={styles.contentInput}
-            placeholder='Body text'
-            placeholderTextColor={Theme.black}
-            value={content}
-            onChangeText={setContent}
-            multiline
-            textAlignVertical='top'
-          />
+          {/* Separator */}
+          <View style={styles.separator} />
+
+          {/* Content Input */}
+          <View style={styles.contentContainer}>
+            <TextInput
+              style={styles.contentInput}
+              placeholder="What's on your mind?"
+              placeholderTextColor={Theme.textAlternateGray}
+              value={content}
+              onChangeText={setContent}
+              multiline
+              textAlignVertical="top"
+              maxLength={CONTENT_MAX_LENGTH}
+            />
+            <Text
+              style={[
+                styles.charCount,
+                content.length > CONTENT_MAX_LENGTH * 0.9 &&
+                  styles.charCountWarning,
+              ]}
+            >
+              {content.length}/{CONTENT_MAX_LENGTH}
+            </Text>
+          </View>
         </ScrollView>
       </Modal>
 
-      {/* Use the separate SelectGroupModal component */}
-      <SelectGroupModal
+      <GroupSelectionSheet
         visible={showGroupSelector}
         onClose={() => setShowGroupSelector(false)}
         onGroupSelect={handleGroupSelect}
-      />
-
-      <PostSuccessModal
-        visible={showSuccessModal}
-        onClose={handleSuccessClose}
       />
     </>
   );
@@ -182,25 +265,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '400',
   },
-  groupSelectorSelected: {
-    alignSelf: 'flex-start',
-  },
-  groupBlankText: {
-    fontSize: 14,
-    color: Theme.textAlternateGray,
-  },
-  groupSelectorText: {
-    fontSize: 14,
-    color: Theme.black,
+  titleContainer: {
+    marginTop: 8,
   },
   titleInput: {
     fontSize: 32,
     fontWeight: '600',
-    color: '#000',
+    color: Theme.black,
     paddingTop: 24,
+    paddingBottom: 4,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: Theme.surfaceGray,
+    marginVertical: 16,
+  },
+  contentContainer: {
+    flex: 1,
+    minHeight: 200,
   },
   contentInput: {
-    paddingTop: 9,
     fontSize: 16,
+    color: Theme.black,
+    paddingTop: 8,
+    paddingBottom: 4,
+    minHeight: 150,
+  },
+  charCount: {
+    fontSize: 12,
+    color: Theme.textAlternateGray,
+    textAlign: 'right',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  charCountWarning: {
+    color: Theme.primaryGatherRed,
   },
 });

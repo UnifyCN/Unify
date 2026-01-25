@@ -72,10 +72,10 @@ export default function SubmoduleIndex() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
+              // Navigate to module index (skip map)
               router.push({
-                pathname:
-                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-                params: { moduleId, submoduleId },
+                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+                params: { moduleId },
               });
             }}
             style={styles.menuButton}

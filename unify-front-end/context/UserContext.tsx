@@ -7,6 +7,7 @@ interface CurrentUser {
   id: string;
   email: string;
   username: string;
+  permissions: string;
   profilePictureUrl?: string;
   isPremium: boolean;
 }
@@ -75,6 +76,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           id: userId,
           email: userEmail,
           username: effectiveUserInfo.username,
+          permissions: effectiveUserInfo.permissions,
           profilePictureUrl: effectiveUserInfo.profilePictureUrl,
           isPremium: effectiveUserInfo.isPremium,
         }

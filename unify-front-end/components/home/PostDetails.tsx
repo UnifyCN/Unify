@@ -168,9 +168,10 @@ const PostDetails = () => {
         comment={item}
         metadata={commentMetadata?.[item.id]}
         metadataLoading={commentMetadataLoading}
+        postAuthorId={post.user.id.toString()}
       />
     ),
-    [commentMetadata, commentMetadataLoading]
+    [commentMetadata, commentMetadataLoading, post.user.id]
   );
 
   return (
@@ -185,7 +186,7 @@ const PostDetails = () => {
         data={commentsData}
         keyExtractor={item => item.id.toString()}
         renderItem={renderPost}
-        contentContainerStyle={{ paddingTop: 80, paddingBottom: 25 }}
+        contentContainerStyle={{ paddingTop: 100, paddingBottom: 25 }}
         ListHeaderComponent={
           <>
             <PostItem
@@ -197,6 +198,7 @@ const PostDetails = () => {
                 commentCount,
               }}
               metadataLoading={postMetadataLoading}
+              isAbleToDelete={false}
             />
 
             <View style={styles.largeDivider} />

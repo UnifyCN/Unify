@@ -3,6 +3,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
 } from 'react';
 import {
   View,
@@ -26,11 +27,13 @@ import { cachedProgressService } from '@/services/progress/cachedProgressService
 import { progressClient } from '@/services/progress/progressClient';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ModuleIndexSkeletonLoader } from '@/components/learn/module-index-skeleton-loader';
 import Blob3 from '@/assets/images/Blob3.svg';
 import Blob8 from '@/assets/images/Blob8.svg';
 import Blob10 from '@/assets/images/Blob10.svg';
 import Blob11 from '@/assets/images/Blob11.svg';
 import Blob12 from '@/assets/images/Blob12.svg';
+import { useAnalytics } from '@/utils/analytics';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -40,14 +43,36 @@ const DOT_SIZE = 16;
 const LINE_WIDTH = 2;
 const DEFAULT_COLOR = '#4A7C59'; // Fallback green if no colorTheme
 
-// Map Material UI icon names to MaterialCommunityIcons outline variants
+// Map Sanity icon values (snake_case) to MaterialCommunityIcons outline variants
 const mapIconName = (iconName: string): string => {
   const iconMap: { [key: string]: string } = {
+    // Original icons (keeping for backward compatibility)
     AccountBalanceOutlined: 'bank-outline',
     AssignmentIndOutlined: 'account-tie-outline',
     CottageOutlined: 'home-outline',
     ArticleOutlined: 'file-document-outline',
     PassportOutlined: 'passport',
+    // New Sanity icon values (snake_case)
+    account_balance: 'bank-outline',
+    assignment_ind: 'account-tie-outline',
+    cottage: 'home-outline',
+    article: 'file-document-outline',
+    passport: 'passport',
+    school: 'school-outline',
+    book: 'book-outline',
+    work: 'briefcase-outline',
+    computer: 'laptop-outline',
+    business: 'office-building-outline',
+    science: 'flask-outline',
+    language: 'translate',
+    history: 'clock-time-four-outline',
+    psychology: 'brain',
+    menu_book: 'book-open-page-variant',
+    auto_stories: 'book-open-outline',
+    calculate: 'calculator',
+    palette: 'palette-outline',
+    music_note: 'music-note-outline',
+    sports_esports: 'gamepad-variant-outline',
   };
   return iconMap[iconName] || 'bank-outline';
 };
@@ -136,8 +161,12 @@ const getSectionStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ModuleIndex() {
   const router = useRouter();
+  const { trackScreen, trackModuleViewed } = useAnalytics();
   const insets = useSafeAreaInsets();
-  const { moduleId, blobIndex } = useLocalSearchParams<{ moduleId: string; blobIndex?: string }>();
+  const { moduleId, blobIndex } = useLocalSearchParams<{
+    moduleId: string;
+    blobIndex?: string;
+  }>();
   const {
     data: moduleData,
     isLoading,
@@ -145,9 +174,11 @@ export default function ModuleIndex() {
   } = useSanityModuleWithSubmodules(moduleId || '');
 
   // Progress tracking
-  const { moduleProgress, isLoading: progressLoading, refreshProgress } = useModuleProgress(
-    moduleId || ''
-  );
+  const {
+    moduleProgress,
+    isLoading: progressLoading,
+    refreshProgress,
+  } = useModuleProgress(moduleId || '');
   const [submoduleProgresses, setSubmoduleProgresses] = useState<{
     [key: string]: any;
   }>({});
@@ -167,7 +198,16 @@ export default function ModuleIndex() {
 
   // Determine which blob to use based on blobIndex param, or default to 0
   const blobIndexNum = blobIndex ? parseInt(blobIndex, 10) % 5 : 0;
-  const BlobComponent = blobIndexNum === 0 ? Blob3 : blobIndexNum === 1 ? Blob8 : blobIndexNum === 2 ? Blob10 : blobIndexNum === 3 ? Blob11 : Blob12;
+  const BlobComponent =
+    blobIndexNum === 0
+      ? Blob3
+      : blobIndexNum === 1
+        ? Blob8
+        : blobIndexNum === 2
+          ? Blob10
+          : blobIndexNum === 3
+            ? Blob11
+            : Blob12;
 
   // Check if disclaimer should be shown (first time opening this module with 0% progress)
   useEffect(() => {
@@ -211,153 +251,359 @@ export default function ModuleIndex() {
 
   // Fetch submodule progress and determine resume destinations
   useEffect(() => {
-    if (!moduleData?.submodules) return;
+    if (!moduleData?.submodules || !Array.isArray(moduleData.submodules))
+      return;
+
+    let cancelled = false;
+
     (async () => {
       const progressData: { [key: string]: any } = {};
       const hrefData: { [key: string]: string } = {};
 
       try {
-        const {
-          data: { user },
-        } = await progressClient.auth.getUser();
+        let user = null;
+        let userError = null;
+
+        try {
+          const userResult = await progressClient.auth.getUser();
+          user = userResult?.data?.user || null;
+          userError = userResult?.error || null;
+        } catch (authError: any) {
+          console.error('[ModuleIndex] Error getting user:', authError);
+          userError = authError;
+          // Continue with cached progress for non-authenticated users
+        }
+
+        if (userError) {
+          console.error('[ModuleIndex] User error:', userError);
+          // Continue with cached progress for non-authenticated users
+        }
+
         if (!user) {
-          for (const submodule of moduleData.submodules) {
-            try {
-              const progress = await cachedProgressService.getSubmoduleProgress(
-                moduleId || '',
-                submodule._id
-              );
-              progressData[submodule._id] = progress;
-            } catch {
-              progressData[submodule._id] = {
-                is_completed: false,
-                progress_percent: 0,
-                completed_lessons: 0,
-                total_lessons: submodule.lessons?.length || 0,
-              };
+          if (Array.isArray(moduleData.submodules)) {
+            for (const submodule of moduleData.submodules) {
+              if (!submodule?._id) continue;
+              try {
+                const progress =
+                  await cachedProgressService.getSubmoduleProgress(
+                    moduleId || '',
+                    submodule._id
+                  );
+                if (progress) {
+                  progressData[submodule._id] = progress;
+                } else {
+                  progressData[submodule._id] = {
+                    is_completed: false,
+                    progress_percent: 0,
+                    completed_lessons: 0,
+                    total_lessons: Array.isArray(submodule.lessons)
+                      ? submodule.lessons.length
+                      : 0,
+                  };
+                }
+              } catch (err) {
+                console.error(
+                  `Error fetching progress for submodule ${submodule._id}:`,
+                  err
+                );
+                progressData[submodule._id] = {
+                  is_completed: false,
+                  progress_percent: 0,
+                  completed_lessons: 0,
+                  total_lessons: Array.isArray(submodule.lessons)
+                    ? submodule.lessons.length
+                    : 0,
+                };
+              }
             }
           }
-          setSubmoduleProgresses(progressData);
+          if (!cancelled) {
+            setSubmoduleProgresses(progressData);
+          }
           return;
         }
 
-        await Promise.all(
-          moduleData.submodules.map(async submodule => {
-            try {
-              const progress = await cachedProgressService.getSubmoduleProgress(
-                moduleId || '',
-                submodule._id
-              );
-              progressData[submodule._id] = progress;
+        if (!Array.isArray(moduleData.submodules)) {
+          if (!cancelled) {
+            setSubmoduleProgresses(progressData);
+            setSubmoduleHrefs(hrefData);
+          }
+          return;
+        }
 
-              if (!progress?.progress_percent || progress.progress_percent === 0) {
-                // Always navigate to map page for new submodules
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
+        try {
+          await Promise.all(
+            moduleData.submodules.map(async submodule => {
+              if (!submodule?._id) {
                 return;
               }
 
-              const { data: lessonProgresses } = await progressClient
-                .from('user_lesson_progress')
-                .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
-                .eq('user_id', user.id)
-                .eq('sanity_submodule_id', submodule._id);
-
-              const lessonProgressData: { [key: string]: any } = {};
-              if (submodule.lessons && lessonProgresses) {
-                for (const lessonProgress of lessonProgresses) {
-                  if (lessonProgress.sanity_lesson_id) {
-                    lessonProgressData[lessonProgress.sanity_lesson_id] = {
-                      is_completed: lessonProgress.is_completed || false,
-                      is_in_progress: lessonProgress.is_in_progress || false,
-                    };
-                  }
-                }
-
-                for (const lesson of submodule.lessons) {
-                  if (!lessonProgressData[lesson._id]) {
-                    lessonProgressData[lesson._id] = {
-                      is_completed: false,
-                      is_in_progress: false,
-                    };
-                  }
-                }
-              }
-
-              let activeLesson = null;
-              let activeLessonProgress = null;
-
-              if (submodule.lessons) {
-                for (let i = 0; i < submodule.lessons.length; i++) {
-                  const lesson = submodule.lessons[i];
-                  const lessonProgress = lessonProgressData[lesson._id];
-                  const isCompleted = lessonProgress?.is_completed || false;
-                  const isInProgress = lessonProgress?.is_in_progress || false;
-
-                  let isActive = false;
-                  if (isInProgress) {
-                    isActive = true;
-                  } else if (i === 0) {
-                    isActive = true;
-                  } else {
-                    const previousLesson = submodule.lessons[i - 1];
-                    const previousProgress = lessonProgressData[previousLesson._id];
-                    const previousCompleted = previousProgress?.is_completed || false;
-                    isActive = previousCompleted;
-                  }
-
-                  if (isActive && !isCompleted) {
-                    activeLesson = lesson;
-                    const fullProgress = lessonProgresses?.find(
-                      (p: any) => p.sanity_lesson_id === lesson._id
-                    );
-                    activeLessonProgress = fullProgress || lessonProgress;
-                    break;
-                  }
-                }
-              }
-
-              if (activeLesson && activeLessonProgress?.is_in_progress) {
-                const currentPageType = activeLessonProgress?.current_page_type || 'lesson';
-                const currentPageNumber = activeLessonProgress?.current_page_number || 1;
-
-                let href = '';
-                if (currentPageType === 'intro') {
-                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/${currentPageNumber}`;
-                } else if (currentPageType === 'activity') {
-                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
-                } else if (currentPageType === 'quiz') {
-                  const quizId = activeLessonProgress?.current_quiz_id || '';
-                  const questionNumber = activeLessonProgress?.current_question_number || 1;
-                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
+              try {
+                const progress =
+                  await cachedProgressService.getSubmoduleProgress(
+                    moduleId || '',
+                    submodule._id
+                  );
+                if (progress) {
+                  progressData[submodule._id] = progress;
                 } else {
-                  href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
+                  progressData[submodule._id] = {
+                    is_completed: false,
+                    progress_percent: 0,
+                    completed_lessons: 0,
+                    total_lessons: Array.isArray(submodule.lessons)
+                      ? submodule.lessons.length
+                      : 0,
+                  };
                 }
-                hrefData[submodule._id] = href;
-              } else if (activeLesson) {
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/1`;
-              } else {
-                // Always navigate to map page if no active lesson found
-                hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/map`;
-              }
-            } catch (err) {
-              console.error(`Error processing submodule ${submodule._id}:`, err);
-              progressData[submodule._id] = {
-                is_completed: false,
-                progress_percent: 0,
-                completed_lessons: 0,
-                total_lessons: submodule.lessons?.length || 0,
-              };
-              hrefData[submodule._id] = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}`;
-            }
-          })
-        );
 
-        setSubmoduleProgresses(progressData);
-        setSubmoduleHrefs(hrefData);
+                if (
+                  !progress?.progress_percent ||
+                  progress.progress_percent === 0
+                ) {
+                  // Always navigate to first lesson or intro for new submodules (skip map)
+                  if (
+                    Array.isArray(submodule.intro_pages) &&
+                    submodule.intro_pages.length > 0
+                  ) {
+                    hrefData[submodule._id] =
+                      `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
+                  } else if (
+                    Array.isArray(submodule.lessons) &&
+                    submodule.lessons.length > 0 &&
+                    submodule.lessons[0]?._id
+                  ) {
+                    hrefData[submodule._id] =
+                      `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
+                  }
+                  return;
+                }
+
+                let lessonProgresses = null;
+                let progressError = null;
+
+                try {
+                  const progressResult = await progressClient
+                    .from('user_lesson_progress')
+                    .select(
+                      'sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number'
+                    )
+                    .eq('user_id', user.id)
+                    .eq('sanity_submodule_id', submodule._id);
+
+                  lessonProgresses = progressResult?.data || null;
+                  progressError = progressResult?.error || null;
+                } catch (queryError: any) {
+                  console.error(
+                    `Error fetching lesson progress for submodule ${submodule._id}:`,
+                    queryError
+                  );
+                  progressError = queryError;
+                  lessonProgresses = null;
+                }
+
+                if (progressError) {
+                  console.error(
+                    `Progress error for submodule ${submodule._id}:`,
+                    progressError
+                  );
+                  // Continue with default fallback
+                }
+
+                const lessonProgressData: { [key: string]: any } = {};
+                if (
+                  submodule.lessons &&
+                  Array.isArray(lessonProgresses) &&
+                  !progressError
+                ) {
+                  for (const lessonProgress of lessonProgresses) {
+                    if (lessonProgress?.sanity_lesson_id) {
+                      lessonProgressData[lessonProgress.sanity_lesson_id] = {
+                        is_completed: Boolean(lessonProgress.is_completed),
+                        is_in_progress: Boolean(lessonProgress.is_in_progress),
+                      };
+                    }
+                  }
+
+                  if (Array.isArray(submodule.lessons)) {
+                    for (const lesson of submodule.lessons) {
+                      if (lesson?._id && !lessonProgressData[lesson._id]) {
+                        lessonProgressData[lesson._id] = {
+                          is_completed: false,
+                          is_in_progress: false,
+                        };
+                      }
+                    }
+                  }
+                }
+
+                let activeLesson = null;
+                let activeLessonProgress = null;
+
+                if (submodule.lessons) {
+                  for (let i = 0; i < submodule.lessons.length; i++) {
+                    const lesson = submodule.lessons[i];
+                    if (!lesson?._id) continue;
+
+                    const lessonProgress = lessonProgressData[lesson._id];
+                    const isCompleted = Boolean(lessonProgress?.is_completed);
+                    const isInProgress = Boolean(
+                      lessonProgress?.is_in_progress
+                    );
+
+                    let isActive = false;
+                    if (isInProgress) {
+                      isActive = true;
+                    } else if (i === 0) {
+                      isActive = true;
+                    } else {
+                      const previousLesson = submodule.lessons[i - 1];
+                      if (previousLesson?._id) {
+                        const previousProgress =
+                          lessonProgressData[previousLesson._id];
+                        isActive = Boolean(previousProgress?.is_completed);
+                      }
+                    }
+
+                    if (isActive && !isCompleted) {
+                      activeLesson = lesson;
+                      const fullProgress = lessonProgresses?.find(
+                        (p: any) => p.sanity_lesson_id === lesson._id
+                      );
+                      activeLessonProgress = fullProgress || lessonProgress;
+                      break;
+                    }
+                  }
+                }
+
+                if (activeLesson?._id) {
+                  if (activeLessonProgress?.is_in_progress) {
+                    const currentPageType =
+                      activeLessonProgress?.current_page_type || 'lesson';
+                    const currentPageNumber = Math.max(
+                      1,
+                      Number(activeLessonProgress?.current_page_number) || 1
+                    );
+
+                    let href = '';
+                    if (currentPageType === 'intro') {
+                      href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/${currentPageNumber}`;
+                    } else if (currentPageType === 'activity') {
+                      href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
+                    } else if (currentPageType === 'quiz') {
+                      const quizId =
+                        activeLessonProgress?.current_quiz_id || '';
+                      const questionNumber = Math.max(
+                        1,
+                        Number(activeLessonProgress?.current_question_number) ||
+                          1
+                      );
+                      if (quizId) {
+                        href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
+                      }
+                    } else {
+                      href = `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
+                    }
+                    if (href) {
+                      hrefData[submodule._id] = href;
+                    }
+                  } else {
+                    hrefData[submodule._id] =
+                      `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${activeLesson._id}/pages/1`;
+                  }
+                } else {
+                  // Fallback to first lesson or intro if no active lesson found (skip map)
+                  if (
+                    submodule.intro_pages &&
+                    Array.isArray(submodule.intro_pages) &&
+                    submodule.intro_pages.length > 0
+                  ) {
+                    hrefData[submodule._id] =
+                      `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
+                  } else if (
+                    submodule.lessons &&
+                    Array.isArray(submodule.lessons) &&
+                    submodule.lessons.length > 0 &&
+                    submodule.lessons[0]?._id
+                  ) {
+                    hrefData[submodule._id] =
+                      `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
+                  }
+                }
+              } catch (err) {
+                console.error(
+                  `Error processing submodule ${submodule._id}:`,
+                  err
+                );
+                if (submodule?._id) {
+                  progressData[submodule._id] = {
+                    is_completed: false,
+                    progress_percent: 0,
+                    completed_lessons: 0,
+                    total_lessons: Array.isArray(submodule.lessons)
+                      ? submodule.lessons.length
+                      : 0,
+                  };
+                  // Fallback to first lesson or intro
+                  if (
+                    Array.isArray(submodule.intro_pages) &&
+                    submodule.intro_pages.length > 0
+                  ) {
+                    hrefData[submodule._id] =
+                      `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/intro/1`;
+                  } else if (
+                    Array.isArray(submodule.lessons) &&
+                    submodule.lessons.length > 0 &&
+                    submodule.lessons[0]?._id
+                  ) {
+                    hrefData[submodule._id] =
+                      `/(tabs)/Learn/modules/${moduleId}/${submodule._id}/lessons/${submodule.lessons[0]._id}/pages/1`;
+                  }
+                }
+              }
+            })
+          );
+        } catch (promiseError: any) {
+          console.error('[ModuleIndex] Error in Promise.all:', promiseError);
+          // Continue with whatever data we have so far
+        }
+
+        if (!cancelled) {
+          setSubmoduleProgresses(progressData);
+          setSubmoduleHrefs(hrefData);
+        }
       } catch (err) {
         console.error('[ModuleIndex] Error fetching submodule progress:', err);
+        // Set empty progress data on error to prevent UI from breaking
+        try {
+          const fallbackProgress: { [key: string]: any } = {};
+          if (moduleData?.submodules) {
+            for (const submodule of moduleData.submodules) {
+              if (submodule?._id) {
+                fallbackProgress[submodule._id] = {
+                  is_completed: false,
+                  progress_percent: 0,
+                  completed_lessons: 0,
+                  total_lessons: submodule.lessons?.length || 0,
+                };
+              }
+            }
+          }
+          if (!cancelled) {
+            setSubmoduleProgresses(fallbackProgress);
+          }
+        } catch (fallbackError) {
+          console.error(
+            '[ModuleIndex] Error setting fallback progress:',
+            fallbackError
+          );
+        }
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [moduleData?.submodules, moduleId]);
 
   // Refetch progress when screen focuses
@@ -376,19 +622,41 @@ export default function ModuleIndex() {
           }
 
           const progressData: { [key: string]: any } = {};
-          for (const submodule of moduleData.submodules) {
-            try {
-              progressData[submodule._id] = await cachedProgressService.getSubmoduleProgress(
-                moduleId || '',
-                submodule._id
-              );
-            } catch {
-              progressData[submodule._id] = {
-                is_completed: false,
-                progress_percent: 0,
-                completed_lessons: 0,
-                total_lessons: submodule.lessons?.length || 0,
-              };
+          if (Array.isArray(moduleData.submodules)) {
+            for (const submodule of moduleData.submodules) {
+              if (!submodule?._id) continue;
+              try {
+                const progress =
+                  await cachedProgressService.getSubmoduleProgress(
+                    moduleId || '',
+                    submodule._id
+                  );
+                if (progress) {
+                  progressData[submodule._id] = progress;
+                } else {
+                  progressData[submodule._id] = {
+                    is_completed: false,
+                    progress_percent: 0,
+                    completed_lessons: 0,
+                    total_lessons: Array.isArray(submodule.lessons)
+                      ? submodule.lessons.length
+                      : 0,
+                  };
+                }
+              } catch (err: any) {
+                console.error(
+                  `Error refreshing progress for submodule ${submodule._id}:`,
+                  err
+                );
+                progressData[submodule._id] = {
+                  is_completed: false,
+                  progress_percent: 0,
+                  completed_lessons: 0,
+                  total_lessons: Array.isArray(submodule.lessons)
+                    ? submodule.lessons.length
+                    : 0,
+                };
+              }
             }
           }
           if (!cancelled) {
@@ -408,6 +676,22 @@ export default function ModuleIndex() {
     }, [moduleId, moduleData?.submodules, refreshProgress])
   );
 
+  // Track module view
+  const moduleTitle = moduleData?.title;
+  const submoduleCount = moduleData?.submodules?.length || 0;
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (moduleTitle && moduleId && now - lastTrackedRef.current > 500) {
+        trackScreen(`Module: ${moduleTitle}`);
+        trackModuleViewed(moduleId, moduleTitle, submoduleCount);
+        lastTrackedRef.current = now;
+      }
+    }, [moduleTitle, submoduleCount, moduleId, trackScreen, trackModuleViewed])
+  );
+
   // Which submodule is the next one the user should do?
   const currentIndex = useMemo(() => {
     if (!moduleData?.submodules) return -1;
@@ -419,12 +703,50 @@ export default function ModuleIndex() {
     return -1; // all done
   }, [moduleData?.submodules, submoduleProgresses]);
 
-  // Initialize openedCardId to the current active section
-  useEffect(() => {
-    if (openedCardId == null && currentIndex >= 0 && moduleData?.submodules?.[currentIndex]) {
-      setOpenedCardId(moduleData.submodules[currentIndex]._id);
+  // Determine which section should be highlighted (next to complete, or first if all done)
+  // This finds the first unlocked section that is not completed (Start or Continue)
+  const highlightedSectionId = useMemo(() => {
+    if (!moduleData?.submodules || moduleData.submodules.length === 0)
+      return null;
+
+    // Find the first unlocked section that is not completed
+    for (let i = 0; i < moduleData.submodules.length; i++) {
+      const submodule = moduleData.submodules[i];
+      const progress = submoduleProgresses[submodule._id];
+      const isCompleted = progress?.is_completed || false;
+
+      // All sections are now unlocked at all times
+      const unlocked = true;
+
+      // If unlocked and not completed, this is the section to highlight (Start or Continue)
+      if (unlocked && !isCompleted) {
+        return submodule._id;
+      }
     }
-  }, [openedCardId, currentIndex, moduleData?.submodules]);
+
+    // If all sections are completed, highlight the first one
+    return moduleData.submodules[0]._id;
+  }, [moduleData?.submodules, submoduleProgresses]);
+
+  // Initialize openedCardId to the highlighted section when data is ready
+  useEffect(() => {
+    // Only set when we have data loaded and a highlighted section
+    if (
+      highlightedSectionId &&
+      !isLoading &&
+      !progressLoading &&
+      moduleData?.submodules
+    ) {
+      // Always update to the highlighted section when opening the module
+      // This ensures the correct section is highlighted even if user navigated away and came back
+      setOpenedCardId(highlightedSectionId);
+    }
+  }, [
+    highlightedSectionId,
+    isLoading,
+    progressLoading,
+    moduleData?.submodules,
+  ]);
 
   // Build section view models with explicit UI states
   const sections: SectionViewModel[] = useMemo(() => {
@@ -436,10 +758,11 @@ export default function ModuleIndex() {
       // Coerce/clamp progressPercent to ensure it's a valid number in 0-100 range
       const raw = progress?.progress_percent;
       const n = typeof raw === 'number' ? raw : Number(raw);
-      const progressPercent = Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
-      const unlocked =
-        i === 0 ||
-        (i > 0 && submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+      const progressPercent = Number.isFinite(n)
+        ? Math.max(0, Math.min(100, n))
+        : 0;
+      // All sections are now unlocked at all times
+      const unlocked = true;
 
       // Determine UI state
       let uiState: SectionUIState;
@@ -474,7 +797,7 @@ export default function ModuleIndex() {
 
   // Handle card tap
   const handleCardTap = async (section: SectionViewModel) => {
-    if (section.uiState === 'locked') return;
+    // All sections are now unlocked, so no need to check locked state
 
     // If tapping the already-opened card, navigate
     if (openedCardId === section.id) {
@@ -487,103 +810,261 @@ export default function ModuleIndex() {
 
   // Navigate to section
   const navigateToSection = async (section: SectionViewModel) => {
-    let href = submoduleHrefs[section.id];
+    try {
+      if (!section?.id || !moduleId) {
+        console.error('[ModuleIndex] Missing required params for navigation');
+        return;
+      }
 
-    // Calculate href on-demand if needed
-    if (!href && section.progressPercent > 0) {
-      try {
-        const { data: { user } } = await progressClient.auth.getUser();
-        if (user) {
-          const { data: lessonProgresses } = await progressClient
-            .from('user_lesson_progress')
-            .select('sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number')
-            .eq('user_id', user.id)
-            .eq('sanity_submodule_id', section.id);
+      let href = submoduleHrefs[section.id];
 
-          const submodule = moduleData?.submodules?.find(s => s._id === section.id);
-          if (submodule?.lessons && lessonProgresses) {
-            const lessonProgressData: { [key: string]: any } = {};
-            for (const lessonProgress of lessonProgresses) {
-              if (lessonProgress.sanity_lesson_id) {
-                lessonProgressData[lessonProgress.sanity_lesson_id] = {
-                  is_completed: lessonProgress.is_completed || false,
-                  is_in_progress: lessonProgress.is_in_progress || false,
-                };
-              }
+      // Calculate href on-demand if needed
+      if (!href && section.progressPercent > 0) {
+        try {
+          let user = null;
+          let userError = null;
+
+          try {
+            const userResult = await progressClient.auth.getUser();
+            user = userResult?.data?.user || null;
+            userError = userResult?.error || null;
+          } catch (authError: any) {
+            console.error(
+              '[ModuleIndex] Error getting user in navigateToSection:',
+              authError
+            );
+            userError = authError;
+          }
+
+          if (userError) {
+            console.error(
+              '[ModuleIndex] User error in navigateToSection:',
+              userError
+            );
+            // Fall through to default navigation
+          } else if (user) {
+            let lessonProgresses = null;
+            let progressError = null;
+
+            try {
+              const progressResult = await progressClient
+                .from('user_lesson_progress')
+                .select(
+                  'sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number'
+                )
+                .eq('user_id', user.id)
+                .eq('sanity_submodule_id', section.id);
+
+              lessonProgresses = progressResult?.data || null;
+              progressError = progressResult?.error || null;
+            } catch (queryError: any) {
+              console.error(
+                '[ModuleIndex] Error fetching lesson progress in navigateToSection:',
+                queryError
+              );
+              progressError = queryError;
+              lessonProgresses = null;
             }
 
-            for (const lesson of submodule.lessons) {
-              if (!lessonProgressData[lesson._id]) {
-                lessonProgressData[lesson._id] = { is_completed: false, is_in_progress: false };
+            if (progressError || !lessonProgresses) {
+              if (progressError) {
+                console.error(
+                  '[ModuleIndex] Error fetching lesson progress:',
+                  progressError
+                );
               }
-            }
+              // Fall through to default navigation - will be handled below
+            } else {
+              const submodule = moduleData?.submodules?.find(
+                s => s?._id === section.id
+              );
+              if (
+                submodule?.lessons &&
+                Array.isArray(lessonProgresses) &&
+                lessonProgresses.length >= 0
+              ) {
+                const lessonProgressData: { [key: string]: any } = {};
 
-            let activeLesson = null;
-            let activeLessonProgress = null;
+                // Safely process lesson progress data
+                if (Array.isArray(lessonProgresses)) {
+                  for (const lessonProgress of lessonProgresses) {
+                    if (lessonProgress?.sanity_lesson_id) {
+                      lessonProgressData[lessonProgress.sanity_lesson_id] = {
+                        is_completed: Boolean(lessonProgress.is_completed),
+                        is_in_progress: Boolean(lessonProgress.is_in_progress),
+                      };
+                    }
+                  }
+                }
 
-            for (let i = 0; i < submodule.lessons.length; i++) {
-              const lesson = submodule.lessons[i];
-              const lessonProgress = lessonProgressData[lesson._id];
-              const isCompleted = lessonProgress?.is_completed || false;
-              const isInProgress = lessonProgress?.is_in_progress || false;
+                // Initialize all lessons in progress data
+                if (Array.isArray(submodule.lessons)) {
+                  for (const lesson of submodule.lessons) {
+                    if (lesson?._id && !lessonProgressData[lesson._id]) {
+                      lessonProgressData[lesson._id] = {
+                        is_completed: false,
+                        is_in_progress: false,
+                      };
+                    }
+                  }
+                }
 
-              let isActive = false;
-              if (isInProgress) {
-                isActive = true;
-              } else if (i === 0) {
-                isActive = true;
-              } else {
-                const previousLesson = submodule.lessons[i - 1];
-                const previousProgress = lessonProgressData[previousLesson._id];
-                isActive = previousProgress?.is_completed || false;
+                let activeLesson = null;
+                let activeLessonProgress = null;
+
+                if (Array.isArray(submodule.lessons)) {
+                  for (let i = 0; i < submodule.lessons.length; i++) {
+                    const lesson = submodule.lessons[i];
+                    if (!lesson?._id) continue;
+
+                    const lessonProgress = lessonProgressData[lesson._id];
+                    const isCompleted = Boolean(lessonProgress?.is_completed);
+                    const isInProgress = Boolean(
+                      lessonProgress?.is_in_progress
+                    );
+
+                    let isActive = false;
+                    if (isInProgress) {
+                      isActive = true;
+                    } else if (i === 0) {
+                      isActive = true;
+                    } else {
+                      const previousLesson = submodule.lessons[i - 1];
+                      if (previousLesson?._id) {
+                        const previousProgress =
+                          lessonProgressData[previousLesson._id];
+                        isActive = Boolean(previousProgress?.is_completed);
+                      }
+                    }
+
+                    if (isActive && !isCompleted) {
+                      activeLesson = lesson;
+                      activeLessonProgress = Array.isArray(lessonProgresses)
+                        ? lessonProgresses.find(
+                            (p: any) => p?.sanity_lesson_id === lesson._id
+                          )
+                        : null;
+                      if (!activeLessonProgress) {
+                        activeLessonProgress = lessonProgress;
+                      }
+                      break;
+                    }
+                  }
+                }
+
+                if (activeLesson?._id) {
+                  if (activeLessonProgress?.is_in_progress) {
+                    const currentPageType =
+                      activeLessonProgress?.current_page_type || 'lesson';
+                    const currentPageNumber = Math.max(
+                      1,
+                      Number(activeLessonProgress?.current_page_number) || 1
+                    );
+
+                    if (currentPageType === 'intro') {
+                      href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/intro/${currentPageNumber}`;
+                    } else if (currentPageType === 'activity') {
+                      href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
+                    } else if (currentPageType === 'quiz') {
+                      const quizId =
+                        activeLessonProgress?.current_quiz_id || '';
+                      const questionNumber = Math.max(
+                        1,
+                        Number(activeLessonProgress?.current_question_number) ||
+                          1
+                      );
+                      if (quizId) {
+                        href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
+                      }
+                    } else {
+                      href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
+                    }
+                  } else {
+                    href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/pages/1`;
+                  }
+                }
+
+                if (href) {
+                  setSubmoduleHrefs(prev => ({ ...prev, [section.id]: href }));
+                }
               }
-
-              if (isActive && !isCompleted) {
-                activeLesson = lesson;
-                activeLessonProgress = lessonProgresses?.find(
-                  (p: any) => p.sanity_lesson_id === lesson._id
-                ) || lessonProgress;
-                break;
-              }
-            }
-
-            if (activeLesson && activeLessonProgress?.is_in_progress) {
-              const currentPageType = activeLessonProgress?.current_page_type || 'lesson';
-              const currentPageNumber = activeLessonProgress?.current_page_number || 1;
-
-              if (currentPageType === 'intro') {
-                href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/intro/${currentPageNumber}`;
-              } else if (currentPageType === 'activity') {
-                href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/activities/${currentPageNumber}`;
-              } else if (currentPageType === 'quiz') {
-                const quizId = activeLessonProgress?.current_quiz_id || '';
-                const questionNumber = activeLessonProgress?.current_question_number || 1;
-                href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/quizzes/${quizId}/pages/${questionNumber}`;
-              } else {
-                href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/pages/${currentPageNumber}`;
-              }
-            } else if (activeLesson) {
-              href = `/(tabs)/Learn/modules/${moduleId}/${section.id}/lessons/${activeLesson._id}/pages/1`;
-            }
-
-            if (href) {
-              setSubmoduleHrefs(prev => ({ ...prev, [section.id]: href }));
             }
           }
+        } catch (err) {
+          console.error('[ModuleIndex] Error calculating href on-demand:', err);
+          // Fall through to default navigation
         }
-      } catch (err) {
-        console.error('[ModuleIndex] Error calculating href on-demand:', err);
       }
-    }
 
-    if (href) {
-      router.push(href as any);
-    } else {
-      // Default to map page if no href is set
-      router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-        params: { moduleId, submoduleId: section.id },
-      });
+      try {
+        if (href) {
+          router.push(href as any);
+        } else {
+          // Default to first lesson or intro page if no href is set (skip map)
+          const submodule = moduleData?.submodules?.find(
+            s => s?._id === section.id
+          );
+          if (
+            submodule?.intro_pages &&
+            Array.isArray(submodule.intro_pages) &&
+            submodule.intro_pages.length > 0
+          ) {
+            // Start with intro pages if they exist
+            router.push({
+              pathname:
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+              params: { moduleId, submoduleId: section.id, pageNum: '1' },
+            });
+          } else if (
+            submodule?.lessons &&
+            Array.isArray(submodule.lessons) &&
+            submodule.lessons.length > 0 &&
+            submodule.lessons[0]?._id
+          ) {
+            // Otherwise start with first lesson
+            router.push({
+              pathname:
+                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+              params: {
+                moduleId,
+                submoduleId: section.id,
+                lessonId: submodule.lessons[0]._id,
+                pageNum: '1',
+              },
+            });
+          } else {
+            console.error(
+              '[ModuleIndex] No valid navigation path found for section:',
+              section.id
+            );
+          }
+        }
+      } catch (navError: any) {
+        console.error('[ModuleIndex] Error navigating to section:', navError);
+        // Final fallback: try to navigate to module index if all else fails
+        try {
+          router.replace('/(tabs)/Learn');
+        } catch (fallbackError: any) {
+          console.error(
+            '[ModuleIndex] Error in fallback navigation:',
+            fallbackError
+          );
+        }
+      }
+    } catch (outerError: any) {
+      console.error(
+        '[ModuleIndex] Outer error in navigateToSection:',
+        outerError
+      );
+      // Final fallback: try to navigate to module index if all else fails
+      try {
+        router.replace('/(tabs)/Learn');
+      } catch (fallbackError: any) {
+        console.error(
+          '[ModuleIndex] Error in fallback navigation:',
+          fallbackError
+        );
+      }
     }
   };
 
@@ -639,7 +1120,10 @@ export default function ModuleIndex() {
           onPress={() => handleCardTap(section)}
           style={[
             styles.card,
-            isOpened && { backgroundColor: subjectColor, borderColor: subjectColor },
+            isOpened && {
+              backgroundColor: subjectColor,
+              borderColor: subjectColor,
+            },
             isLocked && styles.cardLocked,
           ]}
         >
@@ -684,11 +1168,7 @@ export default function ModuleIndex() {
   // Loading / Error states
   // ─────────────────────────────────────────────────────────────────────────────
   if (isLoading || progressLoading || isRefreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading module…</Text>
-      </View>
-    );
+    return <ModuleIndexSkeletonLoader />;
   }
 
   if (error || !moduleData) {
@@ -697,7 +1177,7 @@ export default function ModuleIndex() {
         <Text style={styles.errorText}>
           Error loading module: {error?.message || 'Unknown error'}
         </Text>
-        <Link href="/(tabs)/Learn">Go back to Learn</Link>
+        <Link href='/(tabs)/Learn'>Go back to Learn</Link>
       </View>
     );
   }
@@ -708,13 +1188,30 @@ export default function ModuleIndex() {
   return (
     <View style={styles.container}>
       {/* Colored Header */}
-      <View style={[styles.header, { backgroundColor: subjectColor, paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: subjectColor, paddingTop: insets.top },
+        ]}
+      >
         {/* Blob background overlay */}
-        <View style={blobIndexNum === 0 ? styles.blob3Container : blobIndexNum === 1 ? styles.blob8Container : blobIndexNum === 2 ? styles.blob10Container : blobIndexNum === 3 ? styles.blob11Container : styles.blob12Container}>
-          <BlobComponent 
-            width={400} 
+        <View
+          style={
+            blobIndexNum === 0
+              ? styles.blob3Container
+              : blobIndexNum === 1
+                ? styles.blob8Container
+                : blobIndexNum === 2
+                  ? styles.blob10Container
+                  : blobIndexNum === 3
+                    ? styles.blob11Container
+                    : styles.blob12Container
+          }
+        >
+          <BlobComponent
+            width={400}
             height={400}
-            fill="#FFFFFF"
+            fill='#FFFFFF'
             opacity={0.3}
           />
         </View>
@@ -723,14 +1220,14 @@ export default function ModuleIndex() {
             onPress={() => router.replace('/(tabs)/Learn')}
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#FFFFFF" />
+            <Feather name='chevron-left' size={28} color='#FFFFFF' />
           </TouchableOpacity>
           {moduleData.icon && (
             <View style={styles.headerIconContainer}>
               <MaterialCommunityIcons
                 name={mapIconName(moduleData.icon) as any}
                 size={30}
-                color="#FFFFFF"
+                color='#FFFFFF'
               />
             </View>
           )}
@@ -743,7 +1240,7 @@ export default function ModuleIndex() {
 
         {moduleData.description && (
           <View style={styles.headerDescriptionWrap}>
-            <Text style={styles.headerDescription} numberOfLines={3}>
+            <Text style={styles.headerDescription}>
               {moduleData.description}
             </Text>
           </View>
@@ -764,7 +1261,7 @@ export default function ModuleIndex() {
       <Modal
         visible={showDisclaimer}
         transparent={true}
-        animationType="fade"
+        animationType='fade'
         onRequestClose={handleDisclaimerBack}
       >
         <View style={styles.modalOverlay}>
@@ -774,9 +1271,9 @@ export default function ModuleIndex() {
               <Text style={styles.modalText}>
                 This module is for educational purposes only. Unify does not
                 provide legal or financial advice and makes no guarantee of
-                accuracy, completeness, or applicability. Always verify
-                current requirements with official sources such as IRCC or
-                qualified professionals.
+                accuracy, completeness, or applicability. Always verify current
+                requirements with official sources such as IRCC or qualified
+                professionals.
               </Text>
             </View>
             <View style={styles.modalButtons}>
@@ -787,7 +1284,10 @@ export default function ModuleIndex() {
                 <Text style={styles.modalButtonBackText}>Back</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButtonContinue, { backgroundColor: subjectColor }]}
+                style={[
+                  styles.modalButtonContinue,
+                  { backgroundColor: subjectColor },
+                ]}
                 onPress={handleDisclaimerContinue}
               >
                 <Text style={styles.modalButtonContinueText}>Continue</Text>

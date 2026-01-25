@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,12 @@ import {
   Dimensions,
   ScrollView,
   SafeAreaView,
+  Platform,
 } from 'react-native';
+import {
+  PinchGestureHandler,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
@@ -41,9 +46,43 @@ export default function RichTextRenderer({
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageZoom, setImageZoom] = useState(1);
-  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const baseZoomRef = useRef(1); // Track base zoom for pinch gestures
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
+
+  // Matching question state - track per question using block _key
+  const [matchingQuestionState, setMatchingQuestionState] = useState<{
+    [questionKey: string]: {
+      selectedLeftItem: string | null;
+      selectedRightItem: string | null;
+      matchedPairs: { [key: string]: string };
+      completedPairs: string[];
+      incorrectPairs: string[];
+    };
+  }>({});
+
+  // Generate scrambled right items for each matching question using useMemo
+  const scrambledRightItemsMap = useMemo(() => {
+    const map: { [questionKey: string]: string[] } = {};
+    blocks.forEach((block, idx) => {
+      if (block._type === 'matching_question') {
+        const questionKey = block._key || `matching-${idx}`;
+        const rightItems = (block.matching_pairs || []).map((pair: any) => pair.right_item);
+        // Scramble right items using Fisher-Yates shuffle
+        const scrambled = [...rightItems];
+        for (let i = scrambled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [scrambled[i], scrambled[j]] = [scrambled[j], scrambled[i]];
+        }
+        map[questionKey] = scrambled;
+      }
+    });
+    return map;
+  }, [blocks]);
 
   if (!blocks || !Array.isArray(blocks)) return null;
 
@@ -110,7 +149,7 @@ export default function RichTextRenderer({
       fontStyle: 'normal',
       fontSize: 18,
       lineHeight: 27,
-      letterSpacing: 0, 
+      letterSpacing: 0,
       color: '#374151',
       marginBottom: 5, // Consistent spacing between paragraphs
     },
@@ -472,7 +511,7 @@ export default function RichTextRenderer({
   const isEmptyBlock = (block: any): boolean => {
     if (block._type !== 'block' || block.listItem) return false;
     if (!block.children || !Array.isArray(block.children)) return true;
-    
+
     // Check if all children have empty or whitespace-only text
     const hasContent = block.children.some((child: any) => {
       if (typeof child === 'string') return child.trim().length > 0;
@@ -481,11 +520,18 @@ export default function RichTextRenderer({
       }
       return false;
     });
-    
+
     return !hasContent;
   };
 
-  const renderBlock = (block: any, index: number, nestingLevel: number = 0, isLastInList: boolean = false, afterSkipLine: boolean = false, isFirstInList: boolean = false) => {
+  const renderBlock = (
+    block: any,
+    index: number,
+    nestingLevel: number = 0,
+    isLastInList: boolean = false,
+    afterSkipLine: boolean = false,
+    isFirstInList: boolean = false
+  ) => {
     if (
       block._type === 'large_input_box' ||
       block._type === 'mid_input_box' ||
@@ -496,12 +542,7 @@ export default function RichTextRenderer({
     if (block._type === 'block') {
       // Handle empty blocks (skip lines) - render as spacing element
       if (isEmptyBlock(block)) {
-        return (
-          <View
-            key={block._key || index}
-            style={styles.skipLineSpacer}
-          />
-        );
+        return <View key={block._key || index} style={styles.skipLineSpacer} />;
       }
 
       // Keep prev bullet/number behavior
@@ -510,12 +551,12 @@ export default function RichTextRenderer({
           block.listItem === 'bullet'
             ? mergedStyles.bullet
             : mergedStyles.number;
-        
+
         // Remove marginBottom from last item in list to ensure consistent spacing
         const listStyle = isLastInList
           ? { ...baseListStyle, marginBottom: 0 }
           : baseListStyle;
-        
+
         const bullet =
           block.listItem === 'bullet'
             ? '•'
@@ -533,14 +574,14 @@ export default function RichTextRenderer({
 
         // Adjust spacing for last item in list to match paragraph spacing (20px)
         const containerStyle = isLastInList
-          ? [styles.listItemContainer, { marginLeft: indentLevel, marginBottom: 20 }]
+          ? [
+              styles.listItemContainer,
+              { marginLeft: indentLevel, marginBottom: 20 },
+            ]
           : [styles.listItemContainer, { marginLeft: indentLevel }];
 
         return (
-          <View
-            key={block._key || index}
-            style={containerStyle}
-          >
+          <View key={block._key || index} style={containerStyle}>
             <Text style={listStyle}>
               {displayBullet}{' '}
               {renderInlineText(block.children, markDefs, block.markDefs)}
@@ -661,8 +702,19 @@ export default function RichTextRenderer({
           );
         case 'normal':
         default:
+          // Add marginTop to first block to prevent text clipping
+          const isFirstBlock = index === 0;
+          const finalBlockStyle = isFirstBlock
+            ? { ...blockStyle, marginTop: 8 }
+            : blockStyle;
+          const textProps: any = {
+            style: finalBlockStyle,
+          };
+          if (Platform.OS === 'android') {
+            textProps.includeFontPadding = false;
+          }
           return (
-            <Text key={block._key || index} style={blockStyle}>
+            <Text key={block._key || index} {...textProps}>
               {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
           );
@@ -974,8 +1026,109 @@ export default function RichTextRenderer({
     }
 
     if (block._type === 'matching_question') {
-      // For matching questions, we'll render a simplified version
-      // Full matching logic would require more complex state management
+      const questionKey = block._key || `matching-${index}`;
+      
+      // Get state for this question, initialize if needed
+      const questionState = matchingQuestionState[questionKey] || {
+        selectedLeftItem: null,
+        selectedRightItem: null,
+        matchedPairs: {},
+        completedPairs: [],
+        incorrectPairs: [],
+      };
+      
+      // Get scrambled right items for this question
+      const scrambledRightItems = scrambledRightItemsMap[questionKey] || 
+        (block.matching_pairs || []).map((pair: any) => pair.right_item);
+
+      const { selectedLeftItem, selectedRightItem, completedPairs, incorrectPairs } = questionState;
+
+      const handleMatchingItemSelect = (item: string, side: 'left' | 'right') => {
+        if (completedPairs.includes(item)) return;
+
+        setMatchingQuestionState(prev => {
+          const current = prev[questionKey] || {
+            selectedLeftItem: null,
+            selectedRightItem: null,
+            matchedPairs: {},
+            completedPairs: [],
+            incorrectPairs: [],
+          };
+          
+          if (side === 'left') {
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                selectedLeftItem: current.selectedLeftItem === item ? null : item,
+                incorrectPairs: [], // Clear incorrect pairs on new selection
+              },
+            };
+          } else {
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                selectedRightItem: current.selectedRightItem === item ? null : item,
+                incorrectPairs: [], // Clear incorrect pairs on new selection
+              },
+            };
+          }
+        });
+      };
+
+      const handleMatchingCheck = () => {
+        if (!selectedLeftItem || !selectedRightItem) return;
+
+        const correctMatch = (block.matching_pairs || []).find(
+          (pair: any) =>
+            pair.left_item === selectedLeftItem &&
+            pair.right_item === selectedRightItem
+        );
+
+        setMatchingQuestionState(prev => {
+          const current = prev[questionKey] || {
+            selectedLeftItem: null,
+            selectedRightItem: null,
+            matchedPairs: {},
+            completedPairs: [],
+            incorrectPairs: [],
+          };
+          
+          if (correctMatch) {
+            // Correct match
+            const newCompletedPairs = [...current.completedPairs, selectedLeftItem, selectedRightItem];
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                matchedPairs: {
+                  ...current.matchedPairs,
+                  [selectedLeftItem]: selectedRightItem,
+                },
+                completedPairs: newCompletedPairs,
+                selectedLeftItem: null,
+                selectedRightItem: null,
+                incorrectPairs: current.incorrectPairs.filter(
+                  item => item !== selectedLeftItem && item !== selectedRightItem
+                ),
+              },
+            };
+          } else {
+            // Incorrect match
+            return {
+              ...prev,
+              [questionKey]: {
+                ...current,
+                incorrectPairs: [...current.incorrectPairs, selectedLeftItem, selectedRightItem],
+                selectedLeftItem: null,
+                selectedRightItem: null,
+              },
+            };
+          }
+        });
+      };
+
       return (
         <View key={block._key || index} style={styles.questionContainer}>
           <View style={styles.questionTextContainer}>
@@ -984,19 +1137,81 @@ export default function RichTextRenderer({
               markDefs={markDefs}
             />
           </View>
-          <View style={styles.matchingPairsContainer}>
-            {(block.matching_pairs || []).map(
-              (pair: any, pairIndex: number) => (
-                <View
-                  key={pair._key || pairIndex}
-                  style={styles.matchingPairRow}
-                >
-                  <Text style={styles.matchingPairText}>
-                    {pair.left_item} → {pair.right_item}
-                  </Text>
-                </View>
-              )
-            )}
+          <View style={styles.matchingContainer}>
+            <View style={styles.matchingGrid}>
+              {/* Left Column */}
+              <View style={styles.matchingColumn}>
+                {(block.matching_pairs || []).map(
+                  (pair: any, pairIndex: number) => (
+                    <TouchableOpacity
+                      key={`left-${pairIndex}`}
+                      style={[
+                        styles.matchingItem,
+                        selectedLeftItem === pair.left_item &&
+                          styles.matchingItemSelected,
+                        completedPairs.includes(pair.left_item) &&
+                          styles.matchingItemCompleted,
+                        incorrectPairs.includes(pair.left_item) &&
+                          styles.matchingItemIncorrect,
+                      ]}
+                      onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
+                      disabled={completedPairs.includes(pair.left_item)}
+                    >
+                      <Text style={styles.matchingItemText}>
+                        {pair.left_item}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+
+              {/* Right Column - Scrambled */}
+              <View style={styles.matchingColumn}>
+                {scrambledRightItems.map(
+                  (rightItem: string, itemIndex: number) => (
+                    <TouchableOpacity
+                      key={`right-${itemIndex}-${rightItem}`}
+                      style={[
+                        styles.matchingItem,
+                        selectedRightItem === rightItem &&
+                          styles.matchingItemSelected,
+                        completedPairs.includes(rightItem) &&
+                          styles.matchingItemCompleted,
+                        incorrectPairs.includes(rightItem) &&
+                          styles.matchingItemIncorrect,
+                      ]}
+                      onPress={() => handleMatchingItemSelect(rightItem, 'right')}
+                      disabled={completedPairs.includes(rightItem)}
+                    >
+                      <Text style={styles.matchingItemText}>
+                        {rightItem}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+            </View>
+
+            {/* Check Button */}
+            <TouchableOpacity
+              style={[
+                styles.matchingCheckButton,
+                (!selectedLeftItem || !selectedRightItem) &&
+                  styles.matchingCheckButtonDisabled,
+              ]}
+              onPress={handleMatchingCheck}
+              disabled={!selectedLeftItem || !selectedRightItem}
+            >
+              <Text
+                style={[
+                  styles.matchingCheckButtonText,
+                  (!selectedLeftItem || !selectedRightItem) &&
+                    styles.matchingCheckButtonTextDisabled,
+                ]}
+              >
+                Check
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       );
@@ -1010,10 +1225,14 @@ export default function RichTextRenderer({
   // Helper to check if a block is the last item in a list
   const isLastListItem = (index: number): boolean => {
     const currentBlock = blocks[index];
-    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+    if (
+      !currentBlock ||
+      currentBlock._type !== 'block' ||
+      !currentBlock.listItem
+    ) {
       return false;
     }
-    
+
     // Check if next block is not a list item (or doesn't exist)
     const nextBlock = blocks[index + 1];
     return !nextBlock || nextBlock._type !== 'block' || !nextBlock.listItem;
@@ -1029,27 +1248,61 @@ export default function RichTextRenderer({
   // Helper to check if this is the first item in a list (after a skip line or paragraph)
   const isFirstListItem = (index: number): boolean => {
     const currentBlock = blocks[index];
-    if (!currentBlock || currentBlock._type !== 'block' || !currentBlock.listItem) {
+    if (
+      !currentBlock ||
+      currentBlock._type !== 'block' ||
+      !currentBlock.listItem
+    ) {
       return false;
     }
-    
+
     // Check if previous block is not a list item
     if (index === 0) return true;
     const previousBlock = blocks[index - 1];
-    return !previousBlock || previousBlock._type !== 'block' || !previousBlock.listItem;
+    return (
+      !previousBlock ||
+      previousBlock._type !== 'block' ||
+      !previousBlock.listItem
+    );
   };
 
   const handleZoomIn = () => {
-    setImageZoom(prev => Math.min(prev + 0.5, 5)); // Max 5x zoom
+    const newZoom = Math.min(imageZoom + 0.5, 5); // Max 5x zoom
+    setImageZoom(newZoom);
+    baseZoomRef.current = newZoom; // Update base zoom for pinch
   };
 
   const handleZoomOut = () => {
-    setImageZoom(prev => Math.max(prev - 0.5, 0.5)); // Min 0.5x zoom
+    const newZoom = Math.max(imageZoom - 0.5, 0.5); // Min 0.5x zoom
+    setImageZoom(newZoom);
+    baseZoomRef.current = newZoom; // Update base zoom for pinch
+  };
+
+  const handlePinchGesture = (event: any) => {
+    const { scale } = event.nativeEvent;
+    const newZoom = Math.max(
+      0.5,
+      Math.min(5, baseZoomRef.current * scale)
+    );
+    setImageZoom(newZoom);
+  };
+
+  const handlePinchGestureStateChange = (event: any) => {
+    const { state } = event.nativeEvent;
+    // State 2 is BEGAN - capture current zoom as base when gesture starts
+    if (state === 2) {
+      baseZoomRef.current = imageZoom;
+    }
+    // State 5 is END - finalize zoom when gesture ends
+    if (state === 5) {
+      baseZoomRef.current = imageZoom;
+    }
   };
 
   const handleCloseImageModal = () => {
     setSelectedImage(null);
     setImageZoom(1);
+    baseZoomRef.current = 1;
     setImageDimensions(null);
   };
 
@@ -1062,7 +1315,14 @@ export default function RichTextRenderer({
           const isFirstInList = isFirstListItem(index);
           return (
             <React.Fragment key={block._key || index}>
-              {renderBlock(block, index, nestingLevels[block._key || index] || 0, isLastInList, afterSkipLine, isFirstInList)}
+              {renderBlock(
+                block,
+                index,
+                nestingLevels[block._key || index] || 0,
+                isLastInList,
+                afterSkipLine,
+                isFirstInList
+              )}
             </React.Fragment>
           );
         })
@@ -1072,91 +1332,99 @@ export default function RichTextRenderer({
       <Modal
         visible={selectedImage !== null}
         transparent={true}
-        animationType="fade"
+        animationType='fade'
         onRequestClose={handleCloseImageModal}
       >
-        <SafeAreaView style={styles.imageModalOverlay}>
-          {/* Top bar with close button and zoom controls */}
-          <View style={styles.imageModalHeader}>
-            <TouchableOpacity
-              onPress={handleCloseImageModal}
-              style={styles.imageModalCloseButton}
-            >
-              <Feather name="x" size={20} color="#878787" />
-            </TouchableOpacity>
-            <View style={styles.imageModalZoomControls}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaView style={styles.imageModalOverlay}>
+            {/* Top bar with close button and zoom controls */}
+            <View style={styles.imageModalHeader}>
               <TouchableOpacity
-                onPress={handleZoomOut}
-                style={styles.imageModalZoomButton}
-                disabled={imageZoom <= 0.5}
+                onPress={handleCloseImageModal}
+                style={styles.imageModalCloseButton}
               >
-                <Feather
-                  name="zoom-out"
-                  size={20}
-                  color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
-                />
+                <Feather name='x' size={20} color='#878787' />
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleZoomIn}
-                style={styles.imageModalZoomButton}
-                disabled={imageZoom >= 5}
-              >
-                <Feather
-                  name="zoom-in"
-                  size={20}
-                  color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Scrollable image container */}
-          <ScrollView
-            contentContainerStyle={styles.imageModalScrollContent}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            bounces={true}
-          >
-            {selectedImage && (
-              <View
-                style={{
-                  transform: [{ scale: imageZoom }],
-                }}
-              >
-                <Image
-                  source={{ uri: selectedImage }}
-                  style={[
-                    styles.imageModalImage,
-                    imageDimensions
-                      ? {
-                          width: imageDimensions.width,
-                          height: imageDimensions.height,
-                        }
-                      : {
-                          width: screenWidth,
-                          height: screenHeight * 0.7,
-                        },
-                  ]}
-                  resizeMode="contain"
-                  onLoad={(e) => {
-                    const { width, height } = e.nativeEvent.source;
-                    if (width && height) {
-                      // Use full original image dimensions (no size limits)
-                      setImageDimensions({ width, height });
-                    }
-                  }}
-                />
+              <View style={styles.imageModalZoomControls}>
+                <TouchableOpacity
+                  onPress={handleZoomOut}
+                  style={styles.imageModalZoomButton}
+                  disabled={imageZoom <= 0.5}
+                >
+                  <Feather
+                    name='zoom-out'
+                    size={20}
+                    color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleZoomIn}
+                  style={styles.imageModalZoomButton}
+                  disabled={imageZoom >= 5}
+                >
+                  <Feather
+                    name='zoom-in'
+                    size={20}
+                    color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
+                  />
+                </TouchableOpacity>
               </View>
-            )}
-          </ScrollView>
-        </SafeAreaView>
+            </View>
+
+            {/* Scrollable image container with pinch gesture */}
+            <PinchGestureHandler
+              onGestureEvent={handlePinchGesture}
+              onHandlerStateChange={handlePinchGestureStateChange}
+            >
+              <ScrollView
+                contentContainerStyle={styles.imageModalScrollContent}
+                showsVerticalScrollIndicator={false}
+                showsHorizontalScrollIndicator={false}
+                bounces={true}
+                scrollEnabled={imageZoom > 1}
+              >
+                {selectedImage && (
+                  <View
+                    style={{
+                      transform: [{ scale: imageZoom }],
+                    }}
+                  >
+                    <Image
+                      source={{ uri: selectedImage }}
+                      style={[
+                        styles.imageModalImage,
+                        imageDimensions
+                          ? {
+                              width: imageDimensions.width,
+                              height: imageDimensions.height,
+                            }
+                          : {
+                              width: screenWidth,
+                              height: screenHeight * 0.7,
+                            },
+                      ]}
+                      resizeMode='contain'
+                      onLoad={e => {
+                        const { width, height } = e.nativeEvent.source;
+                        if (width && height) {
+                          // Use full original image dimensions (no size limits)
+                          setImageDimensions({ width, height });
+                        }
+                      }}
+                    />
+                  </View>
+                )}
+              </ScrollView>
+            </PinchGestureHandler>
+          </SafeAreaView>
+        </GestureHandlerRootView>
       </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 }, // No gap - spacing handled by individual block margins
+  container: { flex: 1, paddingTop: 4 }, // Add top padding to prevent text clipping
   listItemContainer: { marginBottom: 0 }, // Spacing between list items handled by bullet marginBottom
   skipLineSpacer: { height: 20, marginBottom: 0 }, // Skip lines create consistent 20px spacing
   inputFieldContainer: {
@@ -1323,6 +1591,69 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     lineHeight: 20,
+  },
+  // Matching question styles (same as quiz)
+  matchingContainer: {
+    marginTop: 20,
+  },
+  matchingGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 20,
+  },
+  matchingColumn: {
+    flex: 1,
+    gap: 12,
+  },
+  matchingItem: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    padding: 16,
+    minWidth: 170,
+    minHeight: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchingItemSelected: {
+    borderColor: '#575757',
+    backgroundColor: '#F3F4F6',
+  },
+  matchingItemCompleted: {
+    borderColor: '#10B981',
+    backgroundColor: '#ECFDF5',
+    opacity: 0.7,
+  },
+  matchingItemIncorrect: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  matchingItemText: {
+    fontSize: 14,
+    color: '#374151',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  matchingCheckButton: {
+    backgroundColor: '#575757',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  matchingCheckButtonDisabled: {
+    backgroundColor: '#F3F4F6',
+  },
+  matchingCheckButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  matchingCheckButtonTextDisabled: {
+    color: '#9CA3AF',
   },
   // Two options question styles
   twoOptionsContainer: {

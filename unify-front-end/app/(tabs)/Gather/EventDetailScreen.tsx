@@ -14,15 +14,47 @@ import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
 import { Theme } from '@/constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect, useMemo } from 'react';
+import { useAnalytics } from '@/utils/analytics';
 
 const EventDetailScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { event } = useLocalSearchParams();
-  const eventData: Event = JSON.parse(event as string);
+
+  // Memoize parsed event data with safety handling
+  const eventData: Event | null = useMemo(() => {
+    try {
+      if (!event) return null;
+      return JSON.parse(event as string);
+    } catch (error) {
+      console.error('Failed to parse event data:', error);
+      return null;
+    }
+  }, [event]);
+
+  const { trackEventViewed, trackEventShared, trackEventExternalLinkClicked } =
+    useAnalytics();
+
+  // Handle redirect if event data is missing or invalid
+  useEffect(() => {
+    if (!eventData) {
+      router.back();
+    }
+  }, [eventData, router]);
+
+  // Track event view on mount
+  useEffect(() => {
+    if (eventData) {
+      trackEventViewed(eventData.id.toString(), eventData.title);
+    }
+  }, [eventData, trackEventViewed]);
+
+  if (!eventData) return null;
 
   const handleExternalLink = () => {
     if (eventData.externalLink) {
+      trackEventExternalLinkClicked(eventData.id.toString(), eventData.title);
       Linking.openURL(eventData.externalLink);
     }
   };
@@ -30,6 +62,7 @@ const EventDetailScreen = () => {
   // Using react native built in share
   const handleShare = async () => {
     try {
+      trackEventShared(eventData.id.toString(), eventData.title);
       const shareMessage = [
         `Check out this event: ${eventData.title}`,
         `📅 ${formatEventDate(eventData.eventDatetime)}`,
@@ -116,6 +149,19 @@ const EventDetailScreen = () => {
               <Text style={styles.detailSubtitle}>{eventData.address}</Text>
             </View>
           </View>
+
+          {/* Hosted By */}
+          {eventData.hostedBy && (
+            <View style={styles.detailRow}>
+              <View style={styles.detailIcon}>
+                <Feather name='user' size={20} color='#000' />
+              </View>
+              <View style={styles.detailContent}>
+                <Text style={styles.detailTitle}>Hosted by</Text>
+                <Text style={styles.detailSubtitle}>{eventData.hostedBy}</Text>
+              </View>
+            </View>
+          )}
 
           {/* About Event */}
           <View style={styles.aboutSection}>

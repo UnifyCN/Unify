@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateActivityProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function ActivityPageScreen() {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function ActivityPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
+  const { trackScreen, trackActivityCompleted } = useAnalytics();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
@@ -68,6 +71,31 @@ export default function ActivityPageScreen() {
     currentPage
   );
 
+  // Track activity page view
+  const TRACKING_THROTTLE_MS = 500;
+  const lessonTitle = lesson?.title;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${lessonId}-${currentPage}`;
+      // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
+      if (
+        lessonTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(
+          `Activity Page: ${lessonTitle} - ${currentPage}/${totalPages}`
+        );
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [lessonTitle, lessonId, currentPage, totalPages, trackScreen])
+  );
+
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
     if (!submoduleData?.lessons) return -1;
@@ -88,10 +116,10 @@ export default function ActivityPageScreen() {
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
-    // Navigate to submodule map
+    // Navigate to module index (skip map)
     router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-      params: { moduleId, submoduleId },
+      pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+      params: { moduleId },
     });
   };
 
@@ -112,6 +140,14 @@ export default function ActivityPageScreen() {
 
   const handleSubmit = async () => {
     setIsSubmitted(true);
+    if (moduleId && submoduleId && lessonId && currentPageData?._key) {
+      trackActivityCompleted(
+        moduleId,
+        submoduleId,
+        lessonId,
+        currentPageData._key
+      );
+    }
   };
 
   const handleNext = async () => {
@@ -239,11 +275,10 @@ export default function ActivityPageScreen() {
             },
           });
         } else {
-          // First lesson, go back to map
+          // First lesson, go back to module index (skip map)
           router.push({
-            pathname:
-              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-            params: { moduleId, submoduleId },
+            pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+            params: { moduleId },
           });
         }
       }
@@ -405,7 +440,9 @@ export default function ActivityPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>Continue Activity</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                Continue Activity
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

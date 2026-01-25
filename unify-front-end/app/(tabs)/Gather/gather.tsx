@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { memo, useCallback, useRef, useState } from 'react';
+import { StyleSheet, View, Text, ScrollView, Pressable } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
@@ -11,9 +11,13 @@ import { Group } from '@/types/groups';
 import { GroupCardSkeletonLoader } from '@/components/groups/GroupCardSkeletonLoader';
 import { NewsCarousel } from '@/components/news/NewsCarousel';
 import { CommunityMatchingEntryCard } from '@/ui/communityMatching/EntryCard';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAnalytics } from '@/utils/analytics';
+import RequestGroupModal from '@/components/groups/RequestGroupModal';
 
 const GroupsForYouSection = () => {
   const router = useRouter();
+  const [requestOpen, setRequestOpen] = useState(false);
 
   const { data: groups, isLoading } = useQuery({
     queryKey: ['available-groups'],
@@ -42,7 +46,28 @@ const GroupsForYouSection = () => {
   }
 
   if (!groups || groups.length === 0) {
-    return null;
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.headerText}>Groups for You</Text>
+        </View>
+        <View style={styles.groupsList}>
+          <Pressable
+            onPress={() => setRequestOpen(true)}
+            style={({ pressed }) => [
+              styles.requestButton,
+              pressed ? { opacity: 0.85 } : null,
+            ]}
+          >
+            <Text style={styles.requestButtonText}>Request a Group</Text>
+          </Pressable>
+        </View>
+        <RequestGroupModal
+          visible={requestOpen}
+          onClose={() => setRequestOpen(false)}
+        />
+      </View>
+    );
   }
 
   return (
@@ -56,7 +81,20 @@ const GroupsForYouSection = () => {
             <GroupCard group={group} onPress={() => handleGroupPress(group)} />
           </View>
         ))}
+        <Pressable
+          onPress={() => setRequestOpen(true)}
+          style={({ pressed }) => [
+            styles.requestButton,
+            pressed ? { opacity: 0.85 } : null,
+          ]}
+        >
+          <Text style={styles.requestButtonText}>Request a Group</Text>
+        </Pressable>
       </View>
+      <RequestGroupModal
+        visible={requestOpen}
+        onClose={() => setRequestOpen(false)}
+      />
     </View>
   );
 };
@@ -71,6 +109,21 @@ const GatherHeader = memo(() => {
 
 export default function GatherScreen() {
   const router = useRouter();
+  const { trackScreen } = useAnalytics();
+  const lastTrackedRef = useRef<number>(0);
+
+  // Track screen view on focus - with debounce to prevent duplicates
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      // Only track if more than 500ms since last track (prevents rapid focus/blur duplicates)
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen('Community');
+        lastTrackedRef.current = now;
+      }
+    }, [trackScreen])
+  );
+
   return (
     <View style={styles.root}>
       <Header />
@@ -148,5 +201,19 @@ const styles = StyleSheet.create({
   },
   groupItem: {
     marginBottom: 12,
+  },
+  requestButton: {
+    marginTop: 4,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  requestButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

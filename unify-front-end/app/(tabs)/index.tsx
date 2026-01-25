@@ -15,7 +15,7 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
 import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
-import { memo, useState, useMemo } from 'react';
+import { memo, useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import { HorizontalCarousel } from '@/components/HorizontalCarousel';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
@@ -25,31 +25,44 @@ import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { useRouter } from 'expo-router';
 import GroupViewMoreCard from '@/components/icons/GroupViewMoreCard.svg';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import { useAnalytics } from '@/utils/analytics';
 
 interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  onTabChange?: (tab: string) => void;
 }
 
-const FeedTabs = memo(({ activeTab, setActiveTab }: HeaderProps) => {
-  return (
-    <View style={styles.tabs}>
-      {['For You', 'Following', 'Groups'].map(tab => (
-        <TouchableOpacity
-          key={tab}
-          onPress={() => setActiveTab(tab)}
-          style={[styles.tab, activeTab === tab && styles.activeTab]}
-        >
-          <Text
-            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
+const FeedTabs = memo(
+  ({ activeTab, setActiveTab, onTabChange }: HeaderProps) => {
+    return (
+      <View style={styles.tabs}>
+        {['For You', 'Following', 'Groups'].map(tab => (
+          <TouchableOpacity
+            key={tab}
+            onPress={() => {
+              if (tab !== activeTab && onTabChange) {
+                onTabChange(tab);
+              }
+              setActiveTab(tab);
+            }}
+            style={[styles.tab, activeTab === tab && styles.activeTab]}
           >
-            {tab}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
-});
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
+            >
+              {tab}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  }
+);
 
 const GroupsCarousel = memo(() => {
   const router = useRouter();
@@ -170,6 +183,45 @@ const GroupsCarousel = memo(() => {
 
 export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState('For You');
+  const { trackScreen, trackFeedTabSwitched } = useAnalytics();
+  const isFocused = useIsFocused();
+  const hasTrackedInitialFocus = useRef(false);
+  const lastTrackedRef = useRef<number>(0);
+  const activeTabRef = useRef(activeTab);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  // Track screen view on focus - only once per focus, with debounce
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen(activeTabRef.current);
+        lastTrackedRef.current = now;
+      }
+      hasTrackedInitialFocus.current = true;
+
+      return () => {
+        hasTrackedInitialFocus.current = false;
+      };
+    }, [trackScreen]) // Intentionally exclude activeTab to prevent re-firing on internal tab changes
+  );
+
+  // Track feed tab switches - this handles internal Home tab changes
+  const handleFeedTabChange = useCallback(
+    (tab: string) => {
+      if (!isFocused) return;
+
+      const tabName = tab as 'For You' | 'Following' | 'Groups';
+      trackFeedTabSwitched(tabName);
+      // Also update the screen name for the new tab
+      trackScreen(tabName);
+    },
+    [trackFeedTabSwitched, trackScreen, isFocused]
+  );
 
   const renderFeedContent = useMemo(() => {
     switch (activeTab) {
@@ -242,7 +294,13 @@ export default function HomeScreen() {
   const renderItem = ({ item }: { item: { key: string; type: string } }) => {
     switch (item.type) {
       case 'tabs':
-        return <FeedTabs activeTab={activeTab} setActiveTab={setActiveTab} />;
+        return (
+          <FeedTabs
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            onTabChange={handleFeedTabChange}
+          />
+        );
       case 'feed':
         return <View>{renderFeedContent}</View>;
       default:

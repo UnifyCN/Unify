@@ -3,7 +3,7 @@
     "name": "Unify",
     "slug": "unify-front-end",
     "owner": "unifysocial",
-    "version": "1.0.0",
+    "version": "autoIncrement",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
