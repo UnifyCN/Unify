@@ -10,6 +10,8 @@ import {
   Platform,
   ActivityIndicator,
   Dimensions,
+  Keyboard,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
@@ -255,7 +257,10 @@ export default function CompanionScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={styles.container}
+      onPress={Keyboard.dismiss}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -307,6 +312,7 @@ export default function CompanionScreen() {
               style={styles.messagesList}
               contentContainerStyle={styles.messagesContent}
               ListFooterComponent={renderLoadingIndicator}
+              keyboardShouldPersistTaps="handled"
             />
           )}
 
@@ -361,7 +367,7 @@ export default function CompanionScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </Pressable>
   );
 }
 
