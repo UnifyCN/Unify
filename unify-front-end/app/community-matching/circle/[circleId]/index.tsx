@@ -419,13 +419,13 @@ const styles = StyleSheet.create({
   },
   countdownBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#EBF4FF',
+    backgroundColor: '#fff3e6',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 999,
   },
   countdownText: {
-    color: '#588DD1',
+    color: '#ff820b',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   primaryButton: {
-    backgroundColor: '#588DD1',
+    backgroundColor: '#ff9b3d',
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',

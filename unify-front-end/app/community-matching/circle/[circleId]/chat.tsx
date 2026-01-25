@@ -512,7 +512,7 @@ export default function CircleChatScreen() {
               <View style={styles.commonGroundSection}>
                 <Text style={styles.commonGroundTitle}>Shared Journey</Text>
                 <View style={styles.commonGroundItem}>
-                  <Feather name="map-pin" size={16} color="#588DD1" />
+                  <Feather name="map-pin" size={16} color="#ff820b" />
                   <Text style={styles.commonGroundText}>
                     You both arrived in Canada <Text style={styles.highlight}>{formatTimeInCanadaLabel(circle?.time_in_canada)}</Text>
                   </Text>
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#588DD1',
+    backgroundColor: '#ff9b3d',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -650,7 +650,7 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   presenceAvatarFallback: {
-    backgroundColor: '#588DD1',
+    backgroundColor: '#ff9d40',
     alignItems: 'center',
     justifyContent: 'center',
   },

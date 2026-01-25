@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useCurrentUser } from '@/context/UserContext';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import {
@@ -18,18 +18,41 @@ import {
 } from '@/services/matching/circles';
 import { getCurrentWaitlistEntry } from '@/services/matching/waitlist';
 import {
-  formatPersonaLabel,
-  formatTimeInCanadaLabel,
   deriveTimeInCanadaFromArrivalDate,
 } from '@/matching/pools';
 import BackHeader from '@/components/BackHeader';
 
+// Design colors from Figma
+const COLORS = {
+  heroIconBackground: '#ffaf63',
+  featureIconBackground: '#ff9d40',
+  buttonBackground: '#ff9b3d',
+  titleColor: '#000000',
+  descriptionColor: '#474747',
+  backLinkColor: '#585858',
+  white: '#ffffff',
+};
+
 // Feature highlight component
-function FeatureItem({ icon, title, description }: { icon: string; title: string; description: string }) {
+function FeatureItem({ 
+  icon, 
+  title, 
+  description,
+  iconType = 'material'
+}: { 
+  icon: string; 
+  title: string; 
+  description: string;
+  iconType?: 'material' | 'feather';
+}) {
   return (
     <View style={featureStyles.item}>
       <View style={featureStyles.iconCircle}>
-        <Feather name={icon as any} size={20} color="#588DD1" />
+        {iconType === 'material' ? (
+          <MaterialIcons name={icon as any} size={20} color={COLORS.white} />
+        ) : (
+          <Feather name={icon as any} size={20} color={COLORS.white} />
+        )}
       </View>
       <View style={featureStyles.textContainer}>
         <Text style={featureStyles.title}>{title}</Text>
@@ -44,29 +67,29 @@ const featureStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 14,
-    paddingVertical: 14,
+    paddingVertical: 16,
   },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#EBF4FF',
+    width: 36,
+    height: 36,
+    borderRadius: 100,
+    backgroundColor: COLORS.featureIconBackground,
     alignItems: 'center',
     justifyContent: 'center',
   },
   textContainer: {
     flex: 1,
-    gap: 2,
+    gap: 5,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: COLORS.titleColor,
   },
   description: {
     fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
+    color: COLORS.titleColor,
+    lineHeight: 18,
   },
 });
 
@@ -116,7 +139,7 @@ export default function CommunityMatchingHome() {
   if (onboardingLoading || waitlistLoading || circleLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color="#588DD1" />
+        <ActivityIndicator size='large' color={COLORS.featureIconBackground} />
       </View>
     );
   }
@@ -132,7 +155,7 @@ export default function CommunityMatchingHome() {
         <BackHeader title="" onBack={() => router.back()} />
         <View style={styles.incompleteContainer}>
           <View style={styles.incompleteIconCircle}>
-            <Feather name="user-check" size={32} color="#588DD1" />
+            <MaterialIcons name="person-add" size={32} color={COLORS.white} />
           </View>
           <Text style={styles.incompleteTitle}>Complete your profile</Text>
           <Text style={styles.incompleteBody}>
@@ -146,7 +169,7 @@ export default function CommunityMatchingHome() {
             activeOpacity={0.8}
           >
             <Text style={styles.primaryButtonText}>Complete onboarding</Text>
-            <Feather name="arrow-right" size={18} color="#fff" />
+            <Feather name="arrow-right" size={18} color={COLORS.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -162,57 +185,34 @@ export default function CommunityMatchingHome() {
       >
         {/* Hero section */}
         <View style={styles.heroSection}>
-          <View style={styles.heroIconContainer}>
-            <View style={styles.heroIconRing} />
-            <View style={styles.heroIconCircle}>
-              <Feather name="users" size={28} color="#fff" />
-            </View>
+          <View style={styles.heroIconCircle}>
+            <MaterialIcons name="group-add" size={28} color={COLORS.white} />
           </View>
           <Text style={styles.heroTitle}>Unify Circles</Text>
           <Text style={styles.heroSubtitle}>
-            Connect with 3 newcomers who share your journey. Chat, support each other, and grow together for 14 days.
+            Get matched with 3 newcomers for a 2-week group chat experience!
           </Text>
         </View>
 
-        {/* Your matching profile card */}
-        <View style={styles.profileCard}>
-          <View style={styles.profileCardHeader}>
-            <Feather name="target" size={18} color="#588DD1" />
-            <Text style={styles.profileCardLabel}>Your matching profile</Text>
-          </View>
-          <View style={styles.profileCardContent}>
-            <View style={styles.profileRow}>
-              <Feather name="user" size={16} color="#6B7280" />
-              <Text style={styles.profileText}>
-                {formatPersonaLabel(onboardingProfile?.persona)}
-              </Text>
-            </View>
-            <View style={styles.profileRow}>
-              <Feather name="calendar" size={16} color="#6B7280" />
-              <Text style={styles.profileText}>
-                {formatTimeInCanadaLabel(derivedTimeInCanada)}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* How it works section */}
+        {/* Features section */}
         <View style={styles.featuresSection}>
-          <Text style={styles.sectionTitle}>How it works</Text>
           <FeatureItem 
-            icon="users"
-            title="Get matched"
-            description="We'll pair you with 3 newcomers on a similar journey"
+            icon="group-add"
+            iconType="material"
+            title="Matching"
+            description="Get paired based on your own journey and background"
           />
           <FeatureItem 
-            icon="message-circle"
-            title="Chat together"
-            description="Share experiences, ask questions, and support each other"
+            icon="schedule"
+            iconType="material"
+            title="2-Week Duration"
+            description="Fixed duration with icebreakers and prompts to guide your conversations"
           />
           <FeatureItem 
-            icon="calendar"
-            title="14-day journey"
-            description="Build meaningful connections over two weeks"
+            icon="chat-bubble"
+            iconType="material"
+            title="Group Chat"
+            description="Connect and share experiences, and leave with new friends"
           />
         </View>
       </ScrollView>
@@ -224,8 +224,8 @@ export default function CommunityMatchingHome() {
           onPress={() => router.push('/community-matching/onboarding' as const)}
           activeOpacity={0.8}
         >
-          <Text style={styles.primaryButtonText}>Start matching</Text>
-          <Feather name="arrow-right" size={18} color="#fff" />
+          <Text style={styles.primaryButtonText}>Start Matching</Text>
+          <Feather name="arrow-right" size={18} color={COLORS.white} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.secondaryButton}
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 180,
   },
@@ -260,88 +260,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 24,
   },
-  heroIconContainer: {
-    width: 80,
-    height: 80,
+  heroIconCircle: {
+    width: 51,
+    height: 51,
+    borderRadius: 100,
+    backgroundColor: COLORS.heroIconBackground,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
-  heroIconRing: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#E0ECFA',
-  },
-  heroIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#588DD1',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#588DD1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
   heroTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    fontSize: 24,
+    fontWeight: '600',
+    color: COLORS.titleColor,
+    marginBottom: 10,
   },
   heroSubtitle: {
     fontSize: 16,
-    color: '#6B7280',
+    color: COLORS.descriptionColor,
     textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 8,
-  },
-  // Profile card
-  profileCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  profileCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  profileCardLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#588DD1',
-  },
-  profileCardContent: {
-    gap: 10,
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  profileText: {
-    fontSize: 15,
-    color: '#374151',
-    fontWeight: '500',
+    lineHeight: 18,
+    paddingHorizontal: 20,
   },
   // Features section
   featuresSection: {
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    marginTop: 16,
   },
   // Footer
   footer: {
@@ -352,27 +295,21 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 34,
     backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
     gap: 12,
   },
   primaryButton: {
-    backgroundColor: '#588DD1',
-    borderRadius: 14,
-    paddingVertical: 16,
+    backgroundColor: COLORS.buttonBackground,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#588DD1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
+    gap: 12,
   },
   primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: COLORS.white,
+    fontSize: 14,
     fontWeight: '600',
   },
   secondaryButton: {
@@ -380,9 +317,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   secondaryText: {
-    color: '#6B7280',
+    color: COLORS.backLinkColor,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   // Incomplete onboarding state
   incompleteContainer: {
@@ -396,7 +333,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#EBF4FF',
+    backgroundColor: COLORS.heroIconBackground,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
@@ -404,12 +341,12 @@ const styles = StyleSheet.create({
   incompleteTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#111827',
+    color: COLORS.titleColor,
     textAlign: 'center',
   },
   incompleteBody: {
     fontSize: 15,
-    color: '#6B7280',
+    color: COLORS.descriptionColor,
     textAlign: 'center',
     lineHeight: 22,
   },

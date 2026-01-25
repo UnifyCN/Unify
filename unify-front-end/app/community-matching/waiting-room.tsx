@@ -106,16 +106,16 @@ const animStyles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#588DD1',
+    backgroundColor: '#ff9d40',
   },
   centerCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#588DD1',
+    backgroundColor: '#ff9d40',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#588DD1',
+    shadowColor: '#ff9d40',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -128,7 +128,7 @@ function StepItem({ number, text, icon }: { number: string; text: string; icon: 
   return (
     <View style={stepStyles.item}>
       <View style={stepStyles.iconCircle}>
-        <Feather name={icon as any} size={16} color="#588DD1" />
+        <Feather name={icon as any} size={16} color="#ff820b" />
       </View>
       <Text style={stepStyles.text}>{text}</Text>
     </View>
@@ -146,7 +146,7 @@ const stepStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EBF4FF',
+    backgroundColor: '#fff3e6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -268,7 +268,7 @@ export default function WaitingRoomScreen() {
   if (isLoading || !waitlistEntry) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size='large' color="#588DD1" />
+        <ActivityIndicator size='large' color="#ff9d40" />
         <Text style={styles.loadingText}>Preparing your waiting room…</Text>
       </View>
     );
@@ -303,13 +303,13 @@ export default function WaitingRoomScreen() {
         <View style={styles.criteriaCard}>
           <Text style={styles.criteriaLabel}>Your matching group</Text>
           <View style={styles.criteriaRow}>
-            <Feather name="user" size={16} color="#588DD1" />
+            <Feather name="user" size={16} color="#ff820b" />
             <Text style={styles.criteriaText}>
               {formatPersonaLabel(waitlistEntry.persona)}
             </Text>
           </View>
           <View style={styles.criteriaRow}>
-            <Feather name="calendar" size={16} color="#588DD1" />
+            <Feather name="calendar" size={16} color="#ff820b" />
             <Text style={styles.criteriaText}>
               {formatTimeInCanadaLabel(waitlistEntry.time_in_canada)}
             </Text>

@@ -8,7 +8,6 @@ import { joinCommunityWaitlist } from '@/services/matching/waitlist';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { useCurrentUser } from '@/context/UserContext';
 import { deriveTimeInCanadaFromArrivalDate } from '@/matching/pools';
-import BackHeader from '@/components/BackHeader';
 
 
 export default function MatchingOnboardingScreen() {
@@ -66,11 +65,9 @@ export default function MatchingOnboardingScreen() {
 
   return (
     <View style={styles.root}>
-      <BackHeader title="" onBack={() => router.back()} />
       <MatchingOnboardingQuiz
-
-
         onComplete={handleComplete}
+        onClose={() => router.back()}
         isSubmitting={isSubmitting}
       />
     </View>

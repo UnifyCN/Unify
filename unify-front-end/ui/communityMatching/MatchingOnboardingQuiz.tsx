@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -8,40 +8,63 @@ import {
   View,
   ScrollView,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 
 interface MatchingOnboardingQuizProps {
   onComplete: () => Promise<void> | void;
+  onClose: () => void;
   isSubmitting?: boolean;
 }
 
 const TOTAL_STEPS = 3;
 
-// Blue theme colors matching the rest of the feature
+// Orange theme colors from Figma
 const COLORS = {
-  primary: '#588DD1',
-  primaryLight: '#EBF4FF',
-  primaryDark: '#4A7BB8',
-  text: '#111827',
+  primary: '#ff9b3d',           // Orange (button, selected states)
+  primaryLight: '#ffdfc1',      // Light orange (icon backgrounds)
+  primaryDark: '#ff820b',       // Dark orange (icon color)
+  headerBg: '#ff9d40',          // Header background orange
+  headerIconBg: '#ffcea0',      // Header icon circle background
+  text: '#000000',              // Black text
   textSecondary: '#6B7280',
-  border: '#E5E7EB',
+  border: '#c4c4c4',            // Gray border
+  radioBorder: '#d0d0d0',       // Radio border
   white: '#FFFFFF',
   success: '#10B981',
   successLight: '#ECFDF5',
 };
 
+// Question data for each step
+const QUESTION_DATA = {
+  1: {
+    icon: 'group-add',
+    title: "What's your main goal?",
+    subtitle: 'This helps us match you with people who share similar goals',
+  },
+  2: {
+    icon: 'chat-bubble',
+    title: 'What would you like to discuss?',
+    subtitle: "Select all the topics you'd like your circle to cover",
+  },
+  3: {
+    icon: 'check-circle',
+    title: "You're all set!",
+    subtitle: "We'll match you with 3 other newcomers who share your goals",
+  },
+};
+
 const goalOptions = [
-  { value: 'make_friends', label: 'Make new friends in Canada', icon: 'heart' },
-  { value: 'practice_english', label: 'Practice English or French', icon: 'message-circle' },
-  { value: 'job_search', label: 'Swap tips about jobs & resumes', icon: 'briefcase' },
-  { value: 'wellness', label: 'Stay motivated & encouraged', icon: 'sun' },
+  { value: 'make_friends', label: 'Make new friends in Canada', icon: 'group-add' },
+  { value: 'practice_english', label: 'Practice English or French', icon: 'chat-bubble' },
+  { value: 'job_search', label: 'Swap tips about jobs & resumes', icon: 'work' },
+  { value: 'wellness', label: 'Stay motivated & encouraged', icon: 'emoji-emotions' },
 ];
 
 const topicOptions = [
-  { value: 'immigration', label: 'Immigration paperwork', icon: 'file-text' },
+  { value: 'immigration', label: 'Immigration paperwork', icon: 'description' },
   { value: 'housing', label: 'Renting & housing search', icon: 'home' },
-  { value: 'finances', label: 'Budgeting & banking', icon: 'dollar-sign' },
-  { value: 'community', label: 'Making friends & social life', icon: 'users' },
+  { value: 'finances', label: 'Budgeting & banking', icon: 'account-balance' },
+  { value: 'community', label: 'Making friends & social life', icon: 'groups' },
   { value: 'career', label: 'Jobs, resumes & interviews', icon: 'trending-up' },
 ];
 
@@ -65,10 +88,10 @@ function SelectionCard({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.selectionIcon, selected && styles.selectionIconSelected]}>
-        <Feather name={icon as any} size={20} color={selected ? COLORS.white : COLORS.primary} />
+      <View style={styles.selectionIcon}>
+        <MaterialIcons name={icon as any} size={20} color={COLORS.primaryDark} />
       </View>
-      <Text style={[styles.selectionLabel, selected && styles.selectionLabelSelected]}>
+      <Text style={styles.selectionLabel}>
         {label}
       </Text>
       <View style={[
@@ -78,35 +101,47 @@ function SelectionCard({
         {selected && (
           multiSelect ? (
             <Feather name="check" size={14} color={COLORS.white} />
-          ) : (
-            <View style={styles.radioDot} />
-          )
+          ) : null
         )}
       </View>
     </TouchableOpacity>
   );
 }
 
-// Step indicator
-function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
+// Orange header banner component
+function QuestionHeader({
+  step,
+  onClose,
+}: {
+  step: number;
+  onClose: () => void;
+}) {
+  const questionData = QUESTION_DATA[step as keyof typeof QUESTION_DATA];
+  
   return (
-    <View style={styles.stepIndicator}>
-      {Array.from({ length: totalSteps }, (_, i) => (
-        <View
-          key={i}
-          style={[
-            styles.stepDot,
-            i < currentStep && styles.stepDotCompleted,
-            i === currentStep - 1 && styles.stepDotCurrent,
-          ]}
-        />
-      ))}
+    <View style={styles.orangeHeader}>
+      <TouchableOpacity 
+        style={styles.closeButton} 
+        onPress={onClose}
+        activeOpacity={0.7}
+      >
+        <Feather name="x" size={24} color={COLORS.white} />
+      </TouchableOpacity>
+      
+      <View style={styles.headerContent}>
+        <View style={styles.headerIconCircle}>
+          <MaterialIcons name={questionData.icon as any} size={20} color={COLORS.white} />
+        </View>
+        <Text style={styles.headerTitle}>{questionData.title}</Text>
+        <Text style={styles.headerSubtitle}>{questionData.subtitle}</Text>
+      </View>
     </View>
   );
 }
 
 export function MatchingOnboardingQuiz({
   onComplete,
+  onClose,
   isSubmitting,
 }: MatchingOnboardingQuizProps) {
   const [step, setStep] = useState(1);
@@ -168,15 +203,6 @@ export function MatchingOnboardingQuiz({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.stepContentContainer}
           >
-            <View style={styles.questionHeader}>
-              <View style={styles.questionIconCircle}>
-                <Feather name="target" size={24} color={COLORS.primary} />
-              </View>
-              <Text style={styles.questionTitle}>What's your main goal?</Text>
-              <Text style={styles.questionSubtitle}>
-                This helps us match you with people who share similar goals.
-              </Text>
-            </View>
             <View style={styles.optionsContainer}>
               {goalOptions.map(option => (
                 <SelectionCard
@@ -202,15 +228,6 @@ export function MatchingOnboardingQuiz({
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.stepContentContainer}
           >
-            <View style={styles.questionHeader}>
-              <View style={styles.questionIconCircle}>
-                <Feather name="message-circle" size={24} color={COLORS.primary} />
-              </View>
-              <Text style={styles.questionTitle}>What would you like to discuss?</Text>
-              <Text style={styles.questionSubtitle}>
-                Select all the topics you'd like your circle to cover.
-              </Text>
-            </View>
             <View style={styles.optionsContainer}>
               {topicOptions.map(option => (
                 <SelectionCard
@@ -251,13 +268,13 @@ export function MatchingOnboardingQuiz({
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Your circle preferences</Text>
               <View style={styles.summaryRow}>
-                <Feather name="target" size={16} color={COLORS.textSecondary} />
+                <MaterialIcons name="group-add" size={16} color={COLORS.textSecondary} />
                 <Text style={styles.summaryText}>
                   {goalOptions.find(g => g.value === goal)?.label || 'Not selected'}
                 </Text>
               </View>
               <View style={styles.summaryRow}>
-                <Feather name="message-circle" size={16} color={COLORS.textSecondary} />
+                <MaterialIcons name="chat-bubble" size={16} color={COLORS.textSecondary} />
                 <Text style={styles.summaryText}>
                   {topics.length} topic{topics.length > 1 ? 's' : ''} to discuss
                 </Text>
@@ -273,11 +290,8 @@ export function MatchingOnboardingQuiz({
 
   return (
     <View style={styles.root}>
-      {/* Header with step indicator */}
-      <View style={styles.header}>
-        <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} />
-        <Text style={styles.stepLabel}>Step {step} of {TOTAL_STEPS}</Text>
-      </View>
+      {/* Orange header banner */}
+      <QuestionHeader step={step} onClose={onClose} />
 
       {/* Animated step content */}
       <Animated.View style={[styles.contentWrapper, { opacity: fadeAnim }]}>
@@ -301,7 +315,7 @@ export function MatchingOnboardingQuiz({
               onPress={handleNext}
               activeOpacity={0.8}
             >
-              <Text style={styles.nextButtonText}>Continue</Text>
+              <Text style={styles.nextButtonText}>Next</Text>
               <Feather name="arrow-right" size={18} color={COLORS.white} />
             </TouchableOpacity>
           </View>
@@ -332,33 +346,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
-  // Header
-  header: {
+  // Orange header banner
+  orangeHeader: {
+    backgroundColor: COLORS.headerBg,
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
+  },
+  headerContent: {
     alignItems: 'center',
-    paddingTop: 8,
-    paddingBottom: 16,
-    gap: 8,
+    paddingTop: 28,
   },
-  stepIndicator: {
-    flexDirection: 'row',
-    gap: 8,
+  headerIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 100,
+    backgroundColor: COLORS.headerIconBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
   },
-  stepDot: {
-    width: 32,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.border,
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: COLORS.white,
+    textAlign: 'center',
+    marginBottom: 10,
   },
-  stepDotCompleted: {
-    backgroundColor: COLORS.primary,
-  },
-  stepDotCurrent: {
-    backgroundColor: COLORS.primary,
-  },
-  stepLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
+  headerSubtitle: {
+    fontSize: 16,
+    color: COLORS.white,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 20,
   },
   // Content
   contentWrapper: {
@@ -368,82 +394,49 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   stepContentContainer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 30,
+    paddingTop: 24,
     paddingBottom: 24,
-  },
-  // Question header
-  questionHeader: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  questionIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  questionTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  questionSubtitle: {
-    fontSize: 15,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
   },
   // Options
   optionsContainer: {
-    gap: 12,
+    gap: 16,
   },
   selectionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 14,
-    borderWidth: 2,
+    height: 64,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.white,
-    gap: 14,
+    gap: 12,
   },
   selectionCardSelected: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryLight,
   },
   selectionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 100,
     backgroundColor: COLORS.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  selectionIconSelected: {
-    backgroundColor: COLORS.primary,
-  },
   selectionLabel: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
     color: COLORS.text,
   },
-  selectionLabelSelected: {
-    color: COLORS.text,
-    fontWeight: '600',
-  },
   // Radio & Checkbox
   radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: COLORS.border,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.radioBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -451,18 +444,12 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     backgroundColor: COLORS.primary,
   },
-  radioDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.white,
-  },
   checkbox: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
     borderRadius: 6,
-    borderWidth: 2,
-    borderColor: COLORS.border,
+    borderWidth: 1,
+    borderColor: COLORS.radioBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -559,11 +546,9 @@ const styles = StyleSheet.create({
   },
   // Footer
   footer: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 40,
     paddingTop: 16,
     paddingBottom: 34,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
   },
   buttonRow: {
     flexDirection: 'row',
@@ -578,21 +563,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '500',
     color: COLORS.text,
   },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 14,
-    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.white,
+    gap: 12,
   },
   nextButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.white,
   },
@@ -601,12 +589,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 14,
-    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+    gap: 12,
   },
   joinButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.white,
   },

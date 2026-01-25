@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   bubbleOwn: {
-    backgroundColor: '#588DD1', // Blue theme
+    backgroundColor: '#ff9d40', // Orange theme
     borderBottomRightRadius: 4,
   },
   bubbleOther: {
@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   systemBubble: {
-    backgroundColor: '#EFF6FF', // Very light blue
+    backgroundColor: '#fff8f3', // Very light orange
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 16,
   },
   systemText: {
-    color: '#3B82F6', // Blue text
+    color: '#ff820b', // Orange text
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 18,

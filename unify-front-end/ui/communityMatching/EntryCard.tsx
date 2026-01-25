@@ -1,11 +1,20 @@
 import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter, Href } from 'expo-router';
 import { useCurrentUser } from '@/context/UserContext';
 import { getCurrentWaitlistEntry } from '@/services/matching/waitlist';
 import { getActiveCircleMembership } from '@/services/matching/circles';
+
+// Design colors from Figma
+const COLORS = {
+  cardBackground: '#f68b26',
+  ellipse1: '#ff9d40',
+  ellipse2: '#f59d4a',
+  semiTransparentWhite: 'rgba(255,255,255,0.24)',
+  white: '#ffffff',
+};
 
 interface EntryCardProps {
   onPress: () => void;
@@ -52,21 +61,21 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
     if (isInCircle) {
       return {
         icon: 'message-circle' as const,
-        badge: { text: 'In Circle', color: '#0F8B54', bg: '#E6F8EE' },
-        cta: 'Open my circle',
+        badge: { text: 'In Circle', color: COLORS.white, bg: COLORS.semiTransparentWhite },
+        cta: 'Open my Circle',
       };
     }
     if (isWaiting) {
       return {
         icon: 'clock' as const,
-        badge: { text: 'Finding matches', color: '#588DD1', bg: '#EBF4FF' },
+        badge: { text: 'Finding matches', color: COLORS.white, bg: COLORS.semiTransparentWhite },
         cta: 'Check status',
       };
     }
     return {
-      icon: 'users' as const,
+      icon: 'group-add' as const, // MaterialIcons icon
       badge: null,
-      cta: 'Find my circle',
+      cta: 'Join your Circle',
     };
   };
 
@@ -74,39 +83,53 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
 
   return (
     <TouchableOpacity 
-      style={[styles.card, isInCircle && styles.cardActive]} 
+      style={styles.card} 
       onPress={handlePress}
       activeOpacity={0.85}
     >
-      <View style={styles.iconContainer}>
-        {isLoading ? (
-          <ActivityIndicator size="small" color="#588DD1" />
-        ) : (
-          <Feather name={status.icon!} size={24} color="#588DD1" />
-        )}
-      </View>
-      <View style={styles.copy}>
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>Unify Circles</Text>
-          {status.badge && (
-            <View style={[styles.badge, { backgroundColor: status.badge.bg }]}>
-              <Text style={[styles.badgeText, { color: status.badge.color }]}>
-                {status.badge.text}
-              </Text>
-            </View>
+      {/* Decorative ellipses */}
+      <View style={styles.ellipse1} />
+      <View style={styles.ellipse2} />
+
+      {/* Content */}
+      <View style={styles.content}>
+        {/* Icon */}
+        <View style={styles.iconContainer}>
+          {isLoading ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : status.icon === 'group-add' ? (
+            <MaterialIcons name="group-add" size={20} color={COLORS.white} />
+          ) : (
+            <Feather name={status.icon!} size={20} color={COLORS.white} />
           )}
         </View>
-        <Text style={styles.subtitle}>
-          {isInCircle
-            ? 'Your circle is active! Chat with your newcomer peers.'
-            : isWaiting
-              ? "Looking for people like you. We'll notify you when matched!"
-              : 'Be matched into 14-day Circles with people on the same newcomer path.'}
-        </Text>
+
+        {/* Text content */}
+        <View style={styles.copy}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>Unify Circles</Text>
+            {status.badge && (
+              <View style={[styles.badge, { backgroundColor: status.badge.bg }]}>
+                <Text style={[styles.badgeText, { color: status.badge.color }]}>
+                  {status.badge.text}
+                </Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.subtitle}>
+            {isInCircle
+              ? 'Your circle is active! Chat with your newcomer peers.'
+              : isWaiting
+                ? "Looking for people like you. We'll notify you when matched!"
+                : 'Get matched with 3 newcomers on a similar path to you for a 2-week group chat experience!'}
+          </Text>
+        </View>
       </View>
+
+      {/* CTA Button */}
       <View style={styles.ctaButton}>
         <Text style={styles.ctaText}>{status.cta}</Text>
-        <Feather name="chevron-right" size={18} color="#fff" />
+        <Feather name="arrow-right" size={18} color={COLORS.white} />
       </View>
     </TouchableOpacity>
   );
@@ -114,32 +137,47 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     marginHorizontal: 20,
-    marginBottom: 20,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-    gap: 16,
+    backgroundColor: COLORS.cardBackground,
+    overflow: 'hidden',
+    gap: 14,
   },
-  cardActive: {
-    borderWidth: 2,
-    borderColor: '#588DD1',
+  // Decorative ellipses
+  ellipse1: {
+    position: 'absolute',
+    top: -20,
+    right: -10,
+    width: 93,
+    height: 89,
+    borderRadius: 50,
+    backgroundColor: COLORS.ellipse1,
+  },
+  ellipse2: {
+    position: 'absolute',
+    top: 30,
+    right: 40,
+    width: 93,
+    height: 89,
+    borderRadius: 50,
+    backgroundColor: COLORS.ellipse2,
+  },
+  content: {
+    gap: 14,
+    zIndex: 1,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#F0F6FF',
+    width: 36,
+    height: 36,
+    borderRadius: 100,
+    backgroundColor: COLORS.semiTransparentWhite,
     alignItems: 'center',
     justifyContent: 'center',
   },
   copy: {
-    gap: 6,
+    gap: 5,
   },
   titleRow: {
     flexDirection: 'row',
@@ -147,9 +185,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#2A1B00',
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.white,
   },
   badge: {
     paddingHorizontal: 10,
@@ -162,21 +200,25 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    lineHeight: 20,
-    color: '#6E6E6E',
+    lineHeight: 18,
+    color: COLORS.white,
   },
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#588DD1',
-    paddingVertical: 12,
-    borderRadius: 999,
-    gap: 6,
+    backgroundColor: COLORS.semiTransparentWhite,
+    borderWidth: 1,
+    borderColor: COLORS.white,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
+    borderRadius: 12,
+    gap: 12,
+    zIndex: 1,
   },
   ctaText: {
-    color: '#fff',
-    fontSize: 15,
+    color: COLORS.white,
+    fontSize: 14,
     fontWeight: '600',
   },
 });
