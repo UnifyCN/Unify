@@ -44,6 +44,7 @@ export const getOnboardingProfile = async (
       referral_source: data.referral_source,
       referral_source_other: data.referral_source_other,
       arrival_date: data.arrival_date,
+      stage: data.stage,
       goals: data.goals || [],
       goals_other: data.goals_other,
       learning_interests: data.learning_interests || [],

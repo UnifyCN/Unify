@@ -19,7 +19,7 @@ import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
 import { supabase } from '@/lib/supabase';
-import MonthYearPicker from 'react-native-month-year-picker';
+import MonthPicker from './MonthPicker';
 import {
   Persona,
   ReferralSource,
@@ -48,7 +48,6 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const [referralSourceOther, setReferralSourceOther] = useState<string | null>(
     null
   );
-  const [showPicker, setShowPicker] = useState(false);
   const [arrivalDate, setArrivalDate] = useState<Date | null>(null);
 
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -308,36 +307,12 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
             {errors[4] && <Text style={styles.errorText}>{errors[4]}</Text>}
 
-            <TouchableOpacity
-              style={[styles.dateInput, { marginTop: 8 }]}
-              onPress={() => setShowPicker(true)}
-            >
-              <Text
-                style={{ color: arrivalDate ? Theme.black : Theme.textInput }}
-              >
-                {arrivalDate
-                  ? arrivalDate.toLocaleDateString(undefined, {
-                      month: 'long',
-                      year: 'numeric',
-                    })
-                  : 'Select month and year'}
-              </Text>
-            </TouchableOpacity>
-
-            {showPicker && (
-              <MonthYearPicker
-                onChange={(event, date) => {
-                  setShowPicker(false);
-                  if (date) {
-                    setArrivalDate(date);
-                  }
-                }}
-                value={arrivalDate ?? new Date()}
-                minimumDate={new Date(new Date().getFullYear() - 20, 0)}
-                maximumDate={new Date(new Date().getFullYear() + 10, 11)}
-                locale='en'
-              />
-            )}
+            <MonthPicker
+              value={arrivalDate}
+              onChange={(date) => setArrivalDate(date)}
+              minimumDate={new Date(new Date().getFullYear() - 20, 0)}
+              maximumDate={new Date(new Date().getFullYear() + 10, 11)}
+            />
           </View>
         );
       case 5:
