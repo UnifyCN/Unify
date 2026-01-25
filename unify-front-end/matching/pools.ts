@@ -52,5 +52,43 @@ export const getPoolLabel = (
   timeInCanada?: PoolTimeInCanada | null
 ) => `${formatPersonaLabel(persona)} • ${formatTimeInCanadaLabel(timeInCanada)}`;
 
+/**
+ * Derives a TimeInCanada category from an arrival date.
+ * - If arrival date is in the future: 'not_arrived'
+ * - Less than 1 year ago: 'less_than_1_year'
+ * - 1-2 years ago: '1_to_2_years'
+ * - 2-3 years ago: '2_to_3_years'
+ * - 3+ years ago: '3_plus_years'
+ */
+export const deriveTimeInCanadaFromArrivalDate = (
+  arrivalDate: string | null | undefined
+): PoolTimeInCanada | null => {
+  if (!arrivalDate) {
+    return null;
+  }
+
+  const arrival = new Date(arrivalDate);
+  const now = new Date();
+
+  // If arrival date is in the future, user hasn't arrived yet
+  if (arrival > now) {
+    return 'not_arrived';
+  }
+
+  // Calculate years since arrival
+  const yearsDiff =
+    (now.getTime() - arrival.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+  if (yearsDiff < 1) {
+    return 'less_than_1_year';
+  } else if (yearsDiff < 2) {
+    return '1_to_2_years';
+  } else if (yearsDiff < 3) {
+    return '2_to_3_years';
+  } else {
+    return '3_plus_years';
+  }
+};
+
 export type MatchingPersona = PoolPersona;
 export type MatchingTimeInCanada = PoolTimeInCanada;

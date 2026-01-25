@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import { buildPoolKey } from '@/matching/pools';
-import type { Persona, TimeInCanada } from '@/types/onboardingProfile';
+import { buildPoolKey, type MatchingTimeInCanada } from '@/matching/pools';
+import type { Persona } from '@/types/onboardingProfile';
 import type { CommunityWaitlistEntry } from '@/types/matching';
 
 export const getCurrentWaitlistEntry = async (): Promise<
@@ -28,7 +28,7 @@ export const getCurrentWaitlistEntry = async (): Promise<
 
 interface JoinWaitlistParams {
   persona: Persona;
-  timeInCanada: TimeInCanada;
+  timeInCanada: MatchingTimeInCanada;
 }
 
 export const joinCommunityWaitlist = async ({

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Alert, View, StyleSheet } from 'react-native';
 
 import { useRouter } from 'expo-router';
@@ -7,6 +7,7 @@ import { MatchingOnboardingQuiz } from '@/ui/communityMatching/MatchingOnboardin
 import { joinCommunityWaitlist } from '@/services/matching/waitlist';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { useCurrentUser } from '@/context/UserContext';
+import { deriveTimeInCanadaFromArrivalDate } from '@/matching/pools';
 import BackHeader from '@/components/BackHeader';
 
 
@@ -17,17 +18,23 @@ export default function MatchingOnboardingScreen() {
   const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Derive time_in_canada from arrival_date
+  const derivedTimeInCanada = useMemo(
+    () => deriveTimeInCanadaFromArrivalDate(onboardingProfile?.arrival_date),
+    [onboardingProfile?.arrival_date]
+  );
+
   useEffect(() => {
     if (
       onboardingProfile &&
-      (!onboardingProfile.persona || !onboardingProfile.time_in_canada)
+      (!onboardingProfile.persona || !derivedTimeInCanada)
     ) {
       router.replace('/community-matching' as const);
     }
-  }, [onboardingProfile, router]);
+  }, [onboardingProfile, derivedTimeInCanada, router]);
 
   const handleComplete = async () => {
-    if (!onboardingProfile?.persona || !onboardingProfile?.time_in_canada) {
+    if (!onboardingProfile?.persona || !derivedTimeInCanada) {
       Alert.alert(
         'Missing info',
         'Finish onboarding first so we know your matching persona.'
@@ -39,7 +46,7 @@ export default function MatchingOnboardingScreen() {
     try {
       await joinCommunityWaitlist({
         persona: onboardingProfile.persona,
-        timeInCanada: onboardingProfile.time_in_canada,
+        timeInCanada: derivedTimeInCanada,
       });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['community-waitlist'] }),

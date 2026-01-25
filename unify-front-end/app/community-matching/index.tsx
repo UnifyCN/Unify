@@ -20,6 +20,7 @@ import { getCurrentWaitlistEntry } from '@/services/matching/waitlist';
 import {
   formatPersonaLabel,
   formatTimeInCanadaLabel,
+  deriveTimeInCanadaFromArrivalDate,
 } from '@/matching/pools';
 import BackHeader from '@/components/BackHeader';
 
@@ -120,8 +121,10 @@ export default function CommunityMatchingHome() {
     );
   }
 
-  const hasPersona =
-    !!onboardingProfile?.persona && !!onboardingProfile?.time_in_canada;
+  const derivedTimeInCanada = deriveTimeInCanadaFromArrivalDate(
+    onboardingProfile?.arrival_date
+  );
+  const hasPersona = !!onboardingProfile?.persona && !!derivedTimeInCanada;
 
   if (!hasPersona) {
     return (
@@ -187,7 +190,7 @@ export default function CommunityMatchingHome() {
             <View style={styles.profileRow}>
               <Feather name="calendar" size={16} color="#6B7280" />
               <Text style={styles.profileText}>
-                {formatTimeInCanadaLabel(onboardingProfile?.time_in_canada)}
+                {formatTimeInCanadaLabel(derivedTimeInCanada)}
               </Text>
             </View>
           </View>

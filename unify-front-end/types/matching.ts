@@ -1,4 +1,5 @@
-import type { Persona, TimeInCanada } from './onboardingProfile';
+import type { Persona } from './onboardingProfile';
+import type { MatchingTimeInCanada as TimeInCanada } from '@/matching/pools';
 
 export type CommunityWaitlistStatus = 'waiting' | 'matched' | 'paused';
 export type CommunityCircleStatus = 'active' | 'ended';
