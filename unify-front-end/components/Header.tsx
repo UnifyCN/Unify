@@ -19,7 +19,7 @@ const Header = ({ showSearchIcon = true }: HeaderProps) => {
       <View style={styles.rightButtons}>
         {showSearchIcon && (
           <TouchableOpacity
-            onPress={() => router.push('/(tabs)/Gather/SearchScreen')}
+            onPress={() => router.push('/search' as any)}
           >
             <Feather name='search' size={28} color='#000' />
           </TouchableOpacity>

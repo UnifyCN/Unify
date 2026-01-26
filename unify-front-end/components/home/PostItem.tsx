@@ -208,7 +208,7 @@ export const PostItem = memo(
                     <TouchableOpacity
                       onPress={() =>
                         router.push({
-                          pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+                          pathname: '/group-detail' as any,
                           params: { groupName: post.group },
                         })
                       }
