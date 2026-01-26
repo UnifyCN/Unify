@@ -16,7 +16,7 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
   const isCompleted = task.completed;
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={styles.container}>
       <ThemedText
         style={[
           styles.taskName,
@@ -28,7 +28,7 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
       <ThemedText style={styles.taskDescription}>
         {task.task.task_description}
       </ThemedText>
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#d6d5d5',
   },
   taskName: {
     fontSize: 16,
