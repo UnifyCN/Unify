@@ -172,7 +172,12 @@ export default function AccountSettingsPage() {
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.settingsCard}>
             <View style={[styles.row, styles.toggleRow]}>
-              <Text style={styles.rowText}>Haptics</Text>
+              <View style={styles.rowLabelContainer}>
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name='zap' size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>Haptics</Text>
+              </View>
               <Pressable
                 onPress={toggleHaptics}
                 accessibilityRole='switch'
@@ -289,6 +294,11 @@ const styles = StyleSheet.create({
   },
   toggleRow: {
     justifyContent: 'space-between',
+  },
+  rowLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
   },
   toggleTrack: {
     width: 52,
