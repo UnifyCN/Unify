@@ -51,11 +51,6 @@ export default function ChecklistScreen() {
 
         if (user) {
           const profile = await getOnboardingProfile(user.id);
-          console.log('📋 Checklist Debug - Onboarding Profile:', {
-            persona: profile?.persona,
-            arrival_date: profile?.arrival_date,
-            stage: profile?.stage,
-          });
           setPersona(profile?.persona || null);
         }
       } catch (error) {
@@ -84,14 +79,6 @@ export default function ChecklistScreen() {
   const completedTasks = tasks.filter(t => t.completed).length;
   const progressPercent = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
-  console.log('📋 Checklist Debug - State:', {
-    currentStage,
-    persona,
-    stageChanged,
-    tasksCount: tasks.length,
-    isLoading: tasksLoading,
-  });
-
   const isLoading = stageLoading || isLoadingProfile || tasksLoading;
 
   // Group tasks by priority
@@ -106,14 +93,6 @@ export default function ChecklistScreen() {
     },
     {} as Record<Priority, typeof tasks>
   );
-
-  console.log('📋 Checklist Debug - Tasks by priority:', {
-    'Do now': tasksByPriority['Do now']?.length || 0,
-    'Do soon': tasksByPriority['Do soon']?.length || 0,
-    'Explore & connect': tasksByPriority['Explore & connect']?.length || 0,
-    'Optional / later': tasksByPriority['Optional / later']?.length || 0,
-    totalTasks: tasks.length,
-  });
 
   const priorities: Priority[] = [
     'Do now',

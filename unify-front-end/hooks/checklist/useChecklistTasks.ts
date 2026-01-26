@@ -42,34 +42,16 @@ export const useChecklistTasks = ({
           throw new Error('User not authenticated');
         }
 
-        console.log('📋 useChecklistTasks - Input params:', {
-          currentStage,
-          persona,
-          stageChanged,
-          userId: user.id,
-        });
-
         if (currentStage === null || !persona) {
-          console.log(
-            '📋 useChecklistTasks - Missing stage or persona, setting empty tasks'
-          );
           setTasks([]);
           return;
         }
 
         // Fetch existing user tasks
         const existingTasks = await getUserTasks(user.id);
-        console.log(
-          '📋 useChecklistTasks - Existing tasks count:',
-          existingTasks.length
-        );
 
         // If stage has changed or no tasks exist, regenerate tasks
         if (stageChanged || existingTasks.length === 0) {
-          console.log('📋 useChecklistTasks - Regenerating tasks...', {
-            reason: stageChanged ? 'stage changed' : 'no existing tasks',
-          });
-
           // Delete existing tasks if any
           if (existingTasks.length > 0) {
             await deleteUserTasks(user.id);
@@ -81,36 +63,18 @@ export const useChecklistTasks = ({
             currentStage
           );
 
-          console.log('📋 useChecklistTasks - Personalized tasks found:', {
-            count: personalizedTasks.length,
-            persona,
-            stageNumber: currentStage,
-            stageEnum: stageNumberToEnum(currentStage),
-          });
-
           // Create new user tasks
           if (personalizedTasks.length > 0) {
             await createUserTasks(user.id, personalizedTasks);
 
             // Fetch the newly created tasks with details
             const newUserTasks = await getUserTasks(user.id);
-            console.log(
-              '📋 useChecklistTasks - Created new user tasks:',
-              newUserTasks.length
-            );
             setTasks(newUserTasks);
           } else {
-            console.log(
-              '📋 useChecklistTasks - No personalized tasks found for persona/stage'
-            );
             setTasks([]);
           }
         } else {
           // Use existing tasks
-          console.log(
-            '📋 useChecklistTasks - Using existing tasks:',
-            existingTasks.length
-          );
           setTasks(existingTasks);
         }
       } catch (err) {

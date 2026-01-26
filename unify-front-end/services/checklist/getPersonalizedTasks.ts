@@ -11,12 +11,6 @@ export const getPersonalizedTasks = async (
     const stageEnum =
       typeof stage === 'number' ? stageNumberToEnum(stage) : stage;
 
-    console.log('📋 getPersonalizedTasks - Querying:', {
-      persona,
-      stageInput: stage,
-      stageEnum,
-    });
-
     // First try with the provided persona value
     let { data, error } = await supabase
       .from('personalized_checklist_tasks')
@@ -36,11 +30,6 @@ export const getPersonalizedTasks = async (
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
-      console.log(
-        '📋 getPersonalizedTasks - Retrying with title case:',
-        titleCasePersona
-      );
-
       const result = await supabase
         .from('personalized_checklist_tasks')
         .select('*')
@@ -54,11 +43,6 @@ export const getPersonalizedTasks = async (
         console.error('📋 getPersonalizedTasks - Retry query error:', error);
       }
     }
-
-    console.log('📋 getPersonalizedTasks - Found tasks:', {
-      count: data?.length || 0,
-      tasks: data,
-    });
 
     return data || [];
   } catch (error) {
