@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { UserTaskWithDetails, Priority } from '@/types/checklist';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { UserTaskWithDetails } from '@/types/checklist';
 
 interface ChecklistItemProps {
   task: UserTaskWithDetails;
