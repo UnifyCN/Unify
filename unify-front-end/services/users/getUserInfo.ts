@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { Permissions } from '@/types/permissions';
-import { OnboardingStage } from '@/types/onboarding';
 import dayjs from 'dayjs';
+import { StageNumber } from '@/types/checklist';
 
 export interface UserInfo {
   id: string;
@@ -13,11 +13,11 @@ export interface UserInfo {
   isPremium: boolean;
   permissions: string;
   arrivalDate: string;
-  stage: OnboardingStage;
+  stage: StageNumber;
 }
 
 // Helper function for calculating stages
-export function computeStage(arrivalDate: string | null): OnboardingStage {
+export function computeStage(arrivalDate: string | null): StageNumber {
   if (!arrivalDate) return 0;
 
   const arrival = dayjs(arrivalDate);

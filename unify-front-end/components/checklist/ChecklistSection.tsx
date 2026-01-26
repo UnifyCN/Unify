@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { UserTaskWithDetails, Priority } from '@/types/checklist';
 import { ChecklistItem } from './ChecklistItem';
@@ -14,7 +14,7 @@ interface ChecklistSectionProps {
 const priorityConfig = {
   'Do now': {
     icon: 'alert-circle' as const,
-    color: '#E53E3E',
+    color: '#FF4E4E',
     backgroundColor: '#FED7D7',
   },
   'Do soon': {
@@ -52,7 +52,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
             { backgroundColor: config.backgroundColor },
           ]}
         >
-          <Ionicons name={config.icon} size={24} color={config.color} />
+          <Ionicons name={config.icon} size={32} color={config.color} />
         </View>
         <View style={styles.headerText}>
           <ThemedText style={styles.priority}>{priority}</ThemedText>
@@ -62,10 +62,36 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         </View>
       </View>
       <View style={styles.timeline}>
+        {/* Line going through checkbox circles */}
+        <View
+          style={[styles.timelineLine, { backgroundColor: config.color }]}
+        />
         {tasks.map((task, index) => (
-          <View key={task.user_task_id} style={styles.taskWrapper}>
-            {index < tasks.length - 1 && <View style={styles.timelineLine} />}
-            <ChecklistItem task={task} onPress={() => onTaskPress?.(task)} />
+          <View key={task.user_task_id} style={styles.row}>
+            {/* LEFT COLUMN (Checkbox) */}
+            <View style={styles.leftColumn}>
+              <TouchableOpacity
+                onPress={() => onTaskPress?.(task)}
+                style={[
+                  styles.checkboxCircle,
+                  { backgroundColor: '#FFF', borderColor: config.color },
+                  task.completed && {
+                    backgroundColor: config.color,
+                    borderColor: config.color,
+                  },
+                ]}
+                activeOpacity={0.7}
+              >
+                {task.completed && (
+                  <Ionicons name='checkmark' size={20} color='#FFF' />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* RIGHT COLUMN (Task card) */}
+            <View style={styles.rightColumn}>
+              <ChecklistItem task={task} />
+            </View>
           </View>
         ))}
       </View>
@@ -75,7 +101,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 24,
+    marginTop: 12,
   },
   header: {
     flexDirection: 'row',
@@ -83,8 +109,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   iconContainer: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -100,21 +126,44 @@ const styles = StyleSheet.create({
   },
   count: {
     fontSize: 14,
-    color: '#718096',
+    color: '#000',
     marginTop: 2,
   },
   timeline: {
-    paddingLeft: 24,
-  },
-  taskWrapper: {
-    position: 'relative',
+    paddingLeft: 6,
   },
   timelineLine: {
     position: 'absolute',
-    left: -12,
-    top: 24,
-    bottom: -12,
-    width: 2,
+    left: 26,
+    top: 0,
+    bottom: 30,
+    width: 0.5,
     backgroundColor: '#E2E8F0',
+    zIndex: 0,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  leftColumn: {
+    width: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  rightColumn: {
+    flex: 1,
+  },
+  checkboxCircle: {
+    width: 30,
+    height: 30,
+    top: -5,
+    borderRadius: 15,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
 });

@@ -11,6 +11,7 @@ import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
 import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
 import { useAnalytics } from '@/utils/analytics';
+import ChecklistIcon from '@/components/icons/ChecklistIcon';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
   return (
@@ -149,7 +150,7 @@ export default function TabLayout() {
             title: 'Checklist',
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent={CompanionIcon} // TODO: Change this
+                IconComponent={ChecklistIcon}
                 title='Checklist'
                 focused={focused}
               />

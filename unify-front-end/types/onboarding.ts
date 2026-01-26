@@ -6,5 +6,3 @@ export type OnboardingStep = {
   description: string;
   stepNumber: number;
 };
-
-export type OnboardingStage = 0 | 1 | 2 | 3 | 4;

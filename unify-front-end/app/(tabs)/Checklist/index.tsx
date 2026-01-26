@@ -11,6 +11,7 @@ import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
 import { Priority, UserTaskWithDetails } from '@/types/checklist';
+import Header from '@/components/Header';
 
 const stageDescriptions = {
   0: 'Not Arrived Yet',
@@ -29,10 +30,16 @@ const personaDisplayNames = {
 
 export default function ChecklistScreen() {
   const router = useRouter();
-  const { currentStage, stageChanged, isLoading: stageLoading } = useUserStage();
+  const {
+    currentStage,
+    stageChanged,
+    isLoading: stageLoading,
+  } = useUserStage();
   const [persona, setPersona] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [selectedTask, setSelectedTask] = useState<UserTaskWithDetails | null>(null);
+  const [selectedTask, setSelectedTask] = useState<UserTaskWithDetails | null>(
+    null
+  );
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -41,7 +48,7 @@ export default function ChecklistScreen() {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        
+
         if (user) {
           const profile = await getOnboardingProfile(user.id);
           console.log('📋 Checklist Debug - Onboarding Profile:', {
@@ -61,11 +68,21 @@ export default function ChecklistScreen() {
     fetchPersona();
   }, []);
 
-  const { tasks, isLoading: tasksLoading, refetch, setTasks } = useChecklistTasks({
+  const {
+    tasks,
+    isLoading: tasksLoading,
+    refetch,
+    setTasks,
+  } = useChecklistTasks({
     currentStage,
     stageChanged,
     persona,
   });
+
+  // Compute progress
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.completed).length;
+  const progressPercent = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
   console.log('📋 Checklist Debug - State:', {
     currentStage,
@@ -98,7 +115,12 @@ export default function ChecklistScreen() {
     totalTasks: tasks.length,
   });
 
-  const priorities: Priority[] = ['Do now', 'Do soon', 'Explore & connect', 'Optional / later'];
+  const priorities: Priority[] = [
+    'Do now',
+    'Do soon',
+    'Explore & connect',
+    'Optional / later',
+  ];
 
   const handleTaskPress = (task: UserTaskWithDetails) => {
     setSelectedTask(task);
@@ -121,21 +143,27 @@ export default function ChecklistScreen() {
 
     try {
       const newCompletedStatus = !selectedTask.completed;
-      
+
       // Optimistically update UI
-      const updatedTasks = tasks.map(task => 
+      const updatedTasks = tasks.map(task =>
         task.user_task_id === selectedTask.user_task_id
-          ? { ...task, completed: newCompletedStatus, completed_at: newCompletedStatus ? new Date().toISOString() : null }
+          ? {
+              ...task,
+              completed: newCompletedStatus,
+              completed_at: newCompletedStatus
+                ? new Date().toISOString()
+                : null,
+            }
           : task
       );
       setTasks(updatedTasks);
-      
+
       // Update selected task state
       setSelectedTask({
         ...selectedTask,
         completed: newCompletedStatus,
       });
-      
+
       // Update database in background
       await updateTaskCompletion(selectedTask.user_task_id, newCompletedStatus);
     } catch (error) {
@@ -148,13 +176,15 @@ export default function ChecklistScreen() {
   if (isLoading) {
     return (
       <ThemedView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size='large' />
       </ThemedView>
     );
   }
 
   const stageDescription =
-    currentStage !== null ? stageDescriptions[currentStage as keyof typeof stageDescriptions] : 'Stage Not Set';
+    currentStage !== null
+      ? stageDescriptions[currentStage as keyof typeof stageDescriptions]
+      : 'Stage Not Set';
   const personaDisplay = persona
     ? personaDisplayNames[persona as keyof typeof personaDisplayNames]
     : 'User';
@@ -163,11 +193,17 @@ export default function ChecklistScreen() {
   if (currentStage === null) {
     return (
       <ThemedView style={styles.container}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={styles.header}>
-            <ThemedText style={styles.title}>Your Personalized Checklist</ThemedText>
+            <ThemedText style={styles.title}>
+              Your Personalized Checklist
+            </ThemedText>
             <ThemedText style={styles.subtitle}>
-              Please complete your onboarding to see your personalized checklist.
+              Please complete your onboarding to see your personalized
+              checklist.
             </ThemedText>
           </View>
         </ScrollView>
@@ -177,15 +213,29 @@ export default function ChecklistScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <Header showSearchIcon={true} />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Your Personalized Checklist</ThemedText>
+          <ThemedText style={styles.title}>
+            Your Personalized Checklist
+          </ThemedText>
           <ThemedText style={styles.subtitle}>
             {personaDisplay} - {stageDescription}
           </ThemedText>
+          <View style={styles.progressContainer}>
+            <View
+              style={[
+                styles.progressBar,
+                { width: `${progressPercent * 100}%` },
+              ]}
+            />
+          </View>
         </View>
 
-        {priorities.map((priority) => {
+        {priorities.map(priority => {
           const priorityTasks = tasksByPriority[priority] || [];
 
           return (
@@ -237,9 +287,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   title: {
-    fontSize: 28,
+    paddingTop: 8,
+    fontSize: 26,
     fontWeight: '700',
-    marginBottom: 8,
     color: '#000',
   },
   subtitle: {
@@ -254,5 +304,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#A0AEC0',
     textAlign: 'center',
+  },
+  progressContainer: {
+    width: '100%',
+    height: 8,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 4,
+    marginTop: 12,
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#000',
+    borderRadius: 4,
   },
 });

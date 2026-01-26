@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import { useQueryClient } from '@tanstack/react-query';
-import { OnboardingStage } from '@/types/onboarding';
+import { StageNumber } from '@/types/checklist';
 
 interface CurrentUser {
   id: string;
@@ -12,7 +12,7 @@ interface CurrentUser {
   profilePictureUrl?: string;
   isPremium: boolean;
   arrivalDate: string;
-  stage: OnboardingStage;
+  stage: StageNumber;
 }
 
 interface UserContextType {
