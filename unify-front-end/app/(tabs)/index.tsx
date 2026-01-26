@@ -5,11 +5,13 @@ import {
   TouchableOpacity,
   ImageBackground,
   Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   interpolate,
+  interpolateColor,
 } from 'react-native-reanimated';
 import PagerView, {
   PagerViewOnPageScrollEventData,
@@ -36,7 +38,6 @@ import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const TABS = ['For You', 'Following', 'Groups'] as const;
 const TAB_COUNT = TABS.length;
 const TAB_HORIZONTAL_MARGIN = 20;
@@ -44,7 +45,6 @@ const TAB_HORIZONTAL_MARGIN = 20;
 interface FeedTabsProps {
   scrollPosition: Animated.SharedValue<number>;
   onTabPress: (index: number) => void;
-  onTabChange?: (tab: string) => void;
 }
 
 // Individual animated tab component to properly use hooks
@@ -61,11 +61,17 @@ const AnimatedTab = memo(
     onPress: () => void;
   }) => {
     const animatedTextStyle = useAnimatedStyle(() => {
+      // Calculate distance from this tab (0 = fully active, 1+ = inactive)
       const distance = Math.abs(scrollPosition.value - index);
-      const isActive = distance < 0.5;
-      return {
-        color: isActive ? Theme.black : Theme.textInactiveTab,
-      };
+      // Clamp distance to [0, 1] for smooth interpolation
+      const clampedDistance = Math.min(Math.max(distance, 0), 1);
+      // Smoothly interpolate color based on distance
+      const color = interpolateColor(
+        clampedDistance,
+        [0, 1],
+        [Theme.black, Theme.textInactiveTab]
+      );
+      return { color };
     });
 
     return (
@@ -78,8 +84,12 @@ const AnimatedTab = memo(
   }
 );
 
-const FeedTabs = memo(({ scrollPosition, onTabPress, onTabChange }: FeedTabsProps) => {
-  const tabWidth = (SCREEN_WIDTH - TAB_HORIZONTAL_MARGIN * 2) / TAB_COUNT;
+AnimatedTab.displayName = 'AnimatedTab';
+
+const FeedTabs = memo(({ scrollPosition, onTabPress }: FeedTabsProps) => {
+  // Use useWindowDimensions for reactive width on orientation change
+  const { width: screenWidth } = useWindowDimensions();
+  const tabWidth = (screenWidth - TAB_HORIZONTAL_MARGIN * 2) / TAB_COUNT;
 
   const animatedIndicatorStyle = useAnimatedStyle(() => {
     const translateX = interpolate(
@@ -101,12 +111,7 @@ const FeedTabs = memo(({ scrollPosition, onTabPress, onTabChange }: FeedTabsProp
             tab={tab}
             index={index}
             scrollPosition={scrollPosition}
-            onPress={() => {
-              if (onTabChange) {
-                onTabChange(tab);
-              }
-              onTabPress(index);
-            }}
+            onPress={() => onTabPress(index)}
           />
         ))}
       </View>
@@ -122,6 +127,8 @@ const FeedTabs = memo(({ scrollPosition, onTabPress, onTabChange }: FeedTabsProp
     </View>
   );
 });
+
+FeedTabs.displayName = 'FeedTabs';
 
 const GroupsCarousel = memo(() => {
   const router = useRouter();
@@ -269,18 +276,6 @@ export default function HomeScreen() {
     }, [trackScreen])
   );
 
-  // Track feed tab switches - this handles internal Home tab changes
-  const handleFeedTabChange = useCallback(
-    (tab: string) => {
-      if (!isFocused) return;
-
-      const tabName = tab as 'For You' | 'Following' | 'Groups';
-      trackFeedTabSwitched(tabName);
-      trackScreen(tabName);
-    },
-    [trackFeedTabSwitched, trackScreen, isFocused]
-  );
-
   // Handle page scroll for smooth indicator animation
   const handlePageScroll = useCallback(
     (event: { nativeEvent: PagerViewOnPageScrollEventData }) => {
@@ -320,7 +315,6 @@ export default function HomeScreen() {
         <FeedTabs
           scrollPosition={scrollPosition}
           onTabPress={handleTabPress}
-          onTabChange={handleFeedTabChange}
         />
         {/* Swipeable pager with all three feeds */}
         <PagerView
@@ -329,7 +323,7 @@ export default function HomeScreen() {
           initialPage={0}
           onPageScroll={handlePageScroll}
           onPageSelected={handlePageSelected}
-          offscreenPageLimit={1}
+          offscreenPageLimit={2}
         >
           {/* For You Feed */}
           <View key="0" style={styles.pageContainer}>
