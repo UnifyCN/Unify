@@ -6,7 +6,7 @@ import { transformPostDtos } from '@/utils/postTransform';
 
 /**
  * Get the For You feed with pinned posts appearing first on page 1.
- * 
+ *
  * Page 1: All pinned posts (ordered by pinned_at DESC) followed by non-pinned posts
  * Page 2+: Only non-pinned posts, using cursor-based pagination
  */
@@ -87,14 +87,19 @@ export const getForYouFeed = async (
           .limit(remainingSlots);
 
         if (nonPinnedError) {
-          throw new Error(`Failed to fetch non-pinned posts: ${nonPinnedError.message}`);
+          throw new Error(
+            `Failed to fetch non-pinned posts: ${nonPinnedError.message}`
+          );
         }
 
-        nonPinnedPosts = transformPostDtos(nonPinnedData as unknown as PostDto[]);
-        
+        nonPinnedPosts = transformPostDtos(
+          nonPinnedData as unknown as PostDto[]
+        );
+
         // Use the last non-pinned post's created_at as cursor for next page
         if (nonPinnedData && nonPinnedData.length > 0) {
-          lastNonPinnedCreatedAt = nonPinnedData[nonPinnedData.length - 1].created_at;
+          lastNonPinnedCreatedAt =
+            nonPinnedData[nonPinnedData.length - 1].created_at;
         }
       }
 
@@ -140,13 +145,13 @@ export const getForYouFeed = async (
       );
 
       // Use created_at of last post as next cursor
-      const lastCreatedAt = data && data.length > 0 
-        ? data[data.length - 1].created_at 
-        : undefined;
+      const lastCreatedAt =
+        data && data.length > 0 ? data[data.length - 1].created_at : undefined;
 
       return {
         posts: transformedPosts,
-        next_cursor: transformedPosts.length === limit ? lastCreatedAt : undefined,
+        next_cursor:
+          transformedPosts.length === limit ? lastCreatedAt : undefined,
       };
     }
   } catch (error) {

@@ -23,14 +23,12 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import Header from '@/components/Header'
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
-
 
 export default function EndingPageScreen() {
   const router = useRouter();
@@ -87,8 +85,14 @@ export default function EndingPageScreen() {
       const now = Date.now();
       const pageKey = `${lessonId}-${currentPage}`;
       // Only track if: data is loaded, throttle passed, AND this is a different page than last tracked
-      if (lessonTitle && now - lastTrackedRef.current > TRACKING_THROTTLE_MS && lastTrackedPageRef.current !== pageKey) {
-        trackScreen(`Ending Page: ${lessonTitle} - ${currentPage}/${totalPages}`);
+      if (
+        lessonTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(
+          `Ending Page: ${lessonTitle} - ${currentPage}/${totalPages}`
+        );
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }
@@ -124,7 +128,6 @@ export default function EndingPageScreen() {
   const handleContinue = () => {
     setShowExitModal(false);
   };
-
 
   // ---- core "finish this lesson" logic, reused by review modal ----
   const completeLessonAndNavigate = () => {
@@ -289,8 +292,6 @@ export default function EndingPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
-
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -340,7 +341,7 @@ export default function EndingPageScreen() {
       <Modal
         visible={showExitModal}
         transparent
-        animationType="fade"
+        animationType='fade'
         onRequestClose={() => setShowExitModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -376,7 +377,7 @@ export default function EndingPageScreen() {
       <Modal
         visible={showReviewModal}
         transparent
-        animationType="slide"
+        animationType='slide'
         onRequestClose={handleSkipReview}
       >
         <TouchableWithoutFeedback onPress={handleSkipReview}>
@@ -385,13 +386,17 @@ export default function EndingPageScreen() {
               <View style={styles.reviewContainer}>
                 <View style={styles.reviewHandle} />
 
-                <Text style={styles.reviewTitle}>Was this content helpful?</Text>
+                <Text style={styles.reviewTitle}>
+                  Was this content helpful?
+                </Text>
 
                 {/* stars */}
                 <View
                   style={[
                     styles.reviewStarsRow,
-                    rating === null ? styles.starsSpacingNoComment : styles.starsSpacingWithComment,
+                    rating === null
+                      ? styles.starsSpacingNoComment
+                      : styles.starsSpacingWithComment,
                   ]}
                 >
                   {[1, 2, 3, 4, 5].map(i => {
@@ -405,12 +410,14 @@ export default function EndingPageScreen() {
                         style={styles.starTouch}
                       >
                         {selected ? (
-                          <StarFilled size={40} color={moduleData?.colorTheme?.hex || '#575757'} />
+                          <StarFilled
+                            size={40}
+                            color={moduleData?.colorTheme?.hex || '#575757'}
+                          />
                         ) : (
-                          <StarOutline size={40} color="#B4B1B1" />
+                          <StarOutline size={40} color='#B4B1B1' />
                         )}
                       </TouchableOpacity>
-
                     );
                   })}
                 </View>
@@ -421,11 +428,11 @@ export default function EndingPageScreen() {
                     <TextInput
                       style={styles.commentInput}
                       multiline
-                      placeholder="How can we make it better? (optional)"
-                      placeholderTextColor="#878787"
+                      placeholder='How can we make it better? (optional)'
+                      placeholderTextColor='#878787'
                       value={comment}
                       onChangeText={setComment}
-                      textAlignVertical="top"
+                      textAlignVertical='top'
                     />
                   </View>
                 )}
@@ -434,7 +441,9 @@ export default function EndingPageScreen() {
                 <TouchableOpacity
                   style={[
                     styles.reviewSubmitBtn,
-                    { backgroundColor: moduleData?.colorTheme?.hex || '#D8492C' },
+                    {
+                      backgroundColor: moduleData?.colorTheme?.hex || '#D8492C',
+                    },
                   ]}
                   onPress={handleSubmitReview}
                 >
@@ -626,20 +635,18 @@ const styles = StyleSheet.create({
   },
 
   starsSpacingNoComment: {
-  marginBottom: 35, // <- Figma ~40
+    marginBottom: 35, // <- Figma ~40
   },
   starsSpacingWithComment: {
-  marginBottom: 20, // <- cuando aparece comment box, el espacio baja
+    marginBottom: 20, // <- cuando aparece comment box, el espacio baja
   },
-
-
 
   starBoxSelected: {
     borderColor: '#D8492C',
   },
   starTouch: {
-  paddingHorizontal: 15,
-  paddingVertical: 5, // touch-friendly area without visual box
+    paddingHorizontal: 15,
+    paddingVertical: 5, // touch-friendly area without visual box
   },
   commentBox: {
     width: '100%',
@@ -679,5 +686,4 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '600',
   },
-
 });

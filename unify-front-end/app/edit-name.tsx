@@ -93,6 +93,12 @@ export default function EditNamePage() {
             </TouchableOpacity>
           )}
         </View>
+        <Text style={styles.characterCount}>
+          {username.length}/20
+        </Text>
+        <Text style={styles.description}>
+          Only letters, numbers, and spaces allowed.
+        </Text>
         <TouchableOpacity
           style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
           onPress={handleSave}
@@ -143,6 +149,18 @@ const styles = StyleSheet.create({
     right: 16,
     padding: 4,
     zIndex: 1,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: Theme.textPostTime,
+    marginTop: 8,
+    textAlign: 'left',
+  },
+  description: {
+    fontSize: 12,
+    color: Theme.textPostTime,
+    marginTop: 4,
+    marginBottom: 4,
   },
   saveButton: {
     marginTop: 30,

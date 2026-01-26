@@ -50,7 +50,10 @@ const FeedTabs = memo(
             style={[styles.tab, activeTab === tab && styles.activeTab]}
           >
             <Text
-              style={[styles.tabText, activeTab === tab && styles.activeTabText]}
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.activeTabText,
+              ]}
             >
               {tab}
             </Text>
@@ -200,7 +203,7 @@ export default function HomeScreen() {
         lastTrackedRef.current = now;
       }
       hasTrackedInitialFocus.current = true;
-      
+
       return () => {
         hasTrackedInitialFocus.current = false;
       };
@@ -211,7 +214,7 @@ export default function HomeScreen() {
   const handleFeedTabChange = useCallback(
     (tab: string) => {
       if (!isFocused) return;
-      
+
       const tabName = tab as 'For You' | 'Following' | 'Groups';
       trackFeedTabSwitched(tabName);
       // Also update the screen name for the new tab

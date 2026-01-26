@@ -19,7 +19,6 @@ import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
 import { useSanityModules } from '../../../hooks/sanity/useSanityModules';
 import { useInProgressLessons } from '../../../hooks/progress/useInProgressLessons';
-import { urlFor } from '../../../sanity-custom';
 import {
   CurrentLessonSkeletonLoader,
   PathwayCardSkeletonLoader,
@@ -132,9 +131,6 @@ export default function Learn() {
                       m => m._id === lesson.moduleId
                     );
                     const submoduleCount = module?.submodules?.length || 0;
-                    const coverImageUrl = module?.coverPhoto
-                      ? urlFor(module.coverPhoto)
-                      : undefined;
 
                     return (
                       <View
@@ -153,7 +149,6 @@ export default function Learn() {
                           totalPages={lesson.totalPages || 8}
                           currentSection={lesson.currentSection || 1}
                           totalSections={lesson.totalSections || 1}
-                          coverImageUrl={coverImageUrl}
                           colorHex={module?.colorTheme?.hex}
                           icon={module?.icon}
                           href={lesson.href as any}

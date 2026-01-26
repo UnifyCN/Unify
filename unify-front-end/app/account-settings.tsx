@@ -54,7 +54,16 @@ export default function AccountSettingsPage() {
 
   const settingsRows = [
     {
-      title: 'Saved',
+      title: 'View Profile',
+      icon: 'user' as const,
+      onPress: () => {
+        if (currentUser?.id) {
+          router.push(`/profile?userId=${currentUser.id}`);
+        }
+      },
+    },
+    {
+      title: 'Saved Posts',
       icon: 'bookmark' as const,
       onPress: () => router.push('/saved'),
     },
@@ -99,7 +108,7 @@ export default function AccountSettingsPage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Profile' onBack={() => router.back()} />
+      <BackHeader title='Settings' onBack={() => router.back()} />
       <View style={styles.content}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
@@ -154,9 +163,7 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>
-                  {row.title}
-                </Text>
+                <Text style={styles.rowText}>{row.title}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -197,9 +204,7 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>
-                  {row.title}
-                </Text>
+                <Text style={styles.rowText}>{row.title}</Text>
               </TouchableOpacity>
             ))}
           </View>

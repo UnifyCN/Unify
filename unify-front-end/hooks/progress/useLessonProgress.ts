@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
+import { progressEventEmitter } from '@/utils/progressEventEmitter';
 
 export function useLessonProgress() {
   // Save lesson completion to database
@@ -54,6 +55,9 @@ export function useLessonProgress() {
           moduleId,
           submoduleId
         );
+
+        // Emit progress update event to trigger refetch in learn index
+        progressEventEmitter.emit();
 
         return true;
       } catch (error) {

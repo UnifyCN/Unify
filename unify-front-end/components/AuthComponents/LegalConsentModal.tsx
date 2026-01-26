@@ -71,7 +71,11 @@ export default function LegalConsentModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
+    <Modal
+      visible={visible}
+      animationType='slide'
+      presentationStyle='fullScreen'
+    >
       {/* WebView overlay */}
       {webViewDoc && (
         <LegalWebView
@@ -96,9 +100,9 @@ export default function LegalConsentModal({
                 checked={isChecked}
                 onPress={() => setIsChecked(!isChecked)}
                 containerStyle={styles.checkboxContainer}
-                iconType="material-community"
-                checkedIcon="checkbox-marked"
-                uncheckedIcon="checkbox-blank-outline"
+                iconType='material-community'
+                checkedIcon='checkbox-marked'
+                uncheckedIcon='checkbox-blank-outline'
                 checkedColor={Theme.black}
                 uncheckedColor={Theme.black}
               />
@@ -125,7 +129,12 @@ export default function LegalConsentModal({
           </View>
 
           {/* Buttons */}
-          <View style={[styles.buttonContainer, { paddingBottom: insets.bottom + 20 }]}>
+          <View
+            style={[
+              styles.buttonContainer,
+              { paddingBottom: insets.bottom + 20 },
+            ]}
+          >
             <TouchableOpacity
               style={[
                 styles.continueButton,

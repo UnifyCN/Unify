@@ -13,14 +13,6 @@ export async function getAllModules(): Promise<SanityModule[]> {
       _type,
       title,
       description,
-      coverPhoto {
-        _type,
-        asset {
-          _ref,
-          _type
-        },
-        alt
-      },
       colorTheme { hex },
       icon
     }`;
@@ -43,14 +35,6 @@ export async function getAllModulesWithSubmodules(): Promise<
       _type,
       title,
       description,
-      coverPhoto {
-        _type,
-        asset {
-          _ref,
-          _type
-        },
-        alt
-      },
       colorTheme { hex },
       icon,
       "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
@@ -82,14 +66,6 @@ export async function getModule(
       _type,
       title,
       description,
-      coverPhoto {
-        _type,
-        asset {
-          _ref,
-          _type
-        },
-        alt
-      },
       colorTheme { hex },
       icon
     }`;
@@ -114,14 +90,6 @@ export async function getModuleWithSubmodules(
       _type,
       title,
       description,
-      coverPhoto {
-        _type,
-        asset {
-          _ref,
-          _type
-        },
-        alt
-      },
       colorTheme { hex },
       icon,
       "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
