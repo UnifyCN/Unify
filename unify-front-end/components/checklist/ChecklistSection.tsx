@@ -3,7 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { UserTaskWithDetails, Priority } from '@/types/checklist';
 import { ChecklistItem } from './ChecklistItem';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 interface ChecklistSectionProps {
   priority: Priority;
@@ -13,24 +13,24 @@ interface ChecklistSectionProps {
 
 const priorityConfig = {
   'Do now': {
-    icon: 'alert-circle' as const,
-    color: '#FF4E4E',
-    backgroundColor: '#FED7D7',
+    icon: 'error-outline' as const,
+    color: '#E03B3B',
+    backgroundColor: '#FBCFCF',
   },
   'Do soon': {
-    icon: 'time' as const,
-    color: '#DD6B20',
-    backgroundColor: '#FEEBC8',
+    icon: 'schedule' as const,
+    color: '#F47734',
+    backgroundColor: '#FBE4CF',
   },
   'Explore & connect': {
     icon: 'people' as const,
-    color: '#805AD5',
-    backgroundColor: '#E9D8FD',
+    color: '#F49E34',
+    backgroundColor: '#FFEDBD',
   },
   'Optional / later': {
-    icon: 'calendar' as const,
-    color: '#3182CE',
-    backgroundColor: '#BEE3F8',
+    icon: 'pending' as const,
+    color: '#5E8651',
+    backgroundColor: '#CDE9D2',
   },
 };
 
@@ -52,7 +52,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
             { backgroundColor: config.backgroundColor },
           ]}
         >
-          <Ionicons name={config.icon} size={32} color={config.color} />
+          <MaterialIcons name={config.icon} size={32} color={config.color} />
         </View>
         <View style={styles.headerText}>
           <ThemedText style={styles.priority}>{priority}</ThemedText>
@@ -83,14 +83,14 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
                 activeOpacity={0.7}
               >
                 {task.completed && (
-                  <Ionicons name='checkmark' size={20} color='#FFF' />
+                  <MaterialIcons name='check' size={20} color='#FFF' />
                 )}
               </TouchableOpacity>
             </View>
 
             {/* RIGHT COLUMN (Task card) */}
             <View style={styles.rightColumn}>
-              <ChecklistItem task={task} />
+              <ChecklistItem task={task} onPress={() => onTaskPress?.(task)} />
             </View>
           </View>
         ))}
@@ -106,15 +106,15 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 10,
   },
   iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   headerText: {
     flex: 1,
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   timelineLine: {
     position: 'absolute',
-    left: 26,
+    left: 24,
     top: 0,
     bottom: 30,
     width: 0.5,
@@ -143,12 +143,12 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 14,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   leftColumn: {
-    width: 40,
+    width: 36,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -157,9 +157,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   checkboxCircle: {
-    width: 30,
-    height: 30,
-    top: -5,
+    width: 26,
+    height: 26,
+    top: -6,
     borderRadius: 15,
     borderWidth: 2,
     alignItems: 'center',

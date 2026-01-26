@@ -16,7 +16,11 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
   const isCompleted = task.completed;
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <ThemedText
         style={[
           styles.taskName,
@@ -28,29 +32,28 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
       <ThemedText style={styles.taskDescription}>
         {task.task.task_description}
       </ThemedText>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
     backgroundColor: '#fff',
     borderRadius: 12,
-    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: '#D6D5D5',
   },
   taskName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: 14,
+    fontWeight: '500',
     color: '#000',
   },
   taskDescription: {
-    fontSize: 14,
-    color: '#718096',
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#727272',
   },
 });

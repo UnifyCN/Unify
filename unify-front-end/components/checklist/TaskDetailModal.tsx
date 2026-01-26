@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { UserTaskWithDetails } from '@/types/checklist';
 import { Theme } from '@/constants/Theme';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 interface TaskDetailModalProps {
   visible: boolean;
@@ -45,9 +45,9 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           <View style={styles.content}>
             {/* Icon */}
             <View style={styles.iconContainer}>
-              <Ionicons
-                name='clipboard-outline'
-                size={48}
+              <MaterialIcons
+                name='assignment'
+                size={28}
                 color={Theme.primaryGatherRed}
               />
             </View>
@@ -67,7 +67,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               activeOpacity={0.8}
             >
               <Text style={styles.learnButtonText}>Learn how</Text>
-              <Ionicons name='arrow-forward' size={20} color='#fff' />
+              <MaterialIcons name='arrow-right-alt' size={20} color='#fff' />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -86,8 +86,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               >
                 {isCompleted ? 'Completed' : 'Mark as complete'}
               </Text>
-              <Ionicons
-                name='checkmark'
+              <MaterialIcons
+                name='check'
                 size={20}
                 color={isCompleted ? '#48BB78' : '#48BB78'}
               />
@@ -103,55 +103,48 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+    justifyContent: 'flex-end',
   },
   modalContainer: {
     backgroundColor: '#fff',
-    borderRadius: 24,
+    borderTopLeftRadius: 42,
+    borderTopRightRadius: 42,
     width: '100%',
-    maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   content: {
     padding: 32,
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 24,
-    backgroundColor: '#FED7D7',
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: '#FBCFCF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 14,
   },
   taskName: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#000',
-    textAlign: 'center',
-    marginBottom: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 14,
+    alignSelf: 'flex-start',
   },
   taskDescription: {
     fontSize: 16,
-    color: '#718096',
-    textAlign: 'center',
+    color: '#000000',
+    textAlign: 'left',
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   learnButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Theme.primaryGatherRed,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    backgroundColor: '#E03B3B',
+    paddingVertical: 10,
+    paddingHorizontal: 40,
     borderRadius: 12,
     width: '100%',
     marginBottom: 12,
@@ -167,19 +160,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#E6F7ED',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: 10,
+    paddingHorizontal: 40,
     borderRadius: 12,
     width: '100%',
+    marginBottom: 12,
     gap: 8,
   },
   completeButtonCompleted: {
-    backgroundColor: '#C6F6D5',
+    backgroundColor: '#E2F6E2',
   },
   completeButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#48BB78',
+    color: '#4E7E4C',
   },
   completeButtonTextCompleted: {
     color: '#22543D',
