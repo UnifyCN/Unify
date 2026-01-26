@@ -62,7 +62,8 @@ export interface CommunityMessage {
 export type CommunityNotificationType =
   | 'circle_matched'
   | 'circle_ended'
-  | 'circle_ending_soon';
+  | 'circle_ending_soon'
+  | 'new_message';
 
 export interface CommunityNotification {
   id: string;

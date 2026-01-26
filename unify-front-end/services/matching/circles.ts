@@ -142,17 +142,21 @@ export const markCircleJoined = async (circleId: string) => {
     throw new Error('User not authenticated');
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('community_circle_members')
     .update({
       joined_at: new Date().toISOString(),
       left_at: null,
     })
     .eq('circle_id', circleId)
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .select('*');
 
   if (error) {
     throw new Error(`Failed to join circle chat: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error('No membership found to update - you may not be a member of this circle');
   }
 };
 
@@ -164,16 +168,20 @@ export const leaveCircle = async (circleId: string) => {
     throw new Error('User not authenticated');
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('community_circle_members')
     .update({
       left_at: new Date().toISOString(),
     })
     .eq('circle_id', circleId)
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .select('*');
 
   if (error) {
     throw new Error(`Failed to leave circle: ${error.message}`);
+  }
+  if (!data || data.length === 0) {
+    throw new Error('No membership found to update - you may not be a member of this circle');
   }
 };
 

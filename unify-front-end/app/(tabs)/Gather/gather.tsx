@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   eventsCarousel: {
-    marginTop: 8,
+    marginTop: 30,
     paddingHorizontal: 20,
   },
   section: {

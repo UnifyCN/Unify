@@ -57,7 +57,8 @@
       [
         "expo-notifications",
         {
-          "color": "#588DD1"
+          "color": "#ff9d40",
+          "defaultChannel": "community-circles"
         }
       ]
     ],

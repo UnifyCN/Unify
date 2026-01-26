@@ -10,8 +10,13 @@ import {
 } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 
+export interface QuizSelections {
+  goal: string | null;
+  topics: string[];
+}
+
 interface MatchingOnboardingQuizProps {
-  onComplete: () => Promise<void> | void;
+  onComplete: (selections: QuizSelections) => Promise<void> | void;
   onClose: () => void;
   isSubmitting?: boolean;
 }
@@ -153,19 +158,21 @@ export function MatchingOnboardingQuiz({
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const animateTransition = (callback: () => void) => {
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }),
+    // Execute callback in the middle of the animation (after fade out, before fade in)
+    // Using animation completion callbacks instead of setTimeout to prevent
+    // callback from firing after component unmount
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
+      callback();
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 150,
         useNativeDriver: true,
-      }),
-    ]).start();
-    setTimeout(callback, 150);
+      }).start();
+    });
   };
 
   const handleNext = () => {
@@ -322,7 +329,7 @@ export function MatchingOnboardingQuiz({
         ) : (
           <TouchableOpacity
             style={styles.joinButton}
-            onPress={() => onComplete()}
+            onPress={() => onComplete({ goal, topics })}
             disabled={isSubmitting}
             activeOpacity={0.8}
           >

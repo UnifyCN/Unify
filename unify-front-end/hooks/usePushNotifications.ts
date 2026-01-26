@@ -8,6 +8,12 @@ import {
 import type { Subscription } from 'expo-notifications';
 
 /**
+ * Validates that a circle_id is a non-empty string
+ */
+const isValidCircleId = (id: unknown): id is string =>
+  typeof id === 'string' && id.trim() !== '';
+
+/**
  * Hook to initialize push notifications.
  * Should be called once in a component that has access to UserContext and router.
  */
@@ -20,18 +26,20 @@ export function usePushNotifications() {
     if (!currentUser) return;
 
     // Register for push notifications when user is authenticated
-    registerForPushNotifications();
+    registerForPushNotifications().catch((err) => {
+      console.error('Push notification registration failed:', err);
+    });
 
     // Handle notification taps
     responseListenerRef.current = addNotificationResponseListener(response => {
       const data = response.notification.request.content.data;
 
-      // Navigate based on notification type
-      if (data?.type === 'circle_matched' && data?.circle_id) {
+      // Navigate based on notification type (with circle_id validation)
+      if (data?.type === 'circle_matched' && isValidCircleId(data?.circle_id)) {
         router.push(`/community-matching/circle/${data.circle_id}` as const);
-      } else if (data?.type === 'circle_ending_soon' && data?.circle_id) {
+      } else if (data?.type === 'circle_ending_soon' && isValidCircleId(data?.circle_id)) {
         router.push(`/community-matching/circle/${data.circle_id}/chat` as const);
-      } else if (data?.type === 'new_message' && data?.circle_id) {
+      } else if (data?.type === 'new_message' && isValidCircleId(data?.circle_id)) {
         router.push(`/community-matching/circle/${data.circle_id}/chat` as const);
       }
     });

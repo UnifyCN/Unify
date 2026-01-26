@@ -3,13 +3,18 @@
  * Tests the core matching algorithms and helper functions
  */
 
+import { buildPoolKey } from '@/matching/pools';
+
+// Helper function for testing pair key logic (used internally in edge functions)
+// Note: This is a local implementation for testing purposes since the actual
+// implementation lives in the Deno edge function and is not easily importable
+const buildPairKey = (userA: string, userB: string): string => {
+  const [first, second] = userA < userB ? [userA, userB] : [userB, userA];
+  return `${first}:${second}`;
+};
+
 // Test buildPairKey function
 describe('buildPairKey', () => {
-  const buildPairKey = (userA: string, userB: string): string => {
-    const [first, second] = userA < userB ? [userA, userB] : [userB, userA];
-    return `${first}:${second}`;
-  };
-
   it('should return consistent key regardless of order', () => {
     const keyAB = buildPairKey('user-a', 'user-b');
     const keyBA = buildPairKey('user-b', 'user-a');
@@ -112,12 +117,8 @@ describe('Countdown Display', () => {
   });
 });
 
-// Test pool key building
+// Test pool key building (using imported function)
 describe('Pool Key', () => {
-  const buildPoolKey = (persona: string, timeInCanada: string): string => {
-    return `${persona}__${timeInCanada}`;
-  };
-
   it('should create correct pool key', () => {
     expect(buildPoolKey('international_student', 'less_than_1_year')).toBe(
       'international_student__less_than_1_year'
@@ -125,8 +126,8 @@ describe('Pool Key', () => {
   });
 
   it('should handle all personas', () => {
-    const personas = ['international_student', 'skilled_worker', 'refugee', 'other'];
-    const time = '1_to_2_years';
+    const personas = ['international_student', 'skilled_worker', 'refugee', 'other'] as const;
+    const time = '1_to_2_years' as const;
     personas.forEach(persona => {
       expect(buildPoolKey(persona, time)).toContain(persona);
       expect(buildPoolKey(persona, time)).toContain(time);

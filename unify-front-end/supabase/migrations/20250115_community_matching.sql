@@ -157,6 +157,7 @@ create policy community_match_history_select_self
     using (auth.uid() = user_a or auth.uid() = user_b);
 
 -- Community messages policies
+-- Allow historical members to read messages (even after leaving) for chat history
 create policy community_messages_select_members
     on public.community_messages
     for select
@@ -166,7 +167,6 @@ create policy community_messages_select_members
             from public.community_circle_members m
             where m.circle_id = community_messages.circle_id
               and m.user_id = auth.uid()
-              and m.left_at is null
         )
     );
 

@@ -51,6 +51,18 @@ Deno.serve(async (req: Request) => {
     );
   }
 
+  // Secret-based authorization - verify API key for scheduled/internal calls
+  const apiKey = req.headers.get('x-api-key');
+  const expectedKey = Deno.env.get('MATCHMAKE_API_KEY');
+  
+  // Only allow requests with valid API key (for cron jobs and authorized internal calls)
+  if (!expectedKey || !apiKey || apiKey !== expectedKey) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: responseHeaders }
+    );
+  }
+
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -502,18 +514,7 @@ async function sendDay13Reminders(supabase: SupabaseClient) {
 
   const circleIds = data.map((circle: { id: string }) => circle.id as string);
 
-  // Mark circles as having sent reminder (do this first to prevent duplicates)
-  const { error: updateError } = await supabase
-    .from('community_circles')
-    .update({ day_13_reminder_sent: true })
-    .in('id', circleIds);
-
-  if (updateError) {
-    console.error('Failed to mark circles as reminder sent', updateError);
-    return 0;
-  }
-
-  // Get active members of these circles
+  // Get active members of these circles FIRST
   const { data: members, error: membersError } = await supabase
     .from('community_circle_members')
     .select('circle_id, user_id, left_at')
@@ -521,14 +522,14 @@ async function sendDay13Reminders(supabase: SupabaseClient) {
 
   if (membersError) {
     console.error('Failed to fetch members for Day 13 reminder', membersError);
-    return circleIds.length;
+    return 0;
   }
 
   const activeMembers =
     members?.filter((member: { left_at: string | null }) => member.left_at === null) ?? [];
 
   if (activeMembers.length > 0) {
-    // Insert in-app notifications
+    // Insert in-app notifications BEFORE marking as sent
     const { error: notificationError } = await supabase
       .from('community_notifications')
       .insert(
@@ -543,7 +544,20 @@ async function sendDay13Reminders(supabase: SupabaseClient) {
 
     if (notificationError) {
       console.error('Failed to insert Day 13 reminder notifications', notificationError);
+      // Don't mark as sent if notification insert failed
+      return 0;
     }
+  }
+
+  // Only mark circles as having sent reminder AFTER successful notification insert
+  const { error: updateError } = await supabase
+    .from('community_circles')
+    .update({ day_13_reminder_sent: true })
+    .in('id', circleIds);
+
+  if (updateError) {
+    console.error('Failed to mark circles as reminder sent', updateError);
+    // Notifications were sent but marking failed - they may be sent again
   }
 
   return circleIds.length;
@@ -595,16 +609,16 @@ async function deleteEndedCircles(supabase: SupabaseClient) {
     console.error('Failed to delete circle members', membersError);
   }
 
-  // 3. Delete notifications referencing these circles
-  // Note: This uses a JSONB query to find notifications with matching circle_id
-  for (const circleId of circleIds) {
+  // 3. Delete notifications referencing these circles (batched query)
+  // Uses .or() to combine multiple circle_id matches in a single query
+  if (circleIds.length > 0) {
     const { error: notifError } = await supabase
       .from('community_notifications')
       .delete()
-      .eq('data->>circle_id', circleId);
+      .or(circleIds.map(id => `data->>circle_id.eq.${id}`).join(','));
     
     if (notifError) {
-      console.error('Failed to delete notifications for circle', circleId, notifError);
+      console.error('Failed to delete notifications for circles', notifError);
     }
   }
 
@@ -658,23 +672,39 @@ async function sendPushNotifications(
     data: data || {},
   }));
 
-  // Send to Expo Push API
-  try {
-    const response = await fetch('https://exp.host/--/api/v2/push/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(messages),
-    });
+  // Send to Expo Push API in batches with timeout
+  const BATCH_SIZE = 100;
+  const TIMEOUT_MS = 5000;
 
-    if (!response.ok) {
-      console.error('Failed to send push notifications', await response.text());
-    } else {
-      console.log(`Sent ${messages.length} push notifications`);
+  for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+    const batch = messages.slice(i, i + BATCH_SIZE);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    
+    try {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(batch),
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send push notifications batch', i, await response.text());
+      } else {
+        console.log(`Sent batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.length} push notifications`);
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.error('Push notification batch timed out', i);
+      } else {
+        console.error('Push notification batch error', i, err);
+      }
+    } finally {
+      clearTimeout(timeout);
     }
-  } catch (err) {
-    console.error('Push notification error', err);
   }
 }
 

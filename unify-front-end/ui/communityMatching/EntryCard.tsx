@@ -25,13 +25,13 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
   const { currentUser } = useCurrentUser();
 
   const { data: waitlistEntry, isLoading: waitlistLoading } = useQuery({
-    queryKey: ['community-waitlist'],
+    queryKey: ['community-waitlist', currentUser?.id],
     queryFn: getCurrentWaitlistEntry,
     enabled: !!currentUser,
   });
 
   const { data: activeCircle, isLoading: circleLoading } = useQuery({
-    queryKey: ['community-active-circle'],
+    queryKey: ['community-active-circle', currentUser?.id],
     queryFn: getActiveCircleMembership,
     enabled: !!currentUser,
   });

@@ -116,25 +116,19 @@ export default function CommunityMatchingHome() {
     enabled: !!currentUser,
   });
 
+  // Consolidated navigation effect with priority order:
+  // 1. Active circle takes precedence - redirect to circle detail
+  // 2. Waiting status - redirect to waiting room
+  // 3. No waitlist entry - refetch to check status
   useEffect(() => {
     if (activeCircle) {
-      router.replace(
-        `/community-matching/circle/${activeCircle.circle_id}` as const
-      );
-    }
-  }, [activeCircle, router]);
-
-  useEffect(() => {
-    if (!activeCircle && waitlistEntry?.status === 'waiting') {
+      router.replace(`/community-matching/circle/${activeCircle.circle_id}` as const);
+    } else if (waitlistEntry?.status === 'waiting') {
       router.replace('/community-matching/waiting-room' as const);
-    }
-  }, [waitlistEntry, activeCircle, router]);
-
-  useEffect(() => {
-    if (!waitlistEntry && currentUser) {
+    } else if (!waitlistEntry && currentUser) {
       refetchWaitlist();
     }
-  }, [waitlistEntry, currentUser, refetchWaitlist]);
+  }, [activeCircle, waitlistEntry, currentUser, router, refetchWaitlist]);
 
   if (onboardingLoading || waitlistLoading || circleLoading) {
     return (

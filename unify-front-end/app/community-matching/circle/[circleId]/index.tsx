@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -37,6 +37,8 @@ export default function CircleDetailsScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const { currentUser } = useCurrentUser();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const hasShownConfetti = useRef(false);
 
   const {
     data: circle,
@@ -71,6 +73,14 @@ export default function CircleDetailsScreen() {
   const isActive = circle?.status === 'active';
   const hasJoinedChat = !!membership?.joined_at && !membership.left_at;
   const hasLeftCircle = !!membership?.left_at;
+
+  // Show confetti only once when circle ends (prevent restart on re-render)
+  useEffect(() => {
+    if (!isActive && circle && !hasShownConfetti.current) {
+      hasShownConfetti.current = true;
+      setShowConfetti(true);
+    }
+  }, [isActive, circle]);
 
   const handleJoin = useCallback(async () => {
     if (!circleId) return;
@@ -159,6 +169,7 @@ export default function CircleDetailsScreen() {
     const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
     const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
     if (days > 0) return `${days} day${days === 1 ? '' : 's'} left`;
+    if (hours === 0) return 'Less than an hour left';
     return `${hours} hour${hours === 1 ? '' : 's'} left`;
   }, [circle]);
 
@@ -193,7 +204,7 @@ export default function CircleDetailsScreen() {
 
   return (
     <View style={styles.root}>
-      {!isActive && (
+      {showConfetti && (
         <ConfettiCannon 
           count={200} 
           origin={{x: Dimensions.get('window').width / 2, y: 0}} 

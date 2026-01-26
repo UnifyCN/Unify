@@ -151,7 +151,7 @@ export default function NotificationsScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderNotification}
         ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={notifications.length === 0 ? { flex: 1 } : styles.listContent}
+        contentContainerStyle={notifications.length === 0 ? { flex: 1, justifyContent: 'center' } : styles.listContent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
     </View>

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.push_tokens (
     platform TEXT NOT NULL CHECK (platform IN ('ios', 'android', 'web')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(user_id, token)
+    UNIQUE(token)  -- One device token can only belong to one user
 );
 
 -- Enable RLS
@@ -22,9 +22,10 @@ CREATE POLICY push_tokens_insert_own ON public.push_tokens
 CREATE POLICY push_tokens_select_own ON public.push_tokens
     FOR SELECT USING (auth.uid() = user_id);
 
--- Users can update their own tokens
+-- Users can update their own tokens (WITH CHECK prevents changing user_id)
 CREATE POLICY push_tokens_update_own ON public.push_tokens
-    FOR UPDATE USING (auth.uid() = user_id);
+    FOR UPDATE USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
 
 -- Users can delete their own tokens
 CREATE POLICY push_tokens_delete_own ON public.push_tokens

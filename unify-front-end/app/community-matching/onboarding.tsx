@@ -3,7 +3,7 @@ import { Alert, View, StyleSheet } from 'react-native';
 
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { MatchingOnboardingQuiz } from '@/ui/communityMatching/MatchingOnboardingQuiz';
+import { MatchingOnboardingQuiz, QuizSelections } from '@/ui/communityMatching/MatchingOnboardingQuiz';
 import { joinCommunityWaitlist } from '@/services/matching/waitlist';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { useCurrentUser } from '@/context/UserContext';
@@ -32,7 +32,7 @@ export default function MatchingOnboardingScreen() {
     }
   }, [onboardingProfile, derivedTimeInCanada, router]);
 
-  const handleComplete = async () => {
+  const handleComplete = async (selections: QuizSelections) => {
     if (!onboardingProfile?.persona || !derivedTimeInCanada) {
       Alert.alert(
         'Missing info',
@@ -43,9 +43,14 @@ export default function MatchingOnboardingScreen() {
     }
     setIsSubmitting(true);
     try {
+      // Note: selections.goal and selections.topics are collected from the quiz
+      // and can be passed to the waitlist service when the backend supports them
       await joinCommunityWaitlist({
         persona: onboardingProfile.persona,
         timeInCanada: derivedTimeInCanada,
+        // TODO: Add goal and topics when backend schema supports them
+        // goal: selections.goal,
+        // topics: selections.topics,
       });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['community-waitlist'] }),
