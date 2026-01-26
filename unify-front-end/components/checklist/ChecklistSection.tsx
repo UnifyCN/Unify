@@ -64,7 +64,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
       <View style={styles.timeline}>
         {/* Line going through checkbox circles */}
         <View
-          style={[styles.timelineLine, { backgroundColor: config.color }]}
+          style={[styles.timelineLine, { backgroundColor: config.backgroundColor }]}
         />
         {tasks.map((task, index) => (
           <View key={task.user_task_id} style={styles.row}>
@@ -101,7 +101,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 12,
+    marginTop: 20,
   },
   header: {
     flexDirection: 'row',
@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   priority: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: '#000',
   },
   count: {
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     left: 24,
     top: 0,
     bottom: 30,
-    width: 0.5,
+    width: 1,
     backgroundColor: '#E2E8F0',
     zIndex: 0,
   },

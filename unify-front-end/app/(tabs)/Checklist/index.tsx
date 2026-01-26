@@ -288,13 +288,13 @@ const styles = StyleSheet.create({
   },
   title: {
     paddingTop: 8,
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 24,
+    fontWeight: '600',
     color: '#000',
   },
   subtitle: {
     fontSize: 16,
-    color: '#718096',
+    color: '#000',
   },
   emptyContainer: {
     padding: 32,
@@ -307,16 +307,15 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     width: '100%',
-    height: 8,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: '#eaeaea',
+    borderRadius: 5,
     marginTop: 12,
-    marginBottom: 16,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
     backgroundColor: '#000',
-    borderRadius: 4,
+    borderRadius: 5,
   },
 });
