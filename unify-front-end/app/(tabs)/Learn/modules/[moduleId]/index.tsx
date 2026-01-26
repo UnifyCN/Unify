@@ -1257,45 +1257,6 @@ export default function ModuleIndex() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Disclaimer Modal */}
-      <Modal
-        visible={showDisclaimer}
-        transparent={true}
-        animationType='fade'
-        onRequestClose={handleDisclaimerBack}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Disclaimer</Text>
-            <View style={styles.modalTextContainer}>
-              <Text style={styles.modalText}>
-                This module is for educational purposes only. Unify does not
-                provide legal or financial advice and makes no guarantee of
-                accuracy, completeness, or applicability. Always verify current
-                requirements with official sources such as IRCC or qualified
-                professionals.
-              </Text>
-            </View>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButtonBack}
-                onPress={handleDisclaimerBack}
-              >
-                <Text style={styles.modalButtonBackText}>Back</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalButtonContinue,
-                  { backgroundColor: subjectColor },
-                ]}
-                onPress={handleDisclaimerContinue}
-              >
-                <Text style={styles.modalButtonContinueText}>Continue</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
