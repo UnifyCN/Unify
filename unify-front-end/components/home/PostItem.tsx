@@ -29,6 +29,7 @@ import { useCurrentUser } from '@/context/UserContext';
 import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
+import { getGroupByName } from '@/services/groups/getGroupByName';
 
 export interface PostItemProps {
   post: PostData;
@@ -206,12 +207,25 @@ export const PostItem = memo(
                   <>
                     <ChevronRight color={Theme.textAlternateGray} width={6} height={14} />
                     <TouchableOpacity
-                      onPress={() =>
-                        router.push({
-                          pathname: '/group-detail' as any,
-                          params: { groupName: post.group },
-                        })
-                      }
+                      onPress={async () => {
+                        if (!post.group) return;
+                        try {
+                          const group = await getGroupByName(post.group);
+                          if (group) {
+                            router.push({
+                              pathname: '/group-detail' as any,
+                              params: { group: JSON.stringify(group) },
+                            });
+                          }
+                        } catch (error) {
+                          console.error('Failed to fetch group:', error);
+                          // Fallback to groupName if fetch fails
+                          router.push({
+                            pathname: '/group-detail' as any,
+                            params: { groupName: post.group },
+                          });
+                        }
+                      }}
                     >
                       <Text style={styles.group}>{post.group}</Text>
                     </TouchableOpacity>
