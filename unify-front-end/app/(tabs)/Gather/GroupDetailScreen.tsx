@@ -119,7 +119,7 @@ const GroupDetailScreen = () => {
     return () => {
       mounted = false;
     };
-  }, [groupName]);
+  }, [groupName, groupData]);
 
   // posts for this group
   const groupId = groupData?.id;
