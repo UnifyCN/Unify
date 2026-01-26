@@ -60,6 +60,11 @@ const GroupDetailScreen = () => {
       } catch (error) {
         console.error('Failed to parse group data:', error);
       }
+    } else {
+      // Clear stale data when group param is removed so init effect can fetch by groupName
+      setGroupData(null);
+      setIsMember(null);
+      hasTrackedView.current = false;
     }
   }, [group]);
 
