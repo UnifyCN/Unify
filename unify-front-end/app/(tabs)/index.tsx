@@ -6,7 +6,15 @@ import {
   ImageBackground,
   Dimensions,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+} from 'react-native-reanimated';
+import PagerView, {
+  PagerViewOnPageScrollEventData,
+  PagerViewOnPageSelectedEventData,
+} from 'react-native-pager-view';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
@@ -15,7 +23,7 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
 import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
-import { memo, useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { memo, useCallback, useRef } from 'react';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import { HorizontalCarousel } from '@/components/HorizontalCarousel';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
@@ -28,41 +36,92 @@ import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 
-interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const TABS = ['For You', 'Following', 'Groups'] as const;
+const TAB_COUNT = TABS.length;
+const TAB_HORIZONTAL_MARGIN = 20;
+
+interface FeedTabsProps {
+  scrollPosition: Animated.SharedValue<number>;
+  onTabPress: (index: number) => void;
   onTabChange?: (tab: string) => void;
 }
 
-const FeedTabs = memo(
-  ({ activeTab, setActiveTab, onTabChange }: HeaderProps) => {
+// Individual animated tab component to properly use hooks
+const AnimatedTab = memo(
+  ({
+    tab,
+    index,
+    scrollPosition,
+    onPress,
+  }: {
+    tab: string;
+    index: number;
+    scrollPosition: Animated.SharedValue<number>;
+    onPress: () => void;
+  }) => {
+    const animatedTextStyle = useAnimatedStyle(() => {
+      const distance = Math.abs(scrollPosition.value - index);
+      const isActive = distance < 0.5;
+      return {
+        color: isActive ? Theme.black : Theme.textInactiveTab,
+      };
+    });
+
     return (
-      <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map(tab => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => {
-              if (tab !== activeTab && onTabChange) {
-                onTabChange(tab);
-              }
-              setActiveTab(tab);
-            }}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab && styles.activeTabText,
-              ]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <TouchableOpacity onPress={onPress} style={styles.tab}>
+        <Animated.Text style={[styles.tabText, animatedTextStyle]}>
+          {tab}
+        </Animated.Text>
+      </TouchableOpacity>
     );
   }
 );
+
+const FeedTabs = memo(({ scrollPosition, onTabPress, onTabChange }: FeedTabsProps) => {
+  const tabWidth = (SCREEN_WIDTH - TAB_HORIZONTAL_MARGIN * 2) / TAB_COUNT;
+
+  const animatedIndicatorStyle = useAnimatedStyle(() => {
+    const translateX = interpolate(
+      scrollPosition.value,
+      [0, TAB_COUNT - 1],
+      [0, tabWidth * (TAB_COUNT - 1)]
+    );
+    return {
+      transform: [{ translateX }],
+    };
+  });
+
+  return (
+    <View style={styles.tabsContainer}>
+      <View style={styles.tabs}>
+        {TABS.map((tab, index) => (
+          <AnimatedTab
+            key={tab}
+            tab={tab}
+            index={index}
+            scrollPosition={scrollPosition}
+            onPress={() => {
+              if (onTabChange) {
+                onTabChange(tab);
+              }
+              onTabPress(index);
+            }}
+          />
+        ))}
+      </View>
+      <View style={styles.indicatorContainer}>
+        <Animated.View
+          style={[
+            styles.indicator,
+            { width: tabWidth },
+            animatedIndicatorStyle,
+          ]}
+        />
+      </View>
+    </View>
+  );
+});
 
 const GroupsCarousel = memo(() => {
   const router = useRouter();
@@ -182,17 +241,17 @@ const GroupsCarousel = memo(() => {
 });
 
 export default function HomeScreen() {
-  const [activeTab, setActiveTab] = useState('For You');
   const { trackScreen, trackFeedTabSwitched } = useAnalytics();
   const isFocused = useIsFocused();
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
-  const activeTabRef = useRef(activeTab);
+  const activeTabRef = useRef<string>(TABS[0]);
 
-  // Keep ref in sync with state
-  useEffect(() => {
-    activeTabRef.current = activeTab;
-  }, [activeTab]);
+  // Shared value for tracking pager scroll position (for animated indicator)
+  const scrollPosition = useSharedValue(0);
+
+  // Ref for programmatic pager control
+  const pagerRef = useRef<PagerView>(null);
 
   // Track screen view on focus - only once per focus, with debounce
   useFocusEffect(
@@ -207,7 +266,7 @@ export default function HomeScreen() {
       return () => {
         hasTrackedInitialFocus.current = false;
       };
-    }, [trackScreen]) // Intentionally exclude activeTab to prevent re-firing on internal tab changes
+    }, [trackScreen])
   );
 
   // Track feed tab switches - this handles internal Home tab changes
@@ -217,39 +276,102 @@ export default function HomeScreen() {
 
       const tabName = tab as 'For You' | 'Following' | 'Groups';
       trackFeedTabSwitched(tabName);
-      // Also update the screen name for the new tab
       trackScreen(tabName);
     },
     [trackFeedTabSwitched, trackScreen, isFocused]
   );
 
-  const renderFeedContent = useMemo(() => {
-    switch (activeTab) {
-      case 'Following':
-        return (
-          <FeedWithHook
-            key={`following-${activeTab}`}
-            useFeedHook={useFollowingFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No posts here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    You haven't followed any users yet.{'\n'}
-                    Follow other users to see their posts!
-                  </Text>
-                }
-              />
-            }
-          />
-        );
-      case 'Groups':
-        return (
-          <>
-            <GroupsCarousel />
+  // Handle page scroll for smooth indicator animation
+  const handlePageScroll = useCallback(
+    (event: { nativeEvent: PagerViewOnPageScrollEventData }) => {
+      const { position, offset } = event.nativeEvent;
+      scrollPosition.value = position + offset;
+    },
+    [scrollPosition]
+  );
+
+  // Handle page selection (when swipe completes or tab is tapped)
+  const handlePageSelected = useCallback(
+    (event: { nativeEvent: PagerViewOnPageSelectedEventData }) => {
+      const { position } = event.nativeEvent;
+      const selectedTab = TABS[position];
+      activeTabRef.current = selectedTab;
+
+      // Track the tab change
+      if (isFocused) {
+        trackFeedTabSwitched(selectedTab as 'For You' | 'Following' | 'Groups');
+        trackScreen(selectedTab);
+      }
+    },
+    [isFocused, trackFeedTabSwitched, trackScreen]
+  );
+
+  // Handle tab press - navigate to the selected page
+  const handleTabPress = useCallback((index: number) => {
+    pagerRef.current?.setPage(index);
+  }, []);
+
+  return (
+    <View style={styles.root}>
+      <Header />
+      <View style={styles.container}>
+        <StatusBar style='dark' />
+        {/* Sticky tabs header */}
+        <FeedTabs
+          scrollPosition={scrollPosition}
+          onTabPress={handleTabPress}
+          onTabChange={handleFeedTabChange}
+        />
+        {/* Swipeable pager with all three feeds */}
+        <PagerView
+          ref={pagerRef}
+          style={styles.pagerView}
+          initialPage={0}
+          onPageScroll={handlePageScroll}
+          onPageSelected={handlePageSelected}
+          offscreenPageLimit={1}
+        >
+          {/* For You Feed */}
+          <View key="0" style={styles.pageContainer}>
             <FeedWithHook
-              key={`groups-${activeTab}`}
+              useFeedHook={useForYouFeed}
+              ListEmptyComponent={
+                <EmptyFeedMessage
+                  message='No posts here...'
+                  submessage={
+                    <Text style={styles.emptyMessageSubtext}>
+                      No one has posted anything yet.{'\n'}
+                      Post something to see it here!
+                    </Text>
+                  }
+                />
+              }
+            />
+          </View>
+
+          {/* Following Feed */}
+          <View key="1" style={styles.pageContainer}>
+            <FeedWithHook
+              useFeedHook={useFollowingFeed}
+              ListEmptyComponent={
+                <EmptyFeedMessage
+                  message='No posts here...'
+                  submessage={
+                    <Text style={styles.emptyMessageSubtext}>
+                      You haven't followed any users yet.{'\n'}
+                      Follow other users to see their posts!
+                    </Text>
+                  }
+                />
+              }
+            />
+          </View>
+
+          {/* Groups Feed */}
+          <View key="2" style={styles.pageContainer}>
+            <FeedWithHook
               useFeedHook={useGroupsFeed}
+              ListHeaderComponent={<GroupsCarousel />}
               ListEmptyComponent={
                 <EmptyFeedMessage
                   message='No group posts here...'
@@ -262,63 +384,8 @@ export default function HomeScreen() {
                 />
               }
             />
-          </>
-        );
-      default:
-        return (
-          <FeedWithHook
-            key={`foryou-${activeTab}`}
-            useFeedHook={useForYouFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No posts here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    No one has posted anything yet.{'\n'}
-                    Post something to see it here!
-                  </Text>
-                }
-              />
-            }
-          />
-        );
-    }
-  }, [activeTab]);
-
-  // Easiest way to make the header sticky
-  const data = [
-    { key: 'tabs', type: 'tabs' },
-    { key: 'feed', type: 'feed' },
-  ];
-
-  const renderItem = ({ item }: { item: { key: string; type: string } }) => {
-    switch (item.type) {
-      case 'tabs':
-        return (
-          <FeedTabs
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onTabChange={handleFeedTabChange}
-          />
-        );
-      case 'feed':
-        return <View>{renderFeedContent}</View>;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <View style={styles.root}>
-      <Header />
-      <View style={styles.container}>
-        <StatusBar style='dark' />
-        <Animated.FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={item => item.key}
-          stickyHeaderIndices={[0]} // Make the tabs (index 0) sticky
-        />
+          </View>
+        </PagerView>
         <CreatePostButton />
       </View>
     </View>
@@ -334,36 +401,45 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'column',
   },
-  tabs: {
+  tabsContainer: {
     backgroundColor: '#fff',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
     zIndex: 1000,
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5E5',
     paddingTop: 8,
+  },
+  tabs: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: TAB_HORIZONTAL_MARGIN,
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
-    marginHorizontal: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: Theme.primaryGatherRed,
   },
   tabText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Theme.textInactiveTab,
   },
-  activeTabText: {
-    color: Theme.black,
-    fontWeight: '600',
+  indicatorContainer: {
+    height: 2,
+    marginHorizontal: TAB_HORIZONTAL_MARGIN,
+    backgroundColor: 'transparent',
+    marginTop: 6,
+  },
+  indicator: {
+    height: 2,
+    backgroundColor: Theme.primaryGatherRed,
+    borderRadius: 1,
+  },
+  pagerView: {
+    flex: 1,
+  },
+  pageContainer: {
+    flex: 1,
   },
   emptyMessageSubtext: {
     fontSize: 14,
