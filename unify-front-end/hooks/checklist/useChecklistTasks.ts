@@ -24,7 +24,7 @@ export const useChecklistTasks = ({
   const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   const refetch = () => {
-    setRefetchTrigger((prev) => prev + 1);
+    setRefetchTrigger(prev => prev + 1);
   };
 
   useEffect(() => {
@@ -50,14 +50,19 @@ export const useChecklistTasks = ({
         });
 
         if (currentStage === null || !persona) {
-          console.log('📋 useChecklistTasks - Missing stage or persona, setting empty tasks');
+          console.log(
+            '📋 useChecklistTasks - Missing stage or persona, setting empty tasks'
+          );
           setTasks([]);
           return;
         }
 
         // Fetch existing user tasks
         const existingTasks = await getUserTasks(user.id);
-        console.log('📋 useChecklistTasks - Existing tasks count:', existingTasks.length);
+        console.log(
+          '📋 useChecklistTasks - Existing tasks count:',
+          existingTasks.length
+        );
 
         // If stage has changed or no tasks exist, regenerate tasks
         if (stageChanged || existingTasks.length === 0) {
@@ -89,15 +94,23 @@ export const useChecklistTasks = ({
 
             // Fetch the newly created tasks with details
             const newUserTasks = await getUserTasks(user.id);
-            console.log('📋 useChecklistTasks - Created new user tasks:', newUserTasks.length);
+            console.log(
+              '📋 useChecklistTasks - Created new user tasks:',
+              newUserTasks.length
+            );
             setTasks(newUserTasks);
           } else {
-            console.log('📋 useChecklistTasks - No personalized tasks found for persona/stage');
+            console.log(
+              '📋 useChecklistTasks - No personalized tasks found for persona/stage'
+            );
             setTasks([]);
           }
         } else {
           // Use existing tasks
-          console.log('📋 useChecklistTasks - Using existing tasks:', existingTasks.length);
+          console.log(
+            '📋 useChecklistTasks - Using existing tasks:',
+            existingTasks.length
+          );
           setTasks(existingTasks);
         }
       } catch (err) {

@@ -40,7 +40,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
   onTaskPress,
 }) => {
   const config = priorityConfig[priority];
-  const completedCount = tasks.filter((t) => t.completed).length;
+  const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
 
   return (

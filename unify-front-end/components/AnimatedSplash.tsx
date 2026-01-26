@@ -16,7 +16,9 @@ interface AnimatedSplashProps {
   onAnimationComplete: () => void;
 }
 
-export default function AnimatedSplash({ onAnimationComplete }: AnimatedSplashProps) {
+export default function AnimatedSplash({
+  onAnimationComplete,
+}: AnimatedSplashProps) {
   const logoScale = useSharedValue(1);
   const logoOpacity = useSharedValue(1);
   const containerOpacity = useSharedValue(1);
@@ -38,11 +40,15 @@ export default function AnimatedSplash({ onAnimationComplete }: AnimatedSplashPr
 
     containerOpacity.value = withDelay(
       700,
-      withTiming(0, { duration: 200, easing: Easing.out(Easing.ease) }, (finished) => {
-        if (finished) {
-          runOnJS(onAnimationComplete)();
+      withTiming(
+        0,
+        { duration: 200, easing: Easing.out(Easing.ease) },
+        finished => {
+          if (finished) {
+            runOnJS(onAnimationComplete)();
+          }
         }
-      })
+      )
     );
   }, []);
 
@@ -61,7 +67,7 @@ export default function AnimatedSplash({ onAnimationComplete }: AnimatedSplashPr
         <Image
           source={require('@/assets/images/splash-icon-light.png')}
           style={styles.logo}
-          resizeMode="contain"
+          resizeMode='contain'
         />
       </Animated.View>
     </Animated.View>

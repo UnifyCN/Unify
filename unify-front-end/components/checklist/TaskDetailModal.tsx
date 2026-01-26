@@ -34,22 +34,31 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     <Modal
       visible={visible}
       transparent
-      animationType="slide"
+      animationType='slide'
       onRequestClose={onClose}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modalContainer} onPress={(e) => e.stopPropagation()}>
+        <Pressable
+          style={styles.modalContainer}
+          onPress={e => e.stopPropagation()}
+        >
           <View style={styles.content}>
             {/* Icon */}
             <View style={styles.iconContainer}>
-              <Ionicons name="clipboard-outline" size={48} color={Theme.primaryGatherRed} />
+              <Ionicons
+                name='clipboard-outline'
+                size={48}
+                color={Theme.primaryGatherRed}
+              />
             </View>
 
             {/* Task Name */}
             <Text style={styles.taskName}>{task.task.task_name}</Text>
 
             {/* Task Description */}
-            <Text style={styles.taskDescription}>{task.task.task_description}</Text>
+            <Text style={styles.taskDescription}>
+              {task.task.task_description}
+            </Text>
 
             {/* Buttons */}
             <TouchableOpacity
@@ -58,7 +67,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               activeOpacity={0.8}
             >
               <Text style={styles.learnButtonText}>Learn how</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
+              <Ionicons name='arrow-forward' size={20} color='#fff' />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -78,7 +87,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {isCompleted ? 'Completed' : 'Mark as complete'}
               </Text>
               <Ionicons
-                name="checkmark"
+                name='checkmark'
                 size={20}
                 color={isCompleted ? '#48BB78' : '#48BB78'}
               />

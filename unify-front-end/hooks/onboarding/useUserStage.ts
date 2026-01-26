@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
 import { updateUserStage } from '@/services/onboarding/updateUserStage';
-import { calculateUserStage, stageNumberToEnum, stageEnumToNumber } from '@/helpers/dateHelpers';
+import {
+  calculateUserStage,
+  stageNumberToEnum,
+  stageEnumToNumber,
+} from '@/helpers/dateHelpers';
 import { supabase } from '@/lib/supabase';
 
 export const useUserStage = () => {
@@ -21,7 +25,7 @@ export const useUserStage = () => {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        
+
         if (!user) {
           throw new Error('User not authenticated');
         }
@@ -46,7 +50,9 @@ export const useUserStage = () => {
         const arrivalDate = new Date(profile.arrival_date);
         const calculatedStageNumber = calculateUserStage(arrivalDate);
         const calculatedStageEnum = stageNumberToEnum(calculatedStageNumber);
-        const storedStageNumber = profile.stage ? stageEnumToNumber(profile.stage) : null;
+        const storedStageNumber = profile.stage
+          ? stageEnumToNumber(profile.stage)
+          : null;
 
         console.log('📋 useUserStage - Stage calculated:', {
           arrivalDate: arrivalDate.toISOString(),

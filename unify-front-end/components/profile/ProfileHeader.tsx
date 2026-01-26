@@ -68,7 +68,7 @@ export const ProfileHeader = ({
             activeOpacity={0.7}
           >
             <Text style={styles.username}>{userInfo.username}</Text>
-            <Feather name="edit-3" size={18} color={Theme.black} />
+            <Feather name='edit-3' size={18} color={Theme.black} />
           </TouchableOpacity>
         ) : (
           <Text style={styles.username}>{userInfo.username}</Text>
@@ -108,7 +108,7 @@ export const ProfileHeader = ({
                 onPress={() => setModalVisible(true)}
               >
                 <View style={styles.cameraIconContainer}>
-                  <Feather name="camera" size={18} color={Theme.white} />
+                  <Feather name='camera' size={18} color={Theme.white} />
                 </View>
               </TouchableOpacity>
               <ProfilePictureUpload

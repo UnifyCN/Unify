@@ -12,7 +12,7 @@ export const createUserTasks = async (
       taskIds: tasks.map(t => t.id),
     });
 
-    const userTasks = tasks.map((task) => ({
+    const userTasks = tasks.map(task => ({
       user_id: userId,
       task_id: task.id,
       completed: false,
@@ -20,14 +20,21 @@ export const createUserTasks = async (
 
     console.log('📋 createUserTasks - Inserting user tasks:', userTasks);
 
-    const { data, error } = await supabase.from('user_tasks').insert(userTasks).select();
+    const { data, error } = await supabase
+      .from('user_tasks')
+      .insert(userTasks)
+      .select();
 
     if (error) {
       console.error('📋 createUserTasks - Insert error:', error);
       throw new Error(`Failed to create user tasks: ${error.message}`);
     }
 
-    console.log('📋 createUserTasks - Successfully created:', data?.length || 0, 'tasks');
+    console.log(
+      '📋 createUserTasks - Successfully created:',
+      data?.length || 0,
+      'tasks'
+    );
   } catch (error) {
     console.error('Error creating user tasks:', error);
     throw error;

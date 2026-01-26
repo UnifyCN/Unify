@@ -8,7 +8,8 @@ export const getPersonalizedTasks = async (
 ): Promise<PersonalizedChecklistTask[]> => {
   try {
     // Convert stage number to enum string if needed
-    const stageEnum = typeof stage === 'number' ? stageNumberToEnum(stage) : stage;
+    const stageEnum =
+      typeof stage === 'number' ? stageNumberToEnum(stage) : stage;
 
     console.log('📋 getPersonalizedTasks - Querying:', {
       persona,
@@ -34,18 +35,21 @@ export const getPersonalizedTasks = async (
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-      
-      console.log('📋 getPersonalizedTasks - Retrying with title case:', titleCasePersona);
-      
+
+      console.log(
+        '📋 getPersonalizedTasks - Retrying with title case:',
+        titleCasePersona
+      );
+
       const result = await supabase
         .from('personalized_checklist_tasks')
         .select('*')
         .eq('persona', titleCasePersona)
         .eq('stage', stageEnum);
-      
+
       data = result.data;
       error = result.error;
-      
+
       if (error) {
         console.error('📋 getPersonalizedTasks - Retry query error:', error);
       }

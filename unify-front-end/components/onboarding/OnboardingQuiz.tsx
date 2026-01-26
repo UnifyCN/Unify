@@ -309,7 +309,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
             <MonthPicker
               value={arrivalDate}
-              onChange={(date) => setArrivalDate(date)}
+              onChange={date => setArrivalDate(date)}
               minimumDate={new Date(new Date().getFullYear() - 20, 0)}
               maximumDate={new Date(new Date().getFullYear() + 10, 11)}
             />

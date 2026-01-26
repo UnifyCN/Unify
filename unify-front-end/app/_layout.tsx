@@ -95,61 +95,61 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <ToastProvider>
             <ScrollContextProvider>
-            {/* {showOnboarding ? (
+              {/* {showOnboarding ? (
               <Onboarding onFinish={() => setShowOnboarding(false)} />
             ) : ( */}
-            <UserProvider>
-              <AuthWrapper>
-                <ThemeProvider value={DefaultTheme}>
-                  <PostHogProvider
-                    apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
-                    options={{
-                      host:
-                        process.env.EXPO_PUBLIC_POSTHOG_HOST ||
-                        'https://us.i.posthog.com',
-                    }}
-                    autocapture={{ captureScreens: false }}
-                  >
-                    <Stack>
-                      <Stack.Screen
-                        name='(tabs)'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='account-settings'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='edit-name'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='profile'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='saved'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='reset-password'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='post-details'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name='legal-document'
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen name='+not-found' />
-                    </Stack>
-                  </PostHogProvider>
-                </ThemeProvider>
-              </AuthWrapper>
-            </UserProvider>
-            {/* )} */}
+              <UserProvider>
+                <AuthWrapper>
+                  <ThemeProvider value={DefaultTheme}>
+                    <PostHogProvider
+                      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+                      options={{
+                        host:
+                          process.env.EXPO_PUBLIC_POSTHOG_HOST ||
+                          'https://us.i.posthog.com',
+                      }}
+                      autocapture={{ captureScreens: false }}
+                    >
+                      <Stack>
+                        <Stack.Screen
+                          name='(tabs)'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='account-settings'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='edit-name'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='profile'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='saved'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='reset-password'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='post-details'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='legal-document'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen name='+not-found' />
+                      </Stack>
+                    </PostHogProvider>
+                  </ThemeProvider>
+                </AuthWrapper>
+              </UserProvider>
+              {/* )} */}
             </ScrollContextProvider>
           </ToastProvider>
         </SafeAreaProvider>

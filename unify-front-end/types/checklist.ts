@@ -1,4 +1,8 @@
-export type Priority = 'Do now' | 'Do soon' | 'Explore & connect' | 'Optional / later';
+export type Priority =
+  | 'Do now'
+  | 'Do soon'
+  | 'Explore & connect'
+  | 'Optional / later';
 
 export type StageNumber = 0 | 1 | 2 | 3 | 4;
 export type Stage = '0' | '1' | '2' | '3' | '4';

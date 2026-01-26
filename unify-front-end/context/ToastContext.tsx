@@ -29,7 +29,9 @@ const ANIMATION_DURATION = 250;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [message, setMessage] = useState<string | null>(null);
-  const [onPressCallback, setOnPressCallback] = useState<(() => void) | null>(null);
+  const [onPressCallback, setOnPressCallback] = useState<(() => void) | null>(
+    null
+  );
   const [isVisible, setIsVisible] = useState(false);
   const translateY = useRef(new Animated.Value(100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -118,7 +120,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             {
               transform: [{ translateY }],
               opacity,
-              bottom: Math.max(insets.bottom, 16) + (Platform.OS === 'ios' ? 80 : 70),
+              bottom:
+                Math.max(insets.bottom, 16) + (Platform.OS === 'ios' ? 80 : 70),
             },
           ]}
         >
@@ -130,7 +133,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           >
             <Text style={styles.toastText}>{message}</Text>
             {onPressCallback && (
-              <Feather name="chevron-right" size={18} color={Theme.black} style={styles.chevron} />
+              <Feather
+                name='chevron-right'
+                size={18}
+                color={Theme.black}
+                style={styles.chevron}
+              />
             )}
           </TouchableOpacity>
         </Animated.View>

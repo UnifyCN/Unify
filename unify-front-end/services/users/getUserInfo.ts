@@ -27,7 +27,8 @@ export function computeStage(arrivalDate: string | null): StageNumber {
   if (diffMonths < 0) return 0; // Not arrived yet
   if (diffMonths < 3) return 1; // <3 months
   if (diffMonths < 12) return 2; // <1 year
-  if (diffMonths < 36) return 3; // <3 years
+  if (diffMonths < 36)
+    return 3; // <3 years
   else return 4; // 3+ years
 }
 

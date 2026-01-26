@@ -7,7 +7,8 @@ export const getUserTasks = async (
   try {
     const { data, error } = await supabase
       .from('user_tasks')
-      .select(`
+      .select(
+        `
         user_task_id,
         user_id,
         task_id,
@@ -22,7 +23,8 @@ export const getUserTasks = async (
           task_description,
           task_module
         )
-      `)
+      `
+      )
       .eq('user_id', userId);
 
     if (error) {

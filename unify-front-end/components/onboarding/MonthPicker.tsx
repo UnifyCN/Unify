@@ -87,7 +87,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
       <Modal
         visible={showPicker}
         transparent={true}
-        animationType="slide"
+        animationType='slide'
         onRequestClose={handleCancel}
       >
         <View style={styles.modalOverlay}>
@@ -127,7 +127,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
               <View style={styles.column}>
                 <Text style={styles.columnTitle}>Year</Text>
                 <ScrollView style={styles.scrollList}>
-                  {years.map((year) => (
+                  {years.map(year => (
                     <TouchableOpacity
                       key={year}
                       style={[
