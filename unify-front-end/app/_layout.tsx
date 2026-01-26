@@ -134,11 +134,43 @@ export default function RootLayout() {
                           name='post-details'
                           options={{ headerShown: false }}
                         />
-                        <Stack.Screen
-                          name='legal-document'
-                          options={{ headerShown: false }}
-                        />
-                        <Stack.Screen name='+not-found' />
+                      <Stack.Screen
+                        name='legal-document'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='search'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='group-detail'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='see-more-posts'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='see-more-groups'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='news-detail'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='news-tips'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='event-detail'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='events'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen name='+not-found' />
                       </Stack>
                     </PostHogProvider>
                   </ThemeProvider>

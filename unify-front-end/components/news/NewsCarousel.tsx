@@ -16,12 +16,12 @@ export const NewsCarousel = () => {
   const { data: news, isLoading } = useNews();
 
   const handleViewMore = () => {
-    router.push('/(tabs)/Gather/NewsTipsScreen' as any);
+    router.push('/news-tips' as any);
   };
 
   const handleNewsPress = (newsItem: NewsDetails) => {
     router.push({
-      pathname: '/(tabs)/Gather/NewsDetailScreen' as any,
+      pathname: '/news-detail' as any,
       params: { news: JSON.stringify(newsItem) },
     });
   };

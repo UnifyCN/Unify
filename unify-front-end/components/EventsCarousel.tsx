@@ -93,13 +93,13 @@ export const EventsCarousel = ({
 
   const handleEventPress = (event: any) => {
     router.push({
-      pathname: '/(tabs)/Gather/EventDetailScreen',
+      pathname: '/event-detail' as any,
       params: { event: JSON.stringify(event) },
     });
   };
 
   const handleViewMore = () => {
-    router.push('/(tabs)/Gather/EventsScreen');
+    router.push('/events' as any);
   };
 
   return (
