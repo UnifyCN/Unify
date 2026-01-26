@@ -12,12 +12,22 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
 // import Onboarding from './onboarding';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
+import { usePostHogIdentify } from '@/hooks/usePostHogIdentify';
 import { UserProvider } from '@/context/UserContext';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+/**
+ * Wrapper component that handles PostHog user identification.
+ * Must be rendered inside both PostHogProvider and UserProvider.
+ */
+function PostHogIdentifier({ children }: { children: React.ReactNode }) {
+  usePostHogIdentify();
+  return <>{children}</>;
+}
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -102,10 +112,32 @@ export default function RootLayout() {
                         host:
                           process.env.EXPO_PUBLIC_POSTHOG_HOST ||
                           'https://us.i.posthog.com',
+                        // Enable session replay
+                        enableSessionReplay: true,
+                        sessionReplayConfig: {
+                          // Mask all text inputs for privacy (passwords always masked)
+                          maskAllTextInputs: true,
+                          // Mask all images to protect sensitive content
+                          maskAllImages: true,
+                          // iOS: Mask system views like image/contact pickers
+                          maskAllSandboxedViews: true,
+                          // Android: Capture native logs
+                          captureLog: true,
+                          // iOS: Capture network telemetry (timing/size only, no body)
+                          captureNetworkTelemetry: true,
+                          // Reduce performance impact (1000ms default)
+                          throttleDelayMs: 1000,
+                        },
                       }}
-                      autocapture={{ captureScreens: false }}
+                      autocapture={{
+                        // Note: captureScreens must be false to avoid "useNavigationState" errors
+                        // Use trackScreen() from utils/analytics.ts for manual screen tracking
+                        captureScreens: false,
+                        captureTouches: true, // Capture tap events
+                      }}
                     >
-                      <Stack>
+                      <PostHogIdentifier>
+                        <Stack>
                         <Stack.Screen
                           name='(tabs)'
                           options={{ headerShown: false }}
@@ -139,7 +171,8 @@ export default function RootLayout() {
                           options={{ headerShown: false }}
                         />
                         <Stack.Screen name='+not-found' />
-                      </Stack>
+                        </Stack>
+                      </PostHogIdentifier>
                     </PostHogProvider>
                   </ThemeProvider>
                 </AuthWrapper>
