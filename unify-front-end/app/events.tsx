@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
-import EventCard from './(tabs)/Gather/EventCard';
+import EventCard from '@/components/events/EventCard';
 import { useMemo, useState } from 'react';
 import { Event } from '@/types/events';
 import { Theme } from '@/constants/Theme';

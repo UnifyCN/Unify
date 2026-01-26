@@ -13,7 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Group } from '@/types/groups';
 import { useSearchGroups } from '@/hooks/groups/useSearchGroups';
-import GroupCard from './(tabs)/Gather/GroupCard';
+import GroupCard from '@/components/groups/GroupCard';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from '@/components/home/PostItem';
 import { useQuery } from '@tanstack/react-query';

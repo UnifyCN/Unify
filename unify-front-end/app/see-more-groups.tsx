@@ -2,7 +2,7 @@ import React from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGroups } from '@/hooks/groups/useGroups';
-import GroupCard from './(tabs)/Gather/GroupCard';
+import GroupCard from '@/components/groups/GroupCard';
 import { Group } from '@/types/groups';
 import { saveRecentGroups } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';

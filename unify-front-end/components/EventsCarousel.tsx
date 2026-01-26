@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEvents } from '@/hooks/events/useEvents';
-import EventCard from '@/app/(tabs)/Gather/EventCard';
+import EventCard from '@/components/events/EventCard';
 import { SkeletonLoader } from './SkeletonLoader';
 import { Theme } from '@/constants/Theme';
 import ViewMoreCardEvents from '@/components/icons/ViewMoreCardEvents.svg';
