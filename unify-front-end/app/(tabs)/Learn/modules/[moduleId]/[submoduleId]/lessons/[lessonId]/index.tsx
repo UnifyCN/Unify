@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
-import Header from '@/components/Header';
 
 export default function LessonIndex() {
   const router = useRouter();
@@ -28,7 +27,6 @@ export default function LessonIndex() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading lesson...</Text>
         </View>
@@ -38,7 +36,6 @@ export default function LessonIndex() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       <View style={styles.loading}>
         <Text>Redirecting to lesson...</Text>
       </View>

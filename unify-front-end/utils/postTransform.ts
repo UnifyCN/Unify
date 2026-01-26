@@ -20,6 +20,7 @@ export const transformPostDto = (dto: PostDto): PostData => {
     title: dto.title,
     content: dto.content,
     group: dto.groups?.group_name,
+    isPinned: dto.is_pinned ?? false,
   };
 };
 

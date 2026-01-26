@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useEffect, useRef } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { sanityClient } from '@/sanity-custom';
+import { progressEventEmitter } from '@/utils/progressEventEmitter';
 
 interface ContinueLesson {
   id: string;
@@ -14,6 +14,8 @@ interface ContinueLesson {
   currentPage: number;
   totalPages: number;
   progressPercent: number;
+  currentSection: number;
+  totalSections: number;
   href: string;
 }
 
@@ -99,24 +101,9 @@ export function useInProgressLessons() {
             const isCompleted = lessonProgress?.is_completed || false;
             const isInProgress = lessonProgress?.is_in_progress || false;
 
-            // Determine if lesson is active (same logic as submodule map)
-            let isActive = false;
-            if (isInProgress) {
-              isActive = true; // Currently in progress
-            } else if (i === 0) {
-              isActive = true; // First lesson is always active
-            } else {
-              // Check if previous lesson is completed
-              const previousLesson = submodule.lessons[i - 1];
-              const previousProgress = submoduleLessons.find(
-                p => p.sanity_lesson_id === previousLesson._id
-              );
-              const previousCompleted = previousProgress?.is_completed || false;
-              isActive = previousCompleted; // Active if previous is completed
-            }
-
-            // If this lesson is active, use it
-            if (isActive && !isCompleted) {
+            // All lessons are now active/unlocked - find the first non-completed lesson
+            // If this lesson is not completed, use it
+            if (!isCompleted) {
               activeLesson = lesson;
               activeSubmodule = submodule;
               break;
@@ -148,6 +135,13 @@ export function useInProgressLessons() {
 
           const currentPage = lessonProgress?.current_page_number || 1;
 
+          // Calculate section (submodule) number and total sections
+          const submoduleIndex = module.submodules.findIndex(
+            (s: any) => s._id === activeSubmodule._id
+          );
+          const currentSection = submoduleIndex >= 0 ? submoduleIndex + 1 : 1;
+          const totalSections = module.submodules?.length || 0;
+
           availableLessons.push({
             id: activeLesson._id,
             title: activeLesson.title || 'Untitled Lesson',
@@ -159,6 +153,8 @@ export function useInProgressLessons() {
             currentPage: currentPage,
             totalPages: totalPages,
             progressPercent: progressPercent,
+            currentSection: currentSection,
+            totalSections: totalSections,
             href: `/(tabs)/Learn/modules/${module._id}/${activeSubmodule._id}/lessons/${activeLesson._id}/pages/${currentPage}` as any,
           });
         }
@@ -191,17 +187,26 @@ export function useInProgressLessons() {
     }
   };
 
-  // Fetch on mount
+  // Track if this is the first mount
+  const isFirstMount = useRef(true);
+
+  // Fetch on mount (first time only)
   useEffect(() => {
-    fetchInProgressLessons();
+    if (isFirstMount.current) {
+      fetchInProgressLessons();
+      isFirstMount.current = false;
+    }
   }, []);
 
-  // Refresh when screen comes into focus
-  useFocusEffect(
-    React.useCallback(() => {
+  // Subscribe to progress update events
+  useEffect(() => {
+    const unsubscribe = progressEventEmitter.subscribe(() => {
+      // Only refetch when progress is logged to the database
       fetchInProgressLessons();
-    }, [])
-  );
+    });
+
+    return unsubscribe;
+  }, []);
 
   return {
     lessons,

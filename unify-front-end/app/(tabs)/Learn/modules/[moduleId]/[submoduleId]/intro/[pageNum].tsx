@@ -18,7 +18,6 @@ import { SubmoduleIntroSection } from '@/types/learn';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateIntroProgress } from '@/utils/submoduleProgress';
-import Header from '@/components/Header';
 
 const getSanityImageUrl = (assetRef: string | undefined): string | null => {
   if (!assetRef) return null;
@@ -54,10 +53,10 @@ export default function SubmoduleIntroScreen() {
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
-    // Navigate to submodule map
+    // Navigate to module index (skip map)
     router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-      params: { moduleId, submoduleId },
+      pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+      params: { moduleId },
     });
   };
 
@@ -100,10 +99,10 @@ export default function SubmoduleIntroScreen() {
           params: { moduleId, submoduleId, lessonId: firstLesson._id },
         });
       } else {
-        // Fallback to map if no lessons
+        // Fallback to module index if no lessons (skip map)
         router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-          params: { moduleId, submoduleId },
+          pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+          params: { moduleId },
         });
       }
     }
@@ -241,7 +240,6 @@ export default function SubmoduleIntroScreen() {
   if (loadingIntro) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Loading intro...</Text>
         </View>
@@ -252,7 +250,6 @@ export default function SubmoduleIntroScreen() {
   if (!introData) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loading}>
           <Text>Error loading intro</Text>
         </View>
@@ -262,7 +259,6 @@ export default function SubmoduleIntroScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -276,15 +272,6 @@ export default function SubmoduleIntroScreen() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Page indicator */}
-        {totalPages && totalPages >= 1 && (
-          <View style={styles.pageIndicatorContainer}>
-            <Text style={styles.pageIndicator}>
-              {currentPage} of {totalPages}
-            </Text>
-          </View>
-        )}
-
         {/* Title */}
         <Text style={styles.title}>{introData?.title}</Text>
 
@@ -365,12 +352,13 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 30,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '600',
     color: '#000',
     marginBottom: 20,
-    lineHeight: 30,
+    lineHeight: 40,
     textAlign: 'center',
+    marginTop: 20,
   },
 
   content: {

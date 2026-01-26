@@ -7,15 +7,10 @@ import {
   ButtonProps,
   Headline,
   HeadlineProps,
-  HelperText,
   Text,
-  TextProps,
-  // TextInput,
   TextInputProps,
   useTheme,
-  Divider,
 } from 'react-native-paper';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react-native';
 
 const styles = {
   signOutButton: { marginVertical: 32, marginHorizontal: 16 },
@@ -42,7 +37,7 @@ export interface TextFieldProps
   type?: 'email' | 'default' | 'password' | 'phone';
 }
 
-export function TextField({
+function TextField({
   control,
   error,
   name,
@@ -129,14 +124,6 @@ export function SubmitButton({
   );
 }
 
-export function ProviderButton({ children, ...props }: ButtonProps) {
-  return (
-    <Button {...props} mode='outlined'>
-      {children}
-    </Button>
-  );
-}
-
 export function ViewHeader({ children, style, ...props }: HeadlineProps) {
   return (
     <Headline {...props} style={[style]}>
@@ -161,28 +148,6 @@ export function LinkButton({ labelStyle, ...props }: ButtonProps) {
   return <Button {...props} labelStyle={labelStyle} />;
 }
 
-export function ErrorMessage({ children, style, ...props }: TextProps<string>) {
-  const theme = useTheme();
-
-  if (!children) return null;
-
-  return (
-    <Text
-      {...props}
-      style={[
-        // {
-        //   backgroundColor: theme.colors.errorContainer,
-        //   borderRadius: theme.roundness,
-        // },
-        styles.errorMessage,
-        style,
-      ]}
-    >
-      {children}
-    </Text>
-  );
-}
-
 export function ViewContainer({ children, style, ...props }: ViewProps) {
   const theme = useTheme();
   return (
@@ -192,31 +157,5 @@ export function ViewContainer({ children, style, ...props }: ViewProps) {
     >
       {children}
     </View>
-  );
-}
-
-export function ViewDivider() {
-  return <Divider style={styles.viewDivider} />;
-}
-
-export function SignOutButton() {
-  const { signOut } = useAuthenticator();
-  return (
-    <Button onPress={signOut} style={styles.signOutButton}>
-      Sign Out
-    </Button>
-  );
-}
-
-export function Container({
-  style,
-  ...props
-}: React.ComponentProps<typeof Authenticator.Container>) {
-  const theme = useTheme();
-  return (
-    <Authenticator.Container
-      {...props}
-      style={[{ backgroundColor: 'white' }, style]}
-    />
   );
 }

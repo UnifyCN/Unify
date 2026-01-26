@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityQuizQuestions } from '@/hooks/sanity/useSanityQuizzes';
@@ -17,7 +18,8 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateQuizProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
-import Header from '@/components/Header';
+import { useAnalytics } from '@/utils/analytics';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } =
@@ -28,7 +30,7 @@ export default function QuizQuestionPage() {
       quizId: string;
       questionNum: string;
     }>();
-
+  const { trackScreen, capture } = useAnalytics();
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
   const { data: quizzes } = useSanityLessonQuizzes(lessonId);
@@ -50,6 +52,8 @@ export default function QuizQuestionPage() {
   );
   const [completedPairs, setCompletedPairs] = useState<string[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -65,7 +69,33 @@ export default function QuizQuestionPage() {
     setMatchedPairs({});
     setCompletedPairs([]);
     setIncorrectPairs([]);
+    setIsNavigating(false);
   }, [currentQuestionIndex]);
+  const totalQuestions = questions?.length || 0;
+  // Get current quiz data
+  const currentQuiz = quizzes?.find(q => q._id === quizId);
+  const quizTitle = currentQuiz?.title;
+
+  // Get current question (may be undefined during loading)
+  const currentQuestion = questions?.[currentQuestionIndex];
+
+  // Scramble right column items for matching questions
+  // This hook must be called before any early returns to maintain hook order
+  const scrambledRightItems = useMemo(() => {
+    const question = questions?.[currentQuestionIndex];
+    if (!question || question.question_type !== 'matching' || !question.matching_pairs || question.matching_pairs.length === 0) {
+      return [];
+    }
+    // Extract right items and shuffle them
+    const rightItems = question.matching_pairs.map((pair: any) => pair.right_item);
+    // Fisher-Yates shuffle algorithm
+    const shuffled = [...rightItems];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [questions, currentQuestionIndex]);
 
   // Calculate progress for the progress bar
   const progress = calculateQuizProgress(
@@ -73,6 +103,30 @@ export default function QuizQuestionPage() {
     lessonId || '',
     quizId || '',
     currentQuestionIndex + 1
+  );
+
+  // Track screen view
+  const TRACKING_THROTTLE_MS = 500;
+  const lastTrackedPageRef = useRef<string>('');
+  const lastTrackedRef = useRef<number>(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      const pageKey = `${quizId}-${currentQuestionIndex}`;
+      // Only track if: data is loaded, throttle passed, AND this is a different question than last tracked
+      if (
+        quizTitle &&
+        now - lastTrackedRef.current > TRACKING_THROTTLE_MS &&
+        lastTrackedPageRef.current !== pageKey
+      ) {
+        trackScreen(
+          `Quiz: ${quizTitle} - Q${currentQuestionIndex + 1}/${totalQuestions}`
+        );
+        lastTrackedRef.current = now;
+        lastTrackedPageRef.current = pageKey;
+      }
+    }, [quizTitle, quizId, currentQuestionIndex, totalQuestions, trackScreen])
   );
 
   if (isLoading) {
@@ -91,12 +145,19 @@ export default function QuizQuestionPage() {
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const totalQuestions = questions.length;
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
-  // Get current quiz data
-  const currentQuiz = quizzes?.find(q => q._id === quizId);
+  const trackQuizCompletion = () => {
+    if (moduleId && submoduleId && lessonId && quizId) {
+      capture('quiz_completed', {
+        module_id: moduleId,
+        submodule_id: submoduleId,
+        lesson_id: lessonId,
+        quiz_id: quizId,
+        quiz_title: currentQuiz?.title,
+      });
+    }
+  };
 
   // Helper functions for sequential navigation
   const getCurrentLessonIndex = () => {
@@ -218,15 +279,21 @@ export default function QuizQuestionPage() {
   };
 
   const handleNext = async () => {
+    if (isNavigating) return;
+
     if (currentQuestion.question_type === 'matching') {
       // For matching questions, go directly to next question since all pairs are completed
       // No need for submission logic - proceed to navigation
       if (isLastQuestion) {
+        setIsNavigating(true);
         // Quiz completed, check if there are more quizzes or go to next lesson
         const sortedQuizzes =
           quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
         const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
         const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
+
+        // Track quiz completion
+        trackQuizCompletion();
 
         if (nextQuiz) {
           // Go to next quiz
@@ -267,11 +334,10 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              // Last lesson completed, go back to map
+              // Last lesson completed, go back to module page
               router.push({
-                pathname:
-                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-                params: { moduleId, submoduleId },
+                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+                params: { moduleId },
               });
             } else {
               // Go to next lesson
@@ -292,6 +358,7 @@ export default function QuizQuestionPage() {
           }
         }
       } else {
+        setIsNavigating(true);
         // Go to next question in same quiz
         router.push({
           pathname:
@@ -342,11 +409,15 @@ export default function QuizQuestionPage() {
     } else {
       // Already submitted and correct - proceed to next
       if (isLastQuestion) {
+        setIsNavigating(true);
         // Quiz completed, check if there are more quizzes or go to next lesson
         const sortedQuizzes =
           quizzes?.sort((a, b) => a.order_number - b.order_number) || [];
         const currentQuizIndex = sortedQuizzes.findIndex(q => q._id === quizId);
         const nextQuiz = sortedQuizzes[currentQuizIndex + 1];
+
+        // Track quiz completion
+        trackQuizCompletion();
 
         if (nextQuiz) {
           // Go to next quiz
@@ -387,11 +458,10 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              // Last lesson completed, go back to map
+              // Last lesson completed, go back to module page
               router.push({
-                pathname:
-                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
-                params: { moduleId, submoduleId },
+                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+                params: { moduleId },
               });
             } else {
               // Go to next lesson
@@ -412,6 +482,7 @@ export default function QuizQuestionPage() {
           }
         }
       } else {
+        setIsNavigating(true);
         // Go to next question
         router.push({
           pathname:
@@ -454,27 +525,19 @@ export default function QuizQuestionPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header />
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
-        onClose={() => router.back()}
+        onClose={() => setShowExitModal(true)}
       />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Question counter */}
-        <View style={styles.questionCounterContainer}>
-          <Text style={styles.questionCounter}>
-            Question {currentQuestionIndex + 1} of {totalQuestions}
-          </Text>
-        </View>
-
         {/* Question Content */}
         <View style={styles.content}>
           {/* Quiz Title */}
@@ -529,28 +592,28 @@ export default function QuizQuestionPage() {
                     )}
                   </View>
 
-                  {/* Right Column */}
+                  {/* Right Column - Scrambled */}
                   <View style={styles.matchingColumn}>
-                    {currentQuestion.matching_pairs?.map(
-                      (pair: any, index: number) => (
+                    {scrambledRightItems.map(
+                      (rightItem: string, index: number) => (
                         <TouchableOpacity
-                          key={`right-${index}`}
+                          key={`right-${index}-${rightItem}`}
                           style={[
                             styles.matchingItem,
-                            selectedRightItem === pair.right_item &&
+                            selectedRightItem === rightItem &&
                               styles.matchingItemSelected,
-                            completedPairs.includes(pair.right_item) &&
+                            completedPairs.includes(rightItem) &&
                               styles.matchingItemCompleted,
-                            incorrectPairs.includes(pair.right_item) &&
+                            incorrectPairs.includes(rightItem) &&
                               styles.matchingItemIncorrect,
                           ]}
                           onPress={() =>
-                            handleMatchingItemSelect(pair.right_item, 'right')
+                            handleMatchingItemSelect(rightItem, 'right')
                           }
-                          disabled={completedPairs.includes(pair.right_item)}
+                          disabled={completedPairs.includes(rightItem)}
                         >
                           <Text style={styles.matchingItemText}>
-                            {pair.right_item}
+                            {rightItem}
                           </Text>
                         </TouchableOpacity>
                       )
@@ -644,6 +707,47 @@ export default function QuizQuestionPage() {
               </View>
             )}
           </View>
+
+          {/* Answer box (if available and submitted) */}
+          {currentQuestion.answer_box &&
+            hasSubmitted &&
+            currentQuestion.answer_box.showAfterSubmit && (
+              <View style={styles.answerBoxContainer}>
+                <RichTextRenderer
+                  blocks={currentQuestion.answer_box.content || []}
+                  markDefs={currentQuestion.answer_box.markDefs}
+                  styles={{
+                    normal: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '400',
+                      color: '#3F3F3F',
+                      marginBottom: 0,
+                    },
+                    bullet: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '400',
+                      color: '#3F3F3F',
+                      marginBottom: 0,
+                    },
+                    number: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '400',
+                      color: '#3F3F3F',
+                      marginBottom: 0,
+                    },
+                    strong: {
+                      fontSize: 14,
+                      lineHeight: 20,
+                      fontWeight: '600',
+                      color: '#3F3F3F',
+                    },
+                  }}
+                />
+              </View>
+            )}
         </View>
       </ScrollView>
 
@@ -697,6 +801,47 @@ export default function QuizQuestionPage() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Exit modal */}
+      <Modal
+        visible={showExitModal}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setShowExitModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Take a break from this quiz?</Text>
+            <Text style={styles.modalDesc}>
+              No worries, your progress will be saved!{'\n'}
+              You can pick up right where you left off.
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={() => {
+                setShowExitModal(false);
+                // Navigate to module index (skip map)
+                router.push({
+                  pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+                  params: { moduleId },
+                });
+              }}
+            >
+              <Text style={styles.modalPrimaryBtnText}>
+                Save progress & leave
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={() => setShowExitModal(false)}
+            >
+              <Text style={styles.modalSecondaryBtnText}>Continue Quiz</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1007,5 +1152,75 @@ const styles = StyleSheet.create({
   },
   matchingCheckButtonTextDisabled: {
     color: '#9CA3AF',
+  },
+  answerBoxContainer: {
+    backgroundColor: 'transparent',
+    borderLeftWidth: 5,
+    borderLeftColor: '#3F3F3F',
+    paddingLeft: 15,
+    paddingRight: 0,
+    paddingVertical: 0,
+    alignSelf: 'center',
+    width: 353,
+    maxWidth: '100%',
+    minHeight: 80,
+    marginTop: 20,
+    marginBottom: 30,
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalPrimaryBtn: {
+    width: '100%',
+    backgroundColor: '#575757',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalPrimaryBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalSecondaryBtn: {
+    width: '100%',
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalSecondaryBtnText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

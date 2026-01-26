@@ -2,20 +2,20 @@
   "expo": {
     "name": "Unify",
     "slug": "unify-front-end",
-    "version": "1.0.0",
+    "owner": "unifysocial",
+    "version": "autoIncrement",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "newArchEnabled": true,
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+    "runtimeVersion": "exposdk:52.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/3772d4d9-79dd-4848-9691-bae1b19eefb8"
     },
     "ios": {
-      "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.unifyfrontend",
+      "googleServicesFile": "./GoogleService_ios.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -40,6 +40,19 @@
         {
           "photosPermission": "The app accesses your photos to let you share and change your profile picture."
         }
+      ],
+      "expo-localization",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/images/splash-icon-light.png",
+          "dark": {
+            "image": "./assets/images/splash-icon-dark.png",
+            "backgroundColor": "#000000"
+          },
+          "imageWidth": 200
+        }
       ]
     ],
     "experiments": {
@@ -50,7 +63,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "9ba672ff-1636-46e9-9095-b4d5f107ddd0"
+        "projectId": "3772d4d9-79dd-4848-9691-bae1b19eefb8"
       }
     }
   }

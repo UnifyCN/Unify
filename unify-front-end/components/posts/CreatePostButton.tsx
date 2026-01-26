@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import CreatePostIcon from '@/assets/images/create-post.svg';
 import CreatePostModal from './CreatePostModal';
 import { Theme } from '@/constants/Theme';
 
@@ -8,7 +8,9 @@ interface CreatePostButtonProps {
   preselectedGroup?: any;
 }
 
-export default function CreatePostButton({ preselectedGroup }: CreatePostButtonProps) {
+export default function CreatePostButton({
+  preselectedGroup,
+}: CreatePostButtonProps) {
   const [showModal, setShowModal] = useState(false);
 
   const handlePress = () => {
@@ -22,11 +24,11 @@ export default function CreatePostButton({ preselectedGroup }: CreatePostButtonP
   return (
     <>
       <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
-        <Ionicons name='add' size={24} color='white' />
+        <CreatePostIcon width={27} height={27} />
       </TouchableOpacity>
 
-      <CreatePostModal 
-        visible={showModal} 
+      <CreatePostModal
+        visible={showModal}
         onClose={handleCloseCreateModal}
         preselectedGroup={preselectedGroup}
       />

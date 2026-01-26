@@ -9,9 +9,12 @@ import React, { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PostHogProvider } from 'posthog-react-native';
 // import Onboarding from './onboarding';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import { UserProvider } from '@/context/UserContext';
+import { HapticsProvider } from '@/context/HapticsContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -84,45 +87,99 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
         <SafeAreaProvider>
-          <ScrollContextProvider>
+          <ToastProvider>
+            <ScrollContextProvider>
             {/* {showOnboarding ? (
               <Onboarding onFinish={() => setShowOnboarding(false)} />
             ) : ( */}
-            <AuthWrapper>
-              <UserProvider>
-                <ThemeProvider value={DefaultTheme}>
-                  <Stack>
-                    <Stack.Screen
-                      name='(tabs)'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='account-settings'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='edit-name'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='profile'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='saved'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name='reset-password'
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen name='+not-found' />
-                  </Stack>
-                </ThemeProvider>
-              </UserProvider>
-            </AuthWrapper>
+            <UserProvider>
+              <HapticsProvider>
+                <AuthWrapper>
+                  <ThemeProvider value={DefaultTheme}>
+                    <PostHogProvider
+                      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+                      options={{
+                        host:
+                          process.env.EXPO_PUBLIC_POSTHOG_HOST ||
+                          'https://us.i.posthog.com',
+                      }}
+                      autocapture={{ captureScreens: false }}
+                    >
+                      <Stack>
+                        <Stack.Screen
+                          name='(tabs)'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='account-settings'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='edit-name'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='profile'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='saved'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='reset-password'
+                          options={{ headerShown: false }}
+                        />
+                        <Stack.Screen
+                          name='post-details'
+                          options={{ headerShown: false }}
+                        />
+                      <Stack.Screen
+                        name='legal-document'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='search'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='group-detail'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='see-more-posts'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='see-more-groups'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='news-detail'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='news-tips'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='event-detail'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen
+                        name='events'
+                        options={{ headerShown: false }}
+                      />
+                      <Stack.Screen name='+not-found' />
+                      </Stack>
+                    </PostHogProvider>
+                  </ThemeProvider>
+                </AuthWrapper>
+              </HapticsProvider>
+            </UserProvider>
             {/* )} */}
-          </ScrollContextProvider>
+            </ScrollContextProvider>
+          </ToastProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>

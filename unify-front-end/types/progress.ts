@@ -80,7 +80,7 @@ export interface UserPageProgress {
   updated_at: string;
 }
 
-export interface UserQuizAttempt {
+interface UserQuizAttempt {
   id: string;
   user_id: string;
   sanity_quiz_id: string;
@@ -97,7 +97,7 @@ export interface UserQuizAttempt {
   created_at: string;
 }
 
-export interface UserQuizResponse {
+interface UserQuizResponse {
   id: string;
   user_id: string;
   quiz_attempt_id: string;
@@ -109,7 +109,7 @@ export interface UserQuizResponse {
   answered_at: string;
 }
 
-export interface UserActivityInput {
+interface UserActivityInput {
   id: string;
   user_id: string;
   sanity_lesson_id: string;
@@ -124,7 +124,7 @@ export interface UserActivityInput {
   updated_at: string;
 }
 
-export interface UserLessonRetake {
+interface UserLessonRetake {
   id: string;
   user_id: string;
   sanity_lesson_id: string;
@@ -292,7 +292,7 @@ export interface ProgressTrackingAPI {
 // PROGRESS TRACKING CONTEXT TYPES
 // =============================================
 
-export interface ProgressTrackingContextType {
+interface ProgressTrackingContextType {
   state: ProgressTrackingState;
   actions: ProgressTrackingActions;
   api: ProgressTrackingAPI;
@@ -302,7 +302,7 @@ export interface ProgressTrackingContextType {
 // PROGRESS TRACKING UTILITY TYPES
 // =============================================
 
-export interface ProgressSummary {
+interface ProgressSummary {
   moduleId: string;
   submoduleId: string;
   lessonId: string;
@@ -312,7 +312,7 @@ export interface ProgressSummary {
   lastAccessed: string;
 }
 
-export interface ProgressAnalytics {
+interface ProgressAnalytics {
   totalTimeSpent: number; // in seconds
   averageTimePerPage: number; // in seconds
   completionRate: number; // percentage

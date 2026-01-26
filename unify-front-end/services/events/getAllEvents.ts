@@ -29,6 +29,7 @@ export const getAllEvents = async (): Promise<Event[]> => {
         eventEndDatetime: event.event_end_datetime,
         location: event.location,
         address: event.address,
+        hostedBy: event.hosted_by,
         eventType: event.event_type,
         genre: event.genre,
         coverPhotoUrl: event.cover_photo_url,

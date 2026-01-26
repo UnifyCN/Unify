@@ -56,6 +56,7 @@ export default function SubmoduleProgressBar({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
+    paddingTop: 30,
     marginBottom: 10,
   },
   header: {
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingTop: 20,
+    paddingTop: '2%',
   },
   closeButton: {
     padding: 4,
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
   },
   title: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     color: '#343434',
     textAlign: 'center',

@@ -24,27 +24,6 @@ export async function getLessonQuizzes(
   }
 }
 
-// Get a single quiz by ID
-export async function getQuiz(quizId: string): Promise<SanityQuiz | null> {
-  try {
-    const query = `*[_type == "quiz" && _id == $quizId][0] {
-      _id,
-      _type,
-      title,
-      description,
-      lesson,
-      order_number,
-      questions
-    }`;
-
-    const quiz = await sanityClient.fetch(query, { quizId });
-    return quiz || null;
-  } catch (error) {
-    console.error('Error fetching quiz from Sanity:', error);
-    return null;
-  }
-}
-
 // Get quiz questions (questions are embedded in the quiz document)
 export async function getQuizQuestions(quizId: string): Promise<any[]> {
   try {

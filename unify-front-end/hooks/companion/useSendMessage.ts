@@ -25,6 +25,9 @@ export const useSendMessage = ({
 }: UseSendMessageParams) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
+  const [lastSuggestedNextSteps, setLastSuggestedNextSteps] = useState<
+    string[] | undefined
+  >(undefined);
   const { data: usage } = useChatbotUsage();
   const updateUsage = useUpdateChatbotUsage();
   const createConversation = useCreateConversation();
@@ -84,10 +87,21 @@ export const useSendMessage = ({
         updateUsage.mutate(newMessageCount);
       }
 
-      // Parse the response
-      const { answer: botResponse, sources } = parseRAGResponse(response);
+      // Parse the response (includes queryType, disclaimer, and suggestedNextSteps for UI only)
+      const {
+        answer: botResponse,
+        sources,
+        queryType,
+        disclaimer,
+        suggestedNextSteps,
+      } = parseRAGResponse(response);
+
+      // Store suggested next steps for UI display (not persisted to DB)
+      setLastSuggestedNextSteps(suggestedNextSteps);
 
       // Save bot message to database
+      // Note: queryType, disclaimer, and suggestedNextSteps are not persisted to DB
+      // They're only used for immediate UI display
       try {
         await saveMessage.mutateAsync({
           conversationIdentifier: conversationIdToUse,
@@ -114,5 +128,5 @@ export const useSendMessage = ({
     }
   };
 
-  return { sendMessage, isLoading, isWaitingForBot };
+  return { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps };
 };

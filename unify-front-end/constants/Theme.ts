@@ -23,5 +23,7 @@ export const Theme = {
 
   backgroundChatbot: '#F3F2F2',
 
+  imagePlaceholder: '#D3D3D3',
+
   borderInfoText: '#C1C1C1',
 } as const;

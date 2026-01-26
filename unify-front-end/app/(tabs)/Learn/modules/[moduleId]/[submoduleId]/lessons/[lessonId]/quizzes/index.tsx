@@ -8,9 +8,10 @@ import {
   ScrollView,
   SafeAreaView,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
-import Header from '@/components/Header';
+import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
+import { useCallback, useRef } from 'react';
 
 export default function QuizzesPage() {
   const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
@@ -19,12 +20,28 @@ export default function QuizzesPage() {
     lessonId: string;
   }>();
 
+  const { trackScreen, capture } = useAnalytics();
   const { data: quizzes, isLoading, error } = useSanityLessonQuizzes(lessonId);
+  const hasTrackedRef = useRef<boolean>(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Track screen view once per focus
+      if (!hasTrackedRef.current) {
+        trackScreen('Quizzes List');
+        hasTrackedRef.current = true;
+      }
+
+      // Reset on blur so returning to this screen will track again
+      return () => {
+        hasTrackedRef.current = false;
+      };
+    }, [trackScreen])
+  );
 
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color='#3B82F6' />
           <Text style={styles.loadingText}>Loading quizzes...</Text>
@@ -36,7 +53,6 @@ export default function QuizzesPage() {
   if (error) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Error loading quizzes: {error.message}
@@ -49,7 +65,6 @@ export default function QuizzesPage() {
   if (!quizzes || quizzes.length === 0) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Header />
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>No Quizzes Available</Text>
           <Text style={styles.emptyText}>
@@ -68,7 +83,6 @@ export default function QuizzesPage() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
       <ScrollView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Quizzes</Text>
@@ -83,6 +97,13 @@ export default function QuizzesPage() {
               key={quiz._id}
               style={styles.quizCard}
               onPress={() => {
+                capture(AnalyticsEvents.QUIZ_CARD_CLICKED, {
+                  module_id: moduleId,
+                  submodule_id: submoduleId,
+                  lesson_id: lessonId,
+                  quiz_id: quiz._id,
+                  quiz_title: quiz.title,
+                });
                 router.push({
                   pathname:
                     '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/quizzes/[quizId]' as any,

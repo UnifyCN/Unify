@@ -41,10 +41,10 @@ export interface SanityModule extends SanityDocument {
   _type: 'module';
   title: string;
   description?: string;
-  coverPhoto?: SanityImage;
   colorTheme?: {
     hex: string;
   };
+  icon?: string;
 }
 
 // Submodule type
@@ -131,13 +131,17 @@ export interface SanityActivityPage {
   _key: string;
   title: string;
   order: number;
-  instructions: SanityBlock[];
-  instructionsMarkDefs?: any[];
-  input_fields?: (
+  instructions: (
+    | SanityBlock
     | SanityLargeInputBox
     | SanityMidInputBox
     | SanitySmallInputBox
+    | SanityMultipleChoiceSingle
+    | SanityMultipleChoiceMultiple
+    | SanityTwoOptionsQuestion
+    | SanityMatchingQuestion
   )[];
+  instructionsMarkDefs?: any[];
   answer_box?: SanityAnswerBox;
 }
 
@@ -180,6 +184,43 @@ export interface SanitySmallInputBox {
   required: boolean;
 }
 
+export interface SanityMultipleChoiceSingle {
+  _type: 'multiple_choice_single';
+  _key: string;
+  question_text: SanityBlock[];
+  options: SanityActivityOption[];
+}
+
+export interface SanityMultipleChoiceMultiple {
+  _type: 'multiple_choice_multiple';
+  _key: string;
+  question_text: SanityBlock[];
+  options: SanityActivityOption[];
+}
+
+export interface SanityTwoOptionsQuestion {
+  _type: 'two_options_question';
+  _key: string;
+  question_text: SanityBlock[];
+  options: SanityActivityOption[];
+}
+
+export interface SanityMatchingQuestion {
+  _type: 'matching_question';
+  _key: string;
+  question_text: SanityBlock[];
+  matching_pairs: SanityMatchingPair[];
+}
+
+export interface SanityActivityOption {
+  _key: string;
+  text: SanityBlock[];
+  textMarkDefs?: any[];
+  value: string;
+  is_correct: boolean;
+  explanation?: SanityBlock[];
+}
+
 export interface SanityAnswerBox {
   title?: string;
   content: SanityBlock[];
@@ -216,6 +257,7 @@ export interface SanityQuizQuestion {
   matching_pairs?: SanityMatchingPair[];
   correct_answer?: SanityCorrectAnswer;
   order_number: number;
+  answer_box?: SanityAnswerBox;
 }
 
 export interface SanityQuizOption {

@@ -1,20 +1,52 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { NewsDetails } from '@/types/news';
+import { Theme } from '@/constants/Theme';
 
 interface NewsCardProps {
-  title: string;
-  description: string;
+  news: NewsDetails;
+  maxWidth?: number;
+  onPress?: () => void;
 }
 
-export function NewsCard({ title, description }: NewsCardProps) {
+export function NewsCard({ news, maxWidth, onPress }: NewsCardProps) {
+  const { title, description, imageLink } = news;
+
+  const CardWrapper = onPress ? TouchableOpacity : View;
+
   return (
-    <View style={styles.newsCard}>
-      <View style={styles.newsImagePlaceholder} />
+    <CardWrapper
+      style={[
+        styles.newsCard,
+        maxWidth !== undefined
+          ? { width: maxWidth }
+          : { width: '100%', marginRight: 0 },
+      ]}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+    >
+      {imageLink ? (
+        <Image
+          source={{ uri: imageLink }}
+          style={styles.newsImage}
+          resizeMode='cover'
+        />
+      ) : (
+        <View style={styles.newsImagePlaceholder} />
+      )}
       <View style={styles.newsContent}>
-        <Text style={styles.newsTitle}>{title}</Text>
-        <Text style={styles.newsDescription}>{description}</Text>
+        <Text style={styles.newsTitle} numberOfLines={2}>
+          {title}
+        </Text>
+        <Text
+          style={styles.newsDescription}
+          numberOfLines={2}
+          ellipsizeMode='tail'
+        >
+          {description || ''}
+        </Text>
       </View>
-    </View>
+    </CardWrapper>
   );
 }
 
@@ -28,15 +60,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   newsImagePlaceholder: {
     width: 100,
     height: 132,
-    backgroundColor: '#D3D3D3',
+    backgroundColor: Theme.imagePlaceholder,
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+  },
+  newsImage: {
+    width: 100,
+    height: 132,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
   },

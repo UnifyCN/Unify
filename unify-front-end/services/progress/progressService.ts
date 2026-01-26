@@ -5,6 +5,7 @@ import {
   UserModuleProgress,
   UserPageProgress,
 } from '@/types/progress';
+import { progressEventEmitter } from '@/utils/progressEventEmitter';
 
 // =============================================
 // LESSON PROGRESS SERVICE
@@ -38,7 +39,7 @@ export async function getLessonProgress(
   }
 }
 
-export async function startLesson(
+async function startLesson(
   lessonId: string,
   submoduleId: string,
   moduleId: string
@@ -68,13 +69,16 @@ export async function startLesson(
 
     if (error) {
       console.error('Error starting lesson:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in startLesson:', error);
   }
 }
 
-export async function updateLessonProgress(
+async function updateLessonProgress(
   lessonId: string,
   pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
   pageNumber: number,
@@ -104,13 +108,16 @@ export async function updateLessonProgress(
 
     if (error) {
       console.error('Error updating lesson progress:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in updateLessonProgress:', error);
   }
 }
 
-export async function completeLesson(lessonId: string): Promise<void> {
+async function completeLesson(lessonId: string): Promise<void> {
   try {
     const {
       data: { user },
@@ -130,6 +137,9 @@ export async function completeLesson(lessonId: string): Promise<void> {
 
     if (error) {
       console.error('Error completing lesson:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in completeLesson:', error);
@@ -140,7 +150,7 @@ export async function completeLesson(lessonId: string): Promise<void> {
 // PAGE PROGRESS SERVICE
 // =============================================
 
-export async function trackPageVisit(
+async function trackPageVisit(
   lessonId: string,
   submoduleId: string,
   moduleId: string,
@@ -177,13 +187,16 @@ export async function trackPageVisit(
 
     if (error) {
       console.error('Error tracking page visit:', error);
+    } else {
+      // Emit progress update event (page visits are progress updates)
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in trackPageVisit:', error);
   }
 }
 
-export async function completePage(
+async function completePage(
   lessonId: string,
   pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
   pageKey: string
@@ -207,6 +220,9 @@ export async function completePage(
 
     if (error) {
       console.error('Error completing page:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in completePage:', error);
@@ -217,7 +233,7 @@ export async function completePage(
 // SUBMODULE PROGRESS SERVICE
 // =============================================
 
-export async function getSubmoduleProgress(
+async function getSubmoduleProgress(
   submoduleId: string,
   totalLessonsInSubmodule?: number
 ): Promise<UserSubmoduleProgress | null> {
@@ -297,7 +313,7 @@ export async function getSubmoduleProgress(
   }
 }
 
-export async function startSubmodule(
+async function startSubmodule(
   submoduleId: string,
   moduleId: string
 ): Promise<void> {
@@ -329,7 +345,7 @@ export async function startSubmodule(
   }
 }
 
-export async function completeSubmodule(submoduleId: string): Promise<void> {
+async function completeSubmodule(submoduleId: string): Promise<void> {
   try {
     const {
       data: { user },
@@ -362,17 +378,44 @@ export async function getModuleProgress(
   moduleId: string
 ): Promise<UserModuleProgress | null> {
   try {
-    const {
-      data: { user },
-    } = await progressClient.auth.getUser();
+    if (!moduleId) {
+      return null;
+    }
+
+    let user = null;
+    try {
+      const userResult = await progressClient.auth.getUser();
+      user = userResult?.data?.user || null;
+      if (userResult?.error) {
+        console.error(
+          'Error getting user in getModuleProgress:',
+          userResult.error
+        );
+      }
+    } catch (authError: any) {
+      console.error('Exception getting user in getModuleProgress:', authError);
+      return null;
+    }
+
     if (!user) return null;
 
-    const { data, error } = await progressClient
-      .from('user_module_progress')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('sanity_module_id', moduleId)
-      .single();
+    let data = null;
+    let error = null;
+
+    try {
+      const result = await progressClient
+        .from('user_module_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('sanity_module_id', moduleId)
+        .single();
+
+      data = result?.data || null;
+      error = result?.error || null;
+    } catch (queryError: any) {
+      console.error('Exception querying module progress:', queryError);
+      error = queryError;
+    }
 
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching module progress:', error);
@@ -380,7 +423,7 @@ export async function getModuleProgress(
     }
 
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getModuleProgress:', error);
     return null;
   }
@@ -441,7 +484,7 @@ export async function completeModule(moduleId: string): Promise<void> {
 // QUIZ PROGRESS SERVICE
 // =============================================
 
-export async function startQuizAttempt(
+async function startQuizAttempt(
   quizId: string,
   lessonId: string,
   submoduleId: string,
@@ -492,7 +535,7 @@ export async function startQuizAttempt(
   }
 }
 
-export async function submitQuizAnswer(
+async function submitQuizAnswer(
   attemptId: string,
   questionId: string,
   questionType: string,
@@ -528,7 +571,7 @@ export async function submitQuizAnswer(
   }
 }
 
-export async function completeQuizAttempt(
+async function completeQuizAttempt(
   attemptId: string,
   score: number,
   totalQuestions: number,
@@ -558,7 +601,7 @@ export async function completeQuizAttempt(
 // ACTIVITY INPUT SERVICE
 // =============================================
 
-export async function saveActivityInput(
+async function saveActivityInput(
   lessonId: string,
   submoduleId: string,
   moduleId: string,

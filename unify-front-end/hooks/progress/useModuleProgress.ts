@@ -26,12 +26,21 @@ export function useModuleProgress(moduleId: string): UseModuleProgressReturn {
       setIsLoading(true);
       setError(null);
 
+      if (!moduleId) {
+        setModuleProgress(null);
+        setIsLoading(false);
+        return;
+      }
+
       const progress = await getModuleProgress(moduleId);
       setModuleProgress(progress);
-    } catch (err) {
+    } catch (err: any) {
+      console.error('[useModuleProgress] Error fetching progress:', err);
       setError(
         err instanceof Error ? err.message : 'Failed to fetch module progress'
       );
+      // Set null progress on error to prevent UI issues
+      setModuleProgress(null);
     } finally {
       setIsLoading(false);
     }

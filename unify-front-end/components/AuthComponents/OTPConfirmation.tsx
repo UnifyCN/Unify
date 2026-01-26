@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
-import { generateUsername } from '../../utils/usernameGenerator';
+import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
   ViewHeader,
   ViewContainer,
@@ -21,6 +21,8 @@ import {
 interface OTPVerificationProps {
   email: string;
   password: string;
+  /** Timestamp when the user accepted legal documents during signup */
+  legalAcceptedAt?: string;
   onVerificationSuccess?: () => void;
   onBackToSignUp?: () => void;
 }
@@ -28,6 +30,7 @@ interface OTPVerificationProps {
 export default function OTPVerification({
   email,
   password,
+  legalAcceptedAt,
   onVerificationSuccess,
   onBackToSignUp,
 }: OTPVerificationProps) {
@@ -82,24 +85,25 @@ export default function OTPVerification({
       }
 
       if (session) {
-        // Create user record and set username after successful verification
-        try {
-          const username = generateUsername();
-          const { error: insertError } = await supabase.from('users').insert({
-            id: session.user.id,
-            email: session.user.email,
-            username: username,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
+        // Create user record using shared helper
+        if (!session.user.email) {
+          setErrorMessage('Unable to retrieve email from verified session');
+          setLoading(false);
+          return;
+        }
 
-          if (insertError) {
-            console.error('Error creating user record:', insertError);
-            // Continue anyway - user is verified, just database record failed
-          }
-        } catch (error) {
-          console.error('Error creating user record:', error);
-          // Continue anyway - user is verified
+        try {
+          await createUserIfNotExists(session.user.id, session.user.email, {
+            privacyPolicyAcceptedAt: legalAcceptedAt,
+            communityGuidelinesAcceptedAt: legalAcceptedAt,
+          });
+        } catch (userCreationError: any) {
+          console.error('Failed to create user record:', userCreationError);
+          setErrorMessage(
+            userCreationError?.message || 'Failed to complete account setup'
+          );
+          setLoading(false);
+          return;
         }
 
         // NOTE: just alert for now, until we have a UI designed for thos
@@ -305,7 +309,7 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14 * 0.87,
-    color: '#343434',
+    color: '#5182C7',
     fontWeight: '600' as '600',
     textDecorationLine: 'underline' as 'underline',
   },

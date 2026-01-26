@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Dimensions,
+  Keyboard,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
@@ -21,12 +24,21 @@ import {
 } from '@/helpers/companion/messageHelpers';
 import { MessageWithSources } from '@/components/companion/MessageWithSources';
 import { TypingIndicator } from '@/components/companion/TypingIndicator';
+import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import HistoryIcon from '@/components/icons/HistoryIcon.svg';
-import BackHeader from '@/components/BackHeader';
+import BlueDottedLine from '@/assets/images/blue-dotted.svg';
+import CompanionHeader from '@/components/CompanionHeader';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAnalytics } from '@/utils/analytics';
 
 const MESSAGE_LIMIT = 3;
+const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
+const emptyStateTopPadding = Math.max(220, windowHeight * 0.47);
+const dottedLineTopOffset = -windowHeight * 0.001;
+const dottedLineWidth = windowWidth * 2.2;
+const dottedLineHeight = windowHeight * 0.9;
 
 // Helper functions
 const getMessagesLeft = (
@@ -38,29 +50,6 @@ const getMessagesLeft = (
 
 const canSendMessage = (isPremium: boolean, messagesLeft: number): boolean => {
   return isPremium || messagesLeft > 0;
-};
-
-const getMessageCountText = (
-  isLoadingUsage: boolean,
-  isLoadingUser: boolean,
-  isPremium: boolean,
-  messagesLeft: number,
-  messageLimit: number
-): string => {
-  if (isLoadingUsage || isLoadingUser) {
-    return 'Loading...';
-  }
-  if (isPremium) {
-    return 'Unlimited messages';
-  }
-  return `${messagesLeft}/${messageLimit} messages left today`;
-};
-
-const shouldShowWarning = (
-  messagesLeft: number,
-  isPremium: boolean
-): boolean => {
-  return messagesLeft <= 0 && !isPremium;
 };
 
 const isSendButtonDisabled = (
@@ -76,32 +65,69 @@ export default function CompanionScreen() {
     conversationId?: string;
   }>();
   const router = useRouter();
+  const {
+    trackScreen,
+    trackCompanionMessageSent,
+    trackCompanionStarterPromptUsed,
+    trackCompanionSuggestionClicked,
+    trackCompanionHistoryViewed,
+  } = useAnalytics();
+  const lastTrackedRef = useRef<number>(0);
+
+  // Track screen view on focus - with debounce to prevent duplicates
+  useFocusEffect(
+    useCallback(() => {
+      const now = Date.now();
+      if (now - lastTrackedRef.current > 500) {
+        trackScreen('Companion');
+        lastTrackedRef.current = now;
+      }
+    }, [trackScreen])
+  );
 
   // Current conversation ID (UUID) - either from query param or newly created
   const [currentConversationId, setCurrentConversationId] = useState<
     string | null
   >(null);
 
+  const [inputText, setInputText] = useState('');
+  // Local greeting message shown when user clicks "Ask Anything"
+  const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
+
   // Fetch messages for the current conversation
   const { data: dbMessages, isLoading: isLoadingMessages } =
     useConversationMessages(currentConversationId);
 
   // Convert database messages to UI Message format
-  const messages = formatMessagesForUI(dbMessages);
+  const dbMessagesFormatted = formatMessagesForUI(dbMessages);
 
-  const [inputText, setInputText] = useState('');
+  // Combine greeting message with real messages
+  const messages: Message[] = greetingMessage
+    ? [greetingMessage, ...dbMessagesFormatted]
+    : dbMessagesFormatted;
+
+  // Clear greeting when real messages exist
+  useEffect(() => {
+    if (dbMessagesFormatted.length > 0 && greetingMessage) {
+      setGreetingMessage(null);
+    }
+  }, [dbMessagesFormatted.length, greetingMessage]);
+
   const flatListRef = useRef<FlatList>(null);
+  // Ref for the text input to handle focusing
+  const inputRef = useRef<TextInput>(null);
   const previousMessageCountRef = useRef<number>(0);
 
-  const { data: usage, isLoading: isLoadingUsage } = useChatbotUsage();
-  const { currentUser, isLoading: isLoadingUser } = useCurrentUser();
+  const { data: usage } = useChatbotUsage();
+  const { currentUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
-  const { sendMessage, isLoading, isWaitingForBot } = useSendMessage({
-    messages,
-    currentConversationId,
-    setCurrentConversationId,
-    isPremium,
-  });
+  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps } =
+    useSendMessage({
+      messages,
+      currentConversationId,
+      setCurrentConversationId,
+      isPremium,
+    });
 
   const messageCount = usage?.message_count ?? 0;
   const messagesLeft = getMessagesLeft(messageCount, MESSAGE_LIMIT);
@@ -111,6 +137,9 @@ export default function CompanionScreen() {
     isLoading,
     canSend
   );
+  const showLoadingState =
+    isLoadingMessages || (isLoading && messages.length === 0);
+  const showEmptyState = !showLoadingState && messages.length === 0;
 
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
   useEffect(() => {
@@ -139,23 +168,87 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-  const handleSendMessage = async () => {
-    if (sendButtonDisabled) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const textToSend = messageText || inputText.trim();
+    if (!textToSend || isLoading || !canSend) return;
 
-    const messageText = inputText.trim();
     setInputText('');
+    trackCompanionMessageSent(textToSend.length);
 
     try {
-      await sendMessage(messageText);
+      await sendMessage(textToSend);
     } catch (error) {
       // Error is already logged in useSendMessage hook
-      // Could show user-friendly error message here if needed
     }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
-    <MessageWithSources item={item} />
-  );
+  // Handle starter prompt selection
+  const handleStarterPromptSelect = (prompt: string, mode?: string) => {
+    // Track the starter prompt usage (empty prompt defaults to 'Ask Anything')
+    trackCompanionStarterPromptUsed(prompt || 'Ask Anything', mode);
+
+    // "Ask Anything" - show bot greeting message
+    if (prompt === '' && !mode) {
+      const greeting: Message = {
+        id: 'greeting-' + Date.now(),
+        text: 'Hey there, how can I help?',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setGreetingMessage(greeting);
+      // Focus input so user can type their question
+      setTimeout(() => inputRef.current?.focus(), 100);
+      return;
+    }
+
+    // "Form Help" - show bot message asking which form
+    if (mode === 'form_help') {
+      const formGreeting: Message = {
+        id: 'form-greeting-' + Date.now(),
+        text: 'Which form are you working on?',
+        isUser: false,
+        timestamp: new Date(),
+      };
+      setGreetingMessage(formGreeting);
+      // Focus input so user can type the form name
+      setTimeout(() => inputRef.current?.focus(), 100);
+      return;
+    }
+
+    // For fact check, pre-fill the input so user can complete the sentence
+    if (mode === 'fact_check') {
+      setInputText(prompt);
+      // Focus input after setting text so user can type immediately
+      setTimeout(() => inputRef.current?.focus(), 50);
+      return;
+    }
+
+    // For other prompts, send directly
+    handleSendMessage(prompt);
+  };
+
+  // Handle suggested next step click
+  const handleSuggestionClick = (suggestion: string) => {
+    trackCompanionSuggestionClicked(suggestion);
+    handleSendMessage(suggestion);
+  };
+
+  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
+    // Only show suggestions on the last bot message
+    const isLastMessage = index === messages.length - 1;
+    const showSuggestions =
+      isLastMessage && !item.isUser && lastSuggestedNextSteps;
+
+    return (
+      <MessageWithSources
+        item={item}
+        suggestedNextSteps={
+          showSuggestions ? lastSuggestedNextSteps : undefined
+        }
+        onSuggestionPress={handleSuggestionClick}
+      />
+    );
+  };
 
   const renderLoadingIndicator = () => {
     // Only show typing indicator when waiting for bot response (not when saving user message)
@@ -164,7 +257,10 @@ export default function CompanionScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={styles.container}
+      onPress={Keyboard.dismiss}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -172,30 +268,40 @@ export default function CompanionScreen() {
       >
         <View style={styles.contentWrapper}>
           {/* Header */}
-          <BackHeader
+          <CompanionHeader
             title='AI Companion'
+            showBackButton={false}
             rightButton={
               <TouchableOpacity
                 onPress={() => {
                   router.push('/(tabs)/companion/history' as any);
+                  trackCompanionHistoryViewed();
                 }}
                 style={styles.headerButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <HistoryIcon width={24} height={24} />
+                <HistoryIcon width={20} height={20} />
               </TouchableOpacity>
             }
           />
 
           {/* Messages - takes up available space */}
-          {isLoadingMessages || (isLoading && messages.length === 0) ? (
+          {showLoadingState ? (
             <View style={styles.emptyContainer}>
               <ActivityIndicator size='large' color={Theme.surfaceBlue} />
             </View>
-          ) : messages.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyMessage}>
-                Hey there, how can I help?
+          ) : showEmptyState ? (
+            <View style={styles.emptyState}>
+              <View style={styles.dottedLineContainer} pointerEvents='none'>
+                <BlueDottedLine
+                  width={dottedLineWidth}
+                  height={dottedLineHeight}
+                />
+              </View>
+              <Text style={styles.heroTitle}>
+                I'm here to simplify your journey.
               </Text>
+              <Text style={styles.heroSubtitle}>How can I help you?</Text>
             </View>
           ) : (
             <FlatList
@@ -206,33 +312,21 @@ export default function CompanionScreen() {
               style={styles.messagesList}
               contentContainerStyle={styles.messagesContent}
               ListFooterComponent={renderLoadingIndicator}
+              keyboardShouldPersistTaps="handled"
             />
           )}
 
           {/* Bottom section - pushed to bottom with marginTop: auto */}
           <View style={styles.bottomSection}>
-            {/* Message Count Display */}
-            <View style={styles.messageCountContainer}>
-              <Text
-                style={[
-                  styles.messageCountText,
-                  shouldShowWarning(messagesLeft, isPremium) &&
-                    styles.messageCountTextWarning,
-                ]}
-              >
-                {getMessageCountText(
-                  isLoadingUsage,
-                  isLoadingUser,
-                  isPremium,
-                  messagesLeft,
-                  MESSAGE_LIMIT
-                )}
-              </Text>
-            </View>
+            {/* Starter Prompts - Only show when no messages and no greeting */}
+            {showEmptyState && (
+              <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
+            )}
 
             {/* Input */}
             <View style={styles.inputContainer}>
               <TextInput
+                ref={inputRef}
                 style={[styles.textInput, !canSend && styles.disabledInput]}
                 value={inputText}
                 onChangeText={setInputText}
@@ -249,7 +343,7 @@ export default function CompanionScreen() {
                   styles.sendButton,
                   sendButtonDisabled && styles.sendButtonDisabled,
                 ]}
-                onPress={handleSendMessage}
+                onPress={() => handleSendMessage()}
                 disabled={sendButtonDisabled}
               >
                 <View style={styles.sendIconContainer}>
@@ -273,14 +367,14 @@ export default function CompanionScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.backgroundChatbot,
+    backgroundColor: Theme.white,
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -293,10 +387,36 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  emptyMessage: {
-    fontSize: 24,
+  emptyState: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    paddingHorizontal: 24,
+    paddingTop: emptyStateTopPadding,
+    paddingBottom: 16,
+  },
+  dottedLineContainer: {
+    position: 'absolute',
+    width: dottedLineWidth,
+    height: dottedLineHeight,
+    top: dottedLineTopOffset,
+    left: -windowWidth * 0.65,
+    opacity: 1,
+  },
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: '600',
     color: Theme.black,
+    lineHeight: 30,
+  },
+  heroSubtitle: {
+    fontSize: 20,
+    fontWeight: '400',
+    color: Theme.textInput,
+    marginTop: 6,
+    lineHeight: 22,
   },
   messagesList: {
     flex: 1,
@@ -313,19 +433,18 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingBottom: 6,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
     backgroundColor: '#fff',
   },
   textInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    borderWidth: 0,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     maxHeight: 100,
-    fontSize: 16,
+    fontSize: 14,
     minHeight: 44,
     backgroundColor: Theme.surfaceTextInput,
     color: Theme.black,
@@ -337,12 +456,12 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     backgroundColor: Theme.surfaceBlue,
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 10,
+    marginLeft: 8,
   },
   sendButtonDisabled: {
     backgroundColor: '#e0e0e0',
@@ -354,27 +473,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  messageCountContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  messageCountText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  messageCountTextWarning: {
-    color: '#ff6b6b',
-    fontWeight: '600',
-  },
   headerButton: {
     padding: 4,
   },
   disclaimerContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   disclaimerText: {
     fontSize: 12,

@@ -6,6 +6,7 @@ export type Event = {
   eventEndDatetime: string | null;
   location: string;
   address: string | null;
+  hostedBy: string | null;
   eventType: EventType;
   genre: EventGenre | null;
   coverPhotoUrl: string | null;
@@ -22,7 +23,7 @@ enum EventType {
 }
 
 // TODO: Add more event genres later maybe
-export enum EventGenre {
+enum EventGenre {
   SOCIALS = 'Socials',
   FINANCE = 'Finance',
   EMPLOYMENT = 'Employment',

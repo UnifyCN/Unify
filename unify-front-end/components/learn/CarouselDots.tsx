@@ -12,20 +12,33 @@ export default function CarouselDots({
   activeIndex,
   onDotPress,
 }: Props) {
+  if (total <= 1) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
-      {Array.from({ length: total }).map((_, i) => (
-        <Pressable
-          key={i}
-          onPress={() => onDotPress && onDotPress(i)}
-          android_ripple={{ color: '#ddd', borderless: true }}
-          style={[
-            styles.dot,
-            i === activeIndex ? styles.dotActive : styles.dotInactive,
-            styles.itemSpacing,
-          ]}
-        />
-      ))}
+      <View style={styles.dotsWrapper}>
+        {Array.from({ length: total }).map((_, i) => {
+          const isActive = i === activeIndex;
+          return (
+            <Pressable
+              key={`dot-${i}`}
+              onPress={() => onDotPress && onDotPress(i)}
+              android_ripple={{ color: '#ddd', borderless: true }}
+              hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
+            >
+              <View
+                style={[
+                  styles.dot,
+                  isActive ? styles.dotActive : styles.dotInactive,
+                  i < total - 1 && styles.itemSpacing,
+                ]}
+              />
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -33,18 +46,32 @@ export default function CarouselDots({
 const styles = StyleSheet.create({
   container: {
     marginTop: 12,
+    marginBottom: 4,
     width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dotsWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dot: { width: 10, height: 10, borderRadius: 8 },
-  dotActive: {
-    width: 27,
-    height: 10,
-    borderRadius: 8,
-    backgroundColor: '#c0c0c0',
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 5,
+    backgroundColor: '#d0d0d0',
   },
-  dotInactive: { backgroundColor: '#e0e0e0' },
-  itemSpacing: { marginHorizontal: 3 },
+  dotActive: {
+    width: 23,
+    height: 8,
+    borderRadius: 5,
+    backgroundColor: '#9B9797',
+  },
+  dotInactive: {
+    backgroundColor: '#d0d0d0',
+  },
+  itemSpacing: {
+    marginRight: 6,
+  },
 });

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { Permissions } from '@/types/permissions';
 
 export interface UserInfo {
   id: string;
@@ -8,6 +9,7 @@ export interface UserInfo {
   followerCount: number;
   profilePictureUrl?: string;
   isPremium: boolean;
+  permissions: string;
 }
 
 export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
@@ -28,7 +30,9 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     // Get user info
     const { data: userData, error: userError } = await supabase
       .from('users')
-      .select('id, username, created_at, profile_picture_url, is_premium')
+      .select(
+        'id, username, created_at, profile_picture_url, is_premium, permissions'
+      )
       .eq('id', targetUserId)
       .single();
 
@@ -68,6 +72,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       followerCount: followerCount || 0,
       profilePictureUrl: userData.profile_picture_url,
       isPremium: userData.is_premium ?? false,
+      permissions: userData.permissions ?? Permissions.USER,
     };
   } catch (error) {
     console.error('Error fetching user info:', error);
