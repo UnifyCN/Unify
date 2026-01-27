@@ -152,13 +152,13 @@ export default function CreatePostModal({
     <>
       <Modal
         visible={visible}
-        animationType="none"
+        animationType='none'
         statusBarTranslucent
         onRequestClose={handleCancel}
       >
         <BackHeader
-          title=""
-          backIcon="x"
+          title=''
+          backIcon='x'
           onBack={handleCancel}
           rightButton={
             <TouchableOpacity
@@ -172,7 +172,7 @@ export default function CreatePostModal({
               }
             >
               {createPostMutation.isPending ? (
-                <ActivityIndicator size="small" color="white" />
+                <ActivityIndicator size='small' color='white' />
               ) : (
                 <Text style={styles.postButtonText}>Post</Text>
               )}
@@ -191,7 +191,7 @@ export default function CreatePostModal({
           <View style={styles.titleContainer}>
             <TextInput
               style={styles.titleInput}
-              placeholder="Title"
+              placeholder='Title'
               placeholderTextColor={Theme.textAlternateGray}
               value={title}
               onChangeText={setTitle}
@@ -201,7 +201,8 @@ export default function CreatePostModal({
             <Text
               style={[
                 styles.charCount,
-                title.length > TITLE_MAX_LENGTH * 0.9 && styles.charCountWarning,
+                title.length > TITLE_MAX_LENGTH * 0.9 &&
+                  styles.charCountWarning,
               ]}
             >
               {title.length}/{TITLE_MAX_LENGTH}
@@ -220,7 +221,7 @@ export default function CreatePostModal({
               value={content}
               onChangeText={setContent}
               multiline
-              textAlignVertical="top"
+              textAlignVertical='top'
               maxLength={CONTENT_MAX_LENGTH}
             />
             <Text

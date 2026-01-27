@@ -65,7 +65,7 @@ export default function DestinationToggle({
               Posting to {selectedGroup.name}
             </Text>
             <TouchableOpacity onPress={onClearGroup} style={styles.clearButton}>
-              <Feather name="x" size={16} color={Theme.textAlternateGray} />
+              <Feather name='x' size={16} color={Theme.textAlternateGray} />
             </TouchableOpacity>
           </View>
         ) : (

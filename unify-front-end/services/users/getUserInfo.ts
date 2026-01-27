@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { Permissions } from '@/types/permissions';
+import dayjs from 'dayjs';
+import { StageNumber } from '@/types/checklist';
 
 export interface UserInfo {
   id: string;
@@ -10,6 +12,24 @@ export interface UserInfo {
   profilePictureUrl?: string;
   isPremium: boolean;
   permissions: string;
+  arrivalDate: string;
+  stage: StageNumber;
+}
+
+// Helper function for calculating stages
+export function computeStage(arrivalDate: string | null): StageNumber {
+  if (!arrivalDate) return 0;
+
+  const arrival = dayjs(arrivalDate);
+  const now = dayjs();
+  const diffMonths = now.diff(arrival, 'month');
+
+  if (diffMonths < 0) return 0; // Not arrived yet
+  if (diffMonths < 3) return 1; // <3 months
+  if (diffMonths < 12) return 2; // <1 year
+  if (diffMonths < 36)
+    return 3; // <3 years
+  else return 4; // 3+ years
 }
 
 export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
@@ -38,6 +58,31 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
 
     if (userError) {
       throw new Error(`Failed to fetch user info: ${userError.message}`);
+    }
+
+    // Get onboarding data
+    const { data: onboardingData, error: onboardingError } = await supabase
+      .from('user_onboarding_profiles')
+      .select('arrival_date, stage')
+      .eq('id', targetUserId)
+      .maybeSingle();
+
+    if (onboardingError) {
+      throw new Error(
+        `Failed to fetch onboarding profile: ${onboardingError.message}`
+      );
+    }
+
+    const arrivalDate = onboardingData?.arrival_date ?? null;
+    const receivedStage = onboardingData?.stage ?? 0;
+    const computedStage = computeStage(arrivalDate);
+
+    // If computed stage differs from stored stage, update it in the table
+    if (receivedStage !== computedStage) {
+      await supabase
+        .from('user_onboarding_profiles')
+        .update({ stage: computedStage })
+        .eq('id', targetUserId);
     }
 
     // Get following count
@@ -73,6 +118,8 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       profilePictureUrl: userData.profile_picture_url,
       isPremium: userData.is_premium ?? false,
       permissions: userData.permissions ?? Permissions.USER,
+      arrivalDate,
+      stage: computedStage,
     };
   } catch (error) {
     console.error('Error fetching user info:', error);

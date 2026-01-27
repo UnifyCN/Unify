@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import { useQueryClient } from '@tanstack/react-query';
+import { StageNumber } from '@/types/checklist';
 
 interface CurrentUser {
   id: string;
@@ -10,6 +11,8 @@ interface CurrentUser {
   permissions: string;
   profilePictureUrl?: string;
   isPremium: boolean;
+  arrivalDate: string;
+  stage: StageNumber;
 }
 
 interface UserContextType {
@@ -79,6 +82,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           permissions: effectiveUserInfo.permissions,
           profilePictureUrl: effectiveUserInfo.profilePictureUrl,
           isPremium: effectiveUserInfo.isPremium,
+          arrivalDate: effectiveUserInfo.arrivalDate,
+          stage: effectiveUserInfo.stage,
         }
       : null;
 

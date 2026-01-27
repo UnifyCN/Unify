@@ -97,7 +97,9 @@ export default function GroupSelectionSheet({
     } catch (error) {
       Alert.alert(
         'Failed to Join',
-        error instanceof Error ? error.message : 'Could not join group. Please try again.'
+        error instanceof Error
+          ? error.message
+          : 'Could not join group. Please try again.'
       );
     } finally {
       setJoiningGroupId(null);
@@ -137,7 +139,7 @@ export default function GroupSelectionSheet({
           disabled={joiningGroupId === group.id}
         >
           {joiningGroupId === group.id ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator size='small' color='#fff' />
           ) : (
             <Text style={styles.joinButtonText}>Join & Post</Text>
           )}
@@ -151,14 +153,14 @@ export default function GroupSelectionSheet({
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <View style={styles.searchInputWrapper}>
-            <Feather name="search" size={20} color={Theme.textInput} />
+            <Feather name='search' size={20} color={Theme.textInput} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search groups"
+              placeholder='Search groups'
               placeholderTextColor={Theme.textAlternateGray}
               value={searchText}
               onChangeText={setSearchText}
-              autoCapitalize="none"
+              autoCapitalize='none'
               autoCorrect={false}
             />
           </View>
@@ -167,7 +169,7 @@ export default function GroupSelectionSheet({
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {isLoading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Theme.primaryGatherRed} />
+              <ActivityIndicator size='large' color={Theme.primaryGatherRed} />
               <Text style={styles.loadingText}>Loading groups...</Text>
             </View>
           ) : (
@@ -191,21 +193,24 @@ export default function GroupSelectionSheet({
               )}
 
               {/* Discover Groups Section */}
-              {filteredAvailableGroups && filteredAvailableGroups.length > 0 && (
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>
-                    {hasJoinedGroups ? 'Discover More Groups' : 'Discover Groups'}
-                  </Text>
-                  <Text style={styles.sectionSubtitle}>
-                    Join a group to post there
-                  </Text>
-                  <View style={styles.groupsList}>
-                    {filteredAvailableGroups.map(group =>
-                      renderGroupItem(group, false)
-                    )}
+              {filteredAvailableGroups &&
+                filteredAvailableGroups.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>
+                      {hasJoinedGroups
+                        ? 'Discover More Groups'
+                        : 'Discover Groups'}
+                    </Text>
+                    <Text style={styles.sectionSubtitle}>
+                      Join a group to post there
+                    </Text>
+                    <View style={styles.groupsList}>
+                      {filteredAvailableGroups.map(group =>
+                        renderGroupItem(group, false)
+                      )}
+                    </View>
                   </View>
-                </View>
-              )}
+                )}
 
               {/* Empty state when no groups at all */}
               {!hasJoinedGroups &&
@@ -214,14 +219,18 @@ export default function GroupSelectionSheet({
                   <View style={styles.emptyContainer}>
                     {searchText.trim() ? (
                       <>
-                        <Text style={styles.emptyTitle}>No groups match your search</Text>
+                        <Text style={styles.emptyTitle}>
+                          No groups match your search
+                        </Text>
                         <Text style={styles.emptySubtitle}>
                           Try a different search term
                         </Text>
                       </>
                     ) : (
                       <>
-                        <Text style={styles.emptyTitle}>No groups available</Text>
+                        <Text style={styles.emptyTitle}>
+                          No groups available
+                        </Text>
                         <Text style={styles.emptySubtitle}>
                           Check back later for new groups to join!
                         </Text>

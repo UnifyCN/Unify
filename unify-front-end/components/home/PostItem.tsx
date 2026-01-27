@@ -205,7 +205,11 @@ export const PostItem = memo(
                 </TouchableOpacity>
                 {post.group && (
                   <>
-                    <ChevronRight color={Theme.textAlternateGray} width={6} height={14} />
+                    <ChevronRight
+                      color={Theme.textAlternateGray}
+                      width={6}
+                      height={14}
+                    />
                     <TouchableOpacity
                       onPress={async () => {
                         if (!post.group) return;

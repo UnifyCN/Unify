@@ -111,7 +111,7 @@ export default function BottomSheet({
     <Modal
       visible={shouldRender}
       transparent
-      animationType="none"
+      animationType='none'
       statusBarTranslucent
       onRequestClose={onClose}
     >
@@ -121,7 +121,9 @@ export default function BottomSheet({
         </TouchableWithoutFeedback>
 
         <GestureDetector gesture={panGesture}>
-          <Animated.View style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}>
+          <Animated.View
+            style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}
+          >
             <View style={styles.dragHandle} />
             <View style={styles.content}>{children}</View>
           </Animated.View>

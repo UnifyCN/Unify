@@ -3,12 +3,21 @@ import {
   OnboardingProfileInput,
   UserOnboardingProfile,
 } from '@/types/onboardingProfile';
+import { calculateUserStage, stageNumberToEnum } from '@/helpers/dateHelpers';
 
 export const saveOnboardingProfile = async (
   userId: string,
   data: OnboardingProfileInput
 ): Promise<UserOnboardingProfile> => {
   try {
+    // Calculate stage if arrival_date is provided and onboarding is being completed
+    let calculatedStage: string | null = null;
+    if (data.arrival_date && data.onboarding_completed) {
+      const arrivalDate = new Date(data.arrival_date);
+      const stageNumber = calculateUserStage(arrivalDate);
+      calculatedStage = stageNumberToEnum(stageNumber);
+    }
+
     // Prepare the data for Supabase (convert to snake_case)
     const supabaseData: any = {
       id: userId,
@@ -25,6 +34,11 @@ export const saveOnboardingProfile = async (
       wants_reminders: data.wants_reminders ?? false,
       onboarding_completed: data.onboarding_completed ?? false,
     };
+
+    // Add stage to the data if it was calculated
+    if (calculatedStage !== null) {
+      supabaseData.stage = calculatedStage;
+    }
 
     // Upsert the profile
     const { data: result, error } = await supabase
@@ -46,6 +60,7 @@ export const saveOnboardingProfile = async (
       referral_source: result.referral_source,
       referral_source_other: result.referral_source_other,
       arrival_date: result.arrival_date,
+      stage: result.stage,
       goals: result.goals || [],
       goals_other: result.goals_other,
       learning_interests: result.learning_interests || [],

@@ -16,6 +16,7 @@ import { UserProvider } from '@/context/UserContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
+import AnimatedSplash from '@/components/AnimatedSplash';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -34,6 +35,7 @@ export default function RootLayout() {
     isLoading: progressCacheLoading,
   } = useProgressCache();
   const [cacheTimeout, setCacheTimeout] = useState(false);
+  const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,9 +78,14 @@ export default function RootLayout() {
       // onboardingChecked &&
       (progressCacheInitialized || cacheTimeout)
     ) {
+      // Hide native splash immediately, AnimatedSplash will handle the transition
       SplashScreen.hideAsync();
     }
   }, [loaded, /* onboardingChecked, */ progressCacheInitialized, cacheTimeout]);
+
+  const handleSplashAnimationComplete = () => {
+    setShowAnimatedSplash(false);
+  };
 
   if (!loaded /* || !onboardingChecked */) {
     return null; // or a loading spinner
@@ -90,7 +97,7 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <ToastProvider>
             <ScrollContextProvider>
-            {/* {showOnboarding ? (
+              {/* {showOnboarding ? (
               <Onboarding onFinish={() => setShowOnboarding(false)} />
             ) : ( */}
             <UserProvider>
@@ -106,7 +113,7 @@ export default function RootLayout() {
                       }}
                       autocapture={{ captureScreens: false }}
                     >
-<AppContent />
+                      <AppContent />
                     </PostHogProvider>
                   </ThemeProvider>
                 </AuthWrapper>
@@ -117,6 +124,9 @@ export default function RootLayout() {
           </ToastProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
+      {showAnimatedSplash && (
+        <AnimatedSplash onAnimationComplete={handleSplashAnimationComplete} />
+      )}
     </QueryClientProvider>
   );
 }

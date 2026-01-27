@@ -12,6 +12,7 @@ import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
 import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
 import { useAnalytics } from '@/utils/analytics';
+import ChecklistIcon from '@/components/icons/ChecklistIcon';
 import { useHapticsPreference } from '@/context/HapticsContext';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
@@ -52,6 +53,8 @@ export default function TabLayout() {
         return 'Community';
       case 'companion':
         return 'Companion';
+      case 'Checklist':
+        return 'Checklist';
       case 'Learn':
         return 'Learn';
       default:
@@ -144,6 +147,19 @@ export default function TabLayout() {
               <TabIcon
                 IconComponent={CompanionIcon}
                 title='Companion'
+                focused={focused}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='Checklist'
+          options={{
+            title: 'Checklist',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                IconComponent={ChecklistIcon}
+                title='Checklist'
                 focused={focused}
               />
             ),
