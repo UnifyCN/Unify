@@ -1,12 +1,13 @@
 import * as React from 'react';
 import Svg, { Path } from 'react-native-svg';
+import { Theme } from '@/constants/Theme';
 
 type Props = {
   size?: number; // tamaño en px
   color?: string; // color de relleno
 };
 
-export default function StarFilled({ size = 32, color = '#D8492C' }: Props) {
+export default function StarFilled({ size = 32, color = Theme.primaryGatherRed }: Props) {
   return (
     <Svg
       width={size}

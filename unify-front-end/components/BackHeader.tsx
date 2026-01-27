@@ -34,7 +34,7 @@ const BackHeader = ({
     <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
       {showBackButton ? (
         <TouchableOpacity onPress={handleBack}>
-          <Feather name={backIcon} size={24} color='#000' />
+          <Feather name={backIcon} size={26} color='#000' />
         </TouchableOpacity>
       ) : (
         <View style={styles.placeholder} />
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
   placeholder: {
-    width: 24, // To balance the back button size
+    width: 26, // To balance the back button size
   },
 });
 

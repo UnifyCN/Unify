@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UnifyLogo from '@/components/icons/UnifyLogo.svg';
+import { useUnreadNotificationCount } from '@/hooks/useCommunityNotifications';
 
 interface HeaderProps {
   showSearchIcon?: boolean;
@@ -12,6 +13,7 @@ interface HeaderProps {
 const Header = ({ showSearchIcon = true }: HeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const unreadCount = useUnreadNotificationCount();
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + 7 }]}>
@@ -24,6 +26,19 @@ const Header = ({ showSearchIcon = true }: HeaderProps) => {
             <Feather name='search' size={28} color='#000' />
           </TouchableOpacity>
         )}
+        <TouchableOpacity
+          onPress={() => router.push('/notifications' as Href)}
+          style={styles.bellContainer}
+        >
+          <Feather name='bell' size={28} color='#000' />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/account-settings')}>
           <Feather name='settings' size={28} color='#000' />
         </TouchableOpacity>
@@ -48,6 +63,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 15,
   },
+  bellContainer: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    backgroundColor: '#FF7A18',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
 });
 
 export default Header;
+

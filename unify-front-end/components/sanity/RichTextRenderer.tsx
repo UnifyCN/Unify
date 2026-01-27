@@ -21,7 +21,6 @@ import {
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
-
 interface RichTextRendererProps {
   blocks: any[];
   styles?: any;
@@ -313,7 +312,7 @@ export default function RichTextRenderer({
 
     // Links
     link: {
-      color: '#424242',
+      color: '#5182C7',
       textDecorationLine: 'underline',
       fontWeight: '600',
     },
