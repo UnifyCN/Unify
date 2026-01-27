@@ -17,8 +17,13 @@
       "channel": "preview"
     },
     "production": {
-      "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "ios": {
+        "autoIncrement": "buildNumber"
+      },
+      "android": {
+        "autoIncrement": "versionCode"
+      }
     },
     "simulator": {
       "ios": {
