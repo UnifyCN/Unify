@@ -11,7 +11,7 @@
     "node_modules",
     "examples/**/*",
     "context/ProgressTrackingContext.tsx",
-    "supabase/functions/**"
+    "supabase/**/*"
   ]
 }
 

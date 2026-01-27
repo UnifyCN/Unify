@@ -28,8 +28,8 @@ export default function OnboardingProgress({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 16,
+    paddingTop: 25,
+    paddingBottom: 10,
   },
   progressBarContainer: {
     height: 4,
