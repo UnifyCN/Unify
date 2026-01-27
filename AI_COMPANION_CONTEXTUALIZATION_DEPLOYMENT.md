@@ -59,8 +59,8 @@ SELECT indexname FROM pg_indexes WHERE tablename = 'user_onboarding_profiles';
 
 #### Option A: Deploy via Supabase CLI (Recommended)
 ```bash
-# 1. Navigate to project root
-cd c:\Users\ericj\Unify\unify-front-end
+# 1. Navigate to project root (adjust path as needed for your environment)
+cd ./unify-front-end
 
 # 2. Login to Supabase (if not already)
 supabase login
@@ -238,21 +238,56 @@ ORDER BY mean_exec_time DESC;
 If issues arise, you can rollback:
 
 ### Rollback Edge Function
-```bash
-# List function versions
-supabase functions list --with-versions rag-query
 
-# Deploy previous version
-supabase functions deploy rag-query --version PREVIOUS_VERSION_ID
+The Supabase CLI does not have built-in function versioning. Use git to restore previous versions:
+
+```bash
+# 1. View commit history for the edge function
+git log --oneline -- supabase/functions/rag-query/
+
+# 2. Find the commit hash before your changes (e.g., abc1234)
+
+# 3. Restore the previous version from git
+git checkout <COMMIT_HASH> -- supabase/functions/rag-query/
+
+# 4. Redeploy the restored version
+supabase functions deploy rag-query
+
+# 5. Verify the deployment
+supabase functions list
+```
+
+**Alternative**: Use the Supabase Management API to inspect function metadata:
+```bash
+# Get function details (requires project ref and access token)
+curl -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  https://api.supabase.com/v1/projects/YOUR_PROJECT_REF/functions
 ```
 
 ### Rollback Database (if needed)
+
+> **WARNING: DATA LOSS RISK**
+> The DROP TABLE command below will **permanently delete all user onboarding data**.
+> This action is **IRREVERSIBLE**. Always create a backup first.
+
 ```sql
--- Drop table (CAREFUL - data loss!)
+-- STEP 1: Create a backup BEFORE any destructive operations
+CREATE TABLE user_onboarding_profiles_backup AS 
+SELECT * FROM user_onboarding_profiles;
+
+-- STEP 2: Verify the backup succeeded (should return row count)
+SELECT COUNT(*) FROM user_onboarding_profiles_backup;
+
+-- STEP 3: Only proceed if backup is confirmed
+-- Option A: Drop table (PERMANENT DATA LOSS - use only as last resort!)
 DROP TABLE IF EXISTS user_onboarding_profiles CASCADE;
 
--- Or disable RLS temporarily
+-- Option B (PREFERRED): Disable RLS temporarily (non-destructive)
+-- This allows you to troubleshoot without losing data
 ALTER TABLE user_onboarding_profiles DISABLE ROW LEVEL SECURITY;
+
+-- To restore RLS after troubleshooting:
+-- ALTER TABLE user_onboarding_profiles ENABLE ROW LEVEL SECURITY;
 ```
 
 ### Disable Feature Temporarily

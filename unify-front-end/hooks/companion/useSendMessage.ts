@@ -79,7 +79,7 @@ export const useSendMessage = ({
       setIsWaitingForBot(true);
 
       // Format messages for RAG API (last 10 messages for context)
-      const conversationMessages = formatMessagesForAPI(messages, messageText);
+      const conversationMessages = formatMessagesForAPI(messages);
 
       // Call the Gemini API through Supabase edge function with conversation context and user ID
       const response = await callGeminiAPI(

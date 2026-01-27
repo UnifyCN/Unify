@@ -23,6 +23,118 @@ type QueryType =
   | 'form_help';
 
 // ============================================================================
+// USER PROFILE LABEL MAPPINGS
+// ============================================================================
+
+// Maps raw persona values to human-readable descriptions
+const PERSONA_LABELS: Record<string, string> = {
+  international_student: 'an international student',
+  skilled_worker: 'a skilled worker/PR/immigrant',
+  refugee: 'a refugee or protected person',
+  other: 'a newcomer to Canada',
+};
+
+// Maps raw time_in_canada values to human-readable descriptions
+const TIME_IN_CANADA_LABELS: Record<string, string> = {
+  not_arrived: "hasn't arrived in Canada yet",
+  less_than_1_year: 'has been in Canada for less than 1 year',
+  '1_to_2_years': 'has been in Canada for 1-2 years',
+  '2_to_3_years': 'has been in Canada for 2-3 years',
+  '3_plus_years': 'has been in Canada for 3+ years',
+};
+
+// Maps raw goal values to human-readable descriptions
+const GOAL_LABELS: Record<string, string> = {
+  learn_something: 'learn something new',
+  build_community: 'build a community and make friends',
+  quick_answers: 'get quick, trustworthy answers',
+  something_else: 'achieve personal goals',
+};
+
+// Maps raw learning interest values to human-readable descriptions
+const LEARNING_INTEREST_LABELS: Record<string, string> = {
+  documents: 'paperwork & IDs (documents)',
+  employment: 'jobs & career',
+  finance: 'money & banking',
+  housing: 'housing',
+  pr_immigration: 'PR & immigration',
+  healthcare: 'healthcare & insurance',
+  family_kids: 'family & kids support',
+  transit: 'transit/transportation',
+  other: 'other topics',
+};
+
+// Maps raw hobby values to human-readable descriptions
+const HOBBY_LABELS: Record<string, string> = {
+  career_growth: 'career & professional growth',
+  exploring_canada: 'exploring Canada',
+  wellness: 'wellness & personal growth',
+  technology: 'technology & digital skills',
+  music: 'music & entertainment',
+  fitness: 'fitness & sports',
+  personal_finance: 'personal finance',
+  family_parenting: 'family & parenting',
+  education: 'education & learning',
+  food_cooking: 'food & cooking',
+  movies: 'movies & entertainment',
+};
+
+/**
+ * Builds a human-readable profile context string from user profile data
+ */
+function buildHumanReadableProfileContext(
+  profile: Record<string, unknown>
+): string {
+  const parts: string[] = [];
+
+  // Persona
+  if (profile.persona && typeof profile.persona === 'string') {
+    const label = PERSONA_LABELS[profile.persona] || profile.persona;
+    parts.push(`The user is ${label}.`);
+  }
+
+  // Time in Canada
+  if (profile.time_in_canada && typeof profile.time_in_canada === 'string') {
+    const label =
+      TIME_IN_CANADA_LABELS[profile.time_in_canada] || profile.time_in_canada;
+    parts.push(`They ${label}.`);
+  }
+
+  // Goals
+  if (Array.isArray(profile.goals) && profile.goals.length > 0) {
+    const goalLabels = profile.goals
+      .map((g: string) => GOAL_LABELS[g] || g)
+      .join(', ');
+    parts.push(`Their goals include: ${goalLabels}.`);
+  }
+
+  // Learning interests
+  if (
+    Array.isArray(profile.learning_interests) &&
+    profile.learning_interests.length > 0
+  ) {
+    const interestLabels = profile.learning_interests
+      .map((i: string) => LEARNING_INTEREST_LABELS[i] || i)
+      .join(', ');
+    parts.push(`They're interested in learning about: ${interestLabels}.`);
+  }
+
+  // Hobbies
+  if (Array.isArray(profile.hobbies) && profile.hobbies.length > 0) {
+    const hobbyLabels = profile.hobbies
+      .map((h: string) => HOBBY_LABELS[h] || h)
+      .join(', ');
+    parts.push(`Their hobbies and interests: ${hobbyLabels}.`);
+  }
+
+  if (parts.length === 0) {
+    return '';
+  }
+
+  return `USER PROFILE CONTEXT:\n${parts.join(' ')}\n\nUse this context to personalize your responses and make them more relevant to the user's situation and interests.`;
+}
+
+// ============================================================================
 // CLASSIFIER FUNCTION
 // ============================================================================
 
@@ -340,7 +452,7 @@ Deno.serve(async (req: Request) => {
     console.log('Question asked:', prompt);
     console.log('Conversation identifier:', conversationIdentifier);
     console.log('Previous messages count:', messages?.length || 0);
-    console.log('User ID:', userId);
+    // Note: userId intentionally not logged to protect user privacy
 
     const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
@@ -356,7 +468,7 @@ Deno.serve(async (req: Request) => {
     // FETCH USER ONBOARDING PROFILE
     // ========================================================================
     let userProfileContext = '';
-    let userProfileMetadata: any = null;
+    let userProfileMetadata: Record<string, unknown> | null = null;
 
     if (userId) {
       try {
@@ -380,7 +492,7 @@ Deno.serve(async (req: Request) => {
           } = profile;
 
           // Remove null/empty fields to keep context clean
-          const cleanedProfile: any = {};
+          const cleanedProfile: Record<string, unknown> = {};
           Object.entries(relevantProfile).forEach(([key, value]) => {
             if (value !== null && value !== undefined) {
               // Skip empty arrays
@@ -393,10 +505,16 @@ Deno.serve(async (req: Request) => {
 
           if (Object.keys(cleanedProfile).length > 0) {
             userProfileMetadata = cleanedProfile;
-            userProfileContext = `\n\nUSER PROFILE METADATA:\n${JSON.stringify(cleanedProfile, null, 2)}\n\nThis is the user's onboarding profile. Use this information to personalize your responses. Interpret the field names naturally (e.g., 'persona' = their immigration status, 'time_in_canada' = how long they've been here, 'goals' = what they want to achieve, etc.). Make your responses relevant to their specific situation.`;
+            // Build human-readable context using label mappings
+            const humanReadableContext =
+              buildHumanReadableProfileContext(cleanedProfile);
+            if (humanReadableContext) {
+              userProfileContext = `\n\n${humanReadableContext}`;
+            }
+            // Log only profile keys to avoid exposing PII
             console.log(
-              'User profile metadata:',
-              JSON.stringify(cleanedProfile)
+              'User profile fields available:',
+              Object.keys(cleanedProfile).join(', ')
             );
           } else {
             console.log('No relevant profile data found');

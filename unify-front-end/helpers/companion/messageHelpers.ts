@@ -58,8 +58,7 @@ export const formatMessagesForUI = (
  * Only includes messages that are already in the conversation (not the current one being sent)
  */
 export const formatMessagesForAPI = (
-  messages: Message[],
-  currentUserMessage: string
+  messages: Message[]
 ): ConversationMessageForAPI[] => {
   // Get the last 10 messages from the conversation history (excluding current message)
   // The current message will be added separately by the edge function

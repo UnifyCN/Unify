@@ -52,11 +52,37 @@ The `user_onboarding_profiles` table stores:
 
 ### 3. Context Injection (Backend) ✅
 
-**File**: `supabase/functions/rag-query/index.ts` (Lines 365-460)
+**File**: `supabase/functions/rag-query/index.ts`
 
 **Implementation**:
 
+The edge function uses label mapping objects to convert raw profile values to human-readable text:
+
 ```typescript
+// Label mappings defined at the top of the file
+const PERSONA_LABELS: Record<string, string> = {
+  international_student: 'an international student',
+  skilled_worker: 'a skilled worker/PR/immigrant',
+  refugee: 'a refugee or protected person',
+  other: 'a newcomer to Canada',
+};
+
+// Similar mappings exist for TIME_IN_CANADA_LABELS, GOAL_LABELS, 
+// LEARNING_INTEREST_LABELS, and HOBBY_LABELS
+
+// The buildHumanReadableProfileContext function transforms profile data:
+function buildHumanReadableProfileContext(profile: Record<string, unknown>): string {
+  const parts: string[] = [];
+  
+  if (profile.persona) {
+    const label = PERSONA_LABELS[profile.persona] || profile.persona;
+    parts.push(`The user is ${label}.`);
+  }
+  // ... similar logic for other fields
+  
+  return `USER PROFILE CONTEXT:\n${parts.join(' ')}`;
+}
+
 // Step 1: Fetch user profile when userId is provided
 if (userId) {
   const { data: profile } = await supabase
@@ -65,36 +91,10 @@ if (userId) {
     .eq('id', userId)
     .single();
 
-  // Step 2: Build human-readable context
+  // Step 2: Build human-readable context using label mappings
   if (profile) {
-    const profileParts = [];
-    
-    // Persona
-    if (profile.persona) {
-      profileParts.push(`The user is ${personaLabel}.`);
-    }
-    
-    // Time in Canada
-    if (profile.time_in_canada) {
-      profileParts.push(`They ${timeLabel}.`);
-    }
-    
-    // Goals
-    if (profile.goals?.length > 0) {
-      profileParts.push(`Their goals include: ${goals}.`);
-    }
-    
-    // Learning Interests
-    if (profile.learning_interests?.length > 0) {
-      profileParts.push(`They're interested in: ${interests}.`);
-    }
-    
-    // Hobbies
-    if (profile.hobbies?.length > 0) {
-      profileParts.push(`Their hobbies: ${hobbies}.`);
-    }
-    
-    userProfileContext = `\n\nUSER PROFILE CONTEXT:\n${profileParts.join(' ')}\n\n`;
+    const humanReadableContext = buildHumanReadableProfileContext(cleanedProfile);
+    userProfileContext = `\n\n${humanReadableContext}`;
   }
 }
 
@@ -104,7 +104,7 @@ fullSystemInstruction = `${preprompt}\n\n${userProfileContext}\n\n${systemInstru
 
 **Error Handling**:
 - Gracefully continues without context if profile fetch fails
-- Logs warnings when profile is missing
+- Logs only profile field names (not values) for privacy
 - Never breaks the chat experience
 
 ---
@@ -243,16 +243,16 @@ const sendMessage = async (messageText: string): Promise<void> => {
 
 ## 🔧 Recent Improvements
 
-### 1. Missing Hobbies Fix ✅
-**Issue**: Some hobby types were missing from the label mapping  
-**Fix**: Added mappings for:
-- `personal_finance`
-- `family_parenting`
-- `education`
-- `food_cooking`
-- `movies`
+### 1. Label Mappings Implementation ✅
+**Issue**: Profile data was being passed as raw JSON instead of human-readable text  
+**Fix**: Implemented label mapping objects and `buildHumanReadableProfileContext()` function:
+- `PERSONA_LABELS` - Maps persona values to descriptions
+- `TIME_IN_CANADA_LABELS` - Maps time values to descriptions
+- `GOAL_LABELS` - Maps goal values to descriptions
+- `LEARNING_INTEREST_LABELS` - Maps interest values to descriptions
+- `HOBBY_LABELS` - Maps hobby values including: `personal_finance`, `family_parenting`, `education`, `food_cooking`, `movies`
 
-**File**: `supabase/functions/rag-query/index.ts` (Lines 431-444)
+**File**: `supabase/functions/rag-query/index.ts` (see `HOBBY_LABELS` constant and `buildHumanReadableProfileContext` function near the top of the file)
 
 ### 2. Database Migration Created ✅
 **Issue**: No formal migration script existed  

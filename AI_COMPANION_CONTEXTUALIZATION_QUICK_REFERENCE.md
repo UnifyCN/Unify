@@ -314,24 +314,30 @@ CREATE POLICY "Users can view their own onboarding profile"
 2. **Handle missing profiles gracefully**
    ```typescript
    if (!profile) {
+     console.log('No user profile found, proceeding without personalization');
      // Continue without context - don't break the chat
+     // The AI will still function but responses won't be personalized
    }
    ```
+   > **Note**: When no profile is found, the AI continues to function normally but responses won't include personalized context. Users who haven't completed onboarding will receive generic (but still helpful) responses.
 
 3. **Keep profile context concise**
    - Only include relevant fields
-   - Use human-readable labels
+   - Use human-readable labels (via label mapping objects)
    - Don't overwhelm the AI with too much context
 
 4. **Update profile mapping when adding new options**
-   - Add new persona types → update personaLabels
-   - Add new hobbies → update hobbyLabels
+   - Add new persona types → update `PERSONA_LABELS`
+   - Add new hobbies → update `HOBBY_LABELS`
+   - Add new goals → update `GOAL_LABELS`
    - Keep labels user-friendly and clear
 
-5. **Monitor and log**
+5. **Monitor and log (privacy-safe)**
    ```typescript
+   // Log whether context exists (not the content)
    console.log('Has user profile context:', !!userProfileContext);
-   console.log('User profile context:', userProfileContext);
+   // Log only field names, not values
+   console.log('User profile fields available:', Object.keys(cleanedProfile).join(', '));
    ```
 
 ---
