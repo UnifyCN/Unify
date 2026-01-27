@@ -105,7 +105,7 @@ export default function CreatePostModal({
           // where route types are generated at build time
           if (postedToGroup && groupToNavigate) {
             router.push({
-              pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+              pathname: '/group-detail' as any,
               params: { group: JSON.stringify(groupToNavigate) },
             });
           } else {

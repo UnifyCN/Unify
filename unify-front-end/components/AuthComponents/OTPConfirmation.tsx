@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   resendLink: {
     fontSize: 14 * 0.87,
-    color: '#343434',
+    color: '#5182C7',
     fontWeight: '600' as '600',
     textDecorationLine: 'underline' as 'underline',
   },

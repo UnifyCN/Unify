@@ -34,6 +34,7 @@
     "expo-device": "~7.0.3",
     "expo-file-system": "~18.0.12",
     "expo-font": "~13.0.1",
+    "expo-haptics": "~14.0.1",
     "expo-image": "~2.0.7",
     "expo-image-picker": "~16.0.6",
     "expo-linear-gradient": "~14.0.2",
@@ -66,7 +67,8 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.10",
-    "react-native-webview": "~13.12.5"
+    "react-native-webview": "~13.12.5",
+    "react-native-pager-view": "6.5.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
