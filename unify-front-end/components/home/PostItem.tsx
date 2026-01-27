@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Like from '@/assets/images/Like.svg';
 import Like_Fill from '@/assets/images/Like_filled.svg';
 import Save from '@/assets/images/Save.svg';
@@ -19,14 +19,17 @@ import { PostData } from '@/types/feeds/post';
 import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { useMutateDeletePost } from '@/hooks/posts/useMutateDeletePost';
+import { useMutatePinPost } from '@/hooks/posts/useMutatePinPost';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { Avatar } from '@/components/Avatar';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { Theme } from '@/constants/Theme';
 import { useCurrentUser } from '@/context/UserContext';
+import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
+import { getGroupByName } from '@/services/groups/getGroupByName';
 
 export interface PostItemProps {
   post: PostData;
@@ -50,6 +53,7 @@ export const PostItem = memo(
   }: PostItemProps) => {
     const router = useRouter();
     const { currentUser } = useCurrentUser();
+    const { showToast } = useToast();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const {
       trackPostLike,
@@ -63,11 +67,31 @@ export const PostItem = memo(
     const likePostMutation = useMutateLikePost();
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
+    const pinPostMutation = useMutatePinPost();
 
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
+    const canPin = isAdmin; // Only admins can pin/unpin
+
+    const handlePinPost = () => {
+      pinPostMutation.mutate(
+        { postId: post.id, isPinned: post.isPinned ?? false },
+        {
+          onSuccess: () => {
+            setDeleteModalVisible(false);
+          },
+          onError: error => {
+            Alert.alert(
+              'Error',
+              error.message ||
+                `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
+            );
+          },
+        }
+      );
+    };
 
     const toggleLike = (postId: number, isLiked: boolean) => {
       if (isLiked) {
@@ -84,7 +108,18 @@ export const PostItem = memo(
       } else {
         trackPostSave(postId.toString());
       }
-      savePostMutation.mutate({ postId, isSaved });
+      savePostMutation.mutate(
+        { postId, isSaved },
+        {
+          onSuccess: () => {
+            if (!isSaved) {
+              showToast('Post saved! Find it in Settings > Saved Posts', () => {
+                router.push('/saved');
+              });
+            }
+          },
+        }
+      );
     };
 
     const navigateToUserProfile = () => {
@@ -157,7 +192,7 @@ export const PostItem = memo(
             <Avatar
               profilePictureUrl={post.user.profilePictureUrl}
               username={post.user.username}
-              size={29}
+              size={40}
             />
           </TouchableOpacity>
           {/* Post Content */}
@@ -170,20 +205,38 @@ export const PostItem = memo(
                 </TouchableOpacity>
                 {post.group && (
                   <>
-                    <ChevronRight color={Theme.black} width={6} height={12} />
+                    <ChevronRight color={Theme.textAlternateGray} width={6} height={14} />
                     <TouchableOpacity
-                      onPress={() =>
-                        router.push({
-                          pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
-                          params: { groupName: post.group },
-                        })
-                      }
+                      onPress={async () => {
+                        if (!post.group) return;
+                        try {
+                          const group = await getGroupByName(post.group);
+                          if (group) {
+                            router.push({
+                              pathname: '/group-detail' as any,
+                              params: { group: JSON.stringify(group) },
+                            });
+                          }
+                        } catch (error) {
+                          console.error('Failed to fetch group:', error);
+                          // Fallback to groupName if fetch fails
+                          router.push({
+                            pathname: '/group-detail' as any,
+                            params: { groupName: post.group },
+                          });
+                        }
+                      }}
                     >
                       <Text style={styles.group}>{post.group}</Text>
                     </TouchableOpacity>
                   </>
                 )}
                 <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+                {post.isPinned && (
+                  <View style={styles.pinnedBadge}>
+                    <Text style={styles.pinnedText}>Pinned</Text>
+                  </View>
+                )}
               </View>
               {canDelete && (
                 <TouchableOpacity
@@ -195,15 +248,21 @@ export const PostItem = memo(
               )}
             </View>
 
-            {/* Title */}
-            <View>
-              <Text style={styles.title}>{post.title}</Text>
-            </View>
+            {/* Title and Content - Clickable to navigate to post details */}
+            <TouchableOpacity
+              onPress={navigateToComments}
+              activeOpacity={0.5}
+              style={styles.postBody}
+            >
+              <View>
+                <Text style={styles.title}>{post.title}</Text>
+              </View>
 
-            {/* Content */}
-            {!shouldHideContent && (
-              <Text style={styles.description}>{post.content}</Text>
-            )}
+              {/* Content */}
+              {!shouldHideContent && (
+                <Text style={styles.description}>{post.content}</Text>
+              )}
+            </TouchableOpacity>
 
             {/* Footer */}
             <View style={styles.footer}>
@@ -291,6 +350,29 @@ export const PostItem = memo(
                     Delete Post
                   </Text>
                 </TouchableOpacity>
+                {canPin && (
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={handlePinPost}
+                    disabled={pinPostMutation.isPending}
+                  >
+                    <MaterialCommunityIcons
+                      name='pin'
+                      size={20}
+                      color={Theme.black}
+                      style={styles.optionIcon}
+                    />
+                    <Text style={styles.modalOptionText}>
+                      {pinPostMutation.isPending
+                        ? post.isPinned
+                          ? 'Unpinning...'
+                          : 'Pinning...'
+                        : post.isPinned
+                          ? 'Unpin Post'
+                          : 'Pin Post'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => setDeleteModalVisible(false)}
@@ -311,12 +393,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 22,
+    paddingTop: 16,
+    paddingBottom: 12,
     gap: 12,
   },
   postContent: {
     flex: 1,
-    gap: 10,
   },
   header: {
     flexDirection: 'row',
@@ -326,6 +408,7 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'left',
     lineHeight: 16,
+    marginBottom: 6,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -337,8 +420,8 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headshot: {
-    width: 29,
-    height: 29,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
@@ -350,11 +433,11 @@ const styles = StyleSheet.create({
   },
   group: {
     fontWeight: '600',
-    fontSize: 12,
+    fontSize: 14,
     color: Theme.black,
   },
   time: {
-    paddingTop: 2,
+    paddingTop: 0,
     fontSize: 14,
     color: Theme.textPostTime,
     fontWeight: '500',
@@ -371,7 +454,11 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 16,
-    lineHeight: 20,
+    lineHeight: 22,
+    marginTop: 4,
+  },
+  postBody: {
+    marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
@@ -422,7 +509,7 @@ const styles = StyleSheet.create({
   modalOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    paddingVertical: 8,
   },
   optionIcon: {
     marginRight: 8,
@@ -435,5 +522,17 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: '#FF3B30',
+  },
+  pinnedBadge: {
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  pinnedText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
   },
 });

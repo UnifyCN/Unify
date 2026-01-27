@@ -341,3 +341,26 @@ entrypoint = "./functions/gemini-proxy/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/gemini-proxy/*.html" ]
+
+[functions.matchmake_circles]
+enabled = true
+verify_jwt = true
+import_map = "./functions/matchmake_circles/deno.json"
+entrypoint = "./functions/matchmake_circles/index.ts"
+
+# Cron trigger for scheduled matchmaking - configure in Supabase Dashboard
+[[functions.matchmake_circles.triggers]]
+type = "cron"
+name = "community-matching-schedule"
+value = "*/3 * * * *"
+
+[functions.request-group]
+enabled = true
+verify_jwt = true
+import_map = "./functions/request-group/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/request-group/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/request-group/*.html" ]

@@ -4,8 +4,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { LegalDocumentType } from '@/utils/legalUrls';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
@@ -15,12 +17,16 @@ import { Theme } from '@/constants/Theme';
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
+import { useQuery } from '@tanstack/react-query';
+import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
+import { useHapticsPreference } from '@/context/HapticsContext';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
   const { trackScreen } = useAnalytics();
+  const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
 
   // Track screen view on mount
   useEffect(() => {
@@ -42,9 +48,22 @@ export default function AccountSettingsPage() {
     );
   };
 
+  const toggleHaptics = () => {
+    setHapticsEnabled(!hapticsEnabled);
+  };
+
   const settingsRows = [
     {
-      title: 'Saved',
+      title: 'View Profile',
+      icon: 'user' as const,
+      onPress: () => {
+        if (currentUser?.id) {
+          router.push(`/profile?userId=${currentUser.id}`);
+        }
+      },
+    },
+    {
+      title: 'Saved Posts',
       icon: 'bookmark' as const,
       onPress: () => router.push('/saved'),
     },
@@ -55,9 +74,41 @@ export default function AccountSettingsPage() {
     },
   ];
 
+  // Note: pathname uses 'as any' because expo-router generates types at build time
+  // and legal-document.tsx may not be included in the typed routes yet
+  const legalRows = [
+    {
+      title: 'Privacy Policy',
+      icon: 'file-text' as const,
+      onPress: () =>
+        router.push({
+          pathname: '/legal-document' as any,
+          params: { doc: 'privacyPolicy' satisfies LegalDocumentType },
+        }),
+    },
+    {
+      title: 'Community Guidelines',
+      icon: 'users' as const,
+      onPress: () =>
+        router.push({
+          pathname: '/legal-document' as any,
+          params: { doc: 'communityGuidelines' satisfies LegalDocumentType },
+        }),
+    },
+  ];
+
+  const profilePictureKey = currentUser?.profilePictureUrl ?? null;
+
+  const { data: signedProfileUrl } = useQuery({
+    queryKey: ['profilePictureSignedUrl', profilePictureKey],
+    enabled: !!profilePictureKey,
+    queryFn: () => getProfilePictureUrl(profilePictureKey as string),
+    staleTime: 4 * 60 * 1000,
+  });
+
   return (
     <View style={styles.container}>
-      <BackHeader title='Profile' onBack={() => router.back()} />
+      <BackHeader title='Settings' onBack={() => router.back()} />
       <View style={styles.content}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
@@ -66,7 +117,7 @@ export default function AccountSettingsPage() {
               activeOpacity={0.8}
             >
               <Avatar
-                profilePictureUrl={currentUser?.profilePictureUrl}
+                profilePictureUrl={signedProfileUrl}
                 username={currentUser?.username || ''}
                 size={93}
                 style={styles.avatar}
@@ -112,16 +163,60 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name={row.icon} size={24} color={Theme.black} />
                 </View>
-                <Text style={[styles.rowText, { fontSize: 18 }]}>
-                  {row.title}
-                </Text>
+                <Text style={styles.rowText}>{row.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          <View style={styles.settingsCard}>
+            <View style={[styles.row, styles.toggleRow]}>
+              <View style={styles.rowLabelContainer}>
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name='zap' size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>Haptics</Text>
+              </View>
+              <Pressable
+                onPress={toggleHaptics}
+                accessibilityRole='switch'
+                accessibilityState={{ checked: hapticsEnabled }}
+                accessibilityLabel='Haptics'
+                hitSlop={8}
+                style={[
+                  styles.toggleTrack,
+                  hapticsEnabled
+                    ? styles.toggleTrackOn
+                    : styles.toggleTrackOff,
+                ]}
+              >
+                <View style={styles.toggleThumb} />
+              </Pressable>
+            </View>
+          </View>
+          <View style={styles.divider} />
+
+          {/* Legal Section */}
+          <Text style={styles.sectionTitle}>Legal</Text>
+          <View style={styles.settingsCard}>
+            {legalRows.map((row, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.row}
+                onPress={row.onPress}
+              >
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name={row.icon} size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>{row.title}</Text>
               </TouchableOpacity>
             ))}
           </View>
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={onLogout}>
-            <Text style={styles.rowText}>Log out</Text>
+            <Text style={styles.rowText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -197,16 +292,58 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 18,
   },
+  toggleRow: {
+    justifyContent: 'space-between',
+  },
+  rowLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
+  },
+  toggleTrack: {
+    width: 52,
+    height: 30,
+    borderRadius: 999,
+    padding: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  toggleTrackOn: {
+    backgroundColor: Theme.primaryGatherRed,
+    justifyContent: 'flex-end',
+  },
+  toggleTrackOff: {
+    backgroundColor: Theme.surfaceGray,
+    justifyContent: 'flex-start',
+  },
+  toggleThumb: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Theme.white,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 2,
+  },
   bookmarkIconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   rowText: {
-    fontSize: 16,
+    fontSize: 18,
     color: Theme.black,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: '#e4e4e4',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.textInput,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

@@ -3,4 +3,5 @@ export const HIDDEN_TAB_BAR_ROUTES = [
   'PostDetails',
   'AccountSettings',
   'post-details',
+  'community-matching',
 ];

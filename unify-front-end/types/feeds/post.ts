@@ -10,4 +10,5 @@ export type PostData = {
   title: string;
   content: string;
   pictures?: React.FC[];
+  isPinned?: boolean;
 };

@@ -4,8 +4,8 @@
  */
 
 export const Theme = {
-  primaryGatherRed: '#D8492C',
-  disabledGatherRed: '#E78F7E',
+  primaryGatherRed: '#f68b26',
+  disabledGatherRed: 'rgba(246, 139, 38, 0.6)',
 
   black: '#000000',
   white: '#FFFFFF',

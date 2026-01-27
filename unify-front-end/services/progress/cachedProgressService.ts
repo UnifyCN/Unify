@@ -31,45 +31,91 @@ class CachedProgressService {
     }
 
     try {
-      const {
-        data: { user },
-      } = await progressClient.auth.getUser();
+      let user = null;
+      try {
+        const userResult = await progressClient.auth.getUser();
+        user = userResult?.data?.user || null;
+        if (userResult?.error) {
+          console.error(
+            'Error getting user in cachedProgressService:',
+            userResult.error
+          );
+        }
+      } catch (authError: any) {
+        console.error(
+          'Exception getting user in cachedProgressService:',
+          authError
+        );
+        return this.cache; // Return stale cache on auth error
+      }
+
       if (!user) {
         return {};
       }
 
       // Fetch all lesson progress
-      const { data: lessonProgresses, error: lessonError } =
-        await progressClient
+      let lessonProgresses = null;
+      let lessonError = null;
+
+      try {
+        const progressResult = await progressClient
           .from('user_lesson_progress')
           .select('*')
           .eq('user_id', user.id);
 
+        lessonProgresses = progressResult?.data || null;
+        lessonError = progressResult?.error || null;
+      } catch (queryError: any) {
+        console.error('Exception fetching lesson progress:', queryError);
+        lessonError = queryError;
+        return this.cache; // Return stale cache on query error
+      }
+
       if (lessonError) {
         console.error('Error fetching lesson progress:', lessonError);
-        return {};
+        return this.cache; // Return stale cache on error
       }
 
       // Fetch all modules with submodules and lessons from Sanity
-      const sanityQuery = `*[_type == "module"] {
-        _id,
-        "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
+      let modulesData = null;
+      try {
+        const sanityQuery = `*[_type == "module"] {
           _id,
-          "lessons": *[_type == "lesson" && references(^._id)] | order(order) {
-            _id
+          "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
+            _id,
+            "lessons": *[_type == "lesson" && references(^._id)] | order(order) {
+              _id
+            }
           }
-        }
-      }`;
+        }`;
 
-      const modulesData = await sanityClient.fetch(sanityQuery);
+        modulesData = await sanityClient.fetch(sanityQuery);
+      } catch (sanityError: any) {
+        console.error('Error fetching from Sanity:', sanityError);
+        return this.cache; // Return stale cache on Sanity error
+      }
+
+      if (!modulesData || !Array.isArray(modulesData)) {
+        console.error('Invalid Sanity data returned');
+        return this.cache;
+      }
 
       // Build progress data with actual lesson counts from Sanity
       const progressData: CachedProgressData = {};
 
+      if (!Array.isArray(modulesData)) {
+        console.error('Sanity returned non-array data');
+        return this.cache;
+      }
+
       modulesData.forEach((module: any) => {
+        if (!module?._id) return;
         progressData[module._id] = {};
 
+        if (!Array.isArray(module.submodules)) return;
+
         module.submodules.forEach((submodule: any) => {
+          if (!submodule?._id) return;
           const totalLessons = submodule.lessons?.length || 0;
           const completedLessons =
             lessonProgresses?.filter(
@@ -106,16 +152,37 @@ class CachedProgressService {
   }
 
   async getSubmoduleProgress(moduleId: string, submoduleId: string) {
-    const progressData = await this.getProgressData();
-    return (
-      progressData[moduleId]?.[submoduleId] || {
+    try {
+      if (!moduleId || !submoduleId) {
+        return {
+          is_completed: false,
+          progress_percent: 0,
+          completed_lessons: 0,
+          total_lessons: 0,
+          last_updated: new Date().toISOString(),
+        };
+      }
+
+      const progressData = await this.getProgressData();
+      return (
+        progressData[moduleId]?.[submoduleId] || {
+          is_completed: false,
+          progress_percent: 0,
+          completed_lessons: 0,
+          total_lessons: 0,
+          last_updated: new Date().toISOString(),
+        }
+      );
+    } catch (error: any) {
+      console.error('Error in getSubmoduleProgress:', error);
+      return {
         is_completed: false,
         progress_percent: 0,
         completed_lessons: 0,
         total_lessons: 0,
         last_updated: new Date().toISOString(),
-      }
-    );
+      };
+    }
   }
 
   async refreshProgress() {

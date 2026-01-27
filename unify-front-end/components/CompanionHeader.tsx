@@ -51,10 +51,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 8, // Reduced from 20 to bring context text closer
+    padding: 20,
     backgroundColor: Theme.white,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEEEEE',
   },
   title: {
     fontSize: 24,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
   placeholder: {
-    width: 24, // To balance the back button size
+    width: 24,
   },
 });
 

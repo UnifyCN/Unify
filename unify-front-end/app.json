@@ -3,7 +3,7 @@
     "name": "Unify",
     "slug": "unify-front-end",
     "owner": "unifysocial",
-    "version": "1.0.0",
+    "version": "autoIncrement",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -52,6 +52,13 @@
             "backgroundColor": "#000000"
           },
           "imageWidth": 200
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#ff9d40",
+          "defaultChannel": "community-circles"
         }
       ]
     ],

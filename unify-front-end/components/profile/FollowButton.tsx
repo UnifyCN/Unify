@@ -52,8 +52,8 @@ export const FollowButton = ({ targetUserId }: FollowButtonProps) => {
 
 const styles = StyleSheet.create({
   button: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: Theme.white,
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
   },
 });

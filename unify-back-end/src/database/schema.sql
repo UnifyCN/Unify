@@ -1,7 +1,7 @@
 -- Users table
 CREATE TABLE users (
     id UUID NOT NULL REFERENCES auth.users ON DELETE CASCADE,
-    username TEXT UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9]{1,20}$'),
+    username TEXT UNIQUE NOT NULL CHECK (username ~ '^[a-zA-Z0-9 ]{1,20}$'),
     pronouns TEXT,
     biography TEXT,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -184,6 +184,7 @@ CREATE TABLE events (
     event_end_datetime TIMESTAMPTZ,
     location TEXT NOT NULL,
     address TEXT NOT NULL,
+    hosted_by TEXT,
     event_type TEXT CHECK (event_type IN ('in-person', 'online', 'hybrid')) NOT NULL,
     cover_photo_url TEXT,
     external_link TEXT,

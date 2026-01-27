@@ -233,18 +233,10 @@ export default function SubmoduleMap() {
     );
   }
 
-  // Find the next lesson based on progress (existing logic - keep unchanged)
+  // Find the first non-completed lesson (all lessons are now unlocked)
   const nextLesson = submoduleData.lessons.find((lesson: any) => {
     const progress = lessonProgresses[lesson._id];
-    return (
-      !progress?.is_completed &&
-      (progress?.is_in_progress ||
-        submoduleData.lessons.indexOf(lesson) === 0 ||
-        (submoduleData.lessons.indexOf(lesson) > 0 &&
-          lessonProgresses[
-            submoduleData.lessons[submoduleData.lessons.indexOf(lesson) - 1]._id
-          ]?.is_completed))
-    );
+    return !progress?.is_completed;
   });
 
   // Build lesson view models with explicit UI states
@@ -283,14 +275,14 @@ export default function SubmoduleMap() {
       }
       // If both are missing, lessonNumber remains empty string
 
-      // Determine UI state using nextLesson (ensures only one active)
+      // Determine UI state - all lessons are now unlocked
       let uiState: LessonUIState;
       if (isCompleted) {
         uiState = 'completed';
-      } else if (lesson._id === nextLesson?._id) {
-        uiState = 'active'; // Only the nextLesson is active
+      } else if (progressPercent > 0) {
+        uiState = 'active'; // Lesson in progress
       } else {
-        uiState = 'locked'; // All other non-completed lessons are locked
+        uiState = 'active'; // All lessons are unlocked and active
       }
 
       // Remove any "Lesson X.X:" prefix from title if present
@@ -362,55 +354,54 @@ export default function SubmoduleMap() {
 
         {/* Card */}
         <TouchableOpacity
-          activeOpacity={isLocked ? 1 : 0.8}
+          activeOpacity={0.8}
           onPress={() => {
-            if (!isLocked) {
-              // Check if this is the first lesson and submodule has intro pages
-              const isFirstLesson = index === 0;
-              const hasIntroPages =
-                submoduleData?.intro_pages &&
-                submoduleData.intro_pages.length > 0;
+            // All lessons are now unlocked
+            // Check if this is the first lesson and submodule has intro pages
+            const isFirstLesson = index === 0;
+            const hasIntroPages =
+              submoduleData?.intro_pages &&
+              submoduleData.intro_pages.length > 0;
 
-              // Check if submodule has been started (any lesson has progress)
-              const hasSubmoduleProgress = Object.values(lessonProgresses).some(
-                p =>
-                  p?.is_in_progress ||
-                  (p?.progress_percent ?? 0) > 0 ||
-                  p?.is_completed
-              );
+            // Check if submodule has been started (any lesson has progress)
+            const hasSubmoduleProgress = Object.values(lessonProgresses).some(
+              p =>
+                p?.is_in_progress ||
+                (p?.progress_percent ?? 0) > 0 ||
+                p?.is_completed
+            );
 
-              // If first lesson, has intro pages, and submodule hasn't been started, go to intro
-              if (isFirstLesson && hasIntroPages && !hasSubmoduleProgress) {
-                router.push({
-                  pathname:
-                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
-                  params: {
-                    moduleId,
-                    submoduleId,
-                    pageNum: '1',
-                  },
-                });
-              } else {
-                // Otherwise, go directly to lesson
-                // Track lesson start event
-                if (moduleId && submoduleId) {
-                  trackLessonStarted(
-                    moduleId,
-                    submoduleId,
-                    lesson.id,
-                    lesson.title
-                  );
-                }
-                router.push({
-                  pathname:
-                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
-                  params: {
-                    moduleId,
-                    submoduleId,
-                    lessonId: lesson.id,
-                  },
-                });
+            // If first lesson, has intro pages, and submodule hasn't been started, go to intro
+            if (isFirstLesson && hasIntroPages && !hasSubmoduleProgress) {
+              router.push({
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  pageNum: '1',
+                },
+              });
+            } else {
+              // Otherwise, go directly to lesson
+              // Track lesson start event
+              if (moduleId && submoduleId) {
+                trackLessonStarted(
+                  moduleId,
+                  submoduleId,
+                  lesson.id,
+                  lesson.title
+                );
               }
+              router.push({
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]' as any,
+                params: {
+                  moduleId,
+                  submoduleId,
+                  lessonId: lesson.id,
+                },
+              });
             }
           }}
           style={[

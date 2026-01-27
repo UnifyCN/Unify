@@ -5,6 +5,7 @@ import {
   UserModuleProgress,
   UserPageProgress,
 } from '@/types/progress';
+import { progressEventEmitter } from '@/utils/progressEventEmitter';
 
 // =============================================
 // LESSON PROGRESS SERVICE
@@ -68,6 +69,9 @@ async function startLesson(
 
     if (error) {
       console.error('Error starting lesson:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in startLesson:', error);
@@ -104,6 +108,9 @@ async function updateLessonProgress(
 
     if (error) {
       console.error('Error updating lesson progress:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in updateLessonProgress:', error);
@@ -130,6 +137,9 @@ async function completeLesson(lessonId: string): Promise<void> {
 
     if (error) {
       console.error('Error completing lesson:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in completeLesson:', error);
@@ -177,6 +187,9 @@ async function trackPageVisit(
 
     if (error) {
       console.error('Error tracking page visit:', error);
+    } else {
+      // Emit progress update event (page visits are progress updates)
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in trackPageVisit:', error);
@@ -207,6 +220,9 @@ async function completePage(
 
     if (error) {
       console.error('Error completing page:', error);
+    } else {
+      // Emit progress update event
+      progressEventEmitter.emit();
     }
   } catch (error) {
     console.error('Error in completePage:', error);
@@ -362,17 +378,44 @@ export async function getModuleProgress(
   moduleId: string
 ): Promise<UserModuleProgress | null> {
   try {
-    const {
-      data: { user },
-    } = await progressClient.auth.getUser();
+    if (!moduleId) {
+      return null;
+    }
+
+    let user = null;
+    try {
+      const userResult = await progressClient.auth.getUser();
+      user = userResult?.data?.user || null;
+      if (userResult?.error) {
+        console.error(
+          'Error getting user in getModuleProgress:',
+          userResult.error
+        );
+      }
+    } catch (authError: any) {
+      console.error('Exception getting user in getModuleProgress:', authError);
+      return null;
+    }
+
     if (!user) return null;
 
-    const { data, error } = await progressClient
-      .from('user_module_progress')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('sanity_module_id', moduleId)
-      .single();
+    let data = null;
+    let error = null;
+
+    try {
+      const result = await progressClient
+        .from('user_module_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('sanity_module_id', moduleId)
+        .single();
+
+      data = result?.data || null;
+      error = result?.error || null;
+    } catch (queryError: any) {
+      console.error('Exception querying module progress:', queryError);
+      error = queryError;
+    }
 
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching module progress:', error);
@@ -380,7 +423,7 @@ export async function getModuleProgress(
     }
 
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in getModuleProgress:', error);
     return null;
   }
