@@ -13,13 +13,12 @@ import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
 import { Theme } from '@/constants/Theme';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect, useMemo } from 'react';
 import { useAnalytics } from '@/utils/analytics';
+import BackHeader from '@/components/BackHeader';
 
 const EventDetailScreen = () => {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { event } = useLocalSearchParams();
 
   // Memoize parsed event data with safety handling
@@ -89,104 +88,105 @@ const EventDetailScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name='chevron-left' size={24} color={Theme.white} />
-        </TouchableOpacity>
-        {/* Share Button */}
-        <View style={styles.headerLeft}>
+      {/* Header - Using BackHeader component with share button */}
+      <BackHeader
+        rightButton={
           <TouchableOpacity onPress={handleShare}>
-            <Feather name='upload' size={24} color={Theme.white} />
+            <Feather name='upload' size={24} color={Theme.black} />
           </TouchableOpacity>
+        }
+      />
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Event Title */}
+        <Text style={styles.eventTitle}>{eventData.title}</Text>
+
+        {/* Event Image - Card style (now directly after title) */}
+        {eventData.coverPhotoUrl ? (
+          <Image
+            source={{ uri: eventData.coverPhotoUrl }}
+            style={styles.eventImage}
+            resizeMode='cover'
+          />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
+
+        {/* Metadata - Date and Time */}
+        <View style={styles.metadataRow}>
+          <Feather
+            name='calendar'
+            size={16}
+            color={Theme.textAlternateGray}
+            style={styles.metadataIcon}
+          />
+          <Text style={styles.metadataText}>
+            {formatEventDate(eventData.eventDatetime)}
+            {eventData.eventEndDatetime && (
+              <Text style={styles.metadataSecondary}>
+                {' '}
+                · {formatEventTimeRange(eventData.eventDatetime, eventData.eventEndDatetime)}
+              </Text>
+            )}
+          </Text>
         </View>
-      </View>
 
-      <ScrollView style={styles.scrollView}>
-        {/* Event Image */}
-        <View style={styles.imageContainer}>
-          {/* TODO: Not entirely sure how to handle cover photos but for now its just placeholders */}
-          {eventData.coverPhotoUrl ? (
-            <Image
-              source={{ uri: eventData.coverPhotoUrl }}
-              style={styles.eventImage}
-            />
-          ) : (
-            <View style={styles.imagePlaceholder} />
-          )}
-        </View>
-
-        {/* Event Content */}
-        <View style={styles.eventContent}>
-          {/* Title */}
-          <Text style={styles.eventTitle}>{eventData.title}</Text>
-
-          {/* Date and Time */}
-          <View style={styles.detailRow}>
-            <View style={styles.detailIcon}>
-              <Feather name='calendar' size={20} color='#000' />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={styles.detailTitle}>
-                {formatEventDate(eventData.eventDatetime)}
-              </Text>
-              <Text style={styles.detailSubtitle}>
-                {formatEventTimeRange(
-                  eventData.eventDatetime,
-                  eventData.eventEndDatetime || ''
-                )}
-              </Text>
-            </View>
-          </View>
-
-          {/* Location */}
-          <View style={styles.detailRow}>
-            <View style={styles.detailIcon}>
-              <Feather name='map-pin' size={20} color='#000' />
-            </View>
-            <View style={styles.detailContent}>
-              <Text style={styles.detailTitle}>{eventData.location}</Text>
-              <Text style={styles.detailSubtitle}>{eventData.address}</Text>
-            </View>
-          </View>
-
-          {/* Hosted By */}
-          {eventData.hostedBy && (
-            <View style={styles.detailRow}>
-              <View style={styles.detailIcon}>
-                <Feather name='user' size={20} color='#000' />
-              </View>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailTitle}>Hosted by</Text>
-                <Text style={styles.detailSubtitle}>{eventData.hostedBy}</Text>
-              </View>
-            </View>
-          )}
-
-          {/* About Event */}
-          <View style={styles.aboutSection}>
-            <Text style={styles.aboutTitle}>About Event</Text>
-            {eventData.description ? (
-              <Text style={styles.aboutText}>{eventData.description}</Text>
-            ) : (
-              <Text style={styles.aboutText}>
-                No description available for this event.
-              </Text>
+        {/* Metadata - Location */}
+        <View style={styles.metadataRow}>
+          <Feather
+            name='map-pin'
+            size={16}
+            color={Theme.textAlternateGray}
+            style={styles.metadataIcon}
+          />
+          <View style={styles.metadataContent}>
+            <Text style={styles.metadataText}>{eventData.location}</Text>
+            {eventData.address && (
+              <Text style={styles.metadataSecondary}>{eventData.address}</Text>
             )}
           </View>
         </View>
-      </ScrollView>
 
-      {/* External Link Button */}
-      <View style={styles.externalLinkContainer}>
-        <TouchableOpacity
-          style={styles.externalLinkButton}
-          onPress={handleExternalLink}
-        >
-          <Text style={styles.externalLinkButtonText}>View Event Details</Text>
-          <Feather name='external-link' size={20} color='#fff' />
-        </TouchableOpacity>
-      </View>
+        {/* Metadata - Hosted By */}
+        {eventData.hostedBy && (
+          <View style={styles.metadataRow}>
+            <Feather
+              name='user'
+              size={16}
+              color={Theme.textAlternateGray}
+              style={styles.metadataIcon}
+            />
+            <Text style={styles.metadataText}>
+              Hosted by <Text style={styles.metadataHighlight}>{eventData.hostedBy}</Text>
+            </Text>
+          </View>
+        )}
+
+        {/* CTA Button - View Event Details (now placed after metadata, before About) */}
+        {eventData.externalLink && (
+          <TouchableOpacity
+            onPress={handleExternalLink}
+            style={styles.ctaButton}
+          >
+            <Text style={styles.ctaButtonText}>View Event Details</Text>
+            <Feather name='external-link' size={18} color={Theme.white} />
+          </TouchableOpacity>
+        )}
+
+        {/* About Event */}
+        <Text style={styles.aboutTitle}>About Event</Text>
+        {eventData.description ? (
+          <Text style={styles.aboutText}>{eventData.description}</Text>
+        ) : (
+          <Text style={styles.aboutText}>
+            No description available for this event.
+          </Text>
+        )}
+      </ScrollView>
     </View>
   );
 };
@@ -194,120 +194,89 @@ const EventDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#C4C4C4',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    backgroundColor: '#C4C4C4',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  placeholder: {
-    width: 40,
+    backgroundColor: Theme.white,
   },
   scrollView: {
     flex: 1,
   },
-  imageContainer: {
-    height: 250,
-    backgroundColor: '#C4C4C4',
-  },
-  eventImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  imagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#C4C4C4',
-  },
-  eventContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    marginTop: -20,
-    height: '100%',
+  contentContainer: {
+    paddingTop: 4,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   eventTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#343434',
-    marginBottom: 16,
+    color: Theme.black,
+    marginBottom: 12,
+    lineHeight: 28,
   },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  eventImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
     marginBottom: 20,
+    backgroundColor: Theme.imagePlaceholder,
   },
-  detailIcon: {
-    marginRight: 16,
-    borderWidth: 0.5,
-    borderColor: '#979797',
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 5,
+  imagePlaceholder: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 20,
+    backgroundColor: Theme.imagePlaceholder,
   },
-  detailContent: {
+  metadataRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  metadataIcon: {
+    marginRight: 10,
+    marginTop: 2,
+  },
+  metadataContent: {
     flex: 1,
   },
-  detailTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 2,
-  },
-  detailSubtitle: {
+  metadataText: {
     fontSize: 16,
-    color: '#979797',
+    color: Theme.black,
+    lineHeight: 22,
   },
-  aboutSection: {
-    marginTop: 10,
+  metadataSecondary: {
+    fontSize: 16,
+    color: Theme.textPostTime,
+    lineHeight: 22,
+  },
+  metadataHighlight: {
+    fontWeight: '700',
+  },
+  ctaButton: {
+    backgroundColor: Theme.surfaceBlue,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  ctaButtonText: {
+    color: Theme.white,
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
   },
   aboutTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#000',
+    color: Theme.black,
     marginBottom: 12,
   },
   aboutText: {
     fontSize: 18,
-    color: '#000',
-    lineHeight: 24,
-    marginBottom: 12,
-  },
-  externalLinkContainer: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  externalLinkButton: {
-    backgroundColor: '#007AFF',
-    borderRadius: 12,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  externalLinkButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
+    color: Theme.black,
+    lineHeight: 27,
   },
 });
 
