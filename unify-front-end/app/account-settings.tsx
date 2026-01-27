@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LegalDocumentType } from '@/utils/legalUrls';
@@ -18,12 +19,14 @@ import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
 import { useQuery } from '@tanstack/react-query';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
+import { useHapticsPreference } from '@/context/HapticsContext';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
   const { trackScreen } = useAnalytics();
+  const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
 
   // Track screen view on mount
   useEffect(() => {
@@ -43,6 +46,10 @@ export default function AccountSettingsPage() {
     Linking.openURL('https://unify.userjot.com').catch(err =>
       console.error('Failed to open URL:', err)
     );
+  };
+
+  const toggleHaptics = () => {
+    setHapticsEnabled(!hapticsEnabled);
   };
 
   const settingsRows = [
@@ -162,6 +169,34 @@ export default function AccountSettingsPage() {
           </View>
           <View style={styles.divider} />
 
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          <View style={styles.settingsCard}>
+            <View style={[styles.row, styles.toggleRow]}>
+              <View style={styles.rowLabelContainer}>
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name='zap' size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>Haptics</Text>
+              </View>
+              <Pressable
+                onPress={toggleHaptics}
+                accessibilityRole='switch'
+                accessibilityState={{ checked: hapticsEnabled }}
+                accessibilityLabel='Haptics'
+                hitSlop={8}
+                style={[
+                  styles.toggleTrack,
+                  hapticsEnabled
+                    ? styles.toggleTrackOn
+                    : styles.toggleTrackOff,
+                ]}
+              >
+                <View style={styles.toggleThumb} />
+              </Pressable>
+            </View>
+          </View>
+          <View style={styles.divider} />
+
           {/* Legal Section */}
           <Text style={styles.sectionTitle}>Legal</Text>
           <View style={styles.settingsCard}>
@@ -256,6 +291,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 18,
+  },
+  toggleRow: {
+    justifyContent: 'space-between',
+  },
+  rowLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
+  },
+  toggleTrack: {
+    width: 52,
+    height: 30,
+    borderRadius: 999,
+    padding: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  toggleTrackOn: {
+    backgroundColor: Theme.primaryGatherRed,
+    justifyContent: 'flex-end',
+  },
+  toggleTrackOff: {
+    backgroundColor: Theme.surfaceGray,
+    justifyContent: 'flex-start',
+  },
+  toggleThumb: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Theme.white,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 2,
   },
   bookmarkIconContainer: {
     justifyContent: 'center',

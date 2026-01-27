@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -76,6 +76,27 @@ export default function QuizQuestionPage() {
   const currentQuiz = quizzes?.find(q => q._id === quizId);
   const quizTitle = currentQuiz?.title;
 
+  // Get current question (may be undefined during loading)
+  const currentQuestion = questions?.[currentQuestionIndex];
+
+  // Scramble right column items for matching questions
+  // This hook must be called before any early returns to maintain hook order
+  const scrambledRightItems = useMemo(() => {
+    const question = questions?.[currentQuestionIndex];
+    if (!question || question.question_type !== 'matching' || !question.matching_pairs || question.matching_pairs.length === 0) {
+      return [];
+    }
+    // Extract right items and shuffle them
+    const rightItems = question.matching_pairs.map((pair: any) => pair.right_item);
+    // Fisher-Yates shuffle algorithm
+    const shuffled = [...rightItems];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [questions, currentQuestionIndex]);
+
   // Calculate progress for the progress bar
   const progress = calculateQuizProgress(
     submoduleData || null,
@@ -124,7 +145,6 @@ export default function QuizQuestionPage() {
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
   const trackQuizCompletion = () => {
@@ -572,28 +592,28 @@ export default function QuizQuestionPage() {
                     )}
                   </View>
 
-                  {/* Right Column */}
+                  {/* Right Column - Scrambled */}
                   <View style={styles.matchingColumn}>
-                    {currentQuestion.matching_pairs?.map(
-                      (pair: any, index: number) => (
+                    {scrambledRightItems.map(
+                      (rightItem: string, index: number) => (
                         <TouchableOpacity
-                          key={`right-${index}`}
+                          key={`right-${index}-${rightItem}`}
                           style={[
                             styles.matchingItem,
-                            selectedRightItem === pair.right_item &&
+                            selectedRightItem === rightItem &&
                               styles.matchingItemSelected,
-                            completedPairs.includes(pair.right_item) &&
+                            completedPairs.includes(rightItem) &&
                               styles.matchingItemCompleted,
-                            incorrectPairs.includes(pair.right_item) &&
+                            incorrectPairs.includes(rightItem) &&
                               styles.matchingItemIncorrect,
                           ]}
                           onPress={() =>
-                            handleMatchingItemSelect(pair.right_item, 'right')
+                            handleMatchingItemSelect(rightItem, 'right')
                           }
-                          disabled={completedPairs.includes(pair.right_item)}
+                          disabled={completedPairs.includes(rightItem)}
                         >
                           <Text style={styles.matchingItemText}>
-                            {pair.right_item}
+                            {rightItem}
                           </Text>
                         </TouchableOpacity>
                       )

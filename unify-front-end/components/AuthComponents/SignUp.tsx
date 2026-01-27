@@ -442,11 +442,11 @@ const styles = {
     fontSize: 14 * 0.87,
   },
   link: {
-    color: 'black',
+    color: '#5182C7',
     textDecorationLine: 'underline' as 'underline',
   },
   linkText: {
-    color: 'black',
+    color: '#5182C7',
     fontSize: 15 * 0.87,
     fontWeight: '400' as '400',
   },
@@ -498,7 +498,7 @@ const styles = {
   },
   checkboxLinkText: {
     fontSize: 16 * 0.87,
-    color: 'black' as 'black', // Style the link text
+    color: '#5182C7', // Style the link text
     textDecorationLine: 'underline' as 'underline',
   },
   checkboxWrapper: {

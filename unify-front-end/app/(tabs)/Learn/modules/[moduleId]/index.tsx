@@ -69,7 +69,7 @@ const mapIconName = (iconName: string): string => {
     psychology: 'brain',
     menu_book: 'book-open-page-variant',
     auto_stories: 'book-open-outline',
-    calculate: 'calculator-outline',
+    calculate: 'calculator',
     palette: 'palette-outline',
     music_note: 'music-note-outline',
     sports_esports: 'gamepad-variant-outline',
@@ -715,11 +715,8 @@ export default function ModuleIndex() {
       const progress = submoduleProgresses[submodule._id];
       const isCompleted = progress?.is_completed || false;
 
-      // Check if unlocked (first section is always unlocked, or previous is completed)
-      const unlocked =
-        i === 0 ||
-        (i > 0 &&
-          submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+      // All sections are now unlocked at all times
+      const unlocked = true;
 
       // If unlocked and not completed, this is the section to highlight (Start or Continue)
       if (unlocked && !isCompleted) {
@@ -764,10 +761,8 @@ export default function ModuleIndex() {
       const progressPercent = Number.isFinite(n)
         ? Math.max(0, Math.min(100, n))
         : 0;
-      const unlocked =
-        i === 0 ||
-        (i > 0 &&
-          submoduleProgresses[moduleData.submodules[i - 1]._id]?.is_completed);
+      // All sections are now unlocked at all times
+      const unlocked = true;
 
       // Determine UI state
       let uiState: SectionUIState;
@@ -802,7 +797,7 @@ export default function ModuleIndex() {
 
   // Handle card tap
   const handleCardTap = async (section: SectionViewModel) => {
-    if (section.uiState === 'locked') return;
+    // All sections are now unlocked, so no need to check locked state
 
     // If tapping the already-opened card, navigate
     if (openedCardId === section.id) {
@@ -1245,7 +1240,7 @@ export default function ModuleIndex() {
 
         {moduleData.description && (
           <View style={styles.headerDescriptionWrap}>
-            <Text style={styles.headerDescription} numberOfLines={3}>
+            <Text style={styles.headerDescription}>
               {moduleData.description}
             </Text>
           </View>
@@ -1262,45 +1257,6 @@ export default function ModuleIndex() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Disclaimer Modal */}
-      <Modal
-        visible={showDisclaimer}
-        transparent={true}
-        animationType='fade'
-        onRequestClose={handleDisclaimerBack}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Disclaimer</Text>
-            <View style={styles.modalTextContainer}>
-              <Text style={styles.modalText}>
-                This module is for educational purposes only. Unify does not
-                provide legal or financial advice and makes no guarantee of
-                accuracy, completeness, or applicability. Always verify current
-                requirements with official sources such as IRCC or qualified
-                professionals.
-              </Text>
-            </View>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButtonBack}
-                onPress={handleDisclaimerBack}
-              >
-                <Text style={styles.modalButtonBackText}>Back</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalButtonContinue,
-                  { backgroundColor: subjectColor },
-                ]}
-                onPress={handleDisclaimerContinue}
-              >
-                <Text style={styles.modalButtonContinueText}>Continue</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

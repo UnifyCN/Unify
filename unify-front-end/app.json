@@ -53,6 +53,13 @@
           },
           "imageWidth": 200
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#ff9d40",
+          "defaultChannel": "community-circles"
+        }
       ]
     ],
     "experiments": {

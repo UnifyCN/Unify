@@ -13,7 +13,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Group } from '@/types/groups';
 import { useSearchGroups } from '@/hooks/groups/useSearchGroups';
-import GroupCard from './GroupCard';
+import GroupCard from '@/components/groups/GroupCard';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from '@/components/home/PostItem';
 import { useQuery } from '@tanstack/react-query';
@@ -127,7 +127,7 @@ const SearchScreen = () => {
 
     // Navigate to GroupDetailScreen
     router.push({
-      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      pathname: '/group-detail' as any,
       params: { group: JSON.stringify(group) },
     });
   };
@@ -260,7 +260,7 @@ const SearchScreen = () => {
                     <TouchableOpacity
                       onPress={() =>
                         router.push({
-                          pathname: '/(tabs)/Gather/seeMorePosts',
+                          pathname: '/see-more-posts' as any,
                           params: { q: searchQuery },
                         })
                       }
@@ -286,7 +286,7 @@ const SearchScreen = () => {
                     <TouchableOpacity
                       onPress={() =>
                         router.push({
-                          pathname: '/(tabs)/Gather/seeMoreGroups',
+                          pathname: '/see-more-groups' as any,
                           params: { q: searchQuery },
                         })
                       }

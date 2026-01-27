@@ -9,6 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Dimensions,
+  Keyboard,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
@@ -25,11 +28,17 @@ import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import HistoryIcon from '@/components/icons/HistoryIcon.svg';
+import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 
 const MESSAGE_LIMIT = 3;
+const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
+const emptyStateTopPadding = Math.max(220, windowHeight * 0.47);
+const dottedLineTopOffset = -windowHeight * 0.001;
+const dottedLineWidth = windowWidth * 2.2;
+const dottedLineHeight = windowHeight * 0.9;
 
 // Helper functions
 const getMessagesLeft = (
@@ -41,29 +50,6 @@ const getMessagesLeft = (
 
 const canSendMessage = (isPremium: boolean, messagesLeft: number): boolean => {
   return isPremium || messagesLeft > 0;
-};
-
-const getMessageCountText = (
-  isLoadingUsage: boolean,
-  isLoadingUser: boolean,
-  isPremium: boolean,
-  messagesLeft: number,
-  messageLimit: number
-): string => {
-  if (isLoadingUsage || isLoadingUser) {
-    return 'Loading...';
-  }
-  if (isPremium) {
-    return 'Unlimited messages';
-  }
-  return `${messagesLeft}/${messageLimit} messages left today`;
-};
-
-const shouldShowWarning = (
-  messagesLeft: number,
-  isPremium: boolean
-): boolean => {
-  return messagesLeft <= 0 && !isPremium;
 };
 
 const isSendButtonDisabled = (
@@ -132,8 +118,8 @@ export default function CompanionScreen() {
   const inputRef = useRef<TextInput>(null);
   const previousMessageCountRef = useRef<number>(0);
 
-  const { data: usage, isLoading: isLoadingUsage } = useChatbotUsage();
-  const { currentUser, isLoading: isLoadingUser } = useCurrentUser();
+  const { data: usage } = useChatbotUsage();
+  const { currentUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
   const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps } =
     useSendMessage({
@@ -151,6 +137,9 @@ export default function CompanionScreen() {
     isLoading,
     canSend
   );
+  const showLoadingState =
+    isLoadingMessages || (isLoading && messages.length === 0);
+  const showEmptyState = !showLoadingState && messages.length === 0;
 
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
   useEffect(() => {
@@ -268,7 +257,10 @@ export default function CompanionScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={styles.container}
+      onPress={Keyboard.dismiss}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -282,33 +274,34 @@ export default function CompanionScreen() {
             rightButton={
               <TouchableOpacity
                 onPress={() => {
-                  trackCompanionHistoryViewed();
                   router.push('/(tabs)/companion/history' as any);
+                  trackCompanionHistoryViewed();
                 }}
                 style={styles.headerButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <HistoryIcon width={24} height={24} />
+                <HistoryIcon width={20} height={20} />
               </TouchableOpacity>
             }
           />
 
-          {/* Context sentence - only show when no messages */}
-          {messages.length === 0 && !greetingMessage && !isLoadingMessages && (
-            <View style={styles.contextContainer}>
-              <Text style={styles.contextText}>
-                Ask questions, check facts, or get help with forms.
-              </Text>
-            </View>
-          )}
-
           {/* Messages - takes up available space */}
-          {isLoadingMessages || (isLoading && messages.length === 0) ? (
+          {showLoadingState ? (
             <View style={styles.emptyContainer}>
               <ActivityIndicator size='large' color={Theme.surfaceBlue} />
             </View>
-          ) : messages.length === 0 && !greetingMessage ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyMessage}>How can I help you today?</Text>
+          ) : showEmptyState ? (
+            <View style={styles.emptyState}>
+              <View style={styles.dottedLineContainer} pointerEvents='none'>
+                <BlueDottedLine
+                  width={dottedLineWidth}
+                  height={dottedLineHeight}
+                />
+              </View>
+              <Text style={styles.heroTitle}>
+                I'm here to simplify your journey.
+              </Text>
+              <Text style={styles.heroSubtitle}>How can I help you?</Text>
             </View>
           ) : (
             <FlatList
@@ -319,36 +312,16 @@ export default function CompanionScreen() {
               style={styles.messagesList}
               contentContainerStyle={styles.messagesContent}
               ListFooterComponent={renderLoadingIndicator}
+              keyboardShouldPersistTaps="handled"
             />
           )}
 
           {/* Bottom section - pushed to bottom with marginTop: auto */}
           <View style={styles.bottomSection}>
             {/* Starter Prompts - Only show when no messages and no greeting */}
-            {messages.length === 0 &&
-              !greetingMessage &&
-              !isLoadingMessages && (
-                <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
-              )}
-
-            {/* Message Count Display */}
-            <View style={styles.messageCountContainer}>
-              <Text
-                style={[
-                  styles.messageCountText,
-                  shouldShowWarning(messagesLeft, isPremium) &&
-                    styles.messageCountTextWarning,
-                ]}
-              >
-                {getMessageCountText(
-                  isLoadingUsage,
-                  isLoadingUser,
-                  isPremium,
-                  messagesLeft,
-                  MESSAGE_LIMIT
-                )}
-              </Text>
-            </View>
+            {showEmptyState && (
+              <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
+            )}
 
             {/* Input */}
             <View style={styles.inputContainer}>
@@ -394,7 +367,7 @@ export default function CompanionScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </Pressable>
   );
 }
 
@@ -416,11 +389,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
   },
-  emptyMessage: {
-    fontSize: 24,
-    fontWeight: '400',
+  emptyState: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    paddingHorizontal: 24,
+    paddingTop: emptyStateTopPadding,
+    paddingBottom: 16,
+  },
+  dottedLineContainer: {
+    position: 'absolute',
+    width: dottedLineWidth,
+    height: dottedLineHeight,
+    top: dottedLineTopOffset,
+    left: -windowWidth * 0.65,
+    opacity: 1,
+  },
+  heroTitle: {
+    fontSize: 20,
+    fontWeight: '600',
     color: Theme.black,
-    textAlign: 'center',
+    lineHeight: 30,
+  },
+  heroSubtitle: {
+    fontSize: 20,
+    fontWeight: '400',
+    color: Theme.textInput,
+    marginTop: 6,
+    lineHeight: 22,
   },
   messagesList: {
     flex: 1,
@@ -437,19 +433,18 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingBottom: 6,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
     backgroundColor: '#fff',
   },
   textInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+    borderWidth: 0,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     maxHeight: 100,
-    fontSize: 16,
+    fontSize: 14,
     minHeight: 44,
     backgroundColor: Theme.surfaceTextInput,
     color: Theme.black,
@@ -461,12 +456,12 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     backgroundColor: Theme.surfaceBlue,
-    width: 38,
-    height: 38,
+    width: 40,
+    height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 10,
+    marginLeft: 8,
   },
   sendButtonDisabled: {
     backgroundColor: '#e0e0e0',
@@ -478,39 +473,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  messageCountContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  messageCountText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  messageCountTextWarning: {
-    color: '#ff6b6b',
-    fontWeight: '600',
-  },
   headerButton: {
     padding: 4,
   },
-  contextContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 0,
-    paddingBottom: 4,
-    maxWidth: '100%',
-  },
-  contextText: {
-    fontSize: 14,
-    color: Theme.textInput,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
   disclaimerContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   disclaimerText: {
     fontSize: 12,

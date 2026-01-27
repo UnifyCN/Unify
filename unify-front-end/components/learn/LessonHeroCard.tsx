@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link, Href } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Theme } from '@/constants/Theme';
 
 interface LessonHeroCardProps {
   moduleTitle?: string;
@@ -41,7 +42,7 @@ const mapIconName = (iconName: string): string => {
     psychology: 'brain',
     menu_book: 'book-open-page-variant',
     auto_stories: 'book-open-outline',
-    calculate: 'calculator-outline',
+    calculate: 'calculator',
     palette: 'palette-outline',
     music_note: 'music-note-outline',
     sports_esports: 'gamepad-variant-outline',
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: '#D8492C',
+    backgroundColor: Theme.primaryGatherRed,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 4,

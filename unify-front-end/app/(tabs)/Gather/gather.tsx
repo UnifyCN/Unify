@@ -4,12 +4,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
-import GroupCard from './GroupCard';
+import GroupCard from '@/components/groups/GroupCard';
 import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';
 import { GroupCardSkeletonLoader } from '@/components/groups/GroupCardSkeletonLoader';
 import { NewsCarousel } from '@/components/news/NewsCarousel';
+import { CommunityMatchingEntryCard } from '@/ui/communityMatching/EntryCard';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import RequestGroupModal from '@/components/groups/RequestGroupModal';
@@ -25,7 +26,7 @@ const GroupsForYouSection = () => {
 
   const handleGroupPress = (group: Group) => {
     router.push({
-      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      pathname: '/group-detail' as any,
       params: { group: JSON.stringify(group) },
     });
   };
@@ -107,6 +108,7 @@ const GatherHeader = memo(() => {
 });
 
 export default function GatherScreen() {
+  const router = useRouter();
   const { trackScreen } = useAnalytics();
   const lastTrackedRef = useRef<number>(0);
 
@@ -127,7 +129,12 @@ export default function GatherScreen() {
       <Header />
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <ScrollView style={styles.scrollView}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          <View style={styles.entryWrapper}>
+            <CommunityMatchingEntryCard
+              onPress={() => router.push('/community-matching')}
+            />
+          </View>
           <GatherHeader />
           <NewsCarousel />
           <GroupsForYouSection />
@@ -148,6 +155,12 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  entryWrapper: {
+    marginTop: 16,
+  },
   searchButton: {
     marginHorizontal: 20,
     marginTop: 20,
@@ -164,7 +177,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   eventsCarousel: {
-    marginTop: 27,
+    marginTop: 30,
     paddingHorizontal: 20,
   },
   section: {

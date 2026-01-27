@@ -16,6 +16,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import StarFilled from '@/components/StarFilled';
 import StarOutline from '@/components/StarOutline';
+import { Theme } from '@/constants/Theme';
 
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
@@ -23,7 +24,6 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import Header from '@/components/Header';
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
@@ -293,8 +293,6 @@ export default function EndingPageScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Header />
-
       {/* Progress Bar */}
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
@@ -445,7 +443,8 @@ export default function EndingPageScreen() {
                   style={[
                     styles.reviewSubmitBtn,
                     {
-                      backgroundColor: moduleData?.colorTheme?.hex || '#D8492C',
+                      backgroundColor:
+                        moduleData?.colorTheme?.hex || Theme.primaryGatherRed,
                     },
                   ]}
                   onPress={handleSubmitReview}
@@ -645,7 +644,7 @@ const styles = StyleSheet.create({
   },
 
   starBoxSelected: {
-    borderColor: '#D8492C',
+    borderColor: Theme.primaryGatherRed,
   },
   starTouch: {
     paddingHorizontal: 15,

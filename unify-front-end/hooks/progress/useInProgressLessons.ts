@@ -101,24 +101,9 @@ export function useInProgressLessons() {
             const isCompleted = lessonProgress?.is_completed || false;
             const isInProgress = lessonProgress?.is_in_progress || false;
 
-            // Determine if lesson is active (same logic as submodule map)
-            let isActive = false;
-            if (isInProgress) {
-              isActive = true; // Currently in progress
-            } else if (i === 0) {
-              isActive = true; // First lesson is always active
-            } else {
-              // Check if previous lesson is completed
-              const previousLesson = submodule.lessons[i - 1];
-              const previousProgress = submoduleLessons.find(
-                p => p.sanity_lesson_id === previousLesson._id
-              );
-              const previousCompleted = previousProgress?.is_completed || false;
-              isActive = previousCompleted; // Active if previous is completed
-            }
-
-            // If this lesson is active, use it
-            if (isActive && !isCompleted) {
+            // All lessons are now active/unlocked - find the first non-completed lesson
+            // If this lesson is not completed, use it
+            if (!isCompleted) {
               activeLesson = lesson;
               activeSubmodule = submodule;
               break;
