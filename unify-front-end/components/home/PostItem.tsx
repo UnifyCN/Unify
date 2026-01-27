@@ -216,6 +216,12 @@ export const PostItem = memo(
                               pathname: '/group-detail' as any,
                               params: { group: JSON.stringify(group) },
                             });
+                          } else {
+                            // Fallback to groupName if group not found
+                            router.push({
+                              pathname: '/group-detail' as any,
+                              params: { groupName: post.group },
+                            });
                           }
                         } catch (error) {
                           console.error('Failed to fetch group:', error);

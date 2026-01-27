@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { EventsCarousel } from '@/components/EventsCarousel';
 import Header from '@/components/Header';
-import GroupCard from './GroupCard';
+import GroupCard from '@/components/groups/GroupCard';
 import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';

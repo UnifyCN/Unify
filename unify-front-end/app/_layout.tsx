@@ -106,7 +106,7 @@ export default function RootLayout() {
                       }}
                       autocapture={{ captureScreens: false }}
                     >
-                      <AppContent />
+<AppContent />
                     </PostHogProvider>
                   </ThemeProvider>
                 </AuthWrapper>

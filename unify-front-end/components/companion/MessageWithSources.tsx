@@ -42,9 +42,101 @@ const hexToRgba = (hexColor: string, opacity: number): string => {
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 };
 
+type SectionType =
+  | 'general'
+  | 'at_a_glance'
+  | 'need_to_know'
+  | 'next_steps'
+  | 'learn_more';
+
+/**
+ * Renders a single line of markdown content
+ * @param isInAtAGlance - Whether this line is inside the At a Glance card (for special styling)
+ */
+const renderMarkdownLine = (
+  trimmedLine: string,
+  lineIndex: number,
+  baseColor: string,
+  isFirstHeader: boolean,
+  currentSection: SectionType,
+  isInAtAGlance: boolean = false
+): React.ReactNode => {
+  // Handle ## Headers
+  if (trimmedLine.startsWith('## ')) {
+    return (
+      <Text
+        key={`line-${lineIndex}`}
+        style={[
+          isInAtAGlance ? styles.atAGlanceHeader : styles.markdownHeader,
+          // Remove top margin for first header (At a Glance)
+          isFirstHeader && { marginTop: 0 },
+        ]}
+      >
+        {trimmedLine.substring(3)}
+      </Text>
+    );
+  }
+
+  // Handle - Bullet points
+  if (trimmedLine.startsWith('- ')) {
+    // For 'need_to_know' and 'learn_more', render as text block without bullet
+    if (currentSection === 'need_to_know' || currentSection === 'learn_more') {
+      return (
+        <Text
+          key={`line-${lineIndex}`}
+          style={[
+            styles.regularText,
+            styles.sectionTextItem,
+            { color: baseColor },
+          ]}
+        >
+          {renderInlineFormatting(trimmedLine.substring(2), baseColor)}
+        </Text>
+      );
+    }
+
+    return (
+      <View key={`line-${lineIndex}`} style={styles.bulletContainer}>
+        <Text style={styles.bulletPoint}>•</Text>
+        <Text style={styles.bulletText}>
+          {renderInlineFormatting(trimmedLine.substring(2), baseColor)}
+        </Text>
+      </View>
+    );
+  }
+
+  // Handle numbered lists (1., 2., etc.)
+  const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.*)$/);
+  if (numberedMatch) {
+    return (
+      <View key={`line-${lineIndex}`} style={styles.numberedContainer}>
+        <Text style={styles.numberedPoint}>{numberedMatch[1]}.</Text>
+        <Text style={styles.bulletText}>
+          {renderInlineFormatting(numberedMatch[2], baseColor)}
+        </Text>
+      </View>
+    );
+  }
+
+  // Regular line with inline formatting
+  if (trimmedLine.length > 0) {
+    return (
+      <Text
+        key={`line-${lineIndex}`}
+        style={isInAtAGlance ? styles.atAGlanceText : styles.regularText}
+      >
+        {renderInlineFormatting(trimmedLine, baseColor)}
+      </Text>
+    );
+  }
+
+  return null;
+};
+
 /**
  * Simple Markdown renderer for chat messages.
  * Supports: ## Headers, **bold**, - bullet points, and [links](url)
+ * Special styling for "At a Glance" section
  */
 const MarkdownText: React.FC<{ text: string; isUser: boolean }> = ({
   text,
@@ -56,62 +148,118 @@ const MarkdownText: React.FC<{ text: string; isUser: boolean }> = ({
   const lines = text.split('\n');
   const elements: React.ReactNode[] = [];
 
+  // Find "At a Glance" section boundaries
+  let atAGlanceStart = -1;
+  let atAGlanceEnd = -1;
+
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    if (trimmedLine.startsWith('## ')) {
+      const headerText = trimmedLine.substring(3).toLowerCase();
+      if (headerText.includes('at a glance') && atAGlanceStart === -1) {
+        atAGlanceStart = index;
+      } else if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
+        // Found next header after "At a Glance"
+        atAGlanceEnd = index;
+      }
+    }
+  });
+
+  // If "At a Glance" exists but no following header, it goes to the first empty line or end
+  if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
+    // Find the end by looking for an empty line after content
+    let foundContent = false;
+    for (let i = atAGlanceStart + 1; i < lines.length; i++) {
+      const trimmed = lines[i].trim();
+      if (trimmed.length > 0) {
+        foundContent = true;
+      } else if (foundContent) {
+        atAGlanceEnd = i;
+        break;
+      }
+    }
+    if (atAGlanceEnd === -1) {
+      atAGlanceEnd = lines.length;
+    }
+  }
+
+  // Process lines and group "At a Glance" section
+  const atAGlanceContent: React.ReactNode[] = [];
+  let isFirstHeader = true;
+  let currentSection: SectionType = 'general';
+
   lines.forEach((line, lineIndex) => {
     const trimmedLine = line.trim();
 
-    // Handle ## Headers
+    // Determine current section based on headers
     if (trimmedLine.startsWith('## ')) {
-      elements.push(
-        <Text
-          key={`line-${lineIndex}`}
-          style={[styles.markdownHeader, { color: baseColor }]}
-        >
-          {trimmedLine.substring(3)}
-        </Text>
+      const headerText = trimmedLine.substring(3).toLowerCase();
+      if (headerText.includes('at a glance')) {
+        currentSection = 'at_a_glance';
+      } else if (headerText.includes('what you need to know')) {
+        currentSection = 'need_to_know';
+      } else if (headerText.includes('next steps')) {
+        currentSection = 'next_steps';
+      } else if (headerText.includes('learn more')) {
+        currentSection = 'learn_more';
+      } else {
+        currentSection = 'general';
+      }
+    }
+
+    // Check if we're in the "At a Glance" section
+    const isInAtAGlance =
+      atAGlanceStart !== -1 &&
+      lineIndex >= atAGlanceStart &&
+      lineIndex < atAGlanceEnd;
+
+    if (isInAtAGlance) {
+      const element = renderMarkdownLine(
+        trimmedLine,
+        lineIndex,
+        baseColor,
+        trimmedLine.startsWith('## ') && isFirstHeader,
+        currentSection,
+        true // isInAtAGlance
       );
+      if (element) {
+        if (trimmedLine.startsWith('## ')) {
+          isFirstHeader = false;
+        }
+        atAGlanceContent.push(element);
+      }
+
+      // If this is the last line of "At a Glance", wrap and add the section
+      if (lineIndex === atAGlanceEnd - 1) {
+        elements.push(
+          <View key="at-a-glance-section" style={styles.atAGlanceCard}>
+            {atAGlanceContent}
+          </View>
+        );
+      }
       return;
     }
 
-    // Handle - Bullet points
-    if (trimmedLine.startsWith('- ')) {
-      elements.push(
-        <View key={`line-${lineIndex}`} style={styles.bulletContainer}>
-          <Text style={[styles.bulletPoint, { color: baseColor }]}>•</Text>
-          <Text style={[styles.bulletText, { color: baseColor }]}>
-            {renderInlineFormatting(trimmedLine.substring(2), baseColor)}
-          </Text>
-        </View>
-      );
-      return;
+    // Track first header for regular sections too
+    if (trimmedLine.startsWith('## ')) {
+      isFirstHeader = false;
     }
 
-    // Handle numbered lists (1., 2., etc.)
-    const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.*)$/);
-    if (numberedMatch) {
-      elements.push(
-        <View key={`line-${lineIndex}`} style={styles.bulletContainer}>
-          <Text style={[styles.bulletPoint, { color: baseColor }]}>
-            {numberedMatch[1]}.
-          </Text>
-          <Text style={[styles.bulletText, { color: baseColor }]}>
-            {renderInlineFormatting(numberedMatch[2], baseColor)}
-          </Text>
-        </View>
-      );
-      return;
-    }
-
-    // Regular line with inline formatting
-    if (trimmedLine.length > 0) {
-      elements.push(
-        <Text
-          key={`line-${lineIndex}`}
-          style={[styles.regularText, { color: baseColor }]}
-        >
-          {renderInlineFormatting(trimmedLine, baseColor)}
-        </Text>
-      );
-    } else if (lineIndex > 0 && lineIndex < lines.length - 1) {
+    const element = renderMarkdownLine(
+      trimmedLine,
+      lineIndex,
+      baseColor,
+      false,
+      currentSection,
+      false
+    );
+    if (element) {
+      elements.push(element);
+    } else if (
+      lineIndex > 0 &&
+      lineIndex < lines.length - 1 &&
+      trimmedLine.length === 0
+    ) {
       // Empty line (paragraph break) - but not at start or end
       elements.push(
         <View key={`line-${lineIndex}`} style={styles.paragraphBreak} />
@@ -312,7 +460,7 @@ export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
 
 const styles = StyleSheet.create({
   messageContainer: {
-    marginVertical: 5,
+    marginVertical: 6,
     flexDirection: 'row',
   },
   userMessage: {
@@ -322,9 +470,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   messageBubble: {
-    maxWidth: '85%',
-    paddingHorizontal: 15,
-    paddingVertical: 15,
+    maxWidth: '92%',
+    paddingHorizontal: 18,
+    paddingVertical: 18,
     borderRadius: 20,
   },
   userBubble: {
@@ -335,14 +483,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   messageText: {
     fontSize: 16,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   userText: {
     color: '#fff',
@@ -352,44 +500,88 @@ const styles = StyleSheet.create({
   },
   // Markdown styles
   markdownContainer: {
-    gap: 4,
+    gap: 8,
   },
   markdownHeader: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
-    marginTop: 12,
-    marginBottom: 6,
+    letterSpacing: 0.2,
+    marginTop: 8,
+    marginBottom: 4,
+    color: '#1a1a1a',
   },
   regularText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 26,
+    color: '#444',
   },
   boldText: {
     fontWeight: '700',
+    color: '#222',
   },
   linkText: {
     color: Theme.surfaceBlue,
     textDecorationLine: 'underline',
+    fontWeight: '500',
   },
   bulletContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingLeft: 4,
-    marginVertical: 2,
+    marginVertical: 8,
   },
   bulletPoint: {
-    fontSize: 15,
-    lineHeight: 22,
-    marginRight: 8,
-    minWidth: 14,
+    fontSize: 8,
+    lineHeight: 26,
+    marginRight: 14,
+    marginTop: 8,
+    color: Theme.surfaceBlue,
   },
   bulletText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 16,
+    lineHeight: 26,
     flex: 1,
+    color: '#444',
   },
   paragraphBreak: {
-    height: 8,
+    height: 4,
+  },
+  // Numbered list styles (distinct from bullets)
+  numberedContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingLeft: 4,
+  },
+  numberedPoint: {
+    fontSize: 16,
+    lineHeight: 26,
+    marginRight: 12,
+    minWidth: 12,
+    color: '#000',
+    fontWeight: '600',
+  },
+  sectionTextItem: {
+    marginBottom: 4,
+  },
+  // At a Glance section highlight
+  atAGlanceCard: {
+    backgroundColor: hexToRgba(Theme.surfaceBlue, 0.08),
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    marginBottom: 16,
+  },
+  atAGlanceHeader: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    marginBottom: 10,
+    color: '#000',
+  },
+  atAGlanceText: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: '#333',
   },
   // Disclaimer styles
   disclaimerContainer: {
