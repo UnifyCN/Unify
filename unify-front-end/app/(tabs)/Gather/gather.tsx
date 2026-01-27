@@ -26,7 +26,7 @@ const GroupsForYouSection = () => {
 
   const handleGroupPress = (group: Group) => {
     router.push({
-      pathname: '/(tabs)/Gather/GroupDetailScreen' as any,
+      pathname: '/group-detail' as any,
       params: { group: JSON.stringify(group) },
     });
   };

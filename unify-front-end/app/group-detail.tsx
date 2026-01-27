@@ -48,6 +48,26 @@ const GroupDetailScreen = () => {
   const queryClient = useQueryClient();
   const { trackGroupViewed, trackGroupJoined, trackGroupLeft } = useAnalytics();
 
+  // Update groupData when group param changes
+  useEffect(() => {
+    if (group) {
+      try {
+        const parsedGroup = JSON.parse(group as string) as Group;
+        setGroupData(parsedGroup);
+        // Reset state when group changes
+        setIsMember(null);
+        hasTrackedView.current = false;
+      } catch (error) {
+        console.error('Failed to parse group data:', error);
+      }
+    } else {
+      // Clear stale data when group param is removed so init effect can fetch by groupName
+      setGroupData(null);
+      setIsMember(null);
+      hasTrackedView.current = false;
+    }
+  }, [group]);
+
   useEffect(() => {
     // Reset header opacity when component mounts
     headerOpacity.setValue(0);
@@ -104,7 +124,7 @@ const GroupDetailScreen = () => {
     return () => {
       mounted = false;
     };
-  }, [groupName]);
+  }, [groupName, groupData]);
 
   // posts for this group
   const groupId = groupData?.id;

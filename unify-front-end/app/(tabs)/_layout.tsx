@@ -4,6 +4,7 @@ import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { View, Text, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
 import CommunityIcon from '@/components/icons/CommunityIcon';
@@ -11,6 +12,7 @@ import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
 import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
 import { useAnalytics } from '@/utils/analytics';
+import { useHapticsPreference } from '@/context/HapticsContext';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
   return (
@@ -39,6 +41,7 @@ export default function TabLayout() {
   const [currentTab, setCurrentTab] = useState('index');
   const previousTabRef = useRef('index');
   const { trackTabSwitch } = useAnalytics();
+  const { hapticsEnabled } = useHapticsPreference();
 
   // Map route names to display names
   const getTabDisplayName = (routeName: string) => {
@@ -78,9 +81,14 @@ export default function TabLayout() {
         screenListeners={{
           tabPress: e => {
             const routeName = e.target?.split('-')[0] || 'index';
+            const isTabSwitch = routeName !== previousTabRef.current;
 
+            if (isTabSwitch && hapticsEnabled) {
+              void Haptics.selectionAsync();
+            }
+            
             // Track tab switch
-            if (routeName !== previousTabRef.current) {
+            if (isTabSwitch) {
               trackTabSwitch(
                 getTabDisplayName(previousTabRef.current),
                 getTabDisplayName(routeName)

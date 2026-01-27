@@ -14,7 +14,7 @@ const NewsTipsScreen = () => {
 
   const handleNewsPress = (news: NewsDetails) => {
     router.push({
-      pathname: '/(tabs)/Gather/NewsDetailScreen' as any,
+      pathname: '/news-detail' as any,
       params: { news: JSON.stringify(news) },
     });
   };

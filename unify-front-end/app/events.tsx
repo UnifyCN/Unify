@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
-import EventCard from './EventCard';
+import EventCard from './(tabs)/Gather/EventCard';
 import { useMemo, useState } from 'react';
 import { Event } from '@/types/events';
 import { Theme } from '@/constants/Theme';
@@ -74,7 +74,7 @@ const EventsScreen = () => {
         width={354}
         onPress={() =>
           router.push({
-            pathname: '/(tabs)/Gather/EventDetailScreen',
+            pathname: '/event-detail' as any,
             params: { event: JSON.stringify(item) },
           })
         }
