@@ -114,20 +114,23 @@ export default function BottomSheet({
       animationType='none'
       statusBarTranslucent
       onRequestClose={onClose}
+      presentationStyle='overFullScreen'
     >
       <GestureHandlerRootView style={styles.container}>
         <TouchableWithoutFeedback onPress={onClose}>
           <Animated.View style={[styles.backdrop, animatedBackdropStyle]} />
         </TouchableWithoutFeedback>
 
-        <GestureDetector gesture={panGesture}>
-          <Animated.View
-            style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}
-          >
-            <View style={styles.dragHandle} />
-            <View style={styles.content}>{children}</View>
-          </Animated.View>
-        </GestureDetector>
+        <Animated.View
+          style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}
+        >
+          <GestureDetector gesture={panGesture}>
+            <Animated.View style={styles.dragHandleContainer}>
+              <View style={styles.dragHandle} />
+            </Animated.View>
+          </GestureDetector>
+          <View style={styles.content}>{children}</View>
+        </Animated.View>
       </GestureHandlerRootView>
     </Modal>
   );
@@ -158,14 +161,16 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  dragHandleContainer: {
+    paddingTop: 12,
+    paddingBottom: 8,
+    alignItems: 'center',
+  },
   dragHandle: {
     width: 40,
     height: 4,
     backgroundColor: Theme.borderInfoText,
     borderRadius: 2,
-    alignSelf: 'center',
-    marginTop: 12,
-    marginBottom: 8,
   },
   content: {
     flex: 1,
