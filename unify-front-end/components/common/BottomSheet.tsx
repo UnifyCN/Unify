@@ -5,6 +5,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Dimensions,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -114,6 +115,7 @@ export default function BottomSheet({
       animationType='none'
       statusBarTranslucent
       onRequestClose={onClose}
+      presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
     >
       <GestureHandlerRootView style={styles.container}>
         <TouchableWithoutFeedback onPress={onClose}>
