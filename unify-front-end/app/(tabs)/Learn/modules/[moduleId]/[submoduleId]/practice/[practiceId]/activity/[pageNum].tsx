@@ -9,11 +9,13 @@ import {
   Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSanityPractice } from '@/hooks/sanity/useSanityPractices';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
 
 export default function PracticeActivityPageScreen() {
   const router = useRouter();
@@ -48,6 +50,15 @@ export default function PracticeActivityPageScreen() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
   const [questionAnswers, setQuestionAnswers] = useState<{ [key: string]: string | string[] }>({});
+
+  const { updatePracticeProgress, completePractice } = usePracticeProgress();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!practiceId || !practice) return;
+      updatePracticeProgress(practiceId, currentPage);
+    }, [practiceId, practice, currentPage, updatePracticeProgress])
+  );
 
   useEffect(() => {
     setIsSubmitted(false);
@@ -86,6 +97,7 @@ export default function PracticeActivityPageScreen() {
         params: { moduleId, submoduleId, practiceId, pageNum: (currentPage + 1).toString() },
       });
     } else {
+      completePractice(practiceId!);
       goToSubmoduleIndex();
     }
   };

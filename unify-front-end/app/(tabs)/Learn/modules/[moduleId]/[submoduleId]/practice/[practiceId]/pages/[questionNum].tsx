@@ -9,11 +9,13 @@ import {
   Modal,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSanityPractice } from '@/hooks/sanity/useSanityPractices';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
 
 function goToSubmoduleIndex(moduleId: string, submoduleId: string) {
   router.push({
@@ -54,6 +56,17 @@ export default function PracticeQuizQuestionPage() {
   const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+
+  const { startPractice, updatePracticeProgress, completePractice } =
+    usePracticeProgress();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!practiceId || !moduleId || !submoduleId || !practice) return;
+      const pageNum = currentQuestionIndex + 1;
+      updatePracticeProgress(practiceId, pageNum);
+    }, [practiceId, moduleId, submoduleId, practice, currentQuestionIndex, updatePracticeProgress])
+  );
 
   useEffect(() => {
     setSelectedAnswer(null);
@@ -153,6 +166,7 @@ export default function PracticeQuizQuestionPage() {
       if (!allDone) return;
       if (isLastQuestion) {
         setIsNavigating(true);
+        completePractice(practiceId!);
         goToSubmoduleIndex(moduleId!, submoduleId!);
       } else {
         setIsNavigating(true);
@@ -185,6 +199,7 @@ export default function PracticeQuizQuestionPage() {
     }
     if (isLastQuestion) {
       setIsNavigating(true);
+      completePractice(practiceId!);
       goToSubmoduleIndex(moduleId!, submoduleId!);
     } else {
       setIsNavigating(true);

@@ -80,6 +80,23 @@ export interface UserPageProgress {
   updated_at: string;
 }
 
+/** Practice (submodule-level quiz/activity) progress – separate from Learn lesson progress */
+export interface UserPracticeProgress {
+  id: string;
+  user_id: string;
+  sanity_practice_id: string;
+  sanity_submodule_id: string;
+  sanity_module_id: string;
+  practice_type: 'quiz' | 'activity';
+  current_page_number: number;
+  is_completed: boolean;
+  is_in_progress: boolean;
+  last_accessed_at: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface UserQuizAttempt {
   id: string;
   user_id: string;

@@ -1,7 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityPractice } from '@/hooks/sanity/useSanityPractices';
+import { getPracticeProgress } from '@/services/progress/practiceProgressService';
+import { startPractice } from '@/services/progress/practiceProgressService';
 
 export default function PracticeEntryScreen() {
   const { moduleId, submoduleId, practiceId } = useLocalSearchParams<{
@@ -9,6 +11,7 @@ export default function PracticeEntryScreen() {
     submoduleId: string;
     practiceId: string;
   }>();
+  const [progressLoaded, setProgressLoaded] = useState(false);
 
   const { data: practice, isLoading, error } = useSanityPractice(
     practiceId || ''
@@ -16,27 +19,67 @@ export default function PracticeEntryScreen() {
 
   useEffect(() => {
     if (!practice || !moduleId || !submoduleId || !practiceId) return;
-    if (practice.practice_type === 'quiz') {
+
+    let cancelled = false;
+
+    (async () => {
+      const progress = await getPracticeProgress(practiceId);
+      if (cancelled) return;
+
+      const practiceType = practice.practice_type;
+      const isQuiz = practiceType === 'quiz';
       const hasQuestions =
-        Array.isArray(practice.questions) && practice.questions.length > 0;
-      if (hasQuestions) {
-        router.replace({
-          pathname:
-            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-          params: { moduleId, submoduleId, practiceId, questionNum: '1' },
-        });
-      }
-    } else {
+        isQuiz && Array.isArray(practice.questions) && practice.questions.length > 0;
       const hasPages =
-        Array.isArray(practice.pages) && practice.pages.length > 0;
-      if (hasPages) {
-        router.replace({
-          pathname:
-            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/activity/[pageNum]' as any,
-          params: { moduleId, submoduleId, practiceId, pageNum: '1' },
-        });
+        !isQuiz && Array.isArray(practice.pages) && practice.pages.length > 0;
+
+      if (isQuiz && hasQuestions) {
+        const total = practice.questions!.length;
+        let questionNum = 1;
+        if (
+          progress &&
+          !progress.is_completed &&
+          progress.is_in_progress &&
+          progress.current_page_number >= 1
+        ) {
+          questionNum = Math.min(progress.current_page_number, total);
+        } else if (!progress) {
+          await startPractice(practiceId, submoduleId, moduleId, 'quiz');
+        }
+        if (!cancelled) {
+          router.replace({
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
+            params: { moduleId, submoduleId, practiceId, questionNum: String(questionNum) },
+          });
+        }
+      } else if (!isQuiz && hasPages) {
+        const total = practice.pages!.length;
+        let pageNum = 1;
+        if (
+          progress &&
+          !progress.is_completed &&
+          progress.is_in_progress &&
+          progress.current_page_number >= 1
+        ) {
+          pageNum = Math.min(progress.current_page_number, total);
+        } else if (!progress) {
+          await startPractice(practiceId, submoduleId, moduleId, 'activity');
+        }
+        if (!cancelled) {
+          router.replace({
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/activity/[pageNum]' as any,
+            params: { moduleId, submoduleId, practiceId, pageNum: String(pageNum) },
+          });
+        }
       }
-    }
+      setProgressLoaded(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [practice, moduleId, submoduleId, practiceId]);
 
   if (isLoading) {

@@ -15,6 +15,8 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
+import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
+import { useSanityPractices } from '@/hooks/sanity/useSanityPractices';
 import { getLearnHref } from '@/utils/learnHref';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -31,6 +33,7 @@ export default function SubmoduleIndex() {
   }>();
 
   const [learnProgressPercent, setLearnProgressPercent] = useState(0);
+  const [practiceProgressPercent, setPracticeProgressPercent] = useState(0);
   const [isResolvingLearnHref, setIsResolvingLearnHref] = useState(false);
 
   const {
@@ -39,6 +42,8 @@ export default function SubmoduleIndex() {
     error,
   } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
+  const { data: practices } = useSanityPractices(submoduleId || '');
+  const { getPracticeProgressBySubmodule } = usePracticeProgress();
 
   const subjectColor = moduleData?.colorTheme?.hex || SUBJECT_COLOR;
 
@@ -62,6 +67,27 @@ export default function SubmoduleIndex() {
         cancelled = true;
       };
     }, [moduleId, submoduleId])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!submoduleId) return;
+      let cancelled = false;
+      const total = practices?.length ?? 0;
+      if (total === 0) {
+        setPracticeProgressPercent(0);
+        return undefined;
+      }
+      getPracticeProgressBySubmodule(submoduleId).then(rows => {
+        if (cancelled) return;
+        const completed = (rows || []).filter(r => r.is_completed).length;
+        const p = total > 0 ? Math.round((completed / total) * 100) : 0;
+        setPracticeProgressPercent(Math.min(100, Math.max(0, p)));
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, [submoduleId, practices?.length, getPracticeProgressBySubmodule])
   );
 
   const handleLearnPress = async () => {
@@ -235,6 +261,19 @@ export default function SubmoduleIndex() {
             <View style={styles.cardContent}>
               <Text style={styles.cardTitleInactive}>Practice</Text>
               <Text style={styles.cardSubtitleInactive}>Test your understanding</Text>
+              <View style={styles.progressBarContainerInactive}>
+                <View style={styles.progressBarBgInactive}>
+                  <View
+                    style={[
+                      styles.progressBarFillInactive,
+                      {
+                        width: `${practiceProgressPercent}%`,
+                        backgroundColor: subjectColor,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
             </View>
           </TouchableOpacity>
         </View>
@@ -367,6 +406,19 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     marginTop: 4,
+  },
+  progressBarContainerInactive: {
+    marginTop: 8,
+  },
+  progressBarBgInactive: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: CARD_INACTIVE_BORDER,
+    overflow: 'hidden',
+  },
+  progressBarFillInactive: {
+    height: '100%',
+    borderRadius: 3,
   },
   progressBarBg: {
     height: 6,
