@@ -997,48 +997,11 @@ export default function ModuleIndex() {
       }
 
       try {
-        if (href) {
-          router.push(href as any);
-        } else {
-          // Default to first lesson or intro page if no href is set (skip map)
-          const submodule = moduleData?.submodules?.find(
-            s => s?._id === section.id
-          );
-          if (
-            submodule?.intro_pages &&
-            Array.isArray(submodule.intro_pages) &&
-            submodule.intro_pages.length > 0
-          ) {
-            // Start with intro pages if they exist
-            router.push({
-              pathname:
-                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
-              params: { moduleId, submoduleId: section.id, pageNum: '1' },
-            });
-          } else if (
-            submodule?.lessons &&
-            Array.isArray(submodule.lessons) &&
-            submodule.lessons.length > 0 &&
-            submodule.lessons[0]?._id
-          ) {
-            // Otherwise start with first lesson
-            router.push({
-              pathname:
-                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-              params: {
-                moduleId,
-                submoduleId: section.id,
-                lessonId: submodule.lessons[0]._id,
-                pageNum: '1',
-              },
-            });
-          } else {
-            console.error(
-              '[ModuleIndex] No valid navigation path found for section:',
-              section.id
-            );
-          }
-        }
+        // Always navigate to submodule index first (Learn / Tasks / Practice)
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+          params: { moduleId, submoduleId: section.id },
+        });
       } catch (navError: any) {
         console.error('[ModuleIndex] Error navigating to section:', navError);
         // Final fallback: try to navigate to module index if all else fails

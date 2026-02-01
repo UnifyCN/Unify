@@ -697,7 +697,13 @@ export default function QuizQuestionPage() {
                           <RichTextRenderer
                             blocks={option.text || []}
                             markDefs={option.textMarkDefs}
-                            styles={{ normal: styles.optionText }}
+                            styles={{
+                              normal: {
+                                ...styles.optionText,
+                                marginBottom: 0,
+                                marginTop: 0,
+                              },
+                            }}
                           />
                         </View>
                       </View>
@@ -983,7 +989,7 @@ const styles = StyleSheet.create({
   },
   optionRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
     marginLeft: 5,
   },
@@ -995,6 +1001,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#fff',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 0,
   },
   checkboxSelected: {
     width: 20,
@@ -1033,6 +1041,7 @@ const styles = StyleSheet.create({
   },
   optionContent: {
     flex: 1,
+    minHeight: 20,
   },
   optionText: {
     fontSize: 14,

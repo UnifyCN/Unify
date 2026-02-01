@@ -701,11 +701,13 @@ export default function RichTextRenderer({
           );
         case 'normal':
         default:
-          // Add marginTop to first block to prevent text clipping
+          // Add marginTop to first block to prevent text clipping (only if not explicitly set by caller)
           const isFirstBlock = index === 0;
-          const finalBlockStyle = isFirstBlock
-            ? { ...blockStyle, marginTop: 8 }
-            : blockStyle;
+          const finalBlockStyle =
+            isFirstBlock &&
+            (blockStyle.marginTop === undefined || blockStyle.marginTop === null)
+              ? { ...blockStyle, marginTop: 8 }
+              : blockStyle;
           const textProps: any = {
             style: finalBlockStyle,
           };

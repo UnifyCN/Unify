@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,21 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
+import { cachedProgressService } from '@/services/progress/cachedProgressService';
+import { progressClient } from '@/services/progress/progressClient';
+import { getLearnHref } from '@/utils/learnHref';
+import { useFocusEffect } from '@react-navigation/native';
+
+const SUBJECT_COLOR = '#10B981'; // green for Learn (active)
+const CARD_INACTIVE_BG = '#F9FAFB';
+const CARD_INACTIVE_BORDER = '#E5E7EB';
+const CARD_INACTIVE_TEXT = '#6B7280';
 
 export default function SubmoduleIndex() {
   const router = useRouter();
@@ -20,6 +30,9 @@ export default function SubmoduleIndex() {
     submoduleId: string;
   }>();
 
+  const [learnProgressPercent, setLearnProgressPercent] = useState(0);
+  const [isResolvingLearnHref, setIsResolvingLearnHref] = useState(false);
+
   const {
     data: submoduleData,
     isLoading,
@@ -27,11 +40,90 @@ export default function SubmoduleIndex() {
   } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
 
+  const subjectColor = moduleData?.colorTheme?.hex || SUBJECT_COLOR;
+
+  const sectionNumber =
+    (moduleData?.submodules?.findIndex(s => s?._id === submoduleId) ?? 0) + 1;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!moduleId || !submoduleId) return;
+      let cancelled = false;
+      cachedProgressService
+        .getSubmoduleProgress(moduleId, submoduleId)
+        .then(progress => {
+          if (!cancelled && progress?.progress_percent != null) {
+            const p = Number(progress.progress_percent);
+            setLearnProgressPercent(Number.isFinite(p) ? Math.min(100, Math.max(0, p)) : 0);
+          }
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+      };
+    }, [moduleId, submoduleId])
+  );
+
+  const handleLearnPress = async () => {
+    if (!moduleId || !submoduleId || !submoduleData) return;
+    setIsResolvingLearnHref(true);
+    try {
+      let user = null;
+      try {
+        const userResult = await progressClient.auth.getUser();
+        user = userResult?.data?.user ?? null;
+      } catch {
+        user = null;
+      }
+
+      let lessonProgresses: any[] | null = null;
+      if (user) {
+        try {
+          const progressResult = await progressClient
+            .from('user_lesson_progress')
+            .select(
+              'sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number'
+            )
+            .eq('user_id', user.id)
+            .eq('sanity_submodule_id', submoduleId);
+          lessonProgresses = progressResult?.data ?? null;
+        } catch {
+          lessonProgresses = null;
+        }
+      }
+
+      const href = getLearnHref(
+        moduleId,
+        submoduleId,
+        submoduleData,
+        lessonProgresses
+      );
+      if (href) {
+        router.push(href as any);
+      }
+    } finally {
+      setIsResolvingLearnHref(false);
+    }
+  };
+
+  const handleTasksPress = () => {
+    // Dummy: do nothing or show "Coming soon"
+  };
+
+  const handlePracticePress = () => {
+    if (!moduleId || !submoduleId) return;
+    router.push({
+      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice' as any,
+      params: { moduleId, submoduleId },
+    });
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading submodule...</Text>
+          <ActivityIndicator size="large" color={subjectColor} />
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -42,14 +134,12 @@ export default function SubmoduleIndex() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
-            Error loading submodule: {error?.message || 'Unknown error'}
+            {error?.message || 'Unable to load this section'}
           </Text>
         </View>
       </SafeAreaView>
     );
   }
-
-  const nextLesson = submoduleData?.lessons?.[0]; // For now, just get the first lesson
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -57,57 +147,97 @@ export default function SubmoduleIndex() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {/* Header: back + title */}
         <View style={styles.headerRow}>
           <TouchableOpacity
             onPress={() =>
               router.replace({
-                pathname: '/(tabs)/Learn/modules/[moduleId]',
+                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
                 params: { moduleId },
               })
             }
             style={styles.backButton}
           >
-            <Feather name='chevron-left' size={30} color='#000' />
+            <Feather name="chevron-left" size={28} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              // Navigate to module index (skip map)
-              router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
-                params: { moduleId },
-              });
-            }}
-            style={styles.menuButton}
-          >
-            <Feather name='menu' size={20} color='#000' />
-          </TouchableOpacity>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {submoduleData.title}
+          </Text>
+          <View style={styles.headerSpacer} />
         </View>
 
-        {/* Stage Header */}
-        <Text style={styles.moduleLabel}>{moduleData?.title || 'Module'}</Text>
-        <Text style={styles.title}>{`${submoduleData?.title}`}</Text>
-        <View style={styles.mediaPlaceholder} />
+        {/* Section label + title + description */}
+        <Text style={styles.sectionLabel}>Section {sectionNumber}</Text>
+        <Text style={styles.title}>{submoduleData.title}</Text>
         <Text style={styles.submoduleDesc}>
-          {`By the end of this section, you will ${submoduleData?.description}`}
+          {submoduleData.description
+            ? `By the end of this section, you will ${submoduleData.description}`
+            : 'Learn key concepts and practice your skills.'}
         </Text>
 
-        {/* CTA to Intro Screen */}
-        <TouchableOpacity
-          style={[
-            styles.resumeButton,
-            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
-          ]}
-          onPress={() => {
-            router.push({
-              pathname:
-                '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
-              params: { moduleId, submoduleId, pageNum: '1' },
-            });
-          }}
-        >
-          <Text style={styles.resumeButtonText}>Start Submodule</Text>
-        </TouchableOpacity>
+        {/* Three cards: Learn, Tasks, Practice */}
+        <View style={styles.cardsContainer}>
+          {/* Learn */}
+          <TouchableOpacity
+            style={[styles.card, styles.cardLearn, { backgroundColor: subjectColor }]}
+            onPress={handleLearnPress}
+            disabled={isResolvingLearnHref}
+            activeOpacity={0.85}
+          >
+            <View style={styles.cardLeftLine}>
+              <View style={[styles.cardDot, styles.cardDotActive, { borderColor: subjectColor, backgroundColor: '#fff' }]} />
+              <View style={[styles.cardLineSegment, { backgroundColor: CARD_INACTIVE_BORDER }]} />
+            </View>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitleLearn}>Learn</Text>
+              <Text style={styles.cardSubtitleLearn}>Key concepts & terms</Text>
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBarBg}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      { width: `${learnProgressPercent}%`, backgroundColor: 'rgba(0,0,0,0.2)' },
+                    ]}
+                  />
+                </View>
+              </View>
+            </View>
+            {isResolvingLearnHref && (
+              <ActivityIndicator size="small" color="#fff" style={styles.cardLoader} />
+            )}
+          </TouchableOpacity>
+
+          {/* Tasks (dummy) */}
+          <TouchableOpacity
+            style={[styles.card, styles.cardInactive]}
+            onPress={handleTasksPress}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardLeftLine}>
+              <View style={[styles.cardDot, styles.cardDotInactive]} />
+              <View style={[styles.cardLineSegment, styles.cardLineInactive]} />
+            </View>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitleInactive}>Tasks</Text>
+              <Text style={styles.cardSubtitleInactive}>Real-world steps</Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Practice */}
+          <TouchableOpacity
+            style={[styles.card, styles.cardInactive]}
+            onPress={handlePracticePress}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardLeftLine}>
+              <View style={[styles.cardDot, styles.cardDotInactive]} />
+            </View>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitleInactive}>Practice</Text>
+              <Text style={styles.cardSubtitleInactive}>Test your understanding</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -121,135 +251,139 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   container: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
     paddingBottom: 40,
-    minHeight: '100%',
   },
-
-  // Header
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: '15%',
-    marginBottom: 20,
+    paddingTop: 12,
+    marginBottom: 16,
   },
   backButton: {
     padding: 8,
     marginLeft: -8,
   },
-  menuButton: {
-    padding: 8,
-    marginRight: -8,
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    textAlign: 'center',
   },
-
-  // Module Label
-  moduleLabel: {
+  headerSpacer: {
+    width: 44,
+  },
+  sectionLabel: {
     fontSize: 14,
     color: '#9CA3AF',
-    textAlign: 'center',
-    marginBottom: 8,
-    fontWeight: '500',
+    marginBottom: 4,
   },
-
-  // Title
   title: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '700',
-    textAlign: 'center',
     color: '#000',
-    marginBottom: 32,
-    lineHeight: 38,
-    maxWidth: width * 0.75,
-    alignSelf: 'center',
+    marginBottom: 12,
+    lineHeight: 32,
   },
   submoduleDesc: {
     fontSize: 14,
     color: '#6B7280',
     lineHeight: 20,
-    marginTop: 12,
-    marginBottom: 16,
+    marginBottom: 28,
   },
-
-  // Media Placeholder
-  mediaPlaceholder: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    marginBottom: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+  cardsContainer: {
+    gap: 0,
   },
-  mediaPlaceholderText: {
-    fontSize: 16,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-
-  // Objectives Section
-  objectivesSection: {
-    marginBottom: 40,
-  },
-  objectivesTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 20,
-    lineHeight: 26,
-  },
-  objectivesList: {
-    gap: 16,
-  },
-  objectiveItem: {
+  card: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
-  checkIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#10B981',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  objectiveText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-    lineHeight: 24,
-  },
-
-  // Resume Button
-  resumeButton: {
-    backgroundColor: '#575757',
+    borderRadius: 12,
     paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  resumeButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  lessonTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111827',
+    paddingRight: 16,
+    paddingLeft: 0,
     marginBottom: 12,
+    minHeight: 88,
   },
-
-  // Loading and Error States
+  cardLearn: {
+    paddingLeft: 0,
+  },
+  cardInactive: {
+    backgroundColor: CARD_INACTIVE_BG,
+    borderWidth: 1,
+    borderColor: CARD_INACTIVE_BORDER,
+  },
+  cardLeftLine: {
+    width: 24,
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  cardDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  cardDotActive: {
+    borderWidth: 2,
+  },
+  cardDotInactive: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: CARD_INACTIVE_BORDER,
+  },
+  cardLineSegment: {
+    width: 2,
+    flex: 1,
+    minHeight: 24,
+    marginTop: 4,
+    borderRadius: 1,
+  },
+  cardLineInactive: {
+    backgroundColor: CARD_INACTIVE_BORDER,
+  },
+  cardContent: {
+    flex: 1,
+  },
+  cardTitleLearn: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  cardSubtitleLearn: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: 8,
+  },
+  cardTitleInactive: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: CARD_INACTIVE_TEXT,
+    marginBottom: 2,
+  },
+  cardSubtitleInactive: {
+    fontSize: 13,
+    color: CARD_INACTIVE_TEXT,
+  },
+  progressBarContainer: {
+    marginTop: 4,
+  },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  cardLoader: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    marginTop: -10,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -259,7 +393,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#6B7280',
-    textAlign: 'center',
+    marginTop: 12,
   },
   errorText: {
     fontSize: 16,

@@ -294,3 +294,32 @@ export interface SanitySubmoduleWithLessons extends SanitySubmodule {
 export interface SanityLessonWithQuizzes extends SanityLesson {
   quizzes?: SanityQuiz[];
 }
+
+// Practice (submodule-level; replaces lesson quizzes + lesson activities for new content)
+export interface SanityPractice extends SanityDocument {
+  _type: 'practice';
+  submodule: { _ref: string; _type: 'reference' };
+  title: string;
+  description?: string;
+  practice_type: 'quiz' | 'activity';
+  order_number: number;
+  questions?: SanityQuizQuestion[];
+  pages?: SanityPracticeActivityPage[];
+}
+
+export interface SanityPracticeActivityPage {
+  _key: string;
+  title: string;
+  order: number;
+  instructions: (
+    | SanityBlock
+    | SanityLargeInputBox
+    | SanityMidInputBox
+    | SanitySmallInputBox
+    | SanityMultipleChoiceSingle
+    | SanityMultipleChoiceMultiple
+    | SanityTwoOptionsQuestion
+    | SanityMatchingQuestion
+  )[];
+  answer_box?: SanityAnswerBox;
+}
