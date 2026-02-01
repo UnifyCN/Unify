@@ -89,25 +89,29 @@ export default function PracticeActivityPageScreen() {
     setIsSubmitted(true);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentPage < totalPages) {
+      const nextPage = currentPage + 1;
+      await updatePracticeProgress(practiceId!, nextPage);
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/activity/[pageNum]' as any,
-        params: { moduleId, submoduleId, practiceId, pageNum: (currentPage + 1).toString() },
+        params: { moduleId, submoduleId, practiceId, pageNum: nextPage.toString() },
       });
     } else {
-      completePractice(practiceId!);
+      await completePractice(practiceId!);
       goToSubmoduleIndex();
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     if (currentPage > 1) {
+      const prevPage = currentPage - 1;
+      await updatePracticeProgress(practiceId!, prevPage);
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/activity/[pageNum]' as any,
-        params: { moduleId, submoduleId, practiceId, pageNum: (currentPage - 1).toString() },
+        params: { moduleId, submoduleId, practiceId, pageNum: prevPage.toString() },
       });
     } else {
       goToSubmoduleIndex();

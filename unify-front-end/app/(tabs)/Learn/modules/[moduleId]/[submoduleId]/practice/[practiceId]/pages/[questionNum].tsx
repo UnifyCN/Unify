@@ -159,21 +159,23 @@ export default function PracticeQuizQuestionPage() {
     setSelectedRightItem(null);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isNavigating) return;
     if (currentQuestion.question_type === 'matching') {
       const allDone = completedPairs.length === (currentQuestion.matching_pairs?.length || 0) * 2;
       if (!allDone) return;
       if (isLastQuestion) {
         setIsNavigating(true);
-        completePractice(practiceId!);
+        await completePractice(practiceId!);
         goToSubmoduleIndex(moduleId!, submoduleId!);
       } else {
         setIsNavigating(true);
+        const nextNum = currentQuestionIndex + 2;
+        await updatePracticeProgress(practiceId!, nextNum);
         router.push({
           pathname:
             '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-          params: { moduleId, submoduleId, practiceId, questionNum: (currentQuestionIndex + 2).toString() },
+          params: { moduleId, submoduleId, practiceId, questionNum: nextNum.toString() },
         });
       }
       return;
@@ -199,24 +201,28 @@ export default function PracticeQuizQuestionPage() {
     }
     if (isLastQuestion) {
       setIsNavigating(true);
-      completePractice(practiceId!);
+      await completePractice(practiceId!);
       goToSubmoduleIndex(moduleId!, submoduleId!);
     } else {
       setIsNavigating(true);
+      const nextNum = currentQuestionIndex + 2;
+      await updatePracticeProgress(practiceId!, nextNum);
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-        params: { moduleId, submoduleId, practiceId, questionNum: (currentQuestionIndex + 2).toString() },
+        params: { moduleId, submoduleId, practiceId, questionNum: nextNum.toString() },
       });
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     if (currentQuestionIndex > 0) {
+      const prevNum = currentQuestionIndex;
+      await updatePracticeProgress(practiceId!, prevNum);
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-        params: { moduleId, submoduleId, practiceId, questionNum: currentQuestionIndex.toString() },
+        params: { moduleId, submoduleId, practiceId, questionNum: prevNum.toString() },
       });
     } else {
       goToSubmoduleIndex(moduleId!, submoduleId!);
