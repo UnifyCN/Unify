@@ -8,6 +8,8 @@ import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { Avatar } from '@/components/Avatar';
 import { Theme } from '@/constants/Theme';
+import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
+import { useQuery } from '@tanstack/react-query';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -19,6 +21,13 @@ export const ProfileHeader = ({
   isCurrentUser,
 }: ProfileHeaderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { data: signedProfileUrl } = useQuery({
+    queryKey: ['profilePictureSignedUrl', userInfo?.profilePictureUrl],
+    enabled: !!userInfo?.profilePictureUrl,
+    queryFn: () => getProfilePictureUrl(userInfo?.profilePictureUrl as string),
+    staleTime: 4 * 60 * 1000,
+  });
+
   const router = useRouter();
   if (!userInfo) {
     return (
@@ -95,7 +104,7 @@ export const ProfileHeader = ({
       <View style={styles.rightSection}>
         <View style={styles.profilePictureContainer}>
           <Avatar
-            profilePictureUrl={userInfo.profilePictureUrl}
+            profilePictureUrl={signedProfileUrl}
             username={userInfo.username}
             size={93}
             style={styles.profilePicture}
