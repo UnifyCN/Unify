@@ -6,12 +6,14 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 
 interface Option {
   value: string;
   label: string;
   hasOther?: boolean;
+  icon?: React.ComponentProps<typeof Feather>['name'];
 }
 
 interface MultiSelectQuestionProps {
@@ -52,27 +54,39 @@ export default function MultiSelectQuestion({
           return (
             <TouchableOpacity
               key={option.value}
-              style={[styles.option, isSelected && styles.optionSelected]}
+              style={[styles.optionCard, isSelected && styles.optionSelected]}
               onPress={() => onToggle(option.value)}
+              activeOpacity={0.85}
             >
-              <View style={styles.checkboxContainer}>
+              <View style={styles.cardHeader}>
+                {option.icon ? (
+                  <View style={styles.iconBadge}>
+                    <Feather
+                      name={option.icon}
+                      size={16}
+                      color={Theme.textInput}
+                    />
+                  </View>
+                ) : (
+                  <View style={styles.iconPlaceholder} />
+                )}
                 <View
                   style={[
-                    styles.checkbox,
-                    isSelected && styles.checkboxSelected,
+                    styles.checkBadge,
+                    isSelected && styles.checkBadgeSelected,
                   ]}
                 >
                   {isSelected && <Text style={styles.checkmark}>✓</Text>}
                 </View>
-                <Text
-                  style={[
-                    styles.optionText,
-                    isSelected && styles.optionTextSelected,
-                  ]}
-                >
-                  {option.label}
-                </Text>
               </View>
+              <Text
+                style={[
+                  styles.optionText,
+                  isSelected && styles.optionTextSelected,
+                ]}
+              >
+                {option.label}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -96,60 +110,84 @@ export default function MultiSelectQuestion({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 28,
   },
   question: {
     fontSize: 24,
     fontWeight: '700',
     color: Theme.black,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   errorText: {
     fontSize: 14,
     color: '#f00',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   optionsContainer: {
-    gap: 12,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: 12,
+    columnGap: 12,
   },
-  option: {
-    padding: 16,
-    borderRadius: 12,
+  optionCard: {
+    width: '48%',
+    minHeight: 84,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: Theme.borderInfoText,
+    borderColor: Theme.surfaceGray,
     backgroundColor: Theme.white,
+    justifyContent: 'center',
   },
   optionSelected: {
     borderColor: Theme.primaryGatherRed,
-    backgroundColor: '#FFF5F3',
+    backgroundColor: '#FFF7F4',
   },
-  checkboxContainer: {
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
   },
-  checkbox: {
+  iconBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Theme.surfaceGray,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconPlaceholder: {
+    width: 24,
+    height: 24,
+  },
+  checkBadge: {
     width: 20,
     height: 20,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: Theme.borderInfoText,
-    marginRight: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: Theme.surfaceGray,
+    backgroundColor: Theme.white,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  checkboxSelected: {
+  checkBadgeSelected: {
     borderColor: Theme.primaryGatherRed,
     backgroundColor: Theme.primaryGatherRed,
   },
   checkmark: {
     color: Theme.white,
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   optionText: {
     fontSize: 16,
     color: Theme.black,
-    flex: 1,
+    lineHeight: 20,
+    paddingRight: 18,
   },
   optionTextSelected: {
     fontWeight: '600',

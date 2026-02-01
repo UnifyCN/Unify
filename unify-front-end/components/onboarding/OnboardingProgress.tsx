@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
 
 interface OnboardingProgressProps {
@@ -11,10 +12,11 @@ export default function OnboardingProgress({
   currentStep,
   totalSteps,
 }: OnboardingProgressProps) {
+  const insets = useSafeAreaInsets();
   const progress = (currentStep / totalSteps) * 100;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: 25 + insets.top }]}>
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: `${progress}%` }]} />
       </View>
@@ -28,7 +30,6 @@ export default function OnboardingProgress({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 24,
-    paddingTop: 25,
     paddingBottom: 10,
   },
   progressBarContainer: {
