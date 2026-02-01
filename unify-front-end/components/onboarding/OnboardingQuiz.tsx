@@ -529,7 +529,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           </View>
         );
       case 9:
-        return <OutcomesStep onNext={handleNext} />;
+        return <OutcomesStep />;
       case 10:
         return <ThankYouStep />;
       default:
@@ -709,7 +709,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 28,
     paddingVertical: 18,
-    paddingBottom: 40,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Theme.surfaceGray,
     backgroundColor: Theme.white,

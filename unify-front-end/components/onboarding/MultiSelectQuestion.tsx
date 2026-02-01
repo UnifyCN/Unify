@@ -59,15 +59,17 @@ export default function MultiSelectQuestion({
               activeOpacity={0.85}
             >
               <View style={styles.cardHeader}>
-                <View style={styles.iconBadge}>
-                  {option.icon && (
+                {option.icon ? (
+                  <View style={styles.iconBadge}>
                     <Feather
                       name={option.icon}
                       size={16}
                       color={Theme.textInput}
                     />
-                  )}
-                </View>
+                  </View>
+                ) : (
+                  <View style={styles.iconPlaceholder} />
+                )}
                 <View
                   style={[
                     styles.checkBadge,
@@ -157,6 +159,10 @@ const styles = StyleSheet.create({
     borderColor: Theme.surfaceGray,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconPlaceholder: {
+    width: 24,
+    height: 24,
   },
   checkBadge: {
     width: 20,

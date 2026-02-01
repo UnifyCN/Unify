@@ -3,10 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 
-interface OutcomesStepProps {
-  onNext: () => void;
-}
-
 interface OutcomeCardProps {
   icon: React.ComponentProps<typeof Feather>['name'];
   title: string;
@@ -27,7 +23,7 @@ function OutcomeCard({ icon, title, description }: OutcomeCardProps) {
   );
 }
 
-export default function OutcomesStep({ onNext }: OutcomesStepProps) {
+export default function OutcomesStep() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -87,7 +83,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Theme.surfaceGray,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Theme.surfaceEventCard,
   },
   cardIcon: {
     width: 36,
