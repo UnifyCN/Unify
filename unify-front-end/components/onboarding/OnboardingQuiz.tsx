@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
 import OnboardingProgress from './OnboardingProgress';
 import WelcomeStep from './WelcomeStep';
@@ -36,6 +37,7 @@ const TOTAL_STEPS = 10;
 
 export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
+  const insets = useSafeAreaInsets();
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -320,18 +322,25 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           <MultiSelectQuestion
             question='What do you want to accomplish? (Select all that apply)'
             options={[
-              { value: 'learn_something', label: 'Learn something new' },
+              {
+                value: 'learn_something',
+                label: 'Learn something new',
+                icon: 'book-open',
+              },
               {
                 value: 'build_community',
                 label: 'Build a community & make friends',
+                icon: 'users',
               },
               {
                 value: 'quick_answers',
                 label: 'Quick, trustworthy answers to my questions',
+                icon: 'zap',
               },
               {
                 value: 'something_else',
                 label: 'Something else',
+                icon: 'more-horizontal',
                 hasOther: true,
               },
             ]}
@@ -350,19 +359,29 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             options={[
               {
                 value: 'documents',
-                label: 'Sort out paperwork & IDs (documents)',
+                label: 'Documents & IDs',
+                icon: 'file-text',
               },
-              { value: 'employment', label: 'Jobs & career (employment)' },
-              { value: 'finance', label: 'Money & banking (finance)' },
-              { value: 'housing', label: 'Housing' },
-              { value: 'pr_immigration', label: 'PR & immigration' },
+              {
+                value: 'employment',
+                label: 'Jobs & career',
+                icon: 'briefcase',
+              },
+              { value: 'finance', label: 'Money & banking', icon: 'credit-card' },
+              { value: 'housing', label: 'Housing', icon: 'home' },
+              { value: 'pr_immigration', label: 'PR & immigration', icon: 'globe' },
               {
                 value: 'healthcare',
-                label: 'Understand healthcare & insurance',
+                label: 'Healthcare',
+                icon: 'heart',
               },
-              { value: 'family_kids', label: 'Support for family & kids' },
-              { value: 'transit', label: 'Transit / transportation' },
-              { value: 'other', label: 'Other', hasOther: true },
+              { value: 'family_kids', label: 'Family & kids', icon: 'users' },
+              {
+                value: 'transit',
+                label: 'Transit',
+                icon: 'map-pin',
+              },
+              { value: 'other', label: 'Other', hasOther: true, icon: 'more-horizontal' },
             ]}
             selectedValues={learningInterests}
             otherValue={learningInterestsOther}
@@ -381,18 +400,55 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             options={[
               {
                 value: 'career_growth',
-                label: 'Career & professional growth',
+                label: 'Career growth',
+                icon: 'trending-up',
               },
-              { value: 'exploring_canada', label: 'Exploring Canada' },
-              { value: 'wellness', label: 'Wellness & personal growth' },
-              { value: 'technology', label: 'Technology & digital skills' },
-              { value: 'music', label: 'Music & entertainment' },
-              { value: 'fitness', label: 'Fitness & sports' },
-              { value: 'personal_finance', label: 'Personal finance' },
-              { value: 'family_parenting', label: 'Family & parenting' },
-              { value: 'education', label: 'Education & studying' },
-              { value: 'food_cooking', label: 'Food & cooking' },
-              { value: 'movies', label: 'Movies' },
+              {
+                value: 'exploring_canada',
+                label: 'Explore Canada',
+                icon: 'map',
+              },
+              {
+                value: 'wellness',
+                label: 'Wellness & growth',
+                icon: 'heart',
+              },
+              {
+                value: 'technology',
+                label: 'Tech & digital',
+                icon: 'cpu',
+              },
+              {
+                value: 'music',
+                label: 'Music & arts',
+                icon: 'music',
+              },
+              {
+                value: 'fitness',
+                label: 'Fitness & sports',
+                icon: 'activity',
+              },
+              {
+                value: 'personal_finance',
+                label: 'Personal finance',
+                icon: 'dollar-sign',
+              },
+              {
+                value: 'family_parenting',
+                label: 'Family & parenting',
+                icon: 'users',
+              },
+              {
+                value: 'education',
+                label: 'Education & learning',
+                icon: 'book-open',
+              },
+              {
+                value: 'food_cooking',
+                label: 'Food & cooking',
+                icon: 'coffee',
+              },
+              { value: 'movies', label: 'Movies', icon: 'film' },
             ]}
             selectedValues={hobbies}
             otherValue={null}
@@ -494,7 +550,12 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         {renderStep()}
       </ScrollView>
 
-      <View style={styles.navContainer}>
+      <View
+        style={[
+          styles.navContainer,
+          { paddingBottom: 20 + insets.bottom },
+        ]}
+      >
         {currentStep > 1 && currentStep < 10 && (
           <TouchableOpacity
             style={styles.navButton}
@@ -523,7 +584,11 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         )}
         {currentStep === 9 && (
           <TouchableOpacity
-            style={[styles.nextButton, isLoading && styles.nextButtonDisabled]}
+            style={[
+              styles.nextButton,
+              styles.finalStepButton,
+              isLoading && styles.nextButtonDisabled,
+            ]}
             onPress={handleNext}
             disabled={isLoading}
           >
@@ -531,7 +596,9 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>Continue</Text>
+                <Text style={[styles.nextButtonText, styles.finalStepText]}>
+                  Continue
+                </Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
@@ -568,7 +635,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: 100,
+    paddingBottom: 88,
   },
   container: {
     flex: 1,
@@ -640,10 +707,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: 28,
+    paddingVertical: 18,
     paddingBottom: 40,
-    borderTopWidth: 1,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Theme.surfaceGray,
     backgroundColor: Theme.white,
   },
@@ -651,6 +718,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    minHeight: 44,
+    paddingHorizontal: 4,
   },
   navButtonText: {
     fontSize: 16,
@@ -660,20 +729,26 @@ const styles = StyleSheet.create({
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     backgroundColor: Theme.primaryGatherRed,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
+    paddingHorizontal: 28,
+    height: 52,
+    borderRadius: 26,
     marginLeft: 'auto',
+  },
+  finalStepButton: {
+    paddingHorizontal: 32,
   },
   nextButtonDisabled: {
     backgroundColor: Theme.disabledGatherRed,
   },
   nextButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     color: Theme.white,
     fontWeight: '600',
+  },
+  finalStepText: {
+    fontWeight: '700',
   },
   dateInputContainer: {
     marginTop: 16,
