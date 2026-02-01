@@ -86,7 +86,7 @@ export default function PracticeActivityPageScreen() {
         params: { moduleId, submoduleId, practiceId, pageNum: (currentPage + 1).toString() },
       });
     } else {
-      goToPracticeList();
+      goToSubmoduleIndex();
     }
   };
 
@@ -98,7 +98,7 @@ export default function PracticeActivityPageScreen() {
         params: { moduleId, submoduleId, practiceId, pageNum: (currentPage - 1).toString() },
       });
     } else {
-      goToPracticeList();
+      goToSubmoduleIndex();
     }
   };
 
