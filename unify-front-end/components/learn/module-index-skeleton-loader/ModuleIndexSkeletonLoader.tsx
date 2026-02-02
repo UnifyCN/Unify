@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Animated, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Layout } from '@/constants/Layout';
 
 // Constants matching the module index page
 const TIMELINE_LEFT_WIDTH = 24;
@@ -116,7 +117,12 @@ export function ModuleIndexSkeletonLoader() {
   return (
     <View style={styles.container}>
       {/* Colored Header Skeleton */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: insets.top + Layout.header.topInsetOffset },
+        ]}
+      >
         {/* Blob background overlay skeleton */}
         <View style={styles.blobContainer}>
           <SkeletonBox width={400} height={400} borderRadius={200} />
@@ -124,7 +130,11 @@ export function ModuleIndexSkeletonLoader() {
 
         <View style={styles.headerTopRow}>
           {/* Back button skeleton */}
-          <SkeletonBox width={44} height={44} borderRadius={22} />
+          <SkeletonBox
+            width={Layout.header.rowHeight}
+            height={Layout.header.rowHeight}
+            borderRadius={Layout.header.rowHeight / 2}
+          />
 
           {/* Icon container skeleton */}
           <SkeletonBox width={47} height={47} borderRadius={23.5} />
@@ -187,8 +197,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 15,
+    paddingHorizontal: Layout.header.horizontalPadding,
+    minHeight: Layout.header.rowHeight,
   },
   headerTitleWrap: {
     paddingHorizontal: 16,

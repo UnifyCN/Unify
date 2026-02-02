@@ -11,6 +11,7 @@ import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
+import { Layout, getHeaderHeight } from '@/constants/Layout';
 
 interface LegalWebViewProps {
   url: string;
@@ -35,6 +36,7 @@ export default function LegalWebView({
   allowedDomain = 'notion.so',
 }: LegalWebViewProps) {
   const insets = useSafeAreaInsets();
+  const headerHeight = getHeaderHeight(insets.top);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [key, setKey] = useState(0); // For retry functionality
@@ -76,11 +78,23 @@ export default function LegalWebView({
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + Layout.header.topInsetOffset,
+            height: headerHeight,
+          },
+        ]}
+      >
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Feather name='x' size={24} color={Theme.black} />
+          <Feather
+            name='x'
+            size={Layout.header.iconSize}
+            color={Theme.black}
+          />
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>
           {title}
@@ -143,8 +157,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: Layout.header.horizontalPadding,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#e4e4e4',
   },
@@ -160,7 +173,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   placeholder: {
-    width: 32,
+    width: Layout.header.iconSize,
   },
   content: {
     flex: 1,

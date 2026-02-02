@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
+import { Layout, getHeaderHeight } from '@/constants/Layout';
 interface BackHeaderProps {
   title?: string;
   onBack?: () => void;
@@ -21,6 +22,7 @@ const BackHeader = ({
 }: BackHeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const headerHeight = getHeaderHeight(insets.top);
 
   const handleBack = () => {
     if (onBack) {
@@ -31,10 +33,22 @@ const BackHeader = ({
   };
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
+    <View
+      style={[
+        styles.header,
+        {
+          paddingTop: insets.top + Layout.header.topInsetOffset,
+          height: headerHeight,
+        },
+      ]}
+    >
       {showBackButton ? (
         <TouchableOpacity onPress={handleBack}>
-          <Feather name={backIcon} size={26} color='#000' />
+          <Feather
+            name={backIcon}
+            size={Layout.header.iconSize}
+            color='#000'
+          />
         </TouchableOpacity>
       ) : (
         <View style={styles.placeholder} />
@@ -50,7 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: Layout.header.horizontalPadding,
     backgroundColor: Theme.white,
   },
   title: {
@@ -59,7 +73,7 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
   placeholder: {
-    width: 26, // To balance the back button size
+    width: Layout.header.iconSize,
   },
 });
 
