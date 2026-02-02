@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 
 interface AvatarProps {
   profilePictureUrl?: string;
@@ -14,6 +16,18 @@ export const Avatar = ({
   size = 40,
   style,
 }: AvatarProps) => {
+  const shouldSignUrl =
+    !!profilePictureUrl && !profilePictureUrl.startsWith('http');
+  const { data: signedProfileUrl } = useQuery({
+    queryKey: ['profilePictureSignedUrl', profilePictureUrl],
+    enabled: shouldSignUrl,
+    queryFn: () => getProfilePictureUrl(profilePictureUrl as string),
+    staleTime: 4 * 60 * 1000,
+  });
+  const effectiveProfileUrl = shouldSignUrl
+    ? signedProfileUrl
+    : profilePictureUrl;
+
   const avatarStyle = [
     styles.avatar,
     {
@@ -24,10 +38,10 @@ export const Avatar = ({
     style,
   ];
 
-  if (profilePictureUrl) {
+  if (effectiveProfileUrl) {
     return (
       <Image
-        source={{ uri: profilePictureUrl }}
+        source={{ uri: effectiveProfileUrl }}
         style={avatarStyle}
         resizeMode='cover'
       />
