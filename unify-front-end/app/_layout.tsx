@@ -18,6 +18,12 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
 import AnimatedSplash from '@/components/AnimatedSplash';
+import PostHogScreenTracker from '@/components/analytics/PostHogScreenTracker';
+import {
+  posthogApiKey,
+  posthogAutocapture,
+  posthogOptions,
+} from '@/lib/posthog';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -107,14 +113,11 @@ export default function RootLayout() {
                     <AuthWrapper>
                       <ThemeProvider value={DefaultTheme}>
                         <PostHogProvider
-                          apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
-                          options={{
-                            host:
-                              process.env.EXPO_PUBLIC_POSTHOG_HOST ||
-                              'https://us.i.posthog.com',
-                          }}
-                          autocapture={{ captureScreens: false }}
+                          apiKey={posthogApiKey}
+                          options={posthogOptions}
+                          autocapture={posthogAutocapture}
                         >
+                          <PostHogScreenTracker />
                           <AppContent />
                         </PostHogProvider>
                       </ThemeProvider>
