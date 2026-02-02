@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
 import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
-import { updateTaskCompletion } from '@/services/checklist/updateTaskCompletion';
+import { setChecklistItemCompletion } from '@/services/checklist/setChecklistItemCompletion';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
@@ -13,19 +14,23 @@ import { supabase } from '@/lib/supabase';
 import { Priority, UserTaskWithDetails } from '@/types/checklist';
 import Header from '@/components/Header';
 
-const stageDescriptions = {
-  0: 'Not Arrived Yet',
-  1: '0-3 Months',
-  2: '3-12 Months',
-  3: '1-3 Years',
-  4: '3+ Years',
+/** Stage labels per checklist spec (exactly 5 stages) */
+const stageDescriptions: Record<number, string> = {
+  0: 'Stage 0: Not arrived yet',
+  1: 'Stage 1: Arrived (0–3 months)',
+  2: 'Stage 2: 3–12 months',
+  3: 'Stage 3: 1–3 years',
+  4: 'Stage 4: 3+ years',
 };
 
-const personaDisplayNames = {
+/** Persona display labels per checklist spec (exactly 6 slugs) */
+const personaDisplayNames: Record<string, string> = {
   international_student: 'International Student',
-  skilled_worker: 'Skilled Worker',
   refugee: 'Refugee',
-  other: 'Other',
+  protected_person: 'Protected Person',
+  skilled_worker: 'Skilled Worker',
+  immigrant: 'Immigrant',
+  pr: 'PR',
 };
 
 export default function ChecklistScreen() {
@@ -74,6 +79,15 @@ export default function ChecklistScreen() {
     persona,
   });
 
+  // Refetch when Checklist tab is focused so new/updated Sanity tasks show up
+  useFocusEffect(
+    useCallback(() => {
+      if (currentStage !== null && persona) {
+        refetch();
+      }
+    }, [currentStage, persona, refetch])
+  );
+
   // Compute progress
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.completed).length;
@@ -97,7 +111,7 @@ export default function ChecklistScreen() {
   const priorities: Priority[] = [
     'Do now',
     'Do soon',
-    'Explore & connect',
+    'Explore and connect',
     'Optional / later',
   ];
 
@@ -121,11 +135,16 @@ export default function ChecklistScreen() {
     if (!selectedTask) return;
 
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+
       const newCompletedStatus = !selectedTask.completed;
 
-      // Optimistically update UI
+      // Optimistically update UI (match by sanity_checklist_id; row may not exist when unchecking)
       const updatedTasks = tasks.map(task =>
-        task.user_task_id === selectedTask.user_task_id
+        task.sanity_checklist_id === selectedTask.sanity_checklist_id
           ? {
               ...task,
               completed: newCompletedStatus,
@@ -137,17 +156,18 @@ export default function ChecklistScreen() {
       );
       setTasks(updatedTasks);
 
-      // Update selected task state
       setSelectedTask({
         ...selectedTask,
         completed: newCompletedStatus,
       });
 
-      // Update database in background
-      await updateTaskCompletion(selectedTask.user_task_id, newCompletedStatus);
+      await setChecklistItemCompletion(
+        user.id,
+        selectedTask.sanity_checklist_id,
+        newCompletedStatus
+      );
     } catch (error) {
       console.error('Error updating task completion:', error);
-      // Revert on error
       refetch();
     }
   };
@@ -165,7 +185,7 @@ export default function ChecklistScreen() {
       ? stageDescriptions[currentStage as keyof typeof stageDescriptions]
       : 'Stage Not Set';
   const personaDisplay = persona
-    ? personaDisplayNames[persona as keyof typeof personaDisplayNames]
+    ? personaDisplayNames[persona] ?? persona
     : 'User';
 
   // Don't show checklist if stage is null

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { UserTaskWithDetails, Stage } from '@/types/checklist';
-import { getUserTasks } from '@/services/checklist/getUserTasks';
-import { getPersonalizedTasks } from '@/services/checklist/getPersonalizedTasks';
-import { createUserTasks } from '@/services/checklist/createUserTasks';
-import { deleteUserTasks } from '@/services/checklist/deleteUserTasks';
-import { stageNumberToEnum } from '@/helpers/dateHelpers';
+import { UserTaskWithDetails } from '@/types/checklist';
+import { getChecklistWithUserProgress } from '@/services/checklist/getChecklistWithUserProgress';
+import {
+  stageNumberToStageSlug,
+  normalizePersonaSlug,
+} from '@/helpers/dateHelpers';
 
 interface UseChecklistTasksParams {
   currentStage: number | null;
@@ -23,9 +23,9 @@ export const useChecklistTasks = ({
   const [error, setError] = useState<string | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
 
-  const refetch = () => {
+  const refetch = useCallback(() => {
     setRefetchTrigger(prev => prev + 1);
-  };
+  }, []);
 
   useEffect(() => {
     const fetchOrCreateTasks = async () => {
@@ -33,7 +33,6 @@ export const useChecklistTasks = ({
         setIsLoading(true);
         setError(null);
 
-        // Get current user
         const {
           data: { user },
         } = await supabase.auth.getUser();
@@ -42,41 +41,22 @@ export const useChecklistTasks = ({
           throw new Error('User not authenticated');
         }
 
-        if (currentStage === null || !persona) {
+        const normalizedPersona = normalizePersonaSlug(persona);
+        if (currentStage === null || !normalizedPersona) {
           setTasks([]);
           return;
         }
 
-        // Fetch existing user tasks
-        const existingTasks = await getUserTasks(user.id);
+        const stageSlug = stageNumberToStageSlug(currentStage);
 
-        // If stage has changed or no tasks exist, regenerate tasks
-        if (stageChanged || existingTasks.length === 0) {
-          // Delete existing tasks if any
-          if (existingTasks.length > 0) {
-            await deleteUserTasks(user.id);
-          }
+        const merged = await getChecklistWithUserProgress(
+          user.id,
+          normalizedPersona,
+          stageSlug,
+          { stageChanged }
+        );
 
-          // Fetch personalized tasks for the user's persona and stage
-          const personalizedTasks = await getPersonalizedTasks(
-            persona,
-            currentStage
-          );
-
-          // Create new user tasks
-          if (personalizedTasks.length > 0) {
-            await createUserTasks(user.id, personalizedTasks);
-
-            // Fetch the newly created tasks with details
-            const newUserTasks = await getUserTasks(user.id);
-            setTasks(newUserTasks);
-          } else {
-            setTasks([]);
-          }
-        } else {
-          // Use existing tasks
-          setTasks(existingTasks);
-        }
+        setTasks(merged);
       } catch (err) {
         console.error('Error fetching/creating checklist tasks:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
