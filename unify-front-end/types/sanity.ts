@@ -323,3 +323,20 @@ export interface SanityPracticeActivityPage {
   )[];
   answer_box?: SanityAnswerBox;
 }
+
+// Task (submodule-level single-page content; same content blocks as lesson page)
+export interface SanityTask extends SanityDocument {
+  _type: 'task';
+  title: string;
+  submodule: { _ref: string; _type: 'reference' };
+  ordering: number;
+  content?: (
+    | SanityBlock
+    | SanityImage
+    | SanityDropdown
+    | SanityExampleBox
+    | SanityTipBox
+    | SanityNoteBox
+  )[];
+  markDefs?: any[];
+}

@@ -16,7 +16,9 @@ import { Feather } from '@expo/vector-icons';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
+import { useTaskProgress } from '@/hooks/progress/useTaskProgress';
 import { useSanityPractices } from '@/hooks/sanity/useSanityPractices';
+import { useSanityTasks } from '@/hooks/sanity/useSanityTasks';
 import { getLearnHref } from '@/utils/learnHref';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -34,6 +36,7 @@ export default function SubmoduleIndex() {
 
   const [learnProgressPercent, setLearnProgressPercent] = useState(0);
   const [practiceProgressPercent, setPracticeProgressPercent] = useState(0);
+  const [taskProgressPercent, setTaskProgressPercent] = useState(0);
   const [isResolvingLearnHref, setIsResolvingLearnHref] = useState(false);
 
   const {
@@ -43,7 +46,9 @@ export default function SubmoduleIndex() {
   } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
   const { data: practices } = useSanityPractices(submoduleId || '');
+  const { data: tasks } = useSanityTasks(submoduleId || '');
   const { getPracticeProgressBySubmodule } = usePracticeProgress();
+  const { getTaskProgressBySubmodule } = useTaskProgress();
 
   const subjectColor = moduleData?.colorTheme?.hex || SUBJECT_COLOR;
 
@@ -133,7 +138,11 @@ export default function SubmoduleIndex() {
   };
 
   const handleTasksPress = () => {
-    // Dummy: do nothing or show "Coming soon"
+    if (!moduleId || !submoduleId) return;
+    router.push({
+      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/tasks' as any,
+      params: { moduleId, submoduleId },
+    });
   };
 
   const handlePracticePress = () => {
@@ -233,7 +242,7 @@ export default function SubmoduleIndex() {
             )}
           </TouchableOpacity>
 
-          {/* Tasks (dummy) */}
+          {/* Tasks */}
           <TouchableOpacity
             style={[styles.card, styles.cardInactive]}
             onPress={handleTasksPress}
@@ -246,6 +255,19 @@ export default function SubmoduleIndex() {
             <View style={styles.cardContent}>
               <Text style={styles.cardTitleInactive}>Tasks</Text>
               <Text style={styles.cardSubtitleInactive}>Real-world steps</Text>
+              <View style={styles.progressBarContainerInactive}>
+                <View style={styles.progressBarBgInactive}>
+                  <View
+                    style={[
+                      styles.progressBarFillInactive,
+                      {
+                        width: `${taskProgressPercent}%`,
+                        backgroundColor: subjectColor,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
             </View>
           </TouchableOpacity>
 
