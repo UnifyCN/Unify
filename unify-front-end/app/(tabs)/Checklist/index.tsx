@@ -126,9 +126,21 @@ export default function ChecklistScreen() {
   };
 
   const handleLearnHow = () => {
+    if (!selectedTask?.task) {
+      handleCloseModal();
+      return;
+    }
+    const { linkModuleId, linkSubmoduleId } = selectedTask.task;
     handleCloseModal();
-    // Navigate to Learn tab - for now just go to learn home
-    router.push('/(tabs)/Learn');
+    if (linkSubmoduleId && linkModuleId) {
+      router.push(
+        `/(tabs)/Learn/modules/${linkModuleId}/${linkSubmoduleId}` as any
+      );
+    } else if (linkModuleId) {
+      router.push(`/(tabs)/Learn/modules/${linkModuleId}` as any);
+    } else {
+      router.push('/(tabs)/Learn');
+    }
   };
 
   const handleMarkComplete = async () => {

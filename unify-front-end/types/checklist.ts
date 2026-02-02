@@ -18,7 +18,7 @@ export interface SanityChecklistItem {
   personas: string[];
   stage: string;
   module?: { _id: string; title: string } | null;
-  submodule?: { _id: string; title: string } | null;
+  submodule?: { _id: string; title: string; moduleId?: string } | null;
 }
 
 const SANITY_CLASS_TO_PRIORITY: Record<
@@ -40,7 +40,7 @@ export function sanityChecklistItemToTaskDetails(
     task_description: item.description ?? '',
     priority: SANITY_CLASS_TO_PRIORITY[item.class],
     task_module: moduleOrSub?.title,
-    linkModuleId: item.module?._id,
+    linkModuleId: item.module?._id ?? item.submodule?.moduleId,
     linkSubmoduleId: item.submodule?._id,
     linkModuleTitle: moduleOrSub?.title,
   };
