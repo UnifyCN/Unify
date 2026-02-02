@@ -23,12 +23,14 @@ interface GroupSelectionSheetProps {
   visible: boolean;
   onClose: () => void;
   onGroupSelect: (group: Group) => void;
+  useModal?: boolean;
 }
 
 export default function GroupSelectionSheet({
   visible,
   onClose,
   onGroupSelect,
+  useModal = true,
 }: GroupSelectionSheetProps) {
   const [searchText, setSearchText] = useState('');
   const [joiningGroupId, setJoiningGroupId] = useState<number | null>(null);
@@ -149,7 +151,7 @@ export default function GroupSelectionSheet({
   );
 
   return (
-    <BottomSheet visible={visible} onClose={handleClose}>
+    <BottomSheet visible={visible} onClose={handleClose} useModal={useModal}>
       <View style={styles.container}>
         <View style={styles.searchContainer}>
           <View style={styles.searchInputWrapper}>
