@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface QuizSelections {
   goal: string | null;
@@ -122,11 +123,12 @@ function QuestionHeader({
   onClose: () => void;
 }) {
   const questionData = QUESTION_DATA[step as keyof typeof QUESTION_DATA];
+  const insets = useSafeAreaInsets();
   
   return (
-    <View style={styles.orangeHeader}>
+    <View style={[styles.orangeHeader, { paddingTop: insets.top + 12 }]}>
       <TouchableOpacity 
-        style={styles.closeButton} 
+        style={[styles.closeButton, { top: insets.top + 8 }]} 
         onPress={onClose}
         activeOpacity={0.7}
       >
@@ -356,19 +358,17 @@ const styles = StyleSheet.create({
   // Orange header banner
   orangeHeader: {
     backgroundColor: COLORS.headerBg,
-    paddingTop: 20,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
   closeButton: {
     position: 'absolute',
-    top: 20,
     left: 20,
     zIndex: 1,
   },
   headerContent: {
     alignItems: 'center',
-    paddingTop: 28,
+    paddingTop: 16,
   },
   headerIconCircle: {
     width: 36,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.white,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 22,
     paddingHorizontal: 20,
   },
   // Content
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
   },
   selectionLabel: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: COLORS.text,
   },
@@ -473,14 +473,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   selectedCountText: {
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.success,
     fontWeight: '500',
   },
   // Error
   errorText: {
     color: '#EF4444',
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
     marginTop: 16,
   },
@@ -488,15 +488,16 @@ const styles = StyleSheet.create({
   completionContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingHorizontal: 24,
+    paddingTop: 28,
   },
   completionIconContainer: {
     width: 88,
     height: 88,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: 18,
   },
   completionIconRing: {
     position: 'absolute',
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   summaryText: {
-    fontSize: 15,
+    fontSize: 16,
     color: COLORS.text,
     fontWeight: '500',
   },
@@ -570,7 +571,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   backButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '500',
     color: COLORS.text,
   },
@@ -579,15 +580,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 40,
+    minHeight: 52,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.white,
     gap: 12,
   },
   nextButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.white,
   },
@@ -596,13 +598,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 40,
+    minHeight: 52,
     borderRadius: 12,
     gap: 12,
   },
   joinButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.white,
   },

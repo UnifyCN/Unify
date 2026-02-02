@@ -13,6 +13,7 @@ import {
   Keyboard,
   Pressable,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
@@ -35,7 +36,6 @@ import { useAnalytics } from '@/utils/analytics';
 
 const MESSAGE_LIMIT = 3;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
-const emptyStateTopPadding = Math.max(220, windowHeight * 0.47);
 const dottedLineTopOffset = -windowHeight * 0.001;
 const dottedLineWidth = windowWidth * 2.2;
 const dottedLineHeight = windowHeight * 0.9;
@@ -65,6 +65,7 @@ export default function CompanionScreen() {
     conversationId?: string;
   }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {
     trackScreen,
     trackCompanionMessageSent,
@@ -93,6 +94,10 @@ export default function CompanionScreen() {
   const [inputText, setInputText] = useState('');
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
+  const emptyStateTopPadding = Math.max(
+    190,
+    (windowHeight - insets.top - insets.bottom) * 0.47
+  );
 
   // Fetch messages for the current conversation
   const { data: dbMessages, isLoading: isLoadingMessages } =
@@ -291,7 +296,7 @@ export default function CompanionScreen() {
               <ActivityIndicator size='large' color={Theme.surfaceBlue} />
             </View>
           ) : showEmptyState ? (
-            <View style={styles.emptyState}>
+            <View style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}>
               <View style={styles.dottedLineContainer} pointerEvents='none'>
                 <BlueDottedLine
                   width={dottedLineWidth}
@@ -394,7 +399,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     paddingHorizontal: 24,
-    paddingTop: emptyStateTopPadding,
     paddingBottom: 16,
   },
   dottedLineContainer: {

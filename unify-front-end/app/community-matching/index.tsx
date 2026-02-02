@@ -67,7 +67,7 @@ const featureStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 14,
-    paddingVertical: 16,
+    paddingVertical: 18,
   },
   iconCircle: {
     width: 36,
@@ -82,14 +82,14 @@ const featureStyles = StyleSheet.create({
     gap: 5,
   },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
     color: COLORS.titleColor,
   },
   description: {
-    fontSize: 14,
+    fontSize: 16,
     color: COLORS.titleColor,
-    lineHeight: 18,
+    lineHeight: 22,
   },
 });
 
@@ -179,8 +179,8 @@ export default function CommunityMatchingHome() {
       >
         {/* Hero section */}
         <View style={styles.heroSection}>
-          <View style={styles.heroIconCircle}>
-            <MaterialIcons name="group-add" size={28} color={COLORS.white} />
+        <View style={styles.heroIconCircle}>
+            <MaterialIcons name="group-add" size={34} color={COLORS.white} />
           </View>
           <Text style={styles.heroTitle}>Unify Circles</Text>
           <Text style={styles.heroSubtitle}>
@@ -245,18 +245,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingHorizontal: 24,
+    paddingTop: 4,
     paddingBottom: 180,
   },
   // Hero section
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: 12,
   },
   heroIconCircle: {
-    width: 51,
-    height: 51,
+    width: 64,
+    height: 64,
     borderRadius: 100,
     backgroundColor: COLORS.heroIconBackground,
     alignItems: 'center',
@@ -273,12 +273,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.descriptionColor,
     textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: 20,
+    lineHeight: 24,
+    paddingHorizontal: 24,
   },
   // Features section
   featuresSection: {
-    marginTop: 16,
+    marginTop: 8,
   },
   // Footer
   footer: {
@@ -287,15 +287,16 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 24,
-    paddingBottom: 34,
+    paddingBottom: 26,
     backgroundColor: '#fff',
     gap: 12,
   },
   primaryButton: {
     backgroundColor: COLORS.buttonBackground,
     borderRadius: 12,
-    paddingVertical: 10,
+    paddingVertical: 14,
     paddingHorizontal: 40,
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -303,16 +304,16 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: COLORS.white,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   secondaryButton: {
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
   },
   secondaryText: {
     color: COLORS.backLinkColor,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   // Incomplete onboarding state
@@ -339,9 +340,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   incompleteBody: {
-    fontSize: 15,
+    fontSize: 16,
     color: COLORS.descriptionColor,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
   },
 });
