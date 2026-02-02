@@ -6,12 +6,10 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
   Dimensions,
   Keyboard,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -19,6 +17,7 @@ import { useConversationMessages } from '@/hooks/companion/useConversationMessag
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
 import { useCurrentUser } from '@/context/UserContext';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import {
   formatMessagesForUI,
   Message,
@@ -33,6 +32,7 @@ import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 
 const MESSAGE_LIMIT = 3;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
@@ -66,6 +66,7 @@ export default function CompanionScreen() {
   }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const {
     trackScreen,
     trackCompanionMessageSent,
@@ -266,112 +267,114 @@ export default function CompanionScreen() {
       style={styles.container}
       onPress={Keyboard.dismiss}
     >
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={0}
-      >
-        <View style={styles.contentWrapper}>
-          {/* Header */}
-          <CompanionHeader
-            title='AI Companion'
-            showBackButton={false}
-            rightButton={
-              <TouchableOpacity
-                onPress={() => {
-                  router.push('/(tabs)/companion/history' as any);
-                  trackCompanionHistoryViewed();
-                }}
-                style={styles.headerButton}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              >
-                <HistoryIcon width={20} height={20} />
-              </TouchableOpacity>
-            }
-          />
+      <View style={styles.contentWrapper}>
+        {/* Header */}
+        <CompanionHeader
+          title='AI Companion'
+          showBackButton={false}
+          rightButton={
+            <TouchableOpacity
+              onPress={() => {
+                router.push('/(tabs)/companion/history' as any);
+                trackCompanionHistoryViewed();
+              }}
+              style={styles.headerButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <HistoryIcon width={20} height={20} />
+            </TouchableOpacity>
+          }
+        />
 
-          {/* Messages - takes up available space */}
-          {showLoadingState ? (
-            <View style={styles.emptyContainer}>
-              <ActivityIndicator size='large' color={Theme.surfaceBlue} />
+        {/* Messages - takes up available space */}
+        {showLoadingState ? (
+          <View style={styles.emptyContainer}>
+            <ActivityIndicator size='large' color={Theme.surfaceBlue} />
+          </View>
+        ) : showEmptyState ? (
+          <View style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}>
+            <View style={styles.dottedLineContainer} pointerEvents='none'>
+              <BlueDottedLine
+                width={dottedLineWidth}
+                height={dottedLineHeight}
+              />
             </View>
-          ) : showEmptyState ? (
-            <View style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}>
-              <View style={styles.dottedLineContainer} pointerEvents='none'>
-                <BlueDottedLine
-                  width={dottedLineWidth}
-                  height={dottedLineHeight}
-                />
-              </View>
-              <Text style={styles.heroTitle}>
-                I'm here to simplify your journey.
-              </Text>
-              <Text style={styles.heroSubtitle}>How can I help you?</Text>
-            </View>
-          ) : (
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              renderItem={renderMessage}
-              keyExtractor={item => item.id}
-              style={styles.messagesList}
-              contentContainerStyle={styles.messagesContent}
-              ListFooterComponent={renderLoadingIndicator}
-              keyboardShouldPersistTaps="handled"
-            />
+            <Text style={styles.heroTitle}>
+              I'm here to simplify your journey.
+            </Text>
+            <Text style={styles.heroSubtitle}>How can I help you?</Text>
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={item => item.id}
+            style={styles.messagesList}
+            contentContainerStyle={styles.messagesContent}
+            ListFooterComponent={renderLoadingIndicator}
+            keyboardShouldPersistTaps="handled"
+          />
+        )}
+
+      </View>
+
+      <KeyboardStickyView
+        style={styles.stickyContainer}
+        offset={{
+          closed: 0,
+          opened: insets.bottom + tabBarHeight - 12,
+        }}
+      >
+        <View style={styles.bottomSection}>
+          {/* Starter Prompts - Only show when no messages and no greeting */}
+          {showEmptyState && (
+            <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
           )}
 
-          {/* Bottom section - pushed to bottom with marginTop: auto */}
-          <View style={styles.bottomSection}>
-            {/* Starter Prompts - Only show when no messages and no greeting */}
-            {showEmptyState && (
-              <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
-            )}
+          {/* Input */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              ref={inputRef}
+              style={[styles.textInput, !canSend && styles.disabledInput]}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder={
+                canSend ? 'Type your message...' : 'Daily limit reached'
+              }
+              placeholderTextColor='#999'
+              multiline
+              maxLength={500}
+              editable={!isLoading && canSend}
+            />
+            <TouchableOpacity
+              style={[
+                styles.sendButton,
+                sendButtonDisabled && styles.sendButtonDisabled,
+              ]}
+              onPress={() => handleSendMessage()}
+              disabled={sendButtonDisabled}
+            >
+              <View style={styles.sendIconContainer}>
+                <SendIcon
+                  width={20}
+                  height={18}
+                  stroke={
+                    sendButtonDisabled ? Theme.textInactiveTab : Theme.white
+                  }
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
 
-            {/* Input */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                ref={inputRef}
-                style={[styles.textInput, !canSend && styles.disabledInput]}
-                value={inputText}
-                onChangeText={setInputText}
-                placeholder={
-                  canSend ? 'Type your message...' : 'Daily limit reached'
-                }
-                placeholderTextColor='#999'
-                multiline
-                maxLength={500}
-                editable={!isLoading && canSend}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.sendButton,
-                  sendButtonDisabled && styles.sendButtonDisabled,
-                ]}
-                onPress={() => handleSendMessage()}
-                disabled={sendButtonDisabled}
-              >
-                <View style={styles.sendIconContainer}>
-                  <SendIcon
-                    width={20}
-                    height={18}
-                    stroke={
-                      sendButtonDisabled ? Theme.textInactiveTab : Theme.white
-                    }
-                  />
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {/* Disclaimer */}
-            <View style={styles.disclaimerContainer}>
-              <Text style={styles.disclaimerText}>
-                AI Companion can make mistakes, check important info.
-              </Text>
-            </View>
+          {/* Disclaimer */}
+          <View style={styles.disclaimerContainer}>
+            <Text style={styles.disclaimerText}>
+              AI Companion can make mistakes, check important info.
+            </Text>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
     </Pressable>
   );
 }
@@ -380,9 +383,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Theme.white,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
   },
   contentWrapper: {
     flex: 1,
@@ -432,7 +432,10 @@ const styles = StyleSheet.create({
   },
   bottomSection: {
     backgroundColor: '#fff',
-    marginTop: 'auto',
+  },
+  stickyContainer: {
+    backgroundColor: '#fff',
+    width: '100%',
   },
   inputContainer: {
     flexDirection: 'row',
