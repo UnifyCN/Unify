@@ -12,6 +12,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
+import { Layout } from '@/constants/Layout';
 
 export default function SubmoduleIndex() {
   const router = useRouter();
@@ -68,7 +69,11 @@ export default function SubmoduleIndex() {
             }
             style={styles.backButton}
           >
-            <Feather name='chevron-left' size={30} color='#000' />
+            <Feather
+              name='chevron-left'
+              size={Layout.header.iconSize}
+              color='#000'
+            />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => {
@@ -80,7 +85,7 @@ export default function SubmoduleIndex() {
             }}
             style={styles.menuButton}
           >
-            <Feather name='menu' size={20} color='#000' />
+            <Feather name='menu' size={Layout.header.iconSize} color='#000' />
           </TouchableOpacity>
         </View>
 
@@ -131,16 +136,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: '15%',
+    paddingTop: Layout.header.topInsetOffset,
+    minHeight: Layout.header.rowHeight,
     marginBottom: 20,
   },
   backButton: {
-    padding: 8,
-    marginLeft: -8,
+    width: Layout.header.rowHeight,
+    height: Layout.header.rowHeight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   menuButton: {
-    padding: 8,
-    marginRight: -8,
+    width: Layout.header.rowHeight,
+    height: Layout.header.rowHeight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Module Label

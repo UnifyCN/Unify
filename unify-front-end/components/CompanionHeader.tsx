@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
+import { Layout, getHeaderHeight } from '@/constants/Layout';
 
 interface CompanionHeaderProps {
   title?: string;
@@ -22,6 +23,7 @@ const CompanionHeader = ({
 }: CompanionHeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const headerHeight = getHeaderHeight(insets.top);
 
   const handleBack = () => {
     if (onBack) {
@@ -32,10 +34,22 @@ const CompanionHeader = ({
   };
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 24 }]}>
+    <View
+      style={[
+        styles.header,
+        {
+          paddingTop: insets.top + Layout.header.topInsetOffset,
+          height: headerHeight,
+        },
+      ]}
+    >
       {showBackButton ? (
         <TouchableOpacity onPress={handleBack}>
-          <Feather name={backIcon} size={24} color='#000' />
+          <Feather
+            name={backIcon}
+            size={Layout.header.iconSize}
+            color='#000'
+          />
         </TouchableOpacity>
       ) : (
         <View style={styles.placeholder} />
@@ -51,7 +65,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: Layout.header.horizontalPadding,
     backgroundColor: Theme.white,
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
@@ -62,7 +76,7 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
   placeholder: {
-    width: 24,
+    width: Layout.header.iconSize,
   },
 });
 

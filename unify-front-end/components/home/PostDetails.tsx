@@ -18,24 +18,15 @@ import { useCommentMetadata } from '@/hooks/useCommentMetadata';
 import PostCommentItem from '../../app/(tabs)/Gather/PostCommentItem';
 import { useGetPostComments } from '@/hooks/posts/useGetPostComments';
 import { PostItem } from '@/components/home/PostItem';
-import { Feather } from '@expo/vector-icons';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import SendIcon from '@/components/icons/SendIcon.svg';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { Theme } from '@/constants/Theme';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
-
-// Header component
-const PostDetailsHeader = ({ onBack }: { onBack: () => void }) => (
-  <View style={styles.headerContainer}>
-    <View style={styles.headerContent}>
-      <TouchableOpacity style={styles.backButton} onPress={onBack}>
-        <Feather name='chevron-left' size={24} color='#343434' />
-      </TouchableOpacity>
-    </View>
-  </View>
-);
+import BackHeader from '@/components/BackHeader';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getHeaderHeight } from '@/constants/Layout';
 
 // Loading state component
 const CommentsLoadingState = () => (
@@ -103,6 +94,8 @@ const PostDetails = () => {
 
   // Router for navigation
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const headerHeight = getHeaderHeight(insets.top);
 
   const onBack = () => {
     router.back();
@@ -178,15 +171,15 @@ const PostDetails = () => {
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
     >
-      <PostDetailsHeader onBack={onBack} />
+      <BackHeader onBack={onBack} />
 
       <FlatList
         data={commentsData}
         keyExtractor={item => item.id.toString()}
         renderItem={renderPost}
-        contentContainerStyle={{ paddingTop: 100, paddingBottom: 25 }}
+        contentContainerStyle={{ paddingBottom: 25 }}
         ListHeaderComponent={
           <>
             <PostItem
@@ -248,30 +241,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
-  },
-  headerContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    backgroundColor: '#fff',
-    paddingTop: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-    paddingTop: 12,
-    paddingBottom: 12,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   largeDivider: {
     width: '100%',

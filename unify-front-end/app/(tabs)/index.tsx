@@ -27,6 +27,8 @@ import GroupViewMoreCard from '@/components/icons/GroupViewMoreCard.svg';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
+import * as Haptics from 'expo-haptics';
+import { useHapticsPreference } from '@/context/HapticsContext';
 
 interface HeaderProps {
   activeTab: string;
@@ -185,6 +187,7 @@ export default function HomeScreen() {
   const [activeTab, setActiveTab] = useState('For You');
   const { trackScreen, trackFeedTabSwitched } = useAnalytics();
   const isFocused = useIsFocused();
+  const { hapticsEnabled } = useHapticsPreference();
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
   const activeTabRef = useRef(activeTab);
@@ -216,11 +219,14 @@ export default function HomeScreen() {
       if (!isFocused) return;
 
       const tabName = tab as 'For You' | 'Following' | 'Groups';
+      if (hapticsEnabled) {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
       trackFeedTabSwitched(tabName);
       // Also update the screen name for the new tab
       trackScreen(tabName);
     },
-    [trackFeedTabSwitched, trackScreen, isFocused]
+    [trackFeedTabSwitched, trackScreen, isFocused, hapticsEnabled]
   );
 
   const renderFeedContent = useMemo(() => {
