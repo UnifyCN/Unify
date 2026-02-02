@@ -65,7 +65,7 @@ export const getSavedPosts = async (
       time: save.posts.created_at,
       title: save.posts.title,
       content: save.posts.content,
-      group: save.posts.groups?.group_name || null,
+      group: save.posts.groups?.group_name?.trim() || null,
     }));
 
     return {

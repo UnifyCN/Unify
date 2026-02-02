@@ -44,8 +44,8 @@ export async function getRecentGroupsWithData(userId: string) {
     .filter((row: any) => row.groups)
     .map((row: any) => ({
       id: row.groups.id,
-      name: row.groups.group_name,
-      description: row.groups.group_description,
+      name: row.groups.group_name?.trim() ?? '',
+      description: row.groups.group_description?.trim() ?? null,
       memberCount: row.groups.member_count,
       coverPhotoUrl: row.groups.cover_photo_url,
       createdAt: row.groups.created_at,

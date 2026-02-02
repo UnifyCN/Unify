@@ -41,8 +41,8 @@ export const getAvailableGroups = async (): Promise<Group[]> => {
     // Map the database columns to the Group interface
     return availableGroups.map(group => ({
       id: group.id,
-      name: group.group_name,
-      description: group.group_description,
+      name: group.group_name?.trim() ?? '',
+      description: group.group_description?.trim() ?? null,
       memberCount: group.member_count,
       coverPhotoUrl: group.cover_photo_url,
       createdAt: group.created_at,

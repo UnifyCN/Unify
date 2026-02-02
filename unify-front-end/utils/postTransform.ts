@@ -19,7 +19,7 @@ export const transformPostDto = (dto: PostDto): PostData => {
     time: dto.created_at,
     title: dto.title,
     content: dto.content,
-    group: dto.groups?.group_name,
+    group: dto.groups?.group_name?.trim() || null,
     isPinned: dto.is_pinned ?? false,
   };
 };
