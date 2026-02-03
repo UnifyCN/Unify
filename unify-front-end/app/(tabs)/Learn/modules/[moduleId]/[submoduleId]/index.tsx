@@ -12,7 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
@@ -21,14 +21,47 @@ import { useSanityPractices } from '@/hooks/sanity/useSanityPractices';
 import { useSanityTasks } from '@/hooks/sanity/useSanityTasks';
 import { getLearnHref } from '@/utils/learnHref';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Blob3 from '@/assets/images/Blob3.svg';
+import Blob8 from '@/assets/images/Blob8.svg';
+import Blob10 from '@/assets/images/Blob10.svg';
+import Blob11 from '@/assets/images/Blob11.svg';
+import Blob12 from '@/assets/images/Blob12.svg';
 
 const SUBJECT_COLOR = '#10B981'; // green for Learn (active)
+
+const mapIconName = (iconName: string): string => {
+  const iconMap: { [key: string]: string } = {
+    account_balance: 'bank-outline',
+    assignment_ind: 'account-tie-outline',
+    cottage: 'home-outline',
+    article: 'file-document-outline',
+    passport: 'passport',
+    school: 'school-outline',
+    book: 'book-outline',
+    work: 'briefcase-outline',
+    computer: 'laptop-outline',
+    business: 'office-building-outline',
+    science: 'flask-outline',
+    language: 'translate',
+    history: 'clock-time-four-outline',
+    psychology: 'brain',
+    menu_book: 'book-open-page-variant',
+    auto_stories: 'book-open-outline',
+    calculate: 'calculator',
+    palette: 'palette-outline',
+    music_note: 'music-note-outline',
+    sports_esports: 'gamepad-variant-outline',
+  };
+  return iconMap[iconName] || 'bank-outline';
+};
 const CARD_INACTIVE_BG = '#F9FAFB';
 const CARD_INACTIVE_BORDER = '#E5E7EB';
 const CARD_INACTIVE_TEXT = '#6B7280';
 
 export default function SubmoduleIndex() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
     submoduleId: string;
@@ -54,6 +87,18 @@ export default function SubmoduleIndex() {
 
   const sectionNumber =
     (moduleData?.submodules?.findIndex(s => s?._id === submoduleId) ?? 0) + 1;
+
+  const blobIndexNum = sectionNumber % 5;
+  const BlobComponent =
+    blobIndexNum === 0
+      ? Blob3
+      : blobIndexNum === 1
+        ? Blob8
+        : blobIndexNum === 2
+          ? Blob10
+          : blobIndexNum === 3
+            ? Blob11
+            : Blob12;
 
   useFocusEffect(
     useCallback(() => {
@@ -177,13 +222,35 @@ export default function SubmoduleIndex() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.pageContainer}>
+      {/* Colored Header (same as module index) */}
+      <View
+        style={[
+          styles.header,
+          { backgroundColor: subjectColor, paddingTop: insets.top },
+        ]}
       >
-        {/* Header: back + title */}
-        <View style={styles.headerRow}>
+        <View
+          style={
+            blobIndexNum === 0
+              ? styles.blob3Container
+              : blobIndexNum === 1
+                ? styles.blob8Container
+                : blobIndexNum === 2
+                  ? styles.blob10Container
+                  : blobIndexNum === 3
+                    ? styles.blob11Container
+                    : styles.blob12Container
+          }
+        >
+          <BlobComponent
+            width={400}
+            height={400}
+            fill="#FFFFFF"
+            opacity={0.3}
+          />
+        </View>
+        <View style={styles.headerTopRow}>
           <TouchableOpacity
             onPress={() =>
               router.replace({
@@ -193,23 +260,41 @@ export default function SubmoduleIndex() {
             }
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#000" />
+            <Feather name="chevron-left" size={28} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {submoduleData.title}
-          </Text>
-          <View style={styles.headerSpacer} />
+          {moduleData?.icon ? (
+            <View style={styles.headerIconContainer}>
+              <MaterialCommunityIcons
+                name={mapIconName(moduleData.icon) as any}
+                size={30}
+                color="#FFFFFF"
+              />
+            </View>
+          ) : (
+            <View style={styles.headerRightPlaceholder} />
+          )}
         </View>
 
-        {/* Section label + title + description */}
-        <Text style={styles.sectionLabel}>Section {sectionNumber}</Text>
-        <Text style={styles.title}>{submoduleData.title}</Text>
-        <Text style={styles.submoduleDesc}>
-          {submoduleData.description
-            ? `By the end of this section, you will ${submoduleData.description}`
-            : 'Learn key concepts and practice your skills.'}
-        </Text>
+        <View style={styles.headerTitleWrap}>
+          <Text style={styles.headerTitle}>
+            Section {sectionNumber}: {submoduleData.title}
+          </Text>
+        </View>
 
+        <View style={styles.headerDescriptionWrap}>
+          <Text style={styles.headerDescription}>
+            {submoduleData.description
+              ? `By the end of this section, you will ${submoduleData.description}`
+              : 'Learn key concepts and practice your skills.'}
+          </Text>
+        </View>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Three cards: Learn, Tasks, Practice */}
         <View style={styles.cardsContainer}>
           {/* Learn */}
@@ -300,58 +385,126 @@ export default function SubmoduleIndex() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
+  pageContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
   safe: {
     flex: 1,
     backgroundColor: '#fff',
   },
-  container: {
-    paddingHorizontal: 24,
-    paddingBottom: 40,
+  header: {
+    paddingBottom: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    position: 'relative' as const,
+    overflow: 'hidden',
   },
-  headerRow: {
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 12,
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 15,
   },
   backButton: {
-    padding: 8,
-    marginLeft: -8,
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitleWrap: {
+    paddingHorizontal: 16,
+    marginTop: 8,
   },
   headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    paddingLeft: 16,
   },
-  headerSpacer: {
+  headerDescriptionWrap: {
+    paddingHorizontal: 16,
+    marginTop: 4,
+    paddingBottom: 4,
+  },
+  headerDescription: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: '#FFFFFF',
+    opacity: 0.9,
+    lineHeight: 20,
+    marginLeft: 16,
+  },
+  headerRightPlaceholder: {
     width: 44,
   },
-  sectionLabel: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    marginBottom: 4,
+  headerIconContainer: {
+    width: 47,
+    height: 47,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#000',
-    marginBottom: 12,
-    lineHeight: 32,
+  blob3Container: {
+    position: 'absolute',
+    top: -170,
+    right: -175,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '-45deg' }],
   },
-  submoduleDesc: {
-    fontSize: 14,
-    color: '#6B7280',
-    lineHeight: 20,
-    marginBottom: 28,
+  blob8Container: {
+    position: 'absolute',
+    top: -187.5,
+    right: -187.5,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '35deg' }],
+  },
+  blob10Container: {
+    position: 'absolute',
+    top: -200,
+    right: 225,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '45deg' }],
+  },
+  blob11Container: {
+    position: 'absolute',
+    top: -250,
+    right: 215,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '-35deg' }],
+  },
+  blob12Container: {
+    position: 'absolute',
+    top: 25,
+    right: 105,
+    width: 400,
+    height: 400,
+    overflow: 'hidden',
+    transform: [{ rotate: '13deg' }],
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
   },
   cardsContainer: {
     gap: 0,
