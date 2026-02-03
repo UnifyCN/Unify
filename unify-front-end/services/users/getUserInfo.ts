@@ -2,6 +2,8 @@ import { supabase } from '@/lib/supabase';
 import { Permissions } from '@/types/permissions';
 import dayjs from 'dayjs';
 import { StageNumber } from '@/types/checklist';
+import { Persona } from '@/types/onboardingProfile';
+import { getPublicOnboardingProfile } from '@/services/onboarding/getPublicOnboardingProfile';
 
 export interface UserInfo {
   id: string;
@@ -14,6 +16,8 @@ export interface UserInfo {
   permissions: string;
   arrivalDate: string;
   stage: StageNumber;
+  persona: Persona | null;
+  personaOther: string | null;
 }
 
 // Helper function for calculating stages
@@ -63,7 +67,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     // Get onboarding data
     const { data: onboardingData, error: onboardingError } = await supabase
       .from('user_onboarding_profiles')
-      .select('arrival_date, stage')
+      .select('arrival_date, stage, persona, persona_other')
       .eq('id', targetUserId)
       .maybeSingle();
 
@@ -73,12 +77,32 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       );
     }
 
-    const arrivalDate = onboardingData?.arrival_date ?? null;
-    const receivedStage = onboardingData?.stage ?? 0;
+    let resolvedOnboarding = onboardingData;
+
+    if (
+      !resolvedOnboarding ||
+      (!resolvedOnboarding.persona && !resolvedOnboarding.arrival_date)
+    ) {
+      const publicProfile = await getPublicOnboardingProfile(targetUserId);
+      if (publicProfile) {
+        resolvedOnboarding = {
+          ...resolvedOnboarding,
+          persona: publicProfile.persona,
+          persona_other: publicProfile.persona_other,
+          arrival_date: publicProfile.arrival_date,
+        };
+      }
+    }
+
+    const arrivalDate = resolvedOnboarding?.arrival_date ?? null;
+    const receivedStage =
+      onboardingData?.stage !== undefined && onboardingData?.stage !== null
+        ? onboardingData.stage
+        : null;
     const computedStage = computeStage(arrivalDate);
 
-    // If computed stage differs from stored stage, update it in the table
-    if (receivedStage !== computedStage) {
+    // Only update stage when we could read it directly (avoid RLS failures)
+    if (receivedStage !== null && receivedStage !== computedStage) {
       await supabase
         .from('user_onboarding_profiles')
         .update({ stage: computedStage })
@@ -120,6 +144,8 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       permissions: userData.permissions ?? Permissions.USER,
       arrivalDate,
       stage: computedStage,
+      persona: resolvedOnboarding?.persona ?? null,
+      personaOther: resolvedOnboarding?.persona_other ?? null,
     };
   } catch (error) {
     console.error('Error fetching user info:', error);
