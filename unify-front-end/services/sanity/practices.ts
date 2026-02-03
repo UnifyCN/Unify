@@ -1,6 +1,16 @@
 import { sanityClient } from '../../sanity-custom';
 import { SanityPractice } from '../../types/sanity';
 
+/** Sanity IDs: alphanumeric, hyphens, underscores; 1–128 chars to prevent GROQ injection. */
+function isValidSanityId(id: string): boolean {
+  return (
+    typeof id === 'string' &&
+    id.length >= 1 &&
+    id.length <= 128 &&
+    /^[a-zA-Z0-9_-]+$/.test(id)
+  );
+}
+
 const PRACTICE_BY_SUBMODULE_QUERY = `*[_type == "practice" && submodule._ref == $submoduleId] | order(order_number asc) {
   _id,
   _type,
@@ -58,6 +68,13 @@ const PRACTICE_BY_ID_QUERY = `*[_type == "practice" && _id == $practiceId][0] {
 export async function getPracticesBySubmodule(
   submoduleId: string
 ): Promise<SanityPractice[]> {
+  if (!isValidSanityId(submoduleId)) {
+    console.warn(
+      '[practices] Invalid submoduleId rejected (GROQ injection guard):',
+      submoduleId
+    );
+    return [];
+  }
   try {
     const result = await sanityClient.fetch(PRACTICE_BY_SUBMODULE_QUERY, {
       submoduleId,
@@ -72,6 +89,13 @@ export async function getPracticesBySubmodule(
 export async function getPracticeById(
   practiceId: string
 ): Promise<SanityPractice | null> {
+  if (!isValidSanityId(practiceId)) {
+    console.warn(
+      '[practices] Invalid practiceId rejected (GROQ injection guard):',
+      practiceId
+    );
+    return null;
+  }
   try {
     const result = await sanityClient.fetch(PRACTICE_BY_ID_QUERY, {
       practiceId,

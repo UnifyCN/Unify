@@ -5,18 +5,24 @@ import { SanityTask } from '../../types/sanity';
 const TASKS_BY_SUBMODULE_QUERY = `*[_type == "task" && references($submoduleId)] | order(ordering asc) {
   _id,
   _type,
+  _createdAt,
+  _updatedAt,
+  _rev,
   title,
   ordering,
-  "submodule": submodule-> { _id, title },
+  "submodule": submodule,
   content
 }`;
 
 const TASK_BY_ID_QUERY = `*[_type == "task" && _id == $taskId][0] {
   _id,
   _type,
+  _createdAt,
+  _updatedAt,
+  _rev,
   title,
   ordering,
-  "submodule": submodule-> { _id, title },
+  "submodule": submodule,
   content
 }`;
 
