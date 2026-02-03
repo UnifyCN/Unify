@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
 import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
 import { updateTaskCompletion } from '@/services/checklist/updateTaskCompletion';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
@@ -154,9 +152,9 @@ export default function ChecklistScreen() {
 
   if (isLoading) {
     return (
-      <ThemedView style={styles.loadingContainer}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size='large' />
-      </ThemedView>
+      </View>
     );
   }
 
@@ -171,39 +169,39 @@ export default function ChecklistScreen() {
   // Don't show checklist if stage is null
   if (currentStage === null) {
     return (
-      <ThemedView style={styles.container}>
+      <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.header}>
-            <ThemedText style={styles.title}>
+            <Text style={styles.title}>
               Your Personalized Checklist
-            </ThemedText>
-            <ThemedText style={styles.subtitle}>
+            </Text>
+            <Text style={styles.subtitle}>
               Please complete your onboarding to see your personalized
               checklist.
-            </ThemedText>
+            </Text>
           </View>
         </ScrollView>
-      </ThemedView>
+      </View>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <Header showSearchIcon={true} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <ThemedText style={styles.title}>
+          <Text style={styles.title}>
             Your Personalized Checklist
-          </ThemedText>
-          <ThemedText style={styles.subtitle}>
+          </Text>
+          <Text style={styles.subtitle}>
             {personaDisplay} - {stageDescription}
-          </ThemedText>
+          </Text>
           <View style={styles.progressContainer}>
             <View
               style={[
@@ -229,9 +227,9 @@ export default function ChecklistScreen() {
 
         {tasks.length === 0 && (
           <View style={styles.emptyContainer}>
-            <ThemedText style={styles.emptyText}>
+            <Text style={styles.emptyText}>
               No tasks available for your current stage.
-            </ThemedText>
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -243,18 +241,20 @@ export default function ChecklistScreen() {
         onLearnHow={handleLearnHow}
         onMarkComplete={handleMarkComplete}
       />
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   scrollView: {
     flex: 1,
