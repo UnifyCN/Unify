@@ -997,11 +997,14 @@ export default function ModuleIndex() {
       }
 
       try {
-        // Always navigate to submodule index first (Learn / Tasks / Practice)
-        router.push({
-          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-          params: { moduleId, submoduleId: section.id },
-        });
+        if (href) {
+          router.push(href as any);
+        } else {
+          router.push({
+            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+            params: { moduleId, submoduleId: section.id },
+          });
+        }
       } catch (navError: any) {
         console.error('[ModuleIndex] Error navigating to section:', navError);
         // Final fallback: try to navigate to module index if all else fails
