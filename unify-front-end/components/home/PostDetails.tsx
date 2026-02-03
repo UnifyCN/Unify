@@ -4,9 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
   TextInput,
-  Platform,
   FlatList,
   Keyboard,
 } from 'react-native';
@@ -27,6 +25,8 @@ import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import BackHeader from '@/components/BackHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getHeaderHeight } from '@/constants/Layout';
+import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
+import KeyboardSafeAreaView from '@/components/common/KeyboardSafeAreaView';
 
 // Loading state component
 const CommentsLoadingState = () => (
@@ -170,8 +170,8 @@ const PostDetails = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
+      behavior="translate-with-padding"
+      keyboardVerticalOffset={0}
     >
       <BackHeader onBack={onBack} />
 
@@ -224,13 +224,15 @@ const PostDetails = () => {
         }}
       />
 
-      <CommentInput
-        placeholder={`Reply to ${post.user.name}`}
-        value={commentTextBox}
-        onChangeText={setCommentTextBox}
-        onSend={handleCreateComment}
-        disabled={commentTextBox.trim() === ''}
-      />
+      <KeyboardSafeAreaView style={styles.commentInputSafeArea}>
+        <CommentInput
+          placeholder={`Reply to ${post.user.name}`}
+          value={commentTextBox}
+          onChangeText={setCommentTextBox}
+          onSend={handleCreateComment}
+          disabled={commentTextBox.trim() === ''}
+        />
+      </KeyboardSafeAreaView>
     </KeyboardAvoidingView>
   );
 };
@@ -255,6 +257,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#E5E5E5',
+  },
+  commentInputSafeArea: {
+    backgroundColor: '#fff',
   },
   commentInput: {
     flex: 1,

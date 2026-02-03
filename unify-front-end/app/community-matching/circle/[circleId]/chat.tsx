@@ -4,8 +4,6 @@ import {
   Alert,
   FlatList,
   Image,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -34,6 +32,8 @@ import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import BackHeader from '@/components/BackHeader';
+import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
+import KeyboardSafeAreaView from '@/components/common/KeyboardSafeAreaView';
 
 
 export default function CircleChatScreen() {
@@ -346,7 +346,7 @@ export default function CircleChatScreen() {
   return (
     <View style={styles.root}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="translate-with-padding"
         style={styles.flex}
       >
         <BackHeader 
@@ -437,36 +437,41 @@ export default function CircleChatScreen() {
           </View>
         )}
 
-        <View style={styles.inputContainer}>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={[
-                styles.input,
-                inputDisabled && styles.inputDisabled,
-              ]}
-              placeholder='Message...'
-              placeholderTextColor="#9CA3AF"
-              value={text}
-              onChangeText={handleTextChange}
-              editable={!inputDisabled}
-              multiline
-            />
-            <TouchableOpacity
-              style={[
-                styles.sendButton,
-                (!text.trim() || inputDisabled) && styles.sendButtonDisabled,
-              ]}
-              onPress={handleSend}
-              disabled={!text.trim() || isSending || inputDisabled}
-            >
-              {isSending ? (
-                <ActivityIndicator color='#fff' size="small" />
-              ) : (
-                <Feather name="arrow-up" size={20} color="#fff" />
-              )}
-            </TouchableOpacity>
+        <KeyboardSafeAreaView
+          basePaddingBottom={16}
+          style={styles.inputSafeArea}
+        >
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[
+                  styles.input,
+                  inputDisabled && styles.inputDisabled,
+                ]}
+                placeholder='Message...'
+                placeholderTextColor="#9CA3AF"
+                value={text}
+                onChangeText={handleTextChange}
+                editable={!inputDisabled}
+                multiline
+              />
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  (!text.trim() || inputDisabled) && styles.sendButtonDisabled,
+                ]}
+                onPress={handleSend}
+                disabled={!text.trim() || isSending || inputDisabled}
+              >
+                {isSending ? (
+                  <ActivityIndicator color='#fff' size="small" />
+                ) : (
+                  <Feather name="arrow-up" size={20} color="#fff" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </KeyboardSafeAreaView>
       </KeyboardAvoidingView>
 
       {/* Member Identity Modal */}
@@ -585,10 +590,15 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   inputContainer: {
-    padding: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 0,
     backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: '#F3F4F6',
+  },
+  inputSafeArea: {
+    backgroundColor: '#fff',
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -790,5 +800,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
 
