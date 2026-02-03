@@ -12,7 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
@@ -24,32 +24,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SUBJECT_COLOR = '#10B981'; // green for Learn (active)
-
-const mapIconName = (iconName: string): string => {
-  const iconMap: { [key: string]: string } = {
-    account_balance: 'bank-outline',
-    assignment_ind: 'account-tie-outline',
-    cottage: 'home-outline',
-    article: 'file-document-outline',
-    passport: 'passport',
-    school: 'school-outline',
-    book: 'book-outline',
-    work: 'briefcase-outline',
-    computer: 'laptop-outline',
-    business: 'office-building-outline',
-    science: 'flask-outline',
-    language: 'translate',
-    history: 'clock-time-four-outline',
-    psychology: 'brain',
-    menu_book: 'book-open-page-variant',
-    auto_stories: 'book-open-outline',
-    calculate: 'calculator',
-    palette: 'palette-outline',
-    music_note: 'music-note-outline',
-    sports_esports: 'gamepad-variant-outline',
-  };
-  return iconMap[iconName] || 'bank-outline';
-};
 const CARD_INACTIVE_BG = '#F9FAFB';
 const CARD_INACTIVE_BORDER = '#E5E7EB';
 const CARD_INACTIVE_TEXT = '#6B7280';
@@ -225,17 +199,12 @@ export default function SubmoduleIndex() {
           >
             <Feather name="chevron-left" size={28} color="#000" />
           </TouchableOpacity>
-          {moduleData?.icon ? (
-            <View style={styles.headerIconContainer}>
-              <MaterialCommunityIcons
-                name={mapIconName(moduleData.icon) as any}
-                size={30}
-                color="#000"
-              />
-            </View>
-          ) : (
-            <View style={styles.headerRightPlaceholder} />
-          )}
+          <View style={styles.headerCenterWrap}>
+            <Text style={styles.headerModuleName} numberOfLines={1}>
+              {moduleData?.title ?? ''}
+            </Text>
+          </View>
+          <View style={styles.headerRightPlaceholder} />
         </View>
 
         <View style={styles.headerTitleWrap}>
@@ -406,15 +375,20 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginLeft: 16,
   },
-  headerRightPlaceholder: {
-    width: 44,
-  },
-  headerIconContainer: {
-    width: 47,
-    height: 47,
+  headerCenterWrap: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1,
+    paddingHorizontal: 8,
+    paddingBottom: 5,
+  },
+  headerModuleName: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000',
+  },
+  headerRightPlaceholder: {
+    width: 44,
   },
   scrollView: {
     flex: 1,
