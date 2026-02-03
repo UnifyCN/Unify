@@ -1,6 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { SanityChecklistItem } from '@/types/checklist';
-import { UserTaskRow } from './getUserTasks';
+import { SanityChecklistItem, UserTaskWithDetails } from '@/types/checklist';
 
 /**
  * Insert user_tasks rows for any Sanity checklist items that don't have one yet.
@@ -9,7 +8,7 @@ import { UserTaskRow } from './getUserTasks';
 export async function ensureUserTasksForChecklist(
   userId: string,
   items: SanityChecklistItem[],
-  existingRows: UserTaskRow[]
+  existingRows: UserTaskWithDetails[]
 ): Promise<void> {
   const existingIds = new Set(
     (existingRows || [])

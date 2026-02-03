@@ -1,19 +1,4 @@
 import { supabase } from '@/lib/supabase';
-
-export interface UserTaskRow {
-  user_task_id: number;
-  user_id: string;
-  task_id: number | null;
-  sanity_checklist_id: string | null;
-  completed: boolean;
-  completed_at: string | null;
-}
-
-export async function getUserTasks(userId: string): Promise<UserTaskRow[]> {
-  try {
-    const { data, error } = await supabase
-      .from('user_tasks')
-      .select('user_task_id, user_id, task_id, sanity_checklist_id, completed, completed_at')
 import { UserTaskWithDetails } from '@/types/checklist';
 
 export const getUserTasks = async (
@@ -46,7 +31,6 @@ export const getUserTasks = async (
       throw new Error(`Failed to fetch user tasks: ${error.message}`);
     }
 
-    return (data || []) as UserTaskRow[];
     // Transform the data to ensure task is a single object, not an array
     const transformedData = (data || []).map((item: any) => ({
       ...item,
@@ -58,5 +42,4 @@ export const getUserTasks = async (
     console.error('Error fetching user tasks:', error);
     throw error;
   }
-}
 };

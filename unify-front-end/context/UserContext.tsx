@@ -12,7 +12,6 @@ interface CurrentUser {
   profilePictureUrl?: string;
   isPremium: boolean;
   arrivalDate: string | null;
-  arrivalDate: string;
   stage: StageNumber;
 }
 

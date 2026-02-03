@@ -519,12 +519,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 15,
   },
-  backButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   headerTitleWrap: {
     paddingHorizontal: 16,
     marginTop: 8,

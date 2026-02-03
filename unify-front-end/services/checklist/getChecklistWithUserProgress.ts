@@ -5,14 +5,14 @@ import {
   sanityChecklistItemToTaskDetails,
 } from '@/types/checklist';
 import { getChecklistByPersonaAndStage } from '@/services/sanity/checklist';
-import { getUserTasks, UserTaskRow } from './getUserTasks';
+import { getUserTasks } from './getUserTasks';
 import { deleteUserTasks } from './deleteUserTasks';
 
 function mergeChecklistWithUserTasks(
   items: SanityChecklistItem[],
-  rows: UserTaskRow[]
+  rows: UserTaskWithDetails[]
 ): UserTaskWithDetails[] {
-  const bySanityId = new Map<string, UserTaskRow>();
+  const bySanityId = new Map<string, UserTaskWithDetails>();
   rows.forEach(r => {
     if (r.sanity_checklist_id)
       bySanityId.set(r.sanity_checklist_id, r);

@@ -13,7 +13,6 @@ export interface UserInfo {
   isPremium: boolean;
   permissions: string;
   arrivalDate: string | null;
-  arrivalDate: string;
   stage: StageNumber;
 }
 
