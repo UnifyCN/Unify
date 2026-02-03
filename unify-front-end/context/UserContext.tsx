@@ -12,7 +12,7 @@ interface CurrentUser {
   permissions: string;
   profilePictureUrl?: string;
   isPremium: boolean;
-  arrivalDate: string;
+  arrivalDate: string | null;
   stage: StageNumber;
   persona: Persona | null;
   personaOther: string | null;

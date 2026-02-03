@@ -14,7 +14,7 @@ export interface UserInfo {
   profilePictureUrl?: string;
   isPremium: boolean;
   permissions: string;
-  arrivalDate: string;
+  arrivalDate: string | null;
   stage: StageNumber;
   persona: Persona | null;
   personaOther: string | null;
