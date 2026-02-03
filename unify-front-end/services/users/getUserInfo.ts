@@ -93,7 +93,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     };
 
     if (
-      !resolvedOnboarding.persona &&
+      !resolvedOnboarding.persona ||
       !resolvedOnboarding.arrival_date
     ) {
       const publicProfile = await getPublicOnboardingProfile(targetUserId);

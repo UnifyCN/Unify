@@ -20,7 +20,7 @@ const InfoBadge = ({
   textStyle,
   backgroundColor,
   textColor,
-  iconColor = Theme.textAlternateGray,
+  iconColor,
 }: InfoBadgeProps) => {
   const effectiveTextColor = textColor ?? Theme.textAlternateGray;
   const effectiveIconColor = iconColor ?? effectiveTextColor;
