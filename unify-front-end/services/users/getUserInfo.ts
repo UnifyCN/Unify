@@ -77,28 +77,35 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       );
     }
 
-    let resolvedOnboarding = onboardingData;
+    const resolvedOnboarding: {
+      arrival_date: string | null;
+      persona: Persona | null;
+      persona_other: string | null;
+      stage: StageNumber | null;
+    } = {
+      arrival_date: onboardingData?.arrival_date ?? null,
+      persona: onboardingData?.persona ?? null,
+      persona_other: onboardingData?.persona_other ?? null,
+      stage:
+        onboardingData?.stage !== undefined && onboardingData?.stage !== null
+          ? onboardingData.stage
+          : null,
+    };
 
     if (
-      !resolvedOnboarding ||
-      (!resolvedOnboarding.persona && !resolvedOnboarding.arrival_date)
+      !resolvedOnboarding.persona &&
+      !resolvedOnboarding.arrival_date
     ) {
       const publicProfile = await getPublicOnboardingProfile(targetUserId);
       if (publicProfile) {
-        resolvedOnboarding = {
-          ...resolvedOnboarding,
-          persona: publicProfile.persona,
-          persona_other: publicProfile.persona_other,
-          arrival_date: publicProfile.arrival_date,
-        };
+        resolvedOnboarding.persona = publicProfile.persona;
+        resolvedOnboarding.persona_other = publicProfile.persona_other;
+        resolvedOnboarding.arrival_date = publicProfile.arrival_date;
       }
     }
 
     const arrivalDate = resolvedOnboarding?.arrival_date ?? null;
-    const receivedStage =
-      onboardingData?.stage !== undefined && onboardingData?.stage !== null
-        ? onboardingData.stage
-        : null;
+    const receivedStage = resolvedOnboarding.stage;
     const computedStage = computeStage(arrivalDate);
 
     // Only update stage when we could read it directly (avoid RLS failures)
