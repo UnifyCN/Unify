@@ -208,9 +208,12 @@ export default function SubmoduleIndex() {
         </View>
 
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>
-            Section {sectionNumber}: {submoduleData.title}
-          </Text>
+          <View style={styles.headerTitleBlock}>
+            <Text style={styles.headerSectionLabel}>
+              Section {sectionNumber}
+            </Text>
+            <Text style={styles.headerTitle}>{submoduleData.title}</Text>
+          </View>
         </View>
 
         <View style={styles.headerDescriptionWrap}>
@@ -356,11 +359,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 8,
   },
+  headerTitleBlock: {
+    marginLeft: 16,
+    marginBottom: 10,
+  },
+  headerSectionLabel: {
+    fontSize: 24,
+    fontWeight: '400',
+    color: '#000',
+    marginBottom: 0,
+  },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '600',
     color: '#000',
-    paddingLeft: 16,
   },
   headerDescriptionWrap: {
     paddingHorizontal: 16,
