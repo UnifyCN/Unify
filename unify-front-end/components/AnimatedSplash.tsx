@@ -1,59 +1,106 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Image, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, Image, Dimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSequence,
-  withDelay,
   Easing,
   runOnJS,
+  useReducedMotion,
 } from 'react-native-reanimated';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface AnimatedSplashProps {
-  onAnimationComplete: () => void;
+  isAppReady: boolean;
+  onHidden: () => void;
+  enableFadeOut?: boolean;
 }
 
 export default function AnimatedSplash({
-  onAnimationComplete,
+  isAppReady,
+  onHidden,
+  enableFadeOut = true,
 }: AnimatedSplashProps) {
-  const logoScale = useSharedValue(1);
-  const logoOpacity = useSharedValue(1);
+  const reduceMotion = useReducedMotion();
+  const [isExiting, setIsExiting] = useState(false);
+  const hasHiddenRef = useRef(false);
+  const mountedAtRef = useRef(Date.now());
+
+  const logoScale = useSharedValue(0.96);
+  const logoOpacity = useSharedValue(0);
+  const logoRotation = useSharedValue(0);
   const containerOpacity = useSharedValue(1);
 
+  const ENTER_DURATION = 240;
+  const ROTATE_DURATION = 420;
+  const HOLD_DURATION = 120;
+  const EXIT_DURATION = 180;
+
   useEffect(() => {
-    // Sequence: pulse -> pause -> fade out
-    logoScale.value = withSequence(
-      // Pulse up
-      withTiming(1.08, { duration: 300, easing: Easing.out(Easing.ease) }),
-      // Pulse down
-      withTiming(1, { duration: 300, easing: Easing.inOut(Easing.ease) })
-    );
+    if (reduceMotion) {
+      logoScale.value = 1;
+      logoOpacity.value = 1;
+      logoRotation.value = 0;
+      return;
+    }
 
-    // After pulse, fade out
-    logoOpacity.value = withDelay(
-      600,
-      withTiming(0, { duration: 300, easing: Easing.out(Easing.ease) })
-    );
+    logoScale.value = withTiming(1, {
+      duration: ENTER_DURATION,
+      easing: Easing.out(Easing.ease),
+    });
+    logoOpacity.value = withTiming(1, {
+      duration: ENTER_DURATION,
+      easing: Easing.out(Easing.ease),
+    });
+    logoRotation.value = withTiming(360, {
+      duration: ROTATE_DURATION,
+      easing: Easing.out(Easing.ease),
+    });
+  }, [reduceMotion, logoOpacity, logoRotation, logoScale]);
 
-    containerOpacity.value = withDelay(
-      700,
-      withTiming(
-        0,
-        { duration: 200, easing: Easing.out(Easing.ease) },
-        finished => {
-          if (finished) {
-            runOnJS(onAnimationComplete)();
-          }
+  const triggerHide = () => {
+    if (hasHiddenRef.current) return;
+    hasHiddenRef.current = true;
+    onHidden();
+  };
+
+  const startExit = () => {
+    if (hasHiddenRef.current) return;
+    if (reduceMotion || !enableFadeOut) {
+      triggerHide();
+      return;
+    }
+
+    setIsExiting(true);
+    containerOpacity.value = withTiming(
+      0,
+      { duration: EXIT_DURATION, easing: Easing.out(Easing.ease) },
+      finished => {
+        if (finished) {
+          runOnJS(triggerHide)();
         }
-      )
+      }
     );
-  }, []);
+  };
+
+  useEffect(() => {
+    if (!isAppReady || hasHiddenRef.current) return;
+    const elapsed = Date.now() - mountedAtRef.current;
+    const minShowMs = Math.max(ENTER_DURATION, ROTATE_DURATION) + HOLD_DURATION;
+    const remaining = Math.max(0, minShowMs - elapsed);
+    const timeout = setTimeout(() => {
+      startExit();
+    }, remaining);
+
+    return () => clearTimeout(timeout);
+  }, [enableFadeOut, isAppReady, reduceMotion]);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
+    transform: [
+      { scale: logoScale.value },
+      { rotate: `${logoRotation.value}deg` },
+    ],
     opacity: logoOpacity.value,
   }));
 
@@ -62,7 +109,10 @@ export default function AnimatedSplash({
   }));
 
   return (
-    <Animated.View style={[styles.container, containerAnimatedStyle]}>
+    <Animated.View
+      style={[styles.container, containerAnimatedStyle]}
+      pointerEvents={isExiting ? 'none' : 'auto'}
+    >
       <Animated.View style={logoAnimatedStyle}>
         <Image
           source={require('@/assets/images/splash-icon-light.png')}

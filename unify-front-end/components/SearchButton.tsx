@@ -1,13 +1,8 @@
 import React from 'react';
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
-} from 'react-native';
+import { Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
+import AnimatedPressable from '@/components/common/AnimatedPressable';
 
 interface SearchButtonProps {
   placeholder?: string;
@@ -27,12 +22,12 @@ export default function SearchButton({
   iconColor = Theme.textInput,
 }: SearchButtonProps) {
   return (
-    <TouchableOpacity style={[styles.searchButton, style]} onPress={onPress}>
+    <AnimatedPressable style={[styles.searchButton, style]} onPress={onPress}>
       <Feather name='search' size={iconSize} color={iconColor} />
       <Text style={[styles.searchPlaceholder, placeholderStyle]}>
         {placeholder}
       </Text>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 }
 

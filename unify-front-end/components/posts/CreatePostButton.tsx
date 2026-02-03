@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import CreatePostIcon from '@/assets/images/create-post.svg';
 import CreatePostModal from './CreatePostModal';
 import { Theme } from '@/constants/Theme';
+import AnimatedPressable from '@/components/common/AnimatedPressable';
 
 interface CreatePostButtonProps {
   preselectedGroup?: any;
@@ -23,9 +24,9 @@ export default function CreatePostButton({
 
   return (
     <>
-      <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
+      <AnimatedPressable style={styles.floatingButton} onPress={handlePress}>
         <CreatePostIcon width={27} height={27} />
-      </TouchableOpacity>
+      </AnimatedPressable>
 
       <CreatePostModal
         visible={showModal}

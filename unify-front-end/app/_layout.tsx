@@ -37,6 +37,7 @@ export default function RootLayout() {
   } = useProgressCache();
   const [cacheTimeout, setCacheTimeout] = useState(false);
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
+  const appReady = loaded && (progressCacheInitialized || cacheTimeout);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,17 +75,13 @@ export default function RootLayout() {
   // }, []);
 
   useEffect(() => {
-    if (
-      loaded &&
-      // onboardingChecked &&
-      (progressCacheInitialized || cacheTimeout)
-    ) {
+    if (appReady) {
       // Hide native splash immediately, AnimatedSplash will handle the transition
       SplashScreen.hideAsync();
     }
-  }, [loaded, /* onboardingChecked, */ progressCacheInitialized, cacheTimeout]);
+  }, [appReady]);
 
-  const handleSplashAnimationComplete = () => {
+  const handleSplashHidden = () => {
     setShowAnimatedSplash(false);
   };
 
@@ -128,7 +125,10 @@ export default function RootLayout() {
         </KeyboardProvider>
       </GestureHandlerRootView>
       {showAnimatedSplash && (
-        <AnimatedSplash onAnimationComplete={handleSplashAnimationComplete} />
+        <AnimatedSplash
+          isAppReady={appReady}
+          onHidden={handleSplashHidden}
+        />
       )}
     </QueryClientProvider>
   );
