@@ -12,6 +12,10 @@ import {
   Dimensions,
   ScrollView,
   SafeAreaView,
+  Keyboard,
+  Platform,
+  KeyboardAvoidingView,
+  InputAccessoryView,
 } from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
@@ -42,8 +46,33 @@ export default function RichTextRenderer({
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageZoom, setImageZoom] = useState(1);
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+
+  const [focusedInputKey, setFocusedInputKey] = useState<string | null>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const accessoryViewID = 'readySubmitAccessory';
+
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
+  const accessoryHeight = 56;
+
+  React.useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, (e: any) => {
+      setIsKeyboardVisible(true);
+      setKeyboardHeight(e.endCoordinates?.height || 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+      setKeyboardHeight(0);
+      setFocusedInputKey(null);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   if (!blocks || !Array.isArray(blocks)) return null;
 
@@ -778,6 +807,10 @@ export default function RichTextRenderer({
                 borderRadius: 8,
                 paddingHorizontal: 20,
                 paddingVertical: 20,
+                paddingBottom:
+                  focusedInputKey === block._key && isKeyboardVisible
+                    ? accessoryHeight + 8
+                    : 20,
                 fontSize: 18,
                 backgroundColor: '#fff',
                 minHeight: 44,
@@ -792,6 +825,9 @@ export default function RichTextRenderer({
             onChangeText={value => onInputChange?.(block._key, value)}
             multiline={true}
             numberOfLines={isLarge ? 10 : isMid ? 6 : 3}
+            inputAccessoryViewID={Platform.OS === 'ios' ? accessoryViewID : undefined}
+            onFocus={() => setFocusedInputKey(block._key)}
+            onBlur={() => setFocusedInputKey(null)}
           />
         </View>
       );
@@ -1054,6 +1090,12 @@ export default function RichTextRenderer({
   };
 
   return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
+      style={{ flex: 1 }}
+    >
+    
     <View style={styles.container}>
       {blocks
         .map((block, index) => {
@@ -1151,12 +1193,78 @@ export default function RichTextRenderer({
           </ScrollView>
         </SafeAreaView>
       </Modal>
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={accessoryViewID}>
+          <View style={styles.inputAccessory}>
+            <Text style={styles.inputAccessoryText}>Ready to submit</Text>
+            <TouchableOpacity
+              style={styles.inputAccessoryBtn}
+              onPress={() => {
+                Keyboard.dismiss();
+              }}
+            >
+              <Text style={styles.inputAccessoryBtnText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
+        </InputAccessoryView>
+      )}
+
+      {/* Android fallback: screen-level bar anchored above keyboard */}
+      {Platform.OS !== 'ios' && isKeyboardVisible && focusedInputKey && (
+        <View pointerEvents="box-none" style={[styles.inputAccessoryModalWrapper, { bottom: keyboardHeight }]}>
+          <View pointerEvents="auto" style={styles.inputAccessory}>
+            <Text style={styles.inputAccessoryText}>Ready to submit</Text>
+            <TouchableOpacity
+              style={styles.inputAccessoryBtn}
+              onPress={() => {
+                Keyboard.dismiss();
+              }}
+            >
+              <Text style={styles.inputAccessoryBtnText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 }, // No gap - spacing handled by individual block margins
+
+   inputAccessory: {
+    left: 0,
+    right: 0,
+    height: 56,
+    backgroundColor: '#ffffffee',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  inputAccessoryText: { color: '#374151', fontSize: 14, fontWeight: '600' },
+  inputAccessoryBtn: {
+    backgroundColor: '#575757',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  inputAccessoryBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  inputAccessoryModalWrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'stretch',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 0,
+    paddingBottom: 0,
+    zIndex: 9999,
+  },
+   
+
   listItemContainer: { marginBottom: 0 }, // Spacing between list items handled by bullet marginBottom
   skipLineSpacer: { height: 20, marginBottom: 0 }, // Skip lines create consistent 20px spacing
   inputFieldContainer: {

@@ -9,6 +9,8 @@ import {
   Dimensions,
   Modal,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -268,22 +270,29 @@ export default function SubmoduleIntroScreen() {
         onClose={() => setShowExitModal(true)}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
+        style={{ flex: 1 }}
       >
-        {/* Title */}
-        <Text style={styles.title}>{introData?.title}</Text>
+      
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Title */}
+          <Text style={styles.title}>{introData?.title}</Text>
 
-        {/* Content sections */}
-        <View style={styles.content}>
-          <RichTextRenderer
-            blocks={introData?.content}
-            markDefs={introData?.markDefs}
-          />
-        </View>
-      </ScrollView>
-
+          {/* Content sections */}
+          <View style={styles.content}>
+            <RichTextRenderer
+              blocks={introData?.content}
+              markDefs={introData?.markDefs}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
       {/* Navigation buttons - anchored at bottom */}
       <View style={styles.buttonContainer}>
         {currentPage > 1 && (
