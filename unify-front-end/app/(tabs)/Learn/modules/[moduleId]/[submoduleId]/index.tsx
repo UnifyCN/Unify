@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
-import { useSanityModule } from '@/hooks/sanity/useSanityModules';
+import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
@@ -44,7 +44,7 @@ export default function SubmoduleIndex() {
     isLoading,
     error,
   } = useSanitySubmoduleWithLessons(submoduleId || '');
-  const { data: moduleData } = useSanityModule(moduleId || '');
+  const { data: moduleData } = useSanityModuleWithSubmodules(moduleId || '');
   const { data: practices } = useSanityPractices(submoduleId || '');
   const { data: tasks } = useSanityTasks(submoduleId || '');
   const { getPracticeProgressBySubmodule } = usePracticeProgress();
