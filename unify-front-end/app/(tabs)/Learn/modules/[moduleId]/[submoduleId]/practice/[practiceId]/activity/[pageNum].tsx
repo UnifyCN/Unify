@@ -165,15 +165,136 @@ export default function PracticeActivityPageScreen() {
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
         <View style={styles.instructionsContainer}>
-          <RichTextRenderer
-            blocks={currentPageData.instructions || []}
-            markDefs={(currentPageData as any).instructionsMarkDefs}
-            inputValues={inputValues}
-            onInputChange={handleInputChange}
-            questionAnswers={questionAnswers}
-            onQuestionAnswer={handleQuestionAnswer}
-            showQuestionFeedback={isSubmitted}
-          />
+          {(currentPageData.instructions || []).map((block: any, index: number) => {
+            const key = block._key || `block-${index}`;
+            const markDefs = (currentPageData as any).instructionsMarkDefs;
+            if (
+              block._type === 'multiple_choice_single' ||
+              block._type === 'multiple_choice_multiple'
+            ) {
+              const isMultiple = block._type === 'multiple_choice_multiple';
+              const currentAnswer = questionAnswers[block._key];
+              const isArrayAnswer = Array.isArray(currentAnswer);
+              const selectedValues = isArrayAnswer
+                ? (currentAnswer as string[])
+                : currentAnswer
+                  ? [currentAnswer as string]
+                  : [];
+              const handleOptionSelect = (optionValue: string) => {
+                if (isMultiple) {
+                  const current = (questionAnswers[block._key] as string[]) || [];
+                  const newAnswer = current.includes(optionValue)
+                    ? current.filter((v: string) => v !== optionValue)
+                    : [...current, optionValue];
+                  handleQuestionAnswer(block._key, newAnswer);
+                } else {
+                  handleQuestionAnswer(block._key, optionValue);
+                }
+              };
+              return (
+                <View key={key} style={styles.activityQuestionContainer}>
+                  <View style={styles.activityQuestionContent}>
+                    <RichTextRenderer
+                      blocks={block.question_text || []}
+                      markDefs={markDefs}
+                    />
+                  </View>
+                  <View style={styles.activityOptionsContainer}>
+                    {(block.options || []).map((option: any) => {
+                      const isSelected = isMultiple
+                        ? selectedValues.includes(option.value)
+                        : selectedValues[0] === option.value;
+                      const isCorrect = option.is_correct;
+                      const showFeedback = isSubmitted;
+                      let optionStyle = styles.activityOptionButton;
+                      let checkboxStyle = styles.activityCheckbox;
+                      if (isSelected) {
+                        optionStyle = styles.activityOptionButtonSelected;
+                        checkboxStyle = styles.activityCheckboxSelected;
+                      }
+                      if (showFeedback) {
+                        if (isCorrect) {
+                          optionStyle = styles.activityOptionButtonCorrect;
+                          checkboxStyle = styles.activityCheckboxCorrect;
+                        } else if (isSelected && !isCorrect) {
+                          optionStyle = styles.activityOptionButtonIncorrect;
+                          checkboxStyle = styles.activityCheckboxIncorrect;
+                        }
+                      }
+                      return (
+                        <TouchableOpacity
+                          key={option._key}
+                          style={optionStyle}
+                          onPress={() =>
+                            !showFeedback && handleOptionSelect(option.value)
+                          }
+                          disabled={showFeedback}
+                        >
+                          <View style={styles.activityOptionRow}>
+                            <View style={checkboxStyle}>
+                              {isSelected && (
+                                <Text style={styles.activityCheckmark}>✓</Text>
+                              )}
+                            </View>
+                            <View style={styles.activityOptionContent}>
+                              <RichTextRenderer
+                                blocks={option.text || []}
+                                markDefs={option.textMarkDefs}
+                                styles={{
+                                  normal: {
+                                    fontSize: 14,
+                                    color: '#374151',
+                                    lineHeight: 20,
+                                    fontWeight: '400',
+                                    marginBottom: 0,
+                                    marginTop: 0,
+                                  },
+                                }}
+                              />
+                            </View>
+                          </View>
+                          {showFeedback &&
+                            isSelected &&
+                            option.explanation && (
+                              <View style={styles.activityExplanationContainer}>
+                                <RichTextRenderer
+                                  blocks={option.explanation}
+                                  markDefs={option.explanationMarkDefs}
+                                  styles={{
+                                    normal: {
+                                      fontSize: 14,
+                                      color: '#6B7280',
+                                      lineHeight: 20,
+                                      fontStyle: 'italic',
+                                      marginTop: 12,
+                                      paddingTop: 12,
+                                      borderTopWidth: 1,
+                                      borderTopColor: '#E5E7EB',
+                                    },
+                                  }}
+                                />
+                              </View>
+                            )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            }
+            return (
+              <RichTextRenderer
+                key={key}
+                blocks={[block]}
+                markDefs={markDefs}
+                inputValues={inputValues}
+                onInputChange={handleInputChange}
+                questionAnswers={questionAnswers}
+                onQuestionAnswer={handleQuestionAnswer}
+                showQuestionFeedback={isSubmitted}
+              />
+            );
+          })}
         </View>
 
         {currentPageData.answer_box && isSubmitted && (
@@ -249,6 +370,109 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   instructionsContainer: { marginBottom: 15 },
+  // Activity MCQ (single + multi) – same alignment as practice quiz
+  activityQuestionContainer: {
+    marginVertical: 20,
+    gap: 15,
+  },
+  activityQuestionContent: {
+    paddingTop: 12,
+    marginBottom: 24,
+    alignItems: 'center',
+  },
+  activityOptionsContainer: {
+    gap: 17,
+  },
+  activityOptionButton: {
+    borderWidth: 1,
+    borderColor: '#DCDCDC',
+    borderRadius: 8,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+  },
+  activityOptionButtonSelected: {
+    borderWidth: 1,
+    borderColor: 'black',
+    borderRadius: 8,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    backgroundColor: '#F3F4F6',
+  },
+  activityOptionButtonCorrect: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderColor: '#10B981',
+    backgroundColor: '#F3F4F6',
+  },
+  activityOptionButtonIncorrect: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderColor: '#EF4444',
+    backgroundColor: '#F3F4F6',
+  },
+  activityOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  activityCheckbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityCheckboxSelected: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: 'black',
+    borderRadius: 4,
+    backgroundColor: 'black',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityCheckboxCorrect: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderRadius: 4,
+    borderColor: '#10B981',
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityCheckboxIncorrect: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderRadius: 4,
+    borderColor: '#EF4444',
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activityCheckmark: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  activityOptionContent: {
+    flex: 1,
+  },
+  activityExplanationContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
   answerBoxContainer: {
     backgroundColor: 'transparent',
     borderLeftWidth: 5,

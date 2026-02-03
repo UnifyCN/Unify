@@ -986,7 +986,7 @@ const styles = StyleSheet.create({
   },
   optionRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
     marginLeft: 5,
   },
