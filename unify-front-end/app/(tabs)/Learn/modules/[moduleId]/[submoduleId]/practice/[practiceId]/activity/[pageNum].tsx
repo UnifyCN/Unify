@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSanityPractice } from '@/hooks/sanity/useSanityPractices';
+import { useSanityPractice, useSanityPractices } from '@/hooks/sanity/useSanityPractices';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
@@ -35,8 +35,22 @@ export default function PracticeActivityPageScreen() {
 
   const currentPage = parseInt(pageNum || '1');
   const { data: practice, isLoading, error } = useSanityPractice(practiceId || '');
+  const { data: practices } = useSanityPractices(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
+
+  const sortedPractices = useMemo(
+    () => [...(practices || [])].sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0)),
+    [practices]
+  );
+  const currentPracticeIndex = useMemo(
+    () => sortedPractices.findIndex(p => p._id === practiceId),
+    [sortedPractices, practiceId]
+  );
+  const nextPractice = currentPracticeIndex >= 0 && currentPracticeIndex < sortedPractices.length - 1
+    ? sortedPractices[currentPracticeIndex + 1]
+    : null;
+  const prevPractice = currentPracticeIndex > 0 ? sortedPractices[currentPracticeIndex - 1] : null;
 
   const pages = React.useMemo(() => {
     const p = practice?.pages || [];
@@ -66,10 +80,13 @@ export default function PracticeActivityPageScreen() {
     setQuestionAnswers({});
   }, [currentPage]);
 
+  const isSequential = sortedPractices.length > 1;
   const progress = {
-    currentPage,
-    totalPages,
-    progressPercentage: totalPages > 0 ? (currentPage / totalPages) * 100 : 0,
+    currentPage: isSequential ? currentPracticeIndex + 1 : currentPage,
+    totalPages: isSequential ? sortedPractices.length : totalPages,
+    progressPercentage: isSequential
+      ? (sortedPractices.length > 0 ? ((currentPracticeIndex + 1) / sortedPractices.length) * 100 : 0)
+      : (totalPages > 0 ? (currentPage / totalPages) * 100 : 0),
   };
 
   const handleSaveAndLeave = () => {
@@ -100,7 +117,15 @@ export default function PracticeActivityPageScreen() {
       });
     } else {
       await completePractice(practiceId!);
-      goToSubmoduleIndex();
+      if (nextPractice) {
+        router.replace({
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
+          params: { moduleId, submoduleId, practiceId: nextPractice._id },
+        });
+      } else {
+        goToSubmoduleIndex();
+      }
     }
   };
 
@@ -114,7 +139,15 @@ export default function PracticeActivityPageScreen() {
         params: { moduleId, submoduleId, practiceId, pageNum: prevPage.toString() },
       });
     } else {
-      goToSubmoduleIndex();
+      if (prevPractice) {
+        router.push({
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
+          params: { moduleId, submoduleId, practiceId: prevPractice._id },
+        });
+      } else {
+        goToSubmoduleIndex();
+      }
     }
   };
 

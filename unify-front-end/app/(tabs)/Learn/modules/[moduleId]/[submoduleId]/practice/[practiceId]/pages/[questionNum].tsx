@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSanityPractice } from '@/hooks/sanity/useSanityPractices';
+import { useSanityPractice, useSanityPractices } from '@/hooks/sanity/useSanityPractices';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
@@ -33,8 +33,22 @@ export default function PracticeQuizQuestionPage() {
   }>();
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: practice, isLoading, error } = useSanityPractice(practiceId || '');
+  const { data: practices } = useSanityPractices(submoduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
+
+  const sortedPractices = useMemo(
+    () => [...(practices || [])].sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0)),
+    [practices]
+  );
+  const currentPracticeIndex = useMemo(
+    () => sortedPractices.findIndex(p => p._id === practiceId),
+    [sortedPractices, practiceId]
+  );
+  const nextPractice = currentPracticeIndex >= 0 && currentPracticeIndex < sortedPractices.length - 1
+    ? sortedPractices[currentPracticeIndex + 1]
+    : null;
+  const prevPractice = currentPracticeIndex > 0 ? sortedPractices[currentPracticeIndex - 1] : null;
 
   const questions = useMemo(() => {
     const q = practice?.questions || [];
@@ -93,10 +107,13 @@ export default function PracticeQuizQuestionPage() {
     return shuffled;
   }, [questions, currentQuestionIndex]);
 
+  const isSequential = sortedPractices.length > 1;
   const progress = {
-    currentPage: currentQuestionIndex + 1,
-    totalPages: totalQuestions,
-    progressPercentage: totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0,
+    currentPage: isSequential ? currentPracticeIndex + 1 : currentQuestionIndex + 1,
+    totalPages: isSequential ? sortedPractices.length : totalQuestions,
+    progressPercentage: isSequential
+      ? (sortedPractices.length > 0 ? ((currentPracticeIndex + 1) / sortedPractices.length) * 100 : 0)
+      : (totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0),
   };
 
   if (isLoading) {
@@ -167,7 +184,15 @@ export default function PracticeQuizQuestionPage() {
       if (isLastQuestion) {
         setIsNavigating(true);
         await completePractice(practiceId!);
-        goToSubmoduleIndex(moduleId!, submoduleId!);
+        if (nextPractice) {
+          router.replace({
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
+            params: { moduleId, submoduleId, practiceId: nextPractice._id },
+          });
+        } else {
+          goToSubmoduleIndex(moduleId!, submoduleId!);
+        }
       } else {
         setIsNavigating(true);
         const nextNum = currentQuestionIndex + 2;
@@ -202,7 +227,15 @@ export default function PracticeQuizQuestionPage() {
     if (isLastQuestion) {
       setIsNavigating(true);
       await completePractice(practiceId!);
-      goToSubmoduleIndex(moduleId!, submoduleId!);
+      if (nextPractice) {
+        router.replace({
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
+          params: { moduleId, submoduleId, practiceId: nextPractice._id },
+        });
+      } else {
+        goToSubmoduleIndex(moduleId!, submoduleId!);
+      }
     } else {
       setIsNavigating(true);
       const nextNum = currentQuestionIndex + 2;
@@ -225,7 +258,15 @@ export default function PracticeQuizQuestionPage() {
         params: { moduleId, submoduleId, practiceId, questionNum: prevNum.toString() },
       });
     } else {
-      goToSubmoduleIndex(moduleId!, submoduleId!);
+      if (prevPractice) {
+        router.push({
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
+          params: { moduleId, submoduleId, practiceId: prevPractice._id },
+        });
+      } else {
+        goToSubmoduleIndex(moduleId!, submoduleId!);
+      }
     }
   };
 
@@ -536,7 +577,6 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   questionContent: {
-    paddingTop: 12,
     marginBottom: 24,
     alignItems: 'center',
   },
