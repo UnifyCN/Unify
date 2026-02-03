@@ -79,10 +79,16 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
 
     // If computed stage differs from stored stage, update it in the table
     if (receivedStage !== computedStage) {
-      await supabase
+      const { error: stageUpdateError } = await supabase
         .from('user_onboarding_profiles')
         .update({ stage: computedStage })
         .eq('id', targetUserId);
+
+      if (stageUpdateError) {
+        throw new Error(
+          `Failed to update onboarding stage: ${stageUpdateError.message}`
+        );
+      }
     }
 
     // Get following count
