@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   ActivityIndicator,
+  ViewStyle,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
@@ -28,6 +29,81 @@ const CARD_INACTIVE_BG = '#F9FAFB';
 const CARD_INACTIVE_BORDER = '#E5E7EB';
 const CARD_INACTIVE_TEXT = '#6B7280';
 
+const TIMELINE_LEFT_WIDTH = 24;
+const DOT_SIZE = 16;
+const LINE_WIDTH = 2;
+
+type SectionUIState = 'completed' | 'active' | 'unlocked' | 'locked';
+
+interface SubmoduleSectionViewModel {
+  id: string;
+  title: string;
+  description: string;
+  progressPercent: number;
+  uiState: SectionUIState;
+  onPress: () => void;
+}
+
+function getSectionStyles(
+  section: SubmoduleSectionViewModel,
+  prevSection: SubmoduleSectionViewModel | null,
+  nextSection: SubmoduleSectionViewModel | null,
+  subjectColor: string
+): {
+  dotStyle: ViewStyle[];
+  lineAboveStyle: ViewStyle[];
+  lineBelowStyle: ViewStyle[];
+} {
+  let dotStyle: ViewStyle[] = [styles.dot];
+  if (section.uiState === 'completed') {
+    dotStyle.push({ backgroundColor: subjectColor });
+  } else if (section.uiState === 'active' || section.uiState === 'unlocked') {
+    dotStyle.push({
+      backgroundColor: '#FFFFFF',
+      borderWidth: 2,
+      borderColor: subjectColor,
+    });
+  } else {
+    dotStyle.push({
+      backgroundColor: '#FFFFFF',
+      borderWidth: 2,
+      borderColor: '#D1D1D1',
+    });
+  }
+
+  let lineAboveStyle: ViewStyle[] = [styles.lineSegment];
+  if (prevSection) {
+    if (prevSection.uiState === 'completed' && section.uiState === 'completed') {
+      lineAboveStyle.push({ backgroundColor: subjectColor });
+    } else if (
+      prevSection.uiState === 'completed' &&
+      (section.uiState === 'active' || section.uiState === 'unlocked')
+    ) {
+      lineAboveStyle.push(styles.lineDotted);
+      lineAboveStyle.push({ borderColor: subjectColor });
+    } else {
+      lineAboveStyle.push(styles.lineDotted);
+    }
+  }
+
+  let lineBelowStyle: ViewStyle[] = [styles.lineSegment];
+  if (nextSection) {
+    if (section.uiState === 'completed' && nextSection.uiState === 'completed') {
+      lineBelowStyle.push({ backgroundColor: subjectColor });
+    } else if (
+      section.uiState === 'completed' &&
+      (nextSection.uiState === 'active' || nextSection.uiState === 'unlocked')
+    ) {
+      lineBelowStyle.push(styles.lineDotted);
+      lineBelowStyle.push({ borderColor: subjectColor });
+    } else {
+      lineBelowStyle.push(styles.lineDotted);
+    }
+  }
+
+  return { dotStyle, lineAboveStyle, lineBelowStyle };
+}
+
 export default function SubmoduleIndex() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -40,6 +116,7 @@ export default function SubmoduleIndex() {
   const [practiceProgressPercent, setPracticeProgressPercent] = useState(0);
   const [taskProgressPercent, setTaskProgressPercent] = useState(0);
   const [isResolvingLearnHref, setIsResolvingLearnHref] = useState(false);
+  const [openedCardId, setOpenedCardId] = useState<string | null>('learn');
 
   const {
     data: submoduleData,
@@ -155,6 +232,147 @@ export default function SubmoduleIndex() {
     });
   };
 
+  const sections: SubmoduleSectionViewModel[] = [
+    {
+      id: 'learn',
+      title: 'Learn',
+      description: 'Key concepts & terms',
+      progressPercent: learnProgressPercent,
+      uiState:
+        learnProgressPercent >= 100
+          ? 'completed'
+          : learnProgressPercent > 0
+            ? 'active'
+            : 'unlocked',
+      onPress: handleLearnPress,
+    },
+    {
+      id: 'tasks',
+      title: 'Tasks',
+      description: 'Real-world steps',
+      progressPercent: taskProgressPercent,
+      uiState:
+        taskProgressPercent >= 100
+          ? 'completed'
+          : taskProgressPercent > 0
+            ? 'active'
+            : 'unlocked',
+      onPress: handleTasksPress,
+    },
+    {
+      id: 'practice',
+      title: 'Practice',
+      description: 'Test your understanding',
+      progressPercent: practiceProgressPercent,
+      uiState:
+        practiceProgressPercent >= 100
+          ? 'completed'
+          : practiceProgressPercent > 0
+            ? 'active'
+            : 'unlocked',
+      onPress: handlePracticePress,
+    },
+  ];
+
+  const handleCardTap = (section: SubmoduleSectionViewModel) => {
+    if (openedCardId === section.id) {
+      section.onPress();
+    } else {
+      setOpenedCardId(section.id);
+    }
+  };
+
+  const renderSectionCard = (section: SubmoduleSectionViewModel, index: number) => {
+    const isOpened = openedCardId === section.id;
+    const isLocked = section.uiState === 'locked';
+    const isFirst = index === 0;
+    const isLast = index === sections.length - 1;
+
+    const { dotStyle, lineAboveStyle, lineBelowStyle } = getSectionStyles(
+      section,
+      isFirst ? null : sections[index - 1],
+      isLast ? null : sections[index + 1],
+      subjectColor
+    );
+
+    return (
+      <View key={section.id} style={styles.sectionRow}>
+        <View style={styles.timelineColumn}>
+          <View style={styles.timelineContent}>
+            <View style={styles.lineHalf}>
+              {!isFirst && <View style={[...lineAboveStyle, { flex: 1 }]} />}
+            </View>
+            <View style={dotStyle} />
+            <View style={styles.lineHalf}>
+              {!isLast && <View style={[...lineBelowStyle, { flex: 1 }]} />}
+            </View>
+          </View>
+          {!isLast && (
+            <View style={styles.timelineGap}>
+              <View style={[...lineBelowStyle, { flex: 1 }]} />
+            </View>
+          )}
+        </View>
+        <TouchableOpacity
+          activeOpacity={isLocked ? 1 : 0.8}
+          onPress={() => handleCardTap(section)}
+          style={[
+            styles.card,
+            isOpened && {
+              backgroundColor: subjectColor,
+              borderColor: subjectColor,
+            },
+            isLocked && styles.cardLocked,
+          ]}
+        >
+          <View style={styles.cardInner}>
+            <Text
+              style={[
+                styles.cardTitle,
+                isOpened && styles.cardTitleOpened,
+                isLocked && styles.textLocked,
+              ]}
+            >
+              {section.title}
+            </Text>
+            <Text
+              style={[
+                styles.sectionDescription,
+                isOpened && styles.lessonCountOpened,
+                isLocked && styles.textLocked,
+              ]}
+            >
+              {section.description}
+            </Text>
+            {isOpened && (
+              <View style={styles.progressBarWrap}>
+                <View
+                  style={[
+                    styles.progressBarBg,
+                    styles.progressBarBgOpened,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${Math.min(100, section.progressPercent)}%`,
+                        backgroundColor: 'rgba(255,255,255,0.4)',
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            )}
+            {section.id === 'learn' && isResolvingLearnHref && isOpened && (
+              <ActivityIndicator size="small" color="#fff" style={styles.cardLoader} />
+            )}
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -227,98 +445,11 @@ export default function SubmoduleIndex() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.container}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Three cards: Learn, Tasks, Practice */}
-        <View style={styles.cardsContainer}>
-          {/* Learn */}
-          <TouchableOpacity
-            style={[styles.card, styles.cardLearn, { backgroundColor: subjectColor }]}
-            onPress={handleLearnPress}
-            disabled={isResolvingLearnHref}
-            activeOpacity={0.85}
-          >
-            <View style={styles.cardLeftLine}>
-              <View style={[styles.cardDot, styles.cardDotActive, { borderColor: subjectColor, backgroundColor: '#fff' }]} />
-              <View style={[styles.cardLineSegment, { backgroundColor: CARD_INACTIVE_BORDER }]} />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitleLearn}>Learn</Text>
-              <Text style={styles.cardSubtitleLearn}>Key concepts & terms</Text>
-              <View style={styles.progressBarContainer}>
-                <View style={styles.progressBarBg}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      { width: `${learnProgressPercent}%`, backgroundColor: 'rgba(0,0,0,0.2)' },
-                    ]}
-                  />
-                </View>
-              </View>
-            </View>
-            {isResolvingLearnHref && (
-              <ActivityIndicator size="small" color="#fff" style={styles.cardLoader} />
-            )}
-          </TouchableOpacity>
-
-          {/* Tasks */}
-          <TouchableOpacity
-            style={[styles.card, styles.cardInactive]}
-            onPress={handleTasksPress}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardLeftLine}>
-              <View style={[styles.cardDot, styles.cardDotInactive]} />
-              <View style={[styles.cardLineSegment, styles.cardLineInactive]} />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitleInactive}>Tasks</Text>
-              <Text style={styles.cardSubtitleInactive}>Real-world steps</Text>
-              <View style={styles.progressBarContainerInactive}>
-                <View style={styles.progressBarBgInactive}>
-                  <View
-                    style={[
-                      styles.progressBarFillInactive,
-                      {
-                        width: `${taskProgressPercent}%`,
-                        backgroundColor: subjectColor,
-                      },
-                    ]}
-                  />
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Practice */}
-          <TouchableOpacity
-            style={[styles.card, styles.cardInactive]}
-            onPress={handlePracticePress}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardLeftLine}>
-              <View style={[styles.cardDot, styles.cardDotInactive]} />
-            </View>
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitleInactive}>Practice</Text>
-              <Text style={styles.cardSubtitleInactive}>Test your understanding</Text>
-              <View style={styles.progressBarContainerInactive}>
-                <View style={styles.progressBarBgInactive}>
-                  <View
-                    style={[
-                      styles.progressBarFillInactive,
-                      {
-                        width: `${practiceProgressPercent}%`,
-                        backgroundColor: subjectColor,
-                      },
-                    ]}
-                  />
-                </View>
-              </View>
-            </View>
-          </TouchableOpacity>
-        </View>
+        {sections.map((section, index) => renderSectionCard(section, index))}
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -405,115 +536,117 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  container: {
-    paddingHorizontal: 24,
+  scrollContent: {
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingLeft: 16,
+    paddingRight: 32,
   },
-  cardsContainer: {
-    gap: 0,
+  sectionRow: {
+    flexDirection: 'row',
+    minHeight: 70,
+    paddingBottom: 24,
+  },
+  timelineColumn: {
+    width: TIMELINE_LEFT_WIDTH,
+    alignItems: 'center',
+    flexDirection: 'column',
+  },
+  timelineContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  timelineGap: {
+    height: 24,
+    width: '100%',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: -24,
+  },
+  lineHalf: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+  },
+  lineSegment: {
+    width: LINE_WIDTH,
+    backgroundColor: '#D1D1D1',
+  },
+  lineDotted: {
+    width: LINE_WIDTH,
+    backgroundColor: '#D1D1D1',
+    opacity: 0.4,
+  },
+  dot: {
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
   card: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    paddingVertical: 16,
-    paddingRight: 16,
-    paddingLeft: 0,
-    marginBottom: 12,
-    minHeight: 88,
-  },
-  cardLearn: {
-    paddingLeft: 0,
-  },
-  cardInactive: {
-    backgroundColor: CARD_INACTIVE_BG,
+    padding: 10,
+    marginLeft: 16,
     borderWidth: 1,
-    borderColor: CARD_INACTIVE_BORDER,
+    borderColor: '#E5E5E5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
-  cardLeftLine: {
-    width: 24,
-    alignItems: 'center',
-    marginRight: 12,
+  cardLocked: {
+    opacity: 0.5,
   },
-  cardDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+  cardInner: {
+    position: 'relative',
+    paddingVertical: 4
   },
-  cardDotActive: {
-    borderWidth: 2,
-  },
-  cardDotInactive: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: CARD_INACTIVE_BORDER,
-  },
-  cardLineSegment: {
-    width: 2,
-    flex: 1,
-    minHeight: 24,
-    marginTop: 4,
-    borderRadius: 1,
-  },
-  cardLineInactive: {
-    backgroundColor: CARD_INACTIVE_BORDER,
-  },
-  cardContent: {
-    flex: 1,
-  },
-  cardTitleLearn: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#fff',
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1A1A1A',
     marginBottom: 2,
   },
-  cardSubtitleLearn: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.9)',
-    marginBottom: 8,
+  cardTitleOpened: {
+    color: '#FFFFFF',
   },
-  cardTitleInactive: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: CARD_INACTIVE_TEXT,
-    marginBottom: 2,
+  sectionDescription: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: '#888888',
   },
-  cardSubtitleInactive: {
-    fontSize: 13,
-    color: CARD_INACTIVE_TEXT,
+  lessonCountOpened: {
+    color: 'rgba(255,255,255,0.85)',
   },
-  progressBarContainer: {
-    marginTop: 4,
+  textLocked: {
+    color: '#AAAAAA',
   },
-  progressBarContainerInactive: {
+  progressBarWrap: {
     marginTop: 8,
   },
-  progressBarBgInactive: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: CARD_INACTIVE_BORDER,
-    overflow: 'hidden',
-  },
-  progressBarFillInactive: {
-    height: '100%',
-    borderRadius: 3,
-  },
   progressBarBg: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    height: 11,
+    borderRadius: 6,
+    backgroundColor: '#E5E5E5',
     overflow: 'hidden',
+  },
+  progressBarBgOpened: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   progressBarFill: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 6,
   },
   cardLoader: {
     position: 'absolute',
-    right: 16,
-    top: '50%',
-    marginTop: -10,
+    right: 0,
+    top: 0,
   },
   loadingContainer: {
     flex: 1,
