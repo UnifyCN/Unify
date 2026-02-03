@@ -22,11 +22,6 @@ import { useSanityTasks } from '@/hooks/sanity/useSanityTasks';
 import { getLearnHref } from '@/utils/learnHref';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Blob3 from '@/assets/images/Blob3.svg';
-import Blob8 from '@/assets/images/Blob8.svg';
-import Blob10 from '@/assets/images/Blob10.svg';
-import Blob11 from '@/assets/images/Blob11.svg';
-import Blob12 from '@/assets/images/Blob12.svg';
 
 const SUBJECT_COLOR = '#10B981'; // green for Learn (active)
 
@@ -87,18 +82,6 @@ export default function SubmoduleIndex() {
 
   const sectionNumber =
     (moduleData?.submodules?.findIndex(s => s?._id === submoduleId) ?? 0) + 1;
-
-  const blobIndexNum = sectionNumber % 5;
-  const BlobComponent =
-    blobIndexNum === 0
-      ? Blob3
-      : blobIndexNum === 1
-        ? Blob8
-        : blobIndexNum === 2
-          ? Blob10
-          : blobIndexNum === 3
-            ? Blob11
-            : Blob12;
 
   useFocusEffect(
     useCallback(() => {
@@ -223,33 +206,13 @@ export default function SubmoduleIndex() {
 
   return (
     <View style={styles.pageContainer}>
-      {/* Colored Header (same as module index) */}
+      {/* White header: back, icon, title, description */}
       <View
         style={[
           styles.header,
-          { backgroundColor: subjectColor, paddingTop: insets.top },
+          { backgroundColor: '#FFFFFF', paddingTop: insets.top },
         ]}
       >
-        <View
-          style={
-            blobIndexNum === 0
-              ? styles.blob3Container
-              : blobIndexNum === 1
-                ? styles.blob8Container
-                : blobIndexNum === 2
-                  ? styles.blob10Container
-                  : blobIndexNum === 3
-                    ? styles.blob11Container
-                    : styles.blob12Container
-          }
-        >
-          <BlobComponent
-            width={400}
-            height={400}
-            fill="#FFFFFF"
-            opacity={0.3}
-          />
-        </View>
         <View style={styles.headerTopRow}>
           <TouchableOpacity
             onPress={() =>
@@ -260,14 +223,14 @@ export default function SubmoduleIndex() {
             }
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#FFFFFF" />
+            <Feather name="chevron-left" size={28} color="#000" />
           </TouchableOpacity>
           {moduleData?.icon ? (
             <View style={styles.headerIconContainer}>
               <MaterialCommunityIcons
                 name={mapIconName(moduleData.icon) as any}
                 size={30}
-                color="#FFFFFF"
+                color="#000"
               />
             </View>
           ) : (
@@ -427,7 +390,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: '#000',
     paddingLeft: 16,
   },
   headerDescriptionWrap: {
@@ -438,7 +401,7 @@ const styles = StyleSheet.create({
   headerDescription: {
     fontSize: 16,
     fontWeight: '400',
-    color: '#FFFFFF',
+    color: '#000',
     opacity: 0.9,
     lineHeight: 20,
     marginLeft: 16,
@@ -452,51 +415,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
-  },
-  blob3Container: {
-    position: 'absolute',
-    top: -170,
-    right: -175,
-    width: 400,
-    height: 400,
-    overflow: 'hidden',
-    transform: [{ rotate: '-45deg' }],
-  },
-  blob8Container: {
-    position: 'absolute',
-    top: -187.5,
-    right: -187.5,
-    width: 400,
-    height: 400,
-    overflow: 'hidden',
-    transform: [{ rotate: '35deg' }],
-  },
-  blob10Container: {
-    position: 'absolute',
-    top: -200,
-    right: 225,
-    width: 400,
-    height: 400,
-    overflow: 'hidden',
-    transform: [{ rotate: '45deg' }],
-  },
-  blob11Container: {
-    position: 'absolute',
-    top: -250,
-    right: 215,
-    width: 400,
-    height: 400,
-    overflow: 'hidden',
-    transform: [{ rotate: '-35deg' }],
-  },
-  blob12Container: {
-    position: 'absolute',
-    top: 25,
-    right: 105,
-    width: 400,
-    height: 400,
-    overflow: 'hidden',
-    transform: [{ rotate: '13deg' }],
   },
   scrollView: {
     flex: 1,
