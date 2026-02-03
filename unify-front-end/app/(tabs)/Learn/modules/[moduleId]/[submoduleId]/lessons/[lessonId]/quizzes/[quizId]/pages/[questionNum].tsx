@@ -1010,6 +1010,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 0,
   },
   checkboxCorrect: {
     width: 20,
@@ -1020,6 +1021,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderColor: '#10B981',
     backgroundColor: '#10B981',
+    marginTop: 0,
   },
   checkboxIncorrect: {
     width: 20,
@@ -1030,6 +1032,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderColor: '#EF4444',
     backgroundColor: '#EF4444',
+    marginTop: 0,
   },
   checkmark: {
     color: '#fff',

@@ -174,6 +174,27 @@ export default function SubmoduleIndex() {
     }, [submoduleId, practices?.length, getPracticeProgressBySubmodule])
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!submoduleId) return;
+      let cancelled = false;
+      const total = tasks?.length ?? 0;
+      if (total === 0) {
+        setTaskProgressPercent(0);
+        return undefined;
+      }
+      getTaskProgressBySubmodule(submoduleId).then(rows => {
+        if (cancelled) return;
+        const completed = (rows || []).filter(r => r.is_completed).length;
+        const p = total > 0 ? Math.round((completed / total) * 100) : 0;
+        setTaskProgressPercent(Math.min(100, Math.max(0, p)));
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, [submoduleId, tasks?.length, getTaskProgressBySubmodule])
+  );
+
   const handleLearnPress = async () => {
     if (!moduleId || !submoduleId || !submoduleData) return;
     setIsResolvingLearnHref(true);
