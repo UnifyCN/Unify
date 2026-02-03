@@ -11,7 +11,7 @@ interface CurrentUser {
   permissions: string;
   profilePictureUrl?: string;
   isPremium: boolean;
-  arrivalDate: string;
+  arrivalDate: string | null;
   stage: StageNumber;
 }
 
