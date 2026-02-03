@@ -589,8 +589,9 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     marginLeft: 16,
     borderWidth: 1,
     borderColor: '#E5E5E5',
