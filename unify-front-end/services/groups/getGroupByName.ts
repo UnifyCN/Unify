@@ -21,8 +21,8 @@ export const getGroupByName = async (
 
     return {
       id: data.id,
-      name: data.group_name,
-      description: data.group_description,
+      name: data.group_name?.trim() ?? '',
+      description: data.group_description?.trim() ?? null,
       memberCount: data.member_count,
       coverPhotoUrl: data.cover_photo_url,
       createdAt: data.created_at,

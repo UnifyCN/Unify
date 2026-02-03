@@ -87,7 +87,7 @@ export default function TabLayout() {
             const isTabSwitch = routeName !== previousTabRef.current;
 
             if (isTabSwitch && hapticsEnabled) {
-              void Haptics.selectionAsync();
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
             
             // Track tab switch

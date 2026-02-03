@@ -5,6 +5,7 @@ import { useRouter, Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UnifyLogo from '@/components/icons/UnifyLogo.svg';
 import { useUnreadNotificationCount } from '@/hooks/useCommunityNotifications';
+import { Layout, getHeaderHeight } from '@/constants/Layout';
 
 interface HeaderProps {
   showSearchIcon?: boolean;
@@ -13,10 +14,19 @@ interface HeaderProps {
 const Header = ({ showSearchIcon = true }: HeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const headerHeight = getHeaderHeight(insets.top);
   const unreadCount = useUnreadNotificationCount();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top + 7 }]}>
+    <View
+      style={[
+        styles.header,
+        {
+          paddingTop: insets.top + Layout.header.topInsetOffset,
+          height: headerHeight,
+        },
+      ]}
+    >
       <UnifyLogo width={28} height={28} />
       <View style={styles.rightButtons}>
         {showSearchIcon && (
@@ -52,8 +62,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: Layout.header.horizontalPadding,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#EEEEEE',
@@ -88,4 +97,3 @@ const styles = StyleSheet.create({
 });
 
 export default Header;
-

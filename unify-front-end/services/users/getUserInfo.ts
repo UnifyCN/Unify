@@ -13,6 +13,7 @@ export interface UserInfo {
   isPremium: boolean;
   permissions: string;
   arrivalDate: string | null;
+  arrivalDate: string;
   stage: StageNumber;
 }
 
@@ -89,6 +90,10 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
           `Failed to update onboarding stage: ${stageUpdateError.message}`
         );
       }
+      await supabase
+        .from('user_onboarding_profiles')
+        .update({ stage: computedStage })
+        .eq('id', targetUserId);
     }
 
     // Get following count

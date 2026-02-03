@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    lineHeight: 18,
+    lineHeight: 18,    
     color: COLORS.white,
   },
   ctaButton: {
@@ -218,8 +218,7 @@ const styles = StyleSheet.create({
   },
   ctaText: {
     color: COLORS.white,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
 });
-

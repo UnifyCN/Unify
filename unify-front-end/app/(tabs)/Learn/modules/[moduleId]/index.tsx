@@ -34,6 +34,7 @@ import Blob10 from '@/assets/images/Blob10.svg';
 import Blob11 from '@/assets/images/Blob11.svg';
 import Blob12 from '@/assets/images/Blob12.svg';
 import { useAnalytics } from '@/utils/analytics';
+import { Layout } from '@/constants/Layout';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -1157,7 +1158,10 @@ export default function ModuleIndex() {
       <View
         style={[
           styles.header,
-          { backgroundColor: subjectColor, paddingTop: insets.top },
+          {
+            backgroundColor: subjectColor,
+            paddingTop: insets.top + Layout.header.topInsetOffset,
+          },
         ]}
       >
         {/* Blob background overlay */}
@@ -1186,7 +1190,11 @@ export default function ModuleIndex() {
             onPress={() => router.replace('/(tabs)/Learn')}
             style={styles.backButton}
           >
-            <Feather name='chevron-left' size={28} color='#FFFFFF' />
+            <Feather
+              name='chevron-left'
+              size={Layout.header.iconSize}
+              color='#FFFFFF'
+            />
           </TouchableOpacity>
           {moduleData.icon && (
             <View style={styles.headerIconContainer}>
@@ -1248,27 +1256,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 15,
+    paddingHorizontal: Layout.header.horizontalPadding,
+    minHeight: Layout.header.rowHeight,
   },
   backButton: {
-    width: 44,
-    height: 44,
+    width: Layout.header.rowHeight,
+    height: Layout.header.rowHeight,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitleWrap: {
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.header.horizontalPadding,
     marginTop: 8,
   },
   headerTitle: {
     fontSize: 24, // Matches user preference
     fontWeight: '800',
     color: '#FFFFFF',
-    paddingLeft: 16, // Kept user's padding
+    paddingLeft: Layout.header.horizontalPadding,
   },
   headerDescriptionWrap: {
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.header.horizontalPadding,
     marginTop: 4,
     paddingBottom: 4,
   },
@@ -1278,10 +1286,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     opacity: 0.9,
     lineHeight: 20,
-    marginLeft: 16, // Aligns with paddingLeft of title
+    marginLeft: Layout.header.horizontalPadding,
   },
   headerRightPlaceholder: {
-    width: 44,
+    width: Layout.header.rowHeight,
   },
   headerIconContainer: {
     width: 47,

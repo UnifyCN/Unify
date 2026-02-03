@@ -1,16 +1,18 @@
+import React, { useEffect, useState, useRef } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
   Image,
+  SafeAreaView,
+  Animated,
+  Easing,
   RefreshControl,
-  FlatList,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { Group } from '@/types/groups';
-import { useEffect, useState, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { getGroupByName } from '@/services/groups/getGroupByName';
@@ -28,12 +30,9 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import { Theme } from '@/constants/Theme';
 import { useAnalytics } from '@/utils/analytics';
-import BackHeader from '@/components/BackHeader';
-
-// Destructive red color for Leave button
-const DESTRUCTIVE_RED = '#DC3545';
 
 const GroupDetailScreen = () => {
+  const router = useRouter();
   const { group, groupName } = useLocalSearchParams();
   const [groupData, setGroupData] = useState<Group | null>(
     group ? (JSON.parse(group as string) as Group) : null
@@ -41,31 +40,19 @@ const GroupDetailScreen = () => {
   const [loading, setLoading] = useState(false);
   const [isMember, setIsMember] = useState<boolean | null>(null);
   const [joining, setJoining] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const headerOpacity = useRef(new Animated.Value(0)).current;
   const hasTrackedView = useRef(false);
 
   const queryClient = useQueryClient();
   const { trackGroupViewed, trackGroupJoined, trackGroupLeft } = useAnalytics();
 
-  // Update groupData when group param changes
   useEffect(() => {
-    if (group) {
-      try {
-        const parsedGroup = JSON.parse(group as string) as Group;
-        setGroupData(parsedGroup);
-        // Reset state when group changes
-        setIsMember(null);
-        hasTrackedView.current = false;
-      } catch (error) {
-        console.error('Failed to parse group data:', error);
-      }
-    } else {
-      // Clear stale data when group param is removed so init effect can fetch by groupName
-      setGroupData(null);
-      setIsMember(null);
-      hasTrackedView.current = false;
-    }
-  }, [group]);
+    // Reset header opacity when component mounts
+    headerOpacity.setValue(0);
+    setIsAtTop(true);
+  }, [headerOpacity]);
 
   // Track group view when groupData is available
   useEffect(() => {
@@ -117,7 +104,7 @@ const GroupDetailScreen = () => {
     return () => {
       mounted = false;
     };
-  }, [groupName, groupData]);
+  }, [groupName]);
 
   // posts for this group
   const groupId = groupData?.id;
@@ -207,40 +194,32 @@ const GroupDetailScreen = () => {
   if (loading) {
     return (
       <View style={styles.container}>
-        <BackHeader />
-        <View style={styles.contentContainer}>
-          {/* Title Skeleton */}
-          <SkeletonLoader width='70%' height={28} style={{ marginBottom: 12 }} />
+        {/* Cover Image Skeleton */}
+        <SkeletonLoader
+          width='100%'
+          height={330}
+          style={styles.imageContainer}
+        />
 
-          {/* Cover Image Skeleton */}
+        {/* Group Info Skeleton */}
+        <View style={styles.card}>
+          <SkeletonLoader width='60%' height={28} style={{ marginBottom: 8 }} />
           <SkeletonLoader
-            width='100%'
-            height={200}
-            style={styles.imageSkeleton}
-          />
-
-          {/* Metadata Skeleton */}
-          <SkeletonLoader
-            width='40%'
-            height={20}
+            width='30%'
+            height={16}
             style={{ marginBottom: 12 }}
           />
-
-          {/* CTA Button Skeleton */}
           <SkeletonLoader
             width='100%'
-            height={48}
-            style={{ marginBottom: 24, borderRadius: 12 }}
+            height={16}
+            style={{ marginBottom: 4 }}
           />
-
-          {/* Description Skeleton */}
-          <SkeletonLoader width='100%' height={16} style={{ marginBottom: 8 }} />
-          <SkeletonLoader width='90%' height={16} style={{ marginBottom: 8 }} />
-          <SkeletonLoader width='75%' height={16} />
+          <SkeletonLoader width='80%' height={16} style={{ marginBottom: 4 }} />
+          <SkeletonLoader width='60%' height={16} />
         </View>
 
         {/* Posts Skeleton */}
-        <View style={{ backgroundColor: Theme.white }}>
+        <View style={{ backgroundColor: '#fff' }}>
           {[1, 2, 3].map(i => (
             <SkeletonLoaderPostItem key={i} />
           ))}
@@ -252,7 +231,6 @@ const GroupDetailScreen = () => {
   if (!groupData) {
     return (
       <View style={styles.container}>
-        <BackHeader />
         <Text style={styles.loadingText}>Group not found</Text>
       </View>
     );
@@ -260,11 +238,37 @@ const GroupDetailScreen = () => {
 
   return (
     <View style={styles.container} key={groupData.id}>
-      {/* Header - Using BackHeader component */}
-      <BackHeader />
+      {/* Header */}
+      <Animated.View
+        style={[
+          styles.header,
+          {
+            backgroundColor: headerOpacity.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['transparent', '#fff'],
+              extrapolate: 'clamp',
+            }),
+          },
+        ]}
+      >
+        <SafeAreaView>
+          <View style={styles.headerContent}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <View style={styles.backButton}>
+                <Feather
+                  name='chevron-left'
+                  size={36}
+                  color={isAtTop ? '#fff' : '#000'}
+                />
+              </View>
+            </TouchableOpacity>
+            <View style={{ flex: 1 }} />
+          </View>
+        </SafeAreaView>
+      </Animated.View>
 
       {/* Single scrollable content */}
-      <FlatList
+      <Animated.FlatList
         data={posts}
         keyExtractor={item => String(item.id)}
         renderItem={({ item }) => (
@@ -278,72 +282,39 @@ const GroupDetailScreen = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListHeaderComponent={() => (
-          <View style={styles.contentContainer}>
-            {/* Group Title */}
-            <Text style={styles.groupTitle}>{groupData.name}</Text>
-
-            {/* Group Image - Card style */}
-            {groupData.coverPhotoUrl ? (
-              <Image
-                source={{ uri: groupData.coverPhotoUrl }}
-                style={styles.groupImage}
-                resizeMode='cover'
-              />
-            ) : (
-              <View style={styles.imagePlaceholder} />
-            )}
-
-            {/* Metadata - Member count with status badge */}
-            <View style={styles.metadataRow}>
-              <Feather
-                name='users'
-                size={16}
-                color={Theme.textAlternateGray}
-                style={styles.metadataIcon}
-              />
-              <Text style={styles.metadataText}>
-                {groupData.memberCount} {groupData.memberCount === 1 ? 'member' : 'members'}
-              </Text>
-              {isMember && (
-                <View style={styles.memberBadge}>
-                  <Feather name='check-circle' size={14} color='#4CAF50' />
-                  <Text style={styles.memberBadgeText}>Joined</Text>
-                </View>
+          <>
+            {/* header image area */}
+            <View style={styles.imageContainer}>
+              {groupData.coverPhotoUrl ? (
+                <Image
+                  source={{ uri: groupData.coverPhotoUrl }}
+                  style={styles.eventImage}
+                />
+              ) : (
+                <View style={styles.imagePlaceholder} />
               )}
+
+              {/* Join button on image */}
+              <TouchableOpacity
+                style={[styles.joinButton, !isMember && styles.notJoined]}
+                onPress={handleJoinToggle}
+                disabled={joining}
+              >
+                <Text style={styles.joinText}>
+                  {isMember ? 'Joined' : 'Join'}
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            {/* Join/Leave CTA Button */}
-            <TouchableOpacity
-              onPress={handleJoinToggle}
-              disabled={joining}
-              style={[
-                styles.ctaButton,
-                isMember ? styles.ctaButtonLeave : styles.ctaButtonJoin,
-                joining && styles.ctaButtonDisabled,
-              ]}
-            >
-              <Text style={styles.ctaButtonText}>
-                {joining
-                  ? isMember
-                    ? 'Leaving...'
-                    : 'Joining...'
-                  : isMember
-                    ? 'Leave Group'
-                    : 'Join Group'}
+            {/* white card with title/desc */}
+            <View style={styles.card}>
+              <Text style={styles.eventTitle}>{groupData.name}</Text>
+              <Text style={styles.subtitle}>
+                {groupData.memberCount} members
               </Text>
-            </TouchableOpacity>
-
-            {/* About Group */}
-            {groupData.description && (
-              <>
-                <Text style={styles.aboutTitle}>About</Text>
-                <Text style={styles.aboutText}>{groupData.description}</Text>
-              </>
-            )}
-
-            {/* Posts section divider */}
-            {posts.length > 0 && <View style={styles.sectionDivider} />}
-          </View>
+              <Text style={styles.aboutText}>{groupData.description}</Text>
+            </View>
+          </>
         )}
         ListEmptyComponent={() => {
           if (postsLoading) return null;
@@ -368,6 +339,20 @@ const GroupDetailScreen = () => {
         }}
         onEndReached={() => fetchNextPage()}
         onEndReachedThreshold={0.5}
+        onScroll={event => {
+          const offsetY = event.nativeEvent.contentOffset.y;
+          const atTop = offsetY <= 50;
+          setIsAtTop(atTop);
+
+          // Smooth transition with easing
+          Animated.timing(headerOpacity, {
+            toValue: atTop ? 0 : 1,
+            duration: 300,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: false,
+          }).start();
+        }}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
       />
 
@@ -380,111 +365,140 @@ const GroupDetailScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.white,
+    backgroundColor: '#fff',
   },
-  contentContainer: {
-    paddingTop: 4,
-    paddingBottom: 16,
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  header: {
+    position: 'absolute',
+    paddingTop: 24,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
-  groupTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Theme.black,
-    marginBottom: 12,
-    lineHeight: 28,
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  groupImage: {
+  shareButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  imageContainer: {
+    height: 330,
+    backgroundColor: '#C4C4C4',
+    position: 'relative',
+  },
+  eventImage: {
     width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 20,
-    backgroundColor: Theme.imagePlaceholder,
+    height: '100%',
+    resizeMode: 'cover',
   },
   imagePlaceholder: {
     width: '100%',
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 20,
-    backgroundColor: Theme.imagePlaceholder,
+    height: '100%',
+    backgroundColor: '#C4C4C4',
   },
-  imageSkeleton: {
-    borderRadius: 12,
-    marginBottom: 20,
+  eventContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    height: '100%',
   },
-  metadataRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  metadataIcon: {
-    marginRight: 10,
-  },
-  metadataText: {
-    fontSize: 16,
-    color: Theme.black,
-    lineHeight: 22,
-  },
-  memberBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 12,
-    backgroundColor: '#E8F5E9',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  memberBadgeText: {
-    fontSize: 14,
-    color: '#4CAF50',
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  ctaButton: {
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  ctaButtonJoin: {
-    backgroundColor: Theme.primaryGatherRed,
-  },
-  ctaButtonLeave: {
-    backgroundColor: DESTRUCTIVE_RED,
-  },
-  ctaButtonDisabled: {
-    opacity: 0.7,
-  },
-  ctaButtonText: {
-    color: Theme.white,
-    fontSize: 16,
+  eventTitle: {
+    fontSize: 24,
     fontWeight: '600',
-  },
-  aboutTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Theme.black,
-    marginBottom: 6,
+    color: '#343434',
   },
   aboutText: {
     fontSize: 18,
-    color: Theme.black,
-    lineHeight: 27,
-  },
-  sectionDivider: {
-    height: 1,
-    backgroundColor: Theme.surfaceGray,
-    marginTop: 24,
-    marginBottom: 8,
-    marginHorizontal: -20,
+    color: '#000',
+    lineHeight: 24,
   },
   loadingText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
     marginTop: 40,
+  },
+  joinButton: {
+    backgroundColor: Theme.secondaryBlack,
+    minWidth: 150,
+    paddingVertical: 12,
+    borderRadius: 10,
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    boxShadow: '0 2.185px 34.954px 0 rgba(0, 0, 0, 0.25)',
+  },
+  notJoined: {
+    backgroundColor: Theme.primaryGatherRed,
+  },
+  joinText: {
+    color: '#fff',
+    fontSize: 20,
+    lineHeight: 22,
+    fontWeight: '600',
+    alignSelf: 'center',
+  },
+  card: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    gap: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyState: {
+    backgroundColor: '#fff',
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateContent: {
+    alignItems: 'center',
+    maxWidth: 280,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateSubtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });
 

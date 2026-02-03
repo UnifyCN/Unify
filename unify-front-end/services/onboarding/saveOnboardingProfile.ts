@@ -18,6 +18,8 @@ export const saveOnboardingProfile = async (
         const stageNumber = calculateUserStage(arrivalDate);
         calculatedStage = stageNumberToEnum(stageNumber);
       }
+      const stageNumber = calculateUserStage(arrivalDate);
+      calculatedStage = stageNumberToEnum(stageNumber);
     }
 
     // Prepare the data for Supabase (convert to snake_case)

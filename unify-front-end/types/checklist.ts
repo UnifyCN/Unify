@@ -2,6 +2,7 @@ export type Priority =
   | 'Do now'
   | 'Do soon'
   | 'Explore and connect'
+  | 'Explore & connect'
   | 'Optional / later';
 
 export type StageNumber = 0 | 1 | 2 | 3 | 4;
@@ -81,4 +82,12 @@ export interface UserTask {
 
 export interface UserTaskWithDetails extends UserTask {
   task: ChecklistTaskDetails;
+  task_id: number;
+  completed: boolean;
+  completed_at: string | null;
+  task?: PersonalizedChecklistTask; // Joined task details
+}
+
+export interface UserTaskWithDetails extends UserTask {
+  task: PersonalizedChecklistTask;
 }

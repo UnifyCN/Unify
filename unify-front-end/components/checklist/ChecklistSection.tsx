@@ -23,6 +23,7 @@ const priorityConfig = {
     backgroundColor: '#FBE4CF',
   },
   'Explore and connect': {
+  'Explore & connect': {
     icon: 'people' as const,
     color: '#F49E34',
     backgroundColor: '#FFEDBD',
@@ -68,6 +69,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         />
         {tasks.map((task, index) => (
           <View key={task.sanity_checklist_id || task.user_task_id || index} style={styles.row}>
+          <View key={task.user_task_id} style={styles.row}>
             {/* LEFT COLUMN (Checkbox) */}
             <View style={styles.leftColumn}>
               <TouchableOpacity

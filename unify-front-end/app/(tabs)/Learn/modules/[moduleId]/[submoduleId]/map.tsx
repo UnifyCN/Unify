@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
+import { Layout } from '@/constants/Layout';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -461,7 +462,12 @@ export default function SubmoduleMap() {
   return (
     <View style={styles.container}>
       {/* Header - White background */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.header,
+          { paddingTop: insets.top + Layout.header.topInsetOffset },
+        ]}
+      >
         <View style={styles.headerTopRow}>
           <TouchableOpacity
             onPress={() =>
@@ -472,7 +478,11 @@ export default function SubmoduleMap() {
             }
             style={styles.backButton}
           >
-            <Feather name='chevron-left' size={28} color='#000000' />
+            <Feather
+              name='chevron-left'
+              size={Layout.header.iconSize}
+              color='#000000'
+            />
           </TouchableOpacity>
           <View style={styles.headerTitleCenter}>
             <Text style={styles.headerSubjectName}>
@@ -525,16 +535,16 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: '#FFFFFF',
     paddingBottom: 24,
-    paddingHorizontal: 16,
+    paddingHorizontal: Layout.header.horizontalPadding,
   },
   headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 12,
+    minHeight: Layout.header.rowHeight,
   },
   backButton: {
-    width: 44,
-    height: 44,
+    width: Layout.header.rowHeight,
+    height: Layout.header.rowHeight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -544,7 +554,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerRightPlaceholder: {
-    width: 44,
+    width: Layout.header.rowHeight,
   },
   headerSubjectName: {
     fontSize: 24,
@@ -553,7 +563,7 @@ const styles = StyleSheet.create({
   },
   headerSectionInfo: {
     marginTop: 8,
-    paddingLeft: 16, // Aligned with chevron
+    paddingLeft: Layout.header.horizontalPadding,
   },
   sectionNumber: {
     fontSize: 24,

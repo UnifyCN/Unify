@@ -2,6 +2,7 @@ import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ScrollContextProvider } from '@/context/ScrollContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -77,10 +78,19 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isReady) {
+    if (
+      loaded &&
+      // onboardingChecked &&
+      (progressCacheInitialized || cacheTimeout)
+    ) {
       // Hide native splash immediately, AnimatedSplash will handle the transition
       SplashScreen.hideAsync();
     }
   }, [isReady]);
+
+  const handleSplashAnimationComplete = () => {
+    setShowAnimatedSplash(false);
+  };
 
   const handleSplashAnimationComplete = () => {
     setShowAnimatedSplash(false);
@@ -124,6 +134,39 @@ export default function RootLayout() {
         </SafeAreaProvider>
       </GestureHandlerRootView>
       {showAnimatedSplash && !isReady && (
+        <KeyboardProvider>
+          <SafeAreaProvider>
+            <ToastProvider>
+              <ScrollContextProvider>
+                {/* {showOnboarding ? (
+              <Onboarding onFinish={() => setShowOnboarding(false)} />
+            ) : ( */}
+                <UserProvider>
+                  <HapticsProvider>
+                    <AuthWrapper>
+                      <ThemeProvider value={DefaultTheme}>
+                        <PostHogProvider
+                          apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+                          options={{
+                            host:
+                              process.env.EXPO_PUBLIC_POSTHOG_HOST ||
+                              'https://us.i.posthog.com',
+                          }}
+                          autocapture={{ captureScreens: false }}
+                        >
+                          <AppContent />
+                        </PostHogProvider>
+                      </ThemeProvider>
+                    </AuthWrapper>
+                  </HapticsProvider>
+                </UserProvider>
+                {/* )} */}
+              </ScrollContextProvider>
+            </ToastProvider>
+          </SafeAreaProvider>
+        </KeyboardProvider>
+      </GestureHandlerRootView>
+      {showAnimatedSplash && (
         <AnimatedSplash onAnimationComplete={handleSplashAnimationComplete} />
       )}
     </QueryClientProvider>

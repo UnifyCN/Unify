@@ -8,6 +8,13 @@ import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile
 import { setChecklistItemCompletion } from '@/services/checklist/setChecklistItemCompletion';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import React, { useEffect, useState } from 'react';
+import { View, ScrollView, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useUserStage } from '@/hooks/onboarding/useUserStage';
+import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
+import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
+import { updateTaskCompletion } from '@/services/checklist/updateTaskCompletion';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
@@ -31,6 +38,19 @@ const personaDisplayNames: Record<string, string> = {
   skilled_worker: 'Skilled Worker',
   immigrant: 'Immigrant',
   pr: 'PR',
+const stageDescriptions = {
+  0: 'Not Arrived Yet',
+  1: '0-3 Months',
+  2: '3-12 Months',
+  3: '1-3 Years',
+  4: '3+ Years',
+};
+
+const personaDisplayNames = {
+  international_student: 'International Student',
+  skilled_worker: 'Skilled Worker',
+  refugee: 'Refugee',
+  other: 'Other',
 };
 
 export default function ChecklistScreen() {
@@ -112,6 +132,7 @@ export default function ChecklistScreen() {
     'Do now',
     'Do soon',
     'Explore and connect',
+    'Explore & connect',
     'Optional / later',
   ];
 
@@ -141,6 +162,9 @@ export default function ChecklistScreen() {
     } else {
       router.push('/(tabs)/Learn');
     }
+    handleCloseModal();
+    // Navigate to Learn tab - for now just go to learn home
+    router.push('/(tabs)/Learn');
   };
 
   const handleMarkComplete = async () => {
@@ -157,6 +181,11 @@ export default function ChecklistScreen() {
       // Optimistically update UI (match by sanity_checklist_id; row may not exist when unchecking)
       const updatedTasks = tasks.map(task =>
         task.sanity_checklist_id === selectedTask.sanity_checklist_id
+      const newCompletedStatus = !selectedTask.completed;
+
+      // Optimistically update UI
+      const updatedTasks = tasks.map(task =>
+        task.user_task_id === selectedTask.user_task_id
           ? {
               ...task,
               completed: newCompletedStatus,
@@ -168,6 +197,7 @@ export default function ChecklistScreen() {
       );
       setTasks(updatedTasks);
 
+      // Update selected task state
       setSelectedTask({
         ...selectedTask,
         completed: newCompletedStatus,
@@ -180,6 +210,11 @@ export default function ChecklistScreen() {
       );
     } catch (error) {
       console.error('Error updating task completion:', error);
+      // Update database in background
+      await updateTaskCompletion(selectedTask.user_task_id, newCompletedStatus);
+    } catch (error) {
+      console.error('Error updating task completion:', error);
+      // Revert on error
       refetch();
     }
   };
@@ -189,6 +224,9 @@ export default function ChecklistScreen() {
       <ThemedView style={styles.loadingContainer}>
         <ActivityIndicator size='large' />
       </ThemedView>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size='large' />
+      </View>
     );
   }
 
@@ -198,12 +236,14 @@ export default function ChecklistScreen() {
       : 'Stage Not Set';
   const personaDisplay = persona
     ? personaDisplayNames[persona] ?? persona
+    ? personaDisplayNames[persona as keyof typeof personaDisplayNames]
     : 'User';
 
   // Don't show checklist if stage is null
   if (currentStage === null) {
     return (
       <ThemedView style={styles.container}>
+      <View style={styles.container}>
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
@@ -219,11 +259,22 @@ export default function ChecklistScreen() {
           </View>
         </ScrollView>
       </ThemedView>
+            <Text style={styles.title}>
+              Your Personalized Checklist
+            </Text>
+            <Text style={styles.subtitle}>
+              Please complete your onboarding to see your personalized
+              checklist.
+            </Text>
+          </View>
+        </ScrollView>
+      </View>
     );
   }
 
   return (
     <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <Header showSearchIcon={true} />
       <ScrollView
         style={styles.scrollView}
@@ -236,6 +287,12 @@ export default function ChecklistScreen() {
           <ThemedText style={styles.subtitle}>
             {personaDisplay} - {stageDescription}
           </ThemedText>
+          <Text style={styles.title}>
+            Your Personalized Checklist
+          </Text>
+          <Text style={styles.subtitle}>
+            {personaDisplay} - {stageDescription}
+          </Text>
           <View style={styles.progressContainer}>
             <View
               style={[
@@ -264,6 +321,9 @@ export default function ChecklistScreen() {
             <ThemedText style={styles.emptyText}>
               No tasks available for your current stage.
             </ThemedText>
+            <Text style={styles.emptyText}>
+              No tasks available for your current stage.
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -276,17 +336,20 @@ export default function ChecklistScreen() {
         onMarkComplete={handleMarkComplete}
       />
     </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   scrollView: {
     flex: 1,

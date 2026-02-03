@@ -5,6 +5,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Dimensions,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -29,6 +30,7 @@ interface BottomSheetProps {
   onClose: () => void;
   children: React.ReactNode;
   snapPoint?: number; // 0-1, percentage of screen height the sheet covers
+  useModal?: boolean;
 }
 
 export default function BottomSheet({
@@ -36,6 +38,7 @@ export default function BottomSheet({
   onClose,
   children,
   snapPoint = 0.65,
+  useModal = true,
 }: BottomSheetProps) {
   const sheetHeight = SCREEN_HEIGHT * snapPoint;
   const translateY = useSharedValue(sheetHeight);
@@ -107,6 +110,27 @@ export default function BottomSheet({
 
   if (!shouldRender) return null;
 
+  const sheetContent = (
+    <GestureHandlerRootView style={styles.container}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <Animated.View style={[styles.backdrop, animatedBackdropStyle]} />
+      </TouchableWithoutFeedback>
+
+      <GestureDetector gesture={panGesture}>
+        <Animated.View
+          style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}
+        >
+          <View style={styles.dragHandle} />
+          <View style={styles.content}>{children}</View>
+        </Animated.View>
+      </GestureDetector>
+    </GestureHandlerRootView>
+  );
+
+  if (!useModal) {
+    return <View style={styles.inlineContainer}>{sheetContent}</View>;
+  }
+
   return (
     <Modal
       visible={shouldRender}
@@ -114,6 +138,7 @@ export default function BottomSheet({
       animationType='none'
       statusBarTranslucent
       onRequestClose={onClose}
+      presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
     >
       <GestureHandlerRootView style={styles.container}>
         <TouchableWithoutFeedback onPress={onClose}>
@@ -129,6 +154,7 @@ export default function BottomSheet({
           </Animated.View>
         </GestureDetector>
       </GestureHandlerRootView>
+      {sheetContent}
     </Modal>
   );
 }
@@ -136,6 +162,10 @@ export default function BottomSheet({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  inlineContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,

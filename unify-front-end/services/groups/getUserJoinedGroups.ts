@@ -35,8 +35,8 @@ export const getUserJoinedGroups = async (): Promise<Group[]> => {
     return (
       data?.map((membership: any) => ({
         id: membership.groups.id,
-        name: membership.groups.group_name,
-        description: membership.groups.group_description,
+        name: membership.groups.group_name?.trim() ?? '',
+        description: membership.groups.group_description?.trim() ?? null,
         memberCount: membership.groups.member_count,
         coverPhotoUrl: membership.groups.cover_photo_url,
         createdAt: membership.groups.created_at,

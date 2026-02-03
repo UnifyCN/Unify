@@ -5,8 +5,17 @@ import {
   TouchableOpacity,
   ImageBackground,
   Dimensions,
+  ScrollView,
+  useWindowDimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  SharedValue,
+} from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
 import Header from '@/components/Header';
 import { Theme } from '@/constants/Theme';
@@ -15,7 +24,7 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { useForYouFeed } from '@/hooks/feeds/useForYouFeed';
 import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
-import { memo, useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import CreatePostButton from '@/components/posts/CreatePostButton';
 import { HorizontalCarousel } from '@/components/HorizontalCarousel';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
@@ -27,38 +36,63 @@ import GroupViewMoreCard from '@/components/icons/GroupViewMoreCard.svg';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
+import * as Haptics from 'expo-haptics';
+import { useHapticsPreference } from '@/context/HapticsContext';
 
 interface HeaderProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  onTabChange?: (tab: string) => void;
+  activeIndex: number;
+  onTabPress: (index: number) => void;
+  scrollX: SharedValue<number>;
+  screenWidth: number;
 }
 
+const TABS = ['For You', 'Following', 'Groups'] as const;
+type FeedTab = (typeof TABS)[number];
+
 const FeedTabs = memo(
-  ({ activeTab, setActiveTab, onTabChange }: HeaderProps) => {
+  ({ activeIndex, onTabPress, scrollX, screenWidth }: HeaderProps) => {
+    const [containerWidth, setContainerWidth] = useState(0);
+    const tabWidth = containerWidth ? containerWidth / TABS.length : 0;
+
+    const indicatorStyle = useAnimatedStyle(() => {
+      if (!tabWidth || screenWidth === 0) {
+        return { transform: [{ translateX: 0 }] };
+      }
+
+      const translateX = (scrollX.value / screenWidth) * tabWidth;
+      return { transform: [{ translateX }] };
+    }, [tabWidth, screenWidth]);
+
     return (
-      <View style={styles.tabs}>
-        {['For You', 'Following', 'Groups'].map(tab => (
+      <View
+        style={styles.tabs}
+        onLayout={event => setContainerWidth(event.nativeEvent.layout.width)}
+      >
+        {TABS.map((tab, index) => (
           <TouchableOpacity
             key={tab}
             onPress={() => {
-              if (tab !== activeTab && onTabChange) {
-                onTabChange(tab);
-              }
-              setActiveTab(tab);
+              onTabPress(index);
             }}
-            style={[styles.tab, activeTab === tab && styles.activeTab]}
+            style={styles.tab}
+            activeOpacity={0.7}
           >
             <Text
               style={[
                 styles.tabText,
-                activeTab === tab && styles.activeTabText,
+                activeIndex === index && styles.activeTabText,
               ]}
             >
               {tab}
             </Text>
           </TouchableOpacity>
         ))}
+        {tabWidth > 0 && (
+          <Animated.View
+            pointerEvents='none'
+            style={[styles.tabIndicator, { width: tabWidth }, indicatorStyle]}
+          />
+        )}
       </View>
     );
   }
@@ -182,12 +216,17 @@ const GroupsCarousel = memo(() => {
 });
 
 export default function HomeScreen() {
-  const [activeTab, setActiveTab] = useState('For You');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeTab = TABS[activeIndex];
   const { trackScreen, trackFeedTabSwitched } = useAnalytics();
   const isFocused = useIsFocused();
+  const { hapticsEnabled } = useHapticsPreference();
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
-  const activeTabRef = useRef(activeTab);
+  const activeTabRef = useRef<FeedTab>(TABS[0]);
+  const scrollViewRef = useRef<React.ElementRef<typeof Animated.ScrollView>>(null);
+  const { width: screenWidth } = useWindowDimensions();
+  const scrollX = useSharedValue(0);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -212,43 +251,121 @@ export default function HomeScreen() {
 
   // Track feed tab switches - this handles internal Home tab changes
   const handleFeedTabChange = useCallback(
-    (tab: string) => {
+    (tab: FeedTab) => {
       if (!isFocused) return;
 
-      const tabName = tab as 'For You' | 'Following' | 'Groups';
-      trackFeedTabSwitched(tabName);
+      if (hapticsEnabled) {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      trackFeedTabSwitched(tab);
       // Also update the screen name for the new tab
-      trackScreen(tabName);
+      trackScreen(tab);
     },
-    [trackFeedTabSwitched, trackScreen, isFocused]
+    [trackFeedTabSwitched, trackScreen, isFocused, hapticsEnabled]
   );
 
-  const renderFeedContent = useMemo(() => {
-    switch (activeTab) {
-      case 'Following':
-        return (
-          <FeedWithHook
-            key={`following-${activeTab}`}
-            useFeedHook={useFollowingFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No posts here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    You haven't followed any users yet.{'\n'}
-                    Follow other users to see their posts!
-                  </Text>
-                }
-              />
-            }
-          />
-        );
-      case 'Groups':
-        return (
-          <>
+  const handleTabPress = useCallback(
+    (index: number) => {
+      if (index === activeIndex) return;
+      scrollViewRef.current?.scrollTo({
+        x: index * screenWidth,
+        animated: true,
+      });
+      setActiveIndex(index);
+      handleFeedTabChange(TABS[index]);
+    },
+    [activeIndex, screenWidth, handleFeedTabChange]
+  );
+
+  const handlePagerMomentumEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const index = Math.round(
+        event.nativeEvent.contentOffset.x / screenWidth
+      );
+      if (index !== activeIndex) {
+        setActiveIndex(index);
+        handleFeedTabChange(TABS[index]);
+      }
+    },
+    [activeIndex, screenWidth, handleFeedTabChange]
+  );
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: event => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
+  useEffect(() => {
+    const index = Math.max(0, TABS.indexOf(activeTabRef.current));
+    scrollViewRef.current?.scrollTo({
+      x: index * screenWidth,
+      animated: false,
+    });
+    scrollX.value = index * screenWidth;
+  }, [screenWidth, scrollX]);
+
+  return (
+    <View style={styles.root}>
+      <Header />
+      <View style={styles.container}>
+        <StatusBar style='dark' />
+        <FeedTabs
+          activeIndex={activeIndex}
+          onTabPress={handleTabPress}
+          scrollX={scrollX}
+          screenWidth={screenWidth}
+        />
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          onMomentumScrollEnd={handlePagerMomentumEnd}
+          style={styles.pager}
+          contentContainerStyle={styles.pagerContent}
+          decelerationRate='fast'
+          bounces={false}
+          overScrollMode='never'
+          directionalLockEnabled
+        >
+          <View style={[styles.page, { width: screenWidth }]}>
+            <FeedWithHook
+              useFeedHook={useForYouFeed}
+              ListEmptyComponent={
+                <EmptyFeedMessage
+                  message='No posts here...'
+                  submessage={
+                    <Text style={styles.emptyMessageSubtext}>
+                      No one has posted anything yet.{'\n'}
+                      Post something to see it here!
+                    </Text>
+                  }
+                />
+              }
+            />
+          </View>
+          <View style={[styles.page, { width: screenWidth }]}>
+            <FeedWithHook
+              useFeedHook={useFollowingFeed}
+              ListEmptyComponent={
+                <EmptyFeedMessage
+                  message='No posts here...'
+                  submessage={
+                    <Text style={styles.emptyMessageSubtext}>
+                      You haven't followed any users yet.{'\n'}
+                      Follow other users to see their posts!
+                    </Text>
+                  }
+                />
+              }
+            />
+          </View>
+          <View style={[styles.page, { width: screenWidth }]}>
             <GroupsCarousel />
             <FeedWithHook
-              key={`groups-${activeTab}`}
               useFeedHook={useGroupsFeed}
               ListEmptyComponent={
                 <EmptyFeedMessage
@@ -262,63 +379,8 @@ export default function HomeScreen() {
                 />
               }
             />
-          </>
-        );
-      default:
-        return (
-          <FeedWithHook
-            key={`foryou-${activeTab}`}
-            useFeedHook={useForYouFeed}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                message='No posts here...'
-                submessage={
-                  <Text style={styles.emptyMessageSubtext}>
-                    No one has posted anything yet.{'\n'}
-                    Post something to see it here!
-                  </Text>
-                }
-              />
-            }
-          />
-        );
-    }
-  }, [activeTab]);
-
-  // Easiest way to make the header sticky
-  const data = [
-    { key: 'tabs', type: 'tabs' },
-    { key: 'feed', type: 'feed' },
-  ];
-
-  const renderItem = ({ item }: { item: { key: string; type: string } }) => {
-    switch (item.type) {
-      case 'tabs':
-        return (
-          <FeedTabs
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onTabChange={handleFeedTabChange}
-          />
-        );
-      case 'feed':
-        return <View>{renderFeedContent}</View>;
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <View style={styles.root}>
-      <Header />
-      <View style={styles.container}>
-        <StatusBar style='dark' />
-        <Animated.FlatList
-          data={data}
-          renderItem={renderItem}
-          keyExtractor={item => item.key}
-          stickyHeaderIndices={[0]} // Make the tabs (index 0) sticky
-        />
+          </View>
+        </Animated.ScrollView>
         <CreatePostButton />
       </View>
     </View>
@@ -337,24 +399,18 @@ const styles = StyleSheet.create({
   tabs: {
     backgroundColor: '#fff',
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
     borderBottomWidth: 0.5,
     borderBottomColor: '#E5E5E5',
     paddingTop: 8,
+    position: 'relative',
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
     paddingVertical: 8,
-    marginHorizontal: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  activeTab: {
-    borderBottomColor: Theme.primaryGatherRed,
   },
   tabText: {
     fontSize: 16,
@@ -364,6 +420,23 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: Theme.black,
     fontWeight: '600',
+  },
+  tabIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    height: 2,
+    backgroundColor: Theme.primaryGatherRed,
+    borderRadius: 2,
+  },
+  pager: {
+    flex: 1,
+  },
+  pagerContent: {
+    flexGrow: 1,
+  },
+  page: {
+    flex: 1,
   },
   emptyMessageSubtext: {
     fontSize: 14,

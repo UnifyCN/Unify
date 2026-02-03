@@ -103,6 +103,7 @@ function getSectionStyles(
 
   return { dotStyle, lineAboveStyle, lineBelowStyle };
 }
+import { Layout } from '@/constants/Layout';
 
 export default function SubmoduleIndex() {
   const router = useRouter();
@@ -437,6 +438,23 @@ export default function SubmoduleIndex() {
             style={styles.backButton}
           >
             <Feather name="chevron-left" size={28} color="#000" />
+            <Feather
+              name='chevron-left'
+              size={Layout.header.iconSize}
+              color='#000'
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              // Navigate to module index (skip map)
+              router.push({
+                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+                params: { moduleId },
+              });
+            }}
+            style={styles.menuButton}
+          >
+            <Feather name='menu' size={Layout.header.iconSize} color='#000' />
           </TouchableOpacity>
           <View style={styles.headerCenterWrap}>
             <Text style={styles.headerModuleName} numberOfLines={1}>
@@ -510,6 +528,21 @@ const styles = StyleSheet.create({
   headerTitleWrap: {
     paddingHorizontal: 16,
     marginTop: 8,
+    paddingTop: Layout.header.topInsetOffset,
+    minHeight: Layout.header.rowHeight,
+    marginBottom: 20,
+  },
+  backButton: {
+    width: Layout.header.rowHeight,
+    height: Layout.header.rowHeight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuButton: {
+    width: Layout.header.rowHeight,
+    height: Layout.header.rowHeight,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTitleBlock: {
     marginLeft: 16,

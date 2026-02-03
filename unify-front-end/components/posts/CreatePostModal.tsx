@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
@@ -155,6 +156,7 @@ export default function CreatePostModal({
         animationType='none'
         statusBarTranslucent
         onRequestClose={handleCancel}
+        presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
       >
         <BackHeader
           title=''
@@ -208,9 +210,61 @@ export default function CreatePostModal({
               {title.length}/{TITLE_MAX_LENGTH}
             </Text>
           </View>
+        <View style={styles.modalContent}>
+          <BackHeader
+            title=''
+            backIcon='x'
+            onBack={handleCancel}
+            rightButton={
+              <TouchableOpacity
+                onPress={handleSubmit}
+                style={[
+                  styles.postButton,
+                  (!title.trim() || !content.trim()) && styles.disabledButton,
+                ]}
+                disabled={
+                  !title.trim() ||
+                  !content.trim() ||
+                  createPostMutation.isPending
+                }
+              >
+                {createPostMutation.isPending ? (
+                  <ActivityIndicator size='small' color='white' />
+                ) : (
+                  <Text style={styles.postButtonText}>Post</Text>
+                )}
+              </TouchableOpacity>
+            }
+          />
+          <ScrollView style={styles.container}>
+            <DestinationToggle
+              destination={destination}
+              selectedGroup={selectedGroup}
+              onDestinationChange={handleDestinationChange}
+              onClearGroup={handleClearGroup}
+            />
 
-          {/* Separator */}
-          <View style={styles.separator} />
+            {/* Title Input */}
+            <View style={styles.titleContainer}>
+              <TextInput
+                style={styles.titleInput}
+                placeholder='Title'
+                placeholderTextColor={Theme.textAlternateGray}
+                value={title}
+                onChangeText={setTitle}
+                multiline
+                maxLength={TITLE_MAX_LENGTH}
+              />
+              <Text
+                style={[
+                  styles.charCount,
+                  title.length > TITLE_MAX_LENGTH * 0.9 &&
+                    styles.charCountWarning,
+                ]}
+              >
+                {title.length}/{TITLE_MAX_LENGTH}
+              </Text>
+            </View>
 
           {/* Content Input */}
           <View style={styles.contentContainer}>
@@ -236,12 +290,41 @@ export default function CreatePostModal({
           </View>
         </ScrollView>
       </Modal>
+            {/* Separator */}
+            <View style={styles.separator} />
 
-      <GroupSelectionSheet
-        visible={showGroupSelector}
-        onClose={() => setShowGroupSelector(false)}
-        onGroupSelect={handleGroupSelect}
-      />
+            {/* Content Input */}
+            <View style={styles.contentContainer}>
+              <TextInput
+                style={styles.contentInput}
+                placeholder="What's on your mind?"
+                placeholderTextColor={Theme.textAlternateGray}
+                value={content}
+                onChangeText={setContent}
+                multiline
+                textAlignVertical='top'
+                maxLength={CONTENT_MAX_LENGTH}
+              />
+              <Text
+                style={[
+                  styles.charCount,
+                  content.length > CONTENT_MAX_LENGTH * 0.9 &&
+                    styles.charCountWarning,
+                ]}
+              >
+                {content.length}/{CONTENT_MAX_LENGTH}
+              </Text>
+            </View>
+          </ScrollView>
+
+          <GroupSelectionSheet
+            visible={showGroupSelector}
+            onClose={() => setShowGroupSelector(false)}
+            onGroupSelect={handleGroupSelect}
+            useModal={Platform.OS !== 'ios'}
+          />
+        </View>
+      </Modal>
     </>
   );
 }
@@ -251,6 +334,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 20,
+  },
+  modalContent: {
+    flex: 1,
+    backgroundColor: '#fff',
+    position: 'relative',
   },
   postButton: {
     backgroundColor: Theme.primaryGatherRed,
