@@ -2,6 +2,7 @@ import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ScrollContextProvider } from '@/context/ScrollContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
@@ -93,35 +94,37 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView>
-        <SafeAreaProvider>
-          <ToastProvider>
-            <ScrollContextProvider>
-              {/* {showOnboarding ? (
+        <KeyboardProvider>
+          <SafeAreaProvider>
+            <ToastProvider>
+              <ScrollContextProvider>
+                {/* {showOnboarding ? (
               <Onboarding onFinish={() => setShowOnboarding(false)} />
             ) : ( */}
-            <UserProvider>
-              <HapticsProvider>
-                <AuthWrapper>
-                  <ThemeProvider value={DefaultTheme}>
-                    <PostHogProvider
-                      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
-                      options={{
-                        host:
-                          process.env.EXPO_PUBLIC_POSTHOG_HOST ||
-                          'https://us.i.posthog.com',
-                      }}
-                      autocapture={{ captureScreens: false }}
-                    >
-                      <AppContent />
-                    </PostHogProvider>
-                  </ThemeProvider>
-                </AuthWrapper>
-              </HapticsProvider>
-            </UserProvider>
-            {/* )} */}
-            </ScrollContextProvider>
-          </ToastProvider>
-        </SafeAreaProvider>
+                <UserProvider>
+                  <HapticsProvider>
+                    <AuthWrapper>
+                      <ThemeProvider value={DefaultTheme}>
+                        <PostHogProvider
+                          apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+                          options={{
+                            host:
+                              process.env.EXPO_PUBLIC_POSTHOG_HOST ||
+                              'https://us.i.posthog.com',
+                          }}
+                          autocapture={{ captureScreens: false }}
+                        >
+                          <AppContent />
+                        </PostHogProvider>
+                      </ThemeProvider>
+                    </AuthWrapper>
+                  </HapticsProvider>
+                </UserProvider>
+                {/* )} */}
+              </ScrollContextProvider>
+            </ToastProvider>
+          </SafeAreaProvider>
+        </KeyboardProvider>
       </GestureHandlerRootView>
       {showAnimatedSplash && !isReady && (
         <AnimatedSplash onAnimationComplete={handleSplashAnimationComplete} />
@@ -209,6 +212,10 @@ function AppContent() {
       />
       <Stack.Screen
         name='events'
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='create-post'
         options={{ headerShown: false }}
       />
       <Stack.Screen name='+not-found' />
