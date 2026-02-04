@@ -215,6 +215,10 @@ function AppContent() {
         name='events'
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name='create-post'
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name='+not-found' />
     </Stack>
   );
