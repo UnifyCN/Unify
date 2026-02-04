@@ -1,38 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import CreatePostIcon from '@/assets/images/create-post.svg';
-import CreatePostModal from './CreatePostModal';
 import { Theme } from '@/constants/Theme';
+import { Group } from '@/types/groups';
 
 interface CreatePostButtonProps {
-  preselectedGroup?: any;
+  preselectedGroup?: Group | null;
 }
 
 export default function CreatePostButton({
   preselectedGroup,
 }: CreatePostButtonProps) {
-  const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
 
   const handlePress = () => {
-    setShowModal(true);
-  };
-
-  const handleCloseCreateModal = () => {
-    setShowModal(false);
+    if (preselectedGroup) {
+      router.push({
+        pathname: '/create-post' as any,
+        params: { preselectedGroup: JSON.stringify(preselectedGroup) },
+      });
+      return;
+    }
+    router.push('/create-post' as any);
   };
 
   return (
-    <>
-      <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
-        <CreatePostIcon width={27} height={27} />
-      </TouchableOpacity>
-
-      <CreatePostModal
-        visible={showModal}
-        onClose={handleCloseCreateModal}
-        preselectedGroup={preselectedGroup}
-      />
-    </>
+    <TouchableOpacity style={styles.floatingButton} onPress={handlePress}>
+      <CreatePostIcon width={27} height={27} />
+    </TouchableOpacity>
   );
 }
 
