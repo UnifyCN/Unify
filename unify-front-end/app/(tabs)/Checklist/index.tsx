@@ -14,13 +14,13 @@ import { supabase } from '@/lib/supabase';
 import { Priority, UserTaskWithDetails } from '@/types/checklist';
 import Header from '@/components/Header';
 
-/** Stage labels per checklist spec (exactly 5 stages) */
+/** Time-in-Canada display ranges (no stage labels) */
 const stageDescriptions: Record<number, string> = {
-  0: 'Stage 0: Not arrived yet',
-  1: 'Stage 1: Arrived (0–3 months)',
-  2: 'Stage 2: 3–12 months',
-  3: 'Stage 3: 1–3 years',
-  4: 'Stage 4: 3+ years',
+  0: 'Not arrived yet',
+  1: '0–3 months',
+  2: '3–12 months',
+  3: '1–3 years',
+  4: '3+ years',
 };
 
 /** Persona display labels per checklist spec (exactly 6 slugs) */
