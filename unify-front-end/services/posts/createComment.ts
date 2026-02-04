@@ -1,11 +1,11 @@
 import { supabase } from '@/lib/supabase';
+import { createCommentNotification } from '@/services/notifications/createCommentNotification';
 
 export const createComment = async (
   postId: number,
   content: string,
   parentCommentId?: number | null
 ) => {
-  // Get current authenticated user
   const {
     data: { user },
     error: authError,
@@ -32,6 +32,10 @@ export const createComment = async (
   if (error) {
     console.error('Error inserting comment:', error);
     throw new Error(error.message);
+  }
+
+  if (data) {
+    createCommentNotification(postId, data.id).catch(() => {});
   }
 
   return data;

@@ -8,7 +8,6 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
 } from '@/services/notifications/notifications';
-import type { CommunityNotification } from '@/types/matching';
 
 // User-scoped query key functions to prevent cache leaks between users
 const notificationsQueryKey = (userId: string | undefined) => ['community-notifications', userId];
@@ -28,6 +27,7 @@ export function useCommunityNotifications() {
     queryFn: getCommunityNotifications,
     enabled: !!currentUser,
     staleTime: 30_000, // 30 seconds
+    refetchInterval: 60_000, // Poll every 60s so recipient sees new notifications even if realtime misses
   });
 
   const { data: unreadCount = 0 } = useQuery({
@@ -35,6 +35,7 @@ export function useCommunityNotifications() {
     queryFn: getUnreadNotificationCount,
     enabled: !!currentUser,
     staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 
   // Set up realtime subscription for new notifications
@@ -118,6 +119,7 @@ export function useUnreadNotificationCount() {
     queryFn: getUnreadNotificationCount,
     enabled: !!currentUser,
     staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 
   // Set up realtime subscription for new notifications

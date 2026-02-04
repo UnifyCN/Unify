@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { createFollowNotification } from '@/services/notifications/createFollowNotification';
 
 export interface FollowAction {
   targetUserId: string;
@@ -18,7 +19,6 @@ export const followUser = async ({
     }
 
     if (isFollowing) {
-      // Follow the user
       const { error } = await supabase.from('user_followers').insert({
         follower_id: user.id,
         following_id: targetUserId,
@@ -27,6 +27,8 @@ export const followUser = async ({
       if (error) {
         throw new Error(`Failed to follow user: ${error.message}`);
       }
+
+      createFollowNotification(targetUserId).catch(() => {});
     } else {
       // Unfollow the user
       const { error } = await supabase
