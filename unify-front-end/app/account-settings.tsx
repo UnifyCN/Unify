@@ -23,6 +23,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 import { useHapticsPreference } from '@/context/HapticsContext';
 
+const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
+
 export default function AccountSettingsPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
@@ -260,9 +262,13 @@ export default function AccountSettingsPage() {
                 onPress={row.onPress}
               >
                 <View style={styles.bookmarkIconContainer}>
-                  <Feather name={row.icon} size={24} color={Theme.black} />
+                  <Feather
+                    name={row.icon}
+                    size={24}
+                    color={ACCOUNT_ROW_DANGER_COLOR}
+                  />
                 </View>
-                <Text style={styles.rowText}>{row.title}</Text>
+                <Text style={styles.rowTextDanger}>{row.title}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -420,6 +426,10 @@ const styles = StyleSheet.create({
   rowText: {
     fontSize: 18,
     color: Theme.black,
+  },
+  rowTextDanger: {
+    fontSize: 18,
+    color: ACCOUNT_ROW_DANGER_COLOR,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
