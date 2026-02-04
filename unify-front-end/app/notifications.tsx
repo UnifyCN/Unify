@@ -133,7 +133,7 @@ export default function NotificationsScreen() {
         </View>
         <Text style={styles.emptyTitle}>No Notifications Yet</Text>
         <Text style={styles.emptyBody}>
-          You'll be notified when you're matched to a circle or when important updates happen.
+          You'll get updates about new activity like follows, likes, comments, and other important moments.
         </Text>
       </View>
     </View>
@@ -176,7 +176,11 @@ export default function NotificationsScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderNotification}
         ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={notifications.length === 0 ? { flex: 1, justifyContent: 'center' } : styles.listContent}
+        contentContainerStyle={
+          notifications.length === 0
+            ? styles.emptyListContent
+            : styles.listContent
+        }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
     </View>
@@ -205,6 +209,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  emptyListContent: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingBottom: 150,
   },
   notificationItem: {
     flexDirection: 'row',

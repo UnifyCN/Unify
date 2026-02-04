@@ -14,6 +14,9 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
       created_at,
       user_id,
       group_id,
+      is_pinned,
+      pinned_at,
+      pinned_by,
       users!user_id(
         id,
         username,
@@ -32,5 +35,19 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
     return null;
   }
 
-  return transformPostDto(data as unknown as PostDto);
+  const dto: PostDto = {
+    id: data.id,
+    title: data.title,
+    content: data.content,
+    created_at: data.created_at,
+    user_id: data.user_id,
+    group_id: data.group_id,
+    is_pinned: data.is_pinned ?? false,
+    pinned_at: data.pinned_at ?? null,
+    pinned_by: data.pinned_by ?? null,
+    users: data.users,
+    groups: data.groups ?? null,
+  };
+
+  return transformPostDto(dto);
 };

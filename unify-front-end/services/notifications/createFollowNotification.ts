@@ -22,11 +22,19 @@ export const createFollowNotification = async (
 
   const username = actor?.username ?? 'Someone';
 
-  await supabase.from('community_notifications').insert({
+  const { error } = await supabase.from('community_notifications').insert({
     user_id: followingId,
     type: 'followed',
     title: 'New follower',
     body: `${username} started following you.`,
     data: { actor_user_id: user.id },
   });
+
+  if (error) {
+    console.error('Failed to create follow notification', {
+      followingId,
+      actorUserId: user.id,
+      error,
+    });
+  }
 };

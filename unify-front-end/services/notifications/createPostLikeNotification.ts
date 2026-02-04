@@ -28,11 +28,21 @@ export const createPostLikeNotification = async (
 
   const username = actor?.username ?? 'Someone';
 
-  await supabase.from('community_notifications').insert({
+  const { error } = await supabase.from('community_notifications').insert({
     user_id: post.user_id,
     type: 'liked',
     title: 'New like on your post',
     body: `${username} liked your post.`,
     data: { post_id: postId, actor_user_id: user.id },
   });
+
+  if (error) {
+    console.error('Failed to create post-like notification', {
+      postId,
+      postOwnerId: post.user_id,
+      actorUserId: user.id,
+      actorUsername: username,
+      error,
+    });
+  }
 };

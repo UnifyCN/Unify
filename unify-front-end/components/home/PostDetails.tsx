@@ -123,7 +123,7 @@ const PostDetails = () => {
     usePostMetadata(postIds);
   const metadata = postMetadata?.[post?.id ?? 0];
   const { data: commentsData, isLoading: commentsLoading } = useGetPostComments(
-    post?.id ?? 0
+    post?.id
   );
   const commentIds =
     commentsData?.map((comment: PostCommentData) => comment.id) ?? [];
