@@ -35,6 +35,13 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
     return null;
   }
 
+  const user = Array.isArray(data.users) ? data.users[0] : data.users;
+  if (!user) {
+    return null;
+  }
+
+  const group = Array.isArray(data.groups) ? data.groups[0] : data.groups;
+
   const dto: PostDto = {
     id: data.id,
     title: data.title,
@@ -45,8 +52,8 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
     is_pinned: data.is_pinned ?? false,
     pinned_at: data.pinned_at ?? null,
     pinned_by: data.pinned_by ?? null,
-    users: data.users,
-    groups: data.groups ?? null,
+    users: user,
+    groups: group ?? null,
   };
 
   return transformPostDto(dto);
