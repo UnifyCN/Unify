@@ -145,9 +145,6 @@ export default function ChecklistScreen() {
     } else {
       router.push('/(tabs)/Learn');
     }
-    handleCloseModal();
-    // Navigate to Learn tab - for now just go to learn home
-    router.push('/(tabs)/Learn');
   };
 
   const handleMarkComplete = async () => {
