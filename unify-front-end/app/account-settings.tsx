@@ -5,6 +5,8 @@ import {
   StyleSheet,
   Linking,
   Pressable,
+  Modal,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LegalDocumentType } from '@/utils/legalUrls';
@@ -25,6 +27,8 @@ export default function AccountSettingsPage() {
   const router = useRouter();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
+  const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
+    useState(false);
   const { trackScreen } = useAnalytics();
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
 
@@ -50,6 +54,25 @@ export default function AccountSettingsPage() {
 
   const toggleHaptics = () => {
     setHapticsEnabled(!hapticsEnabled);
+  };
+
+  const deleteAccount = async () => {
+    try {
+      const { error } = await supabase.rpc('delete_user');
+      if (error) throw error;
+      setDeleteAccountModalVisible(false);
+      Alert.alert(
+        'Account deleted',
+        'Your Unify account has been permanently deleted.',
+        [{ text: 'OK', onPress: () => supabase.auth.signOut() }]
+      );
+    } catch (err) {
+      console.error('Delete account failed', err);
+      Alert.alert(
+        'Could not delete account',
+        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      );
+    }
   };
 
   const settingsRows = [
@@ -97,6 +120,19 @@ export default function AccountSettingsPage() {
     },
   ];
 
+  const accountRows = [
+    {
+      title: 'Log Out',
+      icon: 'log-out' as const,
+      onPress: onLogout,
+    },
+    {
+      title: 'Delete account',
+      icon: 'trash-2' as const,
+      onPress: () => setDeleteAccountModalVisible(true),
+    },
+  ];
+
   const profilePictureKey = currentUser?.profilePictureUrl ?? null;
 
   const { data: signedProfileUrl } = useQuery({
@@ -120,7 +156,6 @@ export default function AccountSettingsPage() {
                 profilePictureUrl={signedProfileUrl}
                 username={currentUser?.username || ''}
                 size={93}
-                style={styles.avatar}
               />
             </TouchableOpacity>
             {currentUser && (
@@ -215,11 +250,65 @@ export default function AccountSettingsPage() {
           </View>
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.row} onPress={onLogout}>
-            <Text style={styles.rowText}>Log Out</Text>
-          </TouchableOpacity>
+          {/* Account Section */}
+          <Text style={styles.sectionTitle}>Account</Text>
+          <View style={styles.settingsCard}>
+            {accountRows.map((row, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.row}
+                onPress={row.onPress}
+              >
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name={row.icon} size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>{row.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       </View>
+
+      {/* Delete account confirmation modal */}
+      <Modal
+        animationType='fade'
+        transparent
+        visible={deleteAccountModalVisible}
+        onRequestClose={() => setDeleteAccountModalVisible(false)}
+      >
+        <Pressable
+          style={styles.deleteModalOverlay}
+          onPress={() => setDeleteAccountModalVisible(false)}
+        >
+          <View style={styles.deleteModalCard}>
+            <Pressable onPress={e => e.stopPropagation()}>
+              <Text style={styles.deleteModalTitle}>
+                Delete your Unify account?
+              </Text>
+              <Text style={styles.deleteModalMessage}>
+                You're requesting to delete your account. This includes all your
+                posts, comments, likes, and saves.
+              </Text>
+              <View style={styles.deleteModalButtons}>
+                <TouchableOpacity
+                  style={styles.deleteModalCancel}
+                  onPress={() => setDeleteAccountModalVisible(false)}
+                >
+                  <Text style={styles.deleteModalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteModalConfirm}
+                  onPress={deleteAccount}
+                >
+                  <Text style={styles.deleteModalConfirmText}>
+                    Delete
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -242,9 +331,6 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     position: 'relative',
-  },
-  avatar: {
-    // No additional styles needed
   },
   cameraButton: {
     position: 'absolute',
@@ -345,5 +431,63 @@ const styles = StyleSheet.create({
     color: Theme.textInput,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  deleteModalCard: {
+    backgroundColor: Theme.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+  },
+  deleteModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Theme.black,
+    marginBottom: 12,
+  },
+  deleteModalMessage: {
+    fontSize: 16,
+    color: Theme.textInput,
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  deleteModalCancel: {
+    paddingVertical: 12,
+    width: '50%',
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Theme.surfaceTextInput,
+    alignItems: 'center',
+  },
+  deleteModalCancelText: {
+    fontSize: 16,
+    color: Theme.black,
+    fontWeight: '500',
+  },
+  deleteModalConfirm: {
+    width: '50%',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    backgroundColor: '#FF3B30',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteModalConfirmText: {
+    fontSize: 16,
+    color: Theme.white,
+    fontWeight: '600',
   },
 });
