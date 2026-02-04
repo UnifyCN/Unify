@@ -116,10 +116,9 @@ export default function ActivityPageScreen() {
 
   const handleSaveAndLeave = () => {
     setShowExitModal(false);
-    // Navigate to module index (skip map)
     router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
-      params: { moduleId },
+      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+      params: { moduleId, submoduleId },
     });
   };
 
@@ -207,10 +206,9 @@ export default function ActivityPageScreen() {
             currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
           if (isLastLesson) {
-            // Last lesson completed, go back to module page
             router.push({
-              pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
-              params: { moduleId },
+              pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+              params: { moduleId, submoduleId },
             });
           } else {
             // Go to next lesson
@@ -275,10 +273,9 @@ export default function ActivityPageScreen() {
             },
           });
         } else {
-          // First lesson, go back to module index (skip map)
           router.push({
-            pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
-            params: { moduleId },
+            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+            params: { moduleId, submoduleId },
           });
         }
       }

@@ -14,6 +14,10 @@ export const saveOnboardingProfile = async (
     let calculatedStage: string | null = null;
     if (data.arrival_date && data.onboarding_completed) {
       const arrivalDate = new Date(data.arrival_date);
+      if (!Number.isNaN(arrivalDate.getTime())) {
+        const stageNumber = calculateUserStage(arrivalDate);
+        calculatedStage = stageNumberToEnum(stageNumber);
+      }
       const stageNumber = calculateUserStage(arrivalDate);
       calculatedStage = stageNumberToEnum(stageNumber);
     }

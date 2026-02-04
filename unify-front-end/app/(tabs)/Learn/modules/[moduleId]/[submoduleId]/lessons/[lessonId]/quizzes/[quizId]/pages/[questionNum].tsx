@@ -334,10 +334,9 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              // Last lesson completed, go back to module page
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
-                params: { moduleId },
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                params: { moduleId, submoduleId },
               });
             } else {
               // Go to next lesson
@@ -458,10 +457,9 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              // Last lesson completed, go back to module page
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
-                params: { moduleId },
+                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                params: { moduleId, submoduleId },
               });
             } else {
               // Go to next lesson
@@ -697,7 +695,13 @@ export default function QuizQuestionPage() {
                           <RichTextRenderer
                             blocks={option.text || []}
                             markDefs={option.textMarkDefs}
-                            styles={{ normal: styles.optionText }}
+                            styles={{
+                              normal: {
+                                ...styles.optionText,
+                                marginBottom: 0,
+                                marginTop: 0,
+                              },
+                            }}
                           />
                         </View>
                       </View>
@@ -821,10 +825,9 @@ export default function QuizQuestionPage() {
               style={styles.modalPrimaryBtn}
               onPress={() => {
                 setShowExitModal(false);
-                // Navigate to module index (skip map)
                 router.push({
-                  pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
-                  params: { moduleId },
+                  pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                  params: { moduleId, submoduleId },
                 });
               }}
             >
@@ -995,6 +998,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#fff',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 0,
   },
   checkboxSelected: {
     width: 20,
@@ -1005,6 +1010,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 0,
   },
   checkboxCorrect: {
     width: 20,
@@ -1015,6 +1021,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderColor: '#10B981',
     backgroundColor: '#10B981',
+    marginTop: 0,
   },
   checkboxIncorrect: {
     width: 20,
@@ -1025,6 +1032,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderColor: '#EF4444',
     backgroundColor: '#EF4444',
+    marginTop: 0,
   },
   checkmark: {
     color: '#fff',
@@ -1033,6 +1041,7 @@ const styles = StyleSheet.create({
   },
   optionContent: {
     flex: 1,
+    minHeight: 20,
   },
   optionText: {
     fontSize: 14,

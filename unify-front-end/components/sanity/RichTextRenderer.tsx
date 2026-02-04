@@ -30,6 +30,8 @@ interface RichTextRendererProps {
   questionAnswers?: { [key: string]: string | string[] };
   onQuestionAnswer?: (questionKey: string, answer: string | string[]) => void;
   showQuestionFeedback?: boolean;
+  /** When true, root container does not use flex: 1 so it sizes to content (e.g. for option text alignment). */
+  compactContainer?: boolean;
 }
 
 export default function RichTextRenderer({
@@ -41,6 +43,7 @@ export default function RichTextRenderer({
   questionAnswers = {},
   onQuestionAnswer,
   showQuestionFeedback = false,
+  compactContainer = false,
 }: RichTextRendererProps) {
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -701,11 +704,13 @@ export default function RichTextRenderer({
           );
         case 'normal':
         default:
-          // Add marginTop to first block to prevent text clipping
+          // Add marginTop to first block to prevent text clipping (only if not explicitly set by caller)
           const isFirstBlock = index === 0;
-          const finalBlockStyle = isFirstBlock
-            ? { ...blockStyle, marginTop: 8 }
-            : blockStyle;
+          const finalBlockStyle =
+            isFirstBlock &&
+            (blockStyle.marginTop === undefined || blockStyle.marginTop === null)
+              ? { ...blockStyle, marginTop: 8 }
+              : blockStyle;
           const textProps: any = {
             style: finalBlockStyle,
           };
@@ -1004,6 +1009,7 @@ export default function RichTextRenderer({
                         blocks={option.text || []}
                         markDefs={option.textMarkDefs}
                         styles={{ normal: styles.questionOptionText }}
+                        compactContainer
                       />
                     </View>
                   </View>
@@ -1306,7 +1312,7 @@ export default function RichTextRenderer({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, compactContainer && { flex: 0 }]}>
       {blocks
         .map((block, index) => {
           const isLastInList = isLastListItem(index);
@@ -1556,6 +1562,7 @@ const styles = StyleSheet.create({
   },
   questionOptionContent: {
     flex: 1,
+    justifyContent: 'center',
   },
   questionOptionText: {
     fontSize: 14,

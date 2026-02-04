@@ -64,3 +64,39 @@ export const stageNumberToEnum = (stageNumber: number): string => {
 export const stageEnumToNumber = (stageEnum: string): number => {
   return parseInt(stageEnum, 10) || 0;
 };
+
+/** Map app stage (0–4) to Sanity stage slug for checklist (exactly 5 values) */
+export const stageNumberToStageSlug = (stage: number): string => {
+  switch (stage) {
+    case 0:
+      return 'not_arrived';
+    case 1:
+      return 'arrived_0_3_months';
+    case 2:
+      return 'months_3_12';
+    case 3:
+      return 'years_1_3';
+    case 4:
+      return 'years_3_plus';
+    default:
+      return 'arrived_0_3_months';
+  }
+};
+
+/** Allowed persona slugs for Sanity checklist (exactly 6). Unknown → null so we do not pass to GROQ. */
+const CHECKLIST_PERSONA_SLUGS = [
+  'international_student',
+  'refugee',
+  'protected_person',
+  'skilled_worker',
+  'immigrant',
+  'pr',
+] as const;
+
+export const normalizePersonaSlug = (persona: string | null): string | null => {
+  if (!persona) return null;
+  const p = persona.toLowerCase().trim();
+  return CHECKLIST_PERSONA_SLUGS.includes(p as (typeof CHECKLIST_PERSONA_SLUGS)[number])
+    ? p
+    : null;
+};

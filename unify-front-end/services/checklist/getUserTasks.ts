@@ -12,6 +12,7 @@ export const getUserTasks = async (
         user_task_id,
         user_id,
         task_id,
+        sanity_checklist_id,
         completed,
         completed_at,
         task:personalized_checklist_tasks!user_tasks_task_id_fkey (

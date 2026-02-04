@@ -140,6 +140,20 @@ export default function BottomSheet({
       onRequestClose={onClose}
       presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
     >
+      <GestureHandlerRootView style={styles.container}>
+        <TouchableWithoutFeedback onPress={onClose}>
+          <Animated.View style={[styles.backdrop, animatedBackdropStyle]} />
+        </TouchableWithoutFeedback>
+
+        <GestureDetector gesture={panGesture}>
+          <Animated.View
+            style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}
+          >
+            <View style={styles.dragHandle} />
+            <View style={styles.content}>{children}</View>
+          </Animated.View>
+        </GestureDetector>
+      </GestureHandlerRootView>
       {sheetContent}
     </Modal>
   );
