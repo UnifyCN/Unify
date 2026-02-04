@@ -95,10 +95,14 @@ export default function ChecklistScreen() {
 
   const isLoading = stageLoading || isLoadingProfile || tasksLoading;
 
+  // Normalize so "Explore & connect" and "Explore and connect" are one section
+  const normalizePriority = (p: Priority): Priority =>
+    p === 'Explore & connect' ? 'Explore and connect' : p;
+
   // Group tasks by priority
   const tasksByPriority = tasks.reduce(
     (acc, task) => {
-      const priority = task.task.priority;
+      const priority = normalizePriority(task.task.priority);
       if (!acc[priority]) {
         acc[priority] = [];
       }
@@ -112,7 +116,6 @@ export default function ChecklistScreen() {
     'Do now',
     'Do soon',
     'Explore and connect',
-    'Explore & connect',
     'Optional / later',
   ];
 
