@@ -38,6 +38,12 @@ function getNotificationIcon(type: CommunityNotification['type']): string {
       return 'clock';
     case 'circle_ended':
       return 'check-circle';
+    case 'followed':
+      return 'user-plus';
+    case 'liked':
+      return 'heart';
+    case 'commented':
+      return 'message-circle';
     default:
       return 'bell';
   }
@@ -56,15 +62,34 @@ export default function NotificationsScreen() {
 
   const handleNotificationPress = useCallback(
     (notification: CommunityNotification) => {
-      // Mark as read
       if (!notification.read_at) {
         markAsRead(notification.id);
       }
 
-      // Navigate to circle if circle_id exists
-      if (notification.data?.circle_id) {
+      const data = notification.data;
+
+      // Followed → go to actor's profile
+      if (notification.type === 'followed' && data?.actor_user_id) {
+        router.push(`/profile?userId=${data.actor_user_id}` as Href);
+        return;
+      }
+
+      // Liked or commented → go to post
+      if (
+        (notification.type === 'liked' || notification.type === 'commented') &&
+        data?.post_id != null
+      ) {
+        router.push({
+          pathname: '/post-details',
+          params: { postId: String(data.post_id) },
+        } as Href);
+        return;
+      }
+
+      // Circle → go to circle
+      if (data?.circle_id) {
         router.push(
-          `/community-matching/circle/${notification.data.circle_id}` as Href
+          `/community-matching/circle/${data.circle_id}` as Href
         );
       }
     },

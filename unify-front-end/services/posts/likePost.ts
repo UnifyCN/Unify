@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { createPostLikeNotification } from '@/services/notifications/createPostLikeNotification';
 
 export interface LikePostResponse {
   success: boolean;
@@ -18,6 +19,9 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
       post_id: postId,
       user_id: user.id,
     });
+
+    // Notify post author (fire-and-forget)
+    createPostLikeNotification(postId).catch(() => {});
 
     // Get updated like count from posts table (trigger will have updated it)
     const { data: postData } = await supabase

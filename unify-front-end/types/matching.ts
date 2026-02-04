@@ -63,7 +63,20 @@ export type CommunityNotificationType =
   | 'circle_matched'
   | 'circle_ended'
   | 'circle_ending_soon'
-  | 'new_message';
+  | 'new_message'
+  | 'followed'
+  | 'liked'
+  | 'commented';
+
+/** Navigation target: profile = actor_user_id, post = post_id */
+export type CommunityNotificationData = {
+  circle_id?: string;
+  /** User who performed the action (for profile nav or display). */
+  actor_user_id?: string;
+  /** Post id for liked/commented → navigate to post. */
+  post_id?: number;
+  comment_id?: number;
+};
 
 export interface CommunityNotification {
   id: string;
@@ -71,7 +84,7 @@ export interface CommunityNotification {
   type: CommunityNotificationType;
   title: string;
   body: string;
-  data: { circle_id?: string } | null;
+  data: CommunityNotificationData | null;
   read_at: string | null;
   created_at: string;
 }

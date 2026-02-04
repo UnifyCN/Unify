@@ -7,9 +7,12 @@ import {
   TextInput,
   FlatList,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { PostData } from '@/types/feeds/post';
+import { getPostById } from '@/services/posts/getPostById';
 import { useMutateCreateComment } from '@/hooks/posts/useMutateCreateComment';
 import { PostCommentData } from '@/types/feeds/postcomment';
 import { useCommentMetadata } from '@/hooks/useCommentMetadata';
@@ -89,10 +92,11 @@ const CommentInput = ({
 );
 
 const PostDetails = () => {
-  // Get passed data
-  const { post: postParam } = useLocalSearchParams();
+  const { post: postParam, postId: postIdParam } = useLocalSearchParams<{
+    post?: string;
+    postId?: string;
+  }>();
 
-  // Router for navigation
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const headerHeight = getHeaderHeight(insets.top);
@@ -101,41 +105,70 @@ const PostDetails = () => {
     router.back();
   };
 
-  if (!postParam) {
-    return <PostNotFound />;
-  }
+  const postId = postIdParam ? parseInt(postIdParam, 10) : undefined;
+  const { data: fetchedPost, isLoading: isLoadingPost } = useQuery({
+    queryKey: ['post', postId],
+    queryFn: () => getPostById(postId!),
+    enabled: !!postId && !postParam,
+  });
 
-  // Parse the post string and type it as PostData
-  const post: PostData = JSON.parse(postParam as string);
+  const post: PostData | null = postParam
+    ? (JSON.parse(postParam as string) as PostData)
+    : fetchedPost ?? null;
 
-  // Reply text box
+  // Call all hooks unconditionally (before any early return) to avoid "Rendered more hooks than during the previous render"
   const [commentTextBox, setCommentTextBox] = useState('');
-
-  // Get post metadata from query cache (supports optimistic updates)
+  const postIds = post ? [post.id] : [];
   const { data: postMetadata, isLoading: postMetadataLoading } =
-    usePostMetadata([post.id]);
-  const metadata = postMetadata?.[post.id];
-
-  // Use metadata from query cache
-  const {
-    likeCount = 0,
-    isLiked = false,
-    commentCount = 0,
-    isSaved = false,
-  } = metadata ?? {};
-
-  // Comment ID's for batch loading
+    usePostMetadata(postIds);
+  const metadata = postMetadata?.[post?.id ?? 0];
   const { data: commentsData, isLoading: commentsLoading } = useGetPostComments(
-    post.id
+    post?.id ?? 0
   );
   const commentIds =
     commentsData?.map((comment: PostCommentData) => comment.id) ?? [];
-
-  // Batch load metadata for those comments
   const { data: commentMetadata, isLoading: commentMetadataLoading } =
     useCommentMetadata(commentIds);
-
   const createCommentMutation = useMutateCreateComment();
+
+  const likeCount = metadata?.likeCount ?? 0;
+  const isLiked = metadata?.isLiked ?? false;
+  const commentCount = metadata?.commentCount ?? 0;
+  const isSaved = metadata?.isSaved ?? false;
+
+  const renderPost = useCallback(
+    ({ item }: { item: PostCommentData }) => (
+      <PostCommentItem
+        comment={item}
+        metadata={commentMetadata?.[item.id]}
+        metadataLoading={commentMetadataLoading}
+        postAuthorId={post?.user?.id?.toString() ?? ''}
+      />
+    ),
+    [commentMetadata, commentMetadataLoading, post?.user?.id]
+  );
+
+  // Early returns only after all hooks have been called
+  if (!postParam && !postIdParam) {
+    return <PostNotFound />;
+  }
+
+  if (postIdParam && !postParam) {
+    if (isLoadingPost) {
+      return (
+        <View style={styles.errorContainer}>
+          <ActivityIndicator size="large" color={Theme.primaryGatherRed} />
+        </View>
+      );
+    }
+    if (!post) {
+      return <PostNotFound />;
+    }
+  }
+
+  if (!post) {
+    return <PostNotFound />;
+  }
 
   const handleCreateComment = () => {
     if (commentTextBox.trim() === '') return;
@@ -152,20 +185,6 @@ const PostDetails = () => {
       }
     );
   };
-
-  // Note: Pagination can be added later if needed
-
-  const renderPost = useCallback(
-    ({ item }: { item: PostCommentData }) => (
-      <PostCommentItem
-        comment={item}
-        metadata={commentMetadata?.[item.id]}
-        metadataLoading={commentMetadataLoading}
-        postAuthorId={post.user.id.toString()}
-      />
-    ),
-    [commentMetadata, commentMetadataLoading, post.user.id]
-  );
 
   return (
     <KeyboardAvoidingView
