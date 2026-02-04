@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   title: {
     paddingTop: 8,
@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   subtitle: {
+    marginTop: 6,
     fontSize: 16,
     color: '#000',
   },
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
     height: 10,
     backgroundColor: '#eaeaea',
     borderRadius: 5,
-    marginTop: 12,
+    marginTop: 16,
     overflow: 'hidden',
   },
   progressBar: {

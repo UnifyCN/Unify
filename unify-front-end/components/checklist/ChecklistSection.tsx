@@ -106,7 +106,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
+    marginTop: 12,
   },
   header: {
     flexDirection: 'row',
