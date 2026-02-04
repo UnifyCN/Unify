@@ -7,19 +7,26 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development"
+      "channel": "development",
+      "ios": {
+        "image": "macos-xcode-26.0"
+      }
     },
     "preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
       },
-      "channel": "preview"
+      "channel": "preview",
+      "ios": {
+        "image": "macos-xcode-26.0"
+      }
     },
     "production": {
       "channel": "production",
       "ios": {
-        "autoIncrement": "buildNumber"
+        "autoIncrement": "buildNumber",
+        "image": "macos-xcode-26.0"
       },
       "android": {
         "autoIncrement": "versionCode"
@@ -27,7 +34,8 @@
     },
     "simulator": {
       "ios": {
-        "simulator": true
+        "simulator": true,
+        "image": "macos-xcode-26.0"
       },
       "channel": "simulator"
     }
