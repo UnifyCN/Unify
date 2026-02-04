@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import { useQueryClient } from '@tanstack/react-query';
 import { StageNumber } from '@/types/checklist';
+import { Persona } from '@/types/onboardingProfile';
 
 interface CurrentUser {
   id: string;
@@ -11,8 +12,10 @@ interface CurrentUser {
   permissions: string;
   profilePictureUrl?: string;
   isPremium: boolean;
-  arrivalDate: string;
+  arrivalDate: string | null;
   stage: StageNumber;
+  persona: Persona | null;
+  personaOther: string | null;
 }
 
 interface UserContextType {
@@ -84,6 +87,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           isPremium: effectiveUserInfo.isPremium,
           arrivalDate: effectiveUserInfo.arrivalDate,
           stage: effectiveUserInfo.stage,
+          persona: effectiveUserInfo.persona,
+          personaOther: effectiveUserInfo.personaOther,
         }
       : null;
 

@@ -10,6 +10,11 @@ import { Avatar } from '@/components/Avatar';
 import { Theme } from '@/constants/Theme';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 import { useQuery } from '@tanstack/react-query';
+import InfoBadge from '@/components/common/InfoBadge';
+import {
+  getPersonaBadgeInfo,
+  getTimeInCanadaBadgeInfo,
+} from '@/utils/onboardingBadges';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -27,6 +32,13 @@ export const ProfileHeader = ({
     queryFn: () => getProfilePictureUrl(userInfo?.profilePictureUrl as string),
     staleTime: 4 * 60 * 1000,
   });
+  const personaBadge = getPersonaBadgeInfo(
+    userInfo?.persona ?? null,
+    userInfo?.personaOther ?? null
+  );
+  const timeInCanadaBadge = getTimeInCanadaBadgeInfo(
+    userInfo?.arrivalDate ?? null
+  );
 
   const router = useRouter();
   if (!userInfo) {
@@ -91,6 +103,29 @@ export const ProfileHeader = ({
           <Text style={styles.statNumber}>{userInfo.followingCount} </Text>
           <Text style={styles.statLabel}>Following</Text>
         </View>
+
+        {(personaBadge || timeInCanadaBadge) && (
+          <View style={styles.badgesRow}>
+            {personaBadge && (
+              <InfoBadge
+                label={personaBadge.label}
+                iconName={personaBadge.iconName}
+                backgroundColor={personaBadge.colors.backgroundColor}
+                textColor={personaBadge.colors.textColor}
+                style={styles.badge}
+              />
+            )}
+            {timeInCanadaBadge && (
+              <InfoBadge
+                label={timeInCanadaBadge.label}
+                iconName={timeInCanadaBadge.iconName}
+                backgroundColor={timeInCanadaBadge.colors.backgroundColor}
+                textColor={timeInCanadaBadge.colors.textColor}
+                style={styles.badge}
+              />
+            )}
+          </View>
+        )}
 
         {/* Follow Button (only for other users) */}
         {!isCurrentUser && isCurrentUser !== null && (
@@ -187,6 +222,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  badge: {
+    marginRight: 8,
+    marginBottom: 6,
   },
   statNumber: {
     fontSize: 14,
