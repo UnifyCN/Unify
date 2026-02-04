@@ -39,16 +39,15 @@ export default function CreatePostForm({
 }: CreatePostFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(
-    preselectedGroup || null
-  );
-  const [destination, setDestination] = useState<DestinationType>(
-    preselectedGroup ? 'group' : '4u'
-  );
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [destination, setDestination] = useState<DestinationType>('4u');
   const [showGroupSelector, setShowGroupSelector] = useState(false);
 
   const { showToast } = useToast();
   const createPostMutation = useMutateCreatePost();
+
+  const trimmedTitle = title.trim();
+  const trimmedContent = content.trim();
 
   useEffect(() => {
     if (preselectedGroup) {
@@ -69,7 +68,7 @@ export default function CreatePostForm({
   };
 
   const handleSubmit = () => {
-    if (!title.trim() || !content.trim()) {
+    if (!trimmedTitle || !trimmedContent) {
       Alert.alert('Error', 'Please fill in title and content');
       return;
     }
@@ -81,8 +80,8 @@ export default function CreatePostForm({
 
     createPostMutation.mutate(
       {
-        title: title.trim(),
-        content: content.trim(),
+        title: trimmedTitle,
+        content: trimmedContent,
         group_id: destination === '4u' ? null : String(selectedGroup?.id),
       },
       {
@@ -144,10 +143,10 @@ export default function CreatePostForm({
             onPress={handleSubmit}
             style={[
               styles.postButton,
-              (!title.trim() || !content.trim()) && styles.disabledButton,
+              (!trimmedTitle || !trimmedContent) && styles.disabledButton,
             ]}
             disabled={
-              !title.trim() || !content.trim() || createPostMutation.isPending
+              !trimmedTitle || !trimmedContent || createPostMutation.isPending
             }
           >
             {createPostMutation.isPending ? (

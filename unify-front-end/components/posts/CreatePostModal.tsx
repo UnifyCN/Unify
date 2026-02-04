@@ -31,12 +31,12 @@ export default function CreatePostModal({
         onSuccessNavigate={({ postedToGroup, group }) => {
           onClose();
           if (postedToGroup && group) {
-            router.push({
+            router.replace({
               pathname: '/group-detail' as any,
               params: { group: JSON.stringify(group) },
             });
           } else {
-            router.push('/(tabs)' as any);
+            router.replace('/(tabs)' as any);
           }
         }}
       />

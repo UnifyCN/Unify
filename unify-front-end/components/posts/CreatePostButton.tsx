@@ -15,14 +15,18 @@ export default function CreatePostButton({
   const router = useRouter();
 
   const handlePress = () => {
-    if (preselectedGroup) {
-      router.push({
-        pathname: '/create-post' as any,
-        params: { preselectedGroup: JSON.stringify(preselectedGroup) },
-      });
-      return;
-    }
-    router.push('/create-post' as any);
+    const params = preselectedGroup
+      ? { preselectedGroup: JSON.stringify(preselectedGroup) }
+      : undefined;
+
+    router.push(
+      params
+        ? ({
+            pathname: '/create-post' as any,
+            params,
+          } as any)
+        : ('/create-post' as any)
+    );
   };
 
   return (

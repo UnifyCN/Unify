@@ -12,7 +12,21 @@ export default function CreatePostScreen() {
       return null;
     }
     try {
-      return JSON.parse(preselectedGroup) as Group;
+      const parsed = JSON.parse(preselectedGroup) as Partial<Group>;
+      const hasValidId =
+        typeof parsed.id === 'number' && Number.isFinite(parsed.id);
+      const hasValidName =
+        typeof parsed.name === 'string' && parsed.name.trim().length > 0;
+
+      if (!hasValidId || !hasValidName) {
+        console.warn(
+          'Invalid preselectedGroup payload for parsedGroup',
+          preselectedGroup
+        );
+        return null;
+      }
+
+      return parsed as Group;
     } catch (error) {
       console.warn('Failed to parse preselectedGroup param', error);
       return null;
