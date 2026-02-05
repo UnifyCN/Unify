@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ const getSanityImageUrl = (assetRef: string | undefined): string | null => {
 };
 
 export default function SubmoduleIntroScreen() {
+  const scrollRef = useRef<ScrollView | null>(null);
   const router = useRouter();
   const { moduleId, submoduleId, pageNum } = useLocalSearchParams<{
     moduleId: string;
@@ -49,6 +50,14 @@ export default function SubmoduleIntroScreen() {
   );
   const totalPages = introPages.length;
   const introData = introPages[currentPage - 1];
+
+  const scrollDownABit = () => {
+    scrollRef.current?.scrollTo({
+      y: 250, // adjust until it feels right
+      animated: true,
+    });
+  };
+
 
   // Calculate progress for the progress bar
   const progress = calculateIntroProgress(submoduleData || null, currentPage);
@@ -277,10 +286,16 @@ export default function SubmoduleIntroScreen() {
       >
       
         <ScrollView
-          contentContainerStyle={styles.container}
+          ref={scrollRef}
+          contentContainerStyle={{
+            ...styles.container,
+            flexGrow: 1,
+            paddingBottom: 140,
+          }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+
           {/* Title */}
           <Text style={styles.title}>{introData?.title}</Text>
 
@@ -288,6 +303,7 @@ export default function SubmoduleIntroScreen() {
           <View style={styles.content}>
             <RichTextRenderer
               blocks={introData?.content}
+              parentScrollRef={scrollRef}
               markDefs={introData?.markDefs}
             />
           </View>
@@ -346,7 +362,7 @@ export default function SubmoduleIntroScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  container: { paddingHorizontal: 20, paddingBottom: 100 },
+  container: { paddingHorizontal: 20, paddingBottom: 20 },
 
   // Page indicator
   pageIndicatorContainer: {

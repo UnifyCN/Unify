@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,8 @@ import {
   SafeAreaView,
   Keyboard,
   Platform,
-  KeyboardAvoidingView,
   InputAccessoryView,
+  findNodeHandle,
 } from 'react-native';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
@@ -30,6 +30,7 @@ interface RichTextRendererProps {
   questionAnswers?: { [key: string]: string | string[] };
   onQuestionAnswer?: (questionKey: string, answer: string | string[]) => void;
   showQuestionFeedback?: boolean;
+  parentScrollRef?: React.RefObject<ScrollView>;
 }
 
 export default function RichTextRenderer({
@@ -41,6 +42,7 @@ export default function RichTextRenderer({
   questionAnswers = {},
   onQuestionAnswer,
   showQuestionFeedback = false,
+  parentScrollRef,
 }: RichTextRendererProps) {
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -55,6 +57,12 @@ export default function RichTextRenderer({
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
   const accessoryHeight = 56;
+
+  const internalScrollRef = useRef<ScrollView | null>(null);
+  const scrollViewRef = parentScrollRef || internalScrollRef;
+  const inputRefs = useRef<{ [key: string]: any }>({});
+  const [inputHeights, setInputHeights] = useState<{ [key: string]: number }>({});
+  const inputWrapperRefs = useRef<{ [key: string]: View | null }>({});
 
   React.useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -794,9 +802,11 @@ export default function RichTextRenderer({
       const isMid = block._type === 'mid_input_box';
       const isSmall = block._type === 'small_input_box';
 
+
       return (
         <View
           key={block._key || index}
+          ref={(r) => (inputWrapperRefs.current[block._key] = r)}
           style={mergedStyles.inputFieldContainer}
         >
           <TextInput
@@ -806,28 +816,44 @@ export default function RichTextRenderer({
                 borderColor: '#9CA3AF',
                 borderRadius: 8,
                 paddingHorizontal: 20,
-                paddingVertical: 20,
-                paddingBottom:
-                  focusedInputKey === block._key && isKeyboardVisible
-                    ? accessoryHeight + 8
-                    : 20,
+                paddingVertical: 14,
+                //paddingBottom:
+                //  focusedInputKey === block._key && isKeyboardVisible
+                //    ? accessoryHeight + 8
+                //    : 20,
+                //paddingBottom: 20,
                 fontSize: 18,
                 backgroundColor: '#fff',
-                minHeight: 44,
+                height:
+                  inputHeights[block._key] ||
+                  (isLarge ? 300 : isMid ? 160 : isSmall ? 60 : 44),
+                textAlignVertical: 'top',
                 marginBottom: 30,
               },
-              isLarge && { height: 300, textAlignVertical: 'top' },
-              isMid && { height: 160, textAlignVertical: 'top' },
-              isSmall && { height: 60, textAlignVertical: 'top' },
+              //isLarge && { minHeight: 300, textAlignVertical: 'top' },
+             // isMid && { minHeight: 160, textAlignVertical: 'top' },
+              //isSmall && { minHeight: 60, textAlignVertical: 'top' },
             ]}
+            ref={(r) => (inputRefs.current[block._key] = r)}
             placeholder={(block.placeholder = 'Type Here')}
             value={inputValues[block._key] || ''}
             onChangeText={value => onInputChange?.(block._key, value)}
             multiline={true}
             numberOfLines={isLarge ? 10 : isMid ? 6 : 3}
             inputAccessoryViewID={Platform.OS === 'ios' ? accessoryViewID : undefined}
-            onFocus={() => setFocusedInputKey(block._key)}
+            onFocus={() => {
+              setFocusedInputKey(block._key);
+            }}
             onBlur={() => setFocusedInputKey(null)}
+            onContentSizeChange={(e) => {
+              const h = Math.max(
+                e.nativeEvent.contentSize.height,
+                isLarge ? 300 : isMid ? 160 : isSmall ? 60 : 44
+              );
+              setInputHeights((prev) =>
+                prev[block._key] === h ? prev : { ...prev, [block._key]: h }
+              );
+            }}
           />
         </View>
       );
@@ -1090,26 +1116,31 @@ export default function RichTextRenderer({
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 80}
-      style={{ flex: 1 }}
-    >
-    
     <View style={styles.container}>
-      {blocks
-        .map((block, index) => {
-          const isLastInList = isLastListItem(index);
-          const afterSkipLine = isAfterSkipLine(index);
-          const isFirstInList = isFirstListItem(index);
-          return (
-            <React.Fragment key={block._key || index}>
-              {renderBlock(block, index, nestingLevels[block._key || index] || 0, isLastInList, afterSkipLine, isFirstInList)}
-            </React.Fragment>
-          );
-        })
-        .filter(Boolean)}
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={{
+          ...styles.container,
+          paddingBottom: 120, // footer + breathing room
+          flexGrow: 1,
+        }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
 
+        {blocks
+          .map((block, index) => {
+            const isLastInList = isLastListItem(index);
+            const afterSkipLine = isAfterSkipLine(index);
+            const isFirstInList = isFirstListItem(index);
+            return (
+              <React.Fragment key={block._key || index}>
+                {renderBlock(block, index, nestingLevels[block._key || index] || 0, isLastInList, afterSkipLine, isFirstInList)}
+              </React.Fragment>
+            );
+          })
+          .filter(Boolean)}
+      </ScrollView>
       {/* Image Viewer Modal */}
       <Modal
         visible={selectedImage !== null}
@@ -1226,7 +1257,6 @@ export default function RichTextRenderer({
         </View>
       )}
     </View>
-    </KeyboardAvoidingView>
   );
 }
 
