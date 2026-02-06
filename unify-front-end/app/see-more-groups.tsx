@@ -1,24 +1,47 @@
-import React from 'react';
-import { View, FlatList, StyleSheet } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useGroups } from '@/hooks/groups/useGroups';
+import React, { useMemo, useState } from 'react';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  Text,
+  Pressable,
+} from 'react-native';
+import { useRouter } from 'expo-router';
 import GroupCard from '@/components/groups/GroupCard';
 import { Group } from '@/types/groups';
 import { saveRecentGroups } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
+import { useQuery } from '@tanstack/react-query';
+import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
+import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
+import { Theme } from '@/constants/Theme';
+
+type GroupsTab = 'discover' | 'joined';
+const TAB_LABELS: Record<GroupsTab, string> = {
+  discover: 'Discover',
+  joined: 'Joined',
+};
 
 export default function MoreGroupsScreen() {
-  const { q } = useLocalSearchParams();
-  const searchQuery = (q as string) ?? '';
-  const { data: groups } = useGroups();
+  const [activeTab, setActiveTab] = useState<GroupsTab>('discover');
   const router = useRouter();
 
-  const filtered: Group[] = (groups ?? []).filter(g =>
-    !searchQuery
-      ? true
-      : g.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const { data: discoverGroups, isLoading: discoverLoading } = useQuery({
+    queryKey: ['available-groups'],
+    queryFn: getAvailableGroups,
+  });
+
+  const { data: joinedGroups, isLoading: joinedLoading } = useQuery({
+    queryKey: ['joined-groups'],
+    queryFn: getUserJoinedGroups,
+  });
+
+  const groups = useMemo(
+    () => (activeTab === 'discover' ? discoverGroups : joinedGroups) ?? [],
+    [activeTab, discoverGroups, joinedGroups]
   );
+  const isLoading = activeTab === 'discover' ? discoverLoading : joinedLoading;
 
   const handleGroupPress = async (group: Group) => {
     try {
@@ -40,32 +63,106 @@ export default function MoreGroupsScreen() {
 
   const renderGroup = ({ item }: { item: Group }) => {
     return (
-      <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
+      <View style={styles.groupItem}>
         <GroupCard group={item} onPress={() => handleGroupPress(item)} />
       </View>
     );
   };
 
   return (
-    <View style={styles.searchContainer}>
-      <BackHeader title='Search' />
+    <View style={styles.container}>
+      <BackHeader title='Groups' />
+
+      <View style={styles.tabsContainer}>
+        {(['discover', 'joined'] as GroupsTab[]).map(tab => {
+          const active = activeTab === tab;
+
+          return (
+            <Pressable
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              style={styles.tabButton}
+              accessibilityRole='tab'
+              accessibilityState={{ selected: active }}
+              accessibilityLabel={`${TAB_LABELS[tab]} groups`}
+            >
+              <Text style={[styles.tabText, active && styles.tabTextActive]}>
+                {TAB_LABELS[tab]}
+              </Text>
+              <View style={[styles.tabIndicator, active && styles.tabIndicatorActive]} />
+            </Pressable>
+          );
+        })}
+      </View>
 
       <FlatList
-        data={filtered}
+        data={groups}
         renderItem={renderGroup}
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                {activeTab === 'discover'
+                  ? 'No groups to discover right now.'
+                  : 'You have not joined any groups yet.'}
+              </Text>
+            </View>
+          ) : null
+        }
         keyExtractor={(i: Group) => String(i.id)}
-        style={{ marginLeft: -20 }}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  searchContainer: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
+  container: {
     flex: 1,
-    backgroundColor: '#ffffffff',
+    backgroundColor: Theme.white,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 16,
+    gap: 22,
+  },
+  tabButton: {
+    alignItems: 'center',
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Theme.textInactiveTab,
+  },
+  tabTextActive: {
+    color: Theme.black,
+    fontWeight: '600',
+  },
+  tabIndicator: {
+    marginTop: 8,
+    height: 2,
+    width: '100%',
+    backgroundColor: 'transparent',
+    borderRadius: 1,
+  },
+  tabIndicatorActive: {
+    backgroundColor: Theme.black,
+  },
+  listContent: {
+    paddingBottom: 40,
+  },
+  groupItem: {
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  emptyContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: Theme.textInput,
   },
 });
