@@ -34,7 +34,7 @@ export default function MoreGroupsScreen() {
 
   const { data: joinedGroups, isLoading: joinedLoading } = useQuery({
     queryKey: ['joined-groups'],
-    queryFn: getUserJoinedGroups,
+    queryFn: () => getUserJoinedGroups(),
   });
 
   const groups = useMemo(

@@ -39,7 +39,7 @@ export default function GroupSelectionSheet({
   // Fetch user's joined groups
   const { data: joinedGroups, isLoading: joinedLoading } = useQuery({
     queryKey: ['joined-groups'],
-    queryFn: getUserJoinedGroups,
+    queryFn: () => getUserJoinedGroups(),
     enabled: visible,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

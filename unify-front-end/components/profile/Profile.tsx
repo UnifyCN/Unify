@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { useState, useMemo, memo, useEffect } from 'react';
+import { useState, memo } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -20,7 +20,6 @@ import { useCurrentUser } from '@/context/UserContext';
 interface TabHeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  isCurrentUser: boolean;
 }
 
 const TabHeader = memo(({ activeTab, setActiveTab }: TabHeaderProps) => {
@@ -54,6 +53,8 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const { currentUser } = useCurrentUser();
   const { data: userInfo } = useUserInfo(userId);
   const isCurrentUser = currentUser?.id === userId;
+  const usePostsFeedHook = () => useUserPosts(userId);
+  const useCommentsFeedHook = () => useCommentedOnFeed(userId);
 
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
 
@@ -79,7 +80,6 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
           <TabHeader
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            isCurrentUser={isCurrentUser}
           />
         );
       case 'feed':
@@ -89,59 +89,53 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     }
   };
 
-  const renderTabContent = useMemo(() => {
-    switch (activeTab) {
-      case 'Comments':
-        return (
-          <FeedWithHook
-            key={`comments-${userId}`}
-            useFeedHook={() => useCommentedOnFeed(userId)}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                icon={<UnifyReplyIcon width={27} height={25} />}
-                message='Looks a little quiet here...'
-                submessage={
-                  isCurrentUser ? (
-                    <Text style={styles.emptyMessageSubtext}>
-                      You haven't commented on any posts yet
-                    </Text>
-                  ) : (
-                    <Text style={styles.emptyMessageSubtext}>
-                      This person hasn't commented on any posts yet
-                    </Text>
-                  )
-                }
-              />
+  const renderTabContent =
+    activeTab === 'Comments' ? (
+      <FeedWithHook
+        key={`comments-${userId}`}
+        useFeedHook={useCommentsFeedHook}
+        ListEmptyComponent={
+          <EmptyFeedMessage
+            icon={<UnifyReplyIcon width={27} height={25} />}
+            message='Looks a little quiet here...'
+            submessage={
+              isCurrentUser ? (
+                <Text style={styles.emptyMessageSubtext}>
+                  You haven't commented on any posts yet
+                </Text>
+              ) : (
+                <Text style={styles.emptyMessageSubtext}>
+                  This person hasn't commented on any posts yet
+                </Text>
+              )
             }
           />
-        );
-      default:
-        return (
-          <FeedWithHook
-            key={`posts-${userId}`}
-            useFeedHook={() => useUserPosts(userId)}
-            ListEmptyComponent={
-              <EmptyFeedMessage
-                icon={<UnifyReplyIcon width={27} height={25} />}
-                message='Looks a little quiet here...'
-                submessage={
-                  isCurrentUser ? (
-                    <Text style={styles.emptyMessageSubtext}>
-                      We'd love to hear from you!{'\n'}
-                      Create a post to show up here.
-                    </Text>
-                  ) : (
-                    <Text style={styles.emptyMessageSubtext}>
-                      This person hasn't posted anything yet.
-                    </Text>
-                  )
-                }
-              />
+        }
+      />
+    ) : (
+      <FeedWithHook
+        key={`posts-${userId}`}
+        useFeedHook={usePostsFeedHook}
+        ListEmptyComponent={
+          <EmptyFeedMessage
+            icon={<UnifyReplyIcon width={27} height={25} />}
+            message='Looks a little quiet here...'
+            submessage={
+              isCurrentUser ? (
+                <Text style={styles.emptyMessageSubtext}>
+                  We'd love to hear from you!{'\n'}
+                  Create a post to show up here.
+                </Text>
+              ) : (
+                <Text style={styles.emptyMessageSubtext}>
+                  This person hasn't posted anything yet.
+                </Text>
+              )
             }
           />
-        );
-    }
-  }, [activeTab, userId, isCurrentUser]);
+        }
+      />
+    );
 
   return (
     <View style={styles.container}>
@@ -192,24 +186,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
-    borderBottomWidth: 0.5,
+    borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
-    paddingTop: 8,
+    paddingTop: 2,
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
-    marginHorizontal: 20,
-    borderBottomWidth: 2,
+    paddingVertical: 12,
+    marginHorizontal: 28,
+    borderBottomWidth: 2.5,
     borderBottomColor: 'transparent',
   },
   activeTab: {
     borderBottomColor: Theme.primaryGatherRed,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: Theme.textInactiveTab,
   },

@@ -1,13 +1,20 @@
 import { supabase } from '@/lib/supabase';
 import { Group } from '@/types/groups';
 
-export const getUserJoinedGroups = async (): Promise<Group[]> => {
+export const getUserJoinedGroups = async (
+  targetUserId?: string
+): Promise<Group[]> => {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
+    let userId = targetUserId;
+
+    if (!userId) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      userId = user.id;
     }
 
     const { data, error } = await supabase
@@ -24,7 +31,7 @@ export const getUserJoinedGroups = async (): Promise<Group[]> => {
           )
         `
       )
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .order('joined_at', { ascending: false });
 
     if (error) {

@@ -107,7 +107,7 @@ const GroupsCarousel = memo(() => {
   const fullCardWidth = screenWidth - 40; // 20px padding on each side
   const { data: groups, isLoading } = useQuery({
     queryKey: ['joined-groups'],
-    queryFn: getUserJoinedGroups,
+    queryFn: () => getUserJoinedGroups(),
   });
 
   const handleGroupPress = (group: Group) => {
