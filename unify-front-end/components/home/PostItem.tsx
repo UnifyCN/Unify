@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   homeTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     lineHeight: 28,
     color: Theme.black,
