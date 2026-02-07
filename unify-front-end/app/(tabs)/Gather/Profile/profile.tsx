@@ -1,27 +1,7 @@
-import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import Profile from '@/components/profile/Profile';
+import ProfilePageWrapper from '@/components/profile/ProfilePageWrapper';
 
 export default function GatherProfilePage() {
-  const { userId, tab } = useLocalSearchParams<{
-    userId?: string;
-    tab?: string;
-  }>();
-
-  if (!userId) {
-    return <View style={styles.container} />;
-  }
-
-  return (
-    <View style={styles.container}>
-      <Profile userId={userId} initialTab={tab} />
-    </View>
-  );
+  const { userId, tab } = useLocalSearchParams();
+  return <ProfilePageWrapper userId={userId} tab={tab} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});

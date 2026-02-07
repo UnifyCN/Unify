@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { FollowButton } from './FollowButton';
@@ -31,6 +31,7 @@ interface ProfileHeaderProps {
 
 const AVATAR_SIZE = 92;
 const GROUP_TILE_SIZE = 60;
+const GROUP_DETAIL_ROUTE: Href = '/group-detail';
 
 export const ProfileHeader = ({
   userInfo,
@@ -62,7 +63,7 @@ export const ProfileHeader = ({
 
   const handleGroupPress = (group: Group) => {
     router.push({
-      pathname: '/group-detail' as any,
+      pathname: GROUP_DETAIL_ROUTE,
       params: { group: JSON.stringify(group) },
     });
   };
@@ -318,8 +319,8 @@ const styles = StyleSheet.create({
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
     borderWidth: 1,
-    borderColor: '#DADADA',
-    backgroundColor: '#E5E5E5',
+    borderColor: Theme.imagePlaceholder,
+    backgroundColor: Theme.surfaceTextInput,
   },
   cameraButton: {
     position: 'absolute',
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
     height: GROUP_TILE_SIZE,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: Theme.surfaceTextInput,
   },
   emptyGroupsText: {
     fontSize: 14,
