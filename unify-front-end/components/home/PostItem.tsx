@@ -216,7 +216,7 @@ export const PostItem = memo(
       <View style={styles.footerItem}>
         <TouchableOpacity
           onPress={() => {
-            if (isLiked !== undefined && !showMetadataLoading) {
+            if (!showMetadataLoading) {
               toggleLike(post.id, isLiked);
             }
           }}
@@ -257,7 +257,7 @@ export const PostItem = memo(
     const saveAction = (
       <TouchableOpacity
         onPress={() => {
-          if (isSaved !== undefined && !showMetadataLoading) {
+          if (!showMetadataLoading) {
             toggleSave(post.id, isSaved);
           }
         }}
@@ -653,13 +653,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
     color: Theme.black,
-  },
-  homeGroup: {
-    fontWeight: '500',
-    fontSize: 13,
-    color: Theme.textAlternateGray,
-    lineHeight: 17,
-    flexShrink: 1,
   },
   time: {
     paddingTop: 0,

@@ -5,6 +5,8 @@ import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 
+const HomeCardSpacer = () => <View style={styles.homeCardSpacer} />;
+
 interface FeedProps {
   data?: any; // TODO: fix this
   fetchNextPage?: () => void;
@@ -72,7 +74,7 @@ const Feed = ({
             isHomeCardVariant ? styles.homeCardListContent : undefined
           }
           ItemSeparatorComponent={
-            isHomeCardVariant ? () => <View style={styles.homeCardSpacer} /> : undefined
+            isHomeCardVariant ? HomeCardSpacer : undefined
           }
         />
       </View>
@@ -98,7 +100,7 @@ const Feed = ({
         isHomeCardVariant ? styles.homeCardListContent : undefined
       }
       ItemSeparatorComponent={
-        isHomeCardVariant ? () => <View style={styles.homeCardSpacer} /> : undefined
+        isHomeCardVariant ? HomeCardSpacer : undefined
       }
       ListFooterComponent={
         isFetchingNextPage ? (
