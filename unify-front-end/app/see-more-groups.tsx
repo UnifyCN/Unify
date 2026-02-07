@@ -33,7 +33,7 @@ export default function MoreGroupsScreen() {
   });
 
   const { data: joinedGroups, isLoading: joinedLoading } = useQuery({
-    queryKey: ['joined-groups'],
+    queryKey: ['joined-groups', 'self'],
     queryFn: () => getUserJoinedGroups(),
   });
 

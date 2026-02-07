@@ -46,8 +46,11 @@ export const ProfileHeader = ({
     staleTime: 4 * 60 * 1000,
   });
 
-  const { data: joinedGroups = [], isLoading: groupsLoading } =
-    useUserJoinedGroups(userInfo?.id);
+  const {
+    data: joinedGroups = [],
+    isLoading: groupsLoading,
+    isError: groupsError,
+  } = useUserJoinedGroups(userInfo?.id);
 
   const personaBadge = getPersonaBadgeInfo(
     userInfo?.persona ?? null,
@@ -223,6 +226,8 @@ export const ProfileHeader = ({
               />
             ))}
           </View>
+        ) : groupsError ? (
+          <Text style={styles.emptyGroupsText}>Unable to load groups</Text>
         ) : joinedGroups.length > 0 ? (
           <FlatList
             data={joinedGroups}

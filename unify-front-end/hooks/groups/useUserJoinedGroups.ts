@@ -4,14 +4,8 @@ import { Group } from '@/types/groups';
 
 export const useUserJoinedGroups = (targetUserId?: string) => {
   return useQuery<Group[], Error>({
-    queryKey: ['joined-groups', targetUserId ?? 'self'],
-    queryFn: async () => {
-      try {
-        return await getUserJoinedGroups(targetUserId);
-      } catch {
-        return [];
-      }
-    },
+    queryKey: ['joined-groups', targetUserId],
+    queryFn: () => getUserJoinedGroups(targetUserId),
     enabled: !!targetUserId,
     staleTime: 1000 * 60 * 5,
   });

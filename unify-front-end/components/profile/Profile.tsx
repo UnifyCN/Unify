@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { useState, memo } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -53,8 +53,14 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const { currentUser } = useCurrentUser();
   const { data: userInfo } = useUserInfo(userId);
   const isCurrentUser = currentUser?.id === userId;
-  const usePostsFeedHook = () => useUserPosts(userId);
-  const useCommentsFeedHook = () => useCommentedOnFeed(userId);
+  const usePostsFeedHook = useCallback(
+    useUserPosts.bind(null, userId),
+    [userId]
+  );
+  const useCommentsFeedHook = useCallback(
+    useCommentedOnFeed.bind(null, userId),
+    [userId]
+  );
 
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
 
@@ -154,28 +160,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  loadingContainer: {
-    backgroundColor: '#fff',
-    padding: 40,
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
-  },
-  feedLoadingContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  feedLoadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
   },
   feedContainer: {
     flex: 1,
