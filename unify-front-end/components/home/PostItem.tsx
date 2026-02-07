@@ -333,30 +333,20 @@ export const PostItem = memo(
                         </Text>
                       </TouchableOpacity>
                       <Text style={styles.homeTime}>{formatSmartTime(post.time)}</Text>
-                      {post.isPinned && (
-                        <View style={styles.homePinnedBadge}>
-                          <MaterialCommunityIcons
-                            name='pin-outline'
-                            size={12}
-                            color={Theme.primaryGatherRed}
-                          />
-                          <Text style={styles.homePinnedText}>Pinned</Text>
-                        </View>
+                      {post.group && (
+                        <TouchableOpacity
+                          onPress={navigateToGroupDetail}
+                          style={styles.homeMetaGroupWrap}
+                        >
+                          <Text style={styles.homeMetaGroup} numberOfLines={2}>
+                            {post.group}
+                          </Text>
+                        </TouchableOpacity>
                       )}
                     </View>
                   </View>
-                  {post.group && (
-                    <TouchableOpacity
-                      onPress={navigateToGroupDetail}
-                      style={styles.homeGroupPill}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.homeGroupPillText} numberOfLines={1}>
-                        From {post.group}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
                   <Text style={styles.homeTitle} numberOfLines={2}>
+                    {post.isPinned ? '📌 ' : ''}
                     {post.title}
                   </Text>
                 </View>
@@ -554,9 +544,9 @@ const styles = StyleSheet.create({
   homeCardContainer: {
     flexDirection: 'column',
     gap: 0,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 22,
+    paddingTop: 18,
+    paddingBottom: 18,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#CDCBCB',
@@ -596,7 +586,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 10,
     marginTop: 0,
   },
   homeHeadshot: {
@@ -607,42 +597,38 @@ const styles = StyleSheet.create({
   },
   homeHeaderMetaContainer: {
     flex: 1,
-    marginLeft: 12,
-    marginRight: 8,
+    marginLeft: 14,
+    marginRight: 10,
     marginTop: 0,
   },
   homeMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    minHeight: 18,
+    minHeight: 20,
     marginTop: 0,
   },
   homeMetaLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     flex: 1,
-    flexWrap: 'nowrap',
+    flexWrap: 'wrap',
+    paddingRight: 4,
   },
-  homeGroupPill: {
-    alignSelf: 'flex-start',
-    marginTop: 6,
-    marginBottom: 2,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: '#F5F5F5',
+  homeMetaGroupWrap: {
+    flexShrink: 1,
   },
-  homeGroupPillText: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: Theme.textAlternateGray,
+  homeMetaGroup: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: Theme.textPostTime,
     fontWeight: '500',
+    flexShrink: 1,
   },
   menuButton: {
-    padding: 2,
-    marginRight: -2,
+    padding: 4,
+    marginRight: 0,
   },
   headshot: {
     width: 40,
@@ -688,17 +674,17 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     lineHeight: 22,
   },
   homeTitle: {
     fontSize: 16,
     fontWeight: '600',
-    lineHeight: 28,
+    lineHeight: 26,
     color: Theme.black,
     minHeight: 24,
-    marginTop: 3,
+    marginTop: 6,
   },
   description: {
     fontSize: 16,
@@ -707,7 +693,7 @@ const styles = StyleSheet.create({
   },
   homeDescriptionContainer: {
     minHeight: 66,
-    marginTop: 3,
+    marginTop: 6,
     justifyContent: 'flex-start',
   },
   homeDescriptionContainerCompact: {
@@ -726,7 +712,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   homePostBody: {
-    marginTop: 0,
+    marginTop: 2,
     marginBottom: 0,
     width: '100%',
   },
@@ -739,17 +725,17 @@ const styles = StyleSheet.create({
   homeFooter: {
     flex: 0,
     justifyContent: 'space-between',
-    marginTop: 10,
+    marginTop: 14,
   },
   homeFooterLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 18,
   },
   footerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
   },
   footerText: {
     fontSize: 14,
@@ -762,8 +748,8 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   homeActionTouchable: {
-    minHeight: 30,
-    paddingHorizontal: 1,
+    minHeight: 32,
+    paddingHorizontal: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -771,20 +757,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 1,
     backgroundColor: '#E5E5E5',
-  },
-  homePinnedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(246, 139, 38, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 99,
-  },
-  homePinnedText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: Theme.primaryGatherRed,
   },
   modalOverlay: {
     flex: 1,
