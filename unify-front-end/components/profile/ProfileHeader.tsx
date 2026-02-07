@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useRouter, type Href } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
@@ -9,29 +16,43 @@ import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { Avatar } from '@/components/Avatar';
 import { Theme } from '@/constants/Theme';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
-import { useQuery } from '@tanstack/react-query';
 import InfoBadge from '@/components/common/InfoBadge';
 import {
   getPersonaBadgeInfo,
   getTimeInCanadaBadgeInfo,
 } from '@/utils/onboardingBadges';
+import { useUserJoinedGroups } from '@/hooks/groups/useUserJoinedGroups';
+import { Group } from '@/types/groups';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
   isCurrentUser: boolean | null;
 }
 
+const AVATAR_SIZE = 92;
+const GROUP_TILE_SIZE = 60;
+const GROUP_DETAIL_ROUTE: Href = '/group-detail';
+
 export const ProfileHeader = ({
   userInfo,
   isCurrentUser,
 }: ProfileHeaderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const router = useRouter();
+
   const { data: signedProfileUrl } = useQuery({
     queryKey: ['profilePictureSignedUrl', userInfo?.profilePictureUrl],
     enabled: !!userInfo?.profilePictureUrl,
     queryFn: () => getProfilePictureUrl(userInfo?.profilePictureUrl as string),
     staleTime: 4 * 60 * 1000,
   });
+
+  const {
+    data: joinedGroups = [],
+    isLoading: groupsLoading,
+    isError: groupsError,
+  } = useUserJoinedGroups(userInfo?.id);
+
   const personaBadge = getPersonaBadgeInfo(
     userInfo?.persona ?? null,
     userInfo?.personaOther ?? null
@@ -40,37 +61,63 @@ export const ProfileHeader = ({
     userInfo?.arrivalDate ?? null
   );
 
-  const router = useRouter();
+  const handleGroupPress = (group: Group) => {
+    router.push({
+      pathname: GROUP_DETAIL_ROUTE,
+      params: { group: JSON.stringify(group) },
+    });
+  };
+
   if (!userInfo) {
     return (
       <View style={styles.container}>
-        {/* Left Section - Loading User Info */}
-        <View style={styles.leftSection}>
-          {/* Loading Username */}
-          <SkeletonLoader width={120} height={24} style={{ marginBottom: 8 }} />
-
-          {/* Loading Stats */}
-          <View style={[styles.statsContainer, { marginBottom: 8 }]}>
-            <SkeletonLoader width={15} height={12} style={{ marginRight: 4 }} />
-            <SkeletonLoader width={40} height={12} />
-            <Text style={styles.bullet}> • </Text>
-            <SkeletonLoader width={15} height={12} style={{ marginRight: 4 }} />
-            <SkeletonLoader width={40} height={12} />
+        <View style={styles.topRow}>
+          <SkeletonLoader
+            width={AVATAR_SIZE}
+            height={AVATAR_SIZE}
+            borderRadius={AVATAR_SIZE / 2}
+          />
+          <View style={styles.topStatsColumn}>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <SkeletonLoader width={34} height={24} />
+                <SkeletonLoader
+                  width={62}
+                  height={14}
+                  style={styles.statLabelSkeleton}
+                />
+              </View>
+              <View style={styles.statItem}>
+                <SkeletonLoader width={34} height={24} />
+                <SkeletonLoader
+                  width={62}
+                  height={14}
+                  style={styles.statLabelSkeleton}
+                />
+              </View>
+            </View>
           </View>
-
-          {/* Loading Follow/Edit Button */}
-          <SkeletonLoader width={80} height={24} style={{ marginTop: 8 }} />
         </View>
 
-        {/* Right Section - Loading Profile Picture */}
-        <View style={styles.rightSection}>
-          <View style={styles.profilePictureContainer}>
-            <SkeletonLoader
-              width={93}
-              height={93}
-              borderRadius={46.5}
-              style={styles.profilePicture}
-            />
+        <View style={styles.identitySection}>
+          <SkeletonLoader width={140} height={32} style={styles.nameSkeleton} />
+          <View style={styles.badgesRow}>
+            <SkeletonLoader width={130} height={28} />
+            <SkeletonLoader width={96} height={28} />
+          </View>
+          <SkeletonLoader width={96} height={40} borderRadius={10} />
+        </View>
+        <View style={styles.groupsSection}>
+          <SkeletonLoader width={80} height={24} />
+          <View style={styles.groupSkeletonRow}>
+            {[0, 1, 2, 3].map(item => (
+              <SkeletonLoader
+                key={item}
+                width={GROUP_TILE_SIZE}
+                height={GROUP_TILE_SIZE}
+                borderRadius={18}
+              />
+            ))}
           </View>
         </View>
       </View>
@@ -79,30 +126,61 @@ export const ProfileHeader = ({
 
   return (
     <View style={styles.container}>
-      {/* Left Section - User Info */}
-      <View style={styles.leftSection}>
-        {/* Username - tappable for current user */}
+      <View style={styles.topRow}>
+        <View style={styles.avatarWrapper}>
+          <Avatar
+            profilePictureUrl={signedProfileUrl}
+            username={userInfo.username}
+            size={AVATAR_SIZE}
+            style={styles.profilePicture}
+          />
+          {isCurrentUser && (
+            <>
+              <TouchableOpacity
+                style={styles.cameraButton}
+                onPress={() => setModalVisible(true)}
+              >
+                <View style={styles.cameraIconContainer}>
+                  <Feather name='camera' size={18} color={Theme.white} />
+                </View>
+              </TouchableOpacity>
+              <ProfilePictureUpload
+                currentPictureUrl={userInfo.profilePictureUrl}
+                userId={userInfo.id}
+                modalVisible={modalVisible}
+                onClose={() => setModalVisible(false)}
+              />
+            </>
+          )}
+        </View>
+
+        <View style={styles.topStatsColumn}>
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
+              <Text style={styles.statLabel}>Followers</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statNumber}>{userInfo.followingCount}</Text>
+              <Text style={styles.statLabel}>Following</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.identitySection}>
         {isCurrentUser ? (
           <TouchableOpacity
-            style={styles.usernameRow}
+            style={styles.nameRow}
             onPress={() => router.push('/edit-name')}
             activeOpacity={0.7}
           >
-            <Text style={styles.username}>{userInfo.username}</Text>
+            <Text style={styles.nameText}>{userInfo.username}</Text>
             <Feather name='edit-3' size={18} color={Theme.black} />
           </TouchableOpacity>
         ) : (
-          <Text style={styles.username}>{userInfo.username}</Text>
+          <Text style={styles.nameText}>{userInfo.username}</Text>
         )}
-
-        {/* Stats */}
-        <View style={styles.statsContainer}>
-          <Text style={styles.statNumber}>{userInfo.followerCount} </Text>
-          <Text style={styles.statLabel}>Followers</Text>
-          <Text style={styles.bullet}> • </Text>
-          <Text style={styles.statNumber}>{userInfo.followingCount} </Text>
-          <Text style={styles.statLabel}>Following</Text>
-        </View>
 
         {(personaBadge || timeInCanadaBadge) && (
           <View style={styles.badgesRow}>
@@ -127,43 +205,55 @@ export const ProfileHeader = ({
           </View>
         )}
 
-        {/* Follow Button (only for other users) */}
         {!isCurrentUser && isCurrentUser !== null && (
-          <View style={styles.followButtonContainer}>
+          <View style={styles.followUnderBadgesContainer}>
             <FollowButton targetUserId={userInfo.id} />
           </View>
         )}
+
       </View>
 
-      {/* Right Section - Profile Picture */}
-      <View style={styles.rightSection}>
-        <View style={styles.profilePictureContainer}>
-          <Avatar
-            profilePictureUrl={signedProfileUrl}
-            username={userInfo.username}
-            size={93}
-            style={styles.profilePicture}
-          />
-          {/* Profile Picture Upload Component for Current User */}
-          {isCurrentUser && (
-            <>
-              <TouchableOpacity
-                style={styles.cameraButton}
-                onPress={() => setModalVisible(true)}
-              >
-                <View style={styles.cameraIconContainer}>
-                  <Feather name='camera' size={18} color={Theme.white} />
-                </View>
-              </TouchableOpacity>
-              <ProfilePictureUpload
-                currentPictureUrl={userInfo.profilePictureUrl}
-                userId={userInfo.id}
-                modalVisible={modalVisible}
-                onClose={() => setModalVisible(false)}
+      <View style={styles.groupsSection}>
+        <Text style={styles.groupsTitle}>Groups</Text>
+
+        {groupsLoading ? (
+          <View style={styles.groupSkeletonRow}>
+            {[0, 1, 2, 3].map(item => (
+              <SkeletonLoader
+                key={item}
+                width={GROUP_TILE_SIZE}
+                height={GROUP_TILE_SIZE}
+                borderRadius={18}
               />
-            </>
-          )}
-        </View>
+            ))}
+          </View>
+        ) : groupsError ? (
+          <Text style={styles.emptyGroupsText}>Unable to load groups</Text>
+        ) : joinedGroups.length > 0 ? (
+          <FlatList
+            data={joinedGroups}
+            keyExtractor={item => String(item.id)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.groupsList}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.groupTile}
+                onPress={() => handleGroupPress(item)}
+                activeOpacity={0.8}
+              >
+                <Avatar
+                  profilePictureUrl={item.coverPhotoUrl || undefined}
+                  username={item.name}
+                  size={GROUP_TILE_SIZE}
+                  style={styles.groupAvatar}
+                />
+              </TouchableOpacity>
+            )}
+          />
+        ) : (
+          <Text style={styles.emptyGroupsText}>No groups yet</Text>
+        )}
       </View>
     </View>
   );
@@ -171,97 +261,66 @@ export const ProfileHeader = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: Theme.white,
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  topRow: {
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    gap: 10,
+    marginBottom: 12,
   },
-  leftSection: {
+  topStatsColumn: {
     flex: 1,
-  },
-  rightSection: {
     alignItems: 'center',
-  },
-  profilePictureContainer: {
-    marginBottom: 0,
-    position: 'relative',
-  },
-  profilePicture: {
-    width: 93,
-    height: 93,
-    borderRadius: 46.5,
-    backgroundColor: '#E5E5E5',
     justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#D0D0D0',
+    minHeight: AVATAR_SIZE,
+    paddingHorizontal: 8,
   },
-  profilePictureText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#666',
+  identitySection: {
+    gap: 8,
   },
-  userInfoContainer: {
-    alignItems: 'flex-start',
-    marginBottom: 0,
+  followUnderBadgesContainer: {
+    alignSelf: 'flex-start',
+    marginTop: 2,
   },
-  username: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 2,
-    color: '#000',
-  },
-  usernameRow: {
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 2,
   },
-  statsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
+  nameText: {
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: '700',
+    color: Theme.black,
   },
   badgesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    marginBottom: 10,
+    gap: 6,
   },
   badge: {
-    marginRight: 8,
-    marginBottom: 6,
+    marginRight: 0,
+    marginBottom: 0,
   },
-  statNumber: {
-    fontSize: 14,
-    color: '#000',
+  nameSkeleton: {
+    marginTop: 2,
   },
-  statLabel: {
-    fontSize: 14,
-    color: '#000',
+  avatarWrapper: {
+    position: 'relative',
   },
-  bullet: {
-    fontSize: 14,
-    color: '#000',
-    marginHorizontal: 4,
-  },
-  followButtonContainer: {
-    alignSelf: 'flex-start',
-    marginTop: 'auto',
-  },
-  followButton: {
-    backgroundColor: '#333',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  followButtonText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: '600',
+  profilePicture: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    borderWidth: 1,
+    borderColor: Theme.imagePlaceholder,
+    backgroundColor: Theme.surfaceTextInput,
   },
   cameraButton: {
     position: 'absolute',
@@ -269,13 +328,76 @@ const styles = StyleSheet.create({
     right: 0,
   },
   cameraIconContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: Theme.primaryGatherRed,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: Theme.white,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: 260,
+  },
+  statItem: {
+    alignItems: 'center',
+    width: 120,
+  },
+  statNumber: {
+    fontSize: 20,
+    lineHeight: 24,
+    fontWeight: '700',
+    color: Theme.black,
+  },
+  statLabel: {
+    marginTop: 1,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '500',
+    color: Theme.textAlternateGray,
+  },
+  statLabelSkeleton: {
+    marginTop: 6,
+  },
+  groupsSection: {
+    gap: 8,
+    marginTop: 14,
+  },
+  groupsTitle: {
+    fontSize: 24,
+    lineHeight: 30,
+    fontWeight: '700',
+    color: Theme.black,
+  },
+  groupsList: {
+    paddingRight: 20,
+    gap: 10,
+  },
+  groupTile: {
+    width: GROUP_TILE_SIZE,
+    height: GROUP_TILE_SIZE,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  groupAvatar: {
+    width: GROUP_TILE_SIZE,
+    height: GROUP_TILE_SIZE,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Theme.surfaceTextInput,
+  },
+  emptyGroupsText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: Theme.textInput,
+  },
+  groupSkeletonRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
 });

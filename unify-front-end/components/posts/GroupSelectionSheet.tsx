@@ -38,8 +38,8 @@ export default function GroupSelectionSheet({
 
   // Fetch user's joined groups
   const { data: joinedGroups, isLoading: joinedLoading } = useQuery({
-    queryKey: ['joined-groups'],
-    queryFn: getUserJoinedGroups,
+    queryKey: ['joined-groups', 'self'],
+    queryFn: () => getUserJoinedGroups(),
     enabled: visible,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -57,7 +57,7 @@ export default function GroupSelectionSheet({
     mutationFn: (groupId: number) => joinGroup(groupId),
     onSuccess: () => {
       // Invalidate queries to refresh the lists
-      queryClient.invalidateQueries({ queryKey: ['joined-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['joined-groups', 'self'] });
       queryClient.invalidateQueries({ queryKey: ['available-groups'] });
     },
   });
