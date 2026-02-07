@@ -13,12 +13,14 @@ interface FeedWithHookProps {
   };
   ListEmptyComponent?: React.ReactElement;
   ListHeaderComponent?: React.ReactElement;
+  postVariant?: 'default' | 'homeCard';
 }
 
 const FeedWithHook = ({
   useFeedHook,
   ListEmptyComponent,
   ListHeaderComponent,
+  postVariant = 'default',
 }: FeedWithHookProps) => {
   const {
     data,
@@ -41,6 +43,7 @@ const FeedWithHook = ({
       refetch={refetch}
       ListEmptyComponent={ListEmptyComponent}
       ListHeaderComponent={ListHeaderComponent}
+      postVariant={postVariant}
     />
   );
 };

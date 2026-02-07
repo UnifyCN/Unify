@@ -34,6 +34,7 @@ import { getGroupByName } from '@/services/groups/getGroupByName';
 export interface PostItemProps {
   post: PostData;
   shouldHideContent?: boolean;
+  variant?: 'default' | 'homeCard';
   metadata?: {
     isLiked: boolean;
     isSaved: boolean;
@@ -50,6 +51,7 @@ export const PostItem = memo(
     shouldHideContent,
     metadataLoading,
     isAbleToDelete = true,
+    variant = 'default',
   }: PostItemProps) => {
     const router = useRouter();
     const { currentUser } = useCurrentUser();
@@ -74,6 +76,13 @@ export const PostItem = memo(
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
     const canPin = isAdmin; // Only admins can pin/unpin
+    const isHomeCardVariant = variant === 'homeCard';
+    const content = post.content?.trim() ?? '';
+    const shouldShowReadMore = content.length > 170;
+    const useMaxBodyPreviewHeight = shouldShowReadMore;
+    const previewContent = shouldShowReadMore
+      ? `${content.slice(0, 170).trimEnd()}...`
+      : content;
 
     const handlePinPost = () => {
       pinPostMutation.mutate(
@@ -126,6 +135,32 @@ export const PostItem = memo(
       router.push(`/profile?userId=${post.user.id}`);
     };
 
+    const navigateToGroupDetail = async () => {
+      if (!post.group) return;
+
+      try {
+        const group = await getGroupByName(post.group);
+        if (group) {
+          router.push({
+            pathname: '/group-detail' as any,
+            params: { group: JSON.stringify(group) },
+          });
+          return;
+        }
+
+        router.push({
+          pathname: '/group-detail' as any,
+          params: { groupName: post.group },
+        });
+      } catch (error) {
+        console.error('Failed to fetch group:', error);
+        router.push({
+          pathname: '/group-detail' as any,
+          params: { groupName: post.group },
+        });
+      }
+    };
+
     const handleDeletePost = () => {
       Alert.alert(
         'Delete Post',
@@ -175,159 +210,252 @@ export const PostItem = memo(
 
     // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
+    const iconSize = isHomeCardVariant ? 24 : 20;
+
+    const likeAction = (
+      <View style={styles.footerItem}>
+        <TouchableOpacity
+          onPress={() => {
+            if (!showMetadataLoading) {
+              toggleLike(post.id, isLiked);
+            }
+          }}
+          disabled={showMetadataLoading}
+          style={isHomeCardVariant ? styles.homeActionTouchable : undefined}
+        >
+          {isLiked ? (
+            <Like_Fill width={iconSize} height={iconSize} />
+          ) : (
+            <Like width={iconSize} height={iconSize} />
+          )}
+        </TouchableOpacity>
+        {showMetadataLoading ? (
+          <SkeletonLoader width={20} height={14} />
+        ) : (
+          <Text style={[styles.footerText, isHomeCardVariant && styles.homeFooterText]}>
+            {likeCount}
+          </Text>
+        )}
+      </View>
+    );
+
+    const commentAction = (
+      <TouchableOpacity style={styles.footerItem} onPress={navigateToComments}>
+        <View style={isHomeCardVariant ? styles.homeActionTouchable : undefined}>
+          <Comment width={iconSize} height={iconSize} fill='gray' />
+        </View>
+        {showMetadataLoading ? (
+          <SkeletonLoader width={24} height={20} />
+        ) : (
+          <Text style={[styles.footerText, isHomeCardVariant && styles.homeFooterText]}>
+            {commentCount}
+          </Text>
+        )}
+      </TouchableOpacity>
+    );
+
+    const saveAction = (
+      <TouchableOpacity
+        onPress={() => {
+          if (!showMetadataLoading) {
+            toggleSave(post.id, isSaved);
+          }
+        }}
+        disabled={showMetadataLoading}
+        style={
+          isHomeCardVariant
+            ? [styles.homeSaveButton, styles.homeActionTouchable]
+            : undefined
+        }
+      >
+        {showMetadataLoading ? (
+          <SkeletonLoader width={20} height={20} borderRadius={4} />
+        ) : isSaved ? (
+          <Save_Fill width={iconSize} height={iconSize} />
+        ) : (
+          <Save width={iconSize} height={iconSize} />
+        )}
+      </TouchableOpacity>
+    );
+
+    const footer = isHomeCardVariant ? (
+      <View style={[styles.footer, styles.homeFooter]}>
+        <View style={styles.homeFooterLeft}>
+          {likeAction}
+          {commentAction}
+        </View>
+        {saveAction}
+      </View>
+    ) : (
+      <View style={styles.footer}>
+        {likeAction}
+        {commentAction}
+        {saveAction}
+      </View>
+    );
 
     return (
       <View>
         <View
           style={[
             styles.postContainer,
-            { paddingHorizontal: shouldHideContent ? 0 : 20 },
+            shouldHideContent ? styles.noContentPadding : styles.defaultPadding,
+            isHomeCardVariant && styles.homeCardContainer,
           ]}
         >
-          {/* Head Shot */}
-          <TouchableOpacity
-            style={styles.headshot}
-            onPress={navigateToUserProfile}
-          >
-            <Avatar
-              profilePictureUrl={post.user.profilePictureUrl}
-              username={post.user.username}
-              size={40}
-            />
-          </TouchableOpacity>
-          {/* Post Content */}
-          <View style={styles.postContent}>
-            {/* Header */}
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <TouchableOpacity onPress={navigateToUserProfile}>
-                  <Text style={styles.name}>{post.user.name}</Text>
+          {isHomeCardVariant ? (
+            <Pressable
+              style={({ pressed }) => [
+                styles.postContent,
+                styles.homeCardContent,
+                pressed && styles.homeCardPressed,
+              ]}
+              onPress={navigateToComments}
+            >
+              <View style={styles.homeHeaderRow}>
+                <TouchableOpacity
+                  style={[styles.headshot, styles.homeHeadshot]}
+                  onPress={navigateToUserProfile}
+                >
+                  <Avatar
+                    profilePictureUrl={post.user.profilePictureUrl}
+                    username={post.user.username}
+                    size={52}
+                  />
                 </TouchableOpacity>
-                {post.group && (
-                  <>
-                    <ChevronRight
-                      color={Theme.textAlternateGray}
-                      width={6}
-                      height={14}
+
+                <View style={styles.homeHeaderMetaContainer}>
+                  <View style={styles.homeMetaRow}>
+                    <View style={styles.homeMetaLeft}>
+                      <TouchableOpacity onPress={navigateToUserProfile}>
+                        <Text style={styles.homeName} numberOfLines={1}>
+                          {post.user.name}
+                        </Text>
+                      </TouchableOpacity>
+                      <Text style={styles.homeTime}>{formatSmartTime(post.time)}</Text>
+                      {post.group && (
+                        <TouchableOpacity
+                          onPress={navigateToGroupDetail}
+                          style={styles.homeMetaGroupWrap}
+                        >
+                          <Text style={styles.homeMetaGroup} numberOfLines={2}>
+                            {post.group}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                  <Text style={styles.homeTitle} numberOfLines={2}>
+                    {post.isPinned ? '📌 ' : ''}
+                    {post.title}
+                  </Text>
+                </View>
+
+                {canDelete && (
+                  <TouchableOpacity
+                    onPress={() => setDeleteModalVisible(true)}
+                    style={styles.menuButton}
+                  >
+                    <Feather
+                      name='more-vertical'
+                      size={20}
+                      color={Theme.black}
                     />
-                    <TouchableOpacity
-                      onPress={async () => {
-                        if (!post.group) return;
-                        try {
-                          const group = await getGroupByName(post.group);
-                          if (group) {
-                            router.push({
-                              pathname: '/group-detail' as any,
-                              params: { group: JSON.stringify(group) },
-                            });
-                          } else {
-                            // Fallback to groupName if group not found
-                            router.push({
-                              pathname: '/group-detail' as any,
-                              params: { groupName: post.group },
-                            });
-                          }
-                        } catch (error) {
-                          console.error('Failed to fetch group:', error);
-                          // Fallback to groupName if fetch fails
-                          router.push({
-                            pathname: '/group-detail' as any,
-                            params: { groupName: post.group },
-                          });
-                        }
-                      }}
-                    >
-                      <Text style={styles.group}>{post.group}</Text>
-                    </TouchableOpacity>
-                  </>
+                  </TouchableOpacity>
                 )}
-                <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
-                {post.isPinned && (
-                  <View style={styles.pinnedBadge}>
-                    <Text style={styles.pinnedText}>Pinned</Text>
+              </View>
+
+              <View style={[styles.postBody, styles.homePostBody]}>
+                {!shouldHideContent && (
+                  <View
+                    style={[
+                      styles.homeDescriptionContainer,
+                      !useMaxBodyPreviewHeight &&
+                        styles.homeDescriptionContainerCompact,
+                    ]}
+                  >
+                    <Text style={styles.homeDescription} numberOfLines={3}>
+                      {previewContent}
+                      {shouldShowReadMore && (
+                        <Text style={styles.homeReadMore}> Read more</Text>
+                      )}
+                    </Text>
                   </View>
                 )}
               </View>
-              {canDelete && (
+
+              {footer}
+            </Pressable>
+          ) : (
+            <>
+              <TouchableOpacity
+                style={styles.headshot}
+                onPress={navigateToUserProfile}
+              >
+                <Avatar
+                  profilePictureUrl={post.user.profilePictureUrl}
+                  username={post.user.username}
+                  size={40}
+                />
+              </TouchableOpacity>
+              <View style={styles.postContent}>
+                <View style={styles.header}>
+                  <View style={styles.headerLeft}>
+                    <TouchableOpacity onPress={navigateToUserProfile}>
+                      <Text style={styles.name}>{post.user.name}</Text>
+                    </TouchableOpacity>
+                    {post.group && (
+                      <>
+                        <ChevronRight
+                          color={Theme.textAlternateGray}
+                          width={6}
+                          height={14}
+                        />
+                        <TouchableOpacity onPress={navigateToGroupDetail}>
+                          <Text style={styles.group}>{post.group}</Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                    <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+                    {post.isPinned && (
+                      <View style={styles.pinnedBadge}>
+                        <Text style={styles.pinnedText}>Pinned</Text>
+                      </View>
+                    )}
+                  </View>
+                  {canDelete && (
+                    <TouchableOpacity
+                      onPress={() => setDeleteModalVisible(true)}
+                      style={styles.menuButton}
+                    >
+                      <Feather
+                        name='more-vertical'
+                        size={20}
+                        color={Theme.black}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
                 <TouchableOpacity
-                  onPress={() => setDeleteModalVisible(true)}
-                  style={styles.menuButton}
+                  onPress={navigateToComments}
+                  activeOpacity={0.5}
+                  style={styles.postBody}
                 >
-                  <Feather name='more-vertical' size={20} color={Theme.black} />
-                </TouchableOpacity>
-              )}
-            </View>
+                  <View>
+                    <Text style={styles.title}>{post.title}</Text>
+                  </View>
 
-            {/* Title and Content - Clickable to navigate to post details */}
-            <TouchableOpacity
-              onPress={navigateToComments}
-              activeOpacity={0.5}
-              style={styles.postBody}
-            >
-              <View>
-                <Text style={styles.title}>{post.title}</Text>
-              </View>
-
-              {/* Content */}
-              {!shouldHideContent && (
-                <Text style={styles.description}>{post.content}</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Footer */}
-            <View style={styles.footer}>
-              <View style={styles.footerItem}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (isLiked !== undefined && !showMetadataLoading) {
-                      toggleLike(post.id, isLiked);
-                    }
-                  }}
-                  disabled={showMetadataLoading}
-                >
-                  {isLiked ? (
-                    <Like_Fill width={20} height={20} />
-                  ) : (
-                    <Like width={20} height={20} />
+                  {!shouldHideContent && (
+                    <Text style={styles.description}>{post.content}</Text>
                   )}
                 </TouchableOpacity>
-                {showMetadataLoading ? (
-                  <SkeletonLoader width={20} height={14} />
-                ) : (
-                  <Text style={styles.footerText}>{likeCount}</Text>
-                )}
+                {footer}
               </View>
-              <TouchableOpacity
-                style={styles.footerItem}
-                onPress={navigateToComments}
-              >
-                <Comment width={20} height={20} fill='gray' />
-                {showMetadataLoading ? (
-                  <SkeletonLoader width={24} height={20} />
-                ) : (
-                  <Text style={styles.footerText}>{commentCount}</Text>
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  if (isSaved !== undefined && !showMetadataLoading) {
-                    toggleSave(post.id, isSaved);
-                  }
-                }}
-                disabled={showMetadataLoading}
-              >
-                {showMetadataLoading ? (
-                  <SkeletonLoader width={20} height={20} borderRadius={4} />
-                ) : isSaved ? (
-                  <Save_Fill width={20} height={20} />
-                ) : (
-                  <Save width={20} height={20} />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
+            </>
+          )}
         </View>
-        <View style={styles.divider} />
+        {!isHomeCardVariant && <View style={styles.divider} />}
 
         {/* Delete Modal */}
         <Modal
@@ -407,8 +535,36 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     gap: 12,
   },
+  defaultPadding: {
+    paddingHorizontal: 20,
+  },
+  noContentPadding: {
+    paddingHorizontal: 0,
+  },
+  homeCardContainer: {
+    flexDirection: 'column',
+    gap: 0,
+    paddingHorizontal: 22,
+    paddingTop: 18,
+    paddingBottom: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#CDCBCB',
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
   postContent: {
     flex: 1,
+  },
+  homeCardContent: {
+    width: '100%',
+  },
+  homeCardPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.995 }],
   },
   header: {
     flexDirection: 'row',
@@ -426,8 +582,53 @@ const styles = StyleSheet.create({
     gap: 7,
     flex: 1,
   },
+  homeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    marginTop: 0,
+  },
+  homeHeadshot: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginTop: 0,
+  },
+  homeHeaderMetaContainer: {
+    flex: 1,
+    marginLeft: 14,
+    marginRight: 10,
+    marginTop: 0,
+  },
+  homeMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    minHeight: 20,
+    marginTop: 0,
+  },
+  homeMetaLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    flexWrap: 'wrap',
+    paddingRight: 4,
+  },
+  homeMetaGroupWrap: {
+    flexShrink: 1,
+  },
+  homeMetaGroup: {
+    fontSize: 14,
+    lineHeight: 18,
+    color: Theme.textPostTime,
+    fontWeight: '500',
+    flexShrink: 1,
+  },
   menuButton: {
     padding: 4,
+    marginRight: 0,
   },
   headshot: {
     width: 40,
@@ -441,6 +642,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Theme.black,
   },
+  homeName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Theme.black,
+    lineHeight: 18,
+    flexShrink: 1,
+  },
   group: {
     fontWeight: '600',
     fontSize: 14,
@@ -452,23 +660,54 @@ const styles = StyleSheet.create({
     color: Theme.textPostTime,
     fontWeight: '500',
   },
+  homeTime: {
+    fontSize: 14,
+    color: Theme.textPostTime,
+    fontWeight: '400',
+    lineHeight: 18,
+  },
   title: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     lineHeight: 22,
   },
-  replyUser: {
+  homeTitle: {
     fontSize: 16,
-    textAlign: 'left',
-    color: '#FE0034',
+    fontWeight: '600',
+    lineHeight: 26,
+    color: Theme.black,
+    minHeight: 24,
+    marginTop: 6,
   },
   description: {
     fontSize: 16,
     lineHeight: 22,
     marginTop: 4,
   },
+  homeDescriptionContainer: {
+    minHeight: 66,
+    marginTop: 6,
+    justifyContent: 'flex-start',
+  },
+  homeDescriptionContainerCompact: {
+    minHeight: 0,
+  },
+  homeDescription: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: Theme.black,
+  },
+  homeReadMore: {
+    color: Theme.black,
+    fontWeight: '600',
+  },
   postBody: {
     marginBottom: 12,
+  },
+  homePostBody: {
+    marginTop: 2,
+    marginBottom: 0,
+    width: '100%',
   },
   footer: {
     flexDirection: 'row',
@@ -476,21 +715,41 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 25,
   },
+  homeFooter: {
+    flex: 0,
+    justifyContent: 'space-between',
+    marginTop: 14,
+  },
+  homeFooterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
+  },
   footerItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
   },
   footerText: {
     fontSize: 14,
+  },
+  homeFooterText: {
+    color: Theme.textAlternateGray,
+    fontWeight: '500',
+  },
+  homeSaveButton: {
+    marginLeft: 16,
+  },
+  homeActionTouchable: {
+    minHeight: 32,
+    paddingHorizontal: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   divider: {
     width: '100%',
     height: 1,
     backgroundColor: '#E5E5E5',
-  },
-  replyContainer: {
-    flexDirection: 'row',
   },
   modalOverlay: {
     flex: 1,

@@ -5,14 +5,23 @@ import { SkeletonLoader } from './SkeletonLoader';
 interface SkeletonLoaderPostItemProps {
   avatarSize?: number;
   showFooter?: boolean;
+  variant?: 'default' | 'homeCard';
 }
 
 export const SkeletonLoaderPostItem = ({
   avatarSize = 40,
   showFooter = true,
+  variant = 'default',
 }: SkeletonLoaderPostItemProps) => {
+  const isHomeCardVariant = variant === 'homeCard';
+
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        isHomeCardVariant && styles.homeCardContainer,
+      ]}
+    >
       <View style={styles.header}>
         <SkeletonLoader
           width={avatarSize}
@@ -28,7 +37,7 @@ export const SkeletonLoaderPostItem = ({
       <SkeletonLoader width='90%' height={16} style={{ marginBottom: 4 }} />
       <SkeletonLoader width='70%' height={16} style={{ marginBottom: 12 }} />
       {showFooter && (
-        <View style={styles.footer}>
+        <View style={[styles.footer, isHomeCardVariant && styles.homeCardFooter]}>
           <SkeletonLoader width={60} height={16} />
           <SkeletonLoader width={40} height={16} />
           <SkeletonLoader width={30} height={16} />
@@ -46,6 +55,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
+  homeCardContainer: {
+    borderBottomWidth: 0,
+    borderWidth: 1,
+    borderColor: '#CDCBCB',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -59,5 +81,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 20,
+  },
+  homeCardFooter: {
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    paddingTop: 10,
+    gap: 18,
   },
 });

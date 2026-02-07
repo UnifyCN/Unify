@@ -5,6 +5,8 @@ import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 
+const HomeCardSpacer = () => <View style={styles.homeCardSpacer} />;
+
 interface FeedProps {
   data?: any; // TODO: fix this
   fetchNextPage?: () => void;
@@ -15,6 +17,7 @@ interface FeedProps {
   refetch?: () => void;
   ListHeaderComponent?: React.ReactElement;
   ListEmptyComponent?: React.ComponentType<any> | React.ReactElement | null;
+  postVariant?: 'default' | 'homeCard';
 }
 
 const Feed = ({
@@ -27,7 +30,9 @@ const Feed = ({
   refetch,
   ListHeaderComponent,
   ListEmptyComponent,
+  postVariant = 'default',
 }: FeedProps) => {
+  const isHomeCardVariant = postVariant === 'homeCard';
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
 
   const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
@@ -41,10 +46,11 @@ const Feed = ({
           post={item}
           metadata={metadata?.[item.id]}
           metadataLoading={metadataLoading}
+          variant={postVariant}
         />
       );
     },
-    [metadata, metadataLoading]
+    [metadata, metadataLoading, postVariant]
   );
 
   const handleLoadMore = () => {
@@ -60,8 +66,16 @@ const Feed = ({
         <FlatList
           data={Array.from({ length: 3 }, (_, index) => index + 1)}
           keyExtractor={item => `skeleton-${item}`}
-          renderItem={() => <SkeletonLoaderPostItem />}
+          renderItem={() => (
+            <SkeletonLoaderPostItem variant={postVariant} />
+          )}
           scrollEnabled={false}
+          contentContainerStyle={
+            isHomeCardVariant ? styles.homeCardListContent : undefined
+          }
+          ItemSeparatorComponent={
+            isHomeCardVariant ? HomeCardSpacer : undefined
+          }
         />
       </View>
     );
@@ -82,10 +96,16 @@ const Feed = ({
       }
       ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={ListEmptyComponent}
+      contentContainerStyle={
+        isHomeCardVariant ? styles.homeCardListContent : undefined
+      }
+      ItemSeparatorComponent={
+        isHomeCardVariant ? HomeCardSpacer : undefined
+      }
       ListFooterComponent={
         isFetchingNextPage ? (
           <View style={styles.loadingFooter}>
-            <SkeletonLoaderPostItem />
+            <SkeletonLoaderPostItem variant={postVariant} />
           </View>
         ) : null
       }
@@ -100,6 +120,14 @@ const styles = StyleSheet.create({
   loadingFooter: {
     padding: 20,
     alignItems: 'center',
+  },
+  homeCardListContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 96,
+  },
+  homeCardSpacer: {
+    height: 12,
   },
 });
 

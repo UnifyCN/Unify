@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ImageBackground,
   Dimensions,
-  ScrollView,
   useWindowDimensions,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -52,22 +51,32 @@ type FeedTab = (typeof TABS)[number];
 const FeedTabs = memo(
   ({ activeIndex, onTabPress, scrollX, screenWidth }: HeaderProps) => {
     const [containerWidth, setContainerWidth] = useState(0);
-    const tabWidth = containerWidth ? containerWidth / TABS.length : 0;
+    const horizontalInset = 4;
+    const tabWidth = containerWidth
+      ? (containerWidth - horizontalInset * 2) / TABS.length
+      : 0;
 
     const indicatorStyle = useAnimatedStyle(() => {
       if (!tabWidth || screenWidth === 0) {
-        return { transform: [{ translateX: 0 }] };
+        return { transform: [{ translateX: horizontalInset }] };
       }
 
-      const translateX = (scrollX.value / screenWidth) * tabWidth;
+      const translateX =
+        (scrollX.value / screenWidth) * tabWidth + horizontalInset;
       return { transform: [{ translateX }] };
-    }, [tabWidth, screenWidth]);
+    }, [horizontalInset, tabWidth, screenWidth]);
 
     return (
       <View
         style={styles.tabs}
         onLayout={event => setContainerWidth(event.nativeEvent.layout.width)}
       >
+        {tabWidth > 0 && (
+          <Animated.View
+            pointerEvents='none'
+            style={[styles.tabIndicator, { width: tabWidth }, indicatorStyle]}
+          />
+        )}
         {TABS.map((tab, index) => (
           <TouchableOpacity
             key={tab}
@@ -87,12 +96,6 @@ const FeedTabs = memo(
             </Text>
           </TouchableOpacity>
         ))}
-        {tabWidth > 0 && (
-          <Animated.View
-            pointerEvents='none'
-            style={[styles.tabIndicator, { width: tabWidth }, indicatorStyle]}
-          />
-        )}
       </View>
     );
   }
@@ -334,6 +337,7 @@ export default function HomeScreen() {
           <View style={[styles.page, { width: screenWidth }]}>
             <FeedWithHook
               useFeedHook={useForYouFeed}
+              postVariant='homeCard'
               ListEmptyComponent={
                 <EmptyFeedMessage
                   message='No posts here...'
@@ -350,6 +354,7 @@ export default function HomeScreen() {
           <View style={[styles.page, { width: screenWidth }]}>
             <FeedWithHook
               useFeedHook={useFollowingFeed}
+              postVariant='homeCard'
               ListEmptyComponent={
                 <EmptyFeedMessage
                   message='No posts here...'
@@ -367,6 +372,7 @@ export default function HomeScreen() {
             <GroupsCarousel />
             <FeedWithHook
               useFeedHook={useGroupsFeed}
+              postVariant='homeCard'
               ListEmptyComponent={
                 <EmptyFeedMessage
                   message='No group posts here...'
@@ -397,37 +403,41 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   tabs: {
-    backgroundColor: '#fff',
+    backgroundColor: '#EFEBE6',
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 1000,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#E5E5E5',
-    paddingTop: 8,
+    borderRadius: 16,
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 8,
+    padding: 4,
     position: 'relative',
+    overflow: 'hidden',
   },
   tab: {
     backgroundColor: 'transparent',
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 9,
+    borderRadius: 12,
+    zIndex: 1,
   },
   tabText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: Theme.textInactiveTab,
+    color: Theme.textAlternateGray,
   },
   activeTabText: {
-    color: Theme.black,
+    color: Theme.white,
     fontWeight: '600',
   },
   tabIndicator: {
     position: 'absolute',
-    bottom: 0,
+    top: 4,
+    bottom: 4,
     left: 0,
-    height: 2,
     backgroundColor: Theme.primaryGatherRed,
-    borderRadius: 2,
+    borderRadius: 12,
   },
   pager: {
     flex: 1,
