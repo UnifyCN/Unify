@@ -304,7 +304,14 @@ export const PostItem = memo(
           ]}
         >
           {isHomeCardVariant ? (
-            <View style={[styles.postContent, styles.homeCardContent]}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.postContent,
+                styles.homeCardContent,
+                pressed && styles.homeCardPressed,
+              ]}
+              onPress={navigateToComments}
+            >
               <View style={styles.homeHeaderRow}>
                 <TouchableOpacity
                   style={[styles.headshot, styles.homeHeadshot]}
@@ -368,11 +375,7 @@ export const PostItem = memo(
                 )}
               </View>
 
-              <TouchableOpacity
-                onPress={navigateToComments}
-                activeOpacity={0.7}
-                style={[styles.postBody, styles.homePostBody]}
-              >
+              <View style={[styles.postBody, styles.homePostBody]}>
                 {!shouldHideContent && (
                   <View
                     style={[
@@ -389,10 +392,10 @@ export const PostItem = memo(
                     </Text>
                   </View>
                 )}
-              </TouchableOpacity>
+              </View>
 
               {footer}
-            </View>
+            </Pressable>
           ) : (
             <>
               <TouchableOpacity
@@ -568,6 +571,10 @@ const styles = StyleSheet.create({
   },
   homeCardContent: {
     width: '100%',
+  },
+  homeCardPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.995 }],
   },
   header: {
     flexDirection: 'row',
