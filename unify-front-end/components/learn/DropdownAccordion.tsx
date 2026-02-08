@@ -10,7 +10,6 @@ import {
   TextStyle,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 
 if (
   Platform.OS === 'android' &&
@@ -28,9 +27,11 @@ type AccordionItem = {
 export default function DropdownAccordion({
   items,
   titleTextStyle,
+  renderRichText,
 }: {
   items: AccordionItem[];
   titleTextStyle?: TextStyle;
+  renderRichText?: (blocks: any[]) => React.ReactNode;
 }) {
   const [openId, setOpenId] = React.useState<string | null>(null);
 
@@ -63,7 +64,7 @@ export default function DropdownAccordion({
                 {typeof item.body === 'string' ? (
                   <Text style={styles.bodyText}>{item.body}</Text>
                 ) : (
-                  <RichTextRenderer blocks={item.body} />
+                  renderRichText?.(item.body)
                 )}
               </View>
             )}

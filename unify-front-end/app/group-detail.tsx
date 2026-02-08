@@ -8,6 +8,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { Group } from '@/types/groups';
 import { useEffect, useState, useRef } from 'react';
@@ -34,6 +35,7 @@ import BackHeader from '@/components/BackHeader';
 const DESTRUCTIVE_RED = '#DC3545';
 
 const GroupDetailScreen = () => {
+  const isFocused = useIsFocused();
   const { group, groupName } = useLocalSearchParams();
   const [groupData, setGroupData] = useState<Group | null>(
     group ? (JSON.parse(group as string) as Group) : null
@@ -275,7 +277,10 @@ const GroupDetailScreen = () => {
           />
         )}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isFocused && refreshing}
+            onRefresh={onRefresh}
+          />
         }
         ListHeaderComponent={() => (
           <View style={styles.contentContainer}>

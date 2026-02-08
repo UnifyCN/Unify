@@ -5,9 +5,14 @@ import DropdownAccordion from '@/components/learn/DropdownAccordion';
 interface DropdownBlockProps {
   block: any;
   index: number;
+  renderRichText: (blocks: any[]) => React.ReactNode;
 }
 
-export default function DropdownBlock({ block, index }: DropdownBlockProps) {
+export default function DropdownBlock({
+  block,
+  index,
+  renderRichText,
+}: DropdownBlockProps) {
   // Check if we have the required fields for this dropdown structure
   if (!block.label || !block.content) {
     return null;
@@ -27,6 +32,7 @@ export default function DropdownBlock({ block, index }: DropdownBlockProps) {
       <DropdownAccordion
         items={dropdownItems}
         titleTextStyle={styles.closedTitle}
+        renderRichText={renderRichText}
       />
     </View>
   );

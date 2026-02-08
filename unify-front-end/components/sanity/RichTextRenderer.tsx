@@ -757,7 +757,23 @@ export default function RichTextRenderer({
 
     // Special block types
     if (block._type === 'dropdown') {
-      return <DropdownBlock block={block} index={index} />;
+      return (
+        <DropdownBlock
+          block={block}
+          index={index}
+          renderRichText={dropdownBlocks => (
+            <RichTextRenderer
+              blocks={dropdownBlocks}
+              markDefs={markDefs}
+              inputValues={inputValues}
+              onInputChange={onInputChange}
+              questionAnswers={questionAnswers}
+              onQuestionAnswer={onQuestionAnswer}
+              showQuestionFeedback={showQuestionFeedback}
+            />
+          )}
+        />
+      );
     }
 
     if (block._type === 'example_box') {
