@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
@@ -32,6 +33,7 @@ const Feed = ({
   ListEmptyComponent,
   postVariant = 'default',
 }: FeedProps) => {
+  const isFocused = useIsFocused();
   const isHomeCardVariant = postVariant === 'homeCard';
   const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
 
@@ -90,7 +92,7 @@ const Feed = ({
       onEndReachedThreshold={0.5}
       refreshControl={
         <RefreshControl
-          refreshing={isRefetching || false}
+          refreshing={isFocused && (isRefetching || false)}
           onRefresh={refetch}
         />
       }

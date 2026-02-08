@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
@@ -28,6 +29,7 @@ import Header from '../../../components/Header';
 
 export default function Learn() {
   const { trackScreen } = useAnalytics();
+  const isFocused = useIsFocused();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const { width } = useWindowDimensions();
@@ -85,7 +87,10 @@ export default function Learn() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl
+              refreshing={isFocused && refreshing}
+              onRefresh={onRefresh}
+            />
           }
         >
           <Text style={styles.pageTitle}>Ready to learn?</Text>

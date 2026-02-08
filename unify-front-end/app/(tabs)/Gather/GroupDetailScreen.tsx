@@ -11,6 +11,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { Group } from '@/types/groups';
 import { useQueryClient } from '@tanstack/react-query';
@@ -32,6 +33,7 @@ import { Theme } from '@/constants/Theme';
 import { useAnalytics } from '@/utils/analytics';
 
 const GroupDetailScreen = () => {
+  const isFocused = useIsFocused();
   const router = useRouter();
   const { group, groupName } = useLocalSearchParams();
   const [groupData, setGroupData] = useState<Group | null>(
@@ -279,7 +281,10 @@ const GroupDetailScreen = () => {
           />
         )}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={isFocused && refreshing}
+            onRefresh={onRefresh}
+          />
         }
         ListHeaderComponent={() => (
           <>
