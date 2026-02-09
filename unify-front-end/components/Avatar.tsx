@@ -1,13 +1,23 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  StyleProp,
+  TextStyle,
+  ViewStyle,
+} from 'react-native';
+import { Image } from 'expo-image';
+import { useResolvedAvatarUrl } from '@/hooks/useResolvedAvatarUrl';
 
 interface AvatarProps {
   profilePictureUrl?: string;
   username: string;
   size?: number;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
+  fallbackStyle?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
+  showFallbackWhileLoading?: boolean;
 }
 
 export const Avatar = ({
@@ -15,42 +25,58 @@ export const Avatar = ({
   username,
   size = 40,
   style,
+  fallbackStyle,
+  textStyle,
+  showFallbackWhileLoading = false,
 }: AvatarProps) => {
-  const shouldSignUrl =
-    !!profilePictureUrl && !profilePictureUrl.startsWith('http');
-  const { data: signedProfileUrl } = useQuery({
-    queryKey: ['profilePictureSignedUrl', profilePictureUrl],
-    enabled: shouldSignUrl,
-    queryFn: () => getProfilePictureUrl(profilePictureUrl as string),
-    staleTime: 4 * 60 * 1000,
-  });
-  const effectiveProfileUrl = shouldSignUrl
-    ? signedProfileUrl
-    : profilePictureUrl;
+  const [imageFailed, setImageFailed] = useState(false);
+  const { resolvedAvatarUrl, hasAvatarSource, isLoading, isError } =
+    useResolvedAvatarUrl(profilePictureUrl);
 
-  const avatarStyle = [
-    styles.avatar,
-    {
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-    },
-    style,
-  ];
+  useEffect(() => {
+    setImageFailed(false);
+  }, [resolvedAvatarUrl]);
 
-  if (effectiveProfileUrl) {
+  const avatarStyle = useMemo(
+    () => [
+      styles.avatar,
+      {
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+      },
+      style,
+    ],
+    [size, style]
+  );
+
+  if (resolvedAvatarUrl && !imageFailed) {
     return (
       <Image
-        source={{ uri: effectiveProfileUrl }}
-        style={avatarStyle}
-        resizeMode='cover'
+        source={resolvedAvatarUrl}
+        style={avatarStyle as any}
+        contentFit='cover'
+        cachePolicy='memory-disk'
+        transition={120}
+        onError={() => setImageFailed(true)}
       />
     );
   }
 
+  const shouldShowFallback =
+    !hasAvatarSource ||
+    imageFailed ||
+    isError ||
+    (!isLoading && !resolvedAvatarUrl) ||
+    (showFallbackWhileLoading && isLoading);
+
+  if (!shouldShowFallback) {
+    return <View style={avatarStyle} />;
+  }
+
   return (
-    <View style={avatarStyle}>
-      <Text style={[styles.avatarText, { fontSize: size * 0.4 }]}>
+    <View style={[avatarStyle, fallbackStyle]}>
+      <Text style={[styles.avatarText, { fontSize: size * 0.4 }, textStyle]}>
         {username.charAt(0).toUpperCase()}
       </Text>
     </View>

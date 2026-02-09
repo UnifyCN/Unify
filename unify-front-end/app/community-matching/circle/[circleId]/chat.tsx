@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TextInput,
@@ -15,6 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCurrentUser } from '@/context/UserContext';
+import { Avatar } from '@/components/Avatar';
 import {
   getCircleById,
   getCircleMembers,
@@ -34,6 +34,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import BackHeader from '@/components/BackHeader';
 import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import KeyboardSafeAreaView from '@/components/common/KeyboardSafeAreaView';
+import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 
 
 export default function CircleChatScreen() {
@@ -79,6 +80,21 @@ export default function CircleChatScreen() {
     });
     return map;
   }, [members]);
+
+  useEffect(() => {
+    if (!members?.length && !messages.length) {
+      return;
+    }
+
+    const avatarUrls = [
+      ...(members?.map(member => member.user.profile_picture_url) ?? []),
+      ...messages.map(message => message.sender?.profile_picture_url),
+    ];
+
+    prefetchAvatarUrls(avatarUrls).catch(error => {
+      console.warn('Failed to prefetch avatar URLs', error);
+    });
+  }, [members, messages]);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,7 +183,7 @@ export default function CircleChatScreen() {
         const typing = new Set<string>();
         
         Object.values(state).forEach((users: unknown) => {
-          const presenceUsers = users as Array<{ user_id?: string; is_typing?: boolean }>;
+          const presenceUsers = users as { user_id?: string; is_typing?: boolean }[];
           presenceUsers.forEach((user) => {
             if (user.user_id && user.user_id !== currentUser.id) {
               online.add(user.user_id);
@@ -296,11 +312,6 @@ export default function CircleChatScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: CommunityMessage }) => {
-    const isOwn = item.sender_user_id === currentUser?.id;
-    return <CircleMessageBubble message={item} isOwn={isOwn} onPressSender={handleMemberPress} />;
-  };
-
   // Handle text input with typing indicator broadcast
   const handleTextChange = (newText: string) => {
     setText(newText);
@@ -369,18 +380,14 @@ export default function CircleChatScreen() {
                   style={styles.presenceAvatar}
                   onPress={() => handleMemberPress(member.user_id)}
                 >
-                  {member.user.profile_picture_url ? (
-                    <Image 
-                      source={{ uri: member.user.profile_picture_url }} 
-                      style={styles.presenceAvatarImg} 
-                    />
-                  ) : (
-                    <View style={[styles.presenceAvatarImg, styles.presenceAvatarFallback]}>
-                      <Text style={styles.presenceAvatarText}>
-                        {member.user.username?.[0]?.toUpperCase() || '?'}
-                      </Text>
-                    </View>
-                  )}
+                  <Avatar
+                    profilePictureUrl={member.user.profile_picture_url ?? undefined}
+                    username={member.user.username || '?'}
+                    size={28}
+                    style={styles.presenceAvatarImg}
+                    fallbackStyle={styles.presenceAvatarFallback}
+                    textStyle={styles.presenceAvatarText}
+                  />
                   <View style={styles.onlineDot} />
                 </TouchableOpacity>
               ))}
@@ -493,18 +500,14 @@ export default function CircleChatScreen() {
               style={styles.modalContent}
             >
               <View style={styles.modalHeader}>
-                {selectedMember.user.profile_picture_url ? (
-                  <Image 
-                    source={{ uri: selectedMember.user.profile_picture_url }} 
-                    style={styles.modalAvatar} 
-                  />
-                ) : (
-                  <View style={[styles.modalAvatar, styles.modalAvatarFallback]}>
-                    <Text style={styles.modalAvatarText}>
-                      {selectedMember.user.username?.[0]?.toUpperCase() || '?'}
-                    </Text>
-                  </View>
-                )}
+                <Avatar
+                  profilePictureUrl={selectedMember.user.profile_picture_url ?? undefined}
+                  username={selectedMember.user.username || '?'}
+                  size={64}
+                  style={styles.modalAvatar}
+                  fallbackStyle={styles.modalAvatarFallback}
+                  textStyle={styles.modalAvatarText}
+                />
                 <View style={styles.modalUserInfo}>
                   <Text style={styles.modalUsername}>{selectedMember.user.username}</Text>
                   <Text style={styles.modalRole}>{formatPersonaLabel(circle?.persona)}</Text>
@@ -800,4 +803,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-

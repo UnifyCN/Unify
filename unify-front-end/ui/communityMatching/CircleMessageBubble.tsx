@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View, Image, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import type { CommunityMessage } from '@/types/matching';
+import { Avatar } from '@/components/Avatar';
 
 interface CircleMessageBubbleProps {
   message: CommunityMessage;
@@ -41,18 +42,14 @@ export function CircleMessageBubble({
           activeOpacity={0.8}
           style={styles.avatarContainer}
         >
-          {message.sender?.profile_picture_url ? (
-            <Image 
-              source={{ uri: message.sender.profile_picture_url }} 
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={[styles.avatar, styles.avatarFallback]}>
-              <Text style={styles.avatarText}>
-                {message.sender?.username?.[0]?.toUpperCase() || '?'}
-              </Text>
-            </View>
-          )}
+          <Avatar
+            profilePictureUrl={message.sender?.profile_picture_url ?? undefined}
+            username={message.sender?.username || '?'}
+            size={32}
+            style={styles.avatar}
+            fallbackStyle={styles.avatarFallback}
+            textStyle={styles.avatarText}
+          />
         </TouchableOpacity>
       )}
 

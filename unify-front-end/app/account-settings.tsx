@@ -19,8 +19,6 @@ import { Theme } from '@/constants/Theme';
 import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload';
 import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
-import { useQuery } from '@tanstack/react-query';
-import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 import { useHapticsPreference } from '@/context/HapticsContext';
 
 const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
@@ -135,15 +133,6 @@ export default function AccountSettingsPage() {
     },
   ];
 
-  const profilePictureKey = currentUser?.profilePictureUrl ?? null;
-
-  const { data: signedProfileUrl } = useQuery({
-    queryKey: ['profilePictureSignedUrl', profilePictureKey],
-    enabled: !!profilePictureKey,
-    queryFn: () => getProfilePictureUrl(profilePictureKey as string),
-    staleTime: 4 * 60 * 1000,
-  });
-
   return (
     <View style={styles.container}>
       <BackHeader title='Settings' onBack={() => router.back()} />
@@ -155,7 +144,7 @@ export default function AccountSettingsPage() {
               activeOpacity={0.8}
             >
               <Avatar
-                profilePictureUrl={signedProfileUrl}
+                profilePictureUrl={currentUser?.profilePictureUrl}
                 username={currentUser?.username || ''}
                 size={93}
               />

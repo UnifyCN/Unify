@@ -8,14 +8,12 @@ import {
 } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { Avatar } from '@/components/Avatar';
 import { Theme } from '@/constants/Theme';
-import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 import InfoBadge from '@/components/common/InfoBadge';
 import {
   getPersonaBadgeInfo,
@@ -39,13 +37,6 @@ export const ProfileHeader = ({
 }: ProfileHeaderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
-
-  const { data: signedProfileUrl } = useQuery({
-    queryKey: ['profilePictureSignedUrl', userInfo?.profilePictureUrl],
-    enabled: !!userInfo?.profilePictureUrl,
-    queryFn: () => getProfilePictureUrl(userInfo?.profilePictureUrl as string),
-    staleTime: 4 * 60 * 1000,
-  });
 
   const {
     data: joinedGroups = [],
@@ -129,7 +120,7 @@ export const ProfileHeader = ({
       <View style={styles.topRow}>
         <View style={styles.avatarWrapper}>
           <Avatar
-            profilePictureUrl={signedProfileUrl}
+            profilePictureUrl={userInfo.profilePictureUrl}
             username={userInfo.username}
             size={AVATAR_SIZE}
             style={styles.profilePicture}
