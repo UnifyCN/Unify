@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   Linking,
   TextInput,
@@ -14,6 +13,7 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import {
   PinchGestureHandler,
   GestureHandlerRootView,
@@ -744,7 +744,12 @@ export default function RichTextRenderer({
               }}
               activeOpacity={0.9}
             >
-              <Image source={{ uri: imageUrl }} style={mergedStyles.image} />
+              <ExpoImage
+                source={imageUrl}
+                style={mergedStyles.image}
+                contentFit='cover'
+                cachePolicy='memory-disk'
+              />
             </TouchableOpacity>
           ) : (
             <View style={mergedStyles.imagePlaceholder}>
@@ -1410,8 +1415,8 @@ export default function RichTextRenderer({
                       transform: [{ scale: imageZoom }],
                     }}
                   >
-                    <Image
-                      source={{ uri: selectedImage }}
+                    <ExpoImage
+                      source={selectedImage}
                       style={[
                         styles.imageModalImage,
                         imageDimensions
@@ -1424,9 +1429,10 @@ export default function RichTextRenderer({
                               height: screenHeight * 0.7,
                             },
                       ]}
-                      resizeMode='contain'
+                      contentFit='contain'
+                      cachePolicy='memory-disk'
                       onLoad={e => {
-                        const { width, height } = e.nativeEvent.source;
+                        const { width, height } = e.source;
                         if (width && height) {
                           // Use full original image dimensions (no size limits)
                           setImageDimensions({ width, height });

@@ -61,8 +61,6 @@ export const useSendMessage = ({
           role: 'user',
           content: messageText,
         });
-        // Wait a bit for the query to refetch and show the user's message
-        await new Promise(resolve => setTimeout(resolve, 100));
       } catch (error) {
         console.error('Failed to save user message:', error);
         // Continue anyway - message will be saved but might not show immediately

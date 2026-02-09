@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  Platform,
+} from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
@@ -129,6 +135,11 @@ const Feed = ({
           </View>
         ) : null
       }
+      initialNumToRender={6}
+      maxToRenderPerBatch={6}
+      windowSize={7}
+      updateCellsBatchingPeriod={50}
+      removeClippedSubviews={Platform.OS === 'android'}
     />
   );
 };

@@ -15,6 +15,55 @@ export interface CurrentProgress {
   progressPercentage: number;
 }
 
+const resolvePageCount = (
+  pages: unknown[] | undefined,
+  countedValue: number | undefined
+): number => {
+  if (typeof countedValue === 'number' && Number.isFinite(countedValue)) {
+    return countedValue;
+  }
+  return pages?.length || 0;
+};
+
+const resolveQuizQuestionCount = (lesson: any): number => {
+  if (
+    typeof lesson?.quiz_question_count === 'number' &&
+    Number.isFinite(lesson.quiz_question_count)
+  ) {
+    return lesson.quiz_question_count;
+  }
+
+  return (
+    lesson?.quizzes?.reduce((acc: number, quiz: any) => {
+      if (
+        typeof quiz?.question_count === 'number' &&
+        Number.isFinite(quiz.question_count)
+      ) {
+        return acc + quiz.question_count;
+      }
+      return acc + (quiz?.questions?.length || 0);
+    }, 0) || 0
+  );
+};
+
+const getLessonPageBreakdown = (lesson: any) => {
+  const lessonPages = resolvePageCount(
+    lesson?.pages,
+    lesson?.lesson_page_count
+  );
+  const activityPages = resolvePageCount(
+    lesson?.activity_pages,
+    lesson?.activity_page_count
+  );
+  const endingPages = resolvePageCount(
+    lesson?.ending_pages,
+    lesson?.ending_page_count
+  );
+  const quizPages = resolveQuizQuestionCount(lesson);
+
+  return { lessonPages, activityPages, quizPages, endingPages };
+};
+
 /**
  * Calculate the total number of pages in a submodule
  */
@@ -43,21 +92,11 @@ function calculateSubmodulePageCounts(
 
   if (submoduleData.lessons) {
     submoduleData.lessons.forEach(lesson => {
-      // Count lesson pages
-      lessonPages += lesson.pages?.length || 0;
-
-      // Count activity pages
-      activityPages += lesson.activity_pages?.length || 0;
-
-      // Count quiz pages (assuming each quiz has multiple questions/pages)
-      if (lesson.quizzes) {
-        lesson.quizzes.forEach(quiz => {
-          quizPages += quiz.questions?.length || 0;
-        });
-      }
-
-      // Count ending pages
-      endingPages += lesson.ending_pages?.length || 0;
+      const breakdown = getLessonPageBreakdown(lesson);
+      lessonPages += breakdown.lessonPages;
+      activityPages += breakdown.activityPages;
+      quizPages += breakdown.quizPages;
+      endingPages += breakdown.endingPages;
     });
   }
 
@@ -117,14 +156,11 @@ export function calculateLessonProgress(
   if (submoduleData?.lessons && currentLessonIndex > 0) {
     for (let i = 0; i < currentLessonIndex; i++) {
       const lesson = submoduleData.lessons[i];
-      pagesCompleted += lesson.pages?.length || 0;
-      pagesCompleted += lesson.activity_pages?.length || 0;
-      pagesCompleted +=
-        lesson.quizzes?.reduce(
-          (acc, quiz) => acc + (quiz.questions?.length || 0),
-          0
-        ) || 0;
-      pagesCompleted += lesson.ending_pages?.length || 0;
+      const breakdown = getLessonPageBreakdown(lesson);
+      pagesCompleted += breakdown.lessonPages;
+      pagesCompleted += breakdown.activityPages;
+      pagesCompleted += breakdown.quizPages;
+      pagesCompleted += breakdown.endingPages;
     }
   }
 
@@ -164,17 +200,15 @@ export function calculateActivityProgress(
       const lesson = submoduleData.lessons[i];
       if (i < currentLessonIndex) {
         // Previous lessons - add all pages
-        pagesCompleted += lesson.pages?.length || 0;
-        pagesCompleted += lesson.activity_pages?.length || 0;
-        pagesCompleted +=
-          lesson.quizzes?.reduce(
-            (acc, quiz) => acc + (quiz.questions?.length || 0),
-            0
-          ) || 0;
-        pagesCompleted += lesson.ending_pages?.length || 0;
+        const breakdown = getLessonPageBreakdown(lesson);
+        pagesCompleted += breakdown.lessonPages;
+        pagesCompleted += breakdown.activityPages;
+        pagesCompleted += breakdown.quizPages;
+        pagesCompleted += breakdown.endingPages;
       } else {
         // Current lesson - add lesson pages, then activity pages
-        pagesCompleted += lesson.pages?.length || 0;
+        const breakdown = getLessonPageBreakdown(lesson);
+        pagesCompleted += breakdown.lessonPages;
         pagesCompleted += currentPage; // Current activity page (1-indexed)
       }
     }
@@ -214,18 +248,16 @@ export function calculateQuizProgress(
       const lesson = submoduleData.lessons[i];
       if (i < currentLessonIndex) {
         // Previous lessons - add all pages
-        pagesCompleted += lesson.pages?.length || 0;
-        pagesCompleted += lesson.activity_pages?.length || 0;
-        pagesCompleted +=
-          lesson.quizzes?.reduce(
-            (acc, quiz) => acc + (quiz.questions?.length || 0),
-            0
-          ) || 0;
-        pagesCompleted += lesson.ending_pages?.length || 0;
+        const breakdown = getLessonPageBreakdown(lesson);
+        pagesCompleted += breakdown.lessonPages;
+        pagesCompleted += breakdown.activityPages;
+        pagesCompleted += breakdown.quizPages;
+        pagesCompleted += breakdown.endingPages;
       } else {
         // Current lesson - add lesson pages and activity pages
-        pagesCompleted += lesson.pages?.length || 0;
-        pagesCompleted += lesson.activity_pages?.length || 0;
+        const breakdown = getLessonPageBreakdown(lesson);
+        pagesCompleted += breakdown.lessonPages;
+        pagesCompleted += breakdown.activityPages;
 
         // Add quiz pages from current lesson up to current quiz
         if (lesson.quizzes) {
@@ -236,7 +268,14 @@ export function calculateQuizProgress(
             const quiz = lesson.quizzes[j];
             if (j < currentQuizIndex) {
               // Previous quizzes in current lesson
-              pagesCompleted += quiz.questions?.length || 0;
+              if (
+                typeof quiz?.question_count === 'number' &&
+                Number.isFinite(quiz.question_count)
+              ) {
+                pagesCompleted += quiz.question_count;
+              } else {
+                pagesCompleted += quiz.questions?.length || 0;
+              }
             } else {
               // Current quiz (currentQuestion is already 1-indexed)
               pagesCompleted += currentQuestion;
@@ -281,23 +320,17 @@ export function calculateEndingProgress(
       const lesson = submoduleData.lessons[i];
       if (i < currentLessonIndex) {
         // Previous lessons - add all pages
-        pagesCompleted += lesson.pages?.length || 0;
-        pagesCompleted += lesson.activity_pages?.length || 0;
-        pagesCompleted +=
-          lesson.quizzes?.reduce(
-            (acc, quiz) => acc + (quiz.questions?.length || 0),
-            0
-          ) || 0;
-        pagesCompleted += lesson.ending_pages?.length || 0;
+        const breakdown = getLessonPageBreakdown(lesson);
+        pagesCompleted += breakdown.lessonPages;
+        pagesCompleted += breakdown.activityPages;
+        pagesCompleted += breakdown.quizPages;
+        pagesCompleted += breakdown.endingPages;
       } else {
         // Current lesson - add lesson pages, activity pages, and all quizzes
-        pagesCompleted += lesson.pages?.length || 0;
-        pagesCompleted += lesson.activity_pages?.length || 0;
-        pagesCompleted +=
-          lesson.quizzes?.reduce(
-            (acc, quiz) => acc + (quiz.questions?.length || 0),
-            0
-          ) || 0;
+        const breakdown = getLessonPageBreakdown(lesson);
+        pagesCompleted += breakdown.lessonPages;
+        pagesCompleted += breakdown.activityPages;
+        pagesCompleted += breakdown.quizPages;
         // Add current ending page (currentPage is already 1-indexed)
         pagesCompleted += currentPage;
       }

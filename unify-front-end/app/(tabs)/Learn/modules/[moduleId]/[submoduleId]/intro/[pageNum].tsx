@@ -8,8 +8,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Modal,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
@@ -135,7 +135,12 @@ export default function SubmoduleIntroScreen() {
           return (
             <View key={block._key || index} style={styles.imageSection}>
               {imageUrl ? (
-                <Image source={{ uri: imageUrl }} style={styles.image} />
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={styles.image}
+                  contentFit='cover'
+                  cachePolicy='memory-disk'
+                />
               ) : (
                 <View style={styles.imagePlaceholder}>
                   <Text style={styles.imagePlaceholderText}>Image</Text>
@@ -208,7 +213,12 @@ export default function SubmoduleIntroScreen() {
         return (
           <View key={index} style={styles.imageSection}>
             {section.url ? (
-              <Image source={{ uri: section.url }} style={styles.image} />
+              <Image
+                source={{ uri: section.url }}
+                style={styles.image}
+                contentFit='cover'
+                cachePolicy='memory-disk'
+              />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Text style={styles.imagePlaceholderText}>
