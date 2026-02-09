@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
 import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
 import { setChecklistItemCompletion } from '@/services/checklist/setChecklistItemCompletion';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
 import { Priority, UserTaskWithDetails } from '@/types/checklist';
 import Header from '@/components/Header';
+import LoadingScreen from '@/components/LoadingScreen';
 
 /** Time-in-Canada display ranges (no stage labels) */
 const stageDescriptions: Record<number, string> = {
@@ -190,11 +189,7 @@ export default function ChecklistScreen() {
   };
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size='large' />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   const stageDescription =
@@ -287,12 +282,6 @@ export default function ChecklistScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#fff',
   },
   scrollView: {
