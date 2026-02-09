@@ -134,15 +134,20 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
 
     // Only update stage when we could read it directly (avoid RLS failures)
     if (receivedStage !== null && receivedStage !== computedStage) {
-      void supabase
-        .from('user_onboarding_profiles')
-        .update({ stage: computedStage })
-        .eq('id', targetUserId)
-        .then(({ error }) => {
+      void (async () => {
+        try {
+          const { error } = await supabase
+            .from('user_onboarding_profiles')
+            .update({ stage: computedStage })
+            .eq('id', targetUserId);
+
           if (error) {
             console.warn('Failed to update onboarding stage:', error.message);
           }
-        });
+        } catch (error) {
+          console.error('Unexpected onboarding stage update failure:', error);
+        }
+      })();
     }
 
     if (followingError) {

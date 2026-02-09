@@ -1,4 +1,8 @@
-import { SanitySubmoduleWithLessons } from '@/types/sanity';
+import {
+  SanityLessonWithQuizzes,
+  SanityQuiz,
+  SanitySubmoduleWithLessons,
+} from '@/types/sanity';
 
 export interface SubmodulePageCounts {
   introPages: number;
@@ -25,39 +29,39 @@ const resolvePageCount = (
   return pages?.length || 0;
 };
 
-const resolveQuizQuestionCount = (lesson: any): number => {
+const resolveQuizQuestionCount = (lesson: SanityLessonWithQuizzes): number => {
   if (
-    typeof lesson?.quiz_question_count === 'number' &&
+    typeof lesson.quiz_question_count === 'number' &&
     Number.isFinite(lesson.quiz_question_count)
   ) {
     return lesson.quiz_question_count;
   }
 
   return (
-    lesson?.quizzes?.reduce((acc: number, quiz: any) => {
+    lesson.quizzes?.reduce((acc: number, quiz: SanityQuiz) => {
       if (
-        typeof quiz?.question_count === 'number' &&
+        typeof quiz.question_count === 'number' &&
         Number.isFinite(quiz.question_count)
       ) {
         return acc + quiz.question_count;
       }
-      return acc + (quiz?.questions?.length || 0);
+      return acc + (quiz.questions?.length || 0);
     }, 0) || 0
   );
 };
 
-const getLessonPageBreakdown = (lesson: any) => {
+const getLessonPageBreakdown = (lesson: SanityLessonWithQuizzes) => {
   const lessonPages = resolvePageCount(
-    lesson?.pages,
-    lesson?.lesson_page_count
+    lesson.pages,
+    lesson.lesson_page_count
   );
   const activityPages = resolvePageCount(
-    lesson?.activity_pages,
-    lesson?.activity_page_count
+    lesson.activity_pages,
+    lesson.activity_page_count
   );
   const endingPages = resolvePageCount(
-    lesson?.ending_pages,
-    lesson?.ending_page_count
+    lesson.ending_pages,
+    lesson.ending_page_count
   );
   const quizPages = resolveQuizQuestionCount(lesson);
 

@@ -464,6 +464,55 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
 };
 MessageWithSourcesComponent.displayName = 'MessageWithSources';
 
+const areSourcesEqual = (
+  previousSources?: Message['sources'],
+  nextSources?: Message['sources']
+) => {
+  if (previousSources === nextSources) {
+    return true;
+  }
+  if (!previousSources || !nextSources) {
+    return previousSources === nextSources;
+  }
+  if (previousSources.length !== nextSources.length) {
+    return false;
+  }
+
+  for (let i = 0; i < previousSources.length; i += 1) {
+    const previousSource = previousSources[i];
+    const nextSource = nextSources[i];
+    if (
+      previousSource.document_id !== nextSource.document_id ||
+      previousSource.document_title !== nextSource.document_title ||
+      previousSource.url !== nextSource.url
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const areStringArraysEqual = (previous?: string[], next?: string[]) => {
+  if (previous === next) {
+    return true;
+  }
+  if (!previous || !next) {
+    return previous === next;
+  }
+  if (previous.length !== next.length) {
+    return false;
+  }
+
+  for (let i = 0; i < previous.length; i += 1) {
+    if (previous[i] !== next[i]) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export const MessageWithSources = memo(
   MessageWithSourcesComponent,
   (prev, next) =>
@@ -471,8 +520,8 @@ export const MessageWithSources = memo(
     prev.item.text === next.item.text &&
     prev.item.disclaimer === next.item.disclaimer &&
     prev.item.isUser === next.item.isUser &&
-    prev.item.sources?.length === next.item.sources?.length &&
-    prev.suggestedNextSteps?.join('|') === next.suggestedNextSteps?.join('|') &&
+    areSourcesEqual(prev.item.sources, next.item.sources) &&
+    areStringArraysEqual(prev.suggestedNextSteps, next.suggestedNextSteps) &&
     prev.onSuggestionPress === next.onSuggestionPress
 );
 

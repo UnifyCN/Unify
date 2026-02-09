@@ -6,8 +6,16 @@ import {
 import { ConversationMessage } from '@/services/companion/getConversationMessages';
 
 interface SaveMessageContext {
-  previousMessages?: ConversationMessage[];
+  previousMessages: ConversationMessage[] | undefined;
 }
+
+let nextOptimisticMessageId = -1;
+
+const getNextOptimisticMessageId = () => {
+  const id = nextOptimisticMessageId;
+  nextOptimisticMessageId -= 1;
+  return id;
+};
 
 export const useSaveMessage = () => {
   const queryClient = useQueryClient();
@@ -26,7 +34,7 @@ export const useSaveMessage = () => {
         queryClient.getQueryData<ConversationMessage[]>(queryKey);
 
       const optimisticMessage: ConversationMessage = {
-        id: -Date.now() - Math.floor(Math.random() * 1000),
+        id: getNextOptimisticMessageId(),
         role: variables.role,
         content: variables.content,
         sources: variables.sources ?? null,
@@ -52,9 +60,7 @@ export const useSaveMessage = () => {
         variables.conversationIdentifier,
       ] as const;
 
-      if (context?.previousMessages) {
-        queryClient.setQueryData(queryKey, context.previousMessages);
-      }
+      queryClient.setQueryData(queryKey, context?.previousMessages);
 
       queryClient.invalidateQueries({
         queryKey: ['conversations'],

@@ -30,7 +30,9 @@ export default function RootLayout() {
   // const [onboardingChecked, setOnboardingChecked] = useState(false);
   // const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Initialize progress cache
+  // Intentionally fire-and-forget: useProgressCache internally calls
+  // cachedProgressService.getProgressData(), and failures are logged but
+  // should not block loaded/isReady/showAnimatedSplash startup flow.
   useProgressCache();
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 

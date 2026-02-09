@@ -112,6 +112,7 @@ export async function getModuleWithSubmodules(
           "quizzes": *[_type == "quiz" && references(^._id)] | order(order_number) {
             _id,
             _type,
+            title,
             order_number,
             "question_count": count(questions)
           }
