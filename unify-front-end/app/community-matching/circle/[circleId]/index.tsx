@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,12 +22,10 @@ import {
   markCircleJoined,
 } from '@/services/matching/circles';
 import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
-import type {
-  CommunityCircle,
-  CommunityCircleMemberProfile,
-} from '@/types/matching';
 import { FollowButton } from '@/components/profile/FollowButton';
 import BackHeader from '@/components/BackHeader';
+import { Avatar } from '@/components/Avatar';
+import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 
 
 export default function CircleDetailsScreen() {
@@ -81,6 +78,18 @@ export default function CircleDetailsScreen() {
       setShowConfetti(true);
     }
   }, [isActive, circle]);
+
+  useEffect(() => {
+    if (!members?.length) {
+      return;
+    }
+
+    prefetchAvatarUrls(
+      members.map(member => member.user.profile_picture_url)
+    ).catch(error => {
+      console.warn('Failed to prefetch circle avatar URLs', error);
+    });
+  }, [members]);
 
   const handleJoin = useCallback(async () => {
     if (!circleId) return;
@@ -274,18 +283,14 @@ export default function CircleDetailsScreen() {
                     onPress={() => handleMemberPress(member.user_id)}
                     style={styles.graduationMemberInfo}
                   >
-                    {member.user.profile_picture_url ? (
-                      <Image
-                        source={{ uri: member.user.profile_picture_url }}
-                        style={styles.graduationAvatar}
-                      />
-                    ) : (
-                      <View style={[styles.graduationAvatar, styles.avatarFallback]}>
-                        <Text style={styles.avatarFallbackText}>
-                          {member.user.username?.[0]?.toUpperCase() || '?'}
-                        </Text>
-                      </View>
-                    )}
+                    <Avatar
+                      profilePictureUrl={member.user.profile_picture_url ?? undefined}
+                      username={member.user.username || '?'}
+                      size={44}
+                      style={styles.graduationAvatar}
+                      fallbackStyle={styles.avatarFallback}
+                      textStyle={styles.avatarFallbackText}
+                    />
                     <View>
                       <Text style={styles.graduationMemberName}>{member.user.username}</Text>
                       <Text style={styles.graduationMemberRole}>{formatPersonaLabel(circle.persona)}</Text>
@@ -319,18 +324,14 @@ export default function CircleDetailsScreen() {
                 style={styles.memberTouchable}
                 disabled={isSelf}
               >
-                {member.user.profile_picture_url ? (
-                  <Image
-                    source={{ uri: member.user.profile_picture_url }}
-                    style={styles.avatar}
-                  />
-                ) : (
-                  <View style={[styles.avatar, styles.avatarFallback]}>
-                    <Text style={styles.avatarFallbackText}>
-                      {member.user.username?.[0]?.toUpperCase() || '?'}
-                    </Text>
-                  </View>
-                )}
+                <Avatar
+                  profilePictureUrl={member.user.profile_picture_url ?? undefined}
+                  username={member.user.username || '?'}
+                  size={48}
+                  style={styles.avatar}
+                  fallbackStyle={styles.avatarFallback}
+                  textStyle={styles.avatarFallbackText}
+                />
                 <View style={styles.memberInfo}>
                   <Text style={styles.memberName}>
                     {member.user.username}

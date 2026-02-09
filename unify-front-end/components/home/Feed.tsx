@@ -1,10 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
+import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 
 const HomeCardSpacer = () => <View style={styles.homeCardSpacer} />;
 
@@ -35,7 +36,24 @@ const Feed = ({
 }: FeedProps) => {
   const isFocused = useIsFocused();
   const isHomeCardVariant = postVariant === 'homeCard';
-  const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
+  const allPosts = useMemo(
+    () => data?.pages?.flatMap((page: any) => page.posts) ?? [],
+    [data]
+  );
+
+  useEffect(() => {
+    if (!allPosts.length) {
+      return;
+    }
+
+    const firstViewportAvatarUrls = allPosts
+      .slice(0, 20)
+      .map((post: PostData) => post.user.profilePictureUrl);
+
+    prefetchAvatarUrls(firstViewportAvatarUrls).catch(error => {
+      console.warn('Failed to prefetch feed avatar URLs', error);
+    });
+  }, [allPosts]);
 
   const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
     allPosts.map((post: PostData) => post.id)
