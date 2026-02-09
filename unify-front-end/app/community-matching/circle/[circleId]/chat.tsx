@@ -34,7 +34,10 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import BackHeader from '@/components/BackHeader';
 import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import KeyboardSafeAreaView from '@/components/common/KeyboardSafeAreaView';
-import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
+import {
+  normalizeAvatarSource,
+  prefetchAvatarUrls,
+} from '@/services/s3/avatarUrlCache';
 
 
 export default function CircleChatScreen() {
@@ -82,19 +85,50 @@ export default function CircleChatScreen() {
   }, [members]);
 
   useEffect(() => {
-    if (!members?.length && !messages.length) {
+    if (!members?.length) {
       return;
     }
 
-    const avatarUrls = [
-      ...(members?.map(member => member.user.profile_picture_url) ?? []),
-      ...messages.map(message => message.sender?.profile_picture_url),
-    ];
+    const avatarUrls = members.map(member => member.user.profile_picture_url);
 
     prefetchAvatarUrls(avatarUrls).catch(error => {
-      console.warn('Failed to prefetch avatar URLs', error);
+      console.warn('Failed to prefetch member avatar URLs', error);
     });
-  }, [members, messages]);
+  }, [members]);
+
+  useEffect(() => {
+    if (!messages.length) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      const memberAvatarSet = new Set(
+        (members ?? [])
+          .map(member => normalizeAvatarSource(member.user.profile_picture_url))
+          .filter((value): value is string => !!value)
+      );
+
+      const senderAvatarUrls = Array.from(
+        new Set(
+          messages
+            .map(message => normalizeAvatarSource(message.sender?.profile_picture_url))
+            .filter(
+              (value): value is string => !!value && !memberAvatarSet.has(value)
+            )
+        )
+      );
+
+      if (!senderAvatarUrls.length) {
+        return;
+      }
+
+      prefetchAvatarUrls(senderAvatarUrls).catch(error => {
+        console.warn('Failed to prefetch message avatar URLs', error);
+      });
+    }, 350);
+
+    return () => clearTimeout(timeoutId);
+  }, [messages, members]);
 
   useEffect(() => {
     let cancelled = false;

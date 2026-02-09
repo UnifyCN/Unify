@@ -2,6 +2,7 @@ import {
   clearAvatarUrlCache,
   normalizeAvatarSource,
   parseSignedUrlExpiry,
+  prefetchAvatarUrls,
   resolveAvatarUrl,
 } from '@/services/s3/avatarUrlCache';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
@@ -34,6 +35,12 @@ describe('avatarUrlCache', () => {
     expect(mockedGetProfilePictureUrl).not.toHaveBeenCalled();
   });
 
+  it('returns undefined for nullish sources without signing', async () => {
+    await expect(resolveAvatarUrl(undefined)).resolves.toBeUndefined();
+    await expect(resolveAvatarUrl(null)).resolves.toBeUndefined();
+    expect(mockedGetProfilePictureUrl).not.toHaveBeenCalled();
+  });
+
   it('dedupes in-flight requests and caches signed urls', async () => {
     mockedGetProfilePictureUrl.mockResolvedValue(
       'https://signed.example.com/avatar?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
@@ -54,6 +61,46 @@ describe('avatarUrlCache', () => {
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(1);
 
     nowSpy.mockRestore();
+  });
+
+  it('prefetches unique keys and seeds cache for later resolves', async () => {
+    mockedGetProfilePictureUrl
+      .mockResolvedValueOnce(
+        'https://signed.example.com/u1?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
+      )
+      .mockResolvedValueOnce(
+        'https://signed.example.com/u2?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
+      );
+
+    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy.mockReturnValue(new Date('2026-01-01T12:02:00.000Z').getTime());
+
+    await prefetchAvatarUrls([
+      'avatars/user-1.jpg',
+      'avatars/user-2.jpg',
+      'avatars/user-1.jpg',
+      'https://cdn.example.com/http-only.png',
+      null,
+      undefined,
+      ' ',
+    ]);
+
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
+    expect(mockedGetProfilePictureUrl).toHaveBeenNthCalledWith(1, 'avatars/user-1.jpg');
+    expect(mockedGetProfilePictureUrl).toHaveBeenNthCalledWith(2, 'avatars/user-2.jpg');
+
+    const one = await resolveAvatarUrl('avatars/user-1.jpg');
+    const two = await resolveAvatarUrl('avatars/user-2.jpg');
+
+    expect(one).toContain('/u1?');
+    expect(two).toContain('/u2?');
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
+    nowSpy.mockRestore();
+  });
+
+  it('treats prefetch empty input as no-op', async () => {
+    await prefetchAvatarUrls([]);
+    expect(mockedGetProfilePictureUrl).not.toHaveBeenCalled();
   });
 
   it('refreshes signed url near expiry', async () => {
@@ -81,6 +128,21 @@ describe('avatarUrlCache', () => {
     nowSpy.mockRestore();
   });
 
+  it('does not cache failed signing and retries successfully later', async () => {
+    mockedGetProfilePictureUrl
+      .mockRejectedValueOnce(new Error('sign failed'))
+      .mockResolvedValueOnce(
+        'https://signed.example.com/retry?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
+      );
+
+    await expect(resolveAvatarUrl('avatars/user-err.jpg')).rejects.toThrow('sign failed');
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(1);
+
+    const resolved = await resolveAvatarUrl('avatars/user-err.jpg');
+    expect(resolved).toContain('/retry?');
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
+  });
+
   it('clears cache entries for specific key and re-signs', async () => {
     mockedGetProfilePictureUrl
       .mockResolvedValueOnce(
@@ -96,6 +158,59 @@ describe('avatarUrlCache', () => {
 
     expect(first).toContain('/c?');
     expect(second).toContain('/d?');
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears all cached keys when no source is provided', async () => {
+    mockedGetProfilePictureUrl
+      .mockResolvedValueOnce(
+        'https://signed.example.com/k1?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
+      )
+      .mockResolvedValueOnce(
+        'https://signed.example.com/k2?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
+      )
+      .mockResolvedValueOnce(
+        'https://signed.example.com/k1b?X-Amz-Date=20260101T120200Z&X-Amz-Expires=300'
+      )
+      .mockResolvedValueOnce(
+        'https://signed.example.com/k2b?X-Amz-Date=20260101T120200Z&X-Amz-Expires=300'
+      );
+
+    await resolveAvatarUrl('avatars/key-1.jpg');
+    await resolveAvatarUrl('avatars/key-2.jpg');
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
+
+    clearAvatarUrlCache();
+
+    const key1 = await resolveAvatarUrl('avatars/key-1.jpg');
+    const key2 = await resolveAvatarUrl('avatars/key-2.jpg');
+    expect(key1).toContain('/k1b?');
+    expect(key2).toContain('/k2b?');
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(4);
+  });
+
+  it('prevents stale in-flight response from being re-cached after clear', async () => {
+    let releasePromise: ((value: string) => void) | undefined;
+    const deferredPromise = new Promise<string>(resolve => {
+      releasePromise = resolve;
+    });
+
+    mockedGetProfilePictureUrl
+      .mockReturnValueOnce(deferredPromise)
+      .mockResolvedValueOnce(
+        'https://signed.example.com/fresh?X-Amz-Date=20260101T120100Z&X-Amz-Expires=300'
+      );
+
+    const inflight = resolveAvatarUrl('avatars/race.jpg');
+    clearAvatarUrlCache('avatars/race.jpg');
+    releasePromise?.(
+      'https://signed.example.com/stale?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
+    );
+
+    await expect(inflight).resolves.toContain('/stale?');
+
+    const next = await resolveAvatarUrl('avatars/race.jpg');
+    expect(next).toContain('/fresh?');
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
   });
 

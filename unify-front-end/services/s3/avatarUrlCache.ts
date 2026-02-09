@@ -2,6 +2,8 @@ import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 
 const DEFAULT_TTL_MS = 4 * 60 * 1000;
 const REFRESH_BUFFER_MS = 30 * 1000;
+const MAX_CACHE_ENTRIES = 200;
+const MAX_INFLIGHT_ENTRIES = 200;
 
 interface AvatarCacheEntry {
   url: string;
@@ -9,7 +11,10 @@ interface AvatarCacheEntry {
 }
 
 const avatarUrlCache = new Map<string, AvatarCacheEntry>();
-const inflightRequests = new Map<string, Promise<string | undefined>>();
+const inflightRequests = new Map<
+  string,
+  { requestId: symbol; promise: Promise<string | undefined> }
+>();
 
 const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 
@@ -59,6 +64,35 @@ export const parseSignedUrlExpiry = (url: string): number | null => {
 const isCacheValid = (entry: AvatarCacheEntry) =>
   entry.expiresAt - Date.now() > REFRESH_BUFFER_MS;
 
+const pruneExpiredCacheEntries = () => {
+  const now = Date.now();
+  for (const [key, entry] of avatarUrlCache.entries()) {
+    if (entry.expiresAt <= now) {
+      avatarUrlCache.delete(key);
+    }
+  }
+};
+
+const setWithCap = <T>(
+  map: Map<string, T>,
+  key: string,
+  value: T,
+  maxEntries: number
+) => {
+  if (map.has(key)) {
+    map.delete(key);
+  }
+  map.set(key, value);
+
+  while (map.size > maxEntries) {
+    const oldestKey = map.keys().next().value;
+    if (!oldestKey) {
+      break;
+    }
+    map.delete(oldestKey);
+  }
+};
+
 export const clearAvatarUrlCache = (profilePictureUrl?: string | null): void => {
   const normalized = normalizeAvatarSource(profilePictureUrl);
 
@@ -89,23 +123,36 @@ export const resolveAvatarUrl = async (
     return normalized;
   }
 
+  pruneExpiredCacheEntries();
+
   const cached = avatarUrlCache.get(normalized);
   if (cached && isCacheValid(cached)) {
+    setWithCap(avatarUrlCache, normalized, cached, MAX_CACHE_ENTRIES);
     return cached.url;
   }
 
   const inflight = inflightRequests.get(normalized);
   if (inflight) {
-    return inflight;
+    setWithCap(inflightRequests, normalized, inflight, MAX_INFLIGHT_ENTRIES);
+    return inflight.promise;
   }
 
+  const requestId = Symbol(normalized);
   const request = getProfilePictureUrl(normalized)
     .then(signedUrl => {
       const expiresAt = parseSignedUrlExpiry(signedUrl) ?? Date.now() + DEFAULT_TTL_MS;
-      avatarUrlCache.set(normalized, {
-        url: signedUrl,
-        expiresAt,
-      });
+      const currentInflight = inflightRequests.get(normalized);
+      if (currentInflight?.requestId === requestId) {
+        setWithCap(
+          avatarUrlCache,
+          normalized,
+          {
+            url: signedUrl,
+            expiresAt,
+          },
+          MAX_CACHE_ENTRIES
+        );
+      }
       return signedUrl;
     })
     .catch(error => {
@@ -113,10 +160,21 @@ export const resolveAvatarUrl = async (
       throw error;
     })
     .finally(() => {
-      inflightRequests.delete(normalized);
+      const currentInflight = inflightRequests.get(normalized);
+      if (currentInflight?.requestId === requestId) {
+        inflightRequests.delete(normalized);
+      }
     });
 
-  inflightRequests.set(normalized, request);
+  setWithCap(
+    inflightRequests,
+    normalized,
+    {
+      requestId,
+      promise: request,
+    },
+    MAX_INFLIGHT_ENTRIES
+  );
   return request;
 };
 
