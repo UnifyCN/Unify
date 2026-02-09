@@ -57,6 +57,7 @@ export default function CircleChatScreen() {
   const [selectedMember, setSelectedMember] = useState<CommunityCircleMemberProfile | null>(null);
   const presenceChannelRef = useRef<RealtimeChannel | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const memberAvatarSetRef = useRef<Set<string>>(new Set());
 
   const { data: circle } = useQuery({
     queryKey: ['community-circle', circleId],
@@ -84,6 +85,20 @@ export default function CircleChatScreen() {
     return map;
   }, [members]);
 
+  const memberAvatarSet = useMemo(
+    () =>
+      new Set(
+        (members ?? [])
+          .map(member => normalizeAvatarSource(member.user.profile_picture_url))
+          .filter((value): value is string => !!value)
+      ),
+    [members]
+  );
+
+  useEffect(() => {
+    memberAvatarSetRef.current = memberAvatarSet;
+  }, [memberAvatarSet]);
+
   useEffect(() => {
     if (!members?.length) {
       return;
@@ -102,18 +117,13 @@ export default function CircleChatScreen() {
     }
 
     const timeoutId = setTimeout(() => {
-      const memberAvatarSet = new Set(
-        (members ?? [])
-          .map(member => normalizeAvatarSource(member.user.profile_picture_url))
-          .filter((value): value is string => !!value)
-      );
-
       const senderAvatarUrls = Array.from(
         new Set(
           messages
             .map(message => normalizeAvatarSource(message.sender?.profile_picture_url))
             .filter(
-              (value): value is string => !!value && !memberAvatarSet.has(value)
+              (value): value is string =>
+                !!value && !memberAvatarSetRef.current.has(value)
             )
         )
       );
@@ -128,7 +138,7 @@ export default function CircleChatScreen() {
     }, 350);
 
     return () => clearTimeout(timeoutId);
-  }, [messages, members]);
+  }, [messages]);
 
   useEffect(() => {
     let cancelled = false;

@@ -18,7 +18,7 @@ const mockedGetProfilePictureUrl = getProfilePictureUrl as jest.MockedFunction<
 describe('avatarUrlCache', () => {
   beforeEach(() => {
     clearAvatarUrlCache();
-    jest.clearAllMocks();
+    mockedGetProfilePictureUrl.mockReset();
   });
 
   it('normalizes avatar source values', () => {
@@ -212,6 +212,37 @@ describe('avatarUrlCache', () => {
     const next = await resolveAvatarUrl('avatars/race.jpg');
     expect(next).toContain('/fresh?');
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps fresh cache when stale in-flight request rejects after clear', async () => {
+    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy.mockReturnValue(new Date('2026-01-01T12:02:00.000Z').getTime());
+
+    let rejectPromise: ((reason?: Error) => void) | undefined;
+    const deferredPromise = new Promise<string>((_resolve, reject) => {
+      rejectPromise = reject;
+    });
+
+    mockedGetProfilePictureUrl
+      .mockReturnValueOnce(deferredPromise)
+      .mockResolvedValueOnce(
+        'https://signed.example.com/fresh-race?X-Amz-Date=20260101T120100Z&X-Amz-Expires=300'
+      );
+
+    const inflight = resolveAvatarUrl('avatars/race-reject.jpg');
+    clearAvatarUrlCache('avatars/race-reject.jpg');
+
+    const fresh = await resolveAvatarUrl('avatars/race-reject.jpg');
+    expect(fresh).toContain('/fresh-race?');
+
+    rejectPromise?.(new Error('stale request failed'));
+    await expect(inflight).rejects.toThrow('stale request failed');
+
+    const next = await resolveAvatarUrl('avatars/race-reject.jpg');
+    expect(next).toContain('/fresh-race?');
+    expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
+
+    nowSpy.mockRestore();
   });
 
   it('parses signed url expiry timestamp', () => {

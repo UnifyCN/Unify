@@ -156,7 +156,10 @@ export const resolveAvatarUrl = async (
       return signedUrl;
     })
     .catch(error => {
-      avatarUrlCache.delete(normalized);
+      const currentInflight = inflightRequests.get(normalized);
+      if (currentInflight?.requestId === requestId) {
+        avatarUrlCache.delete(normalized);
+      }
       throw error;
     })
     .finally(() => {
