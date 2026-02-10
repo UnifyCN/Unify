@@ -32,13 +32,11 @@ export default function ForgotPassword({
     setMessage(null);
 
     try {
-      // Use signInWithOtp instead for recovery
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: false, // Don't create new users
-        },
-      });
+      // This sends a recovery OTP
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo: undefined, },
+      );
 
       if (error) {
         setMessage({ type: 'error', text: error.message });
@@ -55,7 +53,7 @@ export default function ForgotPassword({
     } catch (error) {
       setMessage({
         type: 'error',
-        text: 'An error occurred while sending reset email',
+        text: 'An error occurred while sending reset code',
       });
     } finally {
       setLoading(false);
