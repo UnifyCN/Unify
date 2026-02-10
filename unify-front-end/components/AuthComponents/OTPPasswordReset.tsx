@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { SimpleTextField, SubmitButton, ViewContainer } from './Components';
@@ -15,11 +15,13 @@ export default function OTPPasswordReset({
   email,
   onBack,
   onSuccess,
-}: OTPPasswordResetProps) {
+}: Readonly<OTPPasswordResetProps>) {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] =
+    React.useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: 'error' | 'success';
@@ -30,29 +32,32 @@ export default function OTPPasswordReset({
     setLoading(true);
     setMessage(null);
 
-    // Validate passwords match
+    // Check if passwords match
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
+      setMessage({
+        type: 'error',
+        text: 'Passwords do not match'
+      });
       setLoading(false);
       return;
     }
 
-    // Validate password strength
-    if (newPassword.length < 8) {
+    // Verify password strength
+    if (newPassword.length < 6) {
       setMessage({
         type: 'error',
-        text: 'Password must be at least 8 characters long',
+        text: 'Password must be at least 6 characters long.',
       });
       setLoading(false);
       return;
     }
 
     try {
-      // Verify OTP to sign in
+      // Verify OTP for password reset
       const { error: otpError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email', // Changed from 'recovery' to 'email'
+        type: 'email',
       });
 
       if (otpError) {
@@ -79,6 +84,7 @@ export default function OTPPasswordReset({
         }, 1500);
       }
     } catch (error) {
+      console.error(error);
       setMessage({
         type: 'error',
         text: 'An error occurred while resetting your password',
@@ -94,30 +100,36 @@ export default function OTPPasswordReset({
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter the 6-digit code sent to {email} and your new password.
+          Enter the 6-digit code sent to your email ({email}) to create your new password.
         </Text>
 
-        <View style={styles.inputContainer}>
+        <View>
           <Text style={styles.label}>Verification Code</Text>
           <SimpleTextField
             value={otp}
             onChangeText={setOtp}
             placeholder='Enter 6-digit code'
-            style={styles.textField}
+            style={[
+              styles.textField,
+              message?.type === 'error' && { borderColor: '#f00' },
+            ]}
             keyboardType='number-pad'
             maxLength={6}
             autoCapitalize='none'
           />
         </View>
 
-        <View style={styles.inputContainer}>
+        <View>
           <Text style={styles.label}>New Password</Text>
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={newPassword}
               onChangeText={setNewPassword}
               placeholder='New password'
-              style={styles.textField}
+              style={[
+                styles.textField,
+                message?.type === 'error' && { borderColor: '#f00' },
+              ]}
               secureTextEntry={!passwordVisible}
               autoCapitalize='none'
             />
@@ -134,16 +146,31 @@ export default function OTPPasswordReset({
           </View>
         </View>
 
-        <View style={styles.inputContainer}>
+        <View>
           <Text style={styles.label}>Confirm Password</Text>
-          <SimpleTextField
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder='Confirm password'
-            style={styles.textField}
-            secureTextEntry={!passwordVisible}
-            autoCapitalize='none'
-          />
+          <View style={{ position: 'relative' }}>
+            <SimpleTextField
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder='Confirm password'
+              style={[
+                styles.textField,
+                message?.type === 'error' && { borderColor: '#f00' },
+              ]}
+              secureTextEntry={!confirmPasswordVisible}
+              autoCapitalize='none'
+            />
+            <TouchableOpacity
+              onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+              style={styles.eyeIcon}
+            >
+              <MaterialIcons
+                name={confirmPasswordVisible ? 'visibility' : 'visibility-off'}
+                size={24}
+                color='#333'
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {message && (
@@ -190,22 +217,20 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     marginTop: 16,
   },
-  inputContainer: {
-    marginBottom: 24,
-  },
   label: {
-    fontSize: 16,
-    fontWeight: '400',
+    fontSize: 16 * 0.87,
+    fontWeight: '400' as '400',
     color: '#000',
-    marginBottom: 8,
+    marginBottom: 8 * 0.87,
+    marginTop: 13 * 0.87,
   },
   textField: {
     backgroundColor: '#fff',
     color: '#000',
     borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 8,
+    borderWidth: 1 * 0.87,
+    borderRadius: 12 * 0.87,
+    padding: 8 * 0.87,
     height: 57,
   },
   eyeIcon: {
@@ -230,9 +255,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   message: {
-    fontSize: 14,
+    fontSize: 14 * 0.87,
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   errorMessage: {
     color: '#f00',

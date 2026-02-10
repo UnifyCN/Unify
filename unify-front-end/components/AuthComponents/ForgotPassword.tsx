@@ -12,8 +12,8 @@ interface ForgotPasswordProps {
 
 export default function ForgotPassword({
   onBack,
-  onCodeSent,
-}: ForgotPasswordProps) {
+  onCodeSent
+}: Readonly<ForgotPasswordProps>) {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,11 +32,10 @@ export default function ForgotPassword({
     setMessage(null);
 
     try {
-      // This sends a recovery OTP
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        email,
-        { redirectTo: undefined, },
-      );
+      // 'resetPasswordForEmail()' utilizes the 'Reset Password' email template in Supabase
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: undefined,
+      });
 
       if (error) {
         setMessage({ type: 'error', text: error.message });
@@ -50,10 +49,11 @@ export default function ForgotPassword({
           onCodeSent(email);
         }, 1500);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Password reset error:', error);
       setMessage({
         type: 'error',
-        text: 'An error occurred while sending reset code',
+        text: error?.message || 'An error occurred while sending reset code',
       });
     } finally {
       setLoading(false);
@@ -66,7 +66,8 @@ export default function ForgotPassword({
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter your email address and we'll send you a code to reset your password.
+          Enter your email address and we'll send you a code to reset your
+          password.
         </Text>
 
         <View style={styles.inputContainer}>
@@ -142,7 +143,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 16,
+    fontSize: 16 * 0.87,
     fontWeight: '400',
     color: '#000',
     marginBottom: 8,
@@ -177,9 +178,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   message: {
-    fontSize: 14,
+    fontSize: 14 * 0.87,
     marginBottom: 16,
-    textAlign: 'center',
   },
   errorMessage: {
     color: '#f00',
