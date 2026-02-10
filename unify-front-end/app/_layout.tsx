@@ -218,6 +218,10 @@ function AppContent() {
         name='create-post'
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name='followers-following'
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name='+not-found' />
     </Stack>
   );
