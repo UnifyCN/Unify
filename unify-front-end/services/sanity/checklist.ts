@@ -18,7 +18,12 @@ const CHECKLIST_QUERY = `*[
   class,
   class_order,
   "module": module-> { _id, title },
-  "submodule": submodule-> { _id, title, "moduleId": module._ref }
+  "submodule": submodule-> { _id, title, "moduleId": module._ref },
+
+  linkTab,
+  communityTarget,
+  linkPath,
+  linkEventId
 }`;
 
 const CACHE_KEY = (persona: string, stageSlug: string) =>

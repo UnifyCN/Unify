@@ -134,16 +134,97 @@ export default function ChecklistScreen() {
       handleCloseModal();
       return;
     }
-    const { linkModuleId, linkSubmoduleId } = selectedTask.task;
+
+    const t = selectedTask.task;
     handleCloseModal();
-    if (linkSubmoduleId && linkModuleId) {
-      router.push(
-        `/(tabs)/Learn/modules/${linkModuleId}/${linkSubmoduleId}` as any
-      );
-    } else if (linkModuleId) {
-      router.push(`/(tabs)/Learn/modules/${linkModuleId}` as any);
+
+    // 1) NEW routing model (preferred)
+    if (t.linkTab) {
+      if (t.linkTab === 'home') {
+        router.push('/(tabs)' as any);
+        return;
+      }
+
+      if (t.linkTab === 'ai_companion') {
+        router.push('/(tabs)/companion' as any);
+        return;
+      }
+
+      if (t.linkTab === 'learn') {
+        // if editor picked Learn tab, go to module/submodule if present, else Learn root
+        if (t.linkSubmoduleId && t.linkModuleId) {
+          router.push(`/(tabs)/Learn/modules/${t.linkModuleId}/${t.linkSubmoduleId}` as any);
+          return;
+        }
+        if (t.linkModuleId) {
+          router.push(`/(tabs)/Learn/modules/${t.linkModuleId}` as any);
+          return;
+        }
+        router.push('/(tabs)/Learn' as any);
+        return;
+      }
+
+      if (t.linkTab === 'community') {
+        // community target decides what to do
+        const target = t.communityTarget ?? 'gather';
+
+        if (target === 'gather') {
+          router.push('/(tabs)/Gather/gather' as any);
+          return;
+        }
+
+        if (target === 'event') {
+          if (typeof t.linkEventId === 'number') {
+            router.push({
+              pathname: '/event-detail' as any,
+              params: { eventId: String(t.linkEventId) },
+            });
+          } else {
+            // fallback to gather if misconfigured
+            router.push('/(tabs)/Gather/gather' as any);
+          }
+          return;
+        }
+
+        if (target === 'circle') {
+          if (t.linkPath && t.linkPath.trim().length > 0) {
+            router.push(t.linkPath as any);
+          } else {
+            router.push('/(tabs)/Gather/gather' as any);
+          }
+          return;
+        }
+      }
+    }
+
+    // 2) BACKWARD COMPAT (old behavior)
+    if (typeof t.linkEventId === 'number') {
+      router.push({
+        pathname: '/event-detail' as any,
+        params: { eventId: String(t.linkEventId) },
+      });
+      return;
+    }
+
+    if (t.linkPath && t.linkPath.trim().length > 0) {
+      router.push(t.linkPath as any);
+      return;
+    }
+
+    const normalizedPriority =
+      t.priority === 'Explore & connect' ? 'Explore and connect' : t.priority;
+
+    if (normalizedPriority === 'Explore and connect') {
+      router.push('/(tabs)/Gather/gather' as any);
+      return;
+    }
+
+    if (t.linkSubmoduleId && t.linkModuleId) {
+      router.push(`/(tabs)/Learn/modules/${t.linkModuleId}/${t.linkSubmoduleId}` as any);
+    } else if (t.linkModuleId) {
+      router.push(`/(tabs)/Learn/modules/${t.linkModuleId}` as any);
     } else {
-      router.push('/(tabs)/Learn');
+      router.push('/(tabs)/Learn' as any);
     }
   };
 
@@ -226,6 +307,7 @@ export default function ChecklistScreen() {
       </View>
     );
   }
+  
 
   return (
     <View style={styles.container}>
@@ -250,7 +332,7 @@ export default function ChecklistScreen() {
             />
           </View>
         </View>
-
+        
         {priorities.map(priority => {
           const priorityTasks = tasksByPriority[priority] || [];
 
@@ -272,7 +354,7 @@ export default function ChecklistScreen() {
           </View>
         )}
       </ScrollView>
-
+          
       <TaskDetailModal
         visible={modalVisible}
         task={selectedTask}
@@ -280,6 +362,7 @@ export default function ChecklistScreen() {
         onLearnHow={handleLearnHow}
         onMarkComplete={handleMarkComplete}
       />
+      
     </View>
   );
 }

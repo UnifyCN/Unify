@@ -12,7 +12,7 @@ interface UseChecklistTasksParams {
   stageChanged: boolean;
   persona: string | null;
 }
-
+ 
 export const useChecklistTasks = ({
   currentStage,
   stageChanged,

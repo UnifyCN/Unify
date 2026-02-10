@@ -7,6 +7,8 @@ export type Priority =
 
 export type StageNumber = 0 | 1 | 2 | 3 | 4;
 export type Stage = '0' | '1' | '2' | '3' | '4';
+export type LinkTab = 'home' | 'ai_companion' | 'community' | 'learn';
+export type CommunityTarget = 'gather' | 'event' | 'circle';
 
 /** Sanity checklist item (content from Sanity). Personas array: user sees item if user.persona in personas. */
 export interface SanityChecklistItem {
@@ -20,6 +22,15 @@ export interface SanityChecklistItem {
   stage: string;
   module?: { _id: string; title: string } | null;
   submodule?: { _id: string; title: string; moduleId?: string } | null;
+
+  linkTab?: LinkTab | null;
+
+  //Only relevant when linkTab === 'community'
+  communityTarget?: CommunityTarget | null;
+
+  linkPath?: string | null; //Specifically will be used only for specific circles or stuff like that
+  linkEventId?: number | null; 
+
 }
 
 const SANITY_CLASS_TO_PRIORITY: Record<
@@ -44,6 +55,12 @@ export function sanityChecklistItemToTaskDetails(
     linkModuleId: item.module?._id ?? item.submodule?.moduleId,
     linkSubmoduleId: item.submodule?._id,
     linkModuleTitle: moduleOrSub?.title,
+
+    linkTab: item.linkTab ?? undefined,
+    communityTarget: item.communityTarget ?? undefined,
+    
+    linkPath: item.linkPath ?? undefined,
+    linkEventId: item.linkEventId ?? undefined,
   };
 }
 
@@ -57,6 +74,12 @@ export interface ChecklistTaskDetails {
   linkModuleId?: string;
   linkSubmoduleId?: string;
   linkModuleTitle?: string;
+
+  linkTab?: LinkTab;
+  communityTarget?: CommunityTarget;
+
+  linkPath?: string;
+  linkEventId?: number;
 }
 
 /** Legacy Supabase personalized task (kept for backward compat) */

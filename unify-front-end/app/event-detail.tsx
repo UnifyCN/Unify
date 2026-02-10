@@ -13,16 +13,19 @@ import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
 import { Theme } from '@/constants/Theme';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getEventById } from '@/services/events/getEventById';
 import { useAnalytics } from '@/utils/analytics';
 import BackHeader from '@/components/BackHeader';
 
 const EventDetailScreen = () => {
   const router = useRouter();
-  const { event } = useLocalSearchParams();
+  const { event, eventId } = useLocalSearchParams();
+  const [eventData, setEventData] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Memoize parsed event data with safety handling
-  const eventData: Event | null = useMemo(() => {
+  const parsedEvent: Event | null = useMemo(() => {
     try {
       if (!event) return null;
       return JSON.parse(event as string);
@@ -32,15 +35,67 @@ const EventDetailScreen = () => {
     }
   }, [event]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setLoading(true);
+
+      // A) If old param "event" exists, use it
+      if (parsedEvent) {
+        if (!cancelled) {
+          setEventData(parsedEvent);
+          setLoading(false);
+        }
+        return;
+      }
+
+      // B) Else use new param "eventId"
+      const idNum =
+        typeof eventId === 'string'
+          ? Number(eventId)
+          : Array.isArray(eventId)
+            ? Number(eventId[0])
+            : NaN;
+
+      if (!Number.isFinite(idNum)) {
+        if (!cancelled) {
+          setLoading(false);
+          router.back();
+        }
+        return;
+      }
+
+      try {
+        const fetched = await getEventById(idNum);
+        if (!cancelled) {
+          if (!fetched) {
+            setLoading(false);
+            router.back();
+            return;
+          }
+          setEventData(fetched);
+          setLoading(false);
+        }
+      } catch (e) {
+        console.error('Failed to fetch event by id:', e);
+        if (!cancelled) {
+          setLoading(false);
+          router.back();
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [parsedEvent, eventId, router]);
+
   const { trackEventViewed, trackEventShared, trackEventExternalLinkClicked } =
     useAnalytics();
 
-  // Handle redirect if event data is missing or invalid
-  useEffect(() => {
-    if (!eventData) {
-      router.back();
-    }
-  }, [eventData, router]);
 
   // Track event view on mount
   useEffect(() => {
@@ -49,6 +104,7 @@ const EventDetailScreen = () => {
     }
   }, [eventData, trackEventViewed]);
 
+  if (loading) return null;
   if (!eventData) return null;
 
   const handleExternalLink = () => {
