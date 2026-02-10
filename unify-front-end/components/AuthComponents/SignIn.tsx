@@ -24,6 +24,7 @@ import {
   SimpleTextField,
 } from './Components';
 import { useAnalytics } from '@/utils/analytics';
+import OTPPasswordReset from './OTPPasswordReset';
 
 export function SignIn({
   onSwitchToSignUp,
@@ -41,6 +42,8 @@ export function SignIn({
   const [loading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showOTPReset, setShowOTPReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   // Simple email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -188,8 +191,33 @@ export function SignIn({
     setLoading(false);
   };
 
+  if (showOTPReset) {
+    return (
+      <OTPPasswordReset
+        email={resetEmail}
+        onBack={() => {
+          setShowOTPReset(false);
+          setShowForgotPassword(true);
+        }}
+        onSuccess={() => {
+          setShowOTPReset(false);
+          setShowForgotPassword(false);
+        }}
+      />
+    );
+  }
+
   if (showForgotPassword) {
-    return <ForgotPassword onBack={() => setShowForgotPassword(false)} />;
+    return (
+      <ForgotPassword
+        onBack={() => setShowForgotPassword(false)}
+        onCodeSent={email => {
+          setResetEmail(email);
+          setShowForgotPassword(false);
+          setShowOTPReset(true);
+        }}
+      />
+    );
   }
 
   return (
