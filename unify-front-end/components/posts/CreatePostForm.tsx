@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
   Alert,
   ActivityIndicator,
-  Platform,
+  Platform, TextInput,
 } from 'react-native';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
 import GroupSelectionSheet from './GroupSelectionSheet';
@@ -17,6 +16,7 @@ import { Theme } from '@/constants/Theme';
 import BackHeader from '@/components/BackHeader';
 import { useToast } from '@/context/ToastContext';
 import { Group } from '@/types/groups';
+import MarkdownTextInput, { MarkdownTextInputRef } from './MarkdownTextInput';
 
 type DestinationType = '4u' | 'group';
 
@@ -43,6 +43,9 @@ export default function CreatePostForm({
   const [destination, setDestination] = useState<DestinationType>('4u');
   const [showGroupSelector, setShowGroupSelector] = useState(false);
 
+  const titleEditorRef = useRef<MarkdownTextInputRef>(null);
+  const contentEditorRef = useRef<MarkdownTextInputRef>(null);
+
   const { showToast } = useToast();
   const createPostMutation = useMutateCreatePost();
 
@@ -62,12 +65,21 @@ export default function CreatePostForm({
   const resetForm = () => {
     setTitle('');
     setContent('');
+    titleEditorRef.current?.clear();
+    contentEditorRef.current?.clear();
     setSelectedGroup(null);
     setDestination('4u');
     setShowGroupSelector(false);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Get the actual text from the editors
+    const actualTitle = await titleEditorRef.current?.getText();
+    const actualContent = await contentEditorRef.current?.getText();
+
+    const trimmedTitle = actualTitle?.trim() || '';
+    const trimmedContent = actualContent?.trim() || '';
+
     if (!trimmedTitle || !trimmedContent) {
       Alert.alert('Error', 'Please fill in title and content');
       return;
@@ -179,8 +191,7 @@ export default function CreatePostForm({
           <Text
             style={[
               styles.charCount,
-              title.length > TITLE_MAX_LENGTH * 0.9 &&
-                styles.charCountWarning,
+              title.length > TITLE_MAX_LENGTH * 0.9 && styles.charCountWarning,
             ]}
           >
             {title.length}/{TITLE_MAX_LENGTH}
@@ -192,15 +203,13 @@ export default function CreatePostForm({
 
         {/* Content Input */}
         <View style={styles.contentContainer}>
-          <TextInput
-            style={styles.contentInput}
-            placeholder="What's on your mind?"
-            placeholderTextColor={Theme.textAlternateGray}
-            value={content}
+          <MarkdownTextInput
+            ref={contentEditorRef}
             onChangeText={setContent}
-            multiline
-            textAlignVertical='top'
+            placeholder="What's on your mind?"
+            baseStyle={styles.contentInput}
             maxLength={CONTENT_MAX_LENGTH}
+            showToolbar={true}
           />
           <Text
             style={[
@@ -257,6 +266,7 @@ const styles = StyleSheet.create({
     color: Theme.black,
     paddingTop: 24,
     paddingBottom: 4,
+    minHeight: 80,
   },
   separator: {
     height: 1,
