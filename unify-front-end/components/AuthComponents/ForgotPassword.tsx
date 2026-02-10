@@ -7,9 +7,13 @@ import BackHeader from '../BackHeader';
 
 interface ForgotPasswordProps {
   onBack: () => void;
+  onCodeSent: (email: string) => void;
 }
 
-export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
+export default function ForgotPassword({
+  onBack,
+  onCodeSent,
+}: ForgotPasswordProps) {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,7 +22,6 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
     text: string;
   } | null>(null);
 
-  // Method to validate if email is in valid format
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setIsEmailValid(emailRegex.test(email));
@@ -29,11 +32,12 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
     setMessage(null);
 
     try {
-      // TODO: This does not work at all, user will be redirected back to this page instead of the reset password page
-      // https://blog.theodo.com/2023/03/supabase-reset-password-rn/ maybe this is useful
-      // I think it's because our auth wrapper wraps EVERYTHING, instead of having two stacks of unauthenticated and authenticated routes
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'myapp://reset-password',
+      // Use signInWithOtp instead for recovery
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false, // Don't create new users
+        },
       });
 
       if (error) {
@@ -41,8 +45,12 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
       } else {
         setMessage({
           type: 'success',
-          text: 'Password reset link has been sent to your email',
+          text: 'Check your email for a 6-digit code',
         });
+
+        setTimeout(() => {
+          onCodeSent(email);
+        }, 1500);
       }
     } catch (error) {
       setMessage({
@@ -60,8 +68,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter your email address and we'll send you instructions to reset your
-          password.
+          Enter your email address and we'll send you a code to reset your password.
         </Text>
 
         <View style={styles.inputContainer}>
