@@ -941,7 +941,6 @@ export default function ModuleIndex() {
         {sections.map((section, index) => renderSectionCard(section, index))}
         <View style={{ height: 40 }} />
       </ScrollView>
-
     </View>
   );
 }

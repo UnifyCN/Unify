@@ -30,14 +30,9 @@ export function CircleMessageBubble({
   };
 
   return (
-    <View
-      style={[
-        styles.row,
-        isOwn ? styles.rowOwn : styles.rowOther,
-      ]}
-    >
+    <View style={[styles.row, isOwn ? styles.rowOwn : styles.rowOther]}>
       {!isOwn && (
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={handlePressSender}
           activeOpacity={0.8}
           style={styles.avatarContainer}
@@ -54,10 +49,7 @@ export function CircleMessageBubble({
       )}
 
       <View
-        style={[
-          styles.bubble,
-          isOwn ? styles.bubbleOwn : styles.bubbleOther,
-        ]}
+        style={[styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}
       >
         {!isOwn && (
           <TouchableOpacity onPress={handlePressSender}>
@@ -66,12 +58,7 @@ export function CircleMessageBubble({
             </Text>
           </TouchableOpacity>
         )}
-        <Text
-          style={[
-            styles.messageText,
-            isOwn && styles.messageTextOwn,
-          ]}
-        >
+        <Text style={[styles.messageText, isOwn && styles.messageTextOwn]}>
           {message.content}
         </Text>
       </View>

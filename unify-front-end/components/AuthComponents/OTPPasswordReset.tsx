@@ -36,7 +36,7 @@ export default function OTPPasswordReset({
     if (newPassword !== confirmPassword) {
       setMessage({
         type: 'error',
-        text: 'Passwords do not match'
+        text: 'Passwords do not match',
       });
       setLoading(false);
       return;
@@ -100,7 +100,8 @@ export default function OTPPasswordReset({
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter the 6-digit code sent to your email ({email}) to create your new password.
+          Enter the 6-digit code sent to your email ({email}) to create your new
+          password.
         </Text>
 
         <View>

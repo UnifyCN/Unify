@@ -38,7 +38,8 @@ export default function TaskPageScreen() {
     useTaskProgress();
 
   const sortedTasks = useMemo(
-    () => [...(tasks || [])].sort((a, b) => (a.ordering ?? 0) - (b.ordering ?? 0)),
+    () =>
+      [...(tasks || [])].sort((a, b) => (a.ordering ?? 0) - (b.ordering ?? 0)),
     [tasks]
   );
   const currentIndex = useMemo(
@@ -132,7 +133,10 @@ export default function TaskPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <ActivityIndicator size="large" color={moduleData?.colorTheme?.hex || '#575757'} />
+          <ActivityIndicator
+            size='large'
+            color={moduleData?.colorTheme?.hex || '#575757'}
+          />
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
@@ -191,11 +195,7 @@ export default function TaskPageScreen() {
           disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
-            {isSaving
-              ? 'Saving...'
-              : nextTask
-                ? 'Next'
-                : 'Done'}
+            {isSaving ? 'Saving...' : nextTask ? 'Next' : 'Done'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -203,14 +203,12 @@ export default function TaskPageScreen() {
       <Modal
         visible={showExitModal}
         transparent
-        animationType="fade"
+        animationType='fade'
         onRequestClose={() => setShowExitModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              Leave this task?
-            </Text>
+            <Text style={styles.modalTitle}>Leave this task?</Text>
             <Text style={styles.modalDesc}>
               Your progress will be saved. You can come back anytime.
             </Text>

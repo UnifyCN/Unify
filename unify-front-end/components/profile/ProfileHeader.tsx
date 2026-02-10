@@ -201,7 +201,6 @@ export const ProfileHeader = ({
             <FollowButton targetUserId={userInfo.id} />
           </View>
         )}
-
       </View>
 
       <View style={styles.groupsSection}>

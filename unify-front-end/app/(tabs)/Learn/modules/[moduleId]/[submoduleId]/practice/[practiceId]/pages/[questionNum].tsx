@@ -10,7 +10,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSanityPractice, useSanityPractices } from '@/hooks/sanity/useSanityPractices';
+import {
+  useSanityPractice,
+  useSanityPractices,
+} from '@/hooks/sanity/useSanityPractices';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
@@ -25,34 +28,49 @@ function goToSubmoduleIndex(moduleId: string, submoduleId: string) {
 }
 
 export default function PracticeQuizQuestionPage() {
-  const { moduleId, submoduleId, practiceId, questionNum } = useLocalSearchParams<{
-    moduleId: string;
-    submoduleId: string;
-    practiceId: string;
-    questionNum: string;
-  }>();
+  const { moduleId, submoduleId, practiceId, questionNum } =
+    useLocalSearchParams<{
+      moduleId: string;
+      submoduleId: string;
+      practiceId: string;
+      questionNum: string;
+    }>();
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
-  const { data: practice, isLoading, error } = useSanityPractice(practiceId || '');
+  const {
+    data: practice,
+    isLoading,
+    error,
+  } = useSanityPractice(practiceId || '');
   const { data: practices } = useSanityPractices(submoduleId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
+  const { data: submoduleData } = useSanitySubmoduleWithLessons(
+    submoduleId || ''
+  );
   const { data: moduleData } = useSanityModule(moduleId || '');
 
   const sortedPractices = useMemo(
-    () => [...(practices || [])].sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0)),
+    () =>
+      [...(practices || [])].sort(
+        (a, b) => (a.order_number ?? 0) - (b.order_number ?? 0)
+      ),
     [practices]
   );
   const currentPracticeIndex = useMemo(
     () => sortedPractices.findIndex(p => p._id === practiceId),
     [sortedPractices, practiceId]
   );
-  const nextPractice = currentPracticeIndex >= 0 && currentPracticeIndex < sortedPractices.length - 1
-    ? sortedPractices[currentPracticeIndex + 1]
-    : null;
-  const prevPractice = currentPracticeIndex > 0 ? sortedPractices[currentPracticeIndex - 1] : null;
+  const nextPractice =
+    currentPracticeIndex >= 0 &&
+    currentPracticeIndex < sortedPractices.length - 1
+      ? sortedPractices[currentPracticeIndex + 1]
+      : null;
+  const prevPractice =
+    currentPracticeIndex > 0 ? sortedPractices[currentPracticeIndex - 1] : null;
 
   const questions = useMemo(() => {
     const q = practice?.questions || [];
-    return [...q].sort((a: any, b: any) => (a.order_number ?? 0) - (b.order_number ?? 0));
+    return [...q].sort(
+      (a: any, b: any) => (a.order_number ?? 0) - (b.order_number ?? 0)
+    );
   }, [practice?.questions]);
 
   const totalQuestions = questions.length;
@@ -64,8 +82,12 @@ export default function PracticeQuizQuestionPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [selectedLeftItem, setSelectedLeftItem] = useState<string | null>(null);
-  const [selectedRightItem, setSelectedRightItem] = useState<string | null>(null);
-  const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>({});
+  const [selectedRightItem, setSelectedRightItem] = useState<string | null>(
+    null
+  );
+  const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>(
+    {}
+  );
   const [completedPairs, setCompletedPairs] = useState<string[]>([]);
   const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -79,7 +101,14 @@ export default function PracticeQuizQuestionPage() {
       if (!practiceId || !moduleId || !submoduleId || !practice) return;
       const pageNum = currentQuestionIndex + 1;
       updatePracticeProgress(practiceId, pageNum);
-    }, [practiceId, moduleId, submoduleId, practice, currentQuestionIndex, updatePracticeProgress])
+    }, [
+      practiceId,
+      moduleId,
+      submoduleId,
+      practice,
+      currentQuestionIndex,
+      updatePracticeProgress,
+    ])
   );
 
   useEffect(() => {
@@ -97,7 +126,12 @@ export default function PracticeQuizQuestionPage() {
 
   const scrambledRightItems = useMemo(() => {
     const question = questions[currentQuestionIndex];
-    if (!question || question.question_type !== 'matching' || !question.matching_pairs?.length) return [];
+    if (
+      !question ||
+      question.question_type !== 'matching' ||
+      !question.matching_pairs?.length
+    )
+      return [];
     const rightItems = question.matching_pairs.map((p: any) => p.right_item);
     const shuffled = [...rightItems];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -109,11 +143,17 @@ export default function PracticeQuizQuestionPage() {
 
   const isSequential = sortedPractices.length > 1;
   const progress = {
-    currentPage: isSequential ? currentPracticeIndex + 1 : currentQuestionIndex + 1,
+    currentPage: isSequential
+      ? currentPracticeIndex + 1
+      : currentQuestionIndex + 1,
     totalPages: isSequential ? sortedPractices.length : totalQuestions,
     progressPercentage: isSequential
-      ? (sortedPractices.length > 0 ? ((currentPracticeIndex + 1) / sortedPractices.length) * 100 : 0)
-      : (totalQuestions > 0 ? ((currentQuestionIndex + 1) / totalQuestions) * 100 : 0),
+      ? sortedPractices.length > 0
+        ? ((currentPracticeIndex + 1) / sortedPractices.length) * 100
+        : 0
+      : totalQuestions > 0
+        ? ((currentQuestionIndex + 1) / totalQuestions) * 100
+        : 0,
   };
 
   if (isLoading) {
@@ -143,7 +183,9 @@ export default function PracticeQuizQuestionPage() {
   const handleAnswerSelect = (optionId: string) => {
     if (currentQuestion.question_type === 'multiple_choice_multiple') {
       setSelectedAnswers(prev =>
-        prev.includes(optionId) ? prev.filter(id => id !== optionId) : [...prev, optionId]
+        prev.includes(optionId)
+          ? prev.filter(id => id !== optionId)
+          : [...prev, optionId]
       );
     } else {
       setSelectedAnswer(optionId);
@@ -163,12 +205,18 @@ export default function PracticeQuizQuestionPage() {
   const handleMatchingCheck = () => {
     if (!selectedLeftItem || !selectedRightItem) return;
     const correctMatch = currentQuestion.matching_pairs?.find(
-      (p: any) => p.left_item === selectedLeftItem && p.right_item === selectedRightItem
+      (p: any) =>
+        p.left_item === selectedLeftItem && p.right_item === selectedRightItem
     );
     if (correctMatch) {
       setCompletedPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
-      setMatchedPairs(prev => ({ ...prev, [selectedLeftItem]: selectedRightItem }));
-      setIncorrectPairs(prev => prev.filter(i => i !== selectedLeftItem && i !== selectedRightItem));
+      setMatchedPairs(prev => ({
+        ...prev,
+        [selectedLeftItem]: selectedRightItem,
+      }));
+      setIncorrectPairs(prev =>
+        prev.filter(i => i !== selectedLeftItem && i !== selectedRightItem)
+      );
     } else {
       setIncorrectPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
     }
@@ -179,7 +227,9 @@ export default function PracticeQuizQuestionPage() {
   const handleNext = async () => {
     if (isNavigating) return;
     if (currentQuestion.question_type === 'matching') {
-      const allDone = completedPairs.length === (currentQuestion.matching_pairs?.length || 0) * 2;
+      const allDone =
+        completedPairs.length ===
+        (currentQuestion.matching_pairs?.length || 0) * 2;
       if (!allDone) return;
       if (isLastQuestion) {
         setIsNavigating(true);
@@ -200,7 +250,12 @@ export default function PracticeQuizQuestionPage() {
         router.push({
           pathname:
             '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-          params: { moduleId, submoduleId, practiceId, questionNum: nextNum.toString() },
+          params: {
+            moduleId,
+            submoduleId,
+            practiceId,
+            questionNum: nextNum.toString(),
+          },
         });
       }
       return;
@@ -208,17 +263,24 @@ export default function PracticeQuizQuestionPage() {
     if (!hasSubmitted) {
       let isAnswerCorrect = false;
       if (currentQuestion.question_type === 'multiple_choice_multiple') {
-        const correctIds = (currentQuestion.options || []).filter((o: any) => o.is_correct).map((o: any) => o._key);
+        const correctIds = (currentQuestion.options || [])
+          .filter((o: any) => o.is_correct)
+          .map((o: any) => o._key);
         isAnswerCorrect =
           correctIds.length > 0 &&
           correctIds.every((id: string) => selectedAnswers.includes(id)) &&
           selectedAnswers.every((id: string) => correctIds.includes(id));
       } else {
         const correctId =
-          currentQuestion.correct_answer?.value?.[0] ?? currentQuestion.correct_answer?.value;
+          currentQuestion.correct_answer?.value?.[0] ??
+          currentQuestion.correct_answer?.value;
         isAnswerCorrect =
           selectedAnswer === correctId ||
-          Boolean((currentQuestion.options || []).find((o: any) => o._key === selectedAnswer)?.is_correct);
+          Boolean(
+            (currentQuestion.options || []).find(
+              (o: any) => o._key === selectedAnswer
+            )?.is_correct
+          );
       }
       setIsCorrect(isAnswerCorrect);
       setHasSubmitted(true);
@@ -243,7 +305,12 @@ export default function PracticeQuizQuestionPage() {
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-        params: { moduleId, submoduleId, practiceId, questionNum: nextNum.toString() },
+        params: {
+          moduleId,
+          submoduleId,
+          practiceId,
+          questionNum: nextNum.toString(),
+        },
       });
     }
   };
@@ -255,7 +322,12 @@ export default function PracticeQuizQuestionPage() {
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-        params: { moduleId, submoduleId, practiceId, questionNum: prevNum.toString() },
+        params: {
+          moduleId,
+          submoduleId,
+          practiceId,
+          questionNum: prevNum.toString(),
+        },
       });
     } else {
       if (prevPractice) {
@@ -281,7 +353,9 @@ export default function PracticeQuizQuestionPage() {
   const isDisabled =
     currentQuestion.question_type === 'matching'
       ? !isMatchingAllDone
-      : !hasSubmitted ? !canProceedNonMatching : false;
+      : !hasSubmitted
+        ? !canProceedNonMatching
+        : false;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -292,7 +366,10 @@ export default function PracticeQuizQuestionPage() {
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
       />
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.content}>
           {quizTitle && <Text style={styles.quizTitle}>{quizTitle}</Text>}
           <View style={styles.questionContainer}>
@@ -314,21 +391,30 @@ export default function PracticeQuizQuestionPage() {
               <View style={styles.matchingContainer}>
                 <View style={styles.matchingGrid}>
                   <View style={styles.matchingColumn}>
-                    {(currentQuestion.matching_pairs || []).map((pair: any, i: number) => (
-                      <TouchableOpacity
-                        key={`left-${i}`}
-                        style={[
-                          styles.matchingItem,
-                          selectedLeftItem === pair.left_item && styles.matchingItemSelected,
-                          completedPairs.includes(pair.left_item) && styles.matchingItemCompleted,
-                          incorrectPairs.includes(pair.left_item) && styles.matchingItemIncorrect,
-                        ]}
-                        onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
-                        disabled={completedPairs.includes(pair.left_item)}
-                      >
-                        <Text style={styles.matchingItemText}>{pair.left_item}</Text>
-                      </TouchableOpacity>
-                    ))}
+                    {(currentQuestion.matching_pairs || []).map(
+                      (pair: any, i: number) => (
+                        <TouchableOpacity
+                          key={`left-${i}`}
+                          style={[
+                            styles.matchingItem,
+                            selectedLeftItem === pair.left_item &&
+                              styles.matchingItemSelected,
+                            completedPairs.includes(pair.left_item) &&
+                              styles.matchingItemCompleted,
+                            incorrectPairs.includes(pair.left_item) &&
+                              styles.matchingItemIncorrect,
+                          ]}
+                          onPress={() =>
+                            handleMatchingItemSelect(pair.left_item, 'left')
+                          }
+                          disabled={completedPairs.includes(pair.left_item)}
+                        >
+                          <Text style={styles.matchingItemText}>
+                            {pair.left_item}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    )}
                   </View>
                   <View style={styles.matchingColumn}>
                     {scrambledRightItems.map((rightItem: string, i: number) => (
@@ -336,11 +422,16 @@ export default function PracticeQuizQuestionPage() {
                         key={`right-${i}-${rightItem}`}
                         style={[
                           styles.matchingItem,
-                          selectedRightItem === rightItem && styles.matchingItemSelected,
-                          completedPairs.includes(rightItem) && styles.matchingItemCompleted,
-                          incorrectPairs.includes(rightItem) && styles.matchingItemIncorrect,
+                          selectedRightItem === rightItem &&
+                            styles.matchingItemSelected,
+                          completedPairs.includes(rightItem) &&
+                            styles.matchingItemCompleted,
+                          incorrectPairs.includes(rightItem) &&
+                            styles.matchingItemIncorrect,
                         ]}
-                        onPress={() => handleMatchingItemSelect(rightItem, 'right')}
+                        onPress={() =>
+                          handleMatchingItemSelect(rightItem, 'right')
+                        }
                         disabled={completedPairs.includes(rightItem)}
                       >
                         <Text style={styles.matchingItemText}>{rightItem}</Text>
@@ -351,7 +442,8 @@ export default function PracticeQuizQuestionPage() {
                 <TouchableOpacity
                   style={[
                     styles.matchingCheckButton,
-                    (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonDisabled,
+                    (!selectedLeftItem || !selectedRightItem) &&
+                      styles.matchingCheckButtonDisabled,
                   ]}
                   onPress={handleMatchingCheck}
                   disabled={!selectedLeftItem || !selectedRightItem}
@@ -359,7 +451,8 @@ export default function PracticeQuizQuestionPage() {
                   <Text
                     style={[
                       styles.matchingCheckButtonText,
-                      (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonTextDisabled,
+                      (!selectedLeftItem || !selectedRightItem) &&
+                        styles.matchingCheckButtonTextDisabled,
                     ]}
                   >
                     Check
@@ -487,13 +580,20 @@ export default function PracticeQuizQuestionPage() {
           style={[
             styles.checkButton,
             {
-              backgroundColor: isDisabled ? '#F3F4F6' : moduleData?.colorTheme?.hex || '#575757',
+              backgroundColor: isDisabled
+                ? '#F3F4F6'
+                : moduleData?.colorTheme?.hex || '#575757',
             },
           ]}
           onPress={handleNext}
           disabled={isDisabled}
         >
-          <Text style={[styles.checkButtonText, isDisabled && styles.checkButtonTextDisabled]}>
+          <Text
+            style={[
+              styles.checkButtonText,
+              isDisabled && styles.checkButtonTextDisabled,
+            ]}
+          >
             {currentQuestion.question_type === 'matching'
               ? 'Next'
               : !hasSubmitted
@@ -502,12 +602,18 @@ export default function PracticeQuizQuestionPage() {
           </Text>
         </TouchableOpacity>
       </View>
-      <Modal visible={showExitModal} transparent animationType="fade" onRequestClose={() => setShowExitModal(false)}>
+      <Modal
+        visible={showExitModal}
+        transparent
+        animationType='fade'
+        onRequestClose={() => setShowExitModal(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Take a break from this quiz?</Text>
             <Text style={styles.modalDesc}>
-              Your progress will be saved. You can resume from the section page later.
+              Your progress will be saved. You can resume from the section page
+              later.
             </Text>
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
@@ -516,9 +622,14 @@ export default function PracticeQuizQuestionPage() {
                 goToSubmoduleIndex(moduleId!, submoduleId!);
               }}
             >
-              <Text style={styles.modalPrimaryBtnText}>Save progress & leave</Text>
+              <Text style={styles.modalPrimaryBtnText}>
+                Save progress & leave
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalSecondaryBtn} onPress={() => setShowExitModal(false)}>
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={() => setShowExitModal(false)}
+            >
               <Text style={styles.modalSecondaryBtnText}>Continue Quiz</Text>
             </TouchableOpacity>
           </View>

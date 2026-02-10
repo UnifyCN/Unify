@@ -26,7 +26,7 @@ export function usePushNotifications() {
     if (!currentUser) return;
 
     // Register for push notifications when user is authenticated
-    registerForPushNotifications().catch((err) => {
+    registerForPushNotifications().catch(err => {
       console.error('Push notification registration failed:', err);
     });
 
@@ -37,10 +37,20 @@ export function usePushNotifications() {
       // Navigate based on notification type (with circle_id validation)
       if (data?.type === 'circle_matched' && isValidCircleId(data?.circle_id)) {
         router.push(`/community-matching/circle/${data.circle_id}` as const);
-      } else if (data?.type === 'circle_ending_soon' && isValidCircleId(data?.circle_id)) {
-        router.push(`/community-matching/circle/${data.circle_id}/chat` as const);
-      } else if (data?.type === 'new_message' && isValidCircleId(data?.circle_id)) {
-        router.push(`/community-matching/circle/${data.circle_id}/chat` as const);
+      } else if (
+        data?.type === 'circle_ending_soon' &&
+        isValidCircleId(data?.circle_id)
+      ) {
+        router.push(
+          `/community-matching/circle/${data.circle_id}/chat` as const
+        );
+      } else if (
+        data?.type === 'new_message' &&
+        isValidCircleId(data?.circle_id)
+      ) {
+        router.push(
+          `/community-matching/circle/${data.circle_id}/chat` as const
+        );
       }
     });
 

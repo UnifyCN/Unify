@@ -17,10 +17,7 @@ export const SkeletonLoaderPostItem = ({
 
   return (
     <View
-      style={[
-        styles.container,
-        isHomeCardVariant && styles.homeCardContainer,
-      ]}
+      style={[styles.container, isHomeCardVariant && styles.homeCardContainer]}
     >
       <View style={styles.header}>
         <SkeletonLoader
@@ -37,7 +34,9 @@ export const SkeletonLoaderPostItem = ({
       <SkeletonLoader width='90%' height={16} style={{ marginBottom: 4 }} />
       <SkeletonLoader width='70%' height={16} style={{ marginBottom: 12 }} />
       {showFooter && (
-        <View style={[styles.footer, isHomeCardVariant && styles.homeCardFooter]}>
+        <View
+          style={[styles.footer, isHomeCardVariant && styles.homeCardFooter]}
+        >
           <SkeletonLoader width={60} height={16} />
           <SkeletonLoader width={40} height={16} />
           <SkeletonLoader width={30} height={16} />

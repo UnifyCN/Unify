@@ -3,12 +3,14 @@ import { Alert, View, StyleSheet } from 'react-native';
 
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { MatchingOnboardingQuiz, QuizSelections } from '@/ui/communityMatching/MatchingOnboardingQuiz';
+import {
+  MatchingOnboardingQuiz,
+  QuizSelections,
+} from '@/ui/communityMatching/MatchingOnboardingQuiz';
 import { joinCommunityWaitlist } from '@/services/matching/waitlist';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { useCurrentUser } from '@/context/UserContext';
 import { deriveTimeInCanadaFromArrivalDate } from '@/matching/pools';
-
 
 export default function MatchingOnboardingScreen() {
   const router = useRouter();
@@ -54,7 +56,9 @@ export default function MatchingOnboardingScreen() {
       });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['community-waitlist'] }),
-        queryClient.invalidateQueries({ queryKey: ['community-active-circle'] }),
+        queryClient.invalidateQueries({
+          queryKey: ['community-active-circle'],
+        }),
       ]);
       router.replace('/community-matching/waiting-room' as const);
     } catch (error) {
@@ -78,7 +82,6 @@ export default function MatchingOnboardingScreen() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   root: {

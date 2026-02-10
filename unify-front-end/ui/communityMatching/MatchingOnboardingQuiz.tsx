@@ -26,15 +26,15 @@ const TOTAL_STEPS = 3;
 
 // Orange theme colors from Figma
 const COLORS = {
-  primary: '#ff9b3d',           // Orange (button, selected states)
-  primaryLight: '#ffdfc1',      // Light orange (icon backgrounds)
-  primaryDark: '#ff820b',       // Dark orange (icon color)
-  headerBg: '#ff9d40',          // Header background orange
-  headerIconBg: '#ffcea0',      // Header icon circle background
-  text: '#000000',              // Black text
+  primary: '#ff9b3d', // Orange (button, selected states)
+  primaryLight: '#ffdfc1', // Light orange (icon backgrounds)
+  primaryDark: '#ff820b', // Dark orange (icon color)
+  headerBg: '#ff9d40', // Header background orange
+  headerIconBg: '#ffcea0', // Header icon circle background
+  text: '#000000', // Black text
   textSecondary: '#6B7280',
-  border: '#c4c4c4',            // Gray border
-  radioBorder: '#d0d0d0',       // Radio border
+  border: '#c4c4c4', // Gray border
+  radioBorder: '#d0d0d0', // Radio border
   white: '#FFFFFF',
   success: '#10B981',
   successLight: '#ECFDF5',
@@ -60,10 +60,26 @@ const QUESTION_DATA = {
 };
 
 const goalOptions = [
-  { value: 'make_friends', label: 'Make new friends in Canada', icon: 'group-add' },
-  { value: 'practice_english', label: 'Practice English or French', icon: 'chat-bubble' },
-  { value: 'job_search', label: 'Swap tips about jobs & resumes', icon: 'work' },
-  { value: 'wellness', label: 'Stay motivated & encouraged', icon: 'emoji-emotions' },
+  {
+    value: 'make_friends',
+    label: 'Make new friends in Canada',
+    icon: 'group-add',
+  },
+  {
+    value: 'practice_english',
+    label: 'Practice English or French',
+    icon: 'chat-bubble',
+  },
+  {
+    value: 'job_search',
+    label: 'Swap tips about jobs & resumes',
+    icon: 'work',
+  },
+  {
+    value: 'wellness',
+    label: 'Stay motivated & encouraged',
+    icon: 'emoji-emotions',
+  },
 ];
 
 const topicOptions = [
@@ -95,20 +111,24 @@ function SelectionCard({
       activeOpacity={0.7}
     >
       <View style={styles.selectionIcon}>
-        <MaterialIcons name={icon as any} size={20} color={COLORS.primaryDark} />
+        <MaterialIcons
+          name={icon as any}
+          size={20}
+          color={COLORS.primaryDark}
+        />
       </View>
-      <Text style={styles.selectionLabel}>
-        {label}
-      </Text>
-      <View style={[
-        multiSelect ? styles.checkbox : styles.radio,
-        selected && (multiSelect ? styles.checkboxSelected : styles.radioSelected),
-      ]}>
-        {selected && (
-          multiSelect ? (
-            <Feather name="check" size={14} color={COLORS.white} />
-          ) : null
-        )}
+      <Text style={styles.selectionLabel}>{label}</Text>
+      <View
+        style={[
+          multiSelect ? styles.checkbox : styles.radio,
+          selected &&
+            (multiSelect ? styles.checkboxSelected : styles.radioSelected),
+        ]}
+      >
+        {selected &&
+          (multiSelect ? (
+            <Feather name='check' size={14} color={COLORS.white} />
+          ) : null)}
       </View>
     </TouchableOpacity>
   );
@@ -124,20 +144,24 @@ function QuestionHeader({
 }) {
   const questionData = QUESTION_DATA[step as keyof typeof QUESTION_DATA];
   const insets = useSafeAreaInsets();
-  
+
   return (
     <View style={[styles.orangeHeader, { paddingTop: insets.top + 12 }]}>
-      <TouchableOpacity 
-        style={[styles.closeButton, { top: insets.top + 8 }]} 
+      <TouchableOpacity
+        style={[styles.closeButton, { top: insets.top + 8 }]}
         onPress={onClose}
         activeOpacity={0.7}
       >
-        <Feather name="x" size={24} color={COLORS.white} />
+        <Feather name='x' size={24} color={COLORS.white} />
       </TouchableOpacity>
-      
+
       <View style={styles.headerContent}>
         <View style={styles.headerIconCircle}>
-          <MaterialIcons name={questionData.icon as any} size={20} color={COLORS.white} />
+          <MaterialIcons
+            name={questionData.icon as any}
+            size={20}
+            color={COLORS.white}
+          />
         </View>
         <Text style={styles.headerTitle}>{questionData.title}</Text>
         <Text style={styles.headerSubtitle}>{questionData.subtitle}</Text>
@@ -155,7 +179,7 @@ export function MatchingOnboardingQuiz({
   const [goal, setGoal] = useState<string | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<number, string>>({});
-  
+
   // Animation for step transitions
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -207,8 +231,8 @@ export function MatchingOnboardingQuiz({
     switch (step) {
       case 1:
         return (
-          <ScrollView 
-            style={styles.stepContent} 
+          <ScrollView
+            style={styles.stepContent}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.stepContentContainer}
           >
@@ -232,8 +256,8 @@ export function MatchingOnboardingQuiz({
 
       case 2:
         return (
-          <ScrollView 
-            style={styles.stepContent} 
+          <ScrollView
+            style={styles.stepContent}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.stepContentContainer}
           >
@@ -251,7 +275,7 @@ export function MatchingOnboardingQuiz({
             </View>
             {topics.length > 0 && (
               <View style={styles.selectedCount}>
-                <Feather name="check-circle" size={16} color={COLORS.success} />
+                <Feather name='check-circle' size={16} color={COLORS.success} />
                 <Text style={styles.selectedCountText}>
                   {topics.length} topic{topics.length > 1 ? 's' : ''} selected
                 </Text>
@@ -267,23 +291,33 @@ export function MatchingOnboardingQuiz({
             <View style={styles.completionIconContainer}>
               <View style={styles.completionIconRing} />
               <View style={styles.completionIconCircle}>
-                <Feather name="check" size={32} color={COLORS.white} />
+                <Feather name='check' size={32} color={COLORS.white} />
               </View>
             </View>
             <Text style={styles.completionTitle}>You're all set!</Text>
             <Text style={styles.completionSubtitle}>
-              We'll match you with 3 other newcomers who share your goals and interests. This usually takes a few minutes to a few hours.
+              We'll match you with 3 other newcomers who share your goals and
+              interests. This usually takes a few minutes to a few hours.
             </Text>
             <View style={styles.summaryCard}>
               <Text style={styles.summaryLabel}>Your circle preferences</Text>
               <View style={styles.summaryRow}>
-                <MaterialIcons name="group-add" size={16} color={COLORS.textSecondary} />
+                <MaterialIcons
+                  name='group-add'
+                  size={16}
+                  color={COLORS.textSecondary}
+                />
                 <Text style={styles.summaryText}>
-                  {goalOptions.find(g => g.value === goal)?.label || 'Not selected'}
+                  {goalOptions.find(g => g.value === goal)?.label ||
+                    'Not selected'}
                 </Text>
               </View>
               <View style={styles.summaryRow}>
-                <MaterialIcons name="chat-bubble" size={16} color={COLORS.textSecondary} />
+                <MaterialIcons
+                  name='chat-bubble'
+                  size={16}
+                  color={COLORS.textSecondary}
+                />
                 <Text style={styles.summaryText}>
                   {topics.length} topic{topics.length > 1 ? 's' : ''} to discuss
                 </Text>
@@ -313,19 +347,19 @@ export function MatchingOnboardingQuiz({
           <View style={styles.buttonRow}>
             {step > 1 ? (
               <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-                <Feather name="arrow-left" size={20} color={COLORS.text} />
+                <Feather name='arrow-left' size={20} color={COLORS.text} />
                 <Text style={styles.backButtonText}>Back</Text>
               </TouchableOpacity>
             ) : (
               <View />
             )}
-            <TouchableOpacity 
-              style={styles.nextButton} 
+            <TouchableOpacity
+              style={styles.nextButton}
               onPress={handleNext}
               activeOpacity={0.8}
             >
               <Text style={styles.nextButtonText}>Next</Text>
-              <Feather name="arrow-right" size={18} color={COLORS.white} />
+              <Feather name='arrow-right' size={18} color={COLORS.white} />
             </TouchableOpacity>
           </View>
         ) : (
@@ -340,7 +374,7 @@ export function MatchingOnboardingQuiz({
             ) : (
               <>
                 <Text style={styles.joinButtonText}>Join the waiting room</Text>
-                <Feather name="arrow-right" size={18} color={COLORS.white} />
+                <Feather name='arrow-right' size={18} color={COLORS.white} />
               </>
             )}
           </TouchableOpacity>

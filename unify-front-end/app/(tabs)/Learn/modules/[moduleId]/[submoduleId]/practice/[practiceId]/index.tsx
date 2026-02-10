@@ -13,9 +13,11 @@ export default function PracticeEntryScreen() {
   }>();
   const [progressLoaded, setProgressLoaded] = useState(false);
 
-  const { data: practice, isLoading, error } = useSanityPractice(
-    practiceId || ''
-  );
+  const {
+    data: practice,
+    isLoading,
+    error,
+  } = useSanityPractice(practiceId || '');
 
   useEffect(() => {
     if (!practice || !moduleId || !submoduleId || !practiceId) return;
@@ -29,7 +31,9 @@ export default function PracticeEntryScreen() {
       const practiceType = practice.practice_type;
       const isQuiz = practiceType === 'quiz';
       const hasQuestions =
-        isQuiz && Array.isArray(practice.questions) && practice.questions.length > 0;
+        isQuiz &&
+        Array.isArray(practice.questions) &&
+        practice.questions.length > 0;
       const hasPages =
         !isQuiz && Array.isArray(practice.pages) && practice.pages.length > 0;
 
@@ -50,7 +54,12 @@ export default function PracticeEntryScreen() {
           router.replace({
             pathname:
               '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/pages/[questionNum]' as any,
-            params: { moduleId, submoduleId, practiceId, questionNum: String(questionNum) },
+            params: {
+              moduleId,
+              submoduleId,
+              practiceId,
+              questionNum: String(questionNum),
+            },
           });
         }
       } else if (!isQuiz && hasPages) {
@@ -70,7 +79,12 @@ export default function PracticeEntryScreen() {
           router.replace({
             pathname:
               '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/activity/[pageNum]' as any,
-            params: { moduleId, submoduleId, practiceId, pageNum: String(pageNum) },
+            params: {
+              moduleId,
+              submoduleId,
+              practiceId,
+              pageNum: String(pageNum),
+            },
           });
         }
       }
@@ -85,7 +99,7 @@ export default function PracticeEntryScreen() {
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size='large' color='#10B981' />
         <Text style={styles.text}>Loading...</Text>
       </View>
     );
@@ -119,7 +133,7 @@ export default function PracticeEntryScreen() {
 
   return (
     <View style={styles.center}>
-      <ActivityIndicator size="large" color="#10B981" />
+      <ActivityIndicator size='large' color='#10B981' />
       <Text style={styles.text}>Opening...</Text>
     </View>
   );

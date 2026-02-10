@@ -232,7 +232,7 @@ const MarkdownText: React.FC<{ text: string; isUser: boolean }> = ({
       // If this is the last line of "At a Glance", wrap and add the section
       if (lineIndex === atAGlanceEnd - 1) {
         elements.push(
-          <View key="at-a-glance-section" style={styles.atAGlanceCard}>
+          <View key='at-a-glance-section' style={styles.atAGlanceCard}>
             {atAGlanceContent}
           </View>
         );

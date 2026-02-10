@@ -21,7 +21,10 @@ import {
   getMembershipForCircle,
   leaveCircle,
 } from '@/services/matching/circles';
-import { fetchCircleMessages, sendCircleMessage } from '@/services/matching/messages';
+import {
+  fetchCircleMessages,
+  sendCircleMessage,
+} from '@/services/matching/messages';
 import type {
   CommunityCircleMemberProfile,
   CommunityMessage,
@@ -39,7 +42,6 @@ import {
   prefetchAvatarUrls,
 } from '@/services/s3/avatarUrlCache';
 
-
 export default function CircleChatScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
@@ -50,11 +52,12 @@ export default function CircleChatScreen() {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const flatListRef = useRef<FlatList<CommunityMessage>>(null);
-  
+
   // Presence tracking state
   const [onlineMembers, setOnlineMembers] = useState<Set<string>>(new Set());
   const [typingMembers, setTypingMembers] = useState<Set<string>>(new Set());
-  const [selectedMember, setSelectedMember] = useState<CommunityCircleMemberProfile | null>(null);
+  const [selectedMember, setSelectedMember] =
+    useState<CommunityCircleMemberProfile | null>(null);
   const presenceChannelRef = useRef<RealtimeChannel | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const memberAvatarSetRef = useRef<Set<string>>(new Set());
@@ -120,7 +123,9 @@ export default function CircleChatScreen() {
       const senderAvatarUrls = Array.from(
         new Set(
           messages
-            .map(message => normalizeAvatarSource(message.sender?.profile_picture_url))
+            .map(message =>
+              normalizeAvatarSource(message.sender?.profile_picture_url)
+            )
             .filter(
               (value): value is string =>
                 !!value && !memberAvatarSetRef.current.has(value)
@@ -165,7 +170,7 @@ export default function CircleChatScreen() {
 
   useEffect(() => {
     if (!circleId) return;
-    
+
     const channel = supabase
       .channel(`community-messages-${circleId}`)
       .on(
@@ -207,7 +212,7 @@ export default function CircleChatScreen() {
           });
         }
       )
-      .subscribe((status) => {
+      .subscribe(status => {
         console.log('Realtime subscription status:', status);
       });
 
@@ -220,15 +225,19 @@ export default function CircleChatScreen() {
   useEffect(() => {
     if (!circleId || !currentUser) return;
 
-    const presenceChannel = supabase.channel(`presence-${circleId}`)
+    const presenceChannel = supabase
+      .channel(`presence-${circleId}`)
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState();
         const online = new Set<string>();
         const typing = new Set<string>();
-        
+
         Object.values(state).forEach((users: unknown) => {
-          const presenceUsers = users as { user_id?: string; is_typing?: boolean }[];
-          presenceUsers.forEach((user) => {
+          const presenceUsers = users as {
+            user_id?: string;
+            is_typing?: boolean;
+          }[];
+          presenceUsers.forEach(user => {
             if (user.user_id && user.user_id !== currentUser.id) {
               online.add(user.user_id);
               if (user.is_typing) {
@@ -237,11 +246,11 @@ export default function CircleChatScreen() {
             }
           });
         });
-        
+
         setOnlineMembers(online);
         setTypingMembers(typing);
       })
-      .subscribe(async (status) => {
+      .subscribe(async status => {
         if (status === 'SUBSCRIBED') {
           await presenceChannel.track({
             user_id: currentUser.id,
@@ -271,11 +280,11 @@ export default function CircleChatScreen() {
     if (!trimmed || !circleId || circle?.status === 'ended') {
       return;
     }
-    
+
     // Clear input immediately for better UX
     setText('');
     setIsSending(true);
-    
+
     // Optimistically add the message to the list
     const tempId = `temp-${Date.now()}`;
     const optimisticMessage: CommunityMessage = {
@@ -284,15 +293,17 @@ export default function CircleChatScreen() {
       sender_user_id: currentUser?.id || '',
       content: trimmed,
       created_at: new Date().toISOString(),
-      sender: currentUser ? {
-        id: currentUser.id,
-        username: currentUser.username || 'You',
-        profile_picture_url: currentUser.profilePictureUrl || null,
-      } : null,
+      sender: currentUser
+        ? {
+            id: currentUser.id,
+            username: currentUser.username || 'You',
+            profile_picture_url: currentUser.profilePictureUrl || null,
+          }
+        : null,
     };
-    
+
     setMessages(prev => [...prev, optimisticMessage]);
-    
+
     try {
       await sendCircleMessage(circleId as string, trimmed);
       // The realtime subscription will handle updating the message with the real ID,
@@ -351,7 +362,7 @@ export default function CircleChatScreen() {
       handleCloseModal();
       router.push({
         pathname: '/profile',
-        params: { userId: selectedMember.user_id } 
+        params: { userId: selectedMember.user_id },
       });
     }
   };
@@ -359,7 +370,7 @@ export default function CircleChatScreen() {
   // Handle text input with typing indicator broadcast
   const handleTextChange = (newText: string) => {
     setText(newText);
-    
+
     // Broadcast typing status
     if (presenceChannelRef.current && currentUser) {
       presenceChannelRef.current.track({
@@ -397,19 +408,18 @@ export default function CircleChatScreen() {
   const inputDisabled =
     circle?.status === 'ended' || membership?.left_at !== null;
 
-
   return (
     <View style={styles.root}>
       <KeyboardAvoidingView
-        behavior="translate-with-padding"
+        behavior='translate-with-padding'
         style={styles.flex}
       >
-        <BackHeader 
-          title=""
+        <BackHeader
+          title=''
           onBack={() => router.back()}
           rightButton={
             <TouchableOpacity onPress={handleLeave} style={styles.headerIcon}>
-              <Feather name="more-horizontal" size={24} color="#6B7280" />
+              <Feather name='more-horizontal' size={24} color='#6B7280' />
             </TouchableOpacity>
           }
         />
@@ -418,27 +428,30 @@ export default function CircleChatScreen() {
         {onlineMembers.size > 0 && (
           <View style={styles.presenceBar}>
             <View style={styles.presenceAvatars}>
-              {members?.filter(m => onlineMembers.has(m.user_id)).slice(0, 4).map(member => (
-                <TouchableOpacity 
-                  key={member.user_id} 
-                  style={styles.presenceAvatar}
-                  onPress={() => handleMemberPress(member.user_id)}
-                >
-                  <Avatar
-                    profilePictureUrl={member.user.profile_picture_url ?? undefined}
-                    username={member.user.username || '?'}
-                    size={28}
-                    style={styles.presenceAvatarImg}
-                    fallbackStyle={styles.presenceAvatarFallback}
-                    textStyle={styles.presenceAvatarText}
-                  />
-                  <View style={styles.onlineDot} />
-                </TouchableOpacity>
-              ))}
+              {members
+                ?.filter(m => onlineMembers.has(m.user_id))
+                .slice(0, 4)
+                .map(member => (
+                  <TouchableOpacity
+                    key={member.user_id}
+                    style={styles.presenceAvatar}
+                    onPress={() => handleMemberPress(member.user_id)}
+                  >
+                    <Avatar
+                      profilePictureUrl={
+                        member.user.profile_picture_url ?? undefined
+                      }
+                      username={member.user.username || '?'}
+                      size={28}
+                      style={styles.presenceAvatarImg}
+                      fallbackStyle={styles.presenceAvatarFallback}
+                      textStyle={styles.presenceAvatarText}
+                    />
+                    <View style={styles.onlineDot} />
+                  </TouchableOpacity>
+                ))}
             </View>
-            <Text style={styles.presenceText}>
-              {onlineMembers.size} online
-            </Text>
+            <Text style={styles.presenceText}>{onlineMembers.size} online</Text>
           </View>
         )}
 
@@ -466,14 +479,14 @@ export default function CircleChatScreen() {
             data={messages}
             keyExtractor={item => item.id}
             renderItem={({ item }) => {
-               const isOwn = item.sender_user_id === currentUser?.id;
-               return (
-                 <CircleMessageBubble 
-                   message={item} 
-                   isOwn={isOwn} 
-                   onPressSender={handleMemberPress}
-                 />
-               );
+              const isOwn = item.sender_user_id === currentUser?.id;
+              return (
+                <CircleMessageBubble
+                  message={item}
+                  isOwn={isOwn}
+                  onPressSender={handleMemberPress}
+                />
+              );
             }}
             contentContainerStyle={styles.messagesList}
           />
@@ -483,7 +496,8 @@ export default function CircleChatScreen() {
         {typingMemberNames.length > 0 && (
           <View style={styles.typingIndicator}>
             <Text style={styles.typingText}>
-              {typingMemberNames.join(', ')} {typingMemberNames.length > 1 ? 'are' : 'is'} typing...
+              {typingMemberNames.join(', ')}{' '}
+              {typingMemberNames.length > 1 ? 'are' : 'is'} typing...
             </Text>
           </View>
         )}
@@ -495,12 +509,9 @@ export default function CircleChatScreen() {
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
               <TextInput
-                style={[
-                  styles.input,
-                  inputDisabled && styles.inputDisabled,
-                ]}
+                style={[styles.input, inputDisabled && styles.inputDisabled]}
                 placeholder='Message...'
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor='#9CA3AF'
                 value={text}
                 onChangeText={handleTextChange}
                 editable={!inputDisabled}
@@ -515,9 +526,9 @@ export default function CircleChatScreen() {
                 disabled={!text.trim() || isSending || inputDisabled}
               >
                 {isSending ? (
-                  <ActivityIndicator color='#fff' size="small" />
+                  <ActivityIndicator color='#fff' size='small' />
                 ) : (
-                  <Feather name="arrow-up" size={20} color="#fff" />
+                  <Feather name='arrow-up' size={20} color='#fff' />
                 )}
               </TouchableOpacity>
             </View>
@@ -528,24 +539,26 @@ export default function CircleChatScreen() {
       {/* Member Identity Modal */}
       {selectedMember && (
         <Modal
-          animationType="fade"
+          animationType='fade'
           transparent={true}
           visible={!!selectedMember}
           onRequestClose={handleCloseModal}
         >
-          <TouchableOpacity 
-            style={styles.modalOverlay} 
-            activeOpacity={1} 
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
             onPress={handleCloseModal}
           >
-            <TouchableOpacity 
-              activeOpacity={1} 
-              onPress={(e) => e.stopPropagation()}
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={e => e.stopPropagation()}
               style={styles.modalContent}
             >
               <View style={styles.modalHeader}>
                 <Avatar
-                  profilePictureUrl={selectedMember.user.profile_picture_url ?? undefined}
+                  profilePictureUrl={
+                    selectedMember.user.profile_picture_url ?? undefined
+                  }
                   username={selectedMember.user.username || '?'}
                   size={64}
                   style={styles.modalAvatar}
@@ -553,26 +566,36 @@ export default function CircleChatScreen() {
                   textStyle={styles.modalAvatarText}
                 />
                 <View style={styles.modalUserInfo}>
-                  <Text style={styles.modalUsername}>{selectedMember.user.username}</Text>
-                  <Text style={styles.modalRole}>{formatPersonaLabel(circle?.persona)}</Text>
+                  <Text style={styles.modalUsername}>
+                    {selectedMember.user.username}
+                  </Text>
+                  <Text style={styles.modalRole}>
+                    {formatPersonaLabel(circle?.persona)}
+                  </Text>
                 </View>
-                <TouchableOpacity onPress={handleCloseModal} style={styles.modalCloseBtn}>
-                  <Feather name="x" size={20} color="#9CA3AF" />
+                <TouchableOpacity
+                  onPress={handleCloseModal}
+                  style={styles.modalCloseBtn}
+                >
+                  <Feather name='x' size={20} color='#9CA3AF' />
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.commonGroundSection}>
                 <Text style={styles.commonGroundTitle}>Shared Journey</Text>
                 <View style={styles.commonGroundItem}>
-                  <Feather name="map-pin" size={16} color="#ff820b" />
+                  <Feather name='map-pin' size={16} color='#ff820b' />
                   <Text style={styles.commonGroundText}>
-                    You both arrived in Canada <Text style={styles.highlight}>{formatTimeInCanadaLabel(circle?.time_in_canada)}</Text>
+                    You both arrived in Canada{' '}
+                    <Text style={styles.highlight}>
+                      {formatTimeInCanadaLabel(circle?.time_in_canada)}
+                    </Text>
                   </Text>
                 </View>
               </View>
 
               <View style={styles.modalActions}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.viewProfileBtn}
                   onPress={viewFullProfile}
                 >

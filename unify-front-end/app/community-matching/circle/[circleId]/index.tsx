@@ -27,7 +27,6 @@ import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 
-
 export default function CircleDetailsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -103,9 +102,7 @@ export default function CircleDetailsScreen() {
           queryKey: ['community-active-circle'],
         }),
       ]);
-      router.push(
-        `/community-matching/circle/${circleId}/chat` as const
-      );
+      router.push(`/community-matching/circle/${circleId}/chat` as const);
     } catch (error) {
       console.error('Failed to join circle chat', error);
       Alert.alert(
@@ -141,10 +138,7 @@ export default function CircleDetailsScreen() {
               router.replace('/community-matching' as const);
             } catch (error) {
               console.error('Failed to leave circle', error);
-              Alert.alert(
-                'Unable to leave',
-                'Please try again in a moment.'
-              );
+              Alert.alert('Unable to leave', 'Please try again in a moment.');
             }
           },
         },
@@ -156,9 +150,12 @@ export default function CircleDetailsScreen() {
     router.push(`/community-matching/circle/${circleId}/chat` as const);
   }, [router, circleId]);
 
-  const handleMemberPress = useCallback((userId: string) => {
-    router.push(`/profile?userId=${userId}` as const);
-  }, [router]);
+  const handleMemberPress = useCallback(
+    (userId: string) => {
+      router.push(`/profile?userId=${userId}` as const);
+    },
+    [router]
+  );
 
   const formattedDates = useMemo(() => {
     if (!circle) return null;
@@ -176,7 +173,9 @@ export default function CircleDetailsScreen() {
     const diffMs = end.getTime() - now.getTime();
     if (diffMs <= 0) return 'Ending soon';
     const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    const hours = Math.floor(
+      (diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+    );
     if (days > 0) return `${days} day${days === 1 ? '' : 's'} left`;
     if (hours === 0) return 'Less than an hour left';
     return `${hours} hour${hours === 1 ? '' : 's'} left`;
@@ -188,7 +187,6 @@ export default function CircleDetailsScreen() {
         <ActivityIndicator size='large' />
       </View>
     );
-
   }
 
   if (circleError || !circle) {
@@ -205,7 +203,6 @@ export default function CircleDetailsScreen() {
         </TouchableOpacity>
       </View>
     );
-
   }
 
   const showJoinButton = isActive && !hasJoinedChat && !hasLeftCircle;
@@ -214,19 +211,15 @@ export default function CircleDetailsScreen() {
   return (
     <View style={styles.root}>
       {showConfetti && (
-        <ConfettiCannon 
-          count={200} 
-          origin={{x: Dimensions.get('window').width / 2, y: 0}} 
+        <ConfettiCannon
+          count={200}
+          origin={{ x: Dimensions.get('window').width / 2, y: 0 }}
           fadeOut={true}
         />
       )}
-      <BackHeader title="" onBack={() => router.back()} />
+      <BackHeader title='' onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-
-
-        <Text style={styles.heading}>
-          {formatPersonaLabel(circle.persona)}
-        </Text>
+        <Text style={styles.heading}>{formatPersonaLabel(circle.persona)}</Text>
         <Text style={styles.subheading}>
           {formatTimeInCanadaLabel(circle.time_in_canada)}
         </Text>
@@ -272,33 +265,42 @@ export default function CircleDetailsScreen() {
             <View style={styles.graduationHeader}>
               <Text style={styles.graduationTitle}>🎉 Circle Completed!</Text>
               <Text style={styles.graduationSubtitle}>
-                You've shared 14 days of growth. Keep the support going by following your circle mates.
+                You've shared 14 days of growth. Keep the support going by
+                following your circle mates.
               </Text>
             </View>
-            
+
             <View style={styles.graduationMembers}>
-              {members?.filter(m => m.user_id !== currentUser?.id).map((member) => (
-                <View key={member.id} style={styles.graduationMemberRow}>
-                  <TouchableOpacity
-                    onPress={() => handleMemberPress(member.user_id)}
-                    style={styles.graduationMemberInfo}
-                  >
-                    <Avatar
-                      profilePictureUrl={member.user.profile_picture_url ?? undefined}
-                      username={member.user.username || '?'}
-                      size={44}
-                      style={styles.graduationAvatar}
-                      fallbackStyle={styles.avatarFallback}
-                      textStyle={styles.avatarFallbackText}
-                    />
-                    <View>
-                      <Text style={styles.graduationMemberName}>{member.user.username}</Text>
-                      <Text style={styles.graduationMemberRole}>{formatPersonaLabel(circle.persona)}</Text>
-                    </View>
-                  </TouchableOpacity>
-                  <FollowButton targetUserId={member.user_id} />
-                </View>
-              ))}
+              {members
+                ?.filter(m => m.user_id !== currentUser?.id)
+                .map(member => (
+                  <View key={member.id} style={styles.graduationMemberRow}>
+                    <TouchableOpacity
+                      onPress={() => handleMemberPress(member.user_id)}
+                      style={styles.graduationMemberInfo}
+                    >
+                      <Avatar
+                        profilePictureUrl={
+                          member.user.profile_picture_url ?? undefined
+                        }
+                        username={member.user.username || '?'}
+                        size={44}
+                        style={styles.graduationAvatar}
+                        fallbackStyle={styles.avatarFallback}
+                        textStyle={styles.avatarFallbackText}
+                      />
+                      <View>
+                        <Text style={styles.graduationMemberName}>
+                          {member.user.username}
+                        </Text>
+                        <Text style={styles.graduationMemberRole}>
+                          {formatPersonaLabel(circle.persona)}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                    <FollowButton targetUserId={member.user_id} />
+                  </View>
+                ))}
             </View>
           </View>
         )}
@@ -325,7 +327,9 @@ export default function CircleDetailsScreen() {
                 disabled={isSelf}
               >
                 <Avatar
-                  profilePictureUrl={member.user.profile_picture_url ?? undefined}
+                  profilePictureUrl={
+                    member.user.profile_picture_url ?? undefined
+                  }
                   username={member.user.username || '?'}
                   size={48}
                   style={styles.avatar}
@@ -378,7 +382,6 @@ export default function CircleDetailsScreen() {
         )}
       </View>
     </View>
-
   );
 }
 

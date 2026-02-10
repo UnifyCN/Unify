@@ -86,8 +86,14 @@ describe('avatarUrlCache', () => {
     ]);
 
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
-    expect(mockedGetProfilePictureUrl).toHaveBeenNthCalledWith(1, 'avatars/user-1.jpg');
-    expect(mockedGetProfilePictureUrl).toHaveBeenNthCalledWith(2, 'avatars/user-2.jpg');
+    expect(mockedGetProfilePictureUrl).toHaveBeenNthCalledWith(
+      1,
+      'avatars/user-1.jpg'
+    );
+    expect(mockedGetProfilePictureUrl).toHaveBeenNthCalledWith(
+      2,
+      'avatars/user-2.jpg'
+    );
 
     const one = await resolveAvatarUrl('avatars/user-1.jpg');
     const two = await resolveAvatarUrl('avatars/user-2.jpg');
@@ -135,7 +141,9 @@ describe('avatarUrlCache', () => {
         'https://signed.example.com/retry?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
       );
 
-    await expect(resolveAvatarUrl('avatars/user-err.jpg')).rejects.toThrow('sign failed');
+    await expect(resolveAvatarUrl('avatars/user-err.jpg')).rejects.toThrow(
+      'sign failed'
+    );
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(1);
 
     const resolved = await resolveAvatarUrl('avatars/user-err.jpg');

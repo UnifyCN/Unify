@@ -1,5 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator,
+  Text,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
@@ -202,7 +208,8 @@ export default function ChecklistScreen() {
       ? stageDescriptions[currentStage as keyof typeof stageDescriptions]
       : 'Stage Not Set';
   const personaDisplay = persona
-    ? (personaDisplayNames[persona as keyof typeof personaDisplayNames] ?? persona)
+    ? (personaDisplayNames[persona as keyof typeof personaDisplayNames] ??
+      persona)
     : 'User';
 
   // Don't show checklist if stage is null
@@ -214,9 +221,7 @@ export default function ChecklistScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>
-              Your Personalized Checklist
-            </Text>
+            <Text style={styles.title}>Your Personalized Checklist</Text>
             <Text style={styles.subtitle}>
               Please complete your onboarding to see your personalized
               checklist.
@@ -235,9 +240,7 @@ export default function ChecklistScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>
-            Your Personalized Checklist
-          </Text>
+          <Text style={styles.title}>Your Personalized Checklist</Text>
           <Text style={styles.subtitle}>
             {personaDisplay} - {stageDescription}
           </Text>

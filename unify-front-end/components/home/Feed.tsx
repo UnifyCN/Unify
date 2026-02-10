@@ -86,9 +86,7 @@ const Feed = ({
         <FlatList
           data={Array.from({ length: 3 }, (_, index) => index + 1)}
           keyExtractor={item => `skeleton-${item}`}
-          renderItem={() => (
-            <SkeletonLoaderPostItem variant={postVariant} />
-          )}
+          renderItem={() => <SkeletonLoaderPostItem variant={postVariant} />}
           scrollEnabled={false}
           contentContainerStyle={
             isHomeCardVariant ? styles.homeCardListContent : undefined
@@ -119,9 +117,7 @@ const Feed = ({
       contentContainerStyle={
         isHomeCardVariant ? styles.homeCardListContent : undefined
       }
-      ItemSeparatorComponent={
-        isHomeCardVariant ? HomeCardSpacer : undefined
-      }
+      ItemSeparatorComponent={isHomeCardVariant ? HomeCardSpacer : undefined}
       ListFooterComponent={
         isFetchingNextPage ? (
           <View style={styles.loadingFooter}>

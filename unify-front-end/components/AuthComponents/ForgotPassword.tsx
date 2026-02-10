@@ -12,7 +12,7 @@ interface ForgotPasswordProps {
 
 export default function ForgotPassword({
   onBack,
-  onCodeSent
+  onCodeSent,
 }: Readonly<ForgotPasswordProps>) {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);

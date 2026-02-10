@@ -49,10 +49,7 @@ export const fetchCircleMessages = async (
   );
 };
 
-export const sendCircleMessage = async (
-  circleId: string,
-  content: string
-) => {
+export const sendCircleMessage = async (circleId: string, content: string) => {
   const trimmed = content.trim();
   if (!trimmed) {
     return;

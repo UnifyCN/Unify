@@ -17,9 +17,7 @@ import {
   type CommunityCircleMembership,
 } from '@/services/matching/circles';
 import { getCurrentWaitlistEntry } from '@/services/matching/waitlist';
-import {
-  deriveTimeInCanadaFromArrivalDate,
-} from '@/matching/pools';
+import { deriveTimeInCanadaFromArrivalDate } from '@/matching/pools';
 import BackHeader from '@/components/BackHeader';
 
 // Design colors from Figma
@@ -34,14 +32,14 @@ const COLORS = {
 };
 
 // Feature highlight component
-function FeatureItem({ 
-  icon, 
-  title, 
+function FeatureItem({
+  icon,
+  title,
   description,
-  iconType = 'material'
-}: { 
-  icon: string; 
-  title: string; 
+  iconType = 'material',
+}: {
+  icon: string;
+  title: string;
   description: string;
   iconType?: 'material' | 'feather';
 }) {
@@ -122,7 +120,9 @@ export default function CommunityMatchingHome() {
   // 3. No waitlist entry - refetch to check status
   useEffect(() => {
     if (activeCircle) {
-      router.replace(`/community-matching/circle/${activeCircle.circle_id}` as const);
+      router.replace(
+        `/community-matching/circle/${activeCircle.circle_id}` as const
+      );
     } else if (waitlistEntry?.status === 'waiting') {
       router.replace('/community-matching/waiting-room' as const);
     } else if (!waitlistEntry && currentUser) {
@@ -146,14 +146,15 @@ export default function CommunityMatchingHome() {
   if (!hasPersona) {
     return (
       <View style={styles.root}>
-        <BackHeader title="" onBack={() => router.back()} />
+        <BackHeader title='' onBack={() => router.back()} />
         <View style={styles.incompleteContainer}>
           <View style={styles.incompleteIconCircle}>
-            <MaterialIcons name="person-add" size={32} color={COLORS.white} />
+            <MaterialIcons name='person-add' size={32} color={COLORS.white} />
           </View>
           <Text style={styles.incompleteTitle}>Complete your profile</Text>
           <Text style={styles.incompleteBody}>
-            We use your background and experience to match you with the right peers. Complete onboarding to unlock Unify Circles.
+            We use your background and experience to match you with the right
+            peers. Complete onboarding to unlock Unify Circles.
           </Text>
           <TouchableOpacity
             style={styles.primaryButton}
@@ -163,7 +164,7 @@ export default function CommunityMatchingHome() {
             activeOpacity={0.8}
           >
             <Text style={styles.primaryButtonText}>Complete onboarding</Text>
-            <Feather name="arrow-right" size={18} color={COLORS.white} />
+            <Feather name='arrow-right' size={18} color={COLORS.white} />
           </TouchableOpacity>
         </View>
       </View>
@@ -172,15 +173,15 @@ export default function CommunityMatchingHome() {
 
   return (
     <View style={styles.root}>
-      <BackHeader title="" onBack={() => router.back()} />
-      <ScrollView 
+      <BackHeader title='' onBack={() => router.back()} />
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero section */}
         <View style={styles.heroSection}>
-        <View style={styles.heroIconCircle}>
-            <MaterialIcons name="group-add" size={34} color={COLORS.white} />
+          <View style={styles.heroIconCircle}>
+            <MaterialIcons name='group-add' size={34} color={COLORS.white} />
           </View>
           <Text style={styles.heroTitle}>Unify Circles</Text>
           <Text style={styles.heroSubtitle}>
@@ -190,23 +191,23 @@ export default function CommunityMatchingHome() {
 
         {/* Features section */}
         <View style={styles.featuresSection}>
-          <FeatureItem 
-            icon="group-add"
-            iconType="material"
-            title="Matching"
-            description="Get paired based on your own journey and background"
+          <FeatureItem
+            icon='group-add'
+            iconType='material'
+            title='Matching'
+            description='Get paired based on your own journey and background'
           />
-          <FeatureItem 
-            icon="schedule"
-            iconType="material"
-            title="2-Week Duration"
-            description="Fixed duration with icebreakers and prompts to guide your conversations"
+          <FeatureItem
+            icon='schedule'
+            iconType='material'
+            title='2-Week Duration'
+            description='Fixed duration with icebreakers and prompts to guide your conversations'
           />
-          <FeatureItem 
-            icon="chat-bubble"
-            iconType="material"
-            title="Group Chat"
-            description="Connect and share experiences, and leave with new friends"
+          <FeatureItem
+            icon='chat-bubble'
+            iconType='material'
+            title='Group Chat'
+            description='Connect and share experiences, and leave with new friends'
           />
         </View>
       </ScrollView>
@@ -219,7 +220,7 @@ export default function CommunityMatchingHome() {
           activeOpacity={0.8}
         >
           <Text style={styles.primaryButtonText}>Start Matching</Text>
-          <Feather name="arrow-right" size={18} color={COLORS.white} />
+          <Feather name='arrow-right' size={18} color={COLORS.white} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.secondaryButton}

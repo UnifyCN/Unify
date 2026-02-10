@@ -35,8 +35,8 @@ const ICE_BREAKER_PROMPTS: Record<number, string> = {
   1: "👋 Let's break the ice! Share one thing that surprised you about Canada.",
   3: "💼 What's your biggest challenge right now? Let's help each other!",
   7: "🎉 You're halfway through! What's one tip you've learned from this circle?",
-  10: "🌟 Share a win from this week, no matter how small!",
-  12: "📱 Only 2 days left! Consider exchanging contact info to stay in touch.",
+  10: '🌟 Share a win from this week, no matter how small!',
+  12: '📱 Only 2 days left! Consider exchanging contact info to stay in touch.',
 };
 
 const responseHeaders = {
@@ -45,22 +45,22 @@ const responseHeaders = {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST' && req.method !== 'GET') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: responseHeaders }
-    );
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: responseHeaders,
+    });
   }
 
   // Secret-based authorization - verify API key for scheduled/internal calls
   const apiKey = req.headers.get('x-api-key');
   const expectedKey = Deno.env.get('MATCHMAKE_API_KEY');
-  
+
   // Only allow requests with valid API key (for cron jobs and authorized internal calls)
   if (!expectedKey || !apiKey || apiKey !== expectedKey) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: responseHeaders }
-    );
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: responseHeaders,
+    });
   }
 
   try {
@@ -102,10 +102,10 @@ Deno.serve(async (req: Request) => {
 
     const waitlistEntries = await fetchWaitlist(supabase);
     if (waitlistEntries.length === 0) {
-      return new Response(
-        JSON.stringify({ ok: true, summary }),
-        { status: 200, headers: responseHeaders }
-      );
+      return new Response(JSON.stringify({ ok: true, summary }), {
+        status: 200,
+        headers: responseHeaders,
+      });
     }
 
     const groupedByPool = groupByPool(waitlistEntries);
@@ -235,7 +235,11 @@ async function buildGroupsForPool(
     }
 
     const group = [anchor.user_id];
-    for (let j = i + 1; j < entries.length && group.length < COMMUNITY_CIRCLE_SIZE; j++) {
+    for (
+      let j = i + 1;
+      j < entries.length && group.length < COMMUNITY_CIRCLE_SIZE;
+      j++
+    ) {
       const candidate = entries[j];
       if (used.has(candidate.user_id)) {
         continue;
@@ -282,10 +286,16 @@ async function fetchMatchHistoryForUsers(
   ]);
 
   if (userAResponse.error) {
-    console.error('Failed to fetch match history (user_a)', userAResponse.error);
+    console.error(
+      'Failed to fetch match history (user_a)',
+      userAResponse.error
+    );
   }
   if (userBResponse.error) {
-    console.error('Failed to fetch match history (user_b)', userBResponse.error);
+    console.error(
+      'Failed to fetch match history (user_b)',
+      userBResponse.error
+    );
   }
 
   const rows: MatchHistoryRow[] = [
@@ -303,8 +313,7 @@ async function fetchMatchHistoryForUsers(
 }
 
 function buildPairKey(userA: string, userB: string) {
-  const [first, second] =
-    userA < userB ? [userA, userB] : [userB, userA];
+  const [first, second] = userA < userB ? [userA, userB] : [userB, userA];
   return `${first}:${second}`;
 }
 
@@ -315,7 +324,9 @@ async function createCircleForGroup(
   timeInCanada: string,
   memberIds: string[]
 ) {
-  const endsAt = new Date(Date.now() + COMMUNITY_CIRCLE_DURATION_DAYS * DAY_IN_MS).toISOString();
+  const endsAt = new Date(
+    Date.now() + COMMUNITY_CIRCLE_DURATION_DAYS * DAY_IN_MS
+  ).toISOString();
 
   const { data: circle, error: circleError } = await supabase
     .from('community_circles')
@@ -359,15 +370,17 @@ async function createCircleForGroup(
     console.error('Failed to update waitlist statuses', waitlistError);
   }
 
-  const { error: notificationError } = await supabase.from('community_notifications').insert(
-    memberIds.map(userId => ({
-      user_id: userId,
-      type: 'circle_matched',
-      title: "You've been matched!",
-      body: 'Your Unify Circle is ready. Tap to meet your group.',
-      data: { circle_id: circleId },
-    }))
-  );
+  const { error: notificationError } = await supabase
+    .from('community_notifications')
+    .insert(
+      memberIds.map(userId => ({
+        user_id: userId,
+        type: 'circle_matched',
+        title: "You've been matched!",
+        body: 'Your Unify Circle is ready. Tap to meet your group.',
+        data: { circle_id: circleId },
+      }))
+    );
   if (notificationError) {
     console.error('Failed to record in-app notifications', notificationError);
   }
@@ -381,11 +394,13 @@ async function createCircleForGroup(
     { type: 'circle_matched', circle_id: circleId }
   );
 
-  const { error: messageError } = await supabase.from('community_messages').insert({
-    circle_id: circleId,
-    sender_user_id: null,
-    content: WELCOME_MESSAGE,
-  });
+  const { error: messageError } = await supabase
+    .from('community_messages')
+    .insert({
+      circle_id: circleId,
+      sender_user_id: null,
+      content: WELCOME_MESSAGE,
+    });
   if (messageError) {
     console.error('Failed to insert welcome message', messageError);
   }
@@ -448,15 +463,13 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
     console.error('Failed to mark circles as ended', updateError);
   }
 
-  await supabase
-    .from('community_messages')
-    .insert(
-      circleIds.map((circleId: string) => ({
-        circle_id: circleId,
-        sender_user_id: null,
-        content: CLOSING_MESSAGE,
-      }))
-    );
+  await supabase.from('community_messages').insert(
+    circleIds.map((circleId: string) => ({
+      circle_id: circleId,
+      sender_user_id: null,
+      content: CLOSING_MESSAGE,
+    }))
+  );
 
   const { data: members, error: membersError } = await supabase
     .from('community_circle_members')
@@ -469,7 +482,9 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
   }
 
   const activeMembers =
-    members?.filter((member: { left_at: string | null }) => member.left_at === null) ?? [];
+    members?.filter(
+      (member: { left_at: string | null }) => member.left_at === null
+    ) ?? [];
   if (activeMembers.length > 0) {
     await supabase.from('community_notifications').insert(
       activeMembers.map((member: { user_id: string; circle_id: string }) => ({
@@ -480,7 +495,6 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
         data: { circle_id: member.circle_id },
       }))
     );
-
   }
 
   return circleIds.length;
@@ -493,7 +507,7 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
 async function sendDay13Reminders(supabase: SupabaseClient) {
   const now = new Date();
   const in24Hours = new Date(now.getTime() + DAY_IN_MS);
-  
+
   // Find active circles that end within 24 hours and haven't received reminder yet
   const { data, error } = await supabase
     .from('community_circles')
@@ -526,7 +540,9 @@ async function sendDay13Reminders(supabase: SupabaseClient) {
   }
 
   const activeMembers =
-    members?.filter((member: { left_at: string | null }) => member.left_at === null) ?? [];
+    members?.filter(
+      (member: { left_at: string | null }) => member.left_at === null
+    ) ?? [];
 
   if (activeMembers.length > 0) {
     // Insert in-app notifications BEFORE marking as sent
@@ -543,7 +559,10 @@ async function sendDay13Reminders(supabase: SupabaseClient) {
       );
 
     if (notificationError) {
-      console.error('Failed to insert Day 13 reminder notifications', notificationError);
+      console.error(
+        'Failed to insert Day 13 reminder notifications',
+        notificationError
+      );
       // Don't mark as sent if notification insert failed
       return 0;
     }
@@ -569,7 +588,7 @@ async function sendDay13Reminders(supabase: SupabaseClient) {
  */
 async function deleteEndedCircles(supabase: SupabaseClient) {
   const gracePeriodAgo = new Date(Date.now() - HOUR_IN_MS);
-  
+
   // Find ended circles where ends_at is before the grace period
   const { data, error } = await supabase
     .from('community_circles')
@@ -616,7 +635,7 @@ async function deleteEndedCircles(supabase: SupabaseClient) {
       .from('community_notifications')
       .delete()
       .or(circleIds.map(id => `data->>circle_id.eq.${id}`).join(','));
-    
+
     if (notifError) {
       console.error('Failed to delete notifications for circles', notifError);
     }
@@ -680,7 +699,7 @@ async function sendPushNotifications(
     const batch = messages.slice(i, i + BATCH_SIZE);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    
+
     try {
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
@@ -692,9 +711,15 @@ async function sendPushNotifications(
       });
 
       if (!response.ok) {
-        console.error('Failed to send push notifications batch', i, await response.text());
+        console.error(
+          'Failed to send push notifications batch',
+          i,
+          await response.text()
+        );
       } else {
-        console.log(`Sent batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.length} push notifications`);
+        console.log(
+          `Sent batch ${Math.floor(i / BATCH_SIZE) + 1}: ${batch.length} push notifications`
+        );
       }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -711,7 +736,9 @@ async function sendPushNotifications(
 /**
  * Send ice breaker prompts to circles based on their age
  */
-async function sendIceBreakerPrompts(supabase: SupabaseClient): Promise<number> {
+async function sendIceBreakerPrompts(
+  supabase: SupabaseClient
+): Promise<number> {
   const now = new Date();
   let promptsSent = 0;
 
@@ -779,4 +806,3 @@ async function sendIceBreakerPrompts(supabase: SupabaseClient): Promise<number> 
 
   return promptsSent;
 }
-

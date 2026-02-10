@@ -14,8 +14,7 @@ function mergeChecklistWithUserTasks(
 ): UserTaskWithDetails[] {
   const bySanityId = new Map<string, UserTaskWithDetails>();
   rows.forEach(r => {
-    if (r.sanity_checklist_id)
-      bySanityId.set(r.sanity_checklist_id, r);
+    if (r.sanity_checklist_id) bySanityId.set(r.sanity_checklist_id, r);
   });
 
   return items.map(item => {

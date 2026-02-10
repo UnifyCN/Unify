@@ -31,7 +31,9 @@ export default function TasksEntryScreen() {
     getTaskProgressBySubmodule(submoduleId).then(progressRows => {
       if (cancelled) return;
       const completedIds = new Set(
-        (progressRows || []).filter(r => r.is_completed).map(r => r.sanity_task_id)
+        (progressRows || [])
+          .filter(r => r.is_completed)
+          .map(r => r.sanity_task_id)
       );
       const firstIncomplete = sorted.find(t => !completedIds.has(t._id));
       const target = firstIncomplete ?? sorted[0];
@@ -57,7 +59,7 @@ export default function TasksEntryScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size='large' color='#10B981' />
           <Text style={styles.loadingText}>Loading tasks...</Text>
         </View>
       </SafeAreaView>
@@ -93,7 +95,7 @@ export default function TasksEntryScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size='large' color='#10B981' />
         <Text style={styles.loadingText}>Opening tasks...</Text>
       </View>
     </SafeAreaView>

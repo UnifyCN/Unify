@@ -125,12 +125,15 @@ const GroupsForYouSection = () => {
     queryFn: getAvailableGroups,
   });
   const featuredGroups = (groups ?? []).slice(0, 10);
-  const groupedColumns = featuredGroups.reduce<Group[][]>((acc, group, index) => {
-    const columnIndex = Math.floor(index / 2);
-    if (!acc[columnIndex]) acc[columnIndex] = [];
-    acc[columnIndex].push(group);
-    return acc;
-  }, []);
+  const groupedColumns = featuredGroups.reduce<Group[][]>(
+    (acc, group, index) => {
+      const columnIndex = Math.floor(index / 2);
+      if (!acc[columnIndex]) acc[columnIndex] = [];
+      acc[columnIndex].push(group);
+      return acc;
+    },
+    []
+  );
 
   const handleGroupPress = (group: Group) => {
     router.push({
@@ -197,7 +200,10 @@ const GroupsForYouSection = () => {
         <Text style={styles.headerText}>Groups for You</Text>
         <Pressable
           onPress={() => router.push('/see-more-groups')}
-          style={({ pressed }) => [styles.seeAllButton, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.seeAllButton,
+            pressed && styles.pressed,
+          ]}
         >
           <Text style={styles.seeAllText}>See all</Text>
           <Feather name='chevron-right' size={16} color='#6A6A6A' />
@@ -280,7 +286,10 @@ export default function GatherScreen() {
       <Header />
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={styles.entryWrapper}>
             <CommunityMatchingEntryCard
               onPress={() => router.push('/community-matching')}

@@ -93,9 +93,7 @@ export default function EditNamePage() {
             </TouchableOpacity>
           )}
         </View>
-        <Text style={styles.characterCount}>
-          {username.length}/20
-        </Text>
+        <Text style={styles.characterCount}>{username.length}/20</Text>
         <Text style={styles.description}>
           Only letters, numbers, and spaces allowed.
         </Text>
