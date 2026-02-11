@@ -22,6 +22,178 @@ type QueryType =
   | 'fact_check'
   | 'form_help';
 
+const FETCH_TIMEOUT_MS = 20000;
+const MAX_FETCH_RETRIES = 2;
+const RETRY_DELAY_MS = 400;
+const EMBEDDING_MODEL =
+  Deno.env.get('OPENAI_EMBEDDING_MODEL') || 'text-embedding-3-small';
+
+const INVALID_ASSISTANT_LED_PATTERNS: RegExp[] = [
+  /^would you like\b/i,
+  /^do you want\b/i,
+  /^can i\b/i,
+  /^what kind of information are you looking for\b/i,
+  /^what are you looking for\b/i,
+  /^how can i help\b/i,
+  /^what would you like\b/i,
+  /\blet me know\b/i,
+  /\bi can help\b/i,
+  /\bwould you like me to\b/i,
+];
+
+const USER_QUESTION_STARTS = [
+  'what',
+  'how',
+  'can',
+  'should',
+  'when',
+  'where',
+  'why',
+  'which',
+  'is',
+  'are',
+  'do',
+  'does',
+  'could',
+  'would',
+  'who',
+];
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  options?: { timeoutMs?: number; retries?: number; retryDelayMs?: number }
+): Promise<Response> {
+  const timeoutMs = options?.timeoutMs ?? FETCH_TIMEOUT_MS;
+  const retries = options?.retries ?? MAX_FETCH_RETRIES;
+  const retryDelayMs = options?.retryDelayMs ?? RETRY_DELAY_MS;
+
+  let attempt = 0;
+  let lastError: unknown;
+
+  while (attempt <= retries) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        ...init,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        return response;
+      }
+
+      const retriable = response.status >= 500 || response.status === 429;
+      if (!retriable || attempt === retries) {
+        return response;
+      }
+    } catch (error) {
+      clearTimeout(timeoutId);
+      lastError = error;
+
+      if (attempt === retries) {
+        throw error;
+      }
+    }
+
+    attempt += 1;
+    await sleep(retryDelayMs * attempt);
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Request failed after retries');
+}
+
+function sanitizeSuggestedNextSteps(suggestions: string[]): string[] {
+  if (!suggestions || suggestions.length === 0) return [];
+
+  const deduped = new Set<string>();
+
+  return suggestions
+    .map(s => s.replace(/^[\s"'`-]+|[\s"'`]+$/g, '').trim())
+    .filter(s => s.length >= 10)
+    .filter(s => !INVALID_ASSISTANT_LED_PATTERNS.some(pattern => pattern.test(s)))
+    .map(s => {
+      const lower = s.toLowerCase();
+      const startsLikeQuestion = USER_QUESTION_STARTS.some(word =>
+        lower.startsWith(`${word} `)
+      );
+      if (startsLikeQuestion && !s.endsWith('?')) {
+        return `${s}?`;
+      }
+      return s;
+    })
+    .filter(s => s.endsWith('?'))
+    .filter(s => {
+      const key = s.toLowerCase();
+      if (deduped.has(key)) return false;
+      deduped.add(key);
+      return true;
+    })
+    .slice(0, 3);
+}
+
+function buildUserProfileContext(profile: Record<string, unknown>): string {
+  const {
+    id,
+    created_at,
+    updated_at,
+    onboarding_completed,
+    onboarding_completed_at,
+    ...relevantProfile
+  } = profile;
+
+  const cleanedProfile: Record<string, unknown> = {};
+  Object.entries(relevantProfile).forEach(([key, value]) => {
+    if (value === null || value === undefined) return;
+    if (Array.isArray(value) && value.length === 0) return;
+    if (typeof value === 'string' && value.trim() === '') return;
+    cleanedProfile[key] = value;
+  });
+
+  if (Object.keys(cleanedProfile).length === 0) {
+    return '';
+  }
+
+  return `\nUSER PROFILE CONTEXT:
+${JSON.stringify(cleanedProfile, null, 2)}
+
+Use this profile context to personalize your response when it is relevant to the user's question.`;
+}
+
+async function resolveAuthenticatedUserId(
+  req: Request,
+  supabaseUrl: string,
+  supabaseServiceKey: string
+): Promise<string | null> {
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return null;
+
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') || supabaseServiceKey;
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const {
+    data: { user },
+    error,
+  } = await authClient.auth.getUser();
+
+  if (error || !user) {
+    console.warn('Unable to resolve authenticated user from JWT');
+    return null;
+  }
+
+  return user.id;
+}
+
 // ============================================================================
 // CLASSIFIER FUNCTION
 // ============================================================================
@@ -65,7 +237,7 @@ Examples:
 - "Tell me a joke" → general`;
 
   try {
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
@@ -86,7 +258,8 @@ Examples:
             temperature: 0,
           },
         }),
-      }
+      },
+      { timeoutMs: 12000, retries: 1, retryDelayMs: 300 }
     );
 
     if (!response.ok) {
@@ -122,7 +295,12 @@ Examples:
 const SUGGESTIONS_INSTRUCTION = `
 
 SUGGESTED NEXT STEPS:
-At the very end of your response, suggest 2-3 brief follow-up questions the user might want to ask next. These should be natural continuations of the conversation.
+At the very end of your response, suggest 2-3 brief follow-up questions the user might ask YOU next. These should be natural continuations of the conversation.
+Each suggestion must be written from the user's perspective (a direct question to the assistant).
+DO NOT write assistant-to-user prompts like:
+- "Would you like me to..."
+- "What kind of information are you looking for today?"
+- "Do you want help with..."
 Format them on a new line starting with "[SUGGESTIONS]:" followed by the questions separated by "|".
 Example: [SUGGESTIONS]: How do I open a TFSA? | What's the contribution limit? | Can I withdraw anytime?`;
 
@@ -148,7 +326,7 @@ Structure your response using these sections:
 2-3 sentences of essential context. Only include what the user truly needs to know. Use simple, newcomer-friendly language. Explain acronyms briefly (e.g., "TFSA" = Tax-Free Savings Account).
 
 ## What You Can Do Next
-One actionable step OR one follow-up question like "Would you like me to explain how to open one?" Keep it to 1-2 lines.
+One actionable step OR a user-action prompt (for example: "You can ask: 'How do I open one step by step?'"). Keep it to 1-2 lines.
 
 ## Important Notes
 One key caveat only: "${STANDARD_DISCLAIMER}"
@@ -179,7 +357,7 @@ Structure your response using these sections:
 2-3 sentences of essential context. Only include what the user truly needs to know. Use simple, newcomer-friendly language. Explain acronyms briefly.
 
 ## What You Can Do Next
-One actionable step OR one follow-up question like "Would you like me to explain more?" Keep it to 1-2 lines.
+One actionable step OR a user-action prompt (for example: "You can ask: 'Can you explain this in simpler terms?'"). Keep it to 1-2 lines.
 
 ## Important Notes
 "${NO_KB_HITS_DISCLAIMER}" "${STANDARD_DISCLAIMER}"
@@ -287,18 +465,23 @@ function parseSuggestionsFromResponse(answer: string): {
   cleanAnswer: string;
   suggestions: string[];
 } {
-  const suggestionsMatch = answer.match(/\[SUGGESTIONS\]:\s*(.+)$/im);
+  const suggestionsMatch = answer.match(/\[SUGGESTIONS\]:\s*([\s\S]*)$/im);
 
   if (suggestionsMatch) {
     const suggestionsText = suggestionsMatch[1].trim();
-    const suggestions = suggestionsText
+    const rawSuggestions = suggestionsText
+      .replace(/\n+/g, ' ')
       .split('|')
       .map(s => s.trim())
       .filter(s => s.length > 0)
-      .slice(0, 3); // Max 3 suggestions
+      .slice(0, 6);
+
+    const suggestions = sanitizeSuggestedNextSteps(rawSuggestions);
 
     // Remove the suggestions line from the answer
-    const cleanAnswer = answer.replace(/\[SUGGESTIONS\]:\s*(.+)$/im, '').trim();
+    const cleanAnswer = answer
+      .replace(/\[SUGGESTIONS\]:\s*([\s\S]*)$/im, '')
+      .trim();
 
     return { cleanAnswer, suggestions };
   }
@@ -312,25 +495,70 @@ function parseSuggestionsFromResponse(answer: string): {
 
 Deno.serve(async (req: Request) => {
   try {
-    const { prompt, conversationIdentifier, messages } = await req.json();
-    console.log('Question asked:', prompt);
-    console.log('Conversation identifier:', conversationIdentifier);
-    console.log('Previous messages count:', messages?.length || 0);
+    const {
+      prompt,
+      conversationIdentifier,
+      messages,
+      userId: requestUserId,
+    } = await req.json();
+
+    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
     const apiKey = Deno.env.get('GEMINI_API_KEY');
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
+    if (!apiKey) {
+      throw new Error('Missing GEMINI_API_KEY');
+    }
+
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const authenticatedUserId = await resolveAuthenticatedUserId(
+      req,
+      supabaseUrl,
+      supabaseServiceKey
+    );
+    const effectiveUserId = authenticatedUserId || null;
+
+    if (requestUserId && authenticatedUserId && requestUserId !== authenticatedUserId) {
+      console.warn('Ignoring mismatched request userId and authenticated user');
+    }
+
+    // Fetch user onboarding profile securely from JWT-derived user id
+    let userProfileContext = '';
+    if (effectiveUserId) {
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('user_onboarding_profiles')
+          .select('*')
+          .eq('id', effectiveUserId)
+          .maybeSingle();
+
+        if (!profileError && profile) {
+          userProfileContext = buildUserProfileContext(profile);
+          console.log(
+            'User profile context loaded:',
+            userProfileContext.length > 0
+          );
+        }
+      } catch (profileFetchError) {
+        console.error('Failed to fetch user onboarding profile context');
+      }
+    }
 
     // ========================================================================
     // STEP 1: CLASSIFY THE QUERY (runs BEFORE embeddings to save costs)
     // ========================================================================
-    const queryType = await classifyQuery(prompt, apiKey!, model);
+    const queryType = await classifyQuery(prompt.trim(), apiKey!, model);
     console.log('Query classified as:', queryType);
 
     // Determine if we need RAG (knowledge base search)
@@ -356,89 +584,99 @@ Deno.serve(async (req: Request) => {
       // Use RAG pipeline for immigration-related queries
       console.log('Routing to RAG pipeline for query type:', queryType);
 
-      // Generate embedding for user query
-      const embeddingResponse = await fetch(
-        'https://api.openai.com/v1/embeddings',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${openaiApiKey}`,
-          },
-          body: JSON.stringify({
-            model: 'text-embedding-ada-002',
-            input: prompt,
-          }),
-        }
-      );
-
-      if (!embeddingResponse.ok) {
-        throw new Error(
-          `OpenAI embedding API error: ${embeddingResponse.statusText}`
+      if (!openaiApiKey) {
+        console.warn(
+          'OPENAI_API_KEY is missing. Proceeding without KB retrieval for this request.'
         );
-      }
-
-      const embeddingData = await embeddingResponse.json();
-      const queryEmbedding = embeddingData.data[0].embedding;
-
-      // Search for similar chunks in database
-      let { data: chunks, error: searchError } = await supabase.rpc(
-        'match_chunks',
-        {
-          query_embedding: queryEmbedding,
-          match_threshold: 0.3,
-          match_count: 10,
-        }
-      );
-
-      console.log(`Chunks received for "${prompt}":`, chunks?.length || 0);
-
-      if (searchError) {
-        console.error('RPC function error:', searchError);
-        const { data: fallbackChunks, error: fallbackError } =
-          await supabase.rpc('match_chunks', {
-            query_embedding: queryEmbedding,
-            match_threshold: 0.0,
-            match_count: 10,
-          });
-        if (!fallbackError && fallbackChunks) {
-          chunks = fallbackChunks;
-        }
-      }
-
-      // Build context from retrieved chunks
-      const sourcesMap = new Map<
-        number,
-        { document_id: number; document_title: string; url: string }
-      >();
-
-      const s3BucketName = Deno.env.get('S3_BUCKET_NAME') || 'your-bucket-name';
-      const s3Region = Deno.env.get('S3_REGION');
-
-      hasGoodKBHits = chunks && chunks.length > 0;
-
-      if (hasGoodKBHits) {
-        chunks.forEach((chunk: any) => {
-          const doc = chunk.knowledge_documents || {};
-          contextText += `[Document: ${doc.title || 'Unknown'}]\n${chunk.chunk_text}\n\n`;
-
-          if (!sourcesMap.has(chunk.document_id)) {
-            const storagePath = doc.storage_path || '';
-            const s3Url = `https://${s3BucketName}.s3.${s3Region}.amazonaws.com/${storagePath}`;
-
-            sourcesMap.set(chunk.document_id, {
-              document_id: chunk.document_id,
-              document_title: doc.title || 'Unknown',
-              url: s3Url,
-            });
-          }
-        });
-
-        sources = Array.from(sourcesMap.values());
-        disclaimer = STANDARD_DISCLAIMER;
       } else {
-        disclaimer = `${NO_KB_HITS_DISCLAIMER} ${STANDARD_DISCLAIMER}`;
+        // Generate embedding for user query
+        const embeddingResponse = await fetchWithRetry(
+          'https://api.openai.com/v1/embeddings',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${openaiApiKey}`,
+            },
+            body: JSON.stringify({
+              model: EMBEDDING_MODEL,
+              input: prompt,
+            }),
+          },
+          { timeoutMs: 15000, retries: 2, retryDelayMs: 400 }
+        );
+
+        if (!embeddingResponse.ok) {
+          throw new Error(
+            `OpenAI embedding API error: ${embeddingResponse.statusText}`
+          );
+        }
+
+        const embeddingData = await embeddingResponse.json();
+        const queryEmbedding = embeddingData.data[0].embedding;
+
+        // Search for similar chunks in database
+        let { data: chunks, error: searchError } = await supabase.rpc(
+          'match_chunks',
+          {
+            query_embedding: queryEmbedding,
+            match_threshold: 0.3,
+            match_count: 10,
+          }
+        );
+
+        console.log(`Chunks received for "${prompt}":`, chunks?.length || 0);
+
+        if (searchError) {
+          console.error('RPC function error:', searchError);
+          chunks = [];
+        }
+
+        // Build context from retrieved chunks
+        const sourcesMap = new Map<
+          number,
+          { document_id: number; document_title: string; url: string }
+        >();
+
+        const s3BucketName =
+          Deno.env.get('S3_BUCKET_NAME') || 'your-bucket-name';
+        const s3Region = Deno.env.get('S3_REGION');
+
+        hasGoodKBHits = chunks && chunks.length > 0;
+
+        if (hasGoodKBHits) {
+          chunks.forEach((chunk: any) => {
+            const doc = chunk.knowledge_documents || {};
+            contextText += `[Document: ${doc.title || 'Unknown'}]\n${chunk.chunk_text}\n\n`;
+
+            if (!sourcesMap.has(chunk.document_id)) {
+              const storagePath = doc.storage_path || '';
+              const hasSourceConfig =
+                !!s3BucketName &&
+                s3BucketName !== 'your-bucket-name' &&
+                !!s3Region &&
+                !!storagePath;
+              const s3Url = hasSourceConfig
+                ? `https://${s3BucketName}.s3.${s3Region}.amazonaws.com/${storagePath}`
+                : '';
+
+              sourcesMap.set(chunk.document_id, {
+                document_id: chunk.document_id,
+                document_title: doc.title || 'Unknown',
+                url:
+                  s3Url ||
+                  'https://www.canada.ca/en/immigration-refugees-citizenship.html',
+              });
+            }
+          });
+
+          sources = Array.from(sourcesMap.values());
+          disclaimer = STANDARD_DISCLAIMER;
+        }
       }
+      disclaimer = hasGoodKBHits
+        ? disclaimer
+        : `${NO_KB_HITS_DISCLAIMER} ${STANDARD_DISCLAIMER}`;
     } else {
       console.log(
         'Routing to general response (no RAG) for query type:',
@@ -484,26 +722,29 @@ Deno.serve(async (req: Request) => {
     }
 
     // Add preprompt if available
-    const fullSystemInstruction = preprompt
+    let fullSystemInstruction = preprompt
       ? `${preprompt}\n\n${systemInstruction}`
       : systemInstruction;
+    if (userProfileContext) {
+      fullSystemInstruction = `${fullSystemInstruction}\n\n${userProfileContext}`;
+    }
 
     // ========================================================================
     // STEP 5: BUILD REQUEST AND CALL GEMINI
     // ========================================================================
-    const contents = [];
-    contents.push(...conversationHistory);
-
-    const currentPrompt = `${fullSystemInstruction}\n\nUser question: ${prompt}`;
+    const contents = [...conversationHistory];
     contents.push({
       role: 'user',
-      parts: [{ text: currentPrompt }],
+      parts: [{ text: prompt }],
     });
 
     const requestBody = {
+      systemInstruction: {
+        parts: [{ text: fullSystemInstruction }],
+      },
       contents: contents,
       generationConfig: {
-        maxOutputTokens: 1200, // Increased for suggestions
+        maxOutputTokens: 1200,
       },
     };
 
@@ -512,13 +753,14 @@ Deno.serve(async (req: Request) => {
     console.log('- Query type:', queryType);
     console.log('- Has good KB hits:', hasGoodKBHits);
 
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
-      }
+      },
+      { timeoutMs: 20000, retries: 2, retryDelayMs: 500 }
     );
 
     if (!response.ok) {

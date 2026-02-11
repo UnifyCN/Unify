@@ -8,10 +8,10 @@ import {
   StyleSheet,
   Dimensions,
   Keyboard,
-  Pressable,
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
@@ -94,6 +94,7 @@ export default function CompanionScreen() {
   >(null);
 
   const [inputText, setInputText] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const emptyStateTopPadding = Math.max(
@@ -181,6 +182,26 @@ export default function CompanionScreen() {
 
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
+
+  // Track keyboard visibility so iOS uses interactive dismiss only when keyboard is open.
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () =>
+      setIsKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(hideEvent, () =>
+      setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
@@ -281,14 +302,23 @@ export default function CompanionScreen() {
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
+  const handleNewChatPress = useCallback(() => {
+    setCurrentConversationId(null);
+    setGreetingMessage(null);
+    setInputText('');
+    previousMessageCountRef.current = 0;
+    Keyboard.dismiss();
+    router.replace('/(tabs)/companion' as any);
+  }, [router]);
+
   return (
-    <Pressable style={styles.container} onPress={Keyboard.dismiss}>
+    <View style={styles.container}>
       <View style={styles.contentWrapper}>
         {/* Header */}
         <CompanionHeader
           title='AI Companion'
           showBackButton={false}
-          rightButton={
+          leftButton={
             <TouchableOpacity
               onPress={() => {
                 router.push('/(tabs)/companion/history' as any);
@@ -298,6 +328,15 @@ export default function CompanionScreen() {
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <HistoryIcon width={20} height={20} />
+            </TouchableOpacity>
+          }
+          rightButton={
+            <TouchableOpacity
+              onPress={handleNewChatPress}
+              style={styles.headerButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name='plus' size={22} color='#000' />
             </TouchableOpacity>
           }
         />
@@ -332,11 +371,24 @@ export default function CompanionScreen() {
             contentContainerStyle={styles.messagesContent}
             ListFooterComponent={renderLoadingIndicator}
             keyboardShouldPersistTaps='handled'
+            keyboardDismissMode={
+              Platform.OS === 'ios'
+                ? isKeyboardVisible
+                  ? 'interactive'
+                  : 'none'
+                : 'on-drag'
+            }
+            onScrollBeginDrag={
+              Platform.OS === 'ios' ? undefined : Keyboard.dismiss
+            }
             initialNumToRender={10}
             maxToRenderPerBatch={8}
             windowSize={7}
             updateCellsBatchingPeriod={50}
-            removeClippedSubviews={Platform.OS === 'android'}
+            nestedScrollEnabled={Platform.OS === 'android'}
+            // Keep clipping disabled to avoid truncation/scroll lock for long rich bot responses on Android.
+            // Repro observed in Companion screen after response render with dynamic markdown content.
+            removeClippedSubviews={false}
           />
         )}
       </View>
@@ -397,7 +449,7 @@ export default function CompanionScreen() {
           </View>
         </View>
       </KeyboardStickyView>
-    </Pressable>
+    </View>
   );
 }
 
