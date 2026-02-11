@@ -23,11 +23,12 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import RequestGroupModal from '@/components/groups/RequestGroupModal';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
+import { Theme } from '@/constants/Theme';
 
 const GROUP_CARD_GAP = 12;
 const SECTION_HORIZONTAL_PADDING = 20;
-const GROUP_IMAGE_SIZE = 52;
-const GROUP_CARD_HEIGHT = 84;
+const GROUP_IMAGE_SIZE = 57;
+const GROUP_CARD_HEIGHT = 82;
 const STACK_CARD_GAP = 10;
 
 const GroupCoverImage = memo(({ group }: { group: Group }) => {
@@ -146,7 +147,7 @@ const GroupsForYouSection = () => {
     return (
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.headerText}>Groups for You</Text>
+          <Text style={styles.headerText}>Join Groups</Text>
         </View>
         <ScrollView
           horizontal
@@ -173,7 +174,7 @@ const GroupsForYouSection = () => {
     return (
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.headerText}>Groups for You</Text>
+          <Text style={styles.headerText}>Join Groups</Text>
         </View>
         <View style={styles.emptyStateContainer}>
           <Pressable
@@ -197,7 +198,7 @@ const GroupsForYouSection = () => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.headerText}>Groups for You</Text>
+        <Text style={styles.headerText}>Join Groups</Text>
         <Pressable
           onPress={() => router.push('/see-more-groups')}
           style={({ pressed }) => [
@@ -371,20 +372,21 @@ const styles = StyleSheet.create({
     gap: STACK_CARD_GAP,
   },
   discoveryCard: {
+    backgroundColor: Theme.white,
+    borderColor: '#CDCBCB',
+    borderWidth: 1,
     borderRadius: 16,
     paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 6,
+    paddingVertical: 12,
     height: GROUP_CARD_HEIGHT,
-    backgroundColor: '#F7F7F7',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 16,
   },
   discoveryImageWrap: {
     width: GROUP_IMAGE_SIZE,
     height: GROUP_IMAGE_SIZE,
-    borderRadius: 10,
+    borderRadius: 999,
     overflow: 'hidden',
     backgroundColor: '#EFEFEF',
   },
@@ -405,16 +407,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   discoveryCardTitle: {
-    fontSize: 16,
+    fontSize: 14,
     lineHeight: 20,
     fontWeight: '600',
-    color: '#111',
-    marginBottom: 1,
+    color: Theme.black,
+    marginBottom: 2,
   },
   discoveryCardDescription: {
-    fontSize: 13,
-    lineHeight: 17,
-    color: '#6A6A6A',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '400',
+    color: Theme.black,
   },
   emptyStateContainer: {
     paddingHorizontal: 20,
@@ -425,10 +428,12 @@ const styles = StyleSheet.create({
   },
   requestButton: {
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#CDCBCB',
     paddingVertical: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7F7F7',
+    backgroundColor: Theme.white,
   },
   requestButtonText: {
     fontSize: 15,
@@ -438,7 +443,7 @@ const styles = StyleSheet.create({
   skeletonThumb: {
     width: GROUP_IMAGE_SIZE,
     height: GROUP_IMAGE_SIZE,
-    borderRadius: 10,
+    borderRadius: 999,
     backgroundColor: '#E9E9E9',
   },
   skeletonTitle: {

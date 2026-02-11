@@ -20,14 +20,12 @@ const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
         />
       </View>
       <View style={styles.groupContent}>
-        <Text style={styles.groupTitle} numberOfLines={2}>
+        <Text style={styles.groupTitle} numberOfLines={1}>
           {group.name}
         </Text>
-        <View style={styles.groupDetail}>
-          <Text style={styles.groupDetailText} numberOfLines={2}>
-            {group.description ?? ''}
-          </Text>
-        </View>
+        <Text style={styles.groupDetailText} numberOfLines={2}>
+          {group.description ?? ''}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -35,22 +33,30 @@ const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
 
 const styles = StyleSheet.create({
   groupCard: {
+    backgroundColor: Theme.white,
+    borderColor: '#CDCBCB',
+    borderWidth: 1,
+    borderRadius: 16,
     overflow: 'hidden',
     flexDirection: 'row',
     width: '100%',
-    minHeight: 58,
-    alignItems: 'flex-start',
+    minHeight: 82,
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   imageContainer: {
-    height: 58,
-    width: 58,
+    height: 57,
+    width: 57,
+    borderRadius: 999,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 16,
   },
   groupContent: {
-    paddingHorizontal: 12,
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   groupTitle: {
     fontSize: 14,
@@ -58,13 +64,11 @@ const styles = StyleSheet.create({
     color: Theme.black,
     lineHeight: 20,
   },
-  groupDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
   groupDetailText: {
     fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 20,
+    marginTop: 2,
     color: Theme.black,
     flex: 1,
   },
