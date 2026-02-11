@@ -129,82 +129,28 @@ function AppContent() {
 
   return (
     <Stack>
-      <Stack.Screen
-        name='(tabs)'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='account-settings'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='edit-name'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='profile'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='saved'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='reset-password'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='post-details'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='notifications'
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+      <Stack.Screen name='account-settings' options={{ headerShown: false }} />
+      <Stack.Screen name='edit-name' options={{ headerShown: false }} />
+      <Stack.Screen name='profile' options={{ headerShown: false }} />
+      <Stack.Screen name='saved' options={{ headerShown: false }} />
+      <Stack.Screen name='reset-password' options={{ headerShown: false }} />
+      <Stack.Screen name='post-details' options={{ headerShown: false }} />
+      <Stack.Screen name='notifications' options={{ headerShown: false }} />
       <Stack.Screen
         name='community-matching'
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name='legal-document'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='search'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='group-detail'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='see-more-posts'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='see-more-groups'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='news-detail'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='news-tips'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='event-detail'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='events'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='create-post'
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name='legal-document' options={{ headerShown: false }} />
+      <Stack.Screen name='search' options={{ headerShown: false }} />
+      <Stack.Screen name='group-detail' options={{ headerShown: false }} />
+      <Stack.Screen name='see-more-posts' options={{ headerShown: false }} />
+      <Stack.Screen name='see-more-groups' options={{ headerShown: false }} />
+      <Stack.Screen name='news-detail' options={{ headerShown: false }} />
+      <Stack.Screen name='news-tips' options={{ headerShown: false }} />
+      <Stack.Screen name='event-detail' options={{ headerShown: false }} />
+      <Stack.Screen name='events' options={{ headerShown: false }} />
+      <Stack.Screen name='create-post' options={{ headerShown: false }} />
       <Stack.Screen name='+not-found' />
     </Stack>
   );

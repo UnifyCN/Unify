@@ -53,10 +53,9 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const { currentUser } = useCurrentUser();
   const { data: userInfo } = useUserInfo(userId);
   const isCurrentUser = currentUser?.id === userId;
-  const usePostsFeedHook = useCallback(
-    useUserPosts.bind(null, userId),
-    [userId]
-  );
+  const usePostsFeedHook = useCallback(useUserPosts.bind(null, userId), [
+    userId,
+  ]);
   const useCommentsFeedHook = useCallback(
     useCommentedOnFeed.bind(null, userId),
     [userId]

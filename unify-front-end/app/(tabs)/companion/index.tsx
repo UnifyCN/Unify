@@ -282,10 +282,7 @@ export default function CompanionScreen() {
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
   return (
-    <Pressable
-      style={styles.container}
-      onPress={Keyboard.dismiss}
-    >
+    <Pressable style={styles.container} onPress={Keyboard.dismiss}>
       <View style={styles.contentWrapper}>
         {/* Header */}
         <CompanionHeader
@@ -311,7 +308,9 @@ export default function CompanionScreen() {
             <ActivityIndicator size='large' color={Theme.surfaceBlue} />
           </View>
         ) : showEmptyState ? (
-          <View style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}>
+          <View
+            style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}
+          >
             <View style={styles.dottedLineContainer} pointerEvents='none'>
               <BlueDottedLine
                 width={dottedLineWidth}
@@ -332,7 +331,7 @@ export default function CompanionScreen() {
             style={styles.messagesList}
             contentContainerStyle={styles.messagesContent}
             ListFooterComponent={renderLoadingIndicator}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps='handled'
             initialNumToRender={10}
             maxToRenderPerBatch={8}
             windowSize={7}
@@ -340,7 +339,6 @@ export default function CompanionScreen() {
             removeClippedSubviews={Platform.OS === 'android'}
           />
         )}
-
       </View>
 
       <KeyboardStickyView

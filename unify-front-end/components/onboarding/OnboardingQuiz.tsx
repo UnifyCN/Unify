@@ -367,9 +367,17 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
                 label: 'Jobs & career',
                 icon: 'briefcase',
               },
-              { value: 'finance', label: 'Money & banking', icon: 'credit-card' },
+              {
+                value: 'finance',
+                label: 'Money & banking',
+                icon: 'credit-card',
+              },
               { value: 'housing', label: 'Housing', icon: 'home' },
-              { value: 'pr_immigration', label: 'PR & immigration', icon: 'globe' },
+              {
+                value: 'pr_immigration',
+                label: 'PR & immigration',
+                icon: 'globe',
+              },
               {
                 value: 'healthcare',
                 label: 'Healthcare',
@@ -381,7 +389,12 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
                 label: 'Transit',
                 icon: 'map-pin',
               },
-              { value: 'other', label: 'Other', hasOther: true, icon: 'more-horizontal' },
+              {
+                value: 'other',
+                label: 'Other',
+                hasOther: true,
+                icon: 'more-horizontal',
+              },
             ]}
             selectedValues={learningInterests}
             otherValue={learningInterestsOther}
@@ -551,10 +564,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       </ScrollView>
 
       <View
-        style={[
-          styles.navContainer,
-          { paddingBottom: 20 + insets.bottom },
-        ]}
+        style={[styles.navContainer, { paddingBottom: 20 + insets.bottom }]}
       >
         {currentStep > 1 && currentStep < 10 && (
           <TouchableOpacity

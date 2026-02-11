@@ -88,9 +88,7 @@ export default function NotificationsScreen() {
 
       // Circle → go to circle
       if (data?.circle_id) {
-        router.push(
-          `/community-matching/circle/${data.circle_id}` as Href
-        );
+        router.push(`/community-matching/circle/${data.circle_id}` as Href);
       }
     },
     [markAsRead, router]
@@ -106,17 +104,31 @@ export default function NotificationsScreen() {
         onPress={() => handleNotificationPress(item)}
         activeOpacity={0.7}
       >
-        <View style={[styles.iconContainer, isUnread && styles.iconContainerUnread]}>
-          <Feather name={iconName as any} size={22} color={isUnread ? Theme.primaryGatherRed : '#6E6E6E'} />
+        <View
+          style={[styles.iconContainer, isUnread && styles.iconContainerUnread]}
+        >
+          <Feather
+            name={iconName as any}
+            size={22}
+            color={isUnread ? Theme.primaryGatherRed : '#6E6E6E'}
+          />
         </View>
         <View style={styles.content}>
           <View style={styles.titleRow}>
-            <Text style={[styles.title, isUnread && styles.titleUnread]} numberOfLines={1}>
+            <Text
+              style={[styles.title, isUnread && styles.titleUnread]}
+              numberOfLines={1}
+            >
               {item.title}
             </Text>
-            <Text style={styles.timestamp}>{formatRelativeTime(item.created_at)}</Text>
+            <Text style={styles.timestamp}>
+              {formatRelativeTime(item.created_at)}
+            </Text>
           </View>
-          <Text style={[styles.body, isUnread && styles.bodyUnread]} numberOfLines={2}>
+          <Text
+            style={[styles.body, isUnread && styles.bodyUnread]}
+            numberOfLines={2}
+          >
             {item.body}
           </Text>
         </View>
@@ -129,17 +141,18 @@ export default function NotificationsScreen() {
     <View style={styles.emptyContainer}>
       <View style={styles.emptyState}>
         <View style={styles.emptyIconCircle}>
-          <Feather name="bell-off" size={40} color="#D0D0D0" />
+          <Feather name='bell-off' size={40} color='#D0D0D0' />
         </View>
         <Text style={styles.emptyTitle}>No Notifications Yet</Text>
         <Text style={styles.emptyBody}>
-          You'll get updates about new activity like follows, likes, comments, and other important moments.
+          You'll get updates about new activity like follows, likes, comments,
+          and other important moments.
         </Text>
       </View>
     </View>
   );
 
-  const MarkAllButton = () => (
+  const MarkAllButton = () =>
     unreadCount > 0 ? (
       <TouchableOpacity
         onPress={markAllAsRead}
@@ -147,13 +160,12 @@ export default function NotificationsScreen() {
         style={styles.markAllButton}
       >
         {isMarkingAllAsRead ? (
-          <ActivityIndicator size="small" color={Theme.primaryGatherRed} />
+          <ActivityIndicator size='small' color={Theme.primaryGatherRed} />
         ) : (
           <Text style={styles.markAllText}>Mark all read</Text>
         )}
       </TouchableOpacity>
-    ) : null
-  );
+    ) : null;
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -161,15 +173,15 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.root}>
-      <BackHeader 
-        title="" 
-        onBack={() => router.back()} 
+      <BackHeader
+        title=''
+        onBack={() => router.back()}
         rightButton={<MarkAllButton />}
       />
 
       <FlatList
         data={notifications}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => item.id}
         renderItem={renderNotification}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={

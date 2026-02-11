@@ -89,7 +89,7 @@ export default function TabLayout() {
             if (isTabSwitch && hapticsEnabled) {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
-            
+
             // Track tab switch
             if (isTabSwitch) {
               trackTabSwitch(

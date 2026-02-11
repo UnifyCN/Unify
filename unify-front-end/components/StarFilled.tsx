@@ -7,7 +7,10 @@ type Props = {
   color?: string; // color de relleno
 };
 
-export default function StarFilled({ size = 32, color = Theme.primaryGatherRed }: Props) {
+export default function StarFilled({
+  size = 32,
+  color = Theme.primaryGatherRed,
+}: Props) {
   return (
     <Svg
       width={size}

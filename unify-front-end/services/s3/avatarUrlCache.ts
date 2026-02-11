@@ -101,7 +101,9 @@ const setWithCap = <T>(
   }
 };
 
-export const clearAvatarUrlCache = (profilePictureUrl: string | null): void => {
+export const clearAvatarUrlCache = (
+  profilePictureUrl?: string | null
+): void => {
   const normalized = normalizeAvatarSource(profilePictureUrl);
 
   if (!normalized) {
@@ -150,7 +152,8 @@ export const resolveAvatarUrl = async (
   const requestId = Symbol(normalized);
   const request = getProfilePictureUrl(normalized)
     .then(signedUrl => {
-      const expiresAt = parseSignedUrlExpiry(signedUrl) ?? Date.now() + DEFAULT_TTL_MS;
+      const expiresAt =
+        parseSignedUrlExpiry(signedUrl) ?? Date.now() + DEFAULT_TTL_MS;
       const currentInflight = inflightRequests.get(normalized);
       if (currentInflight?.requestId === requestId) {
         setWithCap(
@@ -198,9 +201,7 @@ export const prefetchAvatarUrls = async (
     new Set(
       profilePictureUrls
         .map(normalizeAvatarSource)
-        .filter(
-          (value): value is string => !!value && !isHttpUrl(value)
-        )
+        .filter((value): value is string => !!value && !isHttpUrl(value))
     )
   );
 
@@ -209,8 +210,6 @@ export const prefetchAvatarUrls = async (
   }
 
   await Promise.all(
-    uniqueValues.map(url =>
-      resolveAvatarUrl(url).catch(() => undefined)
-    )
+    uniqueValues.map(url => resolveAvatarUrl(url).catch(() => undefined))
   );
 };

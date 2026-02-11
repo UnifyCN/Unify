@@ -40,9 +40,7 @@ export async function getTasksBySubmodule(
   }
 }
 
-export async function getTaskById(
-  taskId: string
-): Promise<SanityTask | null> {
+export async function getTaskById(taskId: string): Promise<SanityTask | null> {
   try {
     const result = await sanityClient.fetch(TASK_BY_ID_QUERY, {
       taskId,

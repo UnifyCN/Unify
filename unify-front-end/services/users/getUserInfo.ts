@@ -116,10 +116,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
           : null,
     };
 
-    if (
-      !resolvedOnboarding.persona ||
-      !resolvedOnboarding.arrival_date
-    ) {
+    if (!resolvedOnboarding.persona || !resolvedOnboarding.arrival_date) {
       const publicProfile = await getPublicOnboardingProfile(targetUserId);
       if (publicProfile) {
         resolvedOnboarding.persona = publicProfile.persona;

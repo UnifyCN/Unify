@@ -227,7 +227,8 @@ export default function HomeScreen() {
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
   const activeTabRef = useRef<FeedTab>(TABS[0]);
-  const scrollViewRef = useRef<React.ElementRef<typeof Animated.ScrollView>>(null);
+  const scrollViewRef =
+    useRef<React.ElementRef<typeof Animated.ScrollView>>(null);
   const { width: screenWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
 
@@ -282,9 +283,7 @@ export default function HomeScreen() {
 
   const handlePagerMomentumEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const index = Math.round(
-        event.nativeEvent.contentOffset.x / screenWidth
-      );
+      const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
       if (index !== activeIndex) {
         setActiveIndex(index);
         handleFeedTabChange(TABS[index]);

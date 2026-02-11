@@ -110,7 +110,7 @@ const PostDetails = () => {
 
   const post: PostData | null = postParam
     ? (JSON.parse(postParam as string) as PostData)
-    : fetchedPost ?? null;
+    : (fetchedPost ?? null);
 
   // Call all hooks unconditionally (before any early return) to avoid "Rendered more hooks than during the previous render"
   const [commentTextBox, setCommentTextBox] = useState('');
@@ -181,7 +181,7 @@ const PostDetails = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
-      behavior="translate-with-padding"
+      behavior='translate-with-padding'
       keyboardVerticalOffset={0}
     >
       <BackHeader onBack={onBack} />

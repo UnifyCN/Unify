@@ -212,7 +212,11 @@ const GroupDetailScreen = () => {
         <BackHeader />
         <View style={styles.contentContainer}>
           {/* Title Skeleton */}
-          <SkeletonLoader width='70%' height={28} style={{ marginBottom: 12 }} />
+          <SkeletonLoader
+            width='70%'
+            height={28}
+            style={{ marginBottom: 12 }}
+          />
 
           {/* Cover Image Skeleton */}
           <SkeletonLoader
@@ -236,7 +240,11 @@ const GroupDetailScreen = () => {
           />
 
           {/* Description Skeleton */}
-          <SkeletonLoader width='100%' height={16} style={{ marginBottom: 8 }} />
+          <SkeletonLoader
+            width='100%'
+            height={16}
+            style={{ marginBottom: 8 }}
+          />
           <SkeletonLoader width='90%' height={16} style={{ marginBottom: 8 }} />
           <SkeletonLoader width='75%' height={16} />
         </View>
@@ -307,7 +315,8 @@ const GroupDetailScreen = () => {
                 style={styles.metadataIcon}
               />
               <Text style={styles.metadataText}>
-                {groupData.memberCount} {groupData.memberCount === 1 ? 'member' : 'members'}
+                {groupData.memberCount}{' '}
+                {groupData.memberCount === 1 ? 'member' : 'members'}
               </Text>
               {isMember && (
                 <View style={styles.memberBadge}>

@@ -9,7 +9,9 @@ type HapticsContextValue = {
   isLoaded: boolean;
 };
 
-const HapticsContext = createContext<HapticsContextValue | undefined>(undefined);
+const HapticsContext = createContext<HapticsContextValue | undefined>(
+  undefined
+);
 
 export function HapticsProvider({ children }: { children: React.ReactNode }) {
   const [hapticsEnabled, setHapticsEnabledState] = useState(true);
@@ -51,7 +53,9 @@ export function HapticsProvider({ children }: { children: React.ReactNode }) {
 export function useHapticsPreference() {
   const context = useContext(HapticsContext);
   if (context === undefined) {
-    throw new Error('useHapticsPreference must be used within a HapticsProvider');
+    throw new Error(
+      'useHapticsPreference must be used within a HapticsProvider'
+    );
   }
   return context;
 }

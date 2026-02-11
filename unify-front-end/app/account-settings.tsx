@@ -70,7 +70,9 @@ export default function AccountSettingsPage() {
       console.error('Delete account failed', err);
       Alert.alert(
         'Could not delete account',
-        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+        err instanceof Error
+          ? err.message
+          : 'Something went wrong. Please try again.'
       );
     }
   };
@@ -212,9 +214,7 @@ export default function AccountSettingsPage() {
                 hitSlop={8}
                 style={[
                   styles.toggleTrack,
-                  hapticsEnabled
-                    ? styles.toggleTrackOn
-                    : styles.toggleTrackOff,
+                  hapticsEnabled ? styles.toggleTrackOn : styles.toggleTrackOff,
                 ]}
               >
                 <View style={styles.toggleThumb} />
@@ -295,9 +295,7 @@ export default function AccountSettingsPage() {
                   style={styles.deleteModalConfirm}
                   onPress={deleteAccount}
                 >
-                  <Text style={styles.deleteModalConfirmText}>
-                    Delete
-                  </Text>
+                  <Text style={styles.deleteModalConfirmText}>Delete</Text>
                 </TouchableOpacity>
               </View>
             </Pressable>
