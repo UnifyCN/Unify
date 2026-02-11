@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { SimpleTextField, SubmitButton, ViewContainer } from './Components';
@@ -21,6 +21,15 @@ export default function ForgotPassword({
     type: 'error' | 'success';
     text: string;
   } | null>(null);
+  const codeSentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (codeSentTimerRef.current) {
+        clearTimeout(codeSentTimerRef.current);
+      }
+    };
+  }, []);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,15 +54,24 @@ export default function ForgotPassword({
           text: 'Check your email for a 6-digit code',
         });
 
-        setTimeout(() => {
+        if (codeSentTimerRef.current) {
+          clearTimeout(codeSentTimerRef.current);
+        }
+
+        codeSentTimerRef.current = setTimeout(() => {
           onCodeSent(email);
         }, 1500);
       }
-    } catch (error: any) {
-      console.error('Password reset error:', error);
+    } catch (error: unknown) {
+      const messageWithFallback =
+        error instanceof Error
+          ? error.message
+          : String(error || 'An unknown error occurred');
+
+      console.error('Password reset error:', messageWithFallback);
       setMessage({
         type: 'error',
-        text: error?.message || 'An error occurred while sending reset code',
+        text: messageWithFallback,
       });
     } finally {
       setLoading(false);

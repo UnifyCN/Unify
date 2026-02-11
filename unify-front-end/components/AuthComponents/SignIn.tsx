@@ -3,7 +3,6 @@ import isExpoGo from '../../utils/isExpoGo';
 import ForgotPassword from './ForgotPassword';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { supabase } from '../../lib/supabase';
-import { Button } from 'react-native-paper';
 import { Platform } from 'react-native';
 import {
   GoogleSignin,
@@ -198,10 +197,12 @@ export function SignIn({
         onBack={() => {
           setShowOTPReset(false);
           setShowForgotPassword(true);
+          setResetEmail('');
         }}
         onSuccess={() => {
           setShowOTPReset(false);
           setShowForgotPassword(false);
+          setResetEmail('');
         }}
       />
     );
@@ -210,9 +211,12 @@ export function SignIn({
   if (showForgotPassword) {
     return (
       <ForgotPassword
-        onBack={() => setShowForgotPassword(false)}
-        onCodeSent={email => {
-          setResetEmail(email);
+        onBack={() => {
+          setShowForgotPassword(false);
+          setResetEmail('');
+        }}
+        onCodeSent={sentEmail => {
+          setResetEmail(sentEmail);
           setShowForgotPassword(false);
           setShowOTPReset(true);
         }}

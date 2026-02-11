@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityPractice } from '@/hooks/sanity/useSanityPractices';
@@ -11,8 +11,6 @@ export default function PracticeEntryScreen() {
     submoduleId: string;
     practiceId: string;
   }>();
-  const [progressLoaded, setProgressLoaded] = useState(false);
-
   const {
     data: practice,
     isLoading,
@@ -88,7 +86,6 @@ export default function PracticeEntryScreen() {
           });
         }
       }
-      setProgressLoaded(true);
     })();
 
     return () => {

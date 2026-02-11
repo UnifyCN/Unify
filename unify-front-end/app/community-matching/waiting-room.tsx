@@ -125,11 +125,9 @@ const animStyles = StyleSheet.create({
 
 // Step item component with checkmark animation potential
 function StepItem({
-  number,
   text,
   icon,
 }: {
-  number: string;
   text: string;
   icon: string;
 }) {
@@ -334,17 +332,14 @@ export default function WaitingRoomScreen() {
         <View style={styles.stepsCard}>
           <Text style={styles.stepsHeading}>How matching works</Text>
           <StepItem
-            number='1'
             text='We check for matches every few minutes'
             icon='clock'
           />
           <StepItem
-            number='2'
             text='Groups form when 4 compatible people are ready'
             icon='users'
           />
           <StepItem
-            number='3'
             text="You'll get notified the moment you're matched!"
             icon='bell'
           />

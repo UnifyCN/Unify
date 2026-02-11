@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { SimpleTextField, SubmitButton, ViewContainer } from './Components';
 import { MaterialIcons } from '@expo/vector-icons';
 import BackHeader from '../BackHeader';
+
+// Keeps auth form sizing aligned with existing sign-in/reset visual scale.
+const SCALE_FACTOR = 0.87;
 
 interface OTPPasswordResetProps {
   email: string;
@@ -20,17 +23,35 @@ export default function OTPPasswordReset({
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] =
-    React.useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: 'error' | 'success';
     text: string;
   } | null>(null);
+  const [fieldErrors, setFieldErrors] = useState({
+    otp: false,
+    password: false,
+    confirm: false,
+  });
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleResetPassword = async () => {
     setLoading(true);
     setMessage(null);
+    setFieldErrors({
+      otp: false,
+      password: false,
+      confirm: false,
+    });
 
     // Check if passwords match
     if (newPassword !== confirmPassword) {
@@ -38,6 +59,7 @@ export default function OTPPasswordReset({
         type: 'error',
         text: 'Passwords do not match',
       });
+      setFieldErrors(prev => ({ ...prev, confirm: true }));
       setLoading(false);
       return;
     }
@@ -48,6 +70,7 @@ export default function OTPPasswordReset({
         type: 'error',
         text: 'Password must be at least 6 characters long.',
       });
+      setFieldErrors(prev => ({ ...prev, password: true }));
       setLoading(false);
       return;
     }
@@ -57,11 +80,12 @@ export default function OTPPasswordReset({
       const { error: otpError } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email',
+        type: 'recovery',
       });
 
       if (otpError) {
         setMessage({ type: 'error', text: otpError.message });
+        setFieldErrors(prev => ({ ...prev, otp: true }));
         setLoading(false);
         return;
       }
@@ -79,7 +103,11 @@ export default function OTPPasswordReset({
           text: 'Password has been reset successfully!',
         });
 
-        setTimeout(() => {
+        if (successTimerRef.current) {
+          clearTimeout(successTimerRef.current);
+        }
+
+        successTimerRef.current = setTimeout(() => {
           onSuccess();
         }, 1500);
       }
@@ -108,12 +136,12 @@ export default function OTPPasswordReset({
           <Text style={styles.label}>Verification Code</Text>
           <SimpleTextField
             value={otp}
-            onChangeText={setOtp}
+            onChangeText={text => {
+              setOtp(text);
+              setFieldErrors(prev => ({ ...prev, otp: false }));
+            }}
             placeholder='Enter 6-digit code'
-            style={[
-              styles.textField,
-              message?.type === 'error' && { borderColor: '#f00' },
-            ]}
+            style={[styles.textField, fieldErrors.otp && { borderColor: '#f00' }]}
             keyboardType='number-pad'
             maxLength={6}
             autoCapitalize='none'
@@ -125,11 +153,14 @@ export default function OTPPasswordReset({
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={newPassword}
-              onChangeText={setNewPassword}
+              onChangeText={text => {
+                setNewPassword(text);
+                setFieldErrors(prev => ({ ...prev, password: false }));
+              }}
               placeholder='New password'
               style={[
                 styles.textField,
-                message?.type === 'error' && { borderColor: '#f00' },
+                fieldErrors.password && { borderColor: '#f00' },
               ]}
               secureTextEntry={!passwordVisible}
               autoCapitalize='none'
@@ -152,11 +183,14 @@ export default function OTPPasswordReset({
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChangeText={text => {
+                setConfirmPassword(text);
+                setFieldErrors(prev => ({ ...prev, confirm: false }));
+              }}
               placeholder='Confirm password'
               style={[
                 styles.textField,
-                message?.type === 'error' && { borderColor: '#f00' },
+                fieldErrors.confirm && { borderColor: '#f00' },
               ]}
               secureTextEntry={!confirmPasswordVisible}
               autoCapitalize='none'
@@ -219,19 +253,19 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   label: {
-    fontSize: 16 * 0.87,
+    fontSize: 16 * SCALE_FACTOR,
     fontWeight: '400' as '400',
     color: '#000',
-    marginBottom: 8 * 0.87,
-    marginTop: 13 * 0.87,
+    marginBottom: 8 * SCALE_FACTOR,
+    marginTop: 13 * SCALE_FACTOR,
   },
   textField: {
     backgroundColor: '#fff',
     color: '#000',
     borderColor: '#ccc',
-    borderWidth: 1 * 0.87,
-    borderRadius: 12 * 0.87,
-    padding: 8 * 0.87,
+    borderWidth: 1 * SCALE_FACTOR,
+    borderRadius: 12 * SCALE_FACTOR,
+    padding: 8 * SCALE_FACTOR,
     height: 57,
   },
   eyeIcon: {
@@ -256,7 +290,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   message: {
-    fontSize: 14 * 0.87,
+    fontSize: 14 * SCALE_FACTOR,
     marginBottom: 16,
     textAlign: 'left',
   },
