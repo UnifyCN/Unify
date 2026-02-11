@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Keyboard,
   Pressable,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -105,12 +106,19 @@ export default function CompanionScreen() {
     useConversationMessages(currentConversationId);
 
   // Convert database messages to UI Message format
-  const dbMessagesFormatted = formatMessagesForUI(dbMessages);
+  const dbMessagesFormatted = useMemo(
+    () => formatMessagesForUI(dbMessages),
+    [dbMessages]
+  );
 
   // Combine greeting message with real messages
-  const messages: Message[] = greetingMessage
-    ? [greetingMessage, ...dbMessagesFormatted]
-    : dbMessagesFormatted;
+  const messages: Message[] = useMemo(
+    () =>
+      greetingMessage
+        ? [greetingMessage, ...dbMessagesFormatted]
+        : dbMessagesFormatted,
+    [greetingMessage, dbMessagesFormatted]
+  );
 
   // Clear greeting when real messages exist
   useEffect(() => {
@@ -119,7 +127,7 @@ export default function CompanionScreen() {
     }
   }, [dbMessagesFormatted.length, greetingMessage]);
 
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlatList<Message>>(null);
   // Ref for the text input to handle focusing
   const inputRef = useRef<TextInput>(null);
   const previousMessageCountRef = useRef<number>(0);
@@ -174,19 +182,22 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-  const handleSendMessage = async (messageText?: string) => {
-    const textToSend = messageText || inputText.trim();
-    if (!textToSend || isLoading || !canSend) return;
+  const handleSendMessage = useCallback(
+    async (messageText?: string) => {
+      const textToSend = messageText || inputText.trim();
+      if (!textToSend || isLoading || !canSend) return;
 
-    setInputText('');
-    trackCompanionMessageSent(textToSend.length);
+      setInputText('');
+      trackCompanionMessageSent(textToSend.length);
 
-    try {
-      await sendMessage(textToSend);
-    } catch (error) {
-      // Error is already logged in useSendMessage hook
-    }
-  };
+      try {
+        await sendMessage(textToSend);
+      } catch {
+        // Error is already logged in useSendMessage hook
+      }
+    },
+    [inputText, isLoading, canSend, sendMessage, trackCompanionMessageSent]
+  );
 
   // Handle starter prompt selection
   const handleStarterPromptSelect = (prompt: string, mode?: string) => {
@@ -234,33 +245,41 @@ export default function CompanionScreen() {
   };
 
   // Handle suggested next step click
-  const handleSuggestionClick = (suggestion: string) => {
-    trackCompanionSuggestionClicked(suggestion);
-    handleSendMessage(suggestion);
-  };
+  const handleSuggestionClick = useCallback(
+    (suggestion: string) => {
+      trackCompanionSuggestionClicked(suggestion);
+      handleSendMessage(suggestion);
+    },
+    [trackCompanionSuggestionClicked, handleSendMessage]
+  );
 
-  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    // Only show suggestions on the last bot message
-    const isLastMessage = index === messages.length - 1;
-    const showSuggestions =
-      isLastMessage && !item.isUser && lastSuggestedNextSteps;
+  const renderMessage = useCallback(
+    ({ item, index }: { item: Message; index: number }) => {
+      // Only show suggestions on the last bot message
+      const isLastMessage = index === messages.length - 1;
+      const showSuggestions =
+        isLastMessage && !item.isUser && lastSuggestedNextSteps;
 
-    return (
-      <MessageWithSources
-        item={item}
-        suggestedNextSteps={
-          showSuggestions ? lastSuggestedNextSteps : undefined
-        }
-        onSuggestionPress={handleSuggestionClick}
-      />
-    );
-  };
+      return (
+        <MessageWithSources
+          item={item}
+          suggestedNextSteps={
+            showSuggestions ? lastSuggestedNextSteps : undefined
+          }
+          onSuggestionPress={handleSuggestionClick}
+        />
+      );
+    },
+    [messages.length, lastSuggestedNextSteps, handleSuggestionClick]
+  );
 
-  const renderLoadingIndicator = () => {
+  const renderLoadingIndicator = useCallback(() => {
     // Only show typing indicator when waiting for bot response (not when saving user message)
     if (!isWaitingForBot) return null;
     return <TypingIndicator />;
-  };
+  }, [isWaitingForBot]);
+
+  const keyExtractor = useCallback((item: Message) => item.id, []);
 
   return (
     <Pressable
@@ -309,11 +328,16 @@ export default function CompanionScreen() {
             ref={flatListRef}
             data={messages}
             renderItem={renderMessage}
-            keyExtractor={item => item.id}
+            keyExtractor={keyExtractor}
             style={styles.messagesList}
             contentContainerStyle={styles.messagesContent}
             ListFooterComponent={renderLoadingIndicator}
             keyboardShouldPersistTaps="handled"
+            initialNumToRender={10}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            updateCellsBatchingPeriod={50}
+            removeClippedSubviews={Platform.OS === 'android'}
           />
         )}
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { sanityClient } from '@/sanity-custom';
 import { progressEventEmitter } from '@/utils/progressEventEmitter';
@@ -18,6 +18,42 @@ interface ContinueLesson {
   totalSections: number;
   href: string;
 }
+
+interface LessonProgressRow {
+  sanity_lesson_id: string;
+  sanity_submodule_id: string;
+  is_completed: boolean;
+  is_in_progress: boolean;
+  completed_pages: number;
+  current_page_number: number;
+  last_accessed_at: string;
+}
+
+const getLessonTotalPages = (lesson: any): number => {
+  const lessonPages =
+    typeof lesson?.lesson_page_count === 'number'
+      ? lesson.lesson_page_count
+      : lesson?.pages?.length || 0;
+  const activityPages =
+    typeof lesson?.activity_page_count === 'number'
+      ? lesson.activity_page_count
+      : lesson?.activity_pages?.length || 0;
+  const endingPages =
+    typeof lesson?.ending_page_count === 'number'
+      ? lesson.ending_page_count
+      : lesson?.ending_pages?.length || 0;
+  const quizPages =
+    lesson?.quizzes?.reduce(
+      (acc: number, quiz: any) =>
+        acc +
+        (typeof quiz?.question_count === 'number'
+          ? quiz.question_count
+          : quiz?.questions?.length || 0),
+      0
+    ) || 0;
+
+  return lessonPages + activityPages + quizPages + endingPages;
+};
 
 export function useInProgressLessons() {
   const [lessons, setLessons] = useState<ContinueLesson[]>([]);
@@ -39,11 +75,13 @@ export function useInProgressLessons() {
         return;
       }
 
-      // Fetch all lesson progress
+      // Fetch lesson progress rows needed for continue-learning cards
       const { data: lessonProgresses, error: lessonError } =
         await progressClient
           .from('user_lesson_progress')
-          .select('*')
+          .select(
+            'sanity_lesson_id,sanity_submodule_id,is_completed,is_in_progress,completed_pages,current_page_number,last_accessed_at'
+          )
           .eq('user_id', user.id)
           .order('last_accessed_at', { ascending: false });
 
@@ -54,7 +92,7 @@ export function useInProgressLessons() {
         return;
       }
 
-      // Fetch all modules with submodules and lessons
+      // Fetch modules/submodules/lessons with compact page counts from Sanity
       const modulesQuery = `*[_type == "module"] {
           _id,
           title,
@@ -67,42 +105,39 @@ export function useInProgressLessons() {
               title,
               description,
               order,
-              pages,
-              activity_pages,
-              "quizzes": *[_type == "quiz" && references(^._id)]
+              "lesson_page_count": count(pages),
+              "activity_page_count": count(activity_pages),
+              "ending_page_count": count(ending_pages),
+              "quizzes": *[_type == "quiz" && references(^._id)] | order(order_number) {
+                _id,
+                "question_count": count(questions)
+              }
             }
           }
         }`;
 
       const modulesData = await sanityClient.fetch(modulesQuery);
 
-      // Find active lessons using the same logic as submodule map
+      const progressRows = (lessonProgresses || []) as LessonProgressRow[];
+
+      const progressByLessonId = new Map<string, LessonProgressRow>();
+
+      for (const row of progressRows) {
+        progressByLessonId.set(row.sanity_lesson_id, row);
+      }
+
       const availableLessons: ContinueLesson[] = [];
 
-      for (const module of modulesData) {
-        // Find the first active lesson in this module
-        let activeLesson = null;
-        let activeSubmodule = null;
+      for (const module of modulesData || []) {
+        let activeLesson: any = null;
+        let activeSubmodule: any = null;
 
-        for (const submodule of module.submodules) {
-          // Get lesson progress for this submodule
-          const submoduleLessons =
-            lessonProgresses?.filter(
-              p => p.sanity_submodule_id === submodule._id
-            ) || [];
+        for (const submodule of module?.submodules || []) {
+          for (const lesson of submodule?.lessons || []) {
+            const lessonProgress = progressByLessonId.get(lesson._id);
+            const isCompleted = Boolean(lessonProgress?.is_completed);
 
-          // Find the first active lesson in this submodule using the same logic as map
-          for (let i = 0; i < submodule.lessons.length; i++) {
-            const lesson = submodule.lessons[i];
-            const lessonProgress = submoduleLessons.find(
-              p => p.sanity_lesson_id === lesson._id
-            );
-
-            const isCompleted = lessonProgress?.is_completed || false;
-            const isInProgress = lessonProgress?.is_in_progress || false;
-
-            // All lessons are now active/unlocked - find the first non-completed lesson
-            // If this lesson is not completed, use it
+            // All lessons are unlocked: pick the first not completed lesson.
             if (!isCompleted) {
               activeLesson = lesson;
               activeSubmodule = submodule;
@@ -110,72 +145,56 @@ export function useInProgressLessons() {
             }
           }
 
-          // If we found an active lesson, break out of submodule loop
           if (activeLesson) {
             break;
           }
         }
 
-        // If we found an active lesson in this module, add it
-        if (activeLesson && activeSubmodule) {
-          const lessonProgress = lessonProgresses?.find(
-            p => p.sanity_lesson_id === activeLesson._id
-          );
-
-          // Calculate total pages
-          const totalPages =
-            (activeLesson.pages?.length || 0) +
-            (activeLesson.activity_pages?.length || 0) +
-            (activeLesson.quizzes?.length || 0);
-
-          const progressPercent =
-            lessonProgress && totalPages > 0
-              ? Math.round((lessonProgress.completed_pages / totalPages) * 100)
-              : 0;
-
-          const currentPage = lessonProgress?.current_page_number || 1;
-
-          // Calculate section (submodule) number and total sections
-          const submoduleIndex = module.submodules.findIndex(
-            (s: any) => s._id === activeSubmodule._id
-          );
-          const currentSection = submoduleIndex >= 0 ? submoduleIndex + 1 : 1;
-          const totalSections = module.submodules?.length || 0;
-
-          availableLessons.push({
-            id: activeLesson._id,
-            title: activeLesson.title || 'Untitled Lesson',
-            description: activeLesson.description || '',
-            moduleId: module._id,
-            moduleTitle: module.title || 'Unknown Module',
-            submoduleId: activeSubmodule._id,
-            submoduleTitle: activeSubmodule.title || 'Unknown Submodule',
-            currentPage: currentPage,
-            totalPages: totalPages,
-            progressPercent: progressPercent,
-            currentSection: currentSection,
-            totalSections: totalSections,
-            href: `/(tabs)/Learn/modules/${module._id}/${activeSubmodule._id}/lessons/${activeLesson._id}/pages/${currentPage}` as any,
-          });
+        if (!activeLesson || !activeSubmodule) {
+          continue;
         }
+
+        const lessonProgress = progressByLessonId.get(activeLesson._id);
+        const totalPages = getLessonTotalPages(activeLesson);
+        const progressPercent =
+          lessonProgress && totalPages > 0
+            ? Math.round((lessonProgress.completed_pages / totalPages) * 100)
+            : 0;
+
+        const currentPage = lessonProgress?.current_page_number || 1;
+        const submoduleIndex = (module.submodules || []).findIndex(
+          (s: any) => s._id === activeSubmodule._id
+        );
+        const currentSection = submoduleIndex >= 0 ? submoduleIndex + 1 : 1;
+        const totalSections = module.submodules?.length || 0;
+
+        availableLessons.push({
+          id: activeLesson._id,
+          title: activeLesson.title || 'Untitled Lesson',
+          description: activeLesson.description || '',
+          moduleId: module._id,
+          moduleTitle: module.title || 'Unknown Module',
+          submoduleId: activeSubmodule._id,
+          submoduleTitle: activeSubmodule.title || 'Unknown Submodule',
+          currentPage,
+          totalPages,
+          progressPercent,
+          currentSection,
+          totalSections,
+          href: `/(tabs)/Learn/modules/${module._id}/${activeSubmodule._id}/lessons/${activeLesson._id}/pages/${currentPage}` as any,
+        });
       }
 
-      // Sort by most recently accessed
+      // Sort by most recently accessed using O(1) lookups.
       const inProgressLessons = availableLessons.sort((a, b) => {
-        const aProgress = lessonProgresses.find(
-          p => p.sanity_lesson_id === a.id
-        );
-        const bProgress = lessonProgresses.find(
-          p => p.sanity_lesson_id === b.id
-        );
+        const aAccess = progressByLessonId.get(a.id)?.last_accessed_at;
+        const bAccess = progressByLessonId.get(b.id)?.last_accessed_at;
 
-        if (aProgress && bProgress) {
-          return (
-            new Date(bProgress.last_accessed_at).getTime() -
-            new Date(aProgress.last_accessed_at).getTime()
-          );
-        }
-        return 0;
+        if (!aAccess && !bAccess) return 0;
+        if (!aAccess) return 1;
+        if (!bAccess) return -1;
+
+        return new Date(bAccess).getTime() - new Date(aAccess).getTime();
       });
 
       setLessons(inProgressLessons);

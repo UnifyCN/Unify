@@ -51,25 +51,49 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       targetUserId = user.id;
     }
 
-    // Get user info
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select(
-        'id, username, created_at, profile_picture_url, is_premium, permissions'
-      )
-      .eq('id', targetUserId)
-      .single();
+    const [
+      userResult,
+      onboardingResult,
+      followingCountResult,
+      followerCountResult,
+    ] = await Promise.all([
+      supabase
+        .from('users')
+        .select(
+          'id, username, created_at, profile_picture_url, is_premium, permissions'
+        )
+        .eq('id', targetUserId)
+        .single(),
+      supabase
+        .from('user_onboarding_profiles')
+        .select('arrival_date, stage, persona, persona_other')
+        .eq('id', targetUserId)
+        .maybeSingle(),
+      supabase
+        .from('user_followers')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', targetUserId),
+      supabase
+        .from('user_followers')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', targetUserId),
+    ]);
+
+    const userData = userResult.data;
+    const userError = userResult.error;
+    const onboardingData = onboardingResult.data;
+    const onboardingError = onboardingResult.error;
+    const followingCount = followingCountResult.count;
+    const followingError = followingCountResult.error;
+    const followerCount = followerCountResult.count;
+    const followerError = followerCountResult.error;
 
     if (userError) {
       throw new Error(`Failed to fetch user info: ${userError.message}`);
     }
-
-    // Get onboarding data
-    const { data: onboardingData, error: onboardingError } = await supabase
-      .from('user_onboarding_profiles')
-      .select('arrival_date, stage, persona, persona_other')
-      .eq('id', targetUserId)
-      .maybeSingle();
+    if (!userData) {
+      throw new Error('Failed to fetch user info: no user data returned');
+    }
 
     if (onboardingError) {
       throw new Error(
@@ -110,29 +134,27 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
 
     // Only update stage when we could read it directly (avoid RLS failures)
     if (receivedStage !== null && receivedStage !== computedStage) {
-      await supabase
-        .from('user_onboarding_profiles')
-        .update({ stage: computedStage })
-        .eq('id', targetUserId);
-    }
+      void (async () => {
+        try {
+          const { error } = await supabase
+            .from('user_onboarding_profiles')
+            .update({ stage: computedStage })
+            .eq('id', targetUserId);
 
-    // Get following count
-    const { count: followingCount, error: followingError } = await supabase
-      .from('user_followers')
-      .select('*', { count: 'exact', head: true })
-      .eq('follower_id', targetUserId);
+          if (error) {
+            console.warn('Failed to update onboarding stage:', error.message);
+          }
+        } catch (error) {
+          console.error('Unexpected onboarding stage update failure:', error);
+        }
+      })();
+    }
 
     if (followingError) {
       throw new Error(
         `Failed to fetch following count: ${followingError.message}`
       );
     }
-
-    // Get follower count
-    const { count: followerCount, error: followerError } = await supabase
-      .from('user_followers')
-      .select('*', { count: 'exact', head: true })
-      .eq('following_id', targetUserId);
 
     if (followerError) {
       throw new Error(

@@ -227,6 +227,9 @@ export const ProfileHeader = ({
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.groupsList}
+            initialNumToRender={4}
+            maxToRenderPerBatch={4}
+            windowSize={5}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.groupTile}

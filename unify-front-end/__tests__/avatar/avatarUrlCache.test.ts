@@ -1,4 +1,5 @@
 import {
+  clearAllAvatarUrlCache,
   clearAvatarUrlCache,
   normalizeAvatarSource,
   parseSignedUrlExpiry,
@@ -16,9 +17,16 @@ const mockedGetProfilePictureUrl = getProfilePictureUrl as jest.MockedFunction<
 >;
 
 describe('avatarUrlCache', () => {
+  let nowSpy: jest.SpyInstance<number, []> | undefined;
+
   beforeEach(() => {
-    clearAvatarUrlCache();
+    clearAllAvatarUrlCache();
     mockedGetProfilePictureUrl.mockReset();
+  });
+
+  afterEach(() => {
+    nowSpy?.mockRestore();
+    nowSpy = undefined;
   });
 
   it('normalizes avatar source values', () => {
@@ -45,7 +53,7 @@ describe('avatarUrlCache', () => {
     mockedGetProfilePictureUrl.mockResolvedValue(
       'https://signed.example.com/avatar?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
     );
-    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy = jest.spyOn(Date, 'now');
     nowSpy.mockReturnValue(new Date('2026-01-01T12:01:00.000Z').getTime());
 
     const [first, second] = await Promise.all([
@@ -59,8 +67,6 @@ describe('avatarUrlCache', () => {
     const third = await resolveAvatarUrl('avatars/user-1.jpg');
     expect(third).toBe(first);
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(1);
-
-    nowSpy.mockRestore();
   });
 
   it('prefetches unique keys and seeds cache for later resolves', async () => {
@@ -72,7 +78,7 @@ describe('avatarUrlCache', () => {
         'https://signed.example.com/u2?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
       );
 
-    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy = jest.spyOn(Date, 'now');
     nowSpy.mockReturnValue(new Date('2026-01-01T12:02:00.000Z').getTime());
 
     await prefetchAvatarUrls([
@@ -95,7 +101,6 @@ describe('avatarUrlCache', () => {
     expect(one).toContain('/u1?');
     expect(two).toContain('/u2?');
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
-    nowSpy.mockRestore();
   });
 
   it('treats prefetch empty input as no-op', async () => {
@@ -112,7 +117,7 @@ describe('avatarUrlCache', () => {
         'https://signed.example.com/b?X-Amz-Date=20260101T120100Z&X-Amz-Expires=60'
       );
 
-    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy = jest.spyOn(Date, 'now');
     nowSpy.mockReturnValue(new Date('2026-01-01T12:00:10.000Z').getTime());
 
     const first = await resolveAvatarUrl('avatars/user-2.jpg');
@@ -124,8 +129,6 @@ describe('avatarUrlCache', () => {
     const second = await resolveAvatarUrl('avatars/user-2.jpg');
     expect(second).toContain('/b?');
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
-
-    nowSpy.mockRestore();
   });
 
   it('does not cache failed signing and retries successfully later', async () => {
@@ -161,7 +164,7 @@ describe('avatarUrlCache', () => {
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
   });
 
-  it('clears all cached keys when no source is provided', async () => {
+  it('clears all cached keys when clear-all helper is called', async () => {
     mockedGetProfilePictureUrl
       .mockResolvedValueOnce(
         'https://signed.example.com/k1?X-Amz-Date=20260101T120000Z&X-Amz-Expires=300'
@@ -180,7 +183,7 @@ describe('avatarUrlCache', () => {
     await resolveAvatarUrl('avatars/key-2.jpg');
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
 
-    clearAvatarUrlCache();
+    clearAllAvatarUrlCache();
 
     const key1 = await resolveAvatarUrl('avatars/key-1.jpg');
     const key2 = await resolveAvatarUrl('avatars/key-2.jpg');
@@ -215,7 +218,7 @@ describe('avatarUrlCache', () => {
   });
 
   it('keeps fresh cache when stale in-flight request rejects after clear', async () => {
-    const nowSpy = jest.spyOn(Date, 'now');
+    nowSpy = jest.spyOn(Date, 'now');
     nowSpy.mockReturnValue(new Date('2026-01-01T12:02:00.000Z').getTime());
 
     let rejectPromise: ((reason?: Error) => void) | undefined;
@@ -241,8 +244,6 @@ describe('avatarUrlCache', () => {
     const next = await resolveAvatarUrl('avatars/race-reject.jpg');
     expect(next).toContain('/fresh-race?');
     expect(mockedGetProfilePictureUrl).toHaveBeenCalledTimes(2);
-
-    nowSpy.mockRestore();
   });
 
   it('parses signed url expiry timestamp', () => {

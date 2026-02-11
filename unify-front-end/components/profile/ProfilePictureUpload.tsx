@@ -152,7 +152,9 @@ export const ProfilePictureUpload = ({
         const updateResult = await updateProfilePicture(uploadResult.key);
 
         if (updateResult.success) {
-          clearAvatarUrlCache(currentPictureUrl);
+          if (currentPictureUrl) {
+            clearAvatarUrlCache(currentPictureUrl);
+          }
           clearAvatarUrlCache(uploadResult.key);
 
           // Delete old profile picture from S3 if it exists
@@ -206,7 +208,9 @@ export const ProfilePictureUpload = ({
               const updateResult = await updateProfilePicture(null);
 
               if (updateResult.success) {
-                clearAvatarUrlCache(currentPictureUrl);
+                if (currentPictureUrl) {
+                  clearAvatarUrlCache(currentPictureUrl);
+                }
                 // Invalidate and refetch user info and all post feeds
                 invalidateAllQueries();
                 Alert.alert('Success', 'Profile picture removed successfully!');
