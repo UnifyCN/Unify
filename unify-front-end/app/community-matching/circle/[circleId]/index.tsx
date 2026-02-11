@@ -28,7 +28,6 @@ import { Avatar } from '@/components/Avatar';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 import LoadingScreen from '@/components/LoadingScreen';
 
-
 export default function CircleDetailsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
