@@ -97,8 +97,8 @@ export default function CompanionScreen() {
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const emptyStateTopPadding = Math.max(
-    190,
-    (windowHeight - insets.top - insets.bottom) * 0.47
+    220,
+    (windowHeight - insets.top - insets.bottom) * 0.52
   );
 
   // Fetch messages for the current conversation

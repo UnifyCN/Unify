@@ -26,7 +26,7 @@ import { FollowButton } from '@/components/profile/FollowButton';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
-
+import LoadingScreen from '@/components/LoadingScreen';
 
 export default function CircleDetailsScreen() {
   const router = useRouter();
@@ -183,12 +183,7 @@ export default function CircleDetailsScreen() {
   }, [circle]);
 
   if (circleLoading || membersLoading || membershipLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size='large' />
-      </View>
-    );
-
+    return <LoadingScreen />;
   }
 
   if (circleError || !circle) {
