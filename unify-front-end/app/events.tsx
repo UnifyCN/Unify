@@ -44,29 +44,38 @@ const EventsScreen = () => {
   };
 
   const handleFilterEvents = useMemo(() => {
-    return events?.filter(event => {
-      const matchesSearch = event.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
+    const now = Date.now();
 
-      const matchesTag = (() => {
-        switch (selectedTag) {
-          case 'All':
-            return true;
-          case 'Past':
-            return new Date(event.eventDatetime) < new Date();
-          case 'Upcoming':
-            return new Date(event.eventDatetime) >= new Date();
-          default:
-            return false;
-        }
-      })();
+    const baseEvents =
+      events?.filter(event =>
+        event.title.toLowerCase().includes(searchQuery.toLowerCase())
+      ) ?? [];
 
-      // const matchesGenre =
-      //   selectedGenre === 'All Events' || event.genre === selectedGenre;
+    const upcomingEvents = baseEvents
+      .filter(event => new Date(event.eventDatetime).getTime() >= now)
+      .sort(
+        (a, b) =>
+          new Date(a.eventDatetime).getTime() -
+          new Date(b.eventDatetime).getTime()
+      );
 
-      return matchesSearch && matchesTag; // && matchesGenre;
-    });
+    const pastEvents = baseEvents
+      .filter(event => new Date(event.eventDatetime).getTime() < now)
+      .sort(
+        (a, b) =>
+          new Date(b.eventDatetime).getTime() -
+          new Date(a.eventDatetime).getTime()
+      );
+
+    switch (selectedTag) {
+      case 'Upcoming':
+        return upcomingEvents;
+      case 'Past':
+        return pastEvents;
+      case 'All':
+      default:
+        return [...upcomingEvents, ...pastEvents];
+    }
   }, [events, selectedTag, searchQuery]); // , selectedGenre
 
   const renderEvent = ({ item }: { item: Event }) => (

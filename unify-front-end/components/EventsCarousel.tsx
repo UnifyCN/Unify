@@ -96,12 +96,15 @@ export const EventsCarousel = ({
   const router = useRouter();
   const { data: events, isLoading } = useEvents();
 
-  const now = new Date();
+  const now = Date.now();
   const upcomingEvents =
-    events?.filter(event => {
-      const eventDate = new Date(event.eventDatetime);
-      return eventDate >= now;
-    }) || [];
+    events
+      ?.filter(event => new Date(event.eventDatetime).getTime() >= now)
+      .sort(
+        (a, b) =>
+          new Date(a.eventDatetime).getTime() -
+          new Date(b.eventDatetime).getTime()
+      ) || [];
 
   const handleEventPress = (event: any) => {
     router.push({
