@@ -5,7 +5,9 @@ import type { CommunityNotification } from '@/types/matching';
  * Fetch all community notifications for the current user.
  * Ordered by created_at descending (newest first).
  */
-export const getCommunityNotifications = async (): Promise<CommunityNotification[]> => {
+export const getCommunityNotifications = async (): Promise<
+  CommunityNotification[]
+> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -53,7 +55,9 @@ export const getUnreadNotificationCount = async (): Promise<number> => {
 /**
  * Mark a single notification as read.
  */
-export const markNotificationAsRead = async (notificationId: string): Promise<void> => {
+export const markNotificationAsRead = async (
+  notificationId: string
+): Promise<void> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -90,6 +94,8 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
     .is('read_at', null);
 
   if (error) {
-    throw new Error(`Failed to mark all notifications as read: ${error.message}`);
+    throw new Error(
+      `Failed to mark all notifications as read: ${error.message}`
+    );
   }
 };

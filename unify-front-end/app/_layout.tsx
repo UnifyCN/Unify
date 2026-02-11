@@ -30,26 +30,13 @@ export default function RootLayout() {
   // const [onboardingChecked, setOnboardingChecked] = useState(false);
   // const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Initialize progress cache
-  const {
-    isInitialized: progressCacheInitialized,
-    isLoading: progressCacheLoading,
-  } = useProgressCache();
-  const [cacheTimeout, setCacheTimeout] = useState(false);
+  // Intentionally fire-and-forget: useProgressCache internally calls
+  // cachedProgressService.getProgressData(), and failures are logged but
+  // should not block loaded/isReady/showAnimatedSplash startup flow.
+  useProgressCache();
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
-  const isReady =
-    loaded && (progressCacheInitialized || cacheTimeout);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!progressCacheInitialized) {
-        console.warn('Progress cache initialization timed out');
-        setCacheTimeout(true);
-      }
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [progressCacheInitialized]);
+  const isReady = loaded;
 
   // Create a client
   const queryClient = React.useMemo(
@@ -142,86 +129,29 @@ function AppContent() {
 
   return (
     <Stack>
-      <Stack.Screen
-        name='(tabs)'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='account-settings'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='edit-name'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='profile'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='saved'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='reset-password'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='post-details'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='notifications'
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+      <Stack.Screen name='account-settings' options={{ headerShown: false }} />
+      <Stack.Screen name='edit-name' options={{ headerShown: false }} />
+      <Stack.Screen name='profile' options={{ headerShown: false }} />
+      <Stack.Screen name='saved' options={{ headerShown: false }} />
+      <Stack.Screen name='reset-password' options={{ headerShown: false }} />
+      <Stack.Screen name='post-details' options={{ headerShown: false }} />
+      <Stack.Screen name='notifications' options={{ headerShown: false }} />
       <Stack.Screen
         name='community-matching'
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name='legal-document'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='search'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='group-detail'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='see-more-posts'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='see-more-groups'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='news-detail'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='news-tips'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='event-detail'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='events'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='create-post'
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='followers-following'
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name='legal-document' options={{ headerShown: false }} />
+      <Stack.Screen name='search' options={{ headerShown: false }} />
+      <Stack.Screen name='group-detail' options={{ headerShown: false }} />
+      <Stack.Screen name='see-more-posts' options={{ headerShown: false }} />
+      <Stack.Screen name='see-more-groups' options={{ headerShown: false }} />
+      <Stack.Screen name='news-detail' options={{ headerShown: false }} />
+      <Stack.Screen name='news-tips' options={{ headerShown: false }} />
+      <Stack.Screen name='event-detail' options={{ headerShown: false }} />
+      <Stack.Screen name='events' options={{ headerShown: false }} />
+      <Stack.Screen name='create-post' options={{ headerShown: false }} />
+      <Stack.Screen name='followers-following' options={{ headerShown: false }} />
       <Stack.Screen name='+not-found' />
     </Stack>
   );

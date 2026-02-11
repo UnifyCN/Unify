@@ -21,18 +21,16 @@ export async function getSubmoduleWithLessons(
         slug,
         description,
         submodule,
-        pages,
-        activity_pages,
-        ending_pages,
         order,
+        "lesson_page_count": count(pages),
+        "activity_page_count": count(activity_pages),
+        "ending_page_count": count(ending_pages),
         "quizzes": *[_type == "quiz" && references(^._id)] | order(order_number) {
           _id,
           _type,
           title,
-          description,
-          lesson,
           order_number,
-          questions
+          "question_count": count(questions)
         }
       }
     }`;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { SimpleTextField, SubmitButton, ViewContainer } from './Components';
@@ -7,9 +7,13 @@ import BackHeader from '../BackHeader';
 
 interface ForgotPasswordProps {
   onBack: () => void;
+  onCodeSent: (email: string) => void;
 }
 
-export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
+export default function ForgotPassword({
+  onBack,
+  onCodeSent,
+}: Readonly<ForgotPasswordProps>) {
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,8 +21,16 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
     type: 'error' | 'success';
     text: string;
   } | null>(null);
+  const codeSentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Method to validate if email is in valid format
+  useEffect(() => {
+    return () => {
+      if (codeSentTimerRef.current) {
+        clearTimeout(codeSentTimerRef.current);
+      }
+    };
+  }, []);
+
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setIsEmailValid(emailRegex.test(email));
@@ -29,11 +41,9 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
     setMessage(null);
 
     try {
-      // TODO: This does not work at all, user will be redirected back to this page instead of the reset password page
-      // https://blog.theodo.com/2023/03/supabase-reset-password-rn/ maybe this is useful
-      // I think it's because our auth wrapper wraps EVERYTHING, instead of having two stacks of unauthenticated and authenticated routes
+      // 'resetPasswordForEmail()' utilizes the 'Reset Password' email template in Supabase
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'myapp://reset-password',
+        redirectTo: undefined,
       });
 
       if (error) {
@@ -41,13 +51,27 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
       } else {
         setMessage({
           type: 'success',
-          text: 'Password reset link has been sent to your email',
+          text: 'Check your email for a 6-digit code',
         });
+
+        if (codeSentTimerRef.current) {
+          clearTimeout(codeSentTimerRef.current);
+        }
+
+        codeSentTimerRef.current = setTimeout(() => {
+          onCodeSent(email);
+        }, 1500);
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const messageWithFallback =
+        error instanceof Error
+          ? error.message
+          : String(error || 'An unknown error occurred');
+
+      console.error('Password reset error:', messageWithFallback);
       setMessage({
         type: 'error',
-        text: 'An error occurred while sending reset email',
+        text: messageWithFallback,
       });
     } finally {
       setLoading(false);
@@ -60,7 +84,7 @@ export default function ForgotPassword({ onBack }: ForgotPasswordProps) {
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter your email address and we'll send you instructions to reset your
+          Enter your email address and we'll send you a code to reset your
           password.
         </Text>
 
@@ -137,7 +161,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 16,
+    fontSize: 16 * 0.87,
     fontWeight: '400',
     color: '#000',
     marginBottom: 8,
@@ -172,9 +196,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   message: {
-    fontSize: 14,
+    fontSize: 14 * 0.87,
     marginBottom: 16,
-    textAlign: 'center',
   },
   errorMessage: {
     color: '#f00',

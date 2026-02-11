@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { SignIn } from './SignIn';
@@ -9,6 +8,7 @@ import OnboardingQuiz from '../onboarding/OnboardingQuiz';
 import LegalConsentModal from './LegalConsentModal';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
+import LoadingScreen from '@/components/LoadingScreen';
 
 type Props = {
   children: React.ReactNode;
@@ -150,11 +150,7 @@ export default function AuthWrapper({ children }: Props) {
   };
 
   if (loading || (session && (isLoadingOnboarding || isLoadingLegalStatus))) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size='large' />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   if (!session) {

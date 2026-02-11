@@ -7,20 +7,19 @@ import type {
 
 export type { CommunityCircleMembership };
 
-export const getActiveCircleMembership = async (): Promise<
-  CommunityCircleMembership | null
-> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
+export const getActiveCircleMembership =
+  async (): Promise<CommunityCircleMembership | null> => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
 
-  const { data, error } = await supabase
-    .from('community_circle_members')
-    .select(
-      `
+    const { data, error } = await supabase
+      .from('community_circle_members')
+      .select(
+        `
         id,
         circle_id,
         user_id,
@@ -36,41 +35,41 @@ export const getActiveCircleMembership = async (): Promise<
           status
         )
       `
-    )
-    .eq('user_id', user.id)
-    .is('left_at', null)
-    .eq('community_circles.status', 'active')
-    .maybeSingle();
+      )
+      .eq('user_id', user.id)
+      .is('left_at', null)
+      .eq('community_circles.status', 'active')
+      .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(`Failed to load active circle: ${error.message}`);
-  }
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to load active circle: ${error.message}`);
+    }
 
-  if (!data) {
-    return null;
-  }
-  
-  // Cast to any to handle joined data structure
-  const row = data as any;
-  const circle = row.community_circles;
+    if (!data) {
+      return null;
+    }
 
-  return {
-    id: row.id,
-    circle_id: row.circle_id,
-    user_id: row.user_id,
-    joined_at: row.joined_at,
-    left_at: row.left_at,
-    circle: {
-      id: circle.id,
-      pool_key: circle.pool_key,
-      persona: circle.persona,
-      time_in_canada: circle.time_in_canada,
-      created_at: circle.created_at,
-      ends_at: circle.ends_at,
-      status: circle.status,
-    } as CommunityCircle,
+    // Cast to any to handle joined data structure
+    const row = data as any;
+    const circle = row.community_circles;
+
+    return {
+      id: row.id,
+      circle_id: row.circle_id,
+      user_id: row.user_id,
+      joined_at: row.joined_at,
+      left_at: row.left_at,
+      circle: {
+        id: circle.id,
+        pool_key: circle.pool_key,
+        persona: circle.persona,
+        time_in_canada: circle.time_in_canada,
+        created_at: circle.created_at,
+        ends_at: circle.ends_at,
+        status: circle.status,
+      } as CommunityCircle,
+    };
   };
-};
 
 export const getCircleById = async (
   circleId: string
@@ -156,7 +155,9 @@ export const markCircleJoined = async (circleId: string) => {
     throw new Error(`Failed to join circle chat: ${error.message}`);
   }
   if (!data || data.length === 0) {
-    throw new Error('No membership found to update - you may not be a member of this circle');
+    throw new Error(
+      'No membership found to update - you may not be a member of this circle'
+    );
   }
 };
 
@@ -181,7 +182,9 @@ export const leaveCircle = async (circleId: string) => {
     throw new Error(`Failed to leave circle: ${error.message}`);
   }
   if (!data || data.length === 0) {
-    throw new Error('No membership found to update - you may not be a member of this circle');
+    throw new Error(
+      'No membership found to update - you may not be a member of this circle'
+    );
   }
 };
 

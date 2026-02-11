@@ -1,11 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  Text,
-  Pressable,
-} from 'react-native';
+import { View, FlatList, StyleSheet, Text, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import GroupCard from '@/components/groups/GroupCard';
 import { Group } from '@/types/groups';
@@ -89,7 +83,12 @@ export default function MoreGroupsScreen() {
               <Text style={[styles.tabText, active && styles.tabTextActive]}>
                 {TAB_LABELS[tab]}
               </Text>
-              <View style={[styles.tabIndicator, active && styles.tabIndicatorActive]} />
+              <View
+                style={[
+                  styles.tabIndicator,
+                  active && styles.tabIndicatorActive,
+                ]}
+              />
             </Pressable>
           );
         })}

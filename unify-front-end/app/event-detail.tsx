@@ -129,7 +129,11 @@ const EventDetailScreen = () => {
             {eventData.eventEndDatetime && (
               <Text style={styles.metadataSecondary}>
                 {' '}
-                · {formatEventTimeRange(eventData.eventDatetime, eventData.eventEndDatetime)}
+                ·{' '}
+                {formatEventTimeRange(
+                  eventData.eventDatetime,
+                  eventData.eventEndDatetime
+                )}
               </Text>
             )}
           </Text>
@@ -161,7 +165,8 @@ const EventDetailScreen = () => {
               style={styles.metadataIcon}
             />
             <Text style={styles.metadataText}>
-              Hosted by <Text style={styles.metadataHighlight}>{eventData.hostedBy}</Text>
+              Hosted by{' '}
+              <Text style={styles.metadataHighlight}>{eventData.hostedBy}</Text>
             </Text>
           </View>
         )}

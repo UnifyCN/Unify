@@ -30,9 +30,7 @@ const Header = ({ showSearchIcon = true }: HeaderProps) => {
       <UnifyLogo width={28} height={28} />
       <View style={styles.rightButtons}>
         {showSearchIcon && (
-          <TouchableOpacity
-            onPress={() => router.push('/search' as any)}
-          >
+          <TouchableOpacity onPress={() => router.push('/search' as any)}>
             <Feather name='search' size={28} color='#000' />
           </TouchableOpacity>
         )}

@@ -44,11 +44,7 @@ const BackHeader = ({
     >
       {showBackButton ? (
         <TouchableOpacity onPress={handleBack}>
-          <Feather
-            name={backIcon}
-            size={Layout.header.iconSize}
-            color='#000'
-          />
+          <Feather name={backIcon} size={Layout.header.iconSize} color='#000' />
         </TouchableOpacity>
       ) : (
         <View style={styles.placeholder} />

@@ -1,4 +1,8 @@
-type PoolPersona = 'international_student' | 'skilled_worker' | 'refugee' | 'other';
+type PoolPersona =
+  | 'international_student'
+  | 'skilled_worker'
+  | 'refugee'
+  | 'other';
 type PoolTimeInCanada =
   | 'not_arrived'
   | 'less_than_1_year'
@@ -50,7 +54,8 @@ export const formatTimeInCanadaLabel = (
 export const getPoolLabel = (
   persona?: PoolPersona | null,
   timeInCanada?: PoolTimeInCanada | null
-) => `${formatPersonaLabel(persona)} • ${formatTimeInCanadaLabel(timeInCanada)}`;
+) =>
+  `${formatPersonaLabel(persona)} • ${formatTimeInCanadaLabel(timeInCanada)}`;
 
 /**
  * Derives a TimeInCanada category from an arrival date.

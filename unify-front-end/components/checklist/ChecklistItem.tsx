@@ -30,9 +30,7 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
       >
         {taskName}
       </ThemedText>
-      <ThemedText style={styles.taskDescription}>
-        {taskDescription}
-      </ThemedText>
+      <ThemedText style={styles.taskDescription}>{taskDescription}</ThemedText>
     </TouchableOpacity>
   );
 };

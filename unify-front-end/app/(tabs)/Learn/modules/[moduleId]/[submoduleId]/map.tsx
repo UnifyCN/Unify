@@ -11,7 +11,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
-import { getLessonProgress } from '@/services/progress/progressService';
+import { getLessonProgressesBySubmodule } from '@/services/progress/progressService';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAnalytics } from '@/utils/analytics';
@@ -172,15 +172,16 @@ export default function SubmoduleMap() {
 
   // Fetch lesson progress data
   useEffect(() => {
-    if (submoduleData?.lessons) {
+    if (submoduleData?.lessons && submoduleId) {
       const fetchLessonProgress = async () => {
         setProgressLoading(true);
         const progressData: { [key: string]: LessonProgress | null } = {};
 
-        for (const lesson of submoduleData.lessons) {
-          try {
-            const progress = await getLessonProgress(lesson._id);
-            // Extract only the fields we use from UserLessonProgress
+        try {
+          const progresses = await getLessonProgressesBySubmodule(submoduleId);
+
+          for (const lesson of submoduleData.lessons) {
+            const progress = progresses[lesson._id];
             if (progress) {
               progressData[lesson._id] = {
                 is_completed: progress.is_completed,
@@ -190,12 +191,11 @@ export default function SubmoduleMap() {
             } else {
               progressData[lesson._id] = null;
             }
-          } catch (error) {
-            console.error(
-              `Error fetching progress for lesson ${lesson._id}:`,
-              error
-            );
-            // Set default values if progress fetching fails
+          }
+        } catch (error) {
+          console.error('Error fetching progress for submodule lessons:', error);
+
+          for (const lesson of submoduleData.lessons) {
             progressData[lesson._id] = {
               is_completed: false,
               is_in_progress: false,
@@ -210,7 +210,7 @@ export default function SubmoduleMap() {
 
       fetchLessonProgress();
     }
-  }, [submoduleData?.lessons]);
+  }, [submoduleData?.lessons, submoduleId]);
 
   if (isLoading || progressLoading) {
     return (

@@ -39,6 +39,43 @@ export async function getLessonProgress(
   }
 }
 
+export async function getLessonProgressesBySubmodule(
+  submoduleId: string
+): Promise<Record<string, UserLessonProgress>> {
+  try {
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
+    if (!user) return {};
+
+    const { data, error } = await progressClient
+      .from('user_lesson_progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('sanity_submodule_id', submoduleId);
+
+    if (error) {
+      console.error(
+        'Error fetching lesson progresses by submodule:',
+        error
+      );
+      return {};
+    }
+
+    const result: Record<string, UserLessonProgress> = {};
+    for (const row of data || []) {
+      if (row?.sanity_lesson_id) {
+        result[row.sanity_lesson_id] = row;
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error in getLessonProgressesBySubmodule:', error);
+    return {};
+  }
+}
+
 async function startLesson(
   lessonId: string,
   submoduleId: string,
