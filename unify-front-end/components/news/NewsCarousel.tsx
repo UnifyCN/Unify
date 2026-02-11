@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     width: 332,
     height: 132,
     borderRadius: 16,
-    borderColor: '#CDCBCB',
+    borderColor: Theme.borderCard,
     borderWidth: 1,
     backgroundColor: Theme.white,
     overflow: 'hidden',

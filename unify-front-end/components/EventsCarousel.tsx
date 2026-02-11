@@ -9,10 +9,17 @@ import { Theme } from '@/constants/Theme';
 import ViewMoreCardEvents from '@/components/icons/ViewMoreCardEvents.svg';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { HorizontalCarousel } from './HorizontalCarousel';
+import { getUpcomingEventsSorted } from '@/helpers/eventHelpers';
+import {
+  EVENT_CARD_WIDTH,
+  EVENT_CARD_ASPECT_RATIO,
+  EVENT_IMAGE_ASPECT_RATIO,
+} from '@/constants/EventCard';
 
-const EVENT_CARD_WIDTH = 248;
-const EVENT_CARD_HEIGHT = Math.round((EVENT_CARD_WIDTH * 228) / 300);
-const EVENT_CARD_IMAGE_HEIGHT = Math.round((EVENT_CARD_WIDTH * 108) / 300);
+const EVENT_CARD_HEIGHT = Math.round(EVENT_CARD_WIDTH * EVENT_CARD_ASPECT_RATIO);
+const EVENT_CARD_IMAGE_HEIGHT = Math.round(
+  EVENT_CARD_WIDTH * EVENT_IMAGE_ASPECT_RATIO
+);
 
 // Skeleton loader component for events
 const EventSkeletonCard = () => {
@@ -96,15 +103,7 @@ export const EventsCarousel = ({
   const router = useRouter();
   const { data: events, isLoading } = useEvents();
 
-  const now = Date.now();
-  const upcomingEvents =
-    events
-      ?.filter(event => new Date(event.eventDatetime).getTime() >= now)
-      .sort(
-        (a, b) =>
-          new Date(a.eventDatetime).getTime() -
-          new Date(b.eventDatetime).getTime()
-      ) || [];
+  const upcomingEvents = getUpcomingEventsSorted(events);
 
   const handleEventPress = (event: any) => {
     router.push({
@@ -219,7 +218,7 @@ const styles = StyleSheet.create({
 const skeletonStyles = StyleSheet.create({
   eventCard: {
     backgroundColor: Theme.white,
-    borderColor: '#CDCBCB',
+    borderColor: Theme.borderCard,
     borderWidth: 1,
     borderRadius: 16,
     overflow: 'hidden',

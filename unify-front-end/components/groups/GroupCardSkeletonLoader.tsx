@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Theme } from '@/constants/Theme';
 
 export function GroupCardSkeletonLoader() {
   return (
@@ -21,8 +22,8 @@ export function GroupCardSkeletonLoader() {
 
 const styles = StyleSheet.create({
   groupCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#CDCBCB',
+    backgroundColor: Theme.white,
+    borderColor: Theme.borderCard,
     borderWidth: 1,
     borderRadius: 16,
     overflow: 'hidden',

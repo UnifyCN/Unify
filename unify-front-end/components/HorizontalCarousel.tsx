@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
+const SEE_ALL_COLOR = '#6A6A6A';
+
 interface HorizontalCarouselProps<T> {
   title: string;
   titleStyle?: any;
@@ -54,7 +56,7 @@ export function HorizontalCarousel<T>({
         {showViewMore && onViewMore && (
           <TouchableOpacity onPress={onViewMore} style={styles.seeAllButton}>
             <Text style={styles.seeAllText}>See all</Text>
-            <Feather name='chevron-right' size={16} color='#6A6A6A' />
+            <Feather name='chevron-right' size={16} color={SEE_ALL_COLOR} />
           </TouchableOpacity>
         )}
       </View>
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    color: '#6A6A6A',
+    color: SEE_ALL_COLOR,
   },
   carousel: {
     marginBottom: 30,

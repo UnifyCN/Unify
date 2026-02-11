@@ -34,7 +34,7 @@ const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
 const styles = StyleSheet.create({
   groupCard: {
     backgroundColor: Theme.white,
-    borderColor: '#CDCBCB',
+    borderColor: Theme.borderCard,
     borderWidth: 1,
     borderRadius: 16,
     overflow: 'hidden',

@@ -17,6 +17,7 @@ import { Event } from '@/types/events';
 import { Theme } from '@/constants/Theme';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import BackHeader from '@/components/BackHeader';
+import { getUpcomingEventsSorted } from '@/helpers/eventHelpers';
 
 const EVENTS_LIST_CARD_HEIGHT = 228;
 
@@ -51,13 +52,7 @@ const EventsScreen = () => {
         event.title.toLowerCase().includes(searchQuery.toLowerCase())
       ) ?? [];
 
-    const upcomingEvents = baseEvents
-      .filter(event => new Date(event.eventDatetime).getTime() >= now)
-      .sort(
-        (a, b) =>
-          new Date(a.eventDatetime).getTime() -
-          new Date(b.eventDatetime).getTime()
-      );
+    const upcomingEvents = getUpcomingEventsSorted(baseEvents);
 
     const pastEvents = baseEvents
       .filter(event => new Date(event.eventDatetime).getTime() < now)

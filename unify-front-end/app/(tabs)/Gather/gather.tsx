@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
   },
   discoveryCard: {
     backgroundColor: Theme.white,
-    borderColor: '#CDCBCB',
+    borderColor: Theme.borderCard,
     borderWidth: 1,
     borderRadius: 16,
     paddingHorizontal: 12,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   requestButton: {
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#CDCBCB',
+    borderColor: Theme.borderCard,
     paddingVertical: 13,
     alignItems: 'center',
     justifyContent: 'center',

@@ -4,6 +4,11 @@ import { Feather } from '@expo/vector-icons';
 import { formatTime } from '@/helpers/dateHelpers';
 import { Event } from '@/types/events';
 import { Theme } from '@/constants/Theme';
+import {
+  EVENT_CARD_WIDTH,
+  getEventCardHeight,
+  getEventCardImageHeight,
+} from '@/constants/EventCard';
 
 interface EventCardProps {
   event: Event;
@@ -13,9 +18,9 @@ interface EventCardProps {
 }
 
 const EventCard = memo(
-  ({ event, width = 248, height, onPress }: EventCardProps) => {
-    const cardHeight = height ?? Math.round((width * 228) / 300);
-    const imageHeight = Math.round((width * 108) / 300);
+  ({ event, width = EVENT_CARD_WIDTH, height, onPress }: EventCardProps) => {
+    const cardHeight = height ?? getEventCardHeight(width);
+    const imageHeight = getEventCardImageHeight(width);
 
     const eventDate = new Date(event.eventDatetime);
     const dateDay = eventDate.toLocaleDateString('en-US', {
@@ -30,7 +35,7 @@ const EventCard = memo(
 
     const formatEventTime = (): string => {
       if (event.eventEndDatetime) {
-        return `${formatCardTime(event.eventDatetime)}-${formatCardTime(event.eventEndDatetime)}`;
+        return `${formatCardTime(event.eventDatetime)} - ${formatCardTime(event.eventEndDatetime)}`;
       }
       return formatCardTime(event.eventDatetime);
     };
@@ -74,7 +79,7 @@ const EventCard = memo(
 const styles = StyleSheet.create({
   eventCard: {
     backgroundColor: Theme.white,
-    borderColor: '#CDCBCB',
+    borderColor: Theme.borderCard,
     borderWidth: 1,
     borderRadius: 16,
     overflow: 'hidden',
@@ -122,7 +127,6 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     fontWeight: '500',
     color: Theme.secondaryBlack,
-    marginTop: 0,
   },
   eventContent: {
     paddingHorizontal: 16,
