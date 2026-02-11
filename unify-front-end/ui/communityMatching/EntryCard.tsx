@@ -41,10 +41,11 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
   const isWaiting = waitlistEntry?.status === 'waiting';
 
   const handlePress = () => {
-    if (isInCircle) {
-      router.push(
-        `/community-matching/circle/${activeCircle.circle_id}` as Href
-      );
+    if (activeCircle) {
+      const targetRoute = activeCircle.joined_at
+        ? `/community-matching/circle/${activeCircle.circle_id}/chat`
+        : `/community-matching/circle/${activeCircle.circle_id}`;
+      router.push(targetRoute as Href);
     } else if (isWaiting) {
       router.push('/community-matching/waiting-room' as Href);
     } else {

@@ -232,9 +232,10 @@ export default function WaitingRoomScreen() {
 
   useEffect(() => {
     if (activeCircle) {
-      router.replace(
-        `/community-matching/circle/${activeCircle.circle_id}` as Href
-      );
+      const targetRoute = activeCircle.joined_at
+        ? `/community-matching/circle/${activeCircle.circle_id}/chat`
+        : `/community-matching/circle/${activeCircle.circle_id}`;
+      router.replace(targetRoute as Href);
     }
   }, [activeCircle, router]);
 

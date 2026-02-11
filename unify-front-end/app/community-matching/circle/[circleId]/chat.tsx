@@ -12,14 +12,13 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '@/context/UserContext';
 import { Avatar } from '@/components/Avatar';
 import {
   getCircleById,
   getCircleMembers,
   getMembershipForCircle,
-  leaveCircle,
 } from '@/services/matching/circles';
 import {
   fetchCircleMessages,
@@ -45,7 +44,6 @@ import {
 export default function CircleChatScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -330,31 +328,9 @@ export default function CircleChatScreen() {
     }
   };
 
-  const handleLeave = () => {
+  const handleOpenCircleInfo = () => {
     if (!circleId) return;
-    Alert.alert(
-      'Leave this circle?',
-      'Leaving will remove you from the chat immediately.',
-      [
-        { text: 'Stay', style: 'cancel' },
-        {
-          text: 'Leave circle',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await leaveCircle(circleId as string);
-              await queryClient.invalidateQueries({
-                queryKey: ['community-active-circle'],
-              });
-              router.replace('/community-matching' as const);
-            } catch (error) {
-              console.error('Failed to leave circle', error);
-              Alert.alert('Unable to leave', 'Please try again.');
-            }
-          },
-        },
-      ]
-    );
+    router.push(`/community-matching/circle/${circleId}` as const);
   };
 
   const handleMemberPress = (userId: string) => {
@@ -429,8 +405,11 @@ export default function CircleChatScreen() {
           title=''
           onBack={() => router.back()}
           rightButton={
-            <TouchableOpacity onPress={handleLeave} style={styles.headerIcon}>
-              <Feather name='more-horizontal' size={24} color='#6B7280' />
+            <TouchableOpacity
+              onPress={handleOpenCircleInfo}
+              style={styles.headerIcon}
+            >
+              <Feather name='info' size={22} color='#6B7280' />
             </TouchableOpacity>
           }
         />
