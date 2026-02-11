@@ -52,8 +52,9 @@ export function HorizontalCarousel<T>({
       <View style={styles.header}>
         <Text style={[styles.headerText, titleStyle]}>{title}</Text>
         {showViewMore && onViewMore && (
-          <TouchableOpacity onPress={onViewMore}>
-            <Feather name='chevron-right' size={24} color='#000' />
+          <TouchableOpacity onPress={onViewMore} style={styles.seeAllButton}>
+            <Text style={styles.seeAllText}>See all</Text>
+            <Feather name='chevron-right' size={16} color='#6A6A6A' />
           </TouchableOpacity>
         )}
       </View>
@@ -111,6 +112,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#000',
+  },
+  seeAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#6A6A6A',
   },
   carousel: {
     marginBottom: 30,
