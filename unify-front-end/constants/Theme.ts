@@ -26,4 +26,5 @@ export const Theme = {
   imagePlaceholder: '#D3D3D3',
 
   borderInfoText: '#C1C1C1',
+  borderCard: '#CDCBCB',
 } as const;
