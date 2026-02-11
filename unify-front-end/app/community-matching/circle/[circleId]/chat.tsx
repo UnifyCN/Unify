@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -41,6 +42,58 @@ import {
   prefetchAvatarUrls,
 } from '@/services/s3/avatarUrlCache';
 
+const GROUP_WINDOW_MS = 3 * 60 * 1000;
+
+type CircleMessageListItem = {
+  type: 'message';
+  id: string;
+  message: CommunityMessage;
+  isOwn: boolean;
+  isSystem: boolean;
+  showAvatar: boolean;
+  showSenderName: boolean;
+  isGroupStart: boolean;
+  isGroupEnd: boolean;
+  showTimestamp: boolean;
+  timestampLabel?: string;
+};
+
+type CircleDateSeparatorItem = {
+  type: 'date-separator';
+  id: string;
+  label: string;
+};
+
+type CircleChatListItem = CircleMessageListItem | CircleDateSeparatorItem;
+
+const formatMessageTime = (isoDate: string): string =>
+  new Date(isoDate).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+const isSameCalendarDay = (first: Date, second: Date): boolean =>
+  first.getFullYear() === second.getFullYear() &&
+  first.getMonth() === second.getMonth() &&
+  first.getDate() === second.getDate();
+
+const formatDateSeparatorLabel = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  if (isSameCalendarDay(date, now)) {
+    return 'Today';
+  }
+
+  if (isSameCalendarDay(date, yesterday)) {
+    return 'Yesterday';
+  }
+
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
 export default function CircleChatScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
@@ -49,7 +102,8 @@ export default function CircleChatScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const flatListRef = useRef<FlatList<CommunityMessage>>(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const flatListRef = useRef<FlatList<CircleChatListItem>>(null);
 
   // Presence tracking state
   const [onlineMembers, setOnlineMembers] = useState<Set<string>>(new Set());
@@ -392,6 +446,69 @@ export default function CircleChatScreen() {
       .slice(0, 2);
   }, [typingMembers, memberLookup]);
 
+  const messageItems = useMemo<CircleChatListItem[]>(() => {
+    const canGroupWith = (a?: CommunityMessage, b?: CommunityMessage) => {
+      if (!a || !b) return false;
+      if (!a.sender_user_id || !b.sender_user_id) return false;
+      if (a.sender_user_id !== b.sender_user_id) return false;
+      const firstTimestamp = new Date(a.created_at).getTime();
+      const secondTimestamp = new Date(b.created_at).getTime();
+      return Math.abs(secondTimestamp - firstTimestamp) <= GROUP_WINDOW_MS;
+    };
+
+    const items: CircleChatListItem[] = [];
+
+    messages.forEach((message, index) => {
+      const isSystem = !message.sender_user_id;
+      const isOwn = !isSystem && message.sender_user_id === currentUser?.id;
+      const previous = messages[index - 1];
+      const next = messages[index + 1];
+
+      const shouldShowDateSeparator =
+        index === 0 ||
+        !isSameCalendarDay(
+          new Date(previous.created_at),
+          new Date(message.created_at)
+        );
+
+      if (shouldShowDateSeparator) {
+        const date = new Date(message.created_at);
+        const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        items.push({
+          type: 'date-separator',
+          id: `date-${dateKey}-${index}`,
+          label: formatDateSeparatorLabel(message.created_at),
+        });
+      }
+
+      const groupedWithPrevious = !isSystem && canGroupWith(previous, message);
+      const groupedWithNext = !isSystem && canGroupWith(message, next);
+      const isGroupStart = isSystem || !groupedWithPrevious;
+      const isGroupEnd = isSystem || !groupedWithNext;
+      const showAvatar = !isSystem && !isOwn && isGroupStart;
+      const showSenderName = showAvatar;
+      const showTimestamp = !isSystem && isGroupEnd;
+
+      items.push({
+        type: 'message',
+        id: message.id,
+        message,
+        isOwn,
+        isSystem,
+        showAvatar,
+        showSenderName,
+        isGroupStart,
+        isGroupEnd,
+        showTimestamp,
+        timestampLabel: showTimestamp
+          ? formatMessageTime(message.created_at)
+          : undefined,
+      });
+    });
+
+    return items;
+  }, [currentUser?.id, messages]);
+
   const inputDisabled =
     circle?.status === 'ended' || membership?.left_at !== null;
 
@@ -466,18 +583,32 @@ export default function CircleChatScreen() {
         ) : (
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={messageItems}
             keyExtractor={item => item.id}
             renderItem={({ item }) => {
-              const isOwn = item.sender_user_id === currentUser?.id;
+              if (item.type === 'date-separator') {
+                return (
+                  <View style={styles.dateSeparatorRow}>
+                    <Text style={styles.dateSeparatorText}>{item.label}</Text>
+                  </View>
+                );
+              }
+
               return (
                 <CircleMessageBubble
-                  message={item}
-                  isOwn={isOwn}
+                  message={item.message}
+                  isOwn={item.isOwn}
+                  showAvatar={item.showAvatar}
+                  showSenderName={item.showSenderName}
+                  isGroupStart={item.isGroupStart}
+                  isGroupEnd={item.isGroupEnd}
+                  showTimestamp={item.showTimestamp}
+                  timestampLabel={item.timestampLabel}
                   onPressSender={handleMemberPress}
                 />
               );
             }}
+            keyboardShouldPersistTaps='handled'
             contentContainerStyle={styles.messagesList}
           />
         )}
@@ -497,15 +628,22 @@ export default function CircleChatScreen() {
           style={styles.inputSafeArea}
         >
           <View style={styles.inputContainer}>
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                isInputFocused && styles.inputWrapperFocused,
+              ]}
+            >
               <TextInput
                 style={[styles.input, inputDisabled && styles.inputDisabled]}
                 placeholder='Message...'
-                placeholderTextColor='#9CA3AF'
+                placeholderTextColor='#98A2B3'
                 value={text}
                 onChangeText={handleTextChange}
                 editable={!inputDisabled}
                 multiline
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
               />
               <TouchableOpacity
                 style={[
@@ -646,16 +784,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   messagesList: {
-    paddingVertical: 16,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 92,
+  },
+  dateSeparatorRow: {
+    alignItems: 'center',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  dateSeparatorText: {
+    fontSize: 11,
+    color: '#98A2B3',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   inputContainer: {
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 0,
+    paddingTop: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 2,
     backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: '#F3F4F6',
+    borderColor: '#EEF2F6',
   },
   inputSafeArea: {
     backgroundColor: '#fff',
@@ -663,33 +812,43 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 24,
-    padding: 6,
+    backgroundColor: '#F5F7FA',
+    borderRadius: 20,
+    paddingVertical: 4,
+    paddingLeft: 12,
+    paddingRight: 5,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#E8EDF3',
+  },
+  inputWrapperFocused: {
+    borderColor: '#FBC184',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
-    minHeight: 40,
-    maxHeight: 120,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
+    minHeight: 36,
+    maxHeight: 108,
+    paddingHorizontal: 0,
+    paddingTop: Platform.OS === 'ios' ? 8 : 6,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 6,
+    fontSize: 15,
     color: '#1F2937',
   },
   inputDisabled: {
     opacity: 0.6,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: '#ff9b3d',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 2,
   },
   sendButtonDisabled: {
-    backgroundColor: '#CBD5E1',
+    backgroundColor: '#CDD6E2',
   },
   headerIcon: {
     padding: 4,
