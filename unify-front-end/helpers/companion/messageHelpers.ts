@@ -34,6 +34,10 @@ export interface ParsedRAGResponse {
   suggestedNextSteps?: string[];
 }
 
+// NOTE: This sanitizer logic is intentionally mirrored in:
+// supabase/functions/rag-query/index.ts
+// Keep both copies in sync until we extract a shared cross-runtime module.
+// TODO(unify-companion): move smartchip sanitization to a single shared source of truth.
 const INVALID_ASSISTANT_LED_PATTERNS: RegExp[] = [
   /^would you like\b/i,
   /^do you want\b/i,

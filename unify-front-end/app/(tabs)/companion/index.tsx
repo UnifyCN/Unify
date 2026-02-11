@@ -94,6 +94,7 @@ export default function CompanionScreen() {
   >(null);
 
   const [inputText, setInputText] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const emptyStateTopPadding = Math.max(
@@ -181,6 +182,26 @@ export default function CompanionScreen() {
 
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
+
+  // Track keyboard visibility so iOS uses interactive dismiss only when keyboard is open.
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () =>
+      setIsKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(hideEvent, () =>
+      setIsKeyboardVisible(false)
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
@@ -351,14 +372,22 @@ export default function CompanionScreen() {
             ListFooterComponent={renderLoadingIndicator}
             keyboardShouldPersistTaps='handled'
             keyboardDismissMode={
-              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+              Platform.OS === 'ios'
+                ? isKeyboardVisible
+                  ? 'interactive'
+                  : 'none'
+                : 'on-drag'
             }
-            onScrollBeginDrag={Keyboard.dismiss}
+            onScrollBeginDrag={
+              Platform.OS === 'ios' ? undefined : Keyboard.dismiss
+            }
             initialNumToRender={10}
             maxToRenderPerBatch={8}
             windowSize={7}
             updateCellsBatchingPeriod={50}
             nestedScrollEnabled={Platform.OS === 'android'}
+            // Keep clipping disabled to avoid truncation/scroll lock for long rich bot responses on Android.
+            // Repro observed in Companion screen after response render with dynamic markdown content.
             removeClippedSubviews={false}
           />
         )}
