@@ -8,65 +8,68 @@ import { Theme } from '@/constants/Theme';
 interface EventCardProps {
   event: Event;
   width?: number;
+  height?: number;
   onPress?: () => void;
 }
 
-const EventCard = memo(({ event, width = 248, onPress }: EventCardProps) => {
-  const cardHeight = Math.round((width * 228) / 300);
-  const imageHeight = Math.round((width * 108) / 300);
+const EventCard = memo(
+  ({ event, width = 248, height, onPress }: EventCardProps) => {
+    const cardHeight = height ?? Math.round((width * 228) / 300);
+    const imageHeight = Math.round((width * 108) / 300);
 
-  const eventDate = new Date(event.eventDatetime);
-  const dateDay = eventDate.toLocaleDateString('en-US', {
-    day: 'numeric',
-  });
-  const dateMonth = eventDate.toLocaleDateString('en-US', {
-    month: 'short',
-  });
+    const eventDate = new Date(event.eventDatetime);
+    const dateDay = eventDate.toLocaleDateString('en-US', {
+      day: 'numeric',
+    });
+    const dateMonth = eventDate.toLocaleDateString('en-US', {
+      month: 'short',
+    });
 
-  const formatCardTime = (dateString: string): string =>
-    formatTime(dateString).toLowerCase();
+    const formatCardTime = (dateString: string): string =>
+      formatTime(dateString).toLowerCase();
 
-  const formatEventTime = (): string => {
-    if (event.eventEndDatetime) {
-      return `${formatCardTime(event.eventDatetime)}-${formatCardTime(event.eventEndDatetime)}`;
-    }
-    return formatCardTime(event.eventDatetime);
-  };
+    const formatEventTime = (): string => {
+      if (event.eventEndDatetime) {
+        return `${formatCardTime(event.eventDatetime)}-${formatCardTime(event.eventEndDatetime)}`;
+      }
+      return formatCardTime(event.eventDatetime);
+    };
 
-  return (
-    <TouchableOpacity
-      style={[styles.eventCard, { width, height: cardHeight }]}
-      onPress={onPress}
-    >
-      <View style={[styles.imageContainer, { height: imageHeight }]}>
-        {event.coverPhotoUrl ? (
-          <Image source={{ uri: event.coverPhotoUrl }} style={styles.eventImage} />
-        ) : (
-          <View style={styles.eventImagePlaceholder} />
-        )}
-        <View style={styles.datePill}>
-          <Text style={styles.datePillDay}>{dateDay}</Text>
-          <Text style={styles.datePillMonth}>{dateMonth}</Text>
+    return (
+      <TouchableOpacity
+        style={[styles.eventCard, { width, height: cardHeight }]}
+        onPress={onPress}
+      >
+        <View style={[styles.imageContainer, { height: imageHeight }]}>
+          {event.coverPhotoUrl ? (
+            <Image source={{ uri: event.coverPhotoUrl }} style={styles.eventImage} />
+          ) : (
+            <View style={styles.eventImagePlaceholder} />
+          )}
+          <View style={styles.datePill}>
+            <Text style={styles.datePillDay}>{dateDay}</Text>
+            <Text style={styles.datePillMonth}>{dateMonth}</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.eventContent}>
-        <Text style={styles.eventTitle} numberOfLines={1}>
-          {event.title}
-        </Text>
-        <View style={styles.eventDetailRow}>
-          <Feather name='calendar' size={18} color='#9B9797' />
-          <Text style={styles.eventDetailText}>{formatEventTime()}</Text>
-        </View>
-        <View style={styles.eventDetailRow}>
-          <Feather name='map-pin' size={18} color='#9B9797' />
-          <Text style={styles.eventDetailText} numberOfLines={1}>
-            {event.location}
+        <View style={styles.eventContent}>
+          <Text style={styles.eventTitle} numberOfLines={1}>
+            {event.title}
           </Text>
+          <View style={styles.eventDetailRow}>
+            <Feather name='calendar' size={18} color='#9B9797' />
+            <Text style={styles.eventDetailText}>{formatEventTime()}</Text>
+          </View>
+          <View style={styles.eventDetailRow}>
+            <Feather name='map-pin' size={18} color='#9B9797' />
+            <Text style={styles.eventDetailText} numberOfLines={1}>
+              {event.location}
+            </Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-});
+      </TouchableOpacity>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   eventCard: {

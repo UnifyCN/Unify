@@ -18,6 +18,8 @@ import { Theme } from '@/constants/Theme';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import BackHeader from '@/components/BackHeader';
 
+const EVENTS_LIST_CARD_HEIGHT = 228;
+
 const EventsScreen = () => {
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
@@ -72,6 +74,7 @@ const EventsScreen = () => {
       <EventCard
         event={item}
         width={354}
+        height={EVENTS_LIST_CARD_HEIGHT}
         onPress={() =>
           router.push({
             pathname: '/event-detail' as any,
