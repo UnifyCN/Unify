@@ -10,6 +10,7 @@ interface CompanionHeaderProps {
   title?: string;
   onBack?: () => void;
   backIcon?: keyof typeof Feather.glyphMap;
+  leftButton?: ReactNode;
   rightButton?: ReactNode;
   showBackButton?: boolean;
 }
@@ -18,6 +19,7 @@ const CompanionHeader = ({
   title = '',
   onBack,
   backIcon = 'chevron-left',
+  leftButton,
   rightButton,
   showBackButton = true,
 }: CompanionHeaderProps) => {
@@ -48,7 +50,7 @@ const CompanionHeader = ({
           <Feather name={backIcon} size={Layout.header.iconSize} color='#000' />
         </TouchableOpacity>
       ) : (
-        <View style={styles.placeholder} />
+        leftButton || <View style={styles.placeholder} />
       )}
       <Text style={styles.title}>{title}</Text>
       {rightButton || <View style={styles.placeholder} />}
