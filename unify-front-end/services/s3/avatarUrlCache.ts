@@ -4,6 +4,7 @@ const DEFAULT_TTL_MS = 4 * 60 * 1000;
 const REFRESH_BUFFER_MS = 30 * 1000;
 const MAX_CACHE_ENTRIES = 200;
 const MAX_INFLIGHT_ENTRIES = 200;
+const PRUNE_INTERVAL_MS = 1000;
 
 interface AvatarCacheEntry {
   url: string;
@@ -15,6 +16,7 @@ const inflightRequests = new Map<
   string,
   { requestId: symbol; promise: Promise<string | undefined> }
 >();
+let lastPruneTimestamp = 0;
 
 const isHttpUrl = (value: string) => /^https?:\/\//i.test(value);
 
@@ -61,6 +63,12 @@ export const parseSignedUrlExpiry = (url: string): number | null => {
   }
 };
 
+export const clearAllAvatarUrlCache = (): void => {
+  avatarUrlCache.clear();
+  inflightRequests.clear();
+  lastPruneTimestamp = 0;
+};
+
 const isCacheValid = (entry: AvatarCacheEntry) =>
   entry.expiresAt - Date.now() > REFRESH_BUFFER_MS;
 
@@ -99,8 +107,6 @@ export const clearAvatarUrlCache = (
   const normalized = normalizeAvatarSource(profilePictureUrl);
 
   if (!normalized) {
-    avatarUrlCache.clear();
-    inflightRequests.clear();
     return;
   }
 
@@ -125,7 +131,11 @@ export const resolveAvatarUrl = async (
     return normalized;
   }
 
-  pruneExpiredCacheEntries();
+  const now = Date.now();
+  if (now - lastPruneTimestamp > PRUNE_INTERVAL_MS) {
+    pruneExpiredCacheEntries();
+    lastPruneTimestamp = now;
+  }
 
   const cached = avatarUrlCache.get(normalized);
   if (cached && isCacheValid(cached)) {

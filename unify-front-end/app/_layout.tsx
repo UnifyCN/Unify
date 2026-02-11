@@ -30,25 +30,13 @@ export default function RootLayout() {
   // const [onboardingChecked, setOnboardingChecked] = useState(false);
   // const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Initialize progress cache
-  const {
-    isInitialized: progressCacheInitialized,
-    isLoading: progressCacheLoading,
-  } = useProgressCache();
-  const [cacheTimeout, setCacheTimeout] = useState(false);
+  // Intentionally fire-and-forget: useProgressCache internally calls
+  // cachedProgressService.getProgressData(), and failures are logged but
+  // should not block loaded/isReady/showAnimatedSplash startup flow.
+  useProgressCache();
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
-  const isReady = loaded && (progressCacheInitialized || cacheTimeout);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!progressCacheInitialized) {
-        console.warn('Progress cache initialization timed out');
-        setCacheTimeout(true);
-      }
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [progressCacheInitialized]);
+  const isReady = loaded;
 
   // Create a client
   const queryClient = React.useMemo(

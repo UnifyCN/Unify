@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import { useCommunityNotifications } from '@/hooks/useCommunityNotifications';
 import type { CommunityNotification } from '@/types/matching';
 import BackHeader from '@/components/BackHeader';
 import { Theme } from '@/constants/Theme';
+import LoadingScreen from '@/components/LoadingScreen';
 
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
@@ -168,11 +168,7 @@ export default function NotificationsScreen() {
     ) : null;
 
   if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size='large' color={Theme.primaryGatherRed} />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   return (
@@ -202,12 +198,6 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#fff',
   },
   markAllButton: {

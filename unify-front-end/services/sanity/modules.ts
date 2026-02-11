@@ -43,7 +43,6 @@ export async function getAllModulesWithSubmodules(): Promise<
         title,
         description,
         module,
-        intro_pages,
         order
       }
     }`;
@@ -98,7 +97,6 @@ export async function getModuleWithSubmodules(
         title,
         description,
         module,
-        intro_pages,
         order,
         "lessons": *[_type == "lesson" && references(^._id)] | order(order) {
           _id,
@@ -107,17 +105,16 @@ export async function getModuleWithSubmodules(
           slug,
           description,
           submodule,
-          pages,
-          activity_pages,
           order,
+          "lesson_page_count": count(pages),
+          "activity_page_count": count(activity_pages),
+          "ending_page_count": count(ending_pages),
           "quizzes": *[_type == "quiz" && references(^._id)] | order(order_number) {
             _id,
             _type,
             title,
-            description,
-            lesson,
             order_number,
-            questions
+            "question_count": count(questions)
           }
         }
       }

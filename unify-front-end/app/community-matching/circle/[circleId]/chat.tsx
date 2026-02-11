@@ -61,6 +61,7 @@ export default function CircleChatScreen() {
   const presenceChannelRef = useRef<RealtimeChannel | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const memberAvatarSetRef = useRef<Set<string>>(new Set());
+  const senderAvatarSetRef = useRef<Set<string>>(new Set());
 
   const { data: circle } = useQuery({
     queryKey: ['community-circle', circleId],
@@ -103,6 +104,10 @@ export default function CircleChatScreen() {
   }, [memberAvatarSet]);
 
   useEffect(() => {
+    senderAvatarSetRef.current.clear();
+  }, [circleId]);
+
+  useEffect(() => {
     if (!members?.length) {
       return;
     }
@@ -128,7 +133,9 @@ export default function CircleChatScreen() {
             )
             .filter(
               (value): value is string =>
-                !!value && !memberAvatarSetRef.current.has(value)
+                !!value &&
+                !memberAvatarSetRef.current.has(value) &&
+                !senderAvatarSetRef.current.has(value)
             )
         )
       );
@@ -137,9 +144,13 @@ export default function CircleChatScreen() {
         return;
       }
 
-      prefetchAvatarUrls(senderAvatarUrls).catch(error => {
-        console.warn('Failed to prefetch message avatar URLs', error);
-      });
+      prefetchAvatarUrls(senderAvatarUrls)
+        .then(() => {
+          senderAvatarUrls.forEach(url => senderAvatarSetRef.current.add(url));
+        })
+        .catch(error => {
+          console.warn('Failed to prefetch message avatar URLs', error);
+        });
     }, 350);
 
     return () => clearTimeout(timeoutId);

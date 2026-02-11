@@ -40,26 +40,37 @@ export const usePostMetadata = (postIds: number[]) => {
 
       // Process the data
       const metadata: Record<number, PostMetadata> = {};
+      const postIdSet = new Set(postIds);
 
       postIds.forEach(postId => {
-        const likes =
-          likesData.data?.filter(like => like.post_id === postId) || [];
-
-        const comments =
-          commentsData.data?.filter(comment => comment.post_id === postId) ||
-          [];
-
-        const saves =
-          savesData.data?.filter(save => save.post_id === postId) || [];
-
         metadata[postId] = {
           postId,
-          isLiked: likes.some(like => like.user_id === user.id),
-          isSaved: saves.some(save => save.user_id === user.id),
-          likeCount: likes.length,
-          commentCount: comments.length,
+          isLiked: false,
+          isSaved: false,
+          likeCount: 0,
+          commentCount: 0,
         };
       });
+
+      for (const like of likesData.data || []) {
+        if (!postIdSet.has(like.post_id)) continue;
+        metadata[like.post_id].likeCount += 1;
+        if (like.user_id === user.id) {
+          metadata[like.post_id].isLiked = true;
+        }
+      }
+
+      for (const comment of commentsData.data || []) {
+        if (!postIdSet.has(comment.post_id)) continue;
+        metadata[comment.post_id].commentCount += 1;
+      }
+
+      for (const save of savesData.data || []) {
+        if (!postIdSet.has(save.post_id)) continue;
+        if (save.user_id === user.id) {
+          metadata[save.post_id].isSaved = true;
+        }
+      }
 
       return metadata;
     },

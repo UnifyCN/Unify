@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useMemo } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -64,55 +64,43 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
 
   // Create data array with header, tabs, and feed content to be used to do sticky header
-  const data = [
-    { key: 'header', type: 'header' },
-    { key: 'tabs', type: 'tabs' },
-    { key: 'feed', type: 'feed' },
-  ];
+  const data = useMemo(
+    () => [
+      { key: 'header', type: 'header' },
+      { key: 'tabs', type: 'tabs' },
+      { key: 'feed', type: 'feed' },
+    ],
+    []
+  );
 
-  const renderItem = ({ item }: { item: { key: string; type: string } }) => {
-    switch (item.type) {
-      case 'header':
-        return (
-          <ProfileHeader
-            key={userId}
-            isCurrentUser={isCurrentUser}
-            userInfo={userInfo}
-          />
-        );
-      case 'tabs':
-        return <TabHeader activeTab={activeTab} setActiveTab={setActiveTab} />;
-      case 'feed':
-        return <View style={styles.feedContainer}>{renderTabContent}</View>;
-      default:
-        return null;
+  const renderTabContent = useMemo(() => {
+    if (activeTab === 'Comments') {
+      return (
+        <FeedWithHook
+          key={`comments-${userId}`}
+          useFeedHook={useCommentsFeedHook}
+          ListEmptyComponent={
+            <EmptyFeedMessage
+              icon={<UnifyReplyIcon width={27} height={25} />}
+              message='Looks a little quiet here...'
+              submessage={
+                isCurrentUser ? (
+                  <Text style={styles.emptyMessageSubtext}>
+                    You haven't commented on any posts yet
+                  </Text>
+                ) : (
+                  <Text style={styles.emptyMessageSubtext}>
+                    This person hasn't commented on any posts yet
+                  </Text>
+                )
+              }
+            />
+          }
+        />
+      );
     }
-  };
 
-  const renderTabContent =
-    activeTab === 'Comments' ? (
-      <FeedWithHook
-        key={`comments-${userId}`}
-        useFeedHook={useCommentsFeedHook}
-        ListEmptyComponent={
-          <EmptyFeedMessage
-            icon={<UnifyReplyIcon width={27} height={25} />}
-            message='Looks a little quiet here...'
-            submessage={
-              isCurrentUser ? (
-                <Text style={styles.emptyMessageSubtext}>
-                  You haven't commented on any posts yet
-                </Text>
-              ) : (
-                <Text style={styles.emptyMessageSubtext}>
-                  This person hasn't commented on any posts yet
-                </Text>
-              )
-            }
-          />
-        }
-      />
-    ) : (
+    return (
       <FeedWithHook
         key={`posts-${userId}`}
         useFeedHook={usePostsFeedHook}
@@ -136,6 +124,40 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         }
       />
     );
+  }, [
+    activeTab,
+    isCurrentUser,
+    useCommentsFeedHook,
+    usePostsFeedHook,
+    userId,
+  ]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: { key: string; type: string } }) => {
+      switch (item.type) {
+        case 'header':
+          return (
+            <ProfileHeader
+              key={userId}
+              isCurrentUser={isCurrentUser}
+              userInfo={userInfo}
+            />
+          );
+        case 'tabs':
+          return (
+            <TabHeader
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          );
+        case 'feed':
+          return <View style={styles.feedContainer}>{renderTabContent}</View>;
+        default:
+          return null;
+      }
+    },
+    [activeTab, isCurrentUser, renderTabContent, userId, userInfo]
+  );
 
   return (
     <View style={styles.container}>
@@ -145,6 +167,9 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         renderItem={renderItem}
         keyExtractor={item => item.key}
         stickyHeaderIndices={[1]}
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={5}
       />
     </View>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -138,137 +138,142 @@ const renderMarkdownLine = (
  * Supports: ## Headers, **bold**, - bullet points, and [links](url)
  * Special styling for "At a Glance" section
  */
-const MarkdownText: React.FC<{ text: string; isUser: boolean }> = ({
+const MarkdownText: React.FC<{ text: string; isUser: boolean }> = memo(({
   text,
   isUser,
 }) => {
   const baseColor = isUser ? '#fff' : '#333';
 
-  // Split text into lines for processing
-  const lines = text.split('\n');
-  const elements: React.ReactNode[] = [];
+  const elements = useMemo(() => {
+    // Split text into lines for processing
+    const lines = text.split('\n');
+    const nextElements: React.ReactNode[] = [];
 
-  // Find "At a Glance" section boundaries
-  let atAGlanceStart = -1;
-  let atAGlanceEnd = -1;
+    // Find "At a Glance" section boundaries
+    let atAGlanceStart = -1;
+    let atAGlanceEnd = -1;
 
-  lines.forEach((line, index) => {
-    const trimmedLine = line.trim();
-    if (trimmedLine.startsWith('## ')) {
-      const headerText = trimmedLine.substring(3).toLowerCase();
-      if (headerText.includes('at a glance') && atAGlanceStart === -1) {
-        atAGlanceStart = index;
-      } else if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
-        // Found next header after "At a Glance"
-        atAGlanceEnd = index;
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('## ')) {
+        const headerText = trimmedLine.substring(3).toLowerCase();
+        if (headerText.includes('at a glance') && atAGlanceStart === -1) {
+          atAGlanceStart = index;
+        } else if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
+          // Found next header after "At a Glance"
+          atAGlanceEnd = index;
+        }
       }
-    }
-  });
+    });
 
-  // If "At a Glance" exists but no following header, it goes to the first empty line or end
-  if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
-    // Find the end by looking for an empty line after content
-    let foundContent = false;
-    for (let i = atAGlanceStart + 1; i < lines.length; i++) {
-      const trimmed = lines[i].trim();
-      if (trimmed.length > 0) {
-        foundContent = true;
-      } else if (foundContent) {
-        atAGlanceEnd = i;
-        break;
+    // If "At a Glance" exists but no following header, it goes to the first empty line or end
+    if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
+      // Find the end by looking for an empty line after content
+      let foundContent = false;
+      for (let i = atAGlanceStart + 1; i < lines.length; i++) {
+        const trimmed = lines[i].trim();
+        if (trimmed.length > 0) {
+          foundContent = true;
+        } else if (foundContent) {
+          atAGlanceEnd = i;
+          break;
+        }
       }
-    }
-    if (atAGlanceEnd === -1) {
-      atAGlanceEnd = lines.length;
-    }
-  }
-
-  // Process lines and group "At a Glance" section
-  const atAGlanceContent: React.ReactNode[] = [];
-  let isFirstHeader = true;
-  let currentSection: SectionType = 'general';
-
-  lines.forEach((line, lineIndex) => {
-    const trimmedLine = line.trim();
-
-    // Determine current section based on headers
-    if (trimmedLine.startsWith('## ')) {
-      const headerText = trimmedLine.substring(3).toLowerCase();
-      if (headerText.includes('at a glance')) {
-        currentSection = 'at_a_glance';
-      } else if (headerText.includes('what you need to know')) {
-        currentSection = 'need_to_know';
-      } else if (headerText.includes('next steps')) {
-        currentSection = 'next_steps';
-      } else if (headerText.includes('learn more')) {
-        currentSection = 'learn_more';
-      } else {
-        currentSection = 'general';
+      if (atAGlanceEnd === -1) {
+        atAGlanceEnd = lines.length;
       }
     }
 
-    // Check if we're in the "At a Glance" section
-    const isInAtAGlance =
-      atAGlanceStart !== -1 &&
-      lineIndex >= atAGlanceStart &&
-      lineIndex < atAGlanceEnd;
+    // Process lines and group "At a Glance" section
+    const atAGlanceContent: React.ReactNode[] = [];
+    let isFirstHeader = true;
+    let currentSection: SectionType = 'general';
 
-    if (isInAtAGlance) {
+    lines.forEach((line, lineIndex) => {
+      const trimmedLine = line.trim();
+
+      // Determine current section based on headers
+      if (trimmedLine.startsWith('## ')) {
+        const headerText = trimmedLine.substring(3).toLowerCase();
+        if (headerText.includes('at a glance')) {
+          currentSection = 'at_a_glance';
+        } else if (headerText.includes('what you need to know')) {
+          currentSection = 'need_to_know';
+        } else if (headerText.includes('next steps')) {
+          currentSection = 'next_steps';
+        } else if (headerText.includes('learn more')) {
+          currentSection = 'learn_more';
+        } else {
+          currentSection = 'general';
+        }
+      }
+
+      // Check if we're in the "At a Glance" section
+      const isInAtAGlance =
+        atAGlanceStart !== -1 &&
+        lineIndex >= atAGlanceStart &&
+        lineIndex < atAGlanceEnd;
+
+      if (isInAtAGlance) {
+        const element = renderMarkdownLine(
+          trimmedLine,
+          lineIndex,
+          baseColor,
+          trimmedLine.startsWith('## ') && isFirstHeader,
+          currentSection,
+          true
+        );
+        if (element) {
+          if (trimmedLine.startsWith('## ')) {
+            isFirstHeader = false;
+          }
+          atAGlanceContent.push(element);
+        }
+
+        // If this is the last line of "At a Glance", wrap and add the section
+        if (lineIndex === atAGlanceEnd - 1) {
+          nextElements.push(
+            <View key="at-a-glance-section" style={styles.atAGlanceCard}>
+              {atAGlanceContent}
+            </View>
+          );
+        }
+        return;
+      }
+
+      // Track first header for regular sections too
+      if (trimmedLine.startsWith('## ')) {
+        isFirstHeader = false;
+      }
+
       const element = renderMarkdownLine(
         trimmedLine,
         lineIndex,
         baseColor,
-        trimmedLine.startsWith('## ') && isFirstHeader,
+        false,
         currentSection,
-        true // isInAtAGlance
+        false
       );
       if (element) {
-        if (trimmedLine.startsWith('## ')) {
-          isFirstHeader = false;
-        }
-        atAGlanceContent.push(element);
-      }
-
-      // If this is the last line of "At a Glance", wrap and add the section
-      if (lineIndex === atAGlanceEnd - 1) {
-        elements.push(
-          <View key='at-a-glance-section' style={styles.atAGlanceCard}>
-            {atAGlanceContent}
-          </View>
+        nextElements.push(element);
+      } else if (
+        lineIndex > 0 &&
+        lineIndex < lines.length - 1 &&
+        trimmedLine.length === 0
+      ) {
+        // Empty line (paragraph break) - but not at start or end
+        nextElements.push(
+          <View key={`line-${lineIndex}`} style={styles.paragraphBreak} />
         );
       }
-      return;
-    }
+    });
 
-    // Track first header for regular sections too
-    if (trimmedLine.startsWith('## ')) {
-      isFirstHeader = false;
-    }
-
-    const element = renderMarkdownLine(
-      trimmedLine,
-      lineIndex,
-      baseColor,
-      false,
-      currentSection,
-      false
-    );
-    if (element) {
-      elements.push(element);
-    } else if (
-      lineIndex > 0 &&
-      lineIndex < lines.length - 1 &&
-      trimmedLine.length === 0
-    ) {
-      // Empty line (paragraph break) - but not at start or end
-      elements.push(
-        <View key={`line-${lineIndex}`} style={styles.paragraphBreak} />
-      );
-    }
-  });
+    return nextElements;
+  }, [text, baseColor]);
 
   return <View style={styles.markdownContainer}>{elements}</View>;
-};
+});
+MarkdownText.displayName = 'MarkdownText';
 
 /**
  * Renders inline formatting like **bold** and [links](url)
@@ -347,7 +352,7 @@ const renderInlineFormatting = (
   );
 };
 
-export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
+const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
   item,
   suggestedNextSteps,
   onSuggestionPress,
@@ -457,6 +462,68 @@ export const MessageWithSources: React.FC<MessageWithSourcesProps> = ({
     </View>
   );
 };
+MessageWithSourcesComponent.displayName = 'MessageWithSources';
+
+const areSourcesEqual = (
+  previousSources?: Message['sources'],
+  nextSources?: Message['sources']
+) => {
+  if (previousSources === nextSources) {
+    return true;
+  }
+  if (!previousSources || !nextSources) {
+    return previousSources === nextSources;
+  }
+  if (previousSources.length !== nextSources.length) {
+    return false;
+  }
+
+  for (let i = 0; i < previousSources.length; i += 1) {
+    const previousSource = previousSources[i];
+    const nextSource = nextSources[i];
+    if (
+      previousSource.document_id !== nextSource.document_id ||
+      previousSource.document_title !== nextSource.document_title ||
+      previousSource.url !== nextSource.url
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const areStringArraysEqual = (previous?: string[], next?: string[]) => {
+  if (previous === next) {
+    return true;
+  }
+  if (!previous || !next) {
+    return previous === next;
+  }
+  if (previous.length !== next.length) {
+    return false;
+  }
+
+  for (let i = 0; i < previous.length; i += 1) {
+    if (previous[i] !== next[i]) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+export const MessageWithSources = memo(
+  MessageWithSourcesComponent,
+  (prev, next) =>
+    prev.item.id === next.item.id &&
+    prev.item.text === next.item.text &&
+    prev.item.disclaimer === next.item.disclaimer &&
+    prev.item.isUser === next.item.isUser &&
+    areSourcesEqual(prev.item.sources, next.item.sources) &&
+    areStringArraysEqual(prev.suggestedNextSteps, next.suggestedNextSteps) &&
+    prev.onSuggestionPress === next.onSuggestionPress
+);
 
 const styles = StyleSheet.create({
   messageContainer: {

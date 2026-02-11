@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,13 +11,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useCurrentUser } from '@/context/UserContext';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
-import {
-  getActiveCircleMembership,
-  type CommunityCircleMembership,
-} from '@/services/matching/circles';
+import { getActiveCircleMembership } from '@/services/matching/circles';
 import { getCurrentWaitlistEntry } from '@/services/matching/waitlist';
 import { deriveTimeInCanadaFromArrivalDate } from '@/matching/pools';
 import BackHeader from '@/components/BackHeader';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Design colors from Figma
 const COLORS = {
@@ -131,11 +128,7 @@ export default function CommunityMatchingHome() {
   }, [activeCircle, waitlistEntry, currentUser, router, refetchWaitlist]);
 
   if (onboardingLoading || waitlistLoading || circleLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size='large' color={COLORS.featureIconBackground} />
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   const derivedTimeInCanada = deriveTimeInCanadaFromArrivalDate(
@@ -238,12 +231,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  centered: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   scrollContent: {
     paddingHorizontal: 24,

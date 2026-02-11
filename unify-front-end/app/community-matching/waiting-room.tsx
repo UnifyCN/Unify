@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
@@ -22,6 +21,7 @@ import { getActiveCircleMembership } from '@/services/matching/circles';
 import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Animated ripple circles for the waiting indicator
 function WaitingAnimation() {
@@ -274,12 +274,7 @@ export default function WaitingRoomScreen() {
   };
 
   if (isLoading || !waitlistEntry) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size='large' color='#ff9d40' />
-        <Text style={styles.loadingText}>Preparing your waiting room…</Text>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   const joinedDate = new Date(waitlistEntry.created_at);
@@ -390,17 +385,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 160,
-  },
-  centered: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    color: '#6B7280',
-    fontSize: 15,
   },
   statusBadge: {
     flexDirection: 'row',
