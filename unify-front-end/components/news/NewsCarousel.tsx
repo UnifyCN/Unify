@@ -100,13 +100,11 @@ const styles = StyleSheet.create({
   viewMoreCardContainer: {
     width: 332,
     height: 132,
-    borderRadius: 12,
+    borderRadius: 16,
+    borderColor: '#CDCBCB',
+    borderWidth: 1,
+    backgroundColor: Theme.white,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
   viewMoreContent: {
     width: 332,
