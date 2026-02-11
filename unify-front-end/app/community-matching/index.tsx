@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useCurrentUser } from '@/context/UserContext';
@@ -117,9 +117,10 @@ export default function CommunityMatchingHome() {
   // 3. No waitlist entry - refetch to check status
   useEffect(() => {
     if (activeCircle) {
-      router.replace(
-        `/community-matching/circle/${activeCircle.circle_id}` as const
-      );
+      const targetRoute = activeCircle.joined_at
+        ? `/community-matching/circle/${activeCircle.circle_id}/chat`
+        : `/community-matching/circle/${activeCircle.circle_id}`;
+      router.replace(targetRoute as Href);
     } else if (waitlistEntry?.status === 'waiting') {
       router.replace('/community-matching/waiting-room' as const);
     } else if (!waitlistEntry && currentUser) {

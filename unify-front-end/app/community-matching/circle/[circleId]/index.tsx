@@ -25,6 +25,7 @@ import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { FollowButton } from '@/components/profile/FollowButton';
 import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
+import { CircleHeader } from '@/components/community-matching/CircleHeader';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 import LoadingScreen from '@/components/LoadingScreen';
 
@@ -216,30 +217,14 @@ export default function CircleDetailsScreen() {
       )}
       <BackHeader title='' onBack={() => router.back()} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.heading}>{formatPersonaLabel(circle.persona)}</Text>
-        <Text style={styles.subheading}>
-          {formatTimeInCanadaLabel(circle.time_in_canada)}
-        </Text>
-        <Text style={styles.meta}>{formattedDates}</Text>
-        {countdownText && (
-          <View style={styles.countdownContainer}>
-            <View style={styles.countdownBadge}>
-              <Text style={styles.countdownText}>⏱️ {countdownText}</Text>
-            </View>
-          </View>
-        )}
-        <View
-          style={[
-            styles.statusPill,
-            isActive ? styles.statusActive : styles.statusEnded,
-          ]}
-        >
-          <Text
-            style={isActive ? styles.statusActiveText : styles.statusEndedText}
-          >
-            {circle.status === 'active' ? 'Active Circle' : 'Circle ended'}
-          </Text>
-        </View>
+        <CircleHeader
+          title={formatPersonaLabel(circle.persona)}
+          subtitle={formatTimeInCanadaLabel(circle.time_in_canada)}
+          dateRange={formattedDates}
+          countdownText={countdownText}
+          isActive={isActive}
+          statusText={circle.status === 'active' ? undefined : 'Circle ended'}
+        />
 
         {hasLeftCircle && (
           <View style={styles.infoCard}>
@@ -401,7 +386,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scrollContent: {
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 8,
     paddingBottom: 120,
   },
   backBtn: {
@@ -410,58 +396,6 @@ const styles = StyleSheet.create({
   backText: {
     color: '#6E6E6E',
     fontSize: 15,
-  },
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1F1300',
-  },
-  subheading: {
-    fontSize: 18,
-    color: '#4A3F35',
-    marginTop: 4,
-  },
-  meta: {
-    fontSize: 14,
-    color: '#6E6E6E',
-    marginTop: 8,
-  },
-  countdownContainer: {
-    marginTop: 10,
-  },
-  countdownBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#fff3e6',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-  },
-  countdownText: {
-    color: '#ff820b',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-
-  statusPill: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 999,
-    marginTop: 12,
-  },
-  statusActive: {
-    backgroundColor: '#E6F8EE',
-  },
-  statusActiveText: {
-    color: '#0F8B54',
-    fontWeight: '600',
-  },
-  statusEnded: {
-    backgroundColor: '#FDECE6',
-  },
-  statusEndedText: {
-    color: '#B5330F',
-    fontWeight: '600',
   },
   infoCard: {
     marginTop: 20,
