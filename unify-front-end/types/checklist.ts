@@ -14,6 +14,7 @@ export interface SanityChecklistItem {
   _type: 'checklist';
   title: string;
   description?: string | null;
+  longer_description?: string | null;
   class: 'do_now' | 'do_soon' | 'explore_and_connect' | 'optional_later';
   class_order: number;
   personas: string[];
@@ -39,6 +40,7 @@ export function sanityChecklistItemToTaskDetails(
   return {
     task_name: item.title,
     task_description: item.description ?? '',
+    longer_description: item.longer_description?.trim() || undefined,
     priority: SANITY_CLASS_TO_PRIORITY[item.class],
     task_module: moduleOrSub?.title,
     linkModuleId: item.module?._id ?? item.submodule?.moduleId,
@@ -51,6 +53,8 @@ export function sanityChecklistItemToTaskDetails(
 export interface ChecklistTaskDetails {
   task_name: string;
   task_description: string;
+  /** Optional longer description for modal; fallback to task_description when absent */
+  longer_description?: string;
   priority: Priority;
   task_module?: string;
   /** For "Learn how" deep link: module id or submodule id */

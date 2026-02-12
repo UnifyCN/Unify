@@ -15,6 +15,7 @@ const CHECKLIST_QUERY = `*[
   _type,
   title,
   description,
+  longer_description,
   class,
   class_order,
   "module": module-> { _id, title },
