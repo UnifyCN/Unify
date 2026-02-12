@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -12,16 +13,18 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useCurrentUser } from '@/context/UserContext';
 import { Avatar } from '@/components/Avatar';
 import {
   getCircleById,
   getCircleMembers,
   getMembershipForCircle,
-  leaveCircle,
 } from '@/services/matching/circles';
-import { fetchCircleMessages, sendCircleMessage } from '@/services/matching/messages';
+import {
+  fetchCircleMessages,
+  sendCircleMessage,
+} from '@/services/matching/messages';
 import type {
   CommunityCircleMemberProfile,
   CommunityMessage,
@@ -39,25 +42,78 @@ import {
   prefetchAvatarUrls,
 } from '@/services/s3/avatarUrlCache';
 
+const GROUP_WINDOW_MS = 3 * 60 * 1000;
+
+type CircleMessageListItem = {
+  type: 'message';
+  id: string;
+  message: CommunityMessage;
+  isOwn: boolean;
+  isSystem: boolean;
+  showAvatar: boolean;
+  showSenderName: boolean;
+  isGroupStart: boolean;
+  isGroupEnd: boolean;
+  showTimestamp: boolean;
+  timestampLabel?: string;
+};
+
+type CircleDateSeparatorItem = {
+  type: 'date-separator';
+  id: string;
+  label: string;
+};
+
+type CircleChatListItem = CircleMessageListItem | CircleDateSeparatorItem;
+
+const formatMessageTime = (isoDate: string): string =>
+  new Date(isoDate).toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+const isSameCalendarDay = (first: Date, second: Date): boolean =>
+  first.getFullYear() === second.getFullYear() &&
+  first.getMonth() === second.getMonth() &&
+  first.getDate() === second.getDate();
+
+const formatDateSeparatorLabel = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  if (isSameCalendarDay(date, now)) {
+    return 'Today';
+  }
+
+  if (isSameCalendarDay(date, yesterday)) {
+    return 'Yesterday';
+  }
+
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
 
 export default function CircleChatScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const flatListRef = useRef<FlatList<CommunityMessage>>(null);
-  
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const flatListRef = useRef<FlatList<CircleChatListItem>>(null);
+
   // Presence tracking state
   const [onlineMembers, setOnlineMembers] = useState<Set<string>>(new Set());
   const [typingMembers, setTypingMembers] = useState<Set<string>>(new Set());
-  const [selectedMember, setSelectedMember] = useState<CommunityCircleMemberProfile | null>(null);
+  const [selectedMember, setSelectedMember] =
+    useState<CommunityCircleMemberProfile | null>(null);
   const presenceChannelRef = useRef<RealtimeChannel | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const memberAvatarSetRef = useRef<Set<string>>(new Set());
+  const senderAvatarSetRef = useRef<Set<string>>(new Set());
 
   const { data: circle } = useQuery({
     queryKey: ['community-circle', circleId],
@@ -100,6 +156,10 @@ export default function CircleChatScreen() {
   }, [memberAvatarSet]);
 
   useEffect(() => {
+    senderAvatarSetRef.current.clear();
+  }, [circleId]);
+
+  useEffect(() => {
     if (!members?.length) {
       return;
     }
@@ -120,10 +180,14 @@ export default function CircleChatScreen() {
       const senderAvatarUrls = Array.from(
         new Set(
           messages
-            .map(message => normalizeAvatarSource(message.sender?.profile_picture_url))
+            .map(message =>
+              normalizeAvatarSource(message.sender?.profile_picture_url)
+            )
             .filter(
               (value): value is string =>
-                !!value && !memberAvatarSetRef.current.has(value)
+                !!value &&
+                !memberAvatarSetRef.current.has(value) &&
+                !senderAvatarSetRef.current.has(value)
             )
         )
       );
@@ -132,9 +196,13 @@ export default function CircleChatScreen() {
         return;
       }
 
-      prefetchAvatarUrls(senderAvatarUrls).catch(error => {
-        console.warn('Failed to prefetch message avatar URLs', error);
-      });
+      prefetchAvatarUrls(senderAvatarUrls)
+        .then(() => {
+          senderAvatarUrls.forEach(url => senderAvatarSetRef.current.add(url));
+        })
+        .catch(error => {
+          console.warn('Failed to prefetch message avatar URLs', error);
+        });
     }, 350);
 
     return () => clearTimeout(timeoutId);
@@ -165,7 +233,7 @@ export default function CircleChatScreen() {
 
   useEffect(() => {
     if (!circleId) return;
-    
+
     const channel = supabase
       .channel(`community-messages-${circleId}`)
       .on(
@@ -207,7 +275,7 @@ export default function CircleChatScreen() {
           });
         }
       )
-      .subscribe((status) => {
+      .subscribe(status => {
         console.log('Realtime subscription status:', status);
       });
 
@@ -220,15 +288,19 @@ export default function CircleChatScreen() {
   useEffect(() => {
     if (!circleId || !currentUser) return;
 
-    const presenceChannel = supabase.channel(`presence-${circleId}`)
+    const presenceChannel = supabase
+      .channel(`presence-${circleId}`)
       .on('presence', { event: 'sync' }, () => {
         const state = presenceChannel.presenceState();
         const online = new Set<string>();
         const typing = new Set<string>();
-        
+
         Object.values(state).forEach((users: unknown) => {
-          const presenceUsers = users as { user_id?: string; is_typing?: boolean }[];
-          presenceUsers.forEach((user) => {
+          const presenceUsers = users as {
+            user_id?: string;
+            is_typing?: boolean;
+          }[];
+          presenceUsers.forEach(user => {
             if (user.user_id && user.user_id !== currentUser.id) {
               online.add(user.user_id);
               if (user.is_typing) {
@@ -237,11 +309,11 @@ export default function CircleChatScreen() {
             }
           });
         });
-        
+
         setOnlineMembers(online);
         setTypingMembers(typing);
       })
-      .subscribe(async (status) => {
+      .subscribe(async status => {
         if (status === 'SUBSCRIBED') {
           await presenceChannel.track({
             user_id: currentUser.id,
@@ -271,11 +343,11 @@ export default function CircleChatScreen() {
     if (!trimmed || !circleId || circle?.status === 'ended') {
       return;
     }
-    
+
     // Clear input immediately for better UX
     setText('');
     setIsSending(true);
-    
+
     // Optimistically add the message to the list
     const tempId = `temp-${Date.now()}`;
     const optimisticMessage: CommunityMessage = {
@@ -284,15 +356,17 @@ export default function CircleChatScreen() {
       sender_user_id: currentUser?.id || '',
       content: trimmed,
       created_at: new Date().toISOString(),
-      sender: currentUser ? {
-        id: currentUser.id,
-        username: currentUser.username || 'You',
-        profile_picture_url: currentUser.profilePictureUrl || null,
-      } : null,
+      sender: currentUser
+        ? {
+            id: currentUser.id,
+            username: currentUser.username || 'You',
+            profile_picture_url: currentUser.profilePictureUrl || null,
+          }
+        : null,
     };
-    
+
     setMessages(prev => [...prev, optimisticMessage]);
-    
+
     try {
       await sendCircleMessage(circleId as string, trimmed);
       // The realtime subscription will handle updating the message with the real ID,
@@ -308,31 +382,9 @@ export default function CircleChatScreen() {
     }
   };
 
-  const handleLeave = () => {
+  const handleOpenCircleInfo = () => {
     if (!circleId) return;
-    Alert.alert(
-      'Leave this circle?',
-      'Leaving will remove you from the chat immediately.',
-      [
-        { text: 'Stay', style: 'cancel' },
-        {
-          text: 'Leave circle',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await leaveCircle(circleId as string);
-              await queryClient.invalidateQueries({
-                queryKey: ['community-active-circle'],
-              });
-              router.replace('/community-matching' as const);
-            } catch (error) {
-              console.error('Failed to leave circle', error);
-              Alert.alert('Unable to leave', 'Please try again.');
-            }
-          },
-        },
-      ]
-    );
+    router.push(`/community-matching/circle/${circleId}` as const);
   };
 
   const handleMemberPress = (userId: string) => {
@@ -351,7 +403,7 @@ export default function CircleChatScreen() {
       handleCloseModal();
       router.push({
         pathname: '/profile',
-        params: { userId: selectedMember.user_id } 
+        params: { userId: selectedMember.user_id },
       });
     }
   };
@@ -359,7 +411,7 @@ export default function CircleChatScreen() {
   // Handle text input with typing indicator broadcast
   const handleTextChange = (newText: string) => {
     setText(newText);
-    
+
     // Broadcast typing status
     if (presenceChannelRef.current && currentUser) {
       presenceChannelRef.current.track({
@@ -394,22 +446,87 @@ export default function CircleChatScreen() {
       .slice(0, 2);
   }, [typingMembers, memberLookup]);
 
+  const messageItems = useMemo<CircleChatListItem[]>(() => {
+    const canGroupWith = (a?: CommunityMessage, b?: CommunityMessage) => {
+      if (!a || !b) return false;
+      if (!a.sender_user_id || !b.sender_user_id) return false;
+      if (a.sender_user_id !== b.sender_user_id) return false;
+      const firstTimestamp = new Date(a.created_at).getTime();
+      const secondTimestamp = new Date(b.created_at).getTime();
+      return Math.abs(secondTimestamp - firstTimestamp) <= GROUP_WINDOW_MS;
+    };
+
+    const items: CircleChatListItem[] = [];
+
+    messages.forEach((message, index) => {
+      const isSystem = !message.sender_user_id;
+      const isOwn = !isSystem && message.sender_user_id === currentUser?.id;
+      const previous = messages[index - 1];
+      const next = messages[index + 1];
+
+      const shouldShowDateSeparator =
+        index === 0 ||
+        !isSameCalendarDay(
+          new Date(previous.created_at),
+          new Date(message.created_at)
+        );
+
+      if (shouldShowDateSeparator) {
+        const date = new Date(message.created_at);
+        const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        items.push({
+          type: 'date-separator',
+          id: `date-${dateKey}-${index}`,
+          label: formatDateSeparatorLabel(message.created_at),
+        });
+      }
+
+      const groupedWithPrevious = !isSystem && canGroupWith(previous, message);
+      const groupedWithNext = !isSystem && canGroupWith(message, next);
+      const isGroupStart = isSystem || !groupedWithPrevious;
+      const isGroupEnd = isSystem || !groupedWithNext;
+      const showAvatar = !isSystem && !isOwn && isGroupStart;
+      const showSenderName = showAvatar;
+      const showTimestamp = !isSystem && isGroupEnd;
+
+      items.push({
+        type: 'message',
+        id: message.id,
+        message,
+        isOwn,
+        isSystem,
+        showAvatar,
+        showSenderName,
+        isGroupStart,
+        isGroupEnd,
+        showTimestamp,
+        timestampLabel: showTimestamp
+          ? formatMessageTime(message.created_at)
+          : undefined,
+      });
+    });
+
+    return items;
+  }, [currentUser?.id, messages]);
+
   const inputDisabled =
     circle?.status === 'ended' || membership?.left_at !== null;
-
 
   return (
     <View style={styles.root}>
       <KeyboardAvoidingView
-        behavior="translate-with-padding"
+        behavior='translate-with-padding'
         style={styles.flex}
       >
-        <BackHeader 
-          title=""
+        <BackHeader
+          title=''
           onBack={() => router.back()}
           rightButton={
-            <TouchableOpacity onPress={handleLeave} style={styles.headerIcon}>
-              <Feather name="more-horizontal" size={24} color="#6B7280" />
+            <TouchableOpacity
+              onPress={handleOpenCircleInfo}
+              style={styles.headerIcon}
+            >
+              <Feather name='info' size={22} color='#6B7280' />
             </TouchableOpacity>
           }
         />
@@ -418,27 +535,30 @@ export default function CircleChatScreen() {
         {onlineMembers.size > 0 && (
           <View style={styles.presenceBar}>
             <View style={styles.presenceAvatars}>
-              {members?.filter(m => onlineMembers.has(m.user_id)).slice(0, 4).map(member => (
-                <TouchableOpacity 
-                  key={member.user_id} 
-                  style={styles.presenceAvatar}
-                  onPress={() => handleMemberPress(member.user_id)}
-                >
-                  <Avatar
-                    profilePictureUrl={member.user.profile_picture_url ?? undefined}
-                    username={member.user.username || '?'}
-                    size={28}
-                    style={styles.presenceAvatarImg}
-                    fallbackStyle={styles.presenceAvatarFallback}
-                    textStyle={styles.presenceAvatarText}
-                  />
-                  <View style={styles.onlineDot} />
-                </TouchableOpacity>
-              ))}
+              {members
+                ?.filter(m => onlineMembers.has(m.user_id))
+                .slice(0, 4)
+                .map(member => (
+                  <TouchableOpacity
+                    key={member.user_id}
+                    style={styles.presenceAvatar}
+                    onPress={() => handleMemberPress(member.user_id)}
+                  >
+                    <Avatar
+                      profilePictureUrl={
+                        member.user.profile_picture_url ?? undefined
+                      }
+                      username={member.user.username || '?'}
+                      size={28}
+                      style={styles.presenceAvatarImg}
+                      fallbackStyle={styles.presenceAvatarFallback}
+                      textStyle={styles.presenceAvatarText}
+                    />
+                    <View style={styles.onlineDot} />
+                  </TouchableOpacity>
+                ))}
             </View>
-            <Text style={styles.presenceText}>
-              {onlineMembers.size} online
-            </Text>
+            <Text style={styles.presenceText}>{onlineMembers.size} online</Text>
           </View>
         )}
 
@@ -463,18 +583,32 @@ export default function CircleChatScreen() {
         ) : (
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={messageItems}
             keyExtractor={item => item.id}
             renderItem={({ item }) => {
-               const isOwn = item.sender_user_id === currentUser?.id;
-               return (
-                 <CircleMessageBubble 
-                   message={item} 
-                   isOwn={isOwn} 
-                   onPressSender={handleMemberPress}
-                 />
-               );
+              if (item.type === 'date-separator') {
+                return (
+                  <View style={styles.dateSeparatorRow}>
+                    <Text style={styles.dateSeparatorText}>{item.label}</Text>
+                  </View>
+                );
+              }
+
+              return (
+                <CircleMessageBubble
+                  message={item.message}
+                  isOwn={item.isOwn}
+                  showAvatar={item.showAvatar}
+                  showSenderName={item.showSenderName}
+                  isGroupStart={item.isGroupStart}
+                  isGroupEnd={item.isGroupEnd}
+                  showTimestamp={item.showTimestamp}
+                  timestampLabel={item.timestampLabel}
+                  onPressSender={handleMemberPress}
+                />
+              );
             }}
+            keyboardShouldPersistTaps='handled'
             contentContainerStyle={styles.messagesList}
           />
         )}
@@ -483,7 +617,8 @@ export default function CircleChatScreen() {
         {typingMemberNames.length > 0 && (
           <View style={styles.typingIndicator}>
             <Text style={styles.typingText}>
-              {typingMemberNames.join(', ')} {typingMemberNames.length > 1 ? 'are' : 'is'} typing...
+              {typingMemberNames.join(', ')}{' '}
+              {typingMemberNames.length > 1 ? 'are' : 'is'} typing...
             </Text>
           </View>
         )}
@@ -493,18 +628,22 @@ export default function CircleChatScreen() {
           style={styles.inputSafeArea}
         >
           <View style={styles.inputContainer}>
-            <View style={styles.inputWrapper}>
+            <View
+              style={[
+                styles.inputWrapper,
+                isInputFocused && styles.inputWrapperFocused,
+              ]}
+            >
               <TextInput
-                style={[
-                  styles.input,
-                  inputDisabled && styles.inputDisabled,
-                ]}
+                style={[styles.input, inputDisabled && styles.inputDisabled]}
                 placeholder='Message...'
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor='#98A2B3'
                 value={text}
                 onChangeText={handleTextChange}
                 editable={!inputDisabled}
                 multiline
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
               />
               <TouchableOpacity
                 style={[
@@ -515,9 +654,9 @@ export default function CircleChatScreen() {
                 disabled={!text.trim() || isSending || inputDisabled}
               >
                 {isSending ? (
-                  <ActivityIndicator color='#fff' size="small" />
+                  <ActivityIndicator color='#fff' size='small' />
                 ) : (
-                  <Feather name="arrow-up" size={20} color="#fff" />
+                  <Feather name='arrow-up' size={20} color='#fff' />
                 )}
               </TouchableOpacity>
             </View>
@@ -528,24 +667,26 @@ export default function CircleChatScreen() {
       {/* Member Identity Modal */}
       {selectedMember && (
         <Modal
-          animationType="fade"
+          animationType='fade'
           transparent={true}
           visible={!!selectedMember}
           onRequestClose={handleCloseModal}
         >
-          <TouchableOpacity 
-            style={styles.modalOverlay} 
-            activeOpacity={1} 
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
             onPress={handleCloseModal}
           >
-            <TouchableOpacity 
-              activeOpacity={1} 
-              onPress={(e) => e.stopPropagation()}
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={e => e.stopPropagation()}
               style={styles.modalContent}
             >
               <View style={styles.modalHeader}>
                 <Avatar
-                  profilePictureUrl={selectedMember.user.profile_picture_url ?? undefined}
+                  profilePictureUrl={
+                    selectedMember.user.profile_picture_url ?? undefined
+                  }
                   username={selectedMember.user.username || '?'}
                   size={64}
                   style={styles.modalAvatar}
@@ -553,26 +694,36 @@ export default function CircleChatScreen() {
                   textStyle={styles.modalAvatarText}
                 />
                 <View style={styles.modalUserInfo}>
-                  <Text style={styles.modalUsername}>{selectedMember.user.username}</Text>
-                  <Text style={styles.modalRole}>{formatPersonaLabel(circle?.persona)}</Text>
+                  <Text style={styles.modalUsername}>
+                    {selectedMember.user.username}
+                  </Text>
+                  <Text style={styles.modalRole}>
+                    {formatPersonaLabel(circle?.persona)}
+                  </Text>
                 </View>
-                <TouchableOpacity onPress={handleCloseModal} style={styles.modalCloseBtn}>
-                  <Feather name="x" size={20} color="#9CA3AF" />
+                <TouchableOpacity
+                  onPress={handleCloseModal}
+                  style={styles.modalCloseBtn}
+                >
+                  <Feather name='x' size={20} color='#9CA3AF' />
                 </TouchableOpacity>
               </View>
-              
+
               <View style={styles.commonGroundSection}>
                 <Text style={styles.commonGroundTitle}>Shared Journey</Text>
                 <View style={styles.commonGroundItem}>
-                  <Feather name="map-pin" size={16} color="#ff820b" />
+                  <Feather name='map-pin' size={16} color='#ff820b' />
                   <Text style={styles.commonGroundText}>
-                    You both arrived in Canada <Text style={styles.highlight}>{formatTimeInCanadaLabel(circle?.time_in_canada)}</Text>
+                    You both arrived in Canada{' '}
+                    <Text style={styles.highlight}>
+                      {formatTimeInCanadaLabel(circle?.time_in_canada)}
+                    </Text>
                   </Text>
                 </View>
               </View>
 
               <View style={styles.modalActions}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.viewProfileBtn}
                   onPress={viewFullProfile}
                 >
@@ -633,16 +784,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   messagesList: {
-    paddingVertical: 16,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 92,
+  },
+  dateSeparatorRow: {
+    alignItems: 'center',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  dateSeparatorText: {
+    fontSize: 11,
+    color: '#98A2B3',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   inputContainer: {
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 0,
+    paddingTop: 8,
+    paddingHorizontal: 12,
+    paddingBottom: 2,
     backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderColor: '#F3F4F6',
+    borderColor: '#EEF2F6',
   },
   inputSafeArea: {
     backgroundColor: '#fff',
@@ -650,33 +812,43 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 24,
-    padding: 6,
+    backgroundColor: '#F5F7FA',
+    borderRadius: 20,
+    paddingVertical: 4,
+    paddingLeft: 12,
+    paddingRight: 5,
     gap: 8,
+    borderWidth: 1,
+    borderColor: '#E8EDF3',
+  },
+  inputWrapperFocused: {
+    borderColor: '#FBC184',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
-    minHeight: 40,
-    maxHeight: 120,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 16,
+    minHeight: 36,
+    maxHeight: 108,
+    paddingHorizontal: 0,
+    paddingTop: Platform.OS === 'ios' ? 8 : 6,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 6,
+    fontSize: 15,
     color: '#1F2937',
   },
   inputDisabled: {
     opacity: 0.6,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     backgroundColor: '#ff9b3d',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 2,
   },
   sendButtonDisabled: {
-    backgroundColor: '#CBD5E1',
+    backgroundColor: '#CDD6E2',
   },
   headerIcon: {
     padding: 4,

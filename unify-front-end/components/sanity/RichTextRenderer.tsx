@@ -4,7 +4,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   Linking,
   TextInput,
@@ -14,6 +13,7 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import {
   PinchGestureHandler,
   GestureHandlerRootView,
@@ -75,7 +75,9 @@ export default function RichTextRenderer({
     blocks.forEach((block, idx) => {
       if (block._type === 'matching_question') {
         const questionKey = block._key || `matching-${idx}`;
-        const rightItems = (block.matching_pairs || []).map((pair: any) => pair.right_item);
+        const rightItems = (block.matching_pairs || []).map(
+          (pair: any) => pair.right_item
+        );
         // Scramble right items using Fisher-Yates shuffle
         const scrambled = [...rightItems];
         for (let i = scrambled.length - 1; i > 0; i--) {
@@ -710,7 +712,8 @@ export default function RichTextRenderer({
           const isFirstBlock = index === 0;
           const finalBlockStyle =
             isFirstBlock &&
-            (blockStyle.marginTop === undefined || blockStyle.marginTop === null)
+            (blockStyle.marginTop === undefined ||
+              blockStyle.marginTop === null)
               ? { ...blockStyle, marginTop: 8 }
               : blockStyle;
           const textProps: any = {
@@ -746,7 +749,12 @@ export default function RichTextRenderer({
               }}
               activeOpacity={0.9}
             >
-              <Image source={{ uri: imageUrl }} style={mergedStyles.image} />
+              <ExpoImage
+                source={imageUrl}
+                style={mergedStyles.image}
+                contentFit='cover'
+                cachePolicy='memory-disk'
+              />
             </TouchableOpacity>
           ) : (
             <View style={mergedStyles.imagePlaceholder}>
@@ -1050,7 +1058,7 @@ export default function RichTextRenderer({
 
     if (block._type === 'matching_question') {
       const questionKey = block._key || `matching-${index}`;
-      
+
       // Get state for this question, initialize if needed
       const questionState = matchingQuestionState[questionKey] || {
         selectedLeftItem: null,
@@ -1061,9 +1069,10 @@ export default function RichTextRenderer({
         incorrectLeftItems: [],
         incorrectRightIndices: [],
       };
-      
+
       // Get scrambled right items for this question
-      const scrambledRightItems = scrambledRightItemsMap[questionKey] || 
+      const scrambledRightItems =
+        scrambledRightItemsMap[questionKey] ||
         (block.matching_pairs || []).map((pair: any) => pair.right_item);
 
       const { selectedLeftItem, selectedRightIndex, completedLeftItems, completedRightIndices, incorrectLeftItems, incorrectRightIndices } = questionState;
@@ -1079,7 +1088,7 @@ export default function RichTextRenderer({
             incorrectLeftItems: [],
             incorrectRightIndices: [],
           };
-          
+
           if (side === 'left') {
             const item = itemOrIndex as string;
             if (current.completedLeftItems.includes(item)) return prev;
@@ -1128,7 +1137,7 @@ export default function RichTextRenderer({
             incorrectLeftItems: [],
             incorrectRightIndices: [],
           };
-          
+
           if (correctMatch) {
             return {
               ...prev,
@@ -1215,9 +1224,7 @@ export default function RichTextRenderer({
                       onPress={() => handleMatchingItemSelect(itemIndex, 'right')}
                       disabled={completedRightIndices.includes(itemIndex)}
                     >
-                      <Text style={styles.matchingItemText}>
-                        {rightItem}
-                      </Text>
+                      <Text style={styles.matchingItemText}>{rightItem}</Text>
                     </TouchableOpacity>
                   )
                 )}
@@ -1312,10 +1319,7 @@ export default function RichTextRenderer({
 
   const handlePinchGesture = (event: any) => {
     const { scale } = event.nativeEvent;
-    const newZoom = Math.max(
-      0.5,
-      Math.min(5, baseZoomRef.current * scale)
-    );
+    const newZoom = Math.max(0.5, Math.min(5, baseZoomRef.current * scale));
     setImageZoom(newZoom);
   };
 
@@ -1421,8 +1425,8 @@ export default function RichTextRenderer({
                       transform: [{ scale: imageZoom }],
                     }}
                   >
-                    <Image
-                      source={{ uri: selectedImage }}
+                    <ExpoImage
+                      source={selectedImage}
                       style={[
                         styles.imageModalImage,
                         imageDimensions
@@ -1435,9 +1439,10 @@ export default function RichTextRenderer({
                               height: screenHeight * 0.7,
                             },
                       ]}
-                      resizeMode='contain'
+                      contentFit='contain'
+                      cachePolicy='memory-disk'
                       onLoad={e => {
-                        const { width, height } = e.nativeEvent.source;
+                        const { width, height } = e.source;
                         if (width && height) {
                           // Use full original image dimensions (no size limits)
                           setImageDimensions({ width, height });

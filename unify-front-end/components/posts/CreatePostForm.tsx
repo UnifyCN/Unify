@@ -179,8 +179,7 @@ export default function CreatePostForm({
           <Text
             style={[
               styles.charCount,
-              title.length > TITLE_MAX_LENGTH * 0.9 &&
-                styles.charCountWarning,
+              title.length > TITLE_MAX_LENGTH * 0.9 && styles.charCountWarning,
             ]}
           >
             {title.length}/{TITLE_MAX_LENGTH}

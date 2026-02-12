@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Theme } from '@/constants/Theme';
 
 export function GroupCardSkeletonLoader() {
   return (
@@ -21,21 +22,29 @@ export function GroupCardSkeletonLoader() {
 
 const styles = StyleSheet.create({
   groupCard: {
+    backgroundColor: Theme.white,
+    borderColor: Theme.borderCard,
+    borderWidth: 1,
+    borderRadius: 16,
     overflow: 'hidden',
     flexDirection: 'row',
     width: '100%',
-    minHeight: 58,
-    alignItems: 'flex-start',
+    minHeight: 82,
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   imageContainer: {
-    height: 58,
-    width: 58,
+    height: 57,
+    width: 57,
+    borderRadius: 999,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 16,
   },
   groupContent: {
-    paddingHorizontal: 12,
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
 });

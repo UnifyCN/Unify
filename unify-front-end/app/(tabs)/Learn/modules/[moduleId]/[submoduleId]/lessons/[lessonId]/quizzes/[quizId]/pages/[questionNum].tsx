@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -83,11 +89,18 @@ export default function QuizQuestionPage() {
   // This hook must be called before any early returns to maintain hook order
   const scrambledRightItems = useMemo(() => {
     const question = questions?.[currentQuestionIndex];
-    if (!question || question.question_type !== 'matching' || !question.matching_pairs || question.matching_pairs.length === 0) {
+    if (
+      !question ||
+      question.question_type !== 'matching' ||
+      !question.matching_pairs ||
+      question.matching_pairs.length === 0
+    ) {
       return [];
     }
     // Extract right items and shuffle them
-    const rightItems = question.matching_pairs.map((pair: any) => pair.right_item);
+    const rightItems = question.matching_pairs.map(
+      (pair: any) => pair.right_item
+    );
     // Fisher-Yates shuffle algorithm
     const shuffled = [...rightItems];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -322,7 +335,8 @@ export default function QuizQuestionPage() {
 
             if (isLastLesson) {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                 params: { moduleId, submoduleId },
               });
             } else {
@@ -445,7 +459,8 @@ export default function QuizQuestionPage() {
 
             if (isLastLesson) {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                 params: { moduleId, submoduleId },
               });
             } else {
@@ -813,7 +828,8 @@ export default function QuizQuestionPage() {
               onPress={() => {
                 setShowExitModal(false);
                 router.push({
-                  pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                  pathname:
+                    '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                   params: { moduleId, submoduleId },
                 });
               }}

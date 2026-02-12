@@ -42,7 +42,7 @@ export const useUserStage = () => {
         if (!profile || !profile.arrival_date) {
           // No profile or arrival date, cannot calculate stage
           setCurrentStage(null);
-          setIsLoading(false);  
+          setIsLoading(false);
           return;
         }
 

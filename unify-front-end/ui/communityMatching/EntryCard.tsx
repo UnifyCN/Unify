@@ -41,8 +41,11 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
   const isWaiting = waitlistEntry?.status === 'waiting';
 
   const handlePress = () => {
-    if (isInCircle) {
-      router.push(`/community-matching/circle/${activeCircle.circle_id}` as Href);
+    if (activeCircle) {
+      const targetRoute = activeCircle.joined_at
+        ? `/community-matching/circle/${activeCircle.circle_id}/chat`
+        : `/community-matching/circle/${activeCircle.circle_id}`;
+      router.push(targetRoute as Href);
     } else if (isWaiting) {
       router.push('/community-matching/waiting-room' as Href);
     } else {
@@ -61,14 +64,22 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
     if (isInCircle) {
       return {
         icon: 'message-circle' as const,
-        badge: { text: 'In Circle', color: COLORS.white, bg: COLORS.semiTransparentWhite },
+        badge: {
+          text: 'In Circle',
+          color: COLORS.white,
+          bg: COLORS.semiTransparentWhite,
+        },
         cta: 'Open my Circle',
       };
     }
     if (isWaiting) {
       return {
         icon: 'clock' as const,
-        badge: { text: 'Finding matches', color: COLORS.white, bg: COLORS.semiTransparentWhite },
+        badge: {
+          text: 'Finding matches',
+          color: COLORS.white,
+          bg: COLORS.semiTransparentWhite,
+        },
         cta: 'Check status',
       };
     }
@@ -82,8 +93,8 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
   const status = getStatusContent();
 
   return (
-    <TouchableOpacity 
-      style={styles.card} 
+    <TouchableOpacity
+      style={styles.card}
       onPress={handlePress}
       activeOpacity={0.85}
     >
@@ -96,9 +107,9 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
         {/* Icon */}
         <View style={styles.iconContainer}>
           {isLoading ? (
-            <ActivityIndicator size="small" color={COLORS.white} />
+            <ActivityIndicator size='small' color={COLORS.white} />
           ) : status.icon === 'group-add' ? (
-            <MaterialIcons name="group-add" size={20} color={COLORS.white} />
+            <MaterialIcons name='group-add' size={20} color={COLORS.white} />
           ) : (
             <Feather name={status.icon!} size={20} color={COLORS.white} />
           )}
@@ -109,7 +120,9 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
           <View style={styles.titleRow}>
             <Text style={styles.title}>Unify Circles</Text>
             {status.badge && (
-              <View style={[styles.badge, { backgroundColor: status.badge.bg }]}>
+              <View
+                style={[styles.badge, { backgroundColor: status.badge.bg }]}
+              >
                 <Text style={[styles.badgeText, { color: status.badge.color }]}>
                   {status.badge.text}
                 </Text>
@@ -129,7 +142,7 @@ export function CommunityMatchingEntryCard({ onPress }: EntryCardProps) {
       {/* CTA Button */}
       <View style={styles.ctaButton}>
         <Text style={styles.ctaText}>{status.cta}</Text>
-        <Feather name="arrow-right" size={18} color={COLORS.white} />
+        <Feather name='arrow-right' size={18} color={COLORS.white} />
       </View>
     </TouchableOpacity>
   );
@@ -200,7 +213,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    lineHeight: 18,    
+    lineHeight: 18,
     color: COLORS.white,
   },
   ctaButton: {

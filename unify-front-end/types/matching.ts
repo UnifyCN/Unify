@@ -88,4 +88,3 @@ export interface CommunityNotification {
   read_at: string | null;
   created_at: string;
 }
-

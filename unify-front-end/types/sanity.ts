@@ -84,6 +84,10 @@ export interface SanityLesson extends SanityDocument {
   pages?: SanityLessonPage[];
   activity_pages?: SanityActivityPage[];
   ending_pages?: SanityEndingPage[];
+  lesson_page_count?: number;
+  activity_page_count?: number;
+  ending_page_count?: number;
+  quiz_question_count?: number;
   order: number;
 }
 
@@ -239,6 +243,7 @@ export interface SanityQuiz extends SanityDocument {
   description?: string;
   order_number: number;
   questions: SanityQuizQuestion[];
+  question_count?: number;
 }
 
 export interface SanityQuizQuestion {

@@ -352,114 +352,6 @@ export default function ModuleIndex() {
                       : 0,
                   };
                 }
-
-                if (
-                  !progress?.progress_percent ||
-                  progress.progress_percent === 0
-                ) {
-                  return;
-                }
-
-                let lessonProgresses = null;
-                let progressError = null;
-
-                try {
-                  const progressResult = await progressClient
-                    .from('user_lesson_progress')
-                    .select(
-                      'sanity_lesson_id,is_completed,is_in_progress,current_page_type,current_page_number,current_quiz_id,current_question_number'
-                    )
-                    .eq('user_id', user.id)
-                    .eq('sanity_submodule_id', submodule._id);
-
-                  lessonProgresses = progressResult?.data || null;
-                  progressError = progressResult?.error || null;
-                } catch (queryError: any) {
-                  console.error(
-                    `Error fetching lesson progress for submodule ${submodule._id}:`,
-                    queryError
-                  );
-                  progressError = queryError;
-                  lessonProgresses = null;
-                }
-
-                if (progressError) {
-                  console.error(
-                    `Progress error for submodule ${submodule._id}:`,
-                    progressError
-                  );
-                  // Continue with default fallback
-                }
-
-                const lessonProgressData: { [key: string]: any } = {};
-                if (
-                  submodule.lessons &&
-                  Array.isArray(lessonProgresses) &&
-                  !progressError
-                ) {
-                  for (const lessonProgress of lessonProgresses) {
-                    if (lessonProgress?.sanity_lesson_id) {
-                      lessonProgressData[lessonProgress.sanity_lesson_id] = {
-                        is_completed: Boolean(lessonProgress.is_completed),
-                        is_in_progress: Boolean(lessonProgress.is_in_progress),
-                      };
-                    }
-                  }
-
-                  if (Array.isArray(submodule.lessons)) {
-                    for (const lesson of submodule.lessons) {
-                      if (lesson?._id && !lessonProgressData[lesson._id]) {
-                        lessonProgressData[lesson._id] = {
-                          is_completed: false,
-                          is_in_progress: false,
-                        };
-                      }
-                    }
-                  }
-                }
-
-                let activeLesson = null;
-                let activeLessonProgress = null;
-
-                if (submodule.lessons) {
-                  for (let i = 0; i < submodule.lessons.length; i++) {
-                    const lesson = submodule.lessons[i];
-                    if (!lesson?._id) continue;
-
-                    const lessonProgress = lessonProgressData[lesson._id];
-                    const isCompleted = Boolean(lessonProgress?.is_completed);
-                    const isInProgress = Boolean(
-                      lessonProgress?.is_in_progress
-                    );
-
-                    let isActive = false;
-                    if (isInProgress) {
-                      isActive = true;
-                    } else if (i === 0) {
-                      isActive = true;
-                    } else {
-                      const previousLesson = submodule.lessons[i - 1];
-                      if (previousLesson?._id) {
-                        const previousProgress =
-                          lessonProgressData[previousLesson._id];
-                        isActive = Boolean(previousProgress?.is_completed);
-                      }
-                    }
-
-                    if (isActive && !isCompleted) {
-                      activeLesson = lesson;
-                      const fullProgress = lessonProgresses?.find(
-                        (p: any) => p.sanity_lesson_id === lesson._id
-                      );
-                      activeLessonProgress = fullProgress || lessonProgress;
-                      break;
-                    }
-                  }
-                }
-
-                if (activeLesson?._id) {
-                  // Progress is used for UI; navigation goes to submodule index
-                }
               } catch (err) {
                 console.error(
                   `Error processing submodule ${submodule._id}:`,
@@ -941,7 +833,6 @@ export default function ModuleIndex() {
         {sections.map((section, index) => renderSectionCard(section, index))}
         <View style={{ height: 40 }} />
       </ScrollView>
-
     </View>
   );
 }

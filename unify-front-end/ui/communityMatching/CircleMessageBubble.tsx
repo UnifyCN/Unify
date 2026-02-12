@@ -5,12 +5,24 @@ import { Avatar } from '@/components/Avatar';
 interface CircleMessageBubbleProps {
   message: CommunityMessage;
   isOwn: boolean;
+  showAvatar: boolean;
+  showSenderName: boolean;
+  isGroupStart: boolean;
+  isGroupEnd: boolean;
+  showTimestamp: boolean;
+  timestampLabel?: string;
   onPressSender?: (userId: string) => void;
 }
 
 export function CircleMessageBubble({
   message,
   isOwn,
+  showAvatar,
+  showSenderName,
+  isGroupStart,
+  isGroupEnd,
+  showTimestamp,
+  timestampLabel,
   onPressSender,
 }: CircleMessageBubbleProps) {
   if (!message.sender_user_id) {
@@ -34,46 +46,74 @@ export function CircleMessageBubble({
       style={[
         styles.row,
         isOwn ? styles.rowOwn : styles.rowOther,
+        isGroupStart ? styles.rowStart : styles.rowContinue,
+        isGroupEnd && styles.rowEnd,
       ]}
     >
-      {!isOwn && (
-        <TouchableOpacity 
-          onPress={handlePressSender}
-          activeOpacity={0.8}
-          style={styles.avatarContainer}
-        >
-          <Avatar
-            profilePictureUrl={message.sender?.profile_picture_url ?? undefined}
-            username={message.sender?.username || '?'}
-            size={32}
-            style={styles.avatar}
-            fallbackStyle={styles.avatarFallback}
-            textStyle={styles.avatarText}
-          />
-        </TouchableOpacity>
-      )}
+      {!isOwn &&
+        (showAvatar ? (
+          <TouchableOpacity
+            onPress={handlePressSender}
+            activeOpacity={0.8}
+            style={styles.avatarContainer}
+          >
+            <Avatar
+              profilePictureUrl={message.sender?.profile_picture_url ?? undefined}
+              username={message.sender?.username || '?'}
+              size={32}
+              style={styles.avatar}
+              fallbackStyle={styles.avatarFallback}
+              textStyle={styles.avatarText}
+            />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.avatarSpacer} />
+        ))}
 
-      <View
-        style={[
-          styles.bubble,
-          isOwn ? styles.bubbleOwn : styles.bubbleOther,
-        ]}
-      >
-        {!isOwn && (
+      <View style={[styles.messageColumn, isOwn && styles.messageColumnOwn]}>
+        {!isOwn && showSenderName && (
           <TouchableOpacity onPress={handlePressSender}>
             <Text style={styles.senderName}>
               {message.sender?.username || 'Circle member'}
             </Text>
           </TouchableOpacity>
         )}
-        <Text
+
+        <View
           style={[
-            styles.messageText,
-            isOwn && styles.messageTextOwn,
+            styles.bubble,
+            isOwn ? styles.bubbleOwn : styles.bubbleOther,
+            isOwn
+              ? isGroupStart
+                ? styles.ownStart
+                : styles.ownContinue
+              : isGroupStart
+                ? styles.otherStart
+                : styles.otherContinue,
+            isOwn
+              ? isGroupEnd
+                ? styles.ownEnd
+                : styles.ownMiddle
+              : isGroupEnd
+                ? styles.otherEnd
+                : styles.otherMiddle,
           ]}
         >
-          {message.content}
-        </Text>
+          <Text style={[styles.messageText, isOwn && styles.messageTextOwn]}>
+            {message.content}
+          </Text>
+        </View>
+
+        {showTimestamp && !!timestampLabel && (
+          <Text
+            style={[
+              styles.timestamp,
+              isOwn ? styles.timestampOwn : styles.timestampOther,
+            ]}
+          >
+            {timestampLabel}
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -81,8 +121,7 @@ export function CircleMessageBubble({
 
 const styles = StyleSheet.create({
   row: {
-    marginVertical: 4,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
   rowOwn: {
     alignItems: 'flex-end',
@@ -92,8 +131,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  rowStart: {
+    marginTop: 8,
+  },
+  rowContinue: {
+    marginTop: 2,
+  },
+  rowEnd: {
+    marginBottom: 6,
+  },
   avatarContainer: {
     marginTop: 4,
+    width: 32,
+    alignItems: 'center',
+  },
+  avatarSpacer: {
+    width: 32,
   },
   avatar: {
     width: 32,
@@ -111,49 +164,93 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#9A3412',
   },
+  messageColumn: {
+    maxWidth: '80%',
+  },
+  messageColumnOwn: {
+    alignItems: 'flex-end',
+  },
   bubble: {
-    maxWidth: '75%',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    maxWidth: '100%',
+    paddingVertical: 8,
+    paddingHorizontal: 13,
+    borderRadius: 18,
   },
   bubbleOwn: {
-    backgroundColor: '#ff9d40', // Orange theme
-    borderBottomRightRadius: 4,
+    backgroundColor: '#ff9d40',
   },
   bubbleOther: {
-    backgroundColor: '#F3F4F6', // Lighter grey
-    borderBottomLeftRadius: 4,
+    backgroundColor: '#F3F4F6',
+  },
+  ownStart: {
+    borderTopRightRadius: 18,
+  },
+  ownContinue: {
+    borderTopRightRadius: 9,
+  },
+  ownMiddle: {
+    borderBottomRightRadius: 9,
+  },
+  ownEnd: {
+    borderBottomRightRadius: 6,
+  },
+  otherStart: {
+    borderTopLeftRadius: 18,
+  },
+  otherContinue: {
+    borderTopLeftRadius: 9,
+  },
+  otherMiddle: {
+    borderBottomLeftRadius: 9,
+  },
+  otherEnd: {
+    borderBottomLeftRadius: 6,
   },
   messageText: {
-    color: '#1F2937', // Darker text
+    color: '#1F2937',
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 21,
   },
   messageTextOwn: {
     color: '#fff',
   },
   senderName: {
-    color: '#6B7280',
+    color: '#667085',
     fontSize: 12,
-    marginBottom: 4,
-    fontWeight: '500',
+    marginBottom: 3,
+    fontWeight: '600',
+  },
+  timestamp: {
+    fontSize: 11,
+    color: '#98A2B3',
+    marginTop: 3,
+  },
+  timestampOwn: {
+    textAlign: 'right',
+    marginRight: 4,
+  },
+  timestampOther: {
+    textAlign: 'left',
+    marginLeft: 4,
   },
   systemRow: {
     alignItems: 'center',
-    marginVertical: 12, // Increased spacing
+    marginVertical: 10,
     paddingHorizontal: 24,
   },
   systemBubble: {
-    backgroundColor: '#fff8f3', // Very light orange
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
+    maxWidth: '92%',
+    backgroundColor: '#FFF8F1',
+    borderWidth: 1,
+    borderColor: '#FEE9D1',
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 14,
   },
   systemText: {
-    color: '#ff820b', // Orange text
-    fontSize: 13,
+    color: '#D97706',
+    fontSize: 12,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 17,
   },
 });

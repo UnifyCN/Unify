@@ -10,7 +10,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSanityPractice, useSanityPractices } from '@/hooks/sanity/useSanityPractices';
+import {
+  useSanityPractice,
+  useSanityPractices,
+} from '@/hooks/sanity/useSanityPractices';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
@@ -34,23 +37,35 @@ export default function PracticeActivityPageScreen() {
   };
 
   const currentPage = parseInt(pageNum || '1');
-  const { data: practice, isLoading, error } = useSanityPractice(practiceId || '');
+  const {
+    data: practice,
+    isLoading,
+    error,
+  } = useSanityPractice(practiceId || '');
   const { data: practices } = useSanityPractices(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId || '');
+  const { data: submoduleData } = useSanitySubmoduleWithLessons(
+    submoduleId || ''
+  );
 
   const sortedPractices = useMemo(
-    () => [...(practices || [])].sort((a, b) => (a.order_number ?? 0) - (b.order_number ?? 0)),
+    () =>
+      [...(practices || [])].sort(
+        (a, b) => (a.order_number ?? 0) - (b.order_number ?? 0)
+      ),
     [practices]
   );
   const currentPracticeIndex = useMemo(
     () => sortedPractices.findIndex(p => p._id === practiceId),
     [sortedPractices, practiceId]
   );
-  const nextPractice = currentPracticeIndex >= 0 && currentPracticeIndex < sortedPractices.length - 1
-    ? sortedPractices[currentPracticeIndex + 1]
-    : null;
-  const prevPractice = currentPracticeIndex > 0 ? sortedPractices[currentPracticeIndex - 1] : null;
+  const nextPractice =
+    currentPracticeIndex >= 0 &&
+    currentPracticeIndex < sortedPractices.length - 1
+      ? sortedPractices[currentPracticeIndex + 1]
+      : null;
+  const prevPractice =
+    currentPracticeIndex > 0 ? sortedPractices[currentPracticeIndex - 1] : null;
 
   const pages = React.useMemo(() => {
     const p = practice?.pages || [];
@@ -63,7 +78,9 @@ export default function PracticeActivityPageScreen() {
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [inputValues, setInputValues] = useState<{ [key: string]: string }>({});
-  const [questionAnswers, setQuestionAnswers] = useState<{ [key: string]: string | string[] }>({});
+  const [questionAnswers, setQuestionAnswers] = useState<{
+    [key: string]: string | string[];
+  }>({});
 
   const { updatePracticeProgress, completePractice } = usePracticeProgress();
 
@@ -85,8 +102,12 @@ export default function PracticeActivityPageScreen() {
     currentPage: isSequential ? currentPracticeIndex + 1 : currentPage,
     totalPages: isSequential ? sortedPractices.length : totalPages,
     progressPercentage: isSequential
-      ? (sortedPractices.length > 0 ? ((currentPracticeIndex + 1) / sortedPractices.length) * 100 : 0)
-      : (totalPages > 0 ? (currentPage / totalPages) * 100 : 0),
+      ? sortedPractices.length > 0
+        ? ((currentPracticeIndex + 1) / sortedPractices.length) * 100
+        : 0
+      : totalPages > 0
+        ? (currentPage / totalPages) * 100
+        : 0,
   };
 
   const handleSaveAndLeave = () => {
@@ -98,7 +119,10 @@ export default function PracticeActivityPageScreen() {
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
   };
 
-  const handleQuestionAnswer = (questionKey: string, answer: string | string[]) => {
+  const handleQuestionAnswer = (
+    questionKey: string,
+    answer: string | string[]
+  ) => {
     setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
   };
 
@@ -113,7 +137,12 @@ export default function PracticeActivityPageScreen() {
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/activity/[pageNum]' as any,
-        params: { moduleId, submoduleId, practiceId, pageNum: nextPage.toString() },
+        params: {
+          moduleId,
+          submoduleId,
+          practiceId,
+          pageNum: nextPage.toString(),
+        },
       });
     } else {
       await completePractice(practiceId!);
@@ -136,7 +165,12 @@ export default function PracticeActivityPageScreen() {
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]/activity/[pageNum]' as any,
-        params: { moduleId, submoduleId, practiceId, pageNum: prevPage.toString() },
+        params: {
+          moduleId,
+          submoduleId,
+          practiceId,
+          pageNum: prevPage.toString(),
+        },
       });
     } else {
       if (prevPractice) {
@@ -198,151 +232,183 @@ export default function PracticeActivityPageScreen() {
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
         <View style={styles.instructionsContainer}>
-          {(currentPageData.instructions || []).map((block: any, index: number) => {
-            const key = block._key || `block-${index}`;
-            const markDefs = (currentPageData as any).instructionsMarkDefs;
-            if (
-              block._type === 'multiple_choice_single' ||
-              block._type === 'multiple_choice_multiple'
-            ) {
-              const isMultiple = block._type === 'multiple_choice_multiple';
-              const currentAnswer = questionAnswers[block._key];
-              const isArrayAnswer = Array.isArray(currentAnswer);
-              const selectedValues = isArrayAnswer
-                ? (currentAnswer as string[])
-                : currentAnswer
-                  ? [currentAnswer as string]
-                  : [];
-              const handleOptionSelect = (optionValue: string) => {
-                if (isMultiple) {
-                  const current = (questionAnswers[block._key] as string[]) || [];
-                  const newAnswer = current.includes(optionValue)
-                    ? current.filter((v: string) => v !== optionValue)
-                    : [...current, optionValue];
-                  handleQuestionAnswer(block._key, newAnswer);
-                } else {
-                  handleQuestionAnswer(block._key, optionValue);
-                }
-              };
-              return (
-                <View key={key} style={styles.activityQuestionContainer}>
-                  <View style={styles.activityQuestionContent}>
-                    <RichTextRenderer
-                      blocks={block.question_text || []}
-                      markDefs={markDefs}
-                    />
-                  </View>
-                  <View style={styles.activityOptionsContainer}>
-                    {(block.options || []).map((option: any) => {
-                      const isSelected = isMultiple
-                        ? selectedValues.includes(option.value)
-                        : selectedValues[0] === option.value;
-                      const isCorrect = option.is_correct;
-                      const showFeedback = isSubmitted;
-                      let optionStyle = styles.activityOptionButton;
-                      let checkboxStyle = styles.activityCheckbox;
-                      if (isSelected) {
-                        optionStyle = styles.activityOptionButtonSelected;
-                        checkboxStyle = styles.activityCheckboxSelected;
-                      }
-                      if (showFeedback) {
-                        if (isCorrect) {
-                          optionStyle = styles.activityOptionButtonCorrect;
-                          checkboxStyle = styles.activityCheckboxCorrect;
-                        } else if (isSelected && !isCorrect) {
-                          optionStyle = styles.activityOptionButtonIncorrect;
-                          checkboxStyle = styles.activityCheckboxIncorrect;
+          {(currentPageData.instructions || []).map(
+            (block: any, index: number) => {
+              const key = block._key || `block-${index}`;
+              const markDefs = (currentPageData as any).instructionsMarkDefs;
+              if (
+                block._type === 'multiple_choice_single' ||
+                block._type === 'multiple_choice_multiple'
+              ) {
+                const isMultiple = block._type === 'multiple_choice_multiple';
+                const currentAnswer = questionAnswers[block._key];
+                const isArrayAnswer = Array.isArray(currentAnswer);
+                const selectedValues = isArrayAnswer
+                  ? (currentAnswer as string[])
+                  : currentAnswer
+                    ? [currentAnswer as string]
+                    : [];
+                const handleOptionSelect = (optionValue: string) => {
+                  if (isMultiple) {
+                    const current =
+                      (questionAnswers[block._key] as string[]) || [];
+                    const newAnswer = current.includes(optionValue)
+                      ? current.filter((v: string) => v !== optionValue)
+                      : [...current, optionValue];
+                    handleQuestionAnswer(block._key, newAnswer);
+                  } else {
+                    handleQuestionAnswer(block._key, optionValue);
+                  }
+                };
+                return (
+                  <View key={key} style={styles.activityQuestionContainer}>
+                    <View style={styles.activityQuestionContent}>
+                      <RichTextRenderer
+                        blocks={block.question_text || []}
+                        markDefs={markDefs}
+                      />
+                    </View>
+                    <View style={styles.activityOptionsContainer}>
+                      {(block.options || []).map((option: any) => {
+                        const isSelected = isMultiple
+                          ? selectedValues.includes(option.value)
+                          : selectedValues[0] === option.value;
+                        const isCorrect = option.is_correct;
+                        const showFeedback = isSubmitted;
+                        let optionStyle = styles.activityOptionButton;
+                        let checkboxStyle = styles.activityCheckbox;
+                        if (isSelected) {
+                          optionStyle = styles.activityOptionButtonSelected;
+                          checkboxStyle = styles.activityCheckboxSelected;
                         }
-                      }
-                      return (
-                        <TouchableOpacity
-                          key={option._key}
-                          style={optionStyle}
-                          onPress={() =>
-                            !showFeedback && handleOptionSelect(option.value)
+                        if (showFeedback) {
+                          if (isCorrect) {
+                            optionStyle = styles.activityOptionButtonCorrect;
+                            checkboxStyle = styles.activityCheckboxCorrect;
+                          } else if (isSelected && !isCorrect) {
+                            optionStyle = styles.activityOptionButtonIncorrect;
+                            checkboxStyle = styles.activityCheckboxIncorrect;
                           }
-                          disabled={showFeedback}
-                        >
-                          <View style={styles.activityOptionRow}>
-                            <View style={checkboxStyle}>
-                              {isSelected && (
-                                <Text style={styles.activityCheckmark}>✓</Text>
-                              )}
-                            </View>
-                            <View style={styles.activityOptionContent}>
-                              <RichTextRenderer
-                                blocks={option.text || []}
-                                markDefs={option.textMarkDefs}
-                                styles={{
-                                  normal: {
-                                    fontSize: 14,
-                                    color: '#374151',
-                                    lineHeight: 20,
-                                    fontWeight: '400',
-                                    marginBottom: 0,
-                                    marginTop: 0,
-                                  },
-                                }}
-                              />
-                            </View>
-                          </View>
-                          {showFeedback &&
-                            isSelected &&
-                            option.explanation && (
-                              <View style={styles.activityExplanationContainer}>
+                        }
+                        return (
+                          <TouchableOpacity
+                            key={option._key}
+                            style={optionStyle}
+                            onPress={() =>
+                              !showFeedback && handleOptionSelect(option.value)
+                            }
+                            disabled={showFeedback}
+                          >
+                            <View style={styles.activityOptionRow}>
+                              <View style={checkboxStyle}>
+                                {isSelected && (
+                                  <Text style={styles.activityCheckmark}>
+                                    ✓
+                                  </Text>
+                                )}
+                              </View>
+                              <View style={styles.activityOptionContent}>
                                 <RichTextRenderer
-                                  blocks={option.explanation}
-                                  markDefs={option.explanationMarkDefs}
+                                  blocks={option.text || []}
+                                  markDefs={option.textMarkDefs}
                                   styles={{
                                     normal: {
                                       fontSize: 14,
-                                      color: '#6B7280',
+                                      color: '#374151',
                                       lineHeight: 20,
-                                      fontStyle: 'italic',
-                                      marginTop: 12,
-                                      paddingTop: 12,
-                                      borderTopWidth: 1,
-                                      borderTopColor: '#E5E7EB',
+                                      fontWeight: '400',
+                                      marginBottom: 0,
+                                      marginTop: 0,
                                     },
                                   }}
                                 />
                               </View>
-                            )}
-                        </TouchableOpacity>
-                      );
-                    })}
+                            </View>
+                            {showFeedback &&
+                              isSelected &&
+                              option.explanation && (
+                                <View
+                                  style={styles.activityExplanationContainer}
+                                >
+                                  <RichTextRenderer
+                                    blocks={option.explanation}
+                                    markDefs={option.explanationMarkDefs}
+                                    styles={{
+                                      normal: {
+                                        fontSize: 14,
+                                        color: '#6B7280',
+                                        lineHeight: 20,
+                                        fontStyle: 'italic',
+                                        marginTop: 12,
+                                        paddingTop: 12,
+                                        borderTopWidth: 1,
+                                        borderTopColor: '#E5E7EB',
+                                      },
+                                    }}
+                                  />
+                                </View>
+                              )}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
                   </View>
-                </View>
+                );
+              }
+              return (
+                <RichTextRenderer
+                  key={key}
+                  blocks={[block]}
+                  markDefs={markDefs}
+                  inputValues={inputValues}
+                  onInputChange={handleInputChange}
+                  questionAnswers={questionAnswers}
+                  onQuestionAnswer={handleQuestionAnswer}
+                  showQuestionFeedback={isSubmitted}
+                />
               );
             }
-            return (
-              <RichTextRenderer
-                key={key}
-                blocks={[block]}
-                markDefs={markDefs}
-                inputValues={inputValues}
-                onInputChange={handleInputChange}
-                questionAnswers={questionAnswers}
-                onQuestionAnswer={handleQuestionAnswer}
-                showQuestionFeedback={isSubmitted}
-              />
-            );
-          })}
+          )}
         </View>
 
         {currentPageData.answer_box && isSubmitted && (
           <View style={styles.answerBoxContainer}>
             {currentPageData.answer_box.title && (
-              <Text style={styles.answerBoxTitle}>{currentPageData.answer_box.title}</Text>
+              <Text style={styles.answerBoxTitle}>
+                {currentPageData.answer_box.title}
+              </Text>
             )}
             <RichTextRenderer
               blocks={currentPageData.answer_box.content || []}
               markDefs={currentPageData.answer_box.markDefs}
               styles={{
-                normal: { fontSize: 14, lineHeight: 20, fontWeight: '400', color: '#3F3F3F', marginBottom: 0 },
-                bullet: { fontSize: 14, lineHeight: 20, fontWeight: '400', color: '#3F3F3F', marginBottom: 0 },
-                number: { fontSize: 14, lineHeight: 20, fontWeight: '400', color: '#3F3F3F', marginBottom: 0 },
-                strong: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: '#3F3F3F' },
+                normal: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '400',
+                  color: '#3F3F3F',
+                  marginBottom: 0,
+                },
+                bullet: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '400',
+                  color: '#3F3F3F',
+                  marginBottom: 0,
+                },
+                number: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '400',
+                  color: '#3F3F3F',
+                  marginBottom: 0,
+                },
+                strong: {
+                  fontSize: 14,
+                  lineHeight: 20,
+                  fontWeight: '600',
+                  color: '#3F3F3F',
+                },
               }}
             />
           </View>
@@ -355,11 +421,18 @@ export default function PracticeActivityPageScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.nextBtn, { backgroundColor: moduleData?.colorTheme?.hex || '#575757' }]}
+          style={[
+            styles.nextBtn,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+          ]}
           onPress={isSubmitted ? handleNext : handleSubmit}
         >
           <Text style={styles.nextBtnText}>
-            {!isSubmitted ? 'Submit' : currentPage < totalPages ? 'Next' : 'Done'}
+            {!isSubmitted
+              ? 'Submit'
+              : currentPage < totalPages
+                ? 'Next'
+                : 'Done'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -367,20 +440,33 @@ export default function PracticeActivityPageScreen() {
       <Modal
         visible={showExitModal}
         transparent
-        animationType="fade"
+        animationType='fade'
         onRequestClose={() => setShowExitModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Take a break from this activity?</Text>
-            <Text style={styles.modalDesc}>
-              Your progress will be saved. You can resume from the section page later.
+            <Text style={styles.modalTitle}>
+              Take a break from this activity?
             </Text>
-            <TouchableOpacity style={styles.modalPrimaryBtn} onPress={handleSaveAndLeave}>
-              <Text style={styles.modalPrimaryBtnText}>Save progress & leave</Text>
+            <Text style={styles.modalDesc}>
+              Your progress will be saved. You can resume from the section page
+              later.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalPrimaryBtn}
+              onPress={handleSaveAndLeave}
+            >
+              <Text style={styles.modalPrimaryBtnText}>
+                Save progress & leave
+              </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalSecondaryBtn} onPress={() => setShowExitModal(false)}>
-              <Text style={styles.modalSecondaryBtnText}>Continue Activity</Text>
+            <TouchableOpacity
+              style={styles.modalSecondaryBtn}
+              onPress={() => setShowExitModal(false)}
+            >
+              <Text style={styles.modalSecondaryBtnText}>
+                Continue Activity
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -572,10 +658,35 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignItems: 'center',
   },
-  modalTitle: { fontSize: 20, fontWeight: '700', color: '#000', marginBottom: 12, textAlign: 'center' },
-  modalDesc: { fontSize: 14, color: '#6B7280', lineHeight: 20, textAlign: 'center', marginBottom: 24 },
-  modalPrimaryBtn: { width: '100%', backgroundColor: '#575757', paddingVertical: 14, borderRadius: 12, alignItems: 'center', marginBottom: 12 },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalPrimaryBtn: {
+    width: '100%',
+    backgroundColor: '#575757',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   modalPrimaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  modalSecondaryBtn: { width: '100%', backgroundColor: '#E5E7EB', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  modalSecondaryBtn: {
+    width: '100%',
+    backgroundColor: '#E5E7EB',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
   modalSecondaryBtnText: { color: '#000', fontSize: 16, fontWeight: '600' },
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { Theme } from '@/constants/Theme';
 
 export const NewsCardSkeletonLoader = () => {
   return (
@@ -39,25 +40,30 @@ const styles = StyleSheet.create({
   newsCard: {
     width: 332,
     height: 132,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
+    backgroundColor: Theme.white,
+    borderColor: Theme.borderCard,
+    borderWidth: 1,
+    borderRadius: 16,
     flexDirection: 'row',
     overflow: 'hidden',
     marginRight: 16,
   },
   imagePlaceholder: {
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
+    width: 100,
+    height: '100%',
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
     backgroundColor: '#D5D5D5',
   },
   content: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     justifyContent: 'center',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Theme.white,
   },
   titleSkeleton: {
-    marginBottom: 8,
+    marginBottom: 6,
     backgroundColor: '#D5D5D5',
   },
   descriptionSkeleton: {

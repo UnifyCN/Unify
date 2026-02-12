@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,9 +8,10 @@ import {
   StyleSheet,
   Dimensions,
   Keyboard,
-  Pressable,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
@@ -93,11 +94,12 @@ export default function CompanionScreen() {
   >(null);
 
   const [inputText, setInputText] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const emptyStateTopPadding = Math.max(
-    190,
-    (windowHeight - insets.top - insets.bottom) * 0.47
+    220,
+    (windowHeight - insets.top - insets.bottom) * 0.52
   );
 
   // Fetch messages for the current conversation
@@ -105,12 +107,19 @@ export default function CompanionScreen() {
     useConversationMessages(currentConversationId);
 
   // Convert database messages to UI Message format
-  const dbMessagesFormatted = formatMessagesForUI(dbMessages);
+  const dbMessagesFormatted = useMemo(
+    () => formatMessagesForUI(dbMessages),
+    [dbMessages]
+  );
 
   // Combine greeting message with real messages
-  const messages: Message[] = greetingMessage
-    ? [greetingMessage, ...dbMessagesFormatted]
-    : dbMessagesFormatted;
+  const messages: Message[] = useMemo(
+    () =>
+      greetingMessage
+        ? [greetingMessage, ...dbMessagesFormatted]
+        : dbMessagesFormatted,
+    [greetingMessage, dbMessagesFormatted]
+  );
 
   // Clear greeting when real messages exist
   useEffect(() => {
@@ -119,7 +128,7 @@ export default function CompanionScreen() {
     }
   }, [dbMessagesFormatted.length, greetingMessage]);
 
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlatList<Message>>(null);
   // Ref for the text input to handle focusing
   const inputRef = useRef<TextInput>(null);
   const previousMessageCountRef = useRef<number>(0);
@@ -174,19 +183,42 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-  const handleSendMessage = async (messageText?: string) => {
-    const textToSend = messageText || inputText.trim();
-    if (!textToSend || isLoading || !canSend) return;
+  // Track keyboard visibility so iOS uses interactive dismiss only when keyboard is open.
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
-    setInputText('');
-    trackCompanionMessageSent(textToSend.length);
+    const showSub = Keyboard.addListener(showEvent, () =>
+      setIsKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(hideEvent, () =>
+      setIsKeyboardVisible(false)
+    );
 
-    try {
-      await sendMessage(textToSend);
-    } catch (error) {
-      // Error is already logged in useSendMessage hook
-    }
-  };
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const handleSendMessage = useCallback(
+    async (messageText?: string) => {
+      const textToSend = messageText || inputText.trim();
+      if (!textToSend || isLoading || !canSend) return;
+
+      setInputText('');
+      trackCompanionMessageSent(textToSend.length);
+
+      try {
+        await sendMessage(textToSend);
+      } catch {
+        // Error is already logged in useSendMessage hook
+      }
+    },
+    [inputText, isLoading, canSend, sendMessage, trackCompanionMessageSent]
+  );
 
   // Handle starter prompt selection
   const handleStarterPromptSelect = (prompt: string, mode?: string) => {
@@ -234,45 +266,59 @@ export default function CompanionScreen() {
   };
 
   // Handle suggested next step click
-  const handleSuggestionClick = (suggestion: string) => {
-    trackCompanionSuggestionClicked(suggestion);
-    handleSendMessage(suggestion);
-  };
+  const handleSuggestionClick = useCallback(
+    (suggestion: string) => {
+      trackCompanionSuggestionClicked(suggestion);
+      handleSendMessage(suggestion);
+    },
+    [trackCompanionSuggestionClicked, handleSendMessage]
+  );
 
-  const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    // Only show suggestions on the last bot message
-    const isLastMessage = index === messages.length - 1;
-    const showSuggestions =
-      isLastMessage && !item.isUser && lastSuggestedNextSteps;
+  const renderMessage = useCallback(
+    ({ item, index }: { item: Message; index: number }) => {
+      // Only show suggestions on the last bot message
+      const isLastMessage = index === messages.length - 1;
+      const showSuggestions =
+        isLastMessage && !item.isUser && lastSuggestedNextSteps;
 
-    return (
-      <MessageWithSources
-        item={item}
-        suggestedNextSteps={
-          showSuggestions ? lastSuggestedNextSteps : undefined
-        }
-        onSuggestionPress={handleSuggestionClick}
-      />
-    );
-  };
+      return (
+        <MessageWithSources
+          item={item}
+          suggestedNextSteps={
+            showSuggestions ? lastSuggestedNextSteps : undefined
+          }
+          onSuggestionPress={handleSuggestionClick}
+        />
+      );
+    },
+    [messages.length, lastSuggestedNextSteps, handleSuggestionClick]
+  );
 
-  const renderLoadingIndicator = () => {
+  const renderLoadingIndicator = useCallback(() => {
     // Only show typing indicator when waiting for bot response (not when saving user message)
     if (!isWaitingForBot) return null;
     return <TypingIndicator />;
-  };
+  }, [isWaitingForBot]);
+
+  const keyExtractor = useCallback((item: Message) => item.id, []);
+
+  const handleNewChatPress = useCallback(() => {
+    setCurrentConversationId(null);
+    setGreetingMessage(null);
+    setInputText('');
+    previousMessageCountRef.current = 0;
+    Keyboard.dismiss();
+    router.replace('/(tabs)/companion' as any);
+  }, [router]);
 
   return (
-    <Pressable
-      style={styles.container}
-      onPress={Keyboard.dismiss}
-    >
+    <View style={styles.container}>
       <View style={styles.contentWrapper}>
         {/* Header */}
         <CompanionHeader
           title='AI Companion'
           showBackButton={false}
-          rightButton={
+          leftButton={
             <TouchableOpacity
               onPress={() => {
                 router.push('/(tabs)/companion/history' as any);
@@ -284,6 +330,15 @@ export default function CompanionScreen() {
               <HistoryIcon width={20} height={20} />
             </TouchableOpacity>
           }
+          rightButton={
+            <TouchableOpacity
+              onPress={handleNewChatPress}
+              style={styles.headerButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Feather name='plus' size={22} color='#000' />
+            </TouchableOpacity>
+          }
         />
 
         {/* Messages - takes up available space */}
@@ -292,7 +347,9 @@ export default function CompanionScreen() {
             <ActivityIndicator size='large' color={Theme.surfaceBlue} />
           </View>
         ) : showEmptyState ? (
-          <View style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}>
+          <View
+            style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}
+          >
             <View style={styles.dottedLineContainer} pointerEvents='none'>
               <BlueDottedLine
                 width={dottedLineWidth}
@@ -309,14 +366,31 @@ export default function CompanionScreen() {
             ref={flatListRef}
             data={messages}
             renderItem={renderMessage}
-            keyExtractor={item => item.id}
+            keyExtractor={keyExtractor}
             style={styles.messagesList}
             contentContainerStyle={styles.messagesContent}
             ListFooterComponent={renderLoadingIndicator}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps='handled'
+            keyboardDismissMode={
+              Platform.OS === 'ios'
+                ? isKeyboardVisible
+                  ? 'interactive'
+                  : 'none'
+                : 'on-drag'
+            }
+            onScrollBeginDrag={
+              Platform.OS === 'ios' ? undefined : Keyboard.dismiss
+            }
+            initialNumToRender={10}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            updateCellsBatchingPeriod={50}
+            nestedScrollEnabled={Platform.OS === 'android'}
+            // Keep clipping disabled to avoid truncation/scroll lock for long rich bot responses on Android.
+            // Repro observed in Companion screen after response render with dynamic markdown content.
+            removeClippedSubviews={false}
           />
         )}
-
       </View>
 
       <KeyboardStickyView
@@ -375,7 +449,7 @@ export default function CompanionScreen() {
           </View>
         </View>
       </KeyboardStickyView>
-    </Pressable>
+    </View>
   );
 }
 

@@ -59,6 +59,22 @@ export const ProfileHeader = ({
     });
   };
 
+  const handleFollowersPress = () => {
+    if (!userInfo) return;
+    router.push({
+      pathname: '/followers-following',
+      params: { userId: userInfo.id, initialTab: 'followers' },
+    });
+  };
+
+  const handleFollowingPress = () => {
+    if (!userInfo) return;
+    router.push({
+      pathname: '/followers-following',
+      params: { userId: userInfo.id, initialTab: 'following' },
+    });
+  };
+
   if (!userInfo) {
     return (
       <View style={styles.container}>
@@ -147,14 +163,22 @@ export const ProfileHeader = ({
 
         <View style={styles.topStatsColumn}>
           <View style={styles.statsRow}>
-            <View style={styles.statItem}>
+            <TouchableOpacity 
+              style={styles.statItem}
+              onPress={handleFollowersPress}
+              activeOpacity={0.7}
+            >
               <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
               <Text style={styles.statLabel}>Followers</Text>
-            </View>
-            <View style={styles.statItem}>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.statItem}
+              onPress={handleFollowingPress}
+              activeOpacity={0.7}
+            >
               <Text style={styles.statNumber}>{userInfo.followingCount}</Text>
               <Text style={styles.statLabel}>Following</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -201,7 +225,6 @@ export const ProfileHeader = ({
             <FollowButton targetUserId={userInfo.id} />
           </View>
         )}
-
       </View>
 
       <View style={styles.groupsSection}>
@@ -227,6 +250,9 @@ export const ProfileHeader = ({
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.groupsList}
+            initialNumToRender={4}
+            maxToRenderPerBatch={4}
+            windowSize={5}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.groupTile}

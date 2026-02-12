@@ -9,21 +9,40 @@ import { Theme } from '@/constants/Theme';
 import ViewMoreCardEvents from '@/components/icons/ViewMoreCardEvents.svg';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { HorizontalCarousel } from './HorizontalCarousel';
+import { getUpcomingEventsSorted } from '@/helpers/eventHelpers';
+import {
+  EVENT_CARD_WIDTH,
+  EVENT_CARD_ASPECT_RATIO,
+  EVENT_IMAGE_ASPECT_RATIO,
+} from '@/constants/EventCard';
+
+const EVENT_CARD_HEIGHT = Math.round(EVENT_CARD_WIDTH * EVENT_CARD_ASPECT_RATIO);
+const EVENT_CARD_IMAGE_HEIGHT = Math.round(
+  EVENT_CARD_WIDTH * EVENT_IMAGE_ASPECT_RATIO
+);
 
 // Skeleton loader component for events
 const EventSkeletonCard = () => {
   return (
     <View style={skeletonStyles.eventCard}>
-      <SkeletonLoader
-        width='100%'
-        height={80}
-        borderRadius={0}
-        style={skeletonStyles.eventImagePlaceholder}
-      />
+      <View style={skeletonStyles.imageContainer}>
+        <SkeletonLoader
+          width='100%'
+          height={EVENT_CARD_IMAGE_HEIGHT}
+          borderRadius={0}
+          style={skeletonStyles.eventImagePlaceholder}
+        />
+        <SkeletonLoader
+          width={42}
+          height={42}
+          borderRadius={21}
+          style={skeletonStyles.datePillSkeleton}
+        />
+      </View>
       <View style={skeletonStyles.eventContent}>
         <SkeletonLoader
-          width='85%'
-          height={20}
+          width='88%'
+          height={22}
           borderRadius={4}
           style={skeletonStyles.titleSkeleton}
         />
@@ -31,14 +50,14 @@ const EventSkeletonCard = () => {
         <View style={skeletonStyles.detailsContainer}>
           <View style={skeletonStyles.eventDetail}>
             <SkeletonLoader
-              width={14}
+              width={18}
               height={18}
-              borderRadius={10}
+              borderRadius={9}
               style={skeletonStyles.iconSkeleton}
             />
             <SkeletonLoader
-              width='75%'
-              height={18}
+              width='65%'
+              height={14}
               borderRadius={4}
               style={skeletonStyles.detailSkeleton}
             />
@@ -46,14 +65,14 @@ const EventSkeletonCard = () => {
 
           <View style={skeletonStyles.eventDetail}>
             <SkeletonLoader
-              width={14}
+              width={18}
               height={18}
-              borderRadius={10}
+              borderRadius={9}
               style={skeletonStyles.iconSkeleton}
             />
             <SkeletonLoader
-              width='50%'
-              height={18}
+              width='75%'
+              height={14}
               borderRadius={4}
               style={skeletonStyles.detailSkeleton}
             />
@@ -84,12 +103,7 @@ export const EventsCarousel = ({
   const router = useRouter();
   const { data: events, isLoading } = useEvents();
 
-  const now = new Date();
-  const upcomingEvents =
-    events?.filter(event => {
-      const eventDate = new Date(event.eventDatetime);
-      return eventDate >= now;
-    }) || [];
+  const upcomingEvents = getUpcomingEventsSorted(events);
 
   const handleEventPress = (event: any) => {
     router.push({
@@ -141,7 +155,7 @@ export const EventsCarousel = ({
           >
             <View style={styles.viewMoreContent}>
               <ViewMoreCardEvents
-                width={248}
+                width={EVENT_CARD_WIDTH}
                 height='100%'
                 preserveAspectRatio='none'
               />
@@ -171,13 +185,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   viewMoreCard: {
-    width: 248,
+    width: EVENT_CARD_WIDTH,
     alignSelf: 'stretch',
     justifyContent: 'flex-start',
     alignItems: 'stretch',
   },
   viewMoreContent: {
-    width: 248,
+    width: EVENT_CARD_WIDTH,
     position: 'absolute',
     top: 0,
     bottom: 0,
@@ -203,33 +217,45 @@ const styles = StyleSheet.create({
 
 const skeletonStyles = StyleSheet.create({
   eventCard: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 15,
+    backgroundColor: Theme.white,
+    borderColor: Theme.borderCard,
+    borderWidth: 1,
+    borderRadius: 16,
     overflow: 'hidden',
-    width: 248,
+    width: EVENT_CARD_WIDTH,
+    height: EVENT_CARD_HEIGHT,
+  },
+  imageContainer: {
+    height: EVENT_CARD_IMAGE_HEIGHT,
+    borderRadius: 0,
+    overflow: 'hidden',
+    position: 'relative',
   },
   eventImagePlaceholder: {
-    height: 86,
-    width: '100%',
     backgroundColor: '#D5D5D5',
   },
+  datePillSkeleton: {
+    position: 'absolute',
+    top: 10,
+    left: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.68)',
+  },
   eventContent: {
-    padding: 12,
-    flex: 1,
-    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   detailsContainer: {
-    marginTop: 'auto',
-    gap: 2,
+    gap: 0,
   },
   eventDetail: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
-    gap: 8,
+    marginBottom: 6,
+    gap: 6,
   },
   titleSkeleton: {
-    marginBottom: 4,
+    marginBottom: 6,
     backgroundColor: '#D5D5D5',
   },
   detailSkeleton: {

@@ -27,7 +27,9 @@ export default function OutcomesStep() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Here’s what you can achieve in 3 months</Text>
+        <Text style={styles.title}>
+          Here’s what you can achieve in 3 months
+        </Text>
         <View style={styles.outcomesContainer}>
           <OutcomeCard
             icon='compass'

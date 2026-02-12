@@ -33,15 +33,13 @@ export interface SanityChecklistItem {
   submodule?: { _id: string; title: string; moduleId?: string } | null;
 }
 
-const SANITY_CLASS_TO_PRIORITY: Record<
-  SanityChecklistItem['class'],
-  Priority
-> = {
-  do_now: 'Do now',
-  do_soon: 'Do soon',
-  explore_and_connect: 'Explore and connect',
-  optional_later: 'Optional / later',
-};
+const SANITY_CLASS_TO_PRIORITY: Record<SanityChecklistItem['class'], Priority> =
+  {
+    do_now: 'Do now',
+    do_soon: 'Do soon',
+    explore_and_connect: 'Explore and connect',
+    optional_later: 'Optional / later',
+  };
 
 function normalizeLinkTab(link_tab: SanityChecklistItem['link_tab']): ChecklistLinkTabSlug | undefined {
   if (link_tab == null || typeof link_tab !== 'string') return undefined;
