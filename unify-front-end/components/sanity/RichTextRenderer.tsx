@@ -158,13 +158,13 @@ export default function RichTextRenderer({
       marginBottom: 5, // Consistent spacing between paragraphs
     },
 
-    // Lists
+    // Lists (lineHeight matches normal for consistent body text)
     bullet: {
       fontFamily: 'Font Family',
       fontWeight: '400',
       fontStyle: 'normal',
       fontSize: 18,
-      lineHeight: 20,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#374151',
       marginBottom: 10, // Spacing between bullet items
@@ -175,7 +175,7 @@ export default function RichTextRenderer({
       fontWeight: '400',
       fontStyle: 'normal',
       fontSize: 18,
-      lineHeight: 20,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#374151',
       marginBottom: 3, // Spacing between numbered items
