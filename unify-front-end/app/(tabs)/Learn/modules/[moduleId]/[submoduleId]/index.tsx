@@ -253,6 +253,8 @@ export default function SubmoduleIndex() {
     });
   };
 
+  const hasTasks = (tasks?.length ?? 0) > 0;
+
   const sections: SubmoduleSectionViewModel[] = [
     {
       id: 'learn',
@@ -267,19 +269,22 @@ export default function SubmoduleIndex() {
             : 'unlocked',
       onPress: handleLearnPress,
     },
-    {
-      id: 'tasks',
-      title: 'Tasks',
-      description: 'Real-world steps',
-      progressPercent: taskProgressPercent,
-      uiState:
-        taskProgressPercent >= 100
-          ? 'completed'
-          : taskProgressPercent > 0
-            ? 'active'
-            : 'unlocked',
-      onPress: handleTasksPress,
-    },
+    ...(hasTasks
+      ? [
+          {
+            id: 'tasks',
+            title: 'Tasks',
+            description: 'Real-world steps',
+            progressPercent: taskProgressPercent,
+            uiState: (taskProgressPercent >= 100
+              ? 'completed'
+              : taskProgressPercent > 0
+                ? 'active'
+                : 'unlocked') as SectionUIState,
+            onPress: handleTasksPress,
+          } as SubmoduleSectionViewModel,
+        ]
+      : []),
     {
       id: 'practice',
       title: 'Practice',
