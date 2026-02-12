@@ -64,10 +64,12 @@ export default function PracticeQuizQuestionPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [selectedLeftItem, setSelectedLeftItem] = useState<string | null>(null);
-  const [selectedRightItem, setSelectedRightItem] = useState<string | null>(null);
+  const [selectedRightIndex, setSelectedRightIndex] = useState<number | null>(null);
   const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>({});
-  const [completedPairs, setCompletedPairs] = useState<string[]>([]);
-  const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
+  const [completedLeftItems, setCompletedLeftItems] = useState<string[]>([]);
+  const [completedRightIndices, setCompletedRightIndices] = useState<number[]>([]);
+  const [incorrectLeftItems, setIncorrectLeftItems] = useState<string[]>([]);
+  const [incorrectRightIndices, setIncorrectRightIndices] = useState<number[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -88,10 +90,12 @@ export default function PracticeQuizQuestionPage() {
     setHasSubmitted(false);
     setIsCorrect(false);
     setSelectedLeftItem(null);
-    setSelectedRightItem(null);
+    setSelectedRightIndex(null);
     setMatchedPairs({});
-    setCompletedPairs([]);
-    setIncorrectPairs([]);
+    setCompletedLeftItems([]);
+    setCompletedRightIndices([]);
+    setIncorrectLeftItems([]);
+    setIncorrectRightIndices([]);
     setIsNavigating(false);
   }, [currentQuestionIndex]);
 
@@ -150,36 +154,46 @@ export default function PracticeQuizQuestionPage() {
     }
   };
 
-  const handleMatchingItemSelect = (item: string, side: 'left' | 'right') => {
-    if (completedPairs.includes(item)) return;
-    setIncorrectPairs([]);
+  const handleMatchingItemSelect = (itemOrIndex: string | number, side: 'left' | 'right') => {
     if (side === 'left') {
+      const item = itemOrIndex as string;
+      if (completedLeftItems.includes(item)) return;
+      setIncorrectLeftItems([]);
+      setIncorrectRightIndices([]);
       setSelectedLeftItem(prev => (prev === item ? null : item));
     } else {
-      setSelectedRightItem(prev => (prev === item ? null : item));
+      const index = itemOrIndex as number;
+      if (completedRightIndices.includes(index)) return;
+      setIncorrectLeftItems([]);
+      setIncorrectRightIndices([]);
+      setSelectedRightIndex(prev => (prev === index ? null : index));
     }
   };
 
   const handleMatchingCheck = () => {
-    if (!selectedLeftItem || !selectedRightItem) return;
+    if (selectedLeftItem === null || selectedRightIndex === null) return;
+    const selectedRightItem = scrambledRightItems[selectedRightIndex];
     const correctMatch = currentQuestion.matching_pairs?.find(
       (p: any) => p.left_item === selectedLeftItem && p.right_item === selectedRightItem
     );
     if (correctMatch) {
-      setCompletedPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
+      setCompletedLeftItems(prev => [...prev, selectedLeftItem]);
+      setCompletedRightIndices(prev => [...prev, selectedRightIndex]);
       setMatchedPairs(prev => ({ ...prev, [selectedLeftItem]: selectedRightItem }));
-      setIncorrectPairs(prev => prev.filter(i => i !== selectedLeftItem && i !== selectedRightItem));
+      setIncorrectLeftItems(prev => prev.filter(i => i !== selectedLeftItem));
+      setIncorrectRightIndices(prev => prev.filter(i => i !== selectedRightIndex));
     } else {
-      setIncorrectPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
+      setIncorrectLeftItems(prev => [...prev, selectedLeftItem]);
+      setIncorrectRightIndices(prev => [...prev, selectedRightIndex]);
     }
     setSelectedLeftItem(null);
-    setSelectedRightItem(null);
+    setSelectedRightIndex(null);
   };
 
   const handleNext = async () => {
     if (isNavigating) return;
     if (currentQuestion.question_type === 'matching') {
-      const allDone = completedPairs.length === (currentQuestion.matching_pairs?.length || 0) * 2;
+      const allDone = completedLeftItems.length === (currentQuestion.matching_pairs?.length || 0);
       if (!allDone) return;
       if (isLastQuestion) {
         setIsNavigating(true);
@@ -272,7 +286,7 @@ export default function PracticeQuizQuestionPage() {
 
   const isMatchingAllDone =
     currentQuestion.question_type === 'matching' &&
-    completedPairs.length === (currentQuestion.matching_pairs?.length || 0) * 2;
+    completedLeftItems.length === (currentQuestion.matching_pairs?.length || 0);
   const canProceedNonMatching =
     currentQuestion.question_type !== 'matching' &&
     (currentQuestion.question_type === 'multiple_choice_multiple'
@@ -320,11 +334,11 @@ export default function PracticeQuizQuestionPage() {
                         style={[
                           styles.matchingItem,
                           selectedLeftItem === pair.left_item && styles.matchingItemSelected,
-                          completedPairs.includes(pair.left_item) && styles.matchingItemCompleted,
-                          incorrectPairs.includes(pair.left_item) && styles.matchingItemIncorrect,
+                          completedLeftItems.includes(pair.left_item) && styles.matchingItemCompleted,
+                          incorrectLeftItems.includes(pair.left_item) && styles.matchingItemIncorrect,
                         ]}
                         onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
-                        disabled={completedPairs.includes(pair.left_item)}
+                        disabled={completedLeftItems.includes(pair.left_item)}
                       >
                         <Text style={styles.matchingItemText}>{pair.left_item}</Text>
                       </TouchableOpacity>
@@ -336,12 +350,12 @@ export default function PracticeQuizQuestionPage() {
                         key={`right-${i}-${rightItem}`}
                         style={[
                           styles.matchingItem,
-                          selectedRightItem === rightItem && styles.matchingItemSelected,
-                          completedPairs.includes(rightItem) && styles.matchingItemCompleted,
-                          incorrectPairs.includes(rightItem) && styles.matchingItemIncorrect,
+                          selectedRightIndex === i && styles.matchingItemSelected,
+                          completedRightIndices.includes(i) && styles.matchingItemCompleted,
+                          incorrectRightIndices.includes(i) && styles.matchingItemIncorrect,
                         ]}
-                        onPress={() => handleMatchingItemSelect(rightItem, 'right')}
-                        disabled={completedPairs.includes(rightItem)}
+                        onPress={() => handleMatchingItemSelect(i, 'right')}
+                        disabled={completedRightIndices.includes(i)}
                       >
                         <Text style={styles.matchingItemText}>{rightItem}</Text>
                       </TouchableOpacity>
@@ -351,15 +365,15 @@ export default function PracticeQuizQuestionPage() {
                 <TouchableOpacity
                   style={[
                     styles.matchingCheckButton,
-                    (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonDisabled,
+                    (selectedLeftItem === null || selectedRightIndex === null) && styles.matchingCheckButtonDisabled,
                   ]}
                   onPress={handleMatchingCheck}
-                  disabled={!selectedLeftItem || !selectedRightItem}
+                  disabled={selectedLeftItem === null || selectedRightIndex === null}
                 >
                   <Text
                     style={[
                       styles.matchingCheckButtonText,
-                      (!selectedLeftItem || !selectedRightItem) && styles.matchingCheckButtonTextDisabled,
+                      (selectedLeftItem === null || selectedRightIndex === null) && styles.matchingCheckButtonTextDisabled,
                     ]}
                   >
                     Check

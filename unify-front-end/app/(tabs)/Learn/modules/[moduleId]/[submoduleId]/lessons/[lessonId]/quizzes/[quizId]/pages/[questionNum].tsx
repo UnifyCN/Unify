@@ -42,16 +42,14 @@ export default function QuizQuestionPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  // Matching question state
+  // Matching question state (right side tracked by index so duplicate values select only one)
   const [selectedLeftItem, setSelectedLeftItem] = useState<string | null>(null);
-  const [selectedRightItem, setSelectedRightItem] = useState<string | null>(
-    null
-  );
-  const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>(
-    {}
-  );
-  const [completedPairs, setCompletedPairs] = useState<string[]>([]);
-  const [incorrectPairs, setIncorrectPairs] = useState<string[]>([]);
+  const [selectedRightIndex, setSelectedRightIndex] = useState<number | null>(null);
+  const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>({});
+  const [completedLeftItems, setCompletedLeftItems] = useState<string[]>([]);
+  const [completedRightIndices, setCompletedRightIndices] = useState<number[]>([]);
+  const [incorrectLeftItems, setIncorrectLeftItems] = useState<string[]>([]);
+  const [incorrectRightIndices, setIncorrectRightIndices] = useState<number[]>([]);
   const [showExitModal, setShowExitModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -65,10 +63,12 @@ export default function QuizQuestionPage() {
     setHasSubmitted(false);
     setIsCorrect(false);
     setSelectedLeftItem(null);
-    setSelectedRightItem(null);
+    setSelectedRightIndex(null);
     setMatchedPairs({});
-    setCompletedPairs([]);
-    setIncorrectPairs([]);
+    setCompletedLeftItems([]);
+    setCompletedRightIndices([]);
+    setIncorrectLeftItems([]);
+    setIncorrectRightIndices([]);
     setIsNavigating(false);
   }, [currentQuestionIndex]);
   const totalQuestions = questions?.length || 0;
@@ -221,34 +221,26 @@ export default function QuizQuestionPage() {
     }
   };
 
-  // Matching question handlers
-  const handleMatchingItemSelect = (item: string, side: 'left' | 'right') => {
-    if (completedPairs.includes(item)) return; // Don't allow selection of completed items
-
-    // Clear incorrect pairs when user selects any new card
-    setIncorrectPairs([]);
-
+  // Matching question handlers (right side by index so duplicate right values select only one)
+  const handleMatchingItemSelect = (itemOrIndex: string | number, side: 'left' | 'right') => {
     if (side === 'left') {
-      if (selectedLeftItem === item) {
-        setSelectedLeftItem(null);
-      } else {
-        setSelectedLeftItem(item);
-        // Don't clear right selection - allow both to be selected
-      }
+      const item = itemOrIndex as string;
+      if (completedLeftItems.includes(item)) return;
+      setIncorrectLeftItems([]);
+      setIncorrectRightIndices([]);
+      setSelectedLeftItem(prev => (prev === item ? null : item));
     } else {
-      if (selectedRightItem === item) {
-        setSelectedRightItem(null);
-      } else {
-        setSelectedRightItem(item);
-        // Don't clear left selection - allow both to be selected
-      }
+      const index = itemOrIndex as number;
+      if (completedRightIndices.includes(index)) return;
+      setIncorrectLeftItems([]);
+      setIncorrectRightIndices([]);
+      setSelectedRightIndex(prev => (prev === index ? null : index));
     }
   };
 
   const handleMatchingCheck = () => {
-    if (!selectedLeftItem || !selectedRightItem) return;
-
-    // Check if this is a correct match
+    if (selectedLeftItem === null || selectedRightIndex === null) return;
+    const selectedRightItem = scrambledRightItems[selectedRightIndex];
     const correctMatch = currentQuestion.matching_pairs?.find(
       (pair: any) =>
         pair.left_item === selectedLeftItem &&
@@ -256,26 +248,21 @@ export default function QuizQuestionPage() {
     );
 
     if (correctMatch) {
-      // Correct match - add to completed pairs
-      setCompletedPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
+      setCompletedLeftItems(prev => [...prev, selectedLeftItem]);
+      setCompletedRightIndices(prev => [...prev, selectedRightIndex]);
       setMatchedPairs(prev => ({
         ...prev,
         [selectedLeftItem]: selectedRightItem,
       }));
-      // Remove from incorrect pairs if it was there
-      setIncorrectPairs(prev =>
-        prev.filter(
-          item => item !== selectedLeftItem && item !== selectedRightItem
-        )
-      );
+      setIncorrectLeftItems(prev => prev.filter(i => i !== selectedLeftItem));
+      setIncorrectRightIndices(prev => prev.filter(i => i !== selectedRightIndex));
     } else {
-      // Incorrect match - add to incorrect pairs for red border feedback
-      setIncorrectPairs(prev => [...prev, selectedLeftItem, selectedRightItem]);
+      setIncorrectLeftItems(prev => [...prev, selectedLeftItem]);
+      setIncorrectRightIndices(prev => [...prev, selectedRightIndex]);
     }
 
-    // Clear selections
     setSelectedLeftItem(null);
-    setSelectedRightItem(null);
+    setSelectedRightIndex(null);
   };
 
   const handleNext = async () => {
@@ -572,15 +559,15 @@ export default function QuizQuestionPage() {
                             styles.matchingItem,
                             selectedLeftItem === pair.left_item &&
                               styles.matchingItemSelected,
-                            completedPairs.includes(pair.left_item) &&
+                            completedLeftItems.includes(pair.left_item) &&
                               styles.matchingItemCompleted,
-                            incorrectPairs.includes(pair.left_item) &&
+                            incorrectLeftItems.includes(pair.left_item) &&
                               styles.matchingItemIncorrect,
                           ]}
                           onPress={() =>
                             handleMatchingItemSelect(pair.left_item, 'left')
                           }
-                          disabled={completedPairs.includes(pair.left_item)}
+                          disabled={completedLeftItems.includes(pair.left_item)}
                         >
                           <Text style={styles.matchingItemText}>
                             {pair.left_item}
@@ -598,17 +585,17 @@ export default function QuizQuestionPage() {
                           key={`right-${index}-${rightItem}`}
                           style={[
                             styles.matchingItem,
-                            selectedRightItem === rightItem &&
+                            selectedRightIndex === index &&
                               styles.matchingItemSelected,
-                            completedPairs.includes(rightItem) &&
+                            completedRightIndices.includes(index) &&
                               styles.matchingItemCompleted,
-                            incorrectPairs.includes(rightItem) &&
+                            incorrectRightIndices.includes(index) &&
                               styles.matchingItemIncorrect,
                           ]}
                           onPress={() =>
-                            handleMatchingItemSelect(rightItem, 'right')
+                            handleMatchingItemSelect(index, 'right')
                           }
-                          disabled={completedPairs.includes(rightItem)}
+                          disabled={completedRightIndices.includes(index)}
                         >
                           <Text style={styles.matchingItemText}>
                             {rightItem}
@@ -623,16 +610,16 @@ export default function QuizQuestionPage() {
                 <TouchableOpacity
                   style={[
                     styles.matchingCheckButton,
-                    (!selectedLeftItem || !selectedRightItem) &&
+                    (selectedLeftItem === null || selectedRightIndex === null) &&
                       styles.matchingCheckButtonDisabled,
                   ]}
                   onPress={handleMatchingCheck}
-                  disabled={!selectedLeftItem || !selectedRightItem}
+                  disabled={selectedLeftItem === null || selectedRightIndex === null}
                 >
                   <Text
                     style={[
                       styles.matchingCheckButtonText,
-                      (!selectedLeftItem || !selectedRightItem) &&
+                      (selectedLeftItem === null || selectedRightIndex === null) &&
                         styles.matchingCheckButtonTextDisabled,
                     ]}
                   >
@@ -766,8 +753,8 @@ export default function QuizQuestionPage() {
             {
               backgroundColor: (
                 currentQuestion.question_type === 'matching'
-                  ? completedPairs.length !==
-                    (currentQuestion.matching_pairs?.length || 0) * 2
+                  ? completedLeftItems.length !==
+                    (currentQuestion.matching_pairs?.length || 0)
                   : currentQuestion.question_type === 'multiple_choice_multiple'
                     ? selectedAnswers.length === 0
                     : !selectedAnswer
@@ -779,8 +766,8 @@ export default function QuizQuestionPage() {
           onPress={handleNext}
           disabled={
             currentQuestion.question_type === 'matching'
-              ? completedPairs.length !==
-                (currentQuestion.matching_pairs?.length || 0) * 2
+              ? completedLeftItems.length !==
+                (currentQuestion.matching_pairs?.length || 0)
               : currentQuestion.question_type === 'multiple_choice_multiple'
                 ? selectedAnswers.length === 0
                 : !selectedAnswer
@@ -790,8 +777,8 @@ export default function QuizQuestionPage() {
             style={[
               styles.checkButtonText,
               (currentQuestion.question_type === 'matching'
-                ? completedPairs.length !==
-                  (currentQuestion.matching_pairs?.length || 0) * 2
+                ? completedLeftItems.length !==
+                  (currentQuestion.matching_pairs?.length || 0)
                 : currentQuestion.question_type === 'multiple_choice_multiple'
                   ? selectedAnswers.length === 0
                   : !selectedAnswer) && styles.checkButtonTextDisabled,
