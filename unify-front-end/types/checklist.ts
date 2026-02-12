@@ -8,6 +8,14 @@ export type Priority =
 export type StageNumber = 0 | 1 | 2 | 3 | 4;
 export type Stage = '0' | '1' | '2' | '3' | '4';
 
+/** Tab slug for checklist "Learn how" link (must match app tab routes) */
+export type ChecklistLinkTabSlug =
+  | 'home'
+  | 'community'
+  | 'companion'
+  | 'checklist'
+  | 'learn';
+
 /** Sanity checklist item (content from Sanity). Personas array: user sees item if user.persona in personas. */
 export interface SanityChecklistItem {
   _id: string;
@@ -19,6 +27,8 @@ export interface SanityChecklistItem {
   class_order: number;
   personas: string[];
   stage: string;
+  /** Link to a tab (home | community | companion | checklist | learn); when set, module/submodule are unused. Schema field: link_tab. */
+  link_tab?: ChecklistLinkTabSlug | string | null;
   module?: { _id: string; title: string } | null;
   submodule?: { _id: string; title: string; moduleId?: string } | null;
 }
@@ -33,18 +43,26 @@ const SANITY_CLASS_TO_PRIORITY: Record<
   optional_later: 'Optional / later',
 };
 
+function normalizeLinkTab(link_tab: SanityChecklistItem['link_tab']): ChecklistLinkTabSlug | undefined {
+  if (link_tab == null || typeof link_tab !== 'string') return undefined;
+  const slug = link_tab.trim().toLowerCase();
+  return slug.length > 0 ? (slug as ChecklistLinkTabSlug) : undefined;
+}
+
 export function sanityChecklistItemToTaskDetails(
   item: SanityChecklistItem
 ): ChecklistTaskDetails {
   const moduleOrSub = item.module ?? item.submodule;
+  const linkTab = normalizeLinkTab(item.link_tab);
   return {
     task_name: item.title,
     task_description: item.description ?? '',
     longer_description: item.longer_description?.trim() || undefined,
     priority: SANITY_CLASS_TO_PRIORITY[item.class],
     task_module: moduleOrSub?.title,
-    linkModuleId: item.module?._id ?? item.submodule?.moduleId,
-    linkSubmoduleId: item.submodule?._id,
+    linkTab,
+    linkModuleId: linkTab ? undefined : item.module?._id ?? item.submodule?.moduleId,
+    linkSubmoduleId: linkTab ? undefined : item.submodule?._id,
     linkModuleTitle: moduleOrSub?.title,
   };
 }
@@ -57,7 +75,9 @@ export interface ChecklistTaskDetails {
   longer_description?: string;
   priority: Priority;
   task_module?: string;
-  /** For "Learn how" deep link: module id or submodule id */
+  /** For "Learn how": link to a tab (Home, Community, Companion, Checklist, Learn). When set, module/submodule are not used */
+  linkTab?: ChecklistLinkTabSlug;
+  /** For "Learn how" deep link: module id or submodule id (when linkTab is not set) */
   linkModuleId?: string;
   linkSubmoduleId?: string;
   linkModuleTitle?: string;
