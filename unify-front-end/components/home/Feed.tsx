@@ -1,10 +1,17 @@
-import React, { useCallback } from 'react';
-import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  Platform,
+} from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
+import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 
 const HomeCardSpacer = () => <View style={styles.homeCardSpacer} />;
 
@@ -35,7 +42,24 @@ const Feed = ({
 }: FeedProps) => {
   const isFocused = useIsFocused();
   const isHomeCardVariant = postVariant === 'homeCard';
-  const allPosts = data?.pages?.flatMap((page: any) => page.posts) ?? [];
+  const allPosts = useMemo(
+    () => data?.pages?.flatMap((page: any) => page.posts) ?? [],
+    [data]
+  );
+
+  useEffect(() => {
+    if (!allPosts.length) {
+      return;
+    }
+
+    const firstViewportAvatarUrls = allPosts
+      .slice(0, 20)
+      .map((post: PostData) => post.user.profilePictureUrl);
+
+    prefetchAvatarUrls(firstViewportAvatarUrls).catch(error => {
+      console.warn('Failed to prefetch feed avatar URLs', error);
+    });
+  }, [allPosts]);
 
   const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
     allPosts.map((post: PostData) => post.id)
@@ -68,9 +92,7 @@ const Feed = ({
         <FlatList
           data={Array.from({ length: 3 }, (_, index) => index + 1)}
           keyExtractor={item => `skeleton-${item}`}
-          renderItem={() => (
-            <SkeletonLoaderPostItem variant={postVariant} />
-          )}
+          renderItem={() => <SkeletonLoaderPostItem variant={postVariant} />}
           scrollEnabled={false}
           contentContainerStyle={
             isHomeCardVariant ? styles.homeCardListContent : undefined
@@ -101,9 +123,7 @@ const Feed = ({
       contentContainerStyle={
         isHomeCardVariant ? styles.homeCardListContent : undefined
       }
-      ItemSeparatorComponent={
-        isHomeCardVariant ? HomeCardSpacer : undefined
-      }
+      ItemSeparatorComponent={isHomeCardVariant ? HomeCardSpacer : undefined}
       ListFooterComponent={
         isFetchingNextPage ? (
           <View style={styles.loadingFooter}>
@@ -111,6 +131,11 @@ const Feed = ({
           </View>
         ) : null
       }
+      initialNumToRender={6}
+      maxToRenderPerBatch={6}
+      windowSize={7}
+      updateCellsBatchingPeriod={50}
+      removeClippedSubviews={Platform.OS === 'android'}
     />
   );
 };

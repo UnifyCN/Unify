@@ -36,10 +36,7 @@ describe('buildPairKey', () => {
 
 // Test Day 13 reminder detection logic
 describe('Day 13 Reminder Detection', () => {
-  const isCircleEndingWithin24Hours = (
-    endsAt: string,
-    now: Date
-  ): boolean => {
+  const isCircleEndingWithin24Hours = (endsAt: string, now: Date): boolean => {
     const endDate = new Date(endsAt);
     const diffMs = endDate.getTime() - now.getTime();
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -73,15 +70,14 @@ describe('Day 13 Reminder Detection', () => {
 
 // Test countdown display logic
 describe('Countdown Display', () => {
-  const getCountdownText = (
-    endsAt: string,
-    now: Date
-  ): string | null => {
+  const getCountdownText = (endsAt: string, now: Date): string | null => {
     const end = new Date(endsAt);
     const diffMs = end.getTime() - now.getTime();
     if (diffMs <= 0) return 'Ending soon';
     const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    const hours = Math.floor(
+      (diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
+    );
     if (days > 0) return `${days} day${days === 1 ? '' : 's'} left`;
     return `${hours} hour${hours === 1 ? '' : 's'} left`;
   };
@@ -126,7 +122,12 @@ describe('Pool Key', () => {
   });
 
   it('should handle all personas', () => {
-    const personas = ['international_student', 'skilled_worker', 'refugee', 'other'] as const;
+    const personas = [
+      'international_student',
+      'skilled_worker',
+      'refugee',
+      'other',
+    ] as const;
     const time = '1_to_2_years' as const;
     personas.forEach(persona => {
       expect(buildPoolKey(persona, time)).toContain(persona);
@@ -148,7 +149,10 @@ describe('Relative Time Formatting', () => {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   it('should show "Just now" for very recent', () => {

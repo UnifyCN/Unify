@@ -150,10 +150,10 @@ export default function BottomSheet({
             style={[styles.sheet, { height: sheetHeight }, animatedSheetStyle]}
           >
             <View style={styles.dragHandle} />
-          <View style={styles.content}>{children}</View>
-        </Animated.View>
-      </GestureDetector>
-    </GestureHandlerRootView>
+            <View style={styles.content}>{children}</View>
+          </Animated.View>
+        </GestureDetector>
+      </GestureHandlerRootView>
     </Modal>
   );
 }

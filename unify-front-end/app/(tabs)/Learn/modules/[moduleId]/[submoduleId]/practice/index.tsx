@@ -17,9 +17,11 @@ export default function PracticeEntryScreen() {
     submoduleId: string;
   }>();
 
-  const { data: practices, isLoading, error } = useSanityPractices(
-    submoduleId || ''
-  );
+  const {
+    data: practices,
+    isLoading,
+    error,
+  } = useSanityPractices(submoduleId || '');
   const { getPracticeProgressBySubmodule } = usePracticeProgress();
 
   useEffect(() => {
@@ -33,7 +35,9 @@ export default function PracticeEntryScreen() {
     getPracticeProgressBySubmodule(submoduleId).then(progressRows => {
       if (cancelled) return;
       const completedIds = new Set(
-        (progressRows || []).filter(r => r.is_completed).map(r => r.sanity_practice_id)
+        (progressRows || [])
+          .filter(r => r.is_completed)
+          .map(r => r.sanity_practice_id)
       );
       const firstIncomplete = sorted.find(p => !completedIds.has(p._id));
       const target = firstIncomplete ?? sorted[0];
@@ -59,7 +63,7 @@ export default function PracticeEntryScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size='large' color='#10B981' />
           <Text style={styles.loadingText}>Loading practice...</Text>
         </View>
       </SafeAreaView>
@@ -97,7 +101,7 @@ export default function PracticeEntryScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#10B981" />
+        <ActivityIndicator size='large' color='#10B981' />
         <Text style={styles.loadingText}>Opening practice...</Text>
       </View>
     </SafeAreaView>

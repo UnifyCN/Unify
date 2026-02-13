@@ -73,7 +73,10 @@ function getSectionStyles(
 
   let lineAboveStyle: ViewStyle[] = [styles.lineSegment];
   if (prevSection) {
-    if (prevSection.uiState === 'completed' && section.uiState === 'completed') {
+    if (
+      prevSection.uiState === 'completed' &&
+      section.uiState === 'completed'
+    ) {
       lineAboveStyle.push({ backgroundColor: subjectColor });
     } else if (
       prevSection.uiState === 'completed' &&
@@ -88,7 +91,10 @@ function getSectionStyles(
 
   let lineBelowStyle: ViewStyle[] = [styles.lineSegment];
   if (nextSection) {
-    if (section.uiState === 'completed' && nextSection.uiState === 'completed') {
+    if (
+      section.uiState === 'completed' &&
+      nextSection.uiState === 'completed'
+    ) {
       lineBelowStyle.push({ backgroundColor: subjectColor });
     } else if (
       section.uiState === 'completed' &&
@@ -143,7 +149,9 @@ export default function SubmoduleIndex() {
         .then(progress => {
           if (!cancelled && progress?.progress_percent != null) {
             const p = Number(progress.progress_percent);
-            setLearnProgressPercent(Number.isFinite(p) ? Math.min(100, Math.max(0, p)) : 0);
+            setLearnProgressPercent(
+              Number.isFinite(p) ? Math.min(100, Math.max(0, p)) : 0
+            );
           }
         })
         .catch(() => {});
@@ -248,7 +256,8 @@ export default function SubmoduleIndex() {
   const handlePracticePress = () => {
     if (!moduleId || !submoduleId) return;
     router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice' as any,
+      pathname:
+        '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice' as any,
       params: { moduleId, submoduleId },
     });
   };
@@ -303,7 +312,10 @@ export default function SubmoduleIndex() {
     }
   };
 
-  const renderSectionCard = (section: SubmoduleSectionViewModel, index: number) => {
+  const renderSectionCard = (
+    section: SubmoduleSectionViewModel,
+    index: number
+  ) => {
     const isOpened = openedCardId === section.id;
     const isLocked = section.uiState === 'locked';
     const isFirst = index === 0;
@@ -368,10 +380,7 @@ export default function SubmoduleIndex() {
             {isOpened && (
               <View style={styles.progressBarWrap}>
                 <View
-                  style={[
-                    styles.progressBarBg,
-                    styles.progressBarBgOpened,
-                  ]}
+                  style={[styles.progressBarBg, styles.progressBarBgOpened]}
                 >
                   <View
                     style={[
@@ -386,7 +395,11 @@ export default function SubmoduleIndex() {
               </View>
             )}
             {section.id === 'learn' && isResolvingLearnHref && isOpened && (
-              <ActivityIndicator size="small" color="#fff" style={styles.cardLoader} />
+              <ActivityIndicator
+                size='small'
+                color='#fff'
+                style={styles.cardLoader}
+              />
             )}
           </View>
         </TouchableOpacity>
@@ -398,7 +411,7 @@ export default function SubmoduleIndex() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={subjectColor} />
+          <ActivityIndicator size='large' color={subjectColor} />
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
       </SafeAreaView>
@@ -436,7 +449,7 @@ export default function SubmoduleIndex() {
             }
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={28} color="#000" />
+            <Feather name='chevron-left' size={28} color='#000' />
           </TouchableOpacity>
           <View style={styles.headerCenterWrap}>
             <Text style={styles.headerModuleName} numberOfLines={1}>
@@ -627,7 +640,7 @@ const styles = StyleSheet.create({
   },
   cardInner: {
     position: 'relative',
-    paddingVertical: 4
+    paddingVertical: 4,
   },
   cardTitle: {
     fontSize: 20,

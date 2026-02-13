@@ -17,6 +17,7 @@ import {
   deleteProfilePicture,
 } from '@/services/s3/uploadProfilePicture';
 import { updateProfilePicture } from '@/services/users/updateProfilePicture';
+import { clearAvatarUrlCache } from '@/services/s3/avatarUrlCache';
 import { useQueryClient } from '@tanstack/react-query';
 import { Theme } from '@/constants/Theme';
 
@@ -151,6 +152,11 @@ export const ProfilePictureUpload = ({
         const updateResult = await updateProfilePicture(uploadResult.key);
 
         if (updateResult.success) {
+          if (currentPictureUrl) {
+            clearAvatarUrlCache(currentPictureUrl);
+          }
+          clearAvatarUrlCache(uploadResult.key);
+
           // Delete old profile picture from S3 if it exists
           if (currentPictureUrl) {
             try {
@@ -197,12 +203,14 @@ export const ProfilePictureUpload = ({
               if (currentPictureUrl) {
                 await deleteProfilePicture(currentPictureUrl);
               }
-              await updateProfilePicture(null);
 
               // Update the database
               const updateResult = await updateProfilePicture(null);
 
               if (updateResult.success) {
+                if (currentPictureUrl) {
+                  clearAvatarUrlCache(currentPictureUrl);
+                }
                 // Invalidate and refetch user info and all post feeds
                 invalidateAllQueries();
                 Alert.alert('Success', 'Profile picture removed successfully!');

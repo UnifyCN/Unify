@@ -236,7 +236,12 @@ export const PostItem = memo(
         {showMetadataLoading ? (
           <SkeletonLoader width={20} height={14} />
         ) : (
-          <Text style={[styles.footerText, isHomeCardVariant && styles.homeFooterText]}>
+          <Text
+            style={[
+              styles.footerText,
+              isHomeCardVariant && styles.homeFooterText,
+            ]}
+          >
             {likeCount}
           </Text>
         )}
@@ -245,13 +250,20 @@ export const PostItem = memo(
 
     const commentAction = (
       <TouchableOpacity style={styles.footerItem} onPress={navigateToComments}>
-        <View style={isHomeCardVariant ? styles.homeActionTouchable : undefined}>
+        <View
+          style={isHomeCardVariant ? styles.homeActionTouchable : undefined}
+        >
           <Comment width={iconSize} height={iconSize} fill='gray' />
         </View>
         {showMetadataLoading ? (
           <SkeletonLoader width={24} height={20} />
         ) : (
-          <Text style={[styles.footerText, isHomeCardVariant && styles.homeFooterText]}>
+          <Text
+            style={[
+              styles.footerText,
+              isHomeCardVariant && styles.homeFooterText,
+            ]}
+          >
             {commentCount}
           </Text>
         )}
@@ -355,7 +367,9 @@ export const PostItem = memo(
                           {post.user.name}
                         </Text>
                       </TouchableOpacity>
-                      <Text style={styles.homeTime}>{formatSmartTime(post.time)}</Text>
+                      <Text style={styles.homeTime}>
+                        {formatSmartTime(post.time)}
+                      </Text>
                       {post.group && (
                         <TouchableOpacity
                           onPress={navigateToGroupDetail}
@@ -439,7 +453,9 @@ export const PostItem = memo(
                         </TouchableOpacity>
                       </>
                     )}
-                    <Text style={styles.time}>{formatSmartTime(post.time)}</Text>
+                    <Text style={styles.time}>
+                      {formatSmartTime(post.time)}
+                    </Text>
                     {post.isPinned && (
                       <View style={styles.pinnedBadge}>
                         <Text style={styles.pinnedText}>Pinned</Text>

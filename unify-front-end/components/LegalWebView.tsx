@@ -90,11 +90,7 @@ export default function LegalWebView({
         ]}
       >
         <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-          <Feather
-            name='x'
-            size={Layout.header.iconSize}
-            color={Theme.black}
-          />
+          <Feather name='x' size={Layout.header.iconSize} color={Theme.black} />
         </TouchableOpacity>
         <Text style={styles.title} numberOfLines={1}>
           {title}

@@ -8,14 +8,12 @@ import {
 } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
 import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
 import { Avatar } from '@/components/Avatar';
 import { Theme } from '@/constants/Theme';
-import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 import InfoBadge from '@/components/common/InfoBadge';
 import {
   getPersonaBadgeInfo,
@@ -40,13 +38,6 @@ export const ProfileHeader = ({
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
 
-  const { data: signedProfileUrl } = useQuery({
-    queryKey: ['profilePictureSignedUrl', userInfo?.profilePictureUrl],
-    enabled: !!userInfo?.profilePictureUrl,
-    queryFn: () => getProfilePictureUrl(userInfo?.profilePictureUrl as string),
-    staleTime: 4 * 60 * 1000,
-  });
-
   const {
     data: joinedGroups = [],
     isLoading: groupsLoading,
@@ -65,6 +56,22 @@ export const ProfileHeader = ({
     router.push({
       pathname: GROUP_DETAIL_ROUTE,
       params: { group: JSON.stringify(group) },
+    });
+  };
+
+  const handleFollowersPress = () => {
+    if (!userInfo) return;
+    router.push({
+      pathname: '/followers-following',
+      params: { userId: userInfo.id, initialTab: 'followers' },
+    });
+  };
+
+  const handleFollowingPress = () => {
+    if (!userInfo) return;
+    router.push({
+      pathname: '/followers-following',
+      params: { userId: userInfo.id, initialTab: 'following' },
     });
   };
 
@@ -129,7 +136,7 @@ export const ProfileHeader = ({
       <View style={styles.topRow}>
         <View style={styles.avatarWrapper}>
           <Avatar
-            profilePictureUrl={signedProfileUrl}
+            profilePictureUrl={userInfo.profilePictureUrl}
             username={userInfo.username}
             size={AVATAR_SIZE}
             style={styles.profilePicture}
@@ -156,14 +163,22 @@ export const ProfileHeader = ({
 
         <View style={styles.topStatsColumn}>
           <View style={styles.statsRow}>
-            <View style={styles.statItem}>
+            <TouchableOpacity 
+              style={styles.statItem}
+              onPress={handleFollowersPress}
+              activeOpacity={0.7}
+            >
               <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
               <Text style={styles.statLabel}>Followers</Text>
-            </View>
-            <View style={styles.statItem}>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.statItem}
+              onPress={handleFollowingPress}
+              activeOpacity={0.7}
+            >
               <Text style={styles.statNumber}>{userInfo.followingCount}</Text>
               <Text style={styles.statLabel}>Following</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -210,7 +225,6 @@ export const ProfileHeader = ({
             <FollowButton targetUserId={userInfo.id} />
           </View>
         )}
-
       </View>
 
       <View style={styles.groupsSection}>
@@ -236,6 +250,9 @@ export const ProfileHeader = ({
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.groupsList}
+            initialNumToRender={4}
+            maxToRenderPerBatch={4}
+            windowSize={5}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.groupTile}

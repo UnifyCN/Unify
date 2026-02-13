@@ -7,7 +7,6 @@ import {
   TextInput,
   FlatList,
   Keyboard,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -26,10 +25,9 @@ import { Theme } from '@/constants/Theme';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import BackHeader from '@/components/BackHeader';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getHeaderHeight } from '@/constants/Layout';
 import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import KeyboardSafeAreaView from '@/components/common/KeyboardSafeAreaView';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Loading state component
 const CommentsLoadingState = () => (
@@ -98,8 +96,6 @@ const PostDetails = () => {
   }>();
 
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const headerHeight = getHeaderHeight(insets.top);
 
   const onBack = () => {
     router.back();
@@ -114,7 +110,7 @@ const PostDetails = () => {
 
   const post: PostData | null = postParam
     ? (JSON.parse(postParam as string) as PostData)
-    : fetchedPost ?? null;
+    : (fetchedPost ?? null);
 
   // Call all hooks unconditionally (before any early return) to avoid "Rendered more hooks than during the previous render"
   const [commentTextBox, setCommentTextBox] = useState('');
@@ -155,11 +151,7 @@ const PostDetails = () => {
 
   if (postIdParam && !postParam) {
     if (isLoadingPost) {
-      return (
-        <View style={styles.errorContainer}>
-          <ActivityIndicator size="large" color={Theme.primaryGatherRed} />
-        </View>
-      );
+      return <LoadingScreen />;
     }
     if (!post) {
       return <PostNotFound />;
@@ -189,7 +181,7 @@ const PostDetails = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: '#fff' }}
-      behavior="translate-with-padding"
+      behavior='translate-with-padding'
       keyboardVerticalOffset={0}
     >
       <BackHeader onBack={onBack} />

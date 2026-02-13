@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   ScrollView,
   StyleSheet,
@@ -14,14 +13,15 @@ import { useRouter, Href } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Feather } from '@expo/vector-icons';
 import { useCurrentUser } from '@/context/UserContext';
-import { getCurrentWaitlistEntry, leaveCommunityWaitlist } from '@/services/matching/waitlist';
-import { getActiveCircleMembership } from '@/services/matching/circles';
 import {
-  formatPersonaLabel,
-  formatTimeInCanadaLabel,
-} from '@/matching/pools';
+  getCurrentWaitlistEntry,
+  leaveCommunityWaitlist,
+} from '@/services/matching/waitlist';
+import { getActiveCircleMembership } from '@/services/matching/circles';
+import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
+import LoadingScreen from '@/components/LoadingScreen';
 
 // Animated ripple circles for the waiting indicator
 function WaitingAnimation() {
@@ -85,7 +85,7 @@ function WaitingAnimation() {
       <Animated.View style={[animStyles.ring, getAnimatedStyle(ring2)]} />
       <Animated.View style={[animStyles.ring, getAnimatedStyle(ring3)]} />
       <View style={animStyles.centerCircle}>
-        <Feather name="users" size={32} color="#fff" />
+        <Feather name='users' size={32} color='#fff' />
       </View>
     </View>
   );
@@ -124,11 +124,17 @@ const animStyles = StyleSheet.create({
 });
 
 // Step item component with checkmark animation potential
-function StepItem({ number, text, icon }: { number: string; text: string; icon: string }) {
+function StepItem({
+  text,
+  icon,
+}: {
+  text: string;
+  icon: string;
+}) {
   return (
     <View style={stepStyles.item}>
       <View style={stepStyles.iconCircle}>
-        <Feather name={icon as any} size={16} color="#ff820b" />
+        <Feather name={icon as any} size={16} color='#ff820b' />
       </View>
       <Text style={stepStyles.text}>{text}</Text>
     </View>
@@ -226,7 +232,10 @@ export default function WaitingRoomScreen() {
 
   useEffect(() => {
     if (activeCircle) {
-      router.replace(`/community-matching/circle/${activeCircle.circle_id}` as Href);
+      const targetRoute = activeCircle.joined_at
+        ? `/community-matching/circle/${activeCircle.circle_id}/chat`
+        : `/community-matching/circle/${activeCircle.circle_id}`;
+      router.replace(targetRoute as Href);
     }
   }, [activeCircle, router]);
 
@@ -266,12 +275,7 @@ export default function WaitingRoomScreen() {
   };
 
   if (isLoading || !waitlistEntry) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size='large' color="#ff9d40" />
-        <Text style={styles.loadingText}>Preparing your waiting room…</Text>
-      </View>
-    );
+    return <LoadingScreen />;
   }
 
   const joinedDate = new Date(waitlistEntry.created_at);
@@ -279,8 +283,11 @@ export default function WaitingRoomScreen() {
 
   return (
     <View style={styles.root}>
-      <BackHeader title="" onBack={() => router.replace('/(tabs)/Gather/gather' as Href)} />
-      <ScrollView 
+      <BackHeader
+        title=''
+        onBack={() => router.replace('/(tabs)/Gather/gather' as Href)}
+      />
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -296,20 +303,21 @@ export default function WaitingRoomScreen() {
         {/* Title section */}
         <Text style={styles.title}>Hang tight!</Text>
         <Text style={styles.subtitle}>
-          We're finding 3 more newcomers on a similar journey to connect you with.
+          We're finding 3 more newcomers on a similar journey to connect you
+          with.
         </Text>
 
         {/* Your matching criteria */}
         <View style={styles.criteriaCard}>
           <Text style={styles.criteriaLabel}>Your matching group</Text>
           <View style={styles.criteriaRow}>
-            <Feather name="user" size={16} color="#ff820b" />
+            <Feather name='user' size={16} color='#ff820b' />
             <Text style={styles.criteriaText}>
               {formatPersonaLabel(waitlistEntry.persona)}
             </Text>
           </View>
           <View style={styles.criteriaRow}>
-            <Feather name="calendar" size={16} color="#ff820b" />
+            <Feather name='calendar' size={16} color='#ff820b' />
             <Text style={styles.criteriaText}>
               {formatTimeInCanadaLabel(waitlistEntry.time_in_canada)}
             </Text>
@@ -319,34 +327,31 @@ export default function WaitingRoomScreen() {
         {/* How it works section */}
         <View style={styles.stepsCard}>
           <Text style={styles.stepsHeading}>How matching works</Text>
-          <StepItem 
-            number="1" 
-            text="We check for matches every few minutes"
-            icon="clock"
+          <StepItem
+            text='We check for matches every few minutes'
+            icon='clock'
           />
-          <StepItem 
-            number="2" 
-            text="Groups form when 4 compatible people are ready"
-            icon="users"
+          <StepItem
+            text='Groups form when 4 compatible people are ready'
+            icon='users'
           />
-          <StepItem 
-            number="3" 
+          <StepItem
             text="You'll get notified the moment you're matched!"
-            icon="bell"
+            icon='bell'
           />
         </View>
 
         {/* Joined timestamp */}
         <View style={styles.joinedInfo}>
-          <Feather name="check-circle" size={16} color="#0F8B54" />
+          <Feather name='check-circle' size={16} color='#0F8B54' />
           <Text style={styles.joinedText}>Joined {timeAgo}</Text>
         </View>
       </ScrollView>
 
       {/* Leave button */}
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.leaveButton} 
+        <TouchableOpacity
+          style={styles.leaveButton}
           onPress={handleLeave}
           activeOpacity={0.7}
         >
@@ -365,8 +370,10 @@ function getTimeAgo(date: Date): string {
   const diffDays = Math.floor(diffMs / 86400000);
 
   if (diffMins < 1) return 'just now';
-  if (diffMins < 60) return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  if (diffMins < 60)
+    return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
+  if (diffHours < 24)
+    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
   return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
 }
 
@@ -379,17 +386,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 160,
-  },
-  centered: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    color: '#6B7280',
-    fontSize: 15,
   },
   statusBadge: {
     flexDirection: 'row',

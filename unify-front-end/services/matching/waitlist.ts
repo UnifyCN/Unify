@@ -3,28 +3,27 @@ import { buildPoolKey, type MatchingTimeInCanada } from '@/matching/pools';
 import type { Persona } from '@/types/onboardingProfile';
 import type { CommunityWaitlistEntry } from '@/types/matching';
 
-export const getCurrentWaitlistEntry = async (): Promise<
-  CommunityWaitlistEntry | null
-> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
+export const getCurrentWaitlistEntry =
+  async (): Promise<CommunityWaitlistEntry | null> => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
 
-  const { data, error } = await supabase
-    .from('community_match_waitlist')
-    .select('*')
-    .eq('user_id', user.id)
-    .maybeSingle();
+    const { data, error } = await supabase
+      .from('community_match_waitlist')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(`Failed to load waitlist entry: ${error.message}`);
-  }
+    if (error && error.code !== 'PGRST116') {
+      throw new Error(`Failed to load waitlist entry: ${error.message}`);
+    }
 
-  return (data as CommunityWaitlistEntry) ?? null;
-};
+    return (data as CommunityWaitlistEntry) ?? null;
+  };
 
 interface JoinWaitlistParams {
   persona: Persona;
@@ -44,18 +43,16 @@ export const joinCommunityWaitlist = async ({
 
   const poolKey = buildPoolKey(persona, timeInCanada);
 
-  const { error } = await supabase
-    .from('community_match_waitlist')
-    .upsert(
-      {
-        user_id: user.id,
-        persona,
-        time_in_canada: timeInCanada,
-        pool_key: poolKey,
-        status: 'waiting',
-      },
-      { onConflict: 'user_id', ignoreDuplicates: false }
-    );
+  const { error } = await supabase.from('community_match_waitlist').upsert(
+    {
+      user_id: user.id,
+      persona,
+      time_in_canada: timeInCanada,
+      pool_key: poolKey,
+      status: 'waiting',
+    },
+    { onConflict: 'user_id', ignoreDuplicates: false }
+  );
 
   if (error) {
     throw new Error(`Failed to enter waitlist: ${error.message}`);

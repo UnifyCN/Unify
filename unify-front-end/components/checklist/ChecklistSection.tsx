@@ -69,10 +69,16 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
       <View style={styles.timeline}>
         {/* Line going through checkbox circles */}
         <View
-          style={[styles.timelineLine, { backgroundColor: config.backgroundColor }]}
+          style={[
+            styles.timelineLine,
+            { backgroundColor: config.backgroundColor },
+          ]}
         />
         {tasks.map((task, index) => (
-          <View key={task.sanity_checklist_id || task.user_task_id || index} style={styles.row}>
+          <View
+            key={task.sanity_checklist_id || task.user_task_id || index}
+            style={styles.row}
+          >
             {/* LEFT COLUMN (Checkbox) */}
             <View style={styles.leftColumn}>
               <TouchableOpacity

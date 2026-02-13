@@ -47,16 +47,21 @@ export async function registerForPushNotifications(): Promise<string | null> {
     const token = tokenData.data;
 
     // Store token in Supabase
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user && token) {
-      const { error } = await supabase.from('push_tokens').upsert({
-        user_id: user.id,
-        token,
-        platform: Platform.OS,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id,token',
-      });
+      const { error } = await supabase.from('push_tokens').upsert(
+        {
+          user_id: user.id,
+          token,
+          platform: Platform.OS,
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'user_id,token',
+        }
+      );
 
       if (error) {
         console.error('Failed to store push token', error);
@@ -77,7 +82,9 @@ export async function registerForPushNotifications(): Promise<string | null> {
  * Call this when user logs out.
  */
 export async function unregisterPushToken(): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return;
 
   try {
@@ -85,7 +92,8 @@ export async function unregisterPushToken(): Promise<void> {
       projectId: '3772d4d9-79dd-4848-9691-bae1b19eefb8',
     });
 
-    await supabase.from('push_tokens')
+    await supabase
+      .from('push_tokens')
       .delete()
       .eq('user_id', user.id)
       .eq('token', tokenData.data);

@@ -10,8 +10,14 @@ import {
 } from '@/services/notifications/notifications';
 
 // User-scoped query key functions to prevent cache leaks between users
-const notificationsQueryKey = (userId: string | undefined) => ['community-notifications', userId];
-const unreadCountQueryKey = (userId: string | undefined) => ['community-notifications-unread-count', userId];
+const notificationsQueryKey = (userId: string | undefined) => [
+  'community-notifications',
+  userId,
+];
+const unreadCountQueryKey = (userId: string | undefined) => [
+  'community-notifications-unread-count',
+  userId,
+];
 
 export function useCommunityNotifications() {
   const queryClient = useQueryClient();
@@ -56,8 +62,12 @@ export function useCommunityNotifications() {
         },
         () => {
           // Refetch notifications when a new one arrives
-          queryClient.invalidateQueries({ queryKey: notificationsQueryKey(currentUser.id) });
-          queryClient.invalidateQueries({ queryKey: unreadCountQueryKey(currentUser.id) });
+          queryClient.invalidateQueries({
+            queryKey: notificationsQueryKey(currentUser.id),
+          });
+          queryClient.invalidateQueries({
+            queryKey: unreadCountQueryKey(currentUser.id),
+          });
         }
       )
       .subscribe();
@@ -70,16 +80,24 @@ export function useCommunityNotifications() {
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationsQueryKey(currentUser?.id) });
-      queryClient.invalidateQueries({ queryKey: unreadCountQueryKey(currentUser?.id) });
+      queryClient.invalidateQueries({
+        queryKey: notificationsQueryKey(currentUser?.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: unreadCountQueryKey(currentUser?.id),
+      });
     },
   });
 
   const markAllAsReadMutation = useMutation({
     mutationFn: markAllNotificationsAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationsQueryKey(currentUser?.id) });
-      queryClient.invalidateQueries({ queryKey: unreadCountQueryKey(currentUser?.id) });
+      queryClient.invalidateQueries({
+        queryKey: notificationsQueryKey(currentUser?.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: unreadCountQueryKey(currentUser?.id),
+      });
     },
   });
 
@@ -139,7 +157,9 @@ export function useUnreadNotificationCount() {
           filter: `user_id=eq.${currentUser.id}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: unreadCountQueryKey(currentUser.id) });
+          queryClient.invalidateQueries({
+            queryKey: unreadCountQueryKey(currentUser.id),
+          });
         }
       )
       .subscribe();

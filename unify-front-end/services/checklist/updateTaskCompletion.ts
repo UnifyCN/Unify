@@ -5,10 +5,10 @@ export const updateTaskCompletion = async (
   completed: boolean
 ): Promise<void> => {
   try {
-    const updateData: { completed: boolean; completed_at: string | null } = {  
-      completed,  
-      completed_at: completed ? new Date().toISOString() : null,  
-    };  
+    const updateData: { completed: boolean; completed_at: string | null } = {
+      completed,
+      completed_at: completed ? new Date().toISOString() : null,
+    };
 
     const { error } = await supabase
       .from('user_tasks')

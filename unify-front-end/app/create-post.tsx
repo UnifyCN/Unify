@@ -5,7 +5,9 @@ import { Group } from '@/types/groups';
 
 export default function CreatePostScreen() {
   const router = useRouter();
-  const { preselectedGroup } = useLocalSearchParams<{ preselectedGroup?: string }>();
+  const { preselectedGroup } = useLocalSearchParams<{
+    preselectedGroup?: string;
+  }>();
 
   const parsedGroup = useMemo<Group | null>(() => {
     if (!preselectedGroup || typeof preselectedGroup !== 'string') {

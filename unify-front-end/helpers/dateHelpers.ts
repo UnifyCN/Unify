@@ -96,7 +96,9 @@ const CHECKLIST_PERSONA_SLUGS = [
 export const normalizePersonaSlug = (persona: string | null): string | null => {
   if (!persona) return null;
   const p = persona.toLowerCase().trim();
-  return CHECKLIST_PERSONA_SLUGS.includes(p as (typeof CHECKLIST_PERSONA_SLUGS)[number])
+  return CHECKLIST_PERSONA_SLUGS.includes(
+    p as (typeof CHECKLIST_PERSONA_SLUGS)[number]
+  )
     ? p
     : null;
 };

@@ -208,7 +208,8 @@ export default function LessonPageScreen() {
             // Check if this is the last lesson
             if (isLastLesson()) {
               router.push({
-                pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+                pathname:
+                  '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                 params: { moduleId, submoduleId },
               });
             } else {
@@ -261,12 +262,12 @@ export default function LessonPageScreen() {
             pageNum: '1',
           },
         });
-        } else {
-          router.push({
-            pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-            params: { moduleId, submoduleId },
-          });
-        }
+      } else {
+        router.push({
+          pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
+          params: { moduleId, submoduleId },
+        });
+      }
     }
   };
 
