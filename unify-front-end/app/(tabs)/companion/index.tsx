@@ -32,7 +32,7 @@ import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
-import { KeyboardStickyView } from 'react-native-keyboard-controller';
+import { KeyboardStickyView } from '@/lib/SafeKeyboardController';
 
 const MESSAGE_LIMIT = 3;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');

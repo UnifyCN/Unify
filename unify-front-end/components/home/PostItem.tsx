@@ -20,6 +20,7 @@ import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { useMutateDeletePost } from '@/hooks/posts/useMutateDeletePost';
 import { useMutatePinPost } from '@/hooks/posts/useMutatePinPost';
+import { useMutateReport } from '@/hooks/posts/useMutateReport';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { Avatar } from '@/components/Avatar';
@@ -40,6 +41,8 @@ export interface PostItemProps {
     isSaved: boolean;
     likeCount: number;
     commentCount: number;
+    isReported?: boolean;
+    reportCount?: number; //maybe keeping this hidden is a good idea
   };
   metadataLoading?: boolean;
   isAbleToDelete?: boolean;
@@ -70,6 +73,7 @@ export const PostItem = memo(
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
     const pinPostMutation = useMutatePinPost();
+    const reportMutation = useMutateReport();
 
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
@@ -278,11 +282,29 @@ export const PostItem = memo(
       </TouchableOpacity>
     );
 
+    const reportAction = (
+      <TouchableOpacity
+        onPress={() =>{
+          if(!showMetadataLoading && !metadata?.isReported) {
+            router.push({
+              pathname: '/report' as any,
+              params: { postId: String(post.id) },
+            });
+          }
+        }}
+        disabled={showMetadataLoading || !!metadata?.isReported}
+        style={isHomeCardVariant ? styles.homeActionTouchable : undefined}
+      >
+        <Feather name="flag" size={iconSize} color={Theme.black} />
+      </TouchableOpacity>
+    );
+
     const footer = isHomeCardVariant ? (
       <View style={[styles.footer, styles.homeFooter]}>
         <View style={styles.homeFooterLeft}>
           {likeAction}
           {commentAction}
+          {reportAction}
         </View>
         {saveAction}
       </View>
@@ -290,6 +312,7 @@ export const PostItem = memo(
       <View style={styles.footer}>
         {likeAction}
         {commentAction}
+        {reportAction}
         {saveAction}
       </View>
     );
