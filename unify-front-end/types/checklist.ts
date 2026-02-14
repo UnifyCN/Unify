@@ -81,3 +81,16 @@ export interface UserTask {
 export interface UserTaskWithDetails extends UserTask {
   task: ChecklistTaskDetails;
 }
+
+/** Custom user-generated task */
+export interface CustomUserTask {
+  id: string;
+  user_id: string;
+  task_name: string;
+  task_description: string | null;
+  priority: Priority;
+  completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
