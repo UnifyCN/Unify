@@ -6,60 +6,29 @@ import {
   StyleSheet,
   TouchableOpacity,
   Pressable,
-  Alert,
 } from 'react-native';
-import { UserTaskWithDetails, CustomUserTask } from '@/types/checklist';
+import { UserTaskWithDetails } from '@/types/checklist';
 import { Theme } from '@/constants/Theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 interface TaskDetailModalProps {
   visible: boolean;
-  task: UserTaskWithDetails | CustomUserTask | null;
-  isCustomTask?: boolean;
+  task: UserTaskWithDetails | null;
   onClose: () => void;
   onLearnHow: () => void;
   onMarkComplete: () => void;
-  onDelete?: () => void;
 }
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   visible,
   task,
-  isCustomTask = false,
   onClose,
   onLearnHow,
   onMarkComplete,
-  onDelete,
 }) => {
   if (!task) return null;
 
-  // For custom tasks, use the direct properties; for regular tasks, access via task.task
-  const isCompleted = isCustomTask 
-    ? (task as CustomUserTask).completed
-    : (task as UserTaskWithDetails).completed;
-  
-  const taskName = isCustomTask
-    ? (task as CustomUserTask).task_name
-    : (task as UserTaskWithDetails).task.task_name;
-  
-  const taskDescription = isCustomTask
-    ? (task as CustomUserTask).task_description || ''
-    : (task as UserTaskWithDetails).task.task_description;
-
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Task',
-      'Are you sure you want to delete this task?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
-          style: 'destructive',
-          onPress: onDelete,
-        },
-      ]
-    );
-  };
+  const isCompleted = task.completed;
 
   return (
     <Modal
@@ -77,31 +46,29 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             {/* Icon */}
             <View style={styles.iconContainer}>
               <MaterialIcons
-                name={isCustomTask ? 'add-task' : 'assignment'}
+                name='assignment'
                 size={28}
                 color={Theme.primaryGatherRed}
               />
             </View>
 
             {/* Task Name */}
-            <Text style={styles.taskName}>{taskName}</Text>
+            <Text style={styles.taskName}>{task.task.task_name}</Text>
 
             {/* Task Description */}
             <Text style={styles.taskDescription}>
-              {taskDescription}
+              {task.task.task_description}
             </Text>
 
-            {/* Learn How button - only for non-custom tasks */}
-            {!isCustomTask && (
-              <TouchableOpacity
-                style={styles.learnButton}
-                onPress={onLearnHow}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.learnButtonText}>Learn how</Text>
-                <MaterialIcons name='arrow-right-alt' size={20} color='#fff' />
-              </TouchableOpacity>
-            )}
+            {/* Buttons */}
+            <TouchableOpacity
+              style={styles.learnButton}
+              onPress={onLearnHow}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.learnButtonText}>Learn how</Text>
+              <MaterialIcons name='arrow-right-alt' size={20} color='#fff' />
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={[
@@ -125,18 +92,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 color={isCompleted ? '#48BB78' : '#48BB78'}
               />
             </TouchableOpacity>
-
-            {/* Delete button - only for custom tasks */}
-            {isCustomTask && onDelete && (
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={handleDelete}
-                activeOpacity={0.8}
-              >
-                <MaterialIcons name='delete-outline' size={20} color='#E03B3B' />
-                <Text style={styles.deleteButtonText}>Delete task</Text>
-              </TouchableOpacity>
-            )}
           </View>
         </Pressable>
       </Pressable>
@@ -222,21 +177,5 @@ const styles = StyleSheet.create({
   },
   completeButtonTextCompleted: {
     color: '#22543D',
-  },
-  deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FEF2F2',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-    width: '100%',
-    gap: 8,
-  },
-  deleteButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#E03B3B',
   },
 });

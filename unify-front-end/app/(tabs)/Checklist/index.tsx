@@ -1,23 +1,17 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
 import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
 import { setChecklistItemCompletion } from '@/services/checklist/setChecklistItemCompletion';
-import { getCustomUserTasks } from '@/services/checklist/getCustomUserTasks';
-import { createCustomUserTask } from '@/services/checklist/createCustomUserTask';
-import { deleteCustomUserTask } from '@/services/checklist/deleteCustomUserTask';
-import { updateCustomTaskCompletion } from '@/services/checklist/updateCustomTaskCompletion';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
-import { AddTaskModal } from '@/components/checklist/AddTaskModal';
 import { supabase } from '@/lib/supabase';
-import { Priority, UserTaskWithDetails, CustomUserTask } from '@/types/checklist';
+import { Priority, UserTaskWithDetails } from '@/types/checklist';
 import Header from '@/components/Header';
 import LoadingScreen from '@/components/LoadingScreen';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 /** Time-in-Canada display ranges (no stage labels) */
 const stageDescriptions: Record<number, string> = {
@@ -47,30 +41,11 @@ export default function ChecklistScreen() {
   } = useUserStage();
   const [persona, setPersona] = useState<string | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  
-  // Regular (Sanity/Legacy) tasks
-  const {
-    tasks,
-    isLoading: tasksLoading,
-    refetch,
-    setTasks,
-  } = useChecklistTasks({
-    currentStage,
-    stageChanged,
-    persona,
-  });
-
-  // Custom user tasks
-  const [customTasks, setCustomTasks] = useState<CustomUserTask[]>([]);
-  const [isLoadingCustom, setIsLoadingCustom] = useState(true);
-
-  // Modal state
-  const [selectedTask, setSelectedTask] = useState<UserTaskWithDetails | CustomUserTask | null>(null);
-  const [selectedCustomTask, setSelectedCustomTask] = useState<CustomUserTask | null>(null);
+  const [selectedTask, setSelectedTask] = useState<UserTaskWithDetails | null>(
+    null
+  );
   const [modalVisible, setModalVisible] = useState(false);
-  const [addModalVisible, setAddModalVisible] = useState(false);
 
-  // Fetch persona
   useEffect(() => {
     const fetchPersona = async () => {
       try {
@@ -92,49 +67,38 @@ export default function ChecklistScreen() {
     fetchPersona();
   }, []);
 
-  // Fetch custom tasks
-  const fetchCustomTasks = useCallback(async () => {
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const tasks = await getCustomUserTasks(user.id);
-      setCustomTasks(tasks);
-    } catch (error) {
-      console.error('Error fetching custom tasks:', error);
-    } finally {
-      setIsLoadingCustom(false);
-    }
-  }, []);
+  const {
+    tasks,
+    isLoading: tasksLoading,
+    refetch,
+    setTasks,
+  } = useChecklistTasks({
+    currentStage,
+    stageChanged,
+    persona,
+  });
 
-  // Initial fetch and refetch on focus
-  useEffect(() => {
-    fetchCustomTasks();
-  }, [fetchCustomTasks]);
-
+  // Refetch when Checklist tab is focused so new/updated Sanity tasks show up
   useFocusEffect(
     useCallback(() => {
       if (currentStage !== null && persona) {
         refetch();
-        fetchCustomTasks();
       }
-    }, [currentStage, persona, refetch, fetchCustomTasks])
+    }, [currentStage, persona, refetch])
   );
 
-  // Compute progress (including custom tasks)
-  const totalTasks = tasks.length + customTasks.length;
-  const completedTasks = tasks.filter(t => t.completed).length + customTasks.filter(t => t.completed).length;
+  // Compute progress
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter(t => t.completed).length;
   const progressPercent = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
-  const isLoading = stageLoading || isLoadingProfile || tasksLoading || isLoadingCustom;
+  const isLoading = stageLoading || isLoadingProfile || tasksLoading;
 
   // Normalize so "Explore & connect" and "Explore and connect" are one section
   const normalizePriority = (p: Priority): Priority =>
     p === 'Explore & connect' ? 'Explore and connect' : p;
 
-  // Group regular tasks by priority
+  // Group tasks by priority
   const tasksByPriority = tasks.reduce(
     (acc, task) => {
       const priority = normalizePriority(task.task.priority);
@@ -147,19 +111,6 @@ export default function ChecklistScreen() {
     {} as Record<Priority, typeof tasks>
   );
 
-  // Group custom tasks by priority
-  const customTasksByPriority = customTasks.reduce(
-    (acc, task) => {
-      const priority = normalizePriority(task.priority);
-      if (!acc[priority]) {
-        acc[priority] = [];
-      }
-      acc[priority].push(task);
-      return acc;
-    },
-    {} as Record<Priority, typeof customTasks>
-  );
-
   const priorities: Priority[] = [
     'Do now',
     'Do soon',
@@ -169,20 +120,12 @@ export default function ChecklistScreen() {
 
   const handleTaskPress = (task: UserTaskWithDetails) => {
     setSelectedTask(task);
-    setSelectedCustomTask(null);
-    setModalVisible(true);
-  };
-
-  const handleCustomTaskPress = (task: CustomUserTask) => {
-    setSelectedCustomTask(task);
-    setSelectedTask(null);
     setModalVisible(true);
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
     setSelectedTask(null);
-    setSelectedCustomTask(null);
   };
 
   const handleLearnHow = () => {
@@ -204,114 +147,44 @@ export default function ChecklistScreen() {
   };
 
   const handleMarkComplete = async () => {
-    // Handle regular task completion
-    if (selectedTask && !selectedCustomTask) {
-      if (selectedTask.sanity_checklist_id == null) return;
+    if (!selectedTask || selectedTask.sanity_checklist_id == null) return;
 
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const newCompletedStatus = !selectedTask.completed;
-
-        // Optimistically update UI
-        const updatedTasks = tasks.map(task =>
-          task.sanity_checklist_id === selectedTask.sanity_checklist_id
-            ? {
-                ...task,
-                completed: newCompletedStatus,
-                completed_at: newCompletedStatus
-                  ? new Date().toISOString()
-                  : null,
-              }
-            : task
-        );
-        setTasks(updatedTasks);
-
-        setSelectedTask({
-          ...selectedTask,
-          completed: newCompletedStatus,
-        } as UserTaskWithDetails);
-
-        await setChecklistItemCompletion(
-          user.id,
-          selectedTask.sanity_checklist_id,
-          newCompletedStatus
-        );
-      } catch (error) {
-        console.error('Error updating task completion:', error);
-        refetch();
-      }
-    }
-    
-    // Handle custom task completion
-    if (selectedCustomTask && !selectedTask) {
-      try {
-        const newCompletedStatus = !selectedCustomTask.completed;
-
-        // Optimistically update UI
-        setCustomTasks(prev =>
-          prev.map(task =>
-            task.id === selectedCustomTask.id
-              ? {
-                  ...task,
-                  completed: newCompletedStatus,
-                  completed_at: newCompletedStatus
-                    ? new Date().toISOString()
-                    : null,
-                }
-              : task
-          )
-        );
-
-        setSelectedCustomTask({
-          ...selectedCustomTask,
-          completed: newCompletedStatus,
-        });
-
-        await updateCustomTaskCompletion(selectedCustomTask.id, newCompletedStatus);
-      } catch (error) {
-        console.error('Error updating custom task completion:', error);
-        fetchCustomTasks();
-      }
-    }
-  };
-
-  const handleAddCustomTask = async (taskName: string, taskDescription: string, priority: Priority) => {
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      const newTask = await createCustomUserTask({
-        userId: user.id,
-        taskName,
-        taskDescription,
-        priority,
+      const newCompletedStatus = !selectedTask.completed;
+
+      // Optimistically update UI (match by sanity_checklist_id; row may not exist when unchecking)
+      const updatedTasks = tasks.map(task =>
+        task.sanity_checklist_id === selectedTask.sanity_checklist_id
+          ? {
+              ...task,
+              completed: newCompletedStatus,
+              completed_at: newCompletedStatus
+                ? new Date().toISOString()
+                : null,
+            }
+          : task
+      );
+      setTasks(updatedTasks);
+
+      // Update selected task state
+      setSelectedTask({
+        ...selectedTask,
+        completed: newCompletedStatus,
       });
 
-      setCustomTasks(prev => [...prev, newTask]);
+      await setChecklistItemCompletion(
+        user.id,
+        selectedTask.sanity_checklist_id,
+        newCompletedStatus
+      );
     } catch (error) {
-      console.error('Error adding custom task:', error);
-    }
-  };
-
-  const handleDeleteCustomTask = async () => {
-    if (!selectedCustomTask) return;
-
-    try {
-      // Optimistically remove from UI
-      const taskIdToDelete = selectedCustomTask.id;
-      setCustomTasks(prev => prev.filter(t => t.id !== taskIdToDelete));
-      handleCloseModal();
-
-      await deleteCustomUserTask(taskIdToDelete);
-    } catch (error) {
-      console.error('Error deleting custom task:', error);
-      fetchCustomTasks();
+      console.error('Error updating task completion:', error);
+      refetch();
     }
   };
 
@@ -370,67 +243,20 @@ export default function ChecklistScreen() {
           </View>
         </View>
 
-        {/* Add Custom Task Button */}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setAddModalVisible(true)}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name='add' size={20} color='#E03B3B' />
-          <Text style={styles.addButtonText}>Add custom task</Text>
-        </TouchableOpacity>
-
         {priorities.map(priority => {
           const priorityTasks = tasksByPriority[priority] || [];
-          const priorityCustomTasks = customTasksByPriority[priority] || [];
-
-          // Only render section if there are any tasks
-          if (priorityTasks.length === 0 && priorityCustomTasks.length === 0) {
-            return null;
-          }
 
           return (
-            <View key={priority}>
-              {/* Regular Tasks Section */}
-              {priorityTasks.length > 0 && (
-                <ChecklistSection
-                  priority={priority}
-                  tasks={priorityTasks}
-                  onTaskPress={handleTaskPress}
-                />
-              )}
-
-              {/* Custom Tasks Section */}
-              {priorityCustomTasks.length > 0 && (
-                <ChecklistSection
-                  priority={priority}
-                  tasks={priorityCustomTasks.map(task => ({
-                    id: `custom-${task.id}`,
-                    source: 'custom' as const,
-                    user_task_id: undefined,
-                    sanity_checklist_id: null,
-                    completed: task.completed,
-                    completed_at: task.completed_at,
-                    task: {
-                      task_name: task.task_name,
-                      task_description: task.task_description || '',
-                      priority: task.priority,
-                    },
-                  }))}
-                  onTaskPress={(task: any) => {
-                    // Find the actual custom task
-                    const customTask = customTasks.find(t => t.id === task.id?.replace('custom-', ''));
-                    if (customTask) {
-                      handleCustomTaskPress(customTask);
-                    }
-                  }}
-                />
-              )}
-            </View>
+            <ChecklistSection
+              key={priority}
+              priority={priority}
+              tasks={priorityTasks}
+              onTaskPress={handleTaskPress}
+            />
           );
         })}
 
-        {totalTasks === 0 && (
+        {tasks.length === 0 && (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
               No tasks available for your current stage.
@@ -439,22 +265,12 @@ export default function ChecklistScreen() {
         )}
       </ScrollView>
 
-      {/* Task Detail Modal */}
       <TaskDetailModal
         visible={modalVisible}
-        task={selectedCustomTask || selectedTask}
-        isCustomTask={!!selectedCustomTask}
+        task={selectedTask}
         onClose={handleCloseModal}
         onLearnHow={handleLearnHow}
         onMarkComplete={handleMarkComplete}
-        onDelete={handleDeleteCustomTask}
-      />
-
-      {/* Add Task Modal */}
-      <AddTaskModal
-        visible={addModalVisible}
-        onClose={() => setAddModalVisible(false)}
-        onAddTask={handleAddCustomTask}
       />
     </View>
   );
@@ -470,7 +286,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
   },
   header: {
     marginBottom: 12,
@@ -485,24 +300,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 16,
     color: '#000',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E03B3B',
-    borderStyle: 'dashed',
-    marginBottom: 16,
-    gap: 8,
-  },
-  addButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#E03B3B',
   },
   emptyContainer: {
     padding: 32,
