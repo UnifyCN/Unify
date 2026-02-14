@@ -1,14 +1,14 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { UserTaskWithDetails, Priority } from '@/types/checklist';
+import { UserTaskWithDetails, Priority, ChecklistTaskDetails } from '@/types/checklist';
 import { ChecklistItem } from './ChecklistItem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 interface ChecklistSectionProps {
   priority: Priority;
-  tasks: UserTaskWithDetails[];
-  onTaskPress?: (task: UserTaskWithDetails) => void;
+  tasks: (UserTaskWithDetails | { completed: boolean; task: ChecklistTaskDetails; id?: string })[];
+  onTaskPress?: (task: any) => void;
 }
 
 const priorityConfig = {
@@ -76,7 +76,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         />
         {tasks.map((task, index) => (
           <View
-            key={task.sanity_checklist_id || task.user_task_id || index}
+            key={task.id || task.sanity_checklist_id || task.user_task_id || index}
             style={styles.row}
           >
             {/* LEFT COLUMN (Checkbox) */}
@@ -101,7 +101,11 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
 
             {/* RIGHT COLUMN (Task card) */}
             <View style={styles.rightColumn}>
-              <ChecklistItem task={task} onPress={() => onTaskPress?.(task)} />
+              <ChecklistItem 
+                task={task} 
+                onPress={() => onTaskPress?.(task)} 
+                isCustom={!!task.id?.startsWith('custom-')}
+              />
             </View>
           </View>
         ))}

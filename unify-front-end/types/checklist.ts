@@ -81,3 +81,29 @@ export interface UserTask {
 export interface UserTaskWithDetails extends UserTask {
   task: ChecklistTaskDetails;
 }
+
+/** Custom user-generated task */
+export interface CustomUserTask {
+  id: string;
+  user_id: string;
+  task_name: string;
+  task_description: string | null;
+  priority: Priority;
+  completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Unified task type for display (combines Sanity/Legacy tasks with custom tasks) */
+export interface UnifiedChecklistTask {
+  /** Unique identifier - custom task uses 'custom-{id}', others use sanity_checklist_id or user_task_id */
+  id: string;
+  /** Source type for distinguishing task origins */
+  source: 'sanity' | 'legacy' | 'custom';
+  user_task_id?: number;
+  sanity_checklist_id?: string | null;
+  completed: boolean;
+  completed_at: string | null;
+  task: ChecklistTaskDetails;
+}
