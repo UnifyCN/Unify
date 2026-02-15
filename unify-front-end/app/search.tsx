@@ -115,6 +115,14 @@ const SearchScreen = () => {
   let foundPost = searchQuery
     ? (searchResults?.posts?.length ?? 0) > 0
     : postsToShow.length > 0;
+  const shouldShowEmptyState =
+    !!searchQuery &&
+    !foundGroup &&
+    !foundPost &&
+    !foundUser &&
+    !searchGroupsLoading &&
+    !searchLoading &&
+    !searchUsersLoading;
 
   const groupPress = async (group: Group) => {
     setRecentGroups(prev => [
@@ -254,7 +262,10 @@ const SearchScreen = () => {
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: shouldShowEmptyState ? 'center' : 'flex-start',
+        }}
       >
         {/*Show history/recent*/}
         {!searchQuery && loadingData ? (
@@ -367,23 +378,12 @@ const SearchScreen = () => {
           </>
         )}
 
-        {searchQuery &&
-          !foundGroup &&
-          !foundPost &&
-          !foundUser &&
-          !searchGroupsLoading &&
-          !searchLoading &&
-          !searchUsersLoading && (
-            <View style={styles.emptyContainer}>
-              <Feather name='calendar' size={48} color='#ccc' />
-              <Text style={styles.emptyText}>
-                No posts, groups, or people found
-              </Text>
-              <Text style={styles.emptySubtext}>
-                Check back later for new entries!
-              </Text>
-            </View>
-          )}
+        {shouldShowEmptyState && (
+          <View style={styles.emptyContainer}>
+            <Feather name='search' size={48} color='#ccc' />
+            <Text style={styles.emptyText}>No search results found.</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -396,11 +396,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
-    paddingTop: 15,
   },
   containerText: {
     fontSize: 14,
@@ -448,10 +446,6 @@ const styles = StyleSheet.create({
     color: Theme.textAlternateGray,
     marginBottom: 0,
     lineHeight: 16,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    textAlign: 'center',
   },
   searchContainer: {
     paddingHorizontal: 20,

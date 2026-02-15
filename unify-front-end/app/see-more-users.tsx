@@ -7,8 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
-import { searchUsers } from '@/services/users/searchUsers';
+import { useSearchUsers } from '@/hooks/users/useSearchUsers';
 import type { SearchUserResult } from '@/services/users/searchUsers';
 import { Avatar } from '@/components/Avatar';
 import BackHeader from '@/components/BackHeader';
@@ -19,11 +18,7 @@ export default function SeeMoreUsersScreen() {
   const router = useRouter();
   const searchQuery = q ?? '';
 
-  const { data: users, isLoading } = useQuery({
-    queryKey: ['searchUsers', searchQuery],
-    queryFn: () => searchUsers(searchQuery),
-    enabled: !!searchQuery.trim(),
-  });
+  const { data: users, isLoading } = useSearchUsers(searchQuery);
 
   const userPress = (user: SearchUserResult) => {
     router.push({

@@ -10,14 +10,17 @@ export const searchUsers = async (
   searchQuery: string
 ): Promise<SearchUserResult[]> => {
   try {
-    if (!searchQuery.trim()) {
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) {
       return [];
     }
+
+    const safeQuery = trimmedQuery.replace(/([\\%_])/g, '\\$1');
 
     const { data, error } = await supabase
       .from('users')
       .select('id, username, profile_picture_url')
-      .ilike('username', `%${searchQuery.trim()}%`)
+      .ilike('username', `%${safeQuery}%`)
       .limit(20);
 
     if (error) {
