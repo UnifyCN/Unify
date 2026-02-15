@@ -146,6 +146,7 @@ function AppContent() {
       <Stack.Screen name='group-detail' options={{ headerShown: false }} />
       <Stack.Screen name='see-more-posts' options={{ headerShown: false }} />
       <Stack.Screen name='see-more-groups' options={{ headerShown: false }} />
+      <Stack.Screen name='see-more-users' options={{ headerShown: false }} />
       <Stack.Screen name='news-detail' options={{ headerShown: false }} />
       <Stack.Screen name='news-tips' options={{ headerShown: false }} />
       <Stack.Screen name='event-detail' options={{ headerShown: false }} />

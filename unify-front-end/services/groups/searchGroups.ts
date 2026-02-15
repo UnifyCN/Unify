@@ -7,10 +7,11 @@ export const searchGroups = async (searchQuery: string): Promise<Group[]> => {
       return [];
     }
 
+    const q = searchQuery.trim();
     const { data, error } = await supabase
       .from('groups')
       .select('*')
-      .ilike('group_name', `%${searchQuery}%`)
+      .or(`group_name.ilike.%${q}%,group_description.ilike.%${q}%`)
       .order('member_count', { ascending: false }); // Show most popular groups first
 
     if (error) {
