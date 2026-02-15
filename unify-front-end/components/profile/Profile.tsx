@@ -11,6 +11,7 @@ import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import BackHeader from '@/components/BackHeader';
+import { FollowButton } from '@/components/profile/FollowButton';
 import { useUserPosts } from '@/hooks/posts/useUserPosts';
 import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 import { Theme } from '@/constants/Theme';
@@ -161,7 +162,16 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='' />
+      <BackHeader
+        title=''
+        rightButton={
+          !isCurrentUser && userInfo ? (
+            <View style={styles.headerAction}>
+              <FollowButton targetUserId={userInfo.id} compact />
+            </View>
+          ) : undefined
+        }
+      />
       <FlatList
         data={data}
         renderItem={renderItem}
@@ -182,6 +192,9 @@ const styles = StyleSheet.create({
   },
   feedContainer: {
     flex: 1,
+  },
+  headerAction: {
+    alignItems: 'flex-end',
   },
   tabs: {
     backgroundColor: '#fff',

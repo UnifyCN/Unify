@@ -45,7 +45,7 @@ export const FollowButton = ({ targetUserId, compact = false }: FollowButtonProp
       disabled={followUserMutation.isPending}
     >
       <Text style={compact ? styles.buttonTextCompact : styles.buttonText}>
-        {localIsFollowing ? 'Unfollow' : 'Follow'}
+        {localIsFollowing ? (compact ? 'Following' : 'Unfollow') : 'Follow'}
       </Text>
     </TouchableOpacity>
   );
