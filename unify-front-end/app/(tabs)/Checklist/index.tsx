@@ -270,7 +270,7 @@ export default function ChecklistScreen() {
         >
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <Text style={styles.title}>Your Personalized Checklist</Text>
+              <Text style={styles.title}>Personalized Checklist</Text>
             </View>
             <Text style={styles.subtitle}>
               Please complete your onboarding to see your personalized
@@ -291,7 +291,7 @@ export default function ChecklistScreen() {
       >
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>Your Personalized Checklist</Text>
+            <Text style={styles.title}>Personalized Checklist</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() =>
@@ -300,6 +300,7 @@ export default function ChecklistScreen() {
               activeOpacity={0.8}
             >
               <MaterialIcons name='add' size={18} color='#111' />
+              <Text style={styles.addButtonLabel}>Add</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.subtitle}>
@@ -327,6 +328,17 @@ export default function ChecklistScreen() {
             />
           );
         })}
+
+        <TouchableOpacity
+          style={styles.addOwnRow}
+          onPress={() =>
+            router.push('/(tabs)/Checklist/create-custom-item' as any)
+          }
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name='add-circle-outline' size={22} color='#6B6B6B' />
+          <Text style={styles.addOwnRowText}>Add your own item</Text>
+        </TouchableOpacity>
 
         {tasks.length === 0 && (
           <View style={styles.emptyContainer}>
@@ -376,20 +388,46 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     marginTop: 8,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#fff',
+  },
+  addButtonLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111',
   },
   subtitle: {
     marginTop: 6,
     fontSize: 16,
     color: '#000',
+  },
+  addOwnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderStyle: 'dashed',
+  },
+  addOwnRowText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B6B6B',
   },
   emptyContainer: {
     padding: 32,
