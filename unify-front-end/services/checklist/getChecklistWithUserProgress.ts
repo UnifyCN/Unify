@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase';
 import {
+  CustomChecklistTask,
   SanityChecklistItem,
   UserTaskWithDetails,
   sanityChecklistItemToTaskDetails,
@@ -7,6 +7,7 @@ import {
 import { getChecklistByPersonaAndStage } from '@/services/sanity/checklist';
 import { getUserTasks } from './getUserTasks';
 import { deleteUserTasks } from './deleteUserTasks';
+import { getCustomChecklistTasks } from './customChecklistTasks';
 
 function mergeChecklistWithUserTasks(
   items: SanityChecklistItem[],
@@ -23,12 +24,34 @@ function mergeChecklistWithUserTasks(
       user_task_id: row?.user_task_id ?? 0,
       user_id: row?.user_id ?? '',
       task_id: row?.task_id ?? null,
+      custom_task_id: null,
       sanity_checklist_id: item._id,
       completed: row?.completed ?? false,
       completed_at: row?.completed_at ?? null,
+      source: 'sanity',
       task: sanityChecklistItemToTaskDetails(item),
     };
   });
+}
+
+function mapCustomTasksToChecklistRows(
+  rows: CustomChecklistTask[]
+): UserTaskWithDetails[] {
+  return rows.map(row => ({
+    user_task_id: 0,
+    user_id: row.user_id,
+    task_id: null,
+    custom_task_id: row.id,
+    sanity_checklist_id: null,
+    completed: row.completed,
+    completed_at: row.completed_at,
+    source: 'custom',
+    task: {
+      task_name: row.title,
+      task_description: row.description,
+      priority: row.priority,
+    },
+  }));
 }
 
 /**
@@ -52,10 +75,11 @@ export async function getChecklistWithUserProgress(
     skipCache: true,
   });
 
-  if (items.length === 0) {
-    return [];
-  }
+  const rows = items.length > 0 ? await getUserTasks(userId) : [];
+  const sanityTasks =
+    items.length > 0 ? mergeChecklistWithUserTasks(items, rows) : [];
+  const customRows = await getCustomChecklistTasks(userId);
+  const customTasks = mapCustomTasksToChecklistRows(customRows);
 
-  const rows = await getUserTasks(userId);
-  return mergeChecklistWithUserTasks(items, rows);
+  return [...sanityTasks, ...customTasks];
 }

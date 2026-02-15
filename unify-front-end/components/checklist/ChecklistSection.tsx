@@ -76,7 +76,12 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         />
         {tasks.map((task, index) => (
           <View
-            key={task.sanity_checklist_id || task.user_task_id || index}
+            key={
+              task.sanity_checklist_id ||
+              task.custom_task_id ||
+              task.user_task_id ||
+              index
+            }
             style={styles.row}
           >
             {/* LEFT COLUMN (Checkbox) */}
