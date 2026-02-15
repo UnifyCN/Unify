@@ -5,6 +5,14 @@ export type Priority =
   | 'Explore & connect'
   | 'Optional / later';
 
+export type CustomPriority =
+  | 'Do now'
+  | 'Do soon'
+  | 'Explore and connect'
+  | 'Optional / later';
+
+export type TaskSource = 'sanity' | 'custom';
+
 export type StageNumber = 0 | 1 | 2 | 3 | 4;
 export type Stage = '0' | '1' | '2' | '3' | '4';
 
@@ -72,12 +80,26 @@ export interface UserTask {
   user_task_id: number;
   user_id: string;
   task_id: number | null;
+  custom_task_id?: number | null;
   sanity_checklist_id: string | null;
   completed: boolean;
   completed_at: string | null;
+  source?: TaskSource;
   task?: ChecklistTaskDetails;
 }
 
 export interface UserTaskWithDetails extends UserTask {
   task: ChecklistTaskDetails;
+}
+
+export interface CustomChecklistTask {
+  id: number;
+  user_id: string;
+  priority: CustomPriority;
+  title: string;
+  description: string;
+  completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }
