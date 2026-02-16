@@ -262,7 +262,7 @@ export default function RichTextRenderer({
       fontWeight: '400',
       fontStyle: 'normal',
       fontSize: 18,
-      lineHeight: 20,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#374151',
     },

@@ -153,10 +153,10 @@ export default function EndingPageScreen() {
       setIsSaving(false);
     });
 
-    // Navigate: either back to map (last lesson) or to next lesson
+    // Navigate: either back to submodule index (last lesson) or to next lesson
     if (isLastLesson()) {
       router.push({
-        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/map' as any,
+        pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
         params: { moduleId, submoduleId },
       });
     } else {
