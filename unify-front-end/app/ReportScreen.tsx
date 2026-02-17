@@ -13,6 +13,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useMutateReport } from '@/hooks/posts/useMutateReport';
 import { useToast } from '@/context/ToastContext';
+import BackHeader from '@/components/BackHeader';
 
 const MIN_LENGTH = 5;
 const MAX_LENGTH = 500;
@@ -74,59 +75,66 @@ export default function ReportScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
-      </View>
+    <View style={styles.screen}>
+      <BackHeader title='' />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.container}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.subtitle}>{subtitle}</Text>
+        </View>
 
-      <TextInput
-        value={message}
-        onChangeText={setMessage}
-        placeholder={placeholder}
-        multiline
-        maxLength={MAX_LENGTH}
-        style={styles.input}
-        editable={!submitting}
-        textAlignVertical='top'
-      />
-      <Text style={styles.counter}>
-        {message.length}/{MAX_LENGTH}
-      </Text>
+        <TextInput
+          value={message}
+          onChangeText={setMessage}
+          placeholder={placeholder}
+          multiline
+          maxLength={MAX_LENGTH}
+          style={styles.input}
+          editable={!submitting}
+          textAlignVertical='top'
+        />
+        <Text style={styles.counter}>
+          {message.length}/{MAX_LENGTH}
+        </Text>
 
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.button, styles.cancel]}
-          onPress={() => router.back()}
-          disabled={submitting}
-        >
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={[styles.button, styles.cancel]}
+            onPress={() => router.back()}
+            disabled={submitting}
+          >
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.button, submitting && styles.buttonDisabled]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color='#fff' />
-          ) : (
-            <Text style={styles.buttonText}>Send Report</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+          <TouchableOpacity
+            style={[styles.button, submitting && styles.buttonDisabled]}
+            onPress={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color='#fff' />
+            ) : (
+              <Text style={styles.buttonText}>Send Report</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     justifyContent: 'flex-start',
   },
   header: { marginBottom: 12 },
