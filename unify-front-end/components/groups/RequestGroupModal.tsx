@@ -95,7 +95,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss}/>
         <KeyboardAvoidingView
-          behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
           style={{ flex:1, justifyContent: 'flex-end', width: '100%' }}  
         >
@@ -124,6 +124,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
               <ScrollView
                 contentContainerStyle={[styles.content, {paddingBottom: 24}]}
                 keyboardShouldPersistTaps='always'
+                keyboardDismissMode="on-drag"
                 showsVerticalScrollIndicator={false}
               >
                 <Text style={styles.label}>Group name *</Text>
