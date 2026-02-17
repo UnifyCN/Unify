@@ -82,19 +82,128 @@ export const PostItem = memo(
     const canPin = isAdmin; // Only admins can pin/unpin
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
-    const shouldShowReadMore = content.length > 170;
-    const useMaxBodyPreviewHeight = shouldShowReadMore;
     const stripHtml = (html: string) =>
       html
         .replace(/<[^>]*>/g, '')
         .replace(/&nbsp;/g, ' ')
         .trim();
 
+    // Find the cutoff point in plain text (up to 170 chars, ending on a full word)
+    const getPreviewHtml = (
+      html: string,
+      lineLimit: number,
+      charsPerLine: number
+    ): string => {
+      const segments = html.split(/<\/p>|<br\s*\/?>/gi);
+      let totalLines = 0;
+      let charsToShow = 0;
+
+      const cutHtmlAtChars = (charCount: number): string => {
+        let hIdx = 0;
+        let pIdx = 0;
+        while (pIdx < charCount && hIdx < html.length) {
+          if (html[hIdx] === '<') {
+            while (hIdx < html.length && html[hIdx] !== '>') hIdx++;
+            hIdx++;
+          } else if (html[hIdx] === '\n' || html[hIdx] === '\r') {
+            // Skip raw newlines in HTML source — they aren't visible characters
+            hIdx++;
+          } else {
+            hIdx++;
+            pIdx++;
+          }
+        }
+        const openTags: string[] = [];
+        const tagPattern = /<(\/?)(b|i|u|s|p|strong|em|a|del|strike)\b[^>]*>/gi;
+        let m;
+        const tempHtml = html.slice(0, hIdx);
+        while ((m = tagPattern.exec(tempHtml)) !== null) {
+          if (m[1] === '/') {
+            const last = openTags.lastIndexOf(m[2].toLowerCase());
+            if (last !== -1) openTags.splice(last, 1);
+          } else {
+            openTags.push(m[2].toLowerCase());
+          }
+        }
+        const closingTags = openTags
+          .reverse()
+          .map(t => `</${t}>`)
+          .join('');
+        return html.slice(0, hIdx) + '...' + closingTags;
+      };
+
+      for (const element of segments) {
+        const segmentPlain = element
+          .replace(/<[^>]*>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/[\n\r]/g, '');
+
+        if (segmentPlain.length === 0) continue;
+
+        const segmentLines = Math.ceil(segmentPlain.length / charsPerLine);
+
+        if (totalLines + segmentLines >= lineLimit) {
+          const linesAvailable = lineLimit - totalLines;
+
+          if (linesAvailable <= 0) {
+            // Already at limit, cut right here
+            return cutHtmlAtChars(charsToShow);
+          }
+
+          const charsAvailable = linesAvailable * charsPerLine;
+          const truncatedSegment = segmentPlain.slice(0, charsAvailable);
+
+          console.log('charsAvailable', charsAvailable);
+          console.log('truncatedSegment', truncatedSegment);
+
+          const lastSpace = truncatedSegment.lastIndexOf(' ');
+          const cutSegment =
+            lastSpace > 0
+              ? truncatedSegment.slice(0, lastSpace)
+              : truncatedSegment;
+
+          return cutHtmlAtChars(charsToShow + cutSegment.length);
+        }
+
+        totalLines += segmentLines;
+        charsToShow += segmentPlain.length;
+      }
+
+      return html;
+    };
+
     const isHtmlContent = post.content?.trim().startsWith('<html>');
     const plainContent = isHtmlContent ? stripHtml(content) : content;
-    const previewContent = shouldShowReadMore
-      ? `${plainContent.slice(0, 170).trimEnd()}...`
-      : plainContent;
+
+    // Max characters considered to be a "line break" based on the width of the screen
+    // Adjust if necessary to keep it easy on the eyes:
+    const CHARS_PER_LINE = Math.floor(width / 11);
+    const MAX_CHARS = 170;
+    const MAX_LINES = 5;
+
+    const countVisualLines = (html: string) => {
+      const segments = html.split(/<\/p>|<br\s*\/?>/gi);
+      let total = 0;
+      for (const element of segments) {
+        const seg = element
+          .replace(/<[^>]*>/g, '')
+          .replace(/&nbsp;/g, ' ')
+          .trim();
+        if (seg.length === 0) continue; // skip empty segments entirely
+        const wrappedLines = Math.ceil(seg.length / CHARS_PER_LINE);
+        total += wrappedLines;
+      }
+      console.log(html)
+      console.log(total)
+      return Math.max(1, total);
+    };
+
+    const shouldShowReadMore = countVisualLines(content) > MAX_LINES;
+    const useMaxBodyPreviewHeight = shouldShowReadMore;
+
+    const previewHtml = shouldShowReadMore
+      ? getPreviewHtml(content, MAX_LINES, CHARS_PER_LINE)
+      : content;
 
     const handlePinPost = () => {
       pinPostMutation.mutate(
@@ -322,12 +431,8 @@ export const PostItem = memo(
     const tagsStyles: Record<string, MixedStyleDeclaration> = {
       body: {
         fontSize: 16,
-        lineHeight: 24,
-        color: '#000000',
-      },
-      p: {
-        marginTop: 8,
-        marginBottom: 8,
+        lineHeight: 22,
+        color: Theme.black,
       },
       a: {
         color: '#f68b26',
@@ -459,24 +564,16 @@ export const PostItem = memo(
                         styles.homeDescriptionContainerCompact,
                     ]}
                   >
-                    <View style={shouldShowReadMore && styles.renderHtmlClamp}>
-                      {isHtmlContent ? (
-                        <RenderHtml
-                          contentWidth={width - 92}
-                          source={{ html: content }}
-                          tagsStyles={tagsStyles}
-                          renderersProps={renderersProps}
-                        />
-                      ) : (
-                        <Text style={styles.homeDescription}>
-                          {previewContent}
-                        </Text>
-                      )}
+                    <View>
+                      <RenderHtml
+                        contentWidth={width - 92}
+                        source={{ html: previewHtml }}
+                        tagsStyles={tagsStyles}
+                        renderersProps={renderersProps}
+                      />
                     </View>
                     {shouldShowReadMore && (
-                      <View style={styles.readMoreOverlay}>
-                        <Text style={styles.homeReadMore}>Read more</Text>
-                      </View>
+                      <Text style={styles.homeReadMore}>Read more</Text>
                     )}
                   </View>
                 )}
@@ -548,17 +645,12 @@ export const PostItem = memo(
 
                   {!shouldHideContent && (
                     <View style={styles.contentWrapper}>
-                      {isHtmlContent ? (
-                        <RenderHtml
-                          contentWidth={width - 92}
-                          source={{ html: content }}
-                          tagsStyles={tagsStyles}
-                          renderersProps={renderersProps}
-                        />
-                      ) : (
-                        // TODO: When all content bodies are reformatted to HTML, you may remove this conditional
-                        <Text style={styles.description}>{content}</Text>
-                      )}
+                      <RenderHtml
+                        contentWidth={width - 92}
+                        source={{ html: content }}
+                        tagsStyles={tagsStyles}
+                        renderersProps={renderersProps}
+                      />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -794,12 +886,6 @@ const styles = StyleSheet.create({
   contentWrapper: {
     marginTop: 4,
   },
-  description: {
-    fontSize: 16,
-    lineHeight: 22,
-    marginTop: 4,
-    color: Theme.black,
-  },
   homeDescriptionContainer: {
     minHeight: 66,
     marginTop: 6,
@@ -808,14 +894,10 @@ const styles = StyleSheet.create({
   homeDescriptionContainerCompact: {
     minHeight: 0,
   },
-  homeDescription: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: Theme.black,
-  },
   homeReadMore: {
     color: Theme.black,
     fontWeight: '600',
+    marginTop: 6,
   },
   postBody: {
     marginBottom: 12,
@@ -919,21 +1001,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#666',
-  },
-  renderHtmlClamp: {
-    maxHeight: 66, // ~3 lines at lineHeight 22
-    overflow: 'hidden',
-  },
-  readMoreOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    left: 0,
-    height: 28,
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    backgroundImage: undefined,
-    paddingRight: 2,
   },
 });
