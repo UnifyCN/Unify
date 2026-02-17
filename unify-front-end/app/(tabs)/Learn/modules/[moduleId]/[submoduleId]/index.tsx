@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
-  Dimensions,
   ActivityIndicator,
   ViewStyle,
 } from 'react-native';
@@ -25,9 +24,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SUBJECT_COLOR = '#10B981'; // green for Learn (active)
-const CARD_INACTIVE_BG = '#F9FAFB';
-const CARD_INACTIVE_BORDER = '#E5E7EB';
-const CARD_INACTIVE_TEXT = '#6B7280';
 
 const TIMELINE_LEFT_WIDTH = 24;
 const DOT_SIZE = 16;
@@ -39,6 +35,7 @@ interface SubmoduleSectionViewModel {
   id: string;
   title: string;
   description: string;
+  iconName: keyof typeof Feather.glyphMap;
   progressPercent: number;
   uiState: SectionUIState;
   onPress: () => void;
@@ -269,6 +266,7 @@ export default function SubmoduleIndex() {
       id: 'learn',
       title: 'Learn',
       description: 'Key concepts & terms',
+      iconName: 'book-open',
       progressPercent: learnProgressPercent,
       uiState:
         learnProgressPercent >= 100
@@ -284,6 +282,7 @@ export default function SubmoduleIndex() {
             id: 'tasks',
             title: 'Tasks',
             description: 'Real-world steps',
+            iconName: 'check-square',
             progressPercent: taskProgressPercent,
             uiState: (taskProgressPercent >= 100
               ? 'completed'
@@ -298,6 +297,7 @@ export default function SubmoduleIndex() {
       id: 'practice',
       title: 'Practice',
       description: 'Test your understanding',
+      iconName: 'target',
       progressPercent: practiceProgressPercent,
       uiState:
         practiceProgressPercent >= 100
@@ -332,6 +332,18 @@ export default function SubmoduleIndex() {
       isLast ? null : sections[index + 1],
       subjectColor
     );
+    const statusLabel =
+      section.progressPercent >= 100
+        ? 'Completed'
+        : section.progressPercent > 0
+          ? `${Math.round(section.progressPercent)}% complete`
+          : null;
+    const ctaLabel =
+      section.progressPercent >= 100
+        ? 'Review'
+        : section.progressPercent > 0
+          ? 'Continue'
+          : 'Start';
 
     return (
       <View key={section.id} style={styles.sectionRow}>
@@ -356,6 +368,7 @@ export default function SubmoduleIndex() {
           onPress={() => handleCardTap(section)}
           style={[
             styles.card,
+            isOpened && styles.cardOpened,
             isOpened && {
               backgroundColor: subjectColor,
               borderColor: subjectColor,
@@ -364,15 +377,26 @@ export default function SubmoduleIndex() {
           ]}
         >
           <View style={styles.cardInner}>
-            <Text
-              style={[
-                styles.cardTitle,
-                isOpened && styles.cardTitleOpened,
-                isLocked && styles.textLocked,
-              ]}
-            >
-              {section.title}
-            </Text>
+            <View style={styles.cardTopRow}>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  isOpened && styles.cardTitleOpened,
+                  isLocked && styles.textLocked,
+                ]}
+              >
+                {section.title}
+              </Text>
+              <Feather
+                name={section.iconName}
+                size={16}
+                style={[
+                  styles.cardIcon,
+                  isOpened && styles.cardIconOpened,
+                  isLocked && styles.textLocked,
+                ]}
+              />
+            </View>
             <Text
               style={[
                 styles.sectionDescription,
@@ -382,29 +406,29 @@ export default function SubmoduleIndex() {
             >
               {section.description}
             </Text>
+            {!!statusLabel && (
+              <Text
+                style={[
+                  styles.sectionStatus,
+                  isOpened && styles.sectionStatusOpened,
+                  isLocked && styles.textLocked,
+                ]}
+              >
+                {statusLabel}
+              </Text>
+            )}
             {isOpened && (
-              <View style={styles.progressBarWrap}>
-                <View
-                  style={[styles.progressBarBg, styles.progressBarBgOpened]}
-                >
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      {
-                        width: `${Math.min(100, section.progressPercent)}%`,
-                        backgroundColor: 'rgba(255,255,255,0.4)',
-                      },
-                    ]}
-                  />
+              <View style={styles.startCtaWrap}>
+                <View style={styles.startCta}>
+                  {section.id === 'learn' && isResolvingLearnHref ? (
+                    <ActivityIndicator size='small' color={subjectColor} />
+                  ) : (
+                    <Text style={[styles.startCtaText, { color: subjectColor }]}>
+                      {ctaLabel}
+                    </Text>
+                  )}
                 </View>
               </View>
-            )}
-            {section.id === 'learn' && isResolvingLearnHref && isOpened && (
-              <ActivityIndicator
-                size='small'
-                color='#fff'
-                style={styles.cardLoader}
-              />
             )}
           </View>
         </TouchableOpacity>
@@ -466,18 +490,19 @@ export default function SubmoduleIndex() {
 
         <View style={styles.headerTitleWrap}>
           <View style={styles.headerTitleBlock}>
-            <Text style={styles.headerSectionLabel}>
-              Section {sectionNumber}
-            </Text>
+            <View style={styles.headerSectionPill}>
+              <Text style={styles.headerSectionLabel}>
+                Section {sectionNumber}
+              </Text>
+            </View>
             <Text style={styles.headerTitle}>{submoduleData.title}</Text>
           </View>
         </View>
 
         <View style={styles.headerDescriptionWrap}>
           <Text style={styles.headerDescription}>
-            {submoduleData.description
-              ? `By the end of this section, you will ${submoduleData.description}`
-              : 'Learn key concepts and practice your skills.'}
+            {submoduleData.description ||
+              'Learn key concepts and practice your skills.'}
           </Text>
         </View>
       </View>
@@ -494,8 +519,6 @@ export default function SubmoduleIndex() {
   );
 }
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
@@ -506,9 +529,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    paddingBottom: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingBottom: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#ECEDEF',
     position: 'relative' as const,
     overflow: 'hidden',
   },
@@ -516,8 +539,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 15,
+    paddingHorizontal: 20,
+    paddingTop: 8,
   },
   backButton: {
     width: 44,
@@ -527,47 +550,60 @@ const styles = StyleSheet.create({
   },
   headerTitleWrap: {
     paddingHorizontal: 16,
-    marginTop: 8,
+    marginTop: 14,
   },
   headerTitleBlock: {
     marginLeft: 16,
-    marginBottom: 10,
+    marginBottom: 8,
+  },
+  headerSectionPill: {
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#E6E9EE',
+    backgroundColor: '#F7F8FA',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 8,
   },
   headerSectionLabel: {
-    fontSize: 24,
-    fontWeight: '400',
-    color: '#000',
-    marginBottom: 0,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#5A6270',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
+    fontWeight: '700',
+    color: '#101114',
+    letterSpacing: -0.4,
   },
   headerDescriptionWrap: {
     paddingHorizontal: 16,
-    marginTop: 4,
+    marginTop: 2,
     paddingBottom: 4,
   },
   headerDescription: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '400',
-    color: '#000',
-    opacity: 0.9,
-    lineHeight: 20,
+    color: '#4B5563',
+    lineHeight: 22,
     marginLeft: 16,
+    marginRight: 10,
   },
   headerCenterWrap: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 8,
-    paddingBottom: 5,
+    paddingBottom: 2,
   },
   headerModuleName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#000',
+    color: '#111111',
+    letterSpacing: -0.2,
   },
   headerRightPlaceholder: {
     width: 44,
@@ -576,14 +612,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 20,
+    paddingTop: 8,
     paddingLeft: 16,
     paddingRight: 32,
   },
   sectionRow: {
     flexDirection: 'row',
-    minHeight: 70,
-    paddingBottom: 24,
+    minHeight: 64,
+    paddingBottom: 16,
   },
   timelineColumn: {
     width: TIMELINE_LEFT_WIDTH,
@@ -597,11 +633,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   timelineGap: {
-    height: 24,
+    height: 16,
     width: '100%',
     alignItems: 'center',
     position: 'absolute',
-    bottom: -24,
+    bottom: -16,
   },
   lineHalf: {
     flex: 1,
@@ -628,9 +664,9 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     marginLeft: 16,
     borderWidth: 1,
     borderColor: '#E5E5E5',
@@ -640,53 +676,73 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
+  cardOpened: {
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+    transform: [{ scale: 1.01 }],
+  },
   cardLocked: {
     opacity: 0.5,
   },
   cardInner: {
-    position: 'relative',
-    paddingVertical: 4,
+    minHeight: 0,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 1,
   },
   cardTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: '600',
     color: '#1A1A1A',
-    marginBottom: 2,
   },
   cardTitleOpened: {
     color: '#FFFFFF',
   },
+  cardIcon: {
+    color: '#7B8698',
+  },
+  cardIconOpened: {
+    color: '#FFFFFF',
+  },
   sectionDescription: {
-    fontSize: 20,
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '400',
     color: '#888888',
+    marginBottom: 0,
   },
   lessonCountOpened: {
     color: 'rgba(255,255,255,0.85)',
   },
+  sectionStatus: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+  sectionStatusOpened: {
+    color: 'rgba(255,255,255,0.8)',
+  },
   textLocked: {
     color: '#AAAAAA',
   },
-  progressBarWrap: {
+  startCtaWrap: {
     marginTop: 8,
   },
-  progressBarBg: {
-    height: 11,
-    borderRadius: 6,
-    backgroundColor: '#E5E5E5',
-    overflow: 'hidden',
+  startCta: {
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  progressBarBgOpened: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 6,
-  },
-  cardLoader: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
+  startCtaText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
