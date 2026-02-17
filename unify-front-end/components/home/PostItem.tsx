@@ -30,6 +30,7 @@ import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
 import { getGroupByName } from '@/services/groups/getGroupByName';
+import { usePostReportStatus } from '@/hooks/posts/usePostReportStatus';
 
 export interface PostItemProps {
   post: PostData;
@@ -40,6 +41,8 @@ export interface PostItemProps {
     isSaved: boolean;
     likeCount: number;
     commentCount: number;
+    isReported?: boolean;
+    reportCount?: number; //maybe keeping this hidden is a good idea
   };
   metadataLoading?: boolean;
   isAbleToDelete?: boolean;
@@ -70,11 +73,10 @@ export const PostItem = memo(
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
     const pinPostMutation = useMutatePinPost();
+    //const reportMutation = useMutateReport();
 
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
-    const isPartner = currentUser?.permissions === Permissions.PARTNER;
-    const ownsPost = currentUser?.id === String(post.user.id);
-    const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
+    const canDelete = isAbleToDelete && isAdmin;
     const canPin = isAdmin; // Only admins can pin/unpin
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
@@ -101,7 +103,7 @@ export const PostItem = memo(
         }
       );
     };
-
+    const { data: isReportedPost } = usePostReportStatus(post.id);
     const toggleLike = (postId: number, isLiked: boolean) => {
       if (isLiked) {
         trackPostUnlike(postId.toString());
@@ -199,6 +201,19 @@ export const PostItem = memo(
         params: {
           post: JSON.stringify(post),
         },
+      });
+    };
+
+    const navigateToReport = () => {
+      setDeleteModalVisible(false);
+      if (showMetadataLoading) return;
+      if (isReportedPost) {
+        showToast("You've already reported this post.");
+        return;
+      }
+      router.push({
+        pathname: '/ReportScreen',
+        params: { postId: String(post.id) },
       });
     };
 
@@ -365,18 +380,12 @@ export const PostItem = memo(
                   </Text>
                 </View>
 
-                {canDelete && (
-                  <TouchableOpacity
-                    onPress={() => setDeleteModalVisible(true)}
-                    style={styles.menuButton}
-                  >
-                    <Feather
-                      name='more-vertical'
-                      size={20}
-                      color={Theme.black}
-                    />
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity
+                  onPress={() => setDeleteModalVisible(true)}
+                  style={styles.menuButton}
+                >
+                  <Feather name='more-vertical' size={20} color={Theme.black} />
+                </TouchableOpacity>
               </View>
 
               <View style={[styles.postBody, styles.homePostBody]}>
@@ -439,18 +448,12 @@ export const PostItem = memo(
                       </View>
                     )}
                   </View>
-                  {canDelete && (
-                    <TouchableOpacity
-                      onPress={() => setDeleteModalVisible(true)}
-                      style={styles.menuButton}
-                    >
-                      <Feather
-                        name='more-vertical'
-                        size={20}
-                        color={Theme.black}
-                      />
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity
+                    onPress={() => setDeleteModalVisible(true)}
+                    style={styles.menuButton}
+                  >
+                    <Feather name='more-vertical' size={20} color={Theme.black} />
+                  </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity
@@ -492,18 +495,40 @@ export const PostItem = memo(
                 <View style={styles.dragHandle} />
                 <TouchableOpacity
                   style={styles.modalOption}
-                  onPress={handleDeletePost}
+                  onPress={navigateToReport}
+                  disabled={showMetadataLoading || !!isReportedPost}
                 >
-                  <Feather
-                    name='trash-2'
+                  <MaterialCommunityIcons
+                    name={isReportedPost ? 'flag' : 'flag-outline'}
                     size={20}
-                    color='#FF3B30'
+                    color={isReportedPost ? Theme.textPostTime : Theme.black}
                     style={styles.optionIcon}
                   />
-                  <Text style={[styles.modalOptionText, styles.deleteText]}>
-                    Delete Post
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      isReportedPost && styles.disabledOptionText,
+                    ]}
+                  >
+                    {isReportedPost ? 'Post Reported' : 'Report Post'}
                   </Text>
                 </TouchableOpacity>
+                {canDelete && (
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={handleDeletePost}
+                  >
+                    <Feather
+                      name='trash-2'
+                      size={20}
+                      color='#FF3B30'
+                      style={styles.optionIcon}
+                    />
+                    <Text style={[styles.modalOptionText, styles.deleteText]}>
+                      Delete Post
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 {canPin && (
                   <TouchableOpacity
                     style={styles.modalOption}
@@ -807,6 +832,9 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: '#FF3B30',
+  },
+  disabledOptionText: {
+    color: Theme.textPostTime,
   },
   pinnedBadge: {
     backgroundColor: '#F0F0F0',

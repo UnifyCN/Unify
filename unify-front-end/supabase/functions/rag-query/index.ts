@@ -119,7 +119,9 @@ function sanitizeSuggestedNextSteps(suggestions: string[]): string[] {
   return suggestions
     .map(s => s.replace(/^[\s"'`-]+|[\s"'`]+$/g, '').trim())
     .filter(s => s.length >= 10)
-    .filter(s => !INVALID_ASSISTANT_LED_PATTERNS.some(pattern => pattern.test(s)))
+    .filter(
+      s => !INVALID_ASSISTANT_LED_PATTERNS.some(pattern => pattern.test(s))
+    )
     .map(s => {
       const lower = s.toLowerCase();
       const startsLikeQuestion = USER_QUESTION_STARTS.some(word =>
@@ -529,7 +531,11 @@ Deno.serve(async (req: Request) => {
     );
     const effectiveUserId = authenticatedUserId || null;
 
-    if (requestUserId && authenticatedUserId && requestUserId !== authenticatedUserId) {
+    if (
+      requestUserId &&
+      authenticatedUserId &&
+      requestUserId !== authenticatedUserId
+    ) {
       console.warn('Ignoring mismatched request userId and authenticated user');
     }
 

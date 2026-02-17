@@ -83,7 +83,9 @@ export const sanitizeSuggestedNextSteps = (
   const cleaned = suggestions
     .map(s => s.replace(/^[\s"'`-]+|[\s"'`]+$/g, '').trim())
     .filter(s => s.length >= 10)
-    .filter(s => !INVALID_ASSISTANT_LED_PATTERNS.some(pattern => pattern.test(s)))
+    .filter(
+      s => !INVALID_ASSISTANT_LED_PATTERNS.some(pattern => pattern.test(s))
+    )
     .map(s => {
       const lower = s.toLowerCase();
       const startsLikeQuestion = USER_QUESTION_STARTS.some(word =>

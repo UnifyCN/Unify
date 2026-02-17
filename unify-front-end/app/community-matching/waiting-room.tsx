@@ -124,13 +124,7 @@ const animStyles = StyleSheet.create({
 });
 
 // Step item component with checkmark animation potential
-function StepItem({
-  text,
-  icon,
-}: {
-  text: string;
-  icon: string;
-}) {
+function StepItem({ text, icon }: { text: string; icon: string }) {
   return (
     <View style={stepStyles.item}>
       <View style={stepStyles.iconCircle}>

@@ -141,7 +141,10 @@ export default function OTPPasswordReset({
               setFieldErrors(prev => ({ ...prev, otp: false }));
             }}
             placeholder='Enter 6-digit code'
-            style={[styles.textField, fieldErrors.otp && { borderColor: '#f00' }]}
+            style={[
+              styles.textField,
+              fieldErrors.otp && { borderColor: '#f00' },
+            ]}
             keyboardType='number-pad'
             maxLength={6}
             autoCapitalize='none'

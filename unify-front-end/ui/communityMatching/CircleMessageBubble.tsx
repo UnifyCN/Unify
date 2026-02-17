@@ -58,7 +58,9 @@ export function CircleMessageBubble({
             style={styles.avatarContainer}
           >
             <Avatar
-              profilePictureUrl={message.sender?.profile_picture_url ?? undefined}
+              profilePictureUrl={
+                message.sender?.profile_picture_url ?? undefined
+              }
               username={message.sender?.username || '?'}
               size={32}
               style={styles.avatar}

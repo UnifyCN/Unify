@@ -47,7 +47,10 @@ const EventCard = memo(
       >
         <View style={[styles.imageContainer, { height: imageHeight }]}>
           {event.coverPhotoUrl ? (
-            <Image source={{ uri: event.coverPhotoUrl }} style={styles.eventImage} />
+            <Image
+              source={{ uri: event.coverPhotoUrl }}
+              style={styles.eventImage}
+            />
           ) : (
             <View style={styles.eventImagePlaceholder} />
           )}
