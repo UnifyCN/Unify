@@ -20,6 +20,7 @@ import {
 } from '@/utils/onboardingBadges';
 import { useUserJoinedGroups } from '@/hooks/groups/useUserJoinedGroups';
 import { Group } from '@/types/groups';
+import { Permissions } from '@/types/permissions';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -36,12 +37,13 @@ export const ProfileHeader = ({
 }: ProfileHeaderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
+  const isAdmin = userInfo?.permissions === Permissions.ADMIN;
 
   const {
     data: joinedGroups = [],
     isLoading: groupsLoading,
     isError: groupsError,
-  } = useUserJoinedGroups(userInfo?.id);
+  } = useUserJoinedGroups(isAdmin ? undefined : userInfo?.id);
 
   const personaBadge = getPersonaBadgeInfo(
     userInfo?.persona ?? null,
@@ -196,7 +198,7 @@ export const ProfileHeader = ({
             <Text style={styles.nameText}>{userInfo.username}</Text>
           )}
 
-          {(personaBadge || timeInCanadaBadge) && (
+          {!isAdmin && (personaBadge || timeInCanadaBadge) && (
             <View style={styles.badgesInlineRow}>
               {personaBadge && (
                 <InfoBadge
@@ -220,51 +222,53 @@ export const ProfileHeader = ({
           )}
         </View>
       </View>
-      <View style={styles.groupsSection}>
-        <Text style={styles.groupsTitle}>Groups</Text>
+      {!isAdmin && (
+        <View style={styles.groupsSection}>
+          <Text style={styles.groupsTitle}>Groups</Text>
 
-        {groupsLoading ? (
-          <View style={styles.groupSkeletonRow}>
-            {[0, 1, 2, 3].map(item => (
-              <SkeletonLoader
-                key={item}
-                width={GROUP_TILE_SIZE}
-                height={GROUP_TILE_SIZE}
-                borderRadius={18}
-              />
-            ))}
-          </View>
-        ) : groupsError ? (
-          <Text style={styles.emptyGroupsText}>Unable to load groups</Text>
-        ) : joinedGroups.length > 0 ? (
-          <FlatList
-            data={joinedGroups}
-            keyExtractor={item => String(item.id)}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.groupsList}
-            initialNumToRender={4}
-            maxToRenderPerBatch={4}
-            windowSize={5}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.groupTile}
-                onPress={() => handleGroupPress(item)}
-                activeOpacity={0.8}
-              >
-                <Avatar
-                  profilePictureUrl={item.coverPhotoUrl || undefined}
-                  username={item.name}
-                  size={GROUP_TILE_SIZE}
-                  style={styles.groupAvatar}
+          {groupsLoading ? (
+            <View style={styles.groupSkeletonRow}>
+              {[0, 1, 2, 3].map(item => (
+                <SkeletonLoader
+                  key={item}
+                  width={GROUP_TILE_SIZE}
+                  height={GROUP_TILE_SIZE}
+                  borderRadius={18}
                 />
-              </TouchableOpacity>
-            )}
-          />
-        ) : (
-          <Text style={styles.emptyGroupsText}>No groups yet</Text>
-        )}
-      </View>
+              ))}
+            </View>
+          ) : groupsError ? (
+            <Text style={styles.emptyGroupsText}>Unable to load groups</Text>
+          ) : joinedGroups.length > 0 ? (
+            <FlatList
+              data={joinedGroups}
+              keyExtractor={item => String(item.id)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.groupsList}
+              initialNumToRender={4}
+              maxToRenderPerBatch={4}
+              windowSize={5}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.groupTile}
+                  onPress={() => handleGroupPress(item)}
+                  activeOpacity={0.8}
+                >
+                  <Avatar
+                    profilePictureUrl={item.coverPhotoUrl || undefined}
+                    username={item.name}
+                    size={GROUP_TILE_SIZE}
+                    style={styles.groupAvatar}
+                  />
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <Text style={styles.emptyGroupsText}>No groups yet</Text>
+          )}
+        </View>
+      )}
     </View>
   );
 };
