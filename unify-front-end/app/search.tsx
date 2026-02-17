@@ -13,7 +13,10 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Group } from '@/types/groups';
 import { useSearchGroups } from '@/hooks/groups/useSearchGroups';
+import { useSearchUsers } from '@/hooks/users/useSearchUsers';
+import type { SearchUserResult } from '@/services/users/searchUsers';
 import GroupCard from '@/components/groups/GroupCard';
+import { Avatar } from '@/components/Avatar';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from '@/components/home/PostItem';
 import { useQuery } from '@tanstack/react-query';
@@ -40,6 +43,8 @@ const SearchScreen = () => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { data: searchGroups, isLoading: searchGroupsLoading } =
     useSearchGroups(searchQuery);
+  const { data: searchUsersData, isLoading: searchUsersLoading } =
+    useSearchUsers(searchQuery);
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -103,11 +108,21 @@ const SearchScreen = () => {
   };
 
   const filterGroups = searchGroups || [];
+  const filterUsers = searchUsersData ?? [];
 
   let foundGroup = filterGroups && filterGroups.length > 0;
+  let foundUser = filterUsers.length > 0;
   let foundPost = searchQuery
     ? (searchResults?.posts?.length ?? 0) > 0
     : postsToShow.length > 0;
+  const shouldShowEmptyState =
+    !!searchQuery &&
+    !foundGroup &&
+    !foundPost &&
+    !foundUser &&
+    !searchGroupsLoading &&
+    !searchLoading &&
+    !searchUsersLoading;
 
   const groupPress = async (group: Group) => {
     setRecentGroups(prev => [
@@ -141,6 +156,29 @@ const SearchScreen = () => {
     <View style={styles.cardItem}>
       <GroupCard group={item} onPress={() => groupPress(item)} />
     </View>
+  );
+
+  const userPress = (user: SearchUserResult) => {
+    router.push({
+      pathname: '/profile',
+      params: { userId: user.id },
+    });
+  };
+
+  const renderUser = ({ item }: { item: SearchUserResult }) => (
+    <TouchableOpacity
+      style={styles.userItem}
+      onPress={() => userPress(item)}
+      activeOpacity={0.7}
+    >
+      <Avatar
+        profilePictureUrl={item.profilePictureUrl ?? undefined}
+        username={item.username}
+        size={40}
+        style={styles.userAvatar}
+      />
+      <Text style={styles.userName}>{item.username}</Text>
+    </TouchableOpacity>
   );
 
   if (
@@ -185,7 +223,7 @@ const SearchScreen = () => {
       <View style={styles.searchFrame}>
         <Text style={styles.containerText}>
           What do you want to discover today? Press 'enter' or 'go' to see
-          relevant groups or posts
+          relevant people, groups, or posts
         </Text>
       </View>
     );
@@ -217,14 +255,17 @@ const SearchScreen = () => {
           }}
           style={styles.searchInput}
           //in figma says events and groups but this screen doesnt check events
-          placeholder='Search for posts and groups'
+          placeholder='Search posts, groups, and people'
           onSubmitEditing={() => handleSend()}
           placeholderTextColor={Theme.textInput}
         />
       </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: shouldShowEmptyState ? 'center' : 'flex-start',
+        }}
       >
         {/*Show history/recent*/}
         {!searchQuery && loadingData ? (
@@ -241,7 +282,8 @@ const SearchScreen = () => {
           </>
         )}
 
-        {searchQuery && (searchLoading || searchGroupsLoading) ? (
+        {searchQuery &&
+        (searchLoading || searchGroupsLoading || searchUsersLoading) ? (
           <View
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
@@ -250,6 +292,35 @@ const SearchScreen = () => {
           </View>
         ) : (
           <>
+            {searchQuery && foundUser && (
+              <View>
+                <View style={[styles.postsHeader, { marginBottom: 12 }]}>
+                  <Text style={styles.resultHeaderText}>PEOPLE</Text>
+                  {filterUsers.length > 3 && (
+                    <TouchableOpacity
+                      onPress={() =>
+                        router.push({
+                          pathname: '/see-more-users' as any,
+                          params: { q: searchQuery },
+                        })
+                      }
+                    >
+                      <Text style={styles.seeMoreText}>see more</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <FlatList
+                  data={filterUsers.slice(0, 3)}
+                  renderItem={renderUser}
+                  keyExtractor={(item) => item.id}
+                  scrollEnabled={false}
+                  ItemSeparatorComponent={() => (
+                    <View style={styles.userItemSeparator} />
+                  )}
+                />
+              </View>
+            )}
+
             {searchQuery && foundPost && (
               <View>
                 <View style={styles.postsHeader}>
@@ -307,19 +378,12 @@ const SearchScreen = () => {
           </>
         )}
 
-        {searchQuery &&
-          !foundGroup &&
-          !foundPost &&
-          !searchGroupsLoading &&
-          !searchLoading && (
-            <View style={styles.emptyContainer}>
-              <Feather name='calendar' size={48} color='#ccc' />
-              <Text style={styles.emptyText}>No Posts or Groups available</Text>
-              <Text style={styles.emptySubtext}>
-                Check back later for new entries!
-              </Text>
-            </View>
-          )}
+        {shouldShowEmptyState && (
+          <View style={styles.emptyContainer}>
+            <Feather name='search' size={48} color='#ccc' />
+            <Text style={styles.emptyText}>No search results found.</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -332,11 +396,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
-    paddingTop: 15,
   },
   containerText: {
     fontSize: 14,
@@ -385,10 +447,6 @@ const styles = StyleSheet.create({
     marginBottom: 0,
     lineHeight: 16,
   },
-  emptySubtext: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
   searchContainer: {
     paddingHorizontal: 20,
     flex: 1,
@@ -408,6 +466,24 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: Theme.textAlternateGray,
+  },
+  userItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  userAvatar: {
+    marginRight: 12,
+  },
+  userName: {
+    fontSize: 16,
+    color: Theme.black,
+    fontWeight: '500',
+  },
+  userItemSeparator: {
+    height: 1,
+    backgroundColor: Theme.surfaceGray,
+    marginLeft: 52,
   },
   searchFrame: {
     marginTop: 30,

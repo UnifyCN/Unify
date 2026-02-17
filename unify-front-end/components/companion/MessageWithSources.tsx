@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { Message } from '@/helpers/companion/messageHelpers';
+import SourceViewer from './SourceViewer';
 
 interface MessageWithSourcesProps {
   item: Message;
@@ -357,6 +358,10 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
   onSuggestionPress,
 }) => {
   const [showSources, setShowSources] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<{
+    url: string;
+    title: string;
+  } | null>(null);
 
   return (
     <View
@@ -413,7 +418,13 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
                     key={index}
                     style={styles.sourceItem}
                     onPress={() => {
-                      if (source.url) {
+                      // Only use SourceViewer for .md files, open others in browser
+                      if (source.url.toLowerCase().endsWith('.md')) {
+                        setSelectedSource({
+                          url: source.url,
+                          title: source.document_title,
+                        });
+                      } else {
                         Linking.openURL(source.url).catch(err =>
                           console.error('Failed to open URL:', err)
                         );
@@ -458,6 +469,16 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
             </View>
           )}
       </View>
+
+      {/* Source Viewer Modal */}
+      {selectedSource && (
+        <SourceViewer
+          visible={!!selectedSource}
+          sourceUrl={selectedSource.url}
+          sourceTitle={selectedSource.title}
+          onClose={() => setSelectedSource(null)}
+        />
+      )}
     </View>
   );
 };

@@ -1,17 +1,48 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, StyleSheet, Text } from 'react-native';
+import {
+  Alert,
+  View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
 import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
 import { setChecklistItemCompletion } from '@/services/checklist/setChecklistItemCompletion';
+import {
+  deleteCustomChecklistTask,
+  setCustomChecklistTaskCompletion,
+} from '@/services/checklist/customChecklistTasks';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
-import { Priority, UserTaskWithDetails } from '@/types/checklist';
+import { ChecklistLinkTabSlug, Priority, UserTaskWithDetails } from '@/types/checklist';
 import Header from '@/components/Header';
 import LoadingScreen from '@/components/LoadingScreen';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+/**
+ * Map checklist tab slug to (tabs) route for "Learn how" navigation.
+ * Paths must match tab bar in app/(tabs)/_layout.tsx (Tabs.Screen name):
+ * - index (Home), Gather (Community), companion, Checklist, Learn.
+ */
+const TAB_SLUG_TO_ROUTE: Record<ChecklistLinkTabSlug, string> = {
+  home: '/(tabs)/index',
+  community: '/(tabs)/Gather/gather',
+  companion: '/(tabs)/companion',
+  checklist: '/(tabs)/Checklist',
+  learn: '/(tabs)/Learn',
+};
+
+/** Optional aliases if Sanity uses different slug values (e.g. gather → community) */
+const TAB_SLUG_ALIASES: Record<string, ChecklistLinkTabSlug> = {
+  gather: 'community',
+  index: 'home',
+};
 
 /** Time-in-Canada display ranges (no stage labels) */
 const stageDescriptions: Record<number, string> = {
@@ -133,9 +164,12 @@ export default function ChecklistScreen() {
       handleCloseModal();
       return;
     }
-    const { linkModuleId, linkSubmoduleId } = selectedTask.task;
+    const { linkTab, linkModuleId, linkSubmoduleId } = selectedTask.task;
     handleCloseModal();
-    if (linkSubmoduleId && linkModuleId) {
+    const resolvedTab = linkTab && (TAB_SLUG_ALIASES[linkTab] ?? linkTab);
+    if (resolvedTab && TAB_SLUG_TO_ROUTE[resolvedTab]) {
+      router.push(TAB_SLUG_TO_ROUTE[resolvedTab] as any);
+    } else if (linkSubmoduleId && linkModuleId) {
       router.push(
         `/(tabs)/Learn/modules/${linkModuleId}/${linkSubmoduleId}` as any
       );
@@ -147,7 +181,7 @@ export default function ChecklistScreen() {
   };
 
   const handleMarkComplete = async () => {
-    if (!selectedTask || selectedTask.sanity_checklist_id == null) return;
+    if (!selectedTask) return;
 
     try {
       const {
@@ -156,36 +190,83 @@ export default function ChecklistScreen() {
       if (!user) return;
 
       const newCompletedStatus = !selectedTask.completed;
+      const completedAt = newCompletedStatus ? new Date().toISOString() : null;
 
-      // Optimistically update UI (match by sanity_checklist_id; row may not exist when unchecking)
-      const updatedTasks = tasks.map(task =>
-        task.sanity_checklist_id === selectedTask.sanity_checklist_id
-          ? {
-              ...task,
-              completed: newCompletedStatus,
-              completed_at: newCompletedStatus
-                ? new Date().toISOString()
-                : null,
-            }
-          : task
-      );
+      const updatedTasks = tasks.map(task => {
+        const isTarget =
+          selectedTask.source === 'custom'
+            ? task.custom_task_id === selectedTask.custom_task_id
+            : task.sanity_checklist_id === selectedTask.sanity_checklist_id;
+
+        if (!isTarget) return task;
+        return {
+          ...task,
+          completed: newCompletedStatus,
+          completed_at: completedAt,
+        };
+      });
       setTasks(updatedTasks);
 
-      // Update selected task state
       setSelectedTask({
         ...selectedTask,
         completed: newCompletedStatus,
+        completed_at: completedAt,
       });
 
-      await setChecklistItemCompletion(
-        user.id,
-        selectedTask.sanity_checklist_id,
-        newCompletedStatus
-      );
+      if (selectedTask.source === 'custom' && selectedTask.custom_task_id) {
+        await setCustomChecklistTaskCompletion({
+          userId: user.id,
+          customTaskId: selectedTask.custom_task_id,
+          completed: newCompletedStatus,
+        });
+      } else if (selectedTask.sanity_checklist_id) {
+        await setChecklistItemCompletion(
+          user.id,
+          selectedTask.sanity_checklist_id,
+          newCompletedStatus
+        );
+      }
     } catch (error) {
       console.error('Error updating task completion:', error);
       refetch();
     }
+  };
+
+  const handleDeleteCustomTask = () => {
+    if (!selectedTask || selectedTask.source !== 'custom') return;
+    const customTaskId = selectedTask.custom_task_id;
+    if (!customTaskId) return;
+
+    Alert.alert('Delete item?', 'This action cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const prevTasks = tasks;
+          try {
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
+            if (!user) return;
+
+            setTasks(prev =>
+              prev.filter(task => task.custom_task_id !== customTaskId)
+            );
+            handleCloseModal();
+
+            await deleteCustomChecklistTask({
+              userId: user.id,
+              customTaskId,
+            });
+          } catch (error) {
+            console.error('Error deleting custom checklist task:', error);
+            setTasks(prevTasks);
+            refetch();
+          }
+        },
+      },
+    ]);
   };
 
   if (isLoading) {
@@ -210,7 +291,9 @@ export default function ChecklistScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Your Personalized Checklist</Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>Personalized Checklist</Text>
+            </View>
             <Text style={styles.subtitle}>
               Please complete your onboarding to see your personalized
               checklist.
@@ -229,7 +312,19 @@ export default function ChecklistScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Your Personalized Checklist</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>Personalized Checklist</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() =>
+                router.push('/(tabs)/Checklist/create-custom-item' as any)
+              }
+              activeOpacity={0.8}
+            >
+              <MaterialIcons name='add' size={18} color='#111' />
+              <Text style={styles.addButtonLabel}>Add</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.subtitle}>
             {personaDisplay} - {stageDescription}
           </Text>
@@ -256,6 +351,17 @@ export default function ChecklistScreen() {
           );
         })}
 
+        <TouchableOpacity
+          style={styles.addOwnRow}
+          onPress={() =>
+            router.push('/(tabs)/Checklist/create-custom-item' as any)
+          }
+          activeOpacity={0.7}
+        >
+          <MaterialIcons name='add-circle-outline' size={22} color='#6B6B6B' />
+          <Text style={styles.addOwnRowText}>Add your own item</Text>
+        </TouchableOpacity>
+
         {tasks.length === 0 && (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -271,6 +377,8 @@ export default function ChecklistScreen() {
         onClose={handleCloseModal}
         onLearnHow={handleLearnHow}
         onMarkComplete={handleMarkComplete}
+        isCustomTask={selectedTask?.source === 'custom'}
+        onDeleteCustomTask={handleDeleteCustomTask}
       />
     </View>
   );
@@ -290,16 +398,58 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 12,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   title: {
     paddingTop: 8,
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
   },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#fff',
+  },
+  addButtonLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111',
+  },
   subtitle: {
     marginTop: 6,
     fontSize: 16,
     color: '#000',
+  },
+  addOwnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 8,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    borderStyle: 'dashed',
+  },
+  addOwnRowText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#6B6B6B',
   },
   emptyContainer: {
     padding: 32,

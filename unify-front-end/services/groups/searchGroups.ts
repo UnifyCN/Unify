@@ -7,19 +7,32 @@ export const searchGroups = async (searchQuery: string): Promise<Group[]> => {
       return [];
     }
 
-    const { data, error } = await supabase
-      .from('groups')
-      .select('*')
-      .ilike('group_name', `%${searchQuery}%`)
-      .order('member_count', { ascending: false }); // Show most popular groups first
+    const query = `%${searchQuery.trim()}%`;
+    const [nameResult, descriptionResult] = await Promise.all([
+      supabase
+        .from('groups')
+        .select('*')
+        .ilike('group_name', query)
+        .order('member_count', { ascending: false }),
+      supabase
+        .from('groups')
+        .select('*')
+        .ilike('group_description', query)
+        .order('member_count', { ascending: false }),
+    ]);
 
-    if (error) {
+    if (nameResult.error || descriptionResult.error) {
       throw new Error('Failed to search groups');
     }
 
+    const mergedGroups = [...(nameResult.data ?? []), ...(descriptionResult.data ?? [])];
+    const dedupedGroups = Array.from(
+      new Map(mergedGroups.map(group => [group.id, group])).values()
+    ).sort((a, b) => (b.member_count ?? 0) - (a.member_count ?? 0));
+
     // Map the database columns to the Group interface
     return (
-      data?.map(group => ({
+      dedupedGroups.map(group => ({
         id: group.id,
         name: group.group_name?.trim() ?? '',
         description: group.group_description?.trim() ?? null,

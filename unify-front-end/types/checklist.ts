@@ -5,8 +5,24 @@ export type Priority =
   | 'Explore & connect'
   | 'Optional / later';
 
+export type CustomPriority =
+  | 'Do now'
+  | 'Do soon'
+  | 'Explore and connect'
+  | 'Optional / later';
+
+export type TaskSource = 'sanity' | 'custom';
+
 export type StageNumber = 0 | 1 | 2 | 3 | 4;
 export type Stage = '0' | '1' | '2' | '3' | '4';
+
+/** Tab slug for checklist "Learn how" link (must match app tab routes) */
+export type ChecklistLinkTabSlug =
+  | 'home'
+  | 'community'
+  | 'companion'
+  | 'checklist'
+  | 'learn';
 
 /** Sanity checklist item (content from Sanity). Personas array: user sees item if user.persona in personas. */
 export interface SanityChecklistItem {
@@ -14,10 +30,13 @@ export interface SanityChecklistItem {
   _type: 'checklist';
   title: string;
   description?: string | null;
+  longer_description?: string | null;
   class: 'do_now' | 'do_soon' | 'explore_and_connect' | 'optional_later';
   class_order: number;
   personas: string[];
   stage: string;
+  /** Link to a tab (home | community | companion | checklist | learn); when set, module/submodule are unused. Schema field: link_tab. */
+  link_tab?: ChecklistLinkTabSlug | string | null;
   module?: { _id: string; title: string } | null;
   submodule?: { _id: string; title: string; moduleId?: string } | null;
 }
@@ -30,17 +49,26 @@ const SANITY_CLASS_TO_PRIORITY: Record<SanityChecklistItem['class'], Priority> =
     optional_later: 'Optional / later',
   };
 
+function normalizeLinkTab(link_tab: SanityChecklistItem['link_tab']): ChecklistLinkTabSlug | undefined {
+  if (link_tab == null || typeof link_tab !== 'string') return undefined;
+  const slug = link_tab.trim().toLowerCase();
+  return slug.length > 0 ? (slug as ChecklistLinkTabSlug) : undefined;
+}
+
 export function sanityChecklistItemToTaskDetails(
   item: SanityChecklistItem
 ): ChecklistTaskDetails {
   const moduleOrSub = item.module ?? item.submodule;
+  const linkTab = normalizeLinkTab(item.link_tab);
   return {
     task_name: item.title,
     task_description: item.description ?? '',
+    longer_description: item.longer_description?.trim() || undefined,
     priority: SANITY_CLASS_TO_PRIORITY[item.class],
     task_module: moduleOrSub?.title,
-    linkModuleId: item.module?._id ?? item.submodule?.moduleId,
-    linkSubmoduleId: item.submodule?._id,
+    linkTab,
+    linkModuleId: linkTab ? undefined : item.module?._id ?? item.submodule?.moduleId,
+    linkSubmoduleId: linkTab ? undefined : item.submodule?._id,
     linkModuleTitle: moduleOrSub?.title,
   };
 }
@@ -49,9 +77,13 @@ export function sanityChecklistItemToTaskDetails(
 export interface ChecklistTaskDetails {
   task_name: string;
   task_description: string;
+  /** Optional longer description for modal; fallback to task_description when absent */
+  longer_description?: string;
   priority: Priority;
   task_module?: string;
-  /** For "Learn how" deep link: module id or submodule id */
+  /** For "Learn how": link to a tab (Home, Community, Companion, Checklist, Learn). When set, module/submodule are not used */
+  linkTab?: ChecklistLinkTabSlug;
+  /** For "Learn how" deep link: module id or submodule id (when linkTab is not set) */
   linkModuleId?: string;
   linkSubmoduleId?: string;
   linkModuleTitle?: string;
@@ -72,12 +104,26 @@ export interface UserTask {
   user_task_id: number;
   user_id: string;
   task_id: number | null;
+  custom_task_id?: number | null;
   sanity_checklist_id: string | null;
   completed: boolean;
   completed_at: string | null;
+  source?: TaskSource;
   task?: ChecklistTaskDetails;
 }
 
 export interface UserTaskWithDetails extends UserTask {
   task: ChecklistTaskDetails;
+}
+
+export interface CustomChecklistTask {
+  id: number;
+  user_id: string;
+  priority: CustomPriority;
+  title: string;
+  description: string;
+  completed: boolean;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
 }

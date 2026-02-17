@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { FollowButton } from './FollowButton';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
 import { ProfilePictureUpload } from './ProfilePictureUpload';
@@ -112,7 +111,6 @@ export const ProfileHeader = ({
             <SkeletonLoader width={130} height={28} />
             <SkeletonLoader width={96} height={28} />
           </View>
-          <SkeletonLoader width={96} height={40} borderRadius={10} />
         </View>
         <View style={styles.groupsSection}>
           <SkeletonLoader width={80} height={24} />
@@ -220,11 +218,6 @@ export const ProfileHeader = ({
           </View>
         )}
 
-        {!isCurrentUser && isCurrentUser !== null && (
-          <View style={styles.followUnderBadgesContainer}>
-            <FollowButton targetUserId={userInfo.id} />
-          </View>
-        )}
       </View>
 
       <View style={styles.groupsSection}>
@@ -299,10 +292,6 @@ const styles = StyleSheet.create({
   },
   identitySection: {
     gap: 8,
-  },
-  followUnderBadgesContainer: {
-    alignSelf: 'flex-start',
-    marginTop: 2,
   },
   nameRow: {
     flexDirection: 'row',

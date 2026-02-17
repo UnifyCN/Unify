@@ -8,6 +8,7 @@
 
 ## UI/UX Standard
 - All frontend UI/UX changes must prioritize a minimal, aesthetic, and premium feel.
+- In this project, "premium", "minimal", and "aesthetic" mean a native iOS Apple look by default unless explicitly stated otherwise.
 - Favor simplicity, restraint, and visual clarity in every component, layout, and interaction.
 - Do not add unnecessary elements, visual noise, or styling that is "extra" without clear UX value.
 - Keep visual and interaction decisions deliberate and consistent across screens.

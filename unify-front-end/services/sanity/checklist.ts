@@ -15,8 +15,10 @@ const CHECKLIST_QUERY = `*[
   _type,
   title,
   description,
+  longer_description,
   class,
   class_order,
+  link_tab,
   "module": module-> { _id, title },
   "submodule": submodule-> { _id, title, "moduleId": module._ref }
 }`;

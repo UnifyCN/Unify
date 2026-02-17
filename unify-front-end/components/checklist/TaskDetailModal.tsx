@@ -17,6 +17,8 @@ interface TaskDetailModalProps {
   onClose: () => void;
   onLearnHow: () => void;
   onMarkComplete: () => void;
+  isCustomTask?: boolean;
+  onDeleteCustomTask?: () => void;
 }
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
@@ -25,6 +27,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onClose,
   onLearnHow,
   onMarkComplete,
+  isCustomTask = false,
+  onDeleteCustomTask,
 }) => {
   if (!task) return null;
 
@@ -55,20 +59,22 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             {/* Task Name */}
             <Text style={styles.taskName}>{task.task.task_name}</Text>
 
-            {/* Task Description */}
+            {/* Task Description (longer when available, else short) */}
             <Text style={styles.taskDescription}>
-              {task.task.task_description}
+              {task.task.longer_description?.trim() || task.task.task_description}
             </Text>
 
             {/* Buttons */}
-            <TouchableOpacity
-              style={styles.learnButton}
-              onPress={onLearnHow}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.learnButtonText}>Learn how</Text>
-              <MaterialIcons name='arrow-right-alt' size={20} color='#fff' />
-            </TouchableOpacity>
+            {!isCustomTask && (
+              <TouchableOpacity
+                style={styles.learnButton}
+                onPress={onLearnHow}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.learnButtonText}>Learn how</Text>
+                <MaterialIcons name='arrow-right-alt' size={20} color='#fff' />
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={[
@@ -92,6 +98,16 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 color={isCompleted ? '#48BB78' : '#48BB78'}
               />
             </TouchableOpacity>
+
+            {isCustomTask && onDeleteCustomTask && (
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={onDeleteCustomTask}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </Pressable>
       </Pressable>
@@ -177,5 +193,15 @@ const styles = StyleSheet.create({
   },
   completeButtonTextCompleted: {
     color: '#22543D',
+  },
+  deleteButton: {
+    alignSelf: 'center',
+    paddingVertical: 8,
+    marginTop: 2,
+  },
+  deleteButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#B42318',
   },
 });

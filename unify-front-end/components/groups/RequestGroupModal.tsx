@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -36,8 +38,8 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
 
   const canSubmit = useMemo(() => {
     return (
-      groupName.trim().length >= 3 &&
-      audience.trim().length >= 3 &&
+      groupName.trim().length >= 1 &&
+      audience.trim().length >= 1 &&
       reason.trim().length >= 10 &&
       requesterEmail.trim().length >= 5
     );
@@ -91,104 +93,113 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>
-              {showSuccess ? 'Request Sent!' : 'Request a Group'}
-            </Text>
-            {!showSuccess && (
-              <Pressable onPress={onClose} style={styles.closeBtn}>
-                <Text style={styles.closeText}>✕</Text>
-              </Pressable>
+        <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss}/>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+          style={{ flex:1, justifyContent: 'flex-end', width: '100%' }}  
+        >
+          <View style={styles.sheet}>
+            <View style={styles.header}>
+              <Text style={styles.title}>
+                {showSuccess ? 'Request Sent!' : 'Request a Group'}
+              </Text>
+              {!showSuccess && (
+                <Pressable onPress={onClose} style={styles.closeBtn}>
+                  <Text style={styles.closeText}>✕</Text>
+                </Pressable>
+              )}
+            </View>
+
+            {showSuccess ? (
+              <View style={styles.successContainer}>
+                <Text style={styles.successEmoji}>🎉</Text>
+                <Text style={styles.successTitle}>Thank you!</Text>
+                <Text style={styles.successMessage}>
+                  Your group request has been sent to our team. We'll review it
+                  and get back to you soon.
+                </Text>
+              </View>
+            ) : (
+              <ScrollView
+                contentContainerStyle={[styles.content, {paddingBottom: 24}]}
+                keyboardShouldPersistTaps='always'
+                keyboardDismissMode="on-drag"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.label}>Group name *</Text>
+                <TextInput
+                  value={groupName}
+                  onChangeText={setGroupName}
+                  placeholder='e.g., Newcomers in Vancouver'
+                  style={styles.input}
+                  editable={!submitting}
+                />
+
+                <Text style={styles.label}>Who is it for? *</Text>
+                <TextInput
+                  value={audience}
+                  onChangeText={setAudience}
+                  placeholder='e.g., international students, PR applicants...'
+                  style={styles.input}
+                  editable={!submitting}
+                  />
+
+                <Text style={styles.label}>
+                  Why should we create this group? *
+                </Text>
+                <TextInput
+                  value={reason}
+                  onChangeText={setReason}
+                  placeholder='Explain the need (min 10 chars)'
+                  style={[styles.input, styles.textArea]}
+                  multiline
+                  editable={!submitting}
+                />
+
+                <Text style={styles.label}>Your email (for follow-up) *</Text>
+                <TextInput
+                  value={requesterEmail}
+                  onChangeText={setRequesterEmail}
+                  placeholder='you@email.com'
+                  style={styles.input}
+                  autoCapitalize='none'
+                  keyboardType='email-address'
+                  editable={!submitting}
+                />
+
+                <Text style={styles.label}>Extra notes (optional)</Text>
+                <TextInput
+                  value={extraNotes}
+                  onChangeText={setExtraNotes}
+                  placeholder='Anything else that helps'
+                  style={[styles.input, styles.textArea]}
+                  multiline
+                  editable={!submitting}
+                />
+
+                <Pressable
+                  onPress={submit}
+                  disabled={!canSubmit || submitting}
+                  style={[
+                    styles.submitBtn,
+                    !canSubmit || submitting ? { opacity: 0.5 } : null,
+                  ]}
+                >
+                  {submitting ? (
+                    <ActivityIndicator />
+                  ) : (
+                    <Text style={styles.submitText}>Send Request</Text>
+                  )}
+                </Pressable>
+
+                <Text style={styles.helper}>
+                  * Required fields. This sends an email to our team.
+                </Text>
+              </ScrollView>
             )}
           </View>
-
-          {showSuccess ? (
-            <View style={styles.successContainer}>
-              <Text style={styles.successEmoji}>🎉</Text>
-              <Text style={styles.successTitle}>Thank you!</Text>
-              <Text style={styles.successMessage}>
-                Your group request has been sent to our team. We'll review it
-                and get back to you soon.
-              </Text>
-            </View>
-          ) : (
-            <ScrollView
-              contentContainerStyle={styles.content}
-              keyboardShouldPersistTaps='handled'
-            >
-              <Text style={styles.label}>Group name *</Text>
-              <TextInput
-                value={groupName}
-                onChangeText={setGroupName}
-                placeholder='e.g., Newcomers in Vancouver'
-                style={styles.input}
-                editable={!submitting}
-              />
-
-              <Text style={styles.label}>Who is it for? *</Text>
-              <TextInput
-                value={audience}
-                onChangeText={setAudience}
-                placeholder='e.g., international students, PR applicants...'
-                style={styles.input}
-                editable={!submitting}
-              />
-
-              <Text style={styles.label}>
-                Why should we create this group? *
-              </Text>
-              <TextInput
-                value={reason}
-                onChangeText={setReason}
-                placeholder='Explain the need (min 10 chars)'
-                style={[styles.input, styles.textArea]}
-                multiline
-                editable={!submitting}
-              />
-
-              <Text style={styles.label}>Your email (for follow-up) *</Text>
-              <TextInput
-                value={requesterEmail}
-                onChangeText={setRequesterEmail}
-                placeholder='you@email.com'
-                style={styles.input}
-                autoCapitalize='none'
-                keyboardType='email-address'
-                editable={!submitting}
-              />
-
-              <Text style={styles.label}>Extra notes (optional)</Text>
-              <TextInput
-                value={extraNotes}
-                onChangeText={setExtraNotes}
-                placeholder='Anything else that helps'
-                style={[styles.input, styles.textArea]}
-                multiline
-                editable={!submitting}
-              />
-
-              <Pressable
-                onPress={submit}
-                disabled={!canSubmit || submitting}
-                style={[
-                  styles.submitBtn,
-                  !canSubmit || submitting ? { opacity: 0.5 } : null,
-                ]}
-              >
-                {submitting ? (
-                  <ActivityIndicator />
-                ) : (
-                  <Text style={styles.submitText}>Send Request</Text>
-                )}
-              </Pressable>
-
-              <Text style={styles.helper}>
-                * Required fields. This sends an email to our team.
-              </Text>
-            </ScrollView>
-          )}
-        </View>
+      </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -206,6 +217,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 18,
     maxHeight: '92%',
     overflow: 'hidden',
+    width: '100%',
   },
   header: {
     paddingHorizontal: 16,
