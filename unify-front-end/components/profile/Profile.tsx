@@ -16,6 +16,10 @@ import { useCommentedOnFeed } from '@/hooks/feeds/useCommentedOnFeed';
 import { Theme } from '@/constants/Theme';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import { useCurrentUser } from '@/context/UserContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useUserReportStatus } from '@/hooks/users/useUserReportStatus';
+import { useToast } from '@/context/ToastContext';
 
 interface TabHeaderProps {
   activeTab: string;
@@ -53,6 +57,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const { currentUser } = useCurrentUser();
   const { data: userInfo } = useUserInfo(userId);
   const isCurrentUser = currentUser?.id === userId;
+  const router = useRouter();
   const usePostsFeedHook = useCallback(useUserPosts.bind(null, userId), [
     userId,
   ]);
@@ -60,8 +65,9 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     useCommentedOnFeed.bind(null, userId),
     [userId]
   );
-
+  const { data: isReportedUser } = useUserReportStatus(userId);
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
+  const { showToast } = useToast();
 
   // Create data array with header, tabs, and feed content to be used to do sticky header
   const data = useMemo(
@@ -72,6 +78,31 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     ],
     []
   );
+
+  const reportButton = useMemo(() => {
+    if (isCurrentUser) return null;
+
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          if (isReportedUser) {
+            showToast?.("You've already reported this user.");
+            return;
+          }
+          router.push({
+            pathname: '/ReportScreen',
+            params: { userId, type: 'user' },
+          });
+        }}
+      >
+        <MaterialCommunityIcons
+          name={isReportedUser ? 'flag' : 'flag-outline'}
+          size={20}
+          color={Theme.black}
+        />
+      </TouchableOpacity>
+    );
+  }, [isCurrentUser, isReportedUser, router, showToast, userId]);
 
   const renderTabContent = useMemo(() => {
     if (activeTab === 'Comments') {
@@ -124,13 +155,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         }
       />
     );
-  }, [
-    activeTab,
-    isCurrentUser,
-    useCommentsFeedHook,
-    usePostsFeedHook,
-    userId,
-  ]);
+  }, [activeTab, isCurrentUser, useCommentsFeedHook, usePostsFeedHook, userId]);
 
   const renderItem = useCallback(
     ({ item }: { item: { key: string; type: string } }) => {
@@ -145,10 +170,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
           );
         case 'tabs':
           return (
-            <TabHeader
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
+            <TabHeader activeTab={activeTab} setActiveTab={setActiveTab} />
           );
         case 'feed':
           return <View style={styles.feedContainer}>{renderTabContent}</View>;
@@ -161,7 +183,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='' />
+      <BackHeader title='' rightButton={reportButton} />
       <FlatList
         data={data}
         renderItem={renderItem}

@@ -193,7 +193,10 @@ export default function SubmoduleMap() {
             }
           }
         } catch (error) {
-          console.error('Error fetching progress for submodule lessons:', error);
+          console.error(
+            'Error fetching progress for submodule lessons:',
+            error
+          );
 
           for (const lesson of submoduleData.lessons) {
             progressData[lesson._id] = {

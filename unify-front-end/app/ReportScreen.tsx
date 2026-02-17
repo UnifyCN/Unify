@@ -18,7 +18,7 @@ const MIN_LENGTH = 5;
 const MAX_LENGTH = 500;
 
 export default function ReportScreen() {
-  const { postId } = useLocalSearchParams();
+  const { postId, userId, type = 'post' } = useLocalSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
   const mutation = useMutateReport();
@@ -26,6 +26,15 @@ export default function ReportScreen() {
   const [message, setMessage] = useState('');
 
   const submitting = mutation.isPending;
+  const isPost = type === 'post';
+
+  const title = isPost ? 'Report Post' : 'Report User';
+  const subtitle = isPost
+    ? 'Tell us why you’re reporting this post. This message is private and will only be visible to moderators.'
+    : 'Tell us why you’re reporting this user. This message is private and will only be visible to moderators.';
+  const placeholder = isPost
+    ? "Write why you're reporting this post..."
+    : "Write why you're reporting this user...";
 
   const handleSubmit = () => {
     const trimmed = (message || '').trim().slice(0, MAX_LENGTH);
@@ -33,16 +42,23 @@ export default function ReportScreen() {
       Alert.alert('Please provide a short reason (min 5 characters).');
       return;
     }
-    if (!postId) {
+
+    if (isPost && !postId) {
       Alert.alert('Missing post id');
+      return;
+    }
+    if (!isPost && !userId) {
+      Alert.alert('Missing user id');
       return;
     }
 
     mutation.mutate(
       {
-        postId: Number(postId),
+        postId: isPost ? Number(postId) : undefined,
+        userId: !isPost ? String(userId) : undefined,
         isReported: false,
         reason: trimmed,
+        type: isPost ? 'post' : 'user',
       },
       {
         onSuccess: () => {
@@ -63,22 +79,19 @@ export default function ReportScreen() {
       style={styles.container}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Report Post</Text>
-        <Text style={styles.subtitle}>
-          Tell us why you’re reporting this post. This message is private and will only be
-          visible to moderators.
-        </Text>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
 
       <TextInput
         value={message}
         onChangeText={setMessage}
-        placeholder="Write why you're reporting this post..."
+        placeholder={placeholder}
         multiline
         maxLength={MAX_LENGTH}
         style={styles.input}
         editable={!submitting}
-        textAlignVertical="top"
+        textAlignVertical='top'
       />
       <Text style={styles.counter}>
         {message.length}/{MAX_LENGTH}
@@ -99,7 +112,7 @@ export default function ReportScreen() {
           disabled={submitting}
         >
           {submitting ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color='#fff' />
           ) : (
             <Text style={styles.buttonText}>Send Report</Text>
           )}

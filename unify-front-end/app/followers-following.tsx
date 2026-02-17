@@ -58,9 +58,7 @@ const UserListItem = ({ user, currentUserId }: UserListItemProps) => {
         />
         <Text style={styles.username}>{user.username}</Text>
       </View>
-      {!isCurrentUser && (
-        <FollowButton targetUserId={user.id} compact={true} />
-      )}
+      {!isCurrentUser && <FollowButton targetUserId={user.id} compact={true} />}
     </TouchableOpacity>
   );
 };
@@ -140,7 +138,12 @@ export default function FollowersFollowingScreen() {
               <Text style={[styles.tabText, active && styles.tabTextActive]}>
                 {label}
               </Text>
-              <View style={[styles.tabIndicator, active && styles.tabIndicatorActive]} />
+              <View
+                style={[
+                  styles.tabIndicator,
+                  active && styles.tabIndicatorActive,
+                ]}
+              />
             </Pressable>
           );
         })}

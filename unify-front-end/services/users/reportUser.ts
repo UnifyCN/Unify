@@ -1,18 +1,20 @@
 import { supabase } from '@/lib/supabase';
-export interface ReportPostResponse {
+
+export interface ReportUserResponse {
   success: boolean;
 }
 
-export const reportPost = async (
-  postId: number,
+export const reportUser = async (
+  userId: string,
   reason: string
-): Promise<ReportPostResponse> => {
+): Promise<ReportUserResponse> => {
   const trimmed = (reason || '').trim().slice(0, 500);
 
   if (!trimmed || trimmed.length < 5) {
-    throw new Error('Please provide a short reason.');
+    throw new Error('Please provide a short reason (min 5 characters).');
   }
 
+  // Get the logged-in user session
   const {
     data: { session },
     error: authError,
@@ -23,17 +25,17 @@ export const reportPost = async (
     throw new Error('User not authenticated');
   }
 
-  const { data, error } = await supabase.functions.invoke('report-post', {
-    body: { postId, reason: trimmed },
+  const { data, error } = await supabase.functions.invoke('report-user', {
+    body: { userId, reason: trimmed },
     headers: {
       Authorization: `Bearer ${session.access_token}`,
     },
   });
 
   if (error) {
-    console.error('Error reporting post:', error);
-    throw new Error(`Failed to report post: ${error.message}`);
+    console.error('Error reporting user:', error);
+    throw new Error(`Failed to report user: ${error.message}`);
   }
 
-  return data as ReportPostResponse;
+  return data as ReportUserResponse;
 };

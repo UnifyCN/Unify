@@ -41,10 +41,10 @@ export const useSaveMessage = () => {
         created_at: new Date().toISOString(),
       };
 
-      queryClient.setQueryData<ConversationMessage[]>(
-        queryKey,
-        current => [...(current ?? []), optimisticMessage]
-      );
+      queryClient.setQueryData<ConversationMessage[]>(queryKey, current => [
+        ...(current ?? []),
+        optimisticMessage,
+      ]);
 
       return { previousMessages };
     },

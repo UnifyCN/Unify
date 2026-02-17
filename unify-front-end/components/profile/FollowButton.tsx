@@ -9,7 +9,10 @@ interface FollowButtonProps {
   compact?: boolean;
 }
 
-export const FollowButton = ({ targetUserId, compact = false }: FollowButtonProps) => {
+export const FollowButton = ({
+  targetUserId,
+  compact = false,
+}: FollowButtonProps) => {
   const { data: isFollowing } = useFollowStatus(targetUserId);
   const followUserMutation = useFollowUser();
 

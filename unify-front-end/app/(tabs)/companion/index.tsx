@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -10,6 +16,7 @@ import {
   Keyboard,
   ActivityIndicator,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,7 +40,6 @@ import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
-import { KeyboardStickyView } from '@/lib/SafeKeyboardController';
 
 const MESSAGE_LIMIT = 3;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
@@ -393,12 +399,11 @@ export default function CompanionScreen() {
         )}
       </View>
 
-      <KeyboardStickyView
+      {/* couldnt run without modifying this*/}
+      <KeyboardAvoidingView
         style={styles.stickyContainer}
-        offset={{
-          closed: 0,
-          opened: insets.bottom + tabBarHeight - 12,
-        }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={insets.bottom + tabBarHeight - 12}
       >
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
@@ -448,7 +453,7 @@ export default function CompanionScreen() {
             </Text>
           </View>
         </View>
-      </KeyboardStickyView>
+      </KeyboardAvoidingView>
     </View>
   );
 }

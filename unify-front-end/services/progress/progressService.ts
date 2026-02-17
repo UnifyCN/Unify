@@ -55,10 +55,7 @@ export async function getLessonProgressesBySubmodule(
       .eq('sanity_submodule_id', submoduleId);
 
     if (error) {
-      console.error(
-        'Error fetching lesson progresses by submodule:',
-        error
-      );
+      console.error('Error fetching lesson progresses by submodule:', error);
       return {};
     }
 

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { reportPost, unreportPost } from '@/services/posts/reportPost';
+import { reportPost } from '@/services/posts/reportPost';
+import { reportUser } from '@/services/users/reportUser';
 
 export const useMutateReport = () => {
   const queryClient = useQueryClient();
@@ -7,49 +8,30 @@ export const useMutateReport = () => {
   return useMutation({
     mutationFn: async ({
       postId,
+      userId,
       isReported,
       reason,
+      type = 'post',
     }: {
-      postId: number;
+      postId?: number;
+      userId?: string;
       isReported: boolean;
       reason: string;
+      type?: 'post' | 'user';
     }) => {
-      queryClient.setQueriesData(
-        { queryKey: ['post-metadata'] },
-        (oldData: Record<number, any> | undefined) => {
-          if (!oldData) return oldData;
-
-          const updatedData = { ...oldData };
-          if (updatedData[postId]) {
-            updatedData[postId] = {
-              ...updatedData[postId],
-              isReported: !isReported,
-              reportCount: updatedData[postId].reportCount + (isReported ? -1 : 1),
-            };
-          }
-          return updatedData;
-        }
-      );
-
-      // Then make server request
-      if (isReported) {
-        return await unreportPost(postId);
-      } else {
+      if (type === 'post' && postId) {
         return await reportPost(postId, reason);
+      } else if (type === 'user' && userId) {
+        return await reportUser(userId, reason);
       }
+
+      throw new Error('Missing postId or userId');
     },
-    onError: error => {
-      console.error('Error liking/unliking post:', error);
+    onError: err => {
+      console.error('Report mutation error:', err);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['post-metadata'] });
     },
   });
 };
-
-// Usage in component:
-// const likePostMutation = useLikePost();
-//
-// const handleLike = (postId: number, isLiked: boolean) => {
-//   likePostMutation.mutate({ postId, isLiked });
-// };

@@ -20,7 +20,6 @@ import { useMutateLikePost } from '@/hooks/posts/useMutateLikePost';
 import { useMutateSavePost } from '@/hooks/posts/useMutateSavePost';
 import { useMutateDeletePost } from '@/hooks/posts/useMutateDeletePost';
 import { useMutatePinPost } from '@/hooks/posts/useMutatePinPost';
-import { useMutateReport } from '@/hooks/posts/useMutateReport';
 import { formatSmartTime } from '@/utils/dateUtils';
 import ChevronRight from '@/components/icons/PostHeaderIcon';
 import { Avatar } from '@/components/Avatar';
@@ -31,6 +30,7 @@ import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
 import { getGroupByName } from '@/services/groups/getGroupByName';
+import { usePostReportStatus } from '@/hooks/posts/usePostReportStatus';
 
 export interface PostItemProps {
   post: PostData;
@@ -73,7 +73,7 @@ export const PostItem = memo(
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
     const pinPostMutation = useMutatePinPost();
-    const reportMutation = useMutateReport();
+    //const reportMutation = useMutateReport();
 
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
@@ -105,7 +105,7 @@ export const PostItem = memo(
         }
       );
     };
-
+    const { data: isReportedPost } = usePostReportStatus(post.id);
     const toggleLike = (postId: number, isLiked: boolean) => {
       if (isLiked) {
         trackPostUnlike(postId.toString());
@@ -206,6 +206,18 @@ export const PostItem = memo(
       });
     };
 
+    const navigateToReport = () => {
+      if (showMetadataLoading) return;
+      if (isReportedPost) {
+        showToast("You've already reported this post.");
+        return;
+      }
+      router.push({
+        pathname: '/ReportScreen',
+        params: { postId: String(post.id) },
+      });
+    };
+
     // Use batch-loaded metadata with loading state
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked ?? false;
@@ -296,18 +308,15 @@ export const PostItem = memo(
 
     const reportAction = (
       <TouchableOpacity
-        onPress={() =>{
-          if(!showMetadataLoading && !metadata?.isReported) {
-            router.push({
-              pathname: '/report' as any,
-              params: { postId: String(post.id) },
-            });
-          }
-        }}
-        disabled={showMetadataLoading || !!metadata?.isReported}
+        onPress={navigateToReport}
+        disabled={showMetadataLoading}
         style={isHomeCardVariant ? styles.homeActionTouchable : undefined}
       >
-        <Feather name="flag" size={iconSize} color={Theme.black} />
+        <MaterialCommunityIcons
+          name={isReportedPost ? 'flag' : 'flag-outline'}
+          size={iconSize}
+          color={Theme.black}
+        />
       </TouchableOpacity>
     );
 
