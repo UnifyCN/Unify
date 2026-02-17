@@ -85,6 +85,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
 
     return (
       <TouchableOpacity
+        style={styles.reportButton}
         onPress={() => {
           if (isReportedUser) {
             showToast?.("You've already reported this user.");
@@ -98,7 +99,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
       >
         <MaterialCommunityIcons
           name={isReportedUser ? 'flag' : 'flag-outline'}
-          size={20}
+          size={26}
           color={Theme.black}
         />
       </TouchableOpacity>
@@ -189,8 +190,8 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         rightButton={
           !isCurrentUser && userInfo ? (
             <View style={styles.headerActionRow}>
+              <FollowButton targetUserId={userInfo.id} compact largeCompact />
               {reportButton}
-              <FollowButton targetUserId={userInfo.id} compact />
             </View>
           ) : undefined
         }
@@ -219,10 +220,13 @@ const styles = StyleSheet.create({
   headerActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
-  headerAction: {
-    alignItems: 'flex-end',
+  reportButton: {
+    minWidth: 34,
+    minHeight: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabs: {
     backgroundColor: '#fff',

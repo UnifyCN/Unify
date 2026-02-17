@@ -182,44 +182,44 @@ export const ProfileHeader = ({
       </View>
 
       <View style={styles.identitySection}>
-        {isCurrentUser ? (
-          <TouchableOpacity
-            style={styles.nameRow}
-            onPress={() => router.push('/edit-name')}
-            activeOpacity={0.7}
-          >
+        <View style={styles.identityHeaderRow}>
+          {isCurrentUser ? (
+            <TouchableOpacity
+              style={styles.nameRow}
+              onPress={() => router.push('/edit-name')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.nameText}>{userInfo.username}</Text>
+              <Feather name='edit-3' size={18} color={Theme.black} />
+            </TouchableOpacity>
+          ) : (
             <Text style={styles.nameText}>{userInfo.username}</Text>
-            <Feather name='edit-3' size={18} color={Theme.black} />
-          </TouchableOpacity>
-        ) : (
-          <Text style={styles.nameText}>{userInfo.username}</Text>
-        )}
+          )}
 
-        {(personaBadge || timeInCanadaBadge) && (
-          <View style={styles.badgesRow}>
-            {personaBadge && (
-              <InfoBadge
-                label={personaBadge.label}
-                iconName={personaBadge.iconName}
-                backgroundColor={personaBadge.colors.backgroundColor}
-                textColor={personaBadge.colors.textColor}
-                style={styles.badge}
-              />
-            )}
-            {timeInCanadaBadge && (
-              <InfoBadge
-                label={timeInCanadaBadge.label}
-                iconName={timeInCanadaBadge.iconName}
-                backgroundColor={timeInCanadaBadge.colors.backgroundColor}
-                textColor={timeInCanadaBadge.colors.textColor}
-                style={styles.badge}
-              />
-            )}
-          </View>
-        )}
-
+          {(personaBadge || timeInCanadaBadge) && (
+            <View style={styles.badgesInlineRow}>
+              {personaBadge && (
+                <InfoBadge
+                  label={personaBadge.label}
+                  iconName={personaBadge.iconName}
+                  backgroundColor={personaBadge.colors.backgroundColor}
+                  textColor={personaBadge.colors.textColor}
+                  style={styles.badge}
+                />
+              )}
+              {timeInCanadaBadge && (
+                <InfoBadge
+                  label={timeInCanadaBadge.label}
+                  iconName={timeInCanadaBadge.iconName}
+                  backgroundColor={timeInCanadaBadge.colors.backgroundColor}
+                  textColor={timeInCanadaBadge.colors.textColor}
+                  style={styles.badge}
+                />
+              )}
+            </View>
+          )}
+        </View>
       </View>
-
       <View style={styles.groupsSection}>
         <Text style={styles.groupsTitle}>Groups</Text>
 
@@ -293,6 +293,12 @@ const styles = StyleSheet.create({
   identitySection: {
     gap: 8,
   },
+  identityHeaderRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 10,
+  },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -305,6 +311,12 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
   badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+  },
+  badgesInlineRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
@@ -362,8 +374,8 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     marginTop: 1,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 15,
+    lineHeight: 20,
     fontWeight: '500',
     color: Theme.textAlternateGray,
   },
