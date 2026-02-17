@@ -20,10 +20,29 @@ import {
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
-import { Priority, UserTaskWithDetails } from '@/types/checklist';
+import { ChecklistLinkTabSlug, Priority, UserTaskWithDetails } from '@/types/checklist';
 import Header from '@/components/Header';
 import LoadingScreen from '@/components/LoadingScreen';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+/**
+ * Map checklist tab slug to (tabs) route for "Learn how" navigation.
+ * Paths must match tab bar in app/(tabs)/_layout.tsx (Tabs.Screen name):
+ * - index (Home), Gather (Community), companion, Checklist, Learn.
+ */
+const TAB_SLUG_TO_ROUTE: Record<ChecklistLinkTabSlug, string> = {
+  home: '/(tabs)/index',
+  community: '/(tabs)/Gather/gather',
+  companion: '/(tabs)/companion',
+  checklist: '/(tabs)/Checklist',
+  learn: '/(tabs)/Learn',
+};
+
+/** Optional aliases if Sanity uses different slug values (e.g. gather → community) */
+const TAB_SLUG_ALIASES: Record<string, ChecklistLinkTabSlug> = {
+  gather: 'community',
+  index: 'home',
+};
 
 /** Time-in-Canada display ranges (no stage labels) */
 const stageDescriptions: Record<number, string> = {
@@ -145,9 +164,12 @@ export default function ChecklistScreen() {
       handleCloseModal();
       return;
     }
-    const { linkModuleId, linkSubmoduleId } = selectedTask.task;
+    const { linkTab, linkModuleId, linkSubmoduleId } = selectedTask.task;
     handleCloseModal();
-    if (linkSubmoduleId && linkModuleId) {
+    const resolvedTab = linkTab && (TAB_SLUG_ALIASES[linkTab] ?? linkTab);
+    if (resolvedTab && TAB_SLUG_TO_ROUTE[resolvedTab]) {
+      router.push(TAB_SLUG_TO_ROUTE[resolvedTab] as any);
+    } else if (linkSubmoduleId && linkModuleId) {
       router.push(
         `/(tabs)/Learn/modules/${linkModuleId}/${linkSubmoduleId}` as any
       );

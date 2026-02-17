@@ -56,14 +56,16 @@ export default function RichTextRenderer({
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
 
-  // Matching question state - track per question using block _key
+  // Matching question state - track per question using block _key (right by index so duplicate values select only one)
   const [matchingQuestionState, setMatchingQuestionState] = useState<{
     [questionKey: string]: {
       selectedLeftItem: string | null;
-      selectedRightItem: string | null;
+      selectedRightIndex: number | null;
       matchedPairs: { [key: string]: string };
-      completedPairs: string[];
-      incorrectPairs: string[];
+      completedLeftItems: string[];
+      completedRightIndices: number[];
+      incorrectLeftItems: string[];
+      incorrectRightIndices: number[];
     };
   }>({});
 
@@ -158,13 +160,13 @@ export default function RichTextRenderer({
       marginBottom: 5, // Consistent spacing between paragraphs
     },
 
-    // Lists
+    // Lists (lineHeight matches normal for consistent body text)
     bullet: {
       fontFamily: 'Font Family',
       fontWeight: '400',
       fontStyle: 'normal',
       fontSize: 18,
-      lineHeight: 20,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#374151',
       marginBottom: 10, // Spacing between bullet items
@@ -175,7 +177,7 @@ export default function RichTextRenderer({
       fontWeight: '400',
       fontStyle: 'normal',
       fontSize: 18,
-      lineHeight: 20,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#374151',
       marginBottom: 3, // Spacing between numbered items
@@ -260,7 +262,7 @@ export default function RichTextRenderer({
       fontWeight: '400',
       fontStyle: 'normal',
       fontSize: 18,
-      lineHeight: 20,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#374151',
     },
@@ -1060,10 +1062,12 @@ export default function RichTextRenderer({
       // Get state for this question, initialize if needed
       const questionState = matchingQuestionState[questionKey] || {
         selectedLeftItem: null,
-        selectedRightItem: null,
+        selectedRightIndex: null,
         matchedPairs: {},
-        completedPairs: [],
-        incorrectPairs: [],
+        completedLeftItems: [],
+        completedRightIndices: [],
+        incorrectLeftItems: [],
+        incorrectRightIndices: [],
       };
 
       // Get scrambled right items for this question
@@ -1071,46 +1075,42 @@ export default function RichTextRenderer({
         scrambledRightItemsMap[questionKey] ||
         (block.matching_pairs || []).map((pair: any) => pair.right_item);
 
-      const {
-        selectedLeftItem,
-        selectedRightItem,
-        completedPairs,
-        incorrectPairs,
-      } = questionState;
+      const { selectedLeftItem, selectedRightIndex, completedLeftItems, completedRightIndices, incorrectLeftItems, incorrectRightIndices } = questionState;
 
-      const handleMatchingItemSelect = (
-        item: string,
-        side: 'left' | 'right'
-      ) => {
-        if (completedPairs.includes(item)) return;
-
+      const handleMatchingItemSelect = (itemOrIndex: string | number, side: 'left' | 'right') => {
         setMatchingQuestionState(prev => {
           const current = prev[questionKey] || {
             selectedLeftItem: null,
-            selectedRightItem: null,
+            selectedRightIndex: null,
             matchedPairs: {},
-            completedPairs: [],
-            incorrectPairs: [],
+            completedLeftItems: [],
+            completedRightIndices: [],
+            incorrectLeftItems: [],
+            incorrectRightIndices: [],
           };
 
           if (side === 'left') {
+            const item = itemOrIndex as string;
+            if (current.completedLeftItems.includes(item)) return prev;
             return {
               ...prev,
               [questionKey]: {
                 ...current,
-                selectedLeftItem:
-                  current.selectedLeftItem === item ? null : item,
-                incorrectPairs: [], // Clear incorrect pairs on new selection
+                selectedLeftItem: current.selectedLeftItem === item ? null : item,
+                incorrectLeftItems: [],
+                incorrectRightIndices: [],
               },
             };
           } else {
+            const idx = itemOrIndex as number;
+            if (current.completedRightIndices.includes(idx)) return prev;
             return {
               ...prev,
               [questionKey]: {
                 ...current,
-                selectedRightItem:
-                  current.selectedRightItem === item ? null : item,
-                incorrectPairs: [], // Clear incorrect pairs on new selection
+                selectedRightIndex: current.selectedRightIndex === idx ? null : idx,
+                incorrectLeftItems: [],
+                incorrectRightIndices: [],
               },
             };
           }
@@ -1118,7 +1118,8 @@ export default function RichTextRenderer({
       };
 
       const handleMatchingCheck = () => {
-        if (!selectedLeftItem || !selectedRightItem) return;
+        if (selectedLeftItem === null || selectedRightIndex === null) return;
+        const selectedRightItem = scrambledRightItems[selectedRightIndex];
 
         const correctMatch = (block.matching_pairs || []).find(
           (pair: any) =>
@@ -1129,19 +1130,15 @@ export default function RichTextRenderer({
         setMatchingQuestionState(prev => {
           const current = prev[questionKey] || {
             selectedLeftItem: null,
-            selectedRightItem: null,
+            selectedRightIndex: null,
             matchedPairs: {},
-            completedPairs: [],
-            incorrectPairs: [],
+            completedLeftItems: [],
+            completedRightIndices: [],
+            incorrectLeftItems: [],
+            incorrectRightIndices: [],
           };
 
           if (correctMatch) {
-            // Correct match
-            const newCompletedPairs = [
-              ...current.completedPairs,
-              selectedLeftItem,
-              selectedRightItem,
-            ];
             return {
               ...prev,
               [questionKey]: {
@@ -1150,28 +1147,23 @@ export default function RichTextRenderer({
                   ...current.matchedPairs,
                   [selectedLeftItem]: selectedRightItem,
                 },
-                completedPairs: newCompletedPairs,
+                completedLeftItems: [...current.completedLeftItems, selectedLeftItem],
+                completedRightIndices: [...current.completedRightIndices, selectedRightIndex],
                 selectedLeftItem: null,
-                selectedRightItem: null,
-                incorrectPairs: current.incorrectPairs.filter(
-                  item =>
-                    item !== selectedLeftItem && item !== selectedRightItem
-                ),
+                selectedRightIndex: null,
+                incorrectLeftItems: current.incorrectLeftItems.filter(i => i !== selectedLeftItem),
+                incorrectRightIndices: current.incorrectRightIndices.filter(i => i !== selectedRightIndex),
               },
             };
           } else {
-            // Incorrect match
             return {
               ...prev,
               [questionKey]: {
                 ...current,
-                incorrectPairs: [
-                  ...current.incorrectPairs,
-                  selectedLeftItem,
-                  selectedRightItem,
-                ],
+                incorrectLeftItems: [...current.incorrectLeftItems, selectedLeftItem],
+                incorrectRightIndices: [...current.incorrectRightIndices, selectedRightIndex],
                 selectedLeftItem: null,
-                selectedRightItem: null,
+                selectedRightIndex: null,
               },
             };
           }
@@ -1198,15 +1190,13 @@ export default function RichTextRenderer({
                         styles.matchingItem,
                         selectedLeftItem === pair.left_item &&
                           styles.matchingItemSelected,
-                        completedPairs.includes(pair.left_item) &&
+                        completedLeftItems.includes(pair.left_item) &&
                           styles.matchingItemCompleted,
-                        incorrectPairs.includes(pair.left_item) &&
+                        incorrectLeftItems.includes(pair.left_item) &&
                           styles.matchingItemIncorrect,
                       ]}
-                      onPress={() =>
-                        handleMatchingItemSelect(pair.left_item, 'left')
-                      }
-                      disabled={completedPairs.includes(pair.left_item)}
+                      onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
+                      disabled={completedLeftItems.includes(pair.left_item)}
                     >
                       <Text style={styles.matchingItemText}>
                         {pair.left_item}
@@ -1224,17 +1214,15 @@ export default function RichTextRenderer({
                       key={`right-${itemIndex}-${rightItem}`}
                       style={[
                         styles.matchingItem,
-                        selectedRightItem === rightItem &&
+                        selectedRightIndex === itemIndex &&
                           styles.matchingItemSelected,
-                        completedPairs.includes(rightItem) &&
+                        completedRightIndices.includes(itemIndex) &&
                           styles.matchingItemCompleted,
-                        incorrectPairs.includes(rightItem) &&
+                        incorrectRightIndices.includes(itemIndex) &&
                           styles.matchingItemIncorrect,
                       ]}
-                      onPress={() =>
-                        handleMatchingItemSelect(rightItem, 'right')
-                      }
-                      disabled={completedPairs.includes(rightItem)}
+                      onPress={() => handleMatchingItemSelect(itemIndex, 'right')}
+                      disabled={completedRightIndices.includes(itemIndex)}
                     >
                       <Text style={styles.matchingItemText}>{rightItem}</Text>
                     </TouchableOpacity>
@@ -1247,16 +1235,16 @@ export default function RichTextRenderer({
             <TouchableOpacity
               style={[
                 styles.matchingCheckButton,
-                (!selectedLeftItem || !selectedRightItem) &&
+                (selectedLeftItem === null || selectedRightIndex === null) &&
                   styles.matchingCheckButtonDisabled,
               ]}
               onPress={handleMatchingCheck}
-              disabled={!selectedLeftItem || !selectedRightItem}
+              disabled={selectedLeftItem === null || selectedRightIndex === null}
             >
               <Text
                 style={[
                   styles.matchingCheckButtonText,
-                  (!selectedLeftItem || !selectedRightItem) &&
+                  (selectedLeftItem === null || selectedRightIndex === null) &&
                     styles.matchingCheckButtonTextDisabled,
                 ]}
               >
