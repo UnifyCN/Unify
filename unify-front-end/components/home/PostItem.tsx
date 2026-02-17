@@ -5,9 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
+  Linking,
   Pressable,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
+import RenderHtml, { MixedStyleDeclaration } from 'react-native-render-html';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Like from '@/assets/images/Like.svg';
@@ -56,6 +59,7 @@ export const PostItem = memo(
     const router = useRouter();
     const { currentUser } = useCurrentUser();
     const { showToast } = useToast();
+    const { width } = useWindowDimensions();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const {
       trackPostLike,
@@ -80,9 +84,17 @@ export const PostItem = memo(
     const content = post.content?.trim() ?? '';
     const shouldShowReadMore = content.length > 170;
     const useMaxBodyPreviewHeight = shouldShowReadMore;
+    const stripHtml = (html: string) =>
+      html
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .trim();
+
+    const isHtmlContent = post.content?.trim().startsWith('<html>');
+    const plainContent = isHtmlContent ? stripHtml(content) : content;
     const previewContent = shouldShowReadMore
-      ? `${content.slice(0, 170).trimEnd()}...`
-      : content;
+      ? `${plainContent.slice(0, 170).trimEnd()}...`
+      : plainContent;
 
     const handlePinPost = () => {
       pinPostMutation.mutate(
@@ -306,6 +318,65 @@ export const PostItem = memo(
       </View>
     );
 
+    // HTML rendering config
+    const tagsStyles: Record<string, MixedStyleDeclaration> = {
+      body: {
+        fontSize: 16,
+        lineHeight: 24,
+        color: '#000000',
+      },
+      p: {
+        marginTop: 8,
+        marginBottom: 8,
+      },
+      a: {
+        color: '#f68b26',
+        textDecorationLine: 'underline',
+      },
+      strong: {
+        fontWeight: '700',
+      },
+      b: {
+        fontWeight: '700',
+      },
+      em: {
+        fontStyle: 'italic',
+      },
+      i: {
+        fontStyle: 'italic',
+      },
+      u: {
+        textDecorationLine: 'underline',
+      },
+      s: {
+        textDecorationLine: 'line-through',
+      },
+      del: {
+        textDecorationLine: 'line-through',
+      },
+      strike: {
+        textDecorationLine: 'line-through',
+      },
+    };
+
+    const linkWarningTitle = 'You are about to leave Unify';
+    const linkWarningBody =
+      'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
+
+    const renderersProps = {
+      a: {
+        // Only make link clickable when post opened
+        onPress: isHomeCardVariant
+          ? undefined
+          : (_: any, href: string) => {
+              Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
+                { text: 'Go back', style: 'cancel' },
+                { text: 'Open link', onPress: () => Linking.openURL(href) },
+              ]);
+            },
+      },
+    };
+
     return (
       <View>
         <View
@@ -388,12 +459,25 @@ export const PostItem = memo(
                         styles.homeDescriptionContainerCompact,
                     ]}
                   >
-                    <Text style={styles.homeDescription} numberOfLines={3}>
-                      {previewContent}
-                      {shouldShowReadMore && (
-                        <Text style={styles.homeReadMore}> Read more</Text>
+                    <View style={shouldShowReadMore && styles.renderHtmlClamp}>
+                      {isHtmlContent ? (
+                        <RenderHtml
+                          contentWidth={width - 92}
+                          source={{ html: content }}
+                          tagsStyles={tagsStyles}
+                          renderersProps={renderersProps}
+                        />
+                      ) : (
+                        <Text style={styles.homeDescription}>
+                          {previewContent}
+                        </Text>
                       )}
-                    </Text>
+                    </View>
+                    {shouldShowReadMore && (
+                      <View style={styles.readMoreOverlay}>
+                        <Text style={styles.homeReadMore}>Read more</Text>
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -463,7 +547,19 @@ export const PostItem = memo(
                   </View>
 
                   {!shouldHideContent && (
-                    <Text style={styles.description}>{post.content}</Text>
+                    <View style={styles.contentWrapper}>
+                      {isHtmlContent ? (
+                        <RenderHtml
+                          contentWidth={width - 92}
+                          source={{ html: content }}
+                          tagsStyles={tagsStyles}
+                          renderersProps={renderersProps}
+                        />
+                      ) : (
+                        // TODO: When all content bodies are reformatted to HTML, you may remove this conditional
+                        <Text style={styles.description}>{content}</Text>
+                      )}
+                    </View>
                   )}
                 </TouchableOpacity>
                 {footer}
@@ -695,10 +791,14 @@ const styles = StyleSheet.create({
     minHeight: 24,
     marginTop: 6,
   },
+  contentWrapper: {
+    marginTop: 4,
+  },
   description: {
     fontSize: 16,
     lineHeight: 22,
     marginTop: 4,
+    color: Theme.black,
   },
   homeDescriptionContainer: {
     minHeight: 66,
@@ -819,5 +919,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#666',
+  },
+  renderHtmlClamp: {
+    maxHeight: 66, // ~3 lines at lineHeight 22
+    overflow: 'hidden',
+  },
+  readMoreOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    left: 0,
+    height: 28,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    backgroundImage: undefined,
+    paddingRight: 2,
   },
 });
