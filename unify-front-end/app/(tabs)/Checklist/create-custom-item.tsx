@@ -75,17 +75,26 @@ export default function CreateCustomItemScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.iconButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.iconButton}
+        >
           <MaterialIcons name='close' size={24} color='#111' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Checklist Item</Text>
         <TouchableOpacity
           onPress={handleSave}
           disabled={!isFormValid || isSaving}
-          style={[styles.saveButton, (!isFormValid || isSaving) && styles.saveButtonDisabled]}
+          style={[
+            styles.saveButton,
+            (!isFormValid || isSaving) && styles.saveButtonDisabled,
+          ]}
         >
           <Text
-            style={[styles.saveButtonText, (!isFormValid || isSaving) && styles.saveButtonTextDisabled]}
+            style={[
+              styles.saveButtonText,
+              (!isFormValid || isSaving) && styles.saveButtonTextDisabled,
+            ]}
           >
             {isSaving ? 'Saving...' : 'Save'}
           </Text>
@@ -101,10 +110,7 @@ export default function CreateCustomItemScreen() {
             <TouchableOpacity
               key={option}
               onPress={() => setPriority(option)}
-              style={[
-                styles.priorityOption,
-                selected && { backgroundColor },
-              ]}
+              style={[styles.priorityOption, selected && { backgroundColor }]}
               activeOpacity={0.8}
             >
               <Text
@@ -141,7 +147,10 @@ export default function CreateCustomItemScreen() {
         maxLength={280}
       />
 
-      <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
+      <TouchableOpacity
+        onPress={() => router.back()}
+        style={styles.cancelButton}
+      >
         <Text style={styles.cancelButtonText}>Cancel</Text>
       </TouchableOpacity>
     </View>

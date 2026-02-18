@@ -161,7 +161,7 @@ export const ProfileHeader = ({
 
         <View style={styles.topStatsColumn}>
           <View style={styles.statsRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.statItem}
               onPress={handleFollowersPress}
               activeOpacity={0.7}
@@ -169,7 +169,7 @@ export const ProfileHeader = ({
               <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
               <Text style={styles.statLabel}>Followers</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.statItem}
               onPress={handleFollowingPress}
               activeOpacity={0.7}
@@ -217,7 +217,6 @@ export const ProfileHeader = ({
             )}
           </View>
         )}
-
       </View>
 
       <View style={styles.groupsSection}>

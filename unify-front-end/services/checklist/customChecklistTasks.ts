@@ -53,7 +53,9 @@ export async function createCustomChecklistTask({
     .single();
 
   if (error || !data) {
-    throw new Error(`Failed to create custom checklist task: ${error?.message}`);
+    throw new Error(
+      `Failed to create custom checklist task: ${error?.message}`
+    );
   }
 
   return data as CustomChecklistTask;

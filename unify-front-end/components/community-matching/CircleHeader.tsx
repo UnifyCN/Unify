@@ -51,7 +51,9 @@ export function CircleHeader({
             isActive ? styles.statusActive : styles.statusEnded,
           ]}
         >
-          <Text style={isActive ? styles.statusActiveText : styles.statusEndedText}>
+          <Text
+            style={isActive ? styles.statusActiveText : styles.statusEndedText}
+          >
             {statusText}
           </Text>
         </View>

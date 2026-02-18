@@ -125,13 +125,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         }
       />
     );
-  }, [
-    activeTab,
-    isCurrentUser,
-    useCommentsFeedHook,
-    usePostsFeedHook,
-    userId,
-  ]);
+  }, [activeTab, isCurrentUser, useCommentsFeedHook, usePostsFeedHook, userId]);
 
   const renderItem = useCallback(
     ({ item }: { item: { key: string; type: string } }) => {
@@ -146,10 +140,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
           );
         case 'tabs':
           return (
-            <TabHeader
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
+            <TabHeader activeTab={activeTab} setActiveTab={setActiveTab} />
           );
         case 'feed':
           return <View style={styles.feedContainer}>{renderTabContent}</View>;

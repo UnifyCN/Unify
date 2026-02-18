@@ -6,7 +6,9 @@ export interface FollowingUser {
   profilePictureUrl?: string;
 }
 
-export const getFollowing = async (userId: string): Promise<FollowingUser[]> => {
+export const getFollowing = async (
+  userId: string
+): Promise<FollowingUser[]> => {
   try {
     const { data, error } = await supabase
       .from('user_followers')
@@ -42,7 +44,7 @@ export const getFollowing = async (userId: string): Promise<FollowingUser[]> => 
           profilePictureUrl: profile.profile_picture_url,
         };
       })
-      .filter((user) => user !== null) as FollowingUser[];
+      .filter(user => user !== null) as FollowingUser[];
 
     return following;
   } catch (error) {

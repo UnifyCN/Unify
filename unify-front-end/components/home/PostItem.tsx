@@ -151,9 +151,6 @@ export const PostItem = memo(
           const charsAvailable = linesAvailable * charsPerLine;
           const truncatedSegment = segmentText.slice(0, charsAvailable);
 
-          console.log('charsAvailable', charsAvailable);
-          console.log('truncatedSegment', truncatedSegment);
-
           const lastSpace = truncatedSegment.lastIndexOf(' ');
           const cutSegment =
             lastSpace > 0

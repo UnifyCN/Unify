@@ -42,7 +42,8 @@ interface CreatePostFormProps {
 const TITLE_MAX_LENGTH = 100;
 const CONTENT_MAX_LENGTH = 2000;
 
-const RichTextInput = EnrichedTextInput as React.ComponentType<EnrichedTextInputProps>;
+const RichTextInput =
+  EnrichedTextInput as React.ComponentType<EnrichedTextInputProps>;
 
 interface ToolbarButtonProps {
   icon: string;
@@ -52,10 +53,10 @@ interface ToolbarButtonProps {
 }
 
 const ToolbarButton: React.FC<ToolbarButtonProps> = ({
- icon,
- isActive,
- isBlocked,
- onPress,
+  icon,
+  isActive,
+  isBlocked,
+  onPress,
 }) => (
   <TouchableOpacity
     onPress={onPress}
