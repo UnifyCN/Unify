@@ -33,17 +33,18 @@ class CachedProgressService {
     try {
       let user = null;
       try {
-        const userResult = await progressClient.auth.getUser();
-        user = userResult?.data?.user || null;
-        if (userResult?.error) {
+        const sessionResult = await progressClient.auth.getSession();
+        user = sessionResult?.data?.session?.user || null;
+        if (sessionResult?.error) {
           console.error(
-            'Error getting user in cachedProgressService:',
-            userResult.error
+            'Error getting session in cachedProgressService:',
+            sessionResult.error
           );
+          return this.cache; // Return stale cache on auth error
         }
       } catch (authError: any) {
         console.error(
-          'Exception getting user in cachedProgressService:',
+          'Exception getting session in cachedProgressService:',
           authError
         );
         return this.cache; // Return stale cache on auth error

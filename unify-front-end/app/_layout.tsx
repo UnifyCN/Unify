@@ -90,21 +90,21 @@ export default function RootLayout() {
             ) : ( */}
                 <UserProvider>
                   <HapticsProvider>
-                    <AuthWrapper>
-                      <ThemeProvider value={DefaultTheme}>
-                        <PostHogProvider
-                          apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
-                          options={{
-                            host:
-                              process.env.EXPO_PUBLIC_POSTHOG_HOST ||
-                              'https://us.i.posthog.com',
-                          }}
-                          autocapture={{ captureScreens: false }}
-                        >
+                    <PostHogProvider
+                      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+                      options={{
+                        host:
+                          process.env.EXPO_PUBLIC_POSTHOG_HOST ||
+                          'https://us.i.posthog.com',
+                      }}
+                      autocapture={{ captureScreens: false }}
+                    >
+                      <AuthWrapper>
+                        <ThemeProvider value={DefaultTheme}>
                           <AppContent />
-                        </PostHogProvider>
-                      </ThemeProvider>
-                    </AuthWrapper>
+                        </ThemeProvider>
+                      </AuthWrapper>
+                    </PostHogProvider>
                   </HapticsProvider>
                 </UserProvider>
                 {/* )} */}
