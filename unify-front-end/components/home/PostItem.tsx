@@ -82,41 +82,33 @@ export const PostItem = memo(
     const canPin = isAdmin; // Only admins can pin/unpin
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
-    const stripHtml = (html: string) =>
-      html
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .trim();
 
-    // Find the cutoff point in plain text (up to 170 chars, ending on a full word)
-    const getPreviewHtml = (
+    // Function to help generate a preview of text for posts on the feed
+    const getPreviewFromHtml = (
       html: string,
       lineLimit: number,
       charsPerLine: number
     ): string => {
-      const segments = html.split(/<\/p>|<br\s*\/?>/gi);
-      let totalLines = 0;
-      let charsToShow = 0;
-
-      const cutHtmlAtChars = (charCount: number): string => {
+      // Helper function for splicing HTML tags to get plain text
+      const getTextFromHtml = (charCount: number): string => {
         let hIdx = 0;
         let pIdx = 0;
+
         while (pIdx < charCount && hIdx < html.length) {
           if (html[hIdx] === '<') {
             while (hIdx < html.length && html[hIdx] !== '>') hIdx++;
-            hIdx++;
-          } else if (html[hIdx] === '\n' || html[hIdx] === '\r') {
-            // Skip raw newlines in HTML source — they aren't visible characters
             hIdx++;
           } else {
             hIdx++;
             pIdx++;
           }
         }
+
         const openTags: string[] = [];
-        const tagPattern = /<(\/?)(b|i|u|s|p|strong|em|a|del|strike)\b[^>]*>/gi;
-        let m;
+        const tagPattern = /<(\/?)([biuspa])\b[^>]*>/gi;
         const tempHtml = html.slice(0, hIdx);
+        let m;
+
         while ((m = tagPattern.exec(tempHtml)) !== null) {
           if (m[1] === '/') {
             const last = openTags.lastIndexOf(m[2].toLowerCase());
@@ -125,33 +117,39 @@ export const PostItem = memo(
             openTags.push(m[2].toLowerCase());
           }
         }
+
         const closingTags = openTags
-          .reverse()
+          .toReversed()
           .map(t => `</${t}>`)
           .join('');
+
         return html.slice(0, hIdx) + '...' + closingTags;
       };
 
+      const segments = html.split(/<\/p>|<br\s*\/?>/gi); // e.g. "<p>Bold"
+      let totalLines = 0; // Running count of occupied lines
+      let charsToShow = 0; // Keeps track of which index to splice text from in HTML
+
       for (const element of segments) {
-        const segmentPlain = element
-          .replace(/<[^>]*>/g, '')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/[\n\r]/g, '');
+        const segmentText = element // e.g. "Bold"
+          .replaceAll(/<[^>]*>/g, '')
+          .replaceAll('&nbsp;', ' ')
+          .replaceAll('\r', '');
 
-        if (segmentPlain.length === 0) continue;
+        if (segmentText.length === 0) continue;
 
-        const segmentLines = Math.ceil(segmentPlain.length / charsPerLine);
+        const segmentLines = Math.ceil(segmentText.length / charsPerLine);
 
         if (totalLines + segmentLines >= lineLimit) {
           const linesAvailable = lineLimit - totalLines;
 
+          // If out of lines, cut off text
           if (linesAvailable <= 0) {
-            // Already at limit, cut right here
-            return cutHtmlAtChars(charsToShow);
+            return getTextFromHtml(charsToShow);
           }
 
           const charsAvailable = linesAvailable * charsPerLine;
-          const truncatedSegment = segmentPlain.slice(0, charsAvailable);
+          const truncatedSegment = segmentText.slice(0, charsAvailable);
 
           console.log('charsAvailable', charsAvailable);
           console.log('truncatedSegment', truncatedSegment);
@@ -162,47 +160,45 @@ export const PostItem = memo(
               ? truncatedSegment.slice(0, lastSpace)
               : truncatedSegment;
 
-          return cutHtmlAtChars(charsToShow + cutSegment.length);
+          return getTextFromHtml(charsToShow + cutSegment.length);
         }
 
         totalLines += segmentLines;
-        charsToShow += segmentPlain.length;
+        charsToShow += segmentText.length;
       }
 
       return html;
     };
 
-    const isHtmlContent = post.content?.trim().startsWith('<html>');
-    const plainContent = isHtmlContent ? stripHtml(content) : content;
-
     // Max characters considered to be a "line break" based on the width of the screen
-    // Adjust if necessary to keep it easy on the eyes:
-    const CHARS_PER_LINE = Math.floor(width / 11);
-    const MAX_CHARS = 170;
-    const MAX_LINES = 5;
+    // Adjust if necessary to keep it easy on the eyes
+    // NOTE: Calculation is an estimate and will not be exact, if text overflows beyond MAX_LINES this may be the cause
+    const CHARS_PER_LINE = Math.floor(width / 10);
+    const MAX_LINES = 3;
 
+    // Calculate number potentially visible lines based on HTML and enforced CHARS_PER_LINE
     const countVisualLines = (html: string) => {
       const segments = html.split(/<\/p>|<br\s*\/?>/gi);
       let total = 0;
       for (const element of segments) {
         const seg = element
-          .replace(/<[^>]*>/g, '')
-          .replace(/&nbsp;/g, ' ')
-          .trim();
-        if (seg.length === 0) continue; // skip empty segments entirely
+          .replaceAll(/<[^>]*>/g, '')
+          .replaceAll('&nbsp;', ' ')
+          .replaceAll('\r', '');
+        if (seg.length === 0) continue;
         const wrappedLines = Math.ceil(seg.length / CHARS_PER_LINE);
         total += wrappedLines;
       }
-      console.log(html)
-      console.log(total)
       return Math.max(1, total);
     };
 
+    // Determine if "Read more" text should be displayed
     const shouldShowReadMore = countVisualLines(content) > MAX_LINES;
     const useMaxBodyPreviewHeight = shouldShowReadMore;
 
+    // Get preview text that will be displayed on cards
     const previewHtml = shouldShowReadMore
-      ? getPreviewHtml(content, MAX_LINES, CHARS_PER_LINE)
+      ? getPreviewFromHtml(content, MAX_LINES, CHARS_PER_LINE)
       : content;
 
     const handlePinPost = () => {
@@ -282,6 +278,16 @@ export const PostItem = memo(
       }
     };
 
+    const navigateToComments = () => {
+      trackPostCommentOpened(post.id.toString());
+      router.push({
+        pathname: '/post-details',
+        params: {
+          post: JSON.stringify(post),
+        },
+      });
+    };
+
     const handleDeletePost = () => {
       Alert.alert(
         'Delete Post',
@@ -311,16 +317,6 @@ export const PostItem = memo(
           },
         ]
       );
-    };
-
-    const navigateToComments = () => {
-      trackPostCommentOpened(post.id.toString());
-      router.push({
-        pathname: '/post-details',
-        params: {
-          post: JSON.stringify(post),
-        },
-      });
     };
 
     // Use batch-loaded metadata with loading state
@@ -464,16 +460,19 @@ export const PostItem = memo(
       },
     };
 
+    // Warning text for when links are being opened
     const linkWarningTitle = 'You are about to leave Unify';
     const linkWarningBody =
       'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
 
+    // For handling clicks on links
     const renderersProps = {
       a: {
         // Only make link clickable when post opened
         onPress: isHomeCardVariant
           ? undefined
           : (_: any, href: string) => {
+              // Open warning alert on click
               Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
                 { text: 'Go back', style: 'cancel' },
                 { text: 'Open link', onPress: () => Linking.openURL(href) },
@@ -491,6 +490,7 @@ export const PostItem = memo(
             isHomeCardVariant && styles.homeCardContainer,
           ]}
         >
+          {/* Home card variant */}
           {isHomeCardVariant ? (
             <Pressable
               style={({ pressed }) => [
@@ -557,6 +557,7 @@ export const PostItem = memo(
 
               <View style={[styles.postBody, styles.homePostBody]}>
                 {!shouldHideContent && (
+                  // Enforce max height if long text, otherwise keep compact
                   <View
                     style={[
                       styles.homeDescriptionContainer,
@@ -582,6 +583,7 @@ export const PostItem = memo(
               {footer}
             </Pressable>
           ) : (
+            // Non home card variant
             <>
               <TouchableOpacity
                 style={styles.headshot}
