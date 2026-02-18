@@ -14,6 +14,7 @@ import CompanionIcon from '@/components/icons/CompanionIcon';
 import { useAnalytics } from '@/utils/analytics';
 import ChecklistIcon from '@/components/icons/ChecklistIcon';
 import { useHapticsPreference } from '@/context/HapticsContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TabIcon = ({ IconComponent, title, focused }: any) => {
   return (
@@ -43,6 +44,7 @@ export default function TabLayout() {
   const previousTabRef = useRef('index');
   const { trackTabSwitch } = useAnalytics();
   const { hapticsEnabled } = useHapticsPreference();
+  const insets = useSafeAreaInsets();
 
   // Map route names to display names
   const getTabDisplayName = (routeName: string) => {
@@ -76,7 +78,7 @@ export default function TabLayout() {
             : {
                 flexDirection: 'row',
                 paddingTop: 12,
-                paddingBottom: 52,
+                paddingBottom: Math.max(insets.bottom, 12),
                 borderTopWidth: 1,
                 borderTopColor: '#F0F0F0',
               },

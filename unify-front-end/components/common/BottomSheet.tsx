@@ -12,8 +12,8 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import {
   Gesture,
   GestureDetector,
@@ -87,7 +87,7 @@ export default function BottomSheet({
           stiffness: 90,
         });
         opacity.value = withTiming(0, { duration: ANIMATION_DURATION });
-        runOnJS(onClose)();
+        scheduleOnRN(onClose);
       } else {
         translateY.value = withSpring(0, {
           damping: 20,

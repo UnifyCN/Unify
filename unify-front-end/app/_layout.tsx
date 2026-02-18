@@ -37,6 +37,7 @@ export default function RootLayout() {
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
   const isReady = loaded;
+  const posthogApiKey = process.env.EXPO_PUBLIC_POSTHOG_API_KEY;
 
   // Create a client
   const queryClient = React.useMemo(
@@ -91,8 +92,9 @@ export default function RootLayout() {
                 <UserProvider>
                   <HapticsProvider>
                     <PostHogProvider
-                      apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+                      {...(posthogApiKey ? { apiKey: posthogApiKey } : {})}
                       options={{
+                        disabled: !posthogApiKey,
                         host:
                           process.env.EXPO_PUBLIC_POSTHOG_HOST ||
                           'https://us.i.posthog.com',

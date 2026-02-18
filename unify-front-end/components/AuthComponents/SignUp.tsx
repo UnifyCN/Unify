@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, Modal } from 'react-native';
-import { CheckBox } from 'react-native-elements';
+import { Checkbox } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import isExpoGo from '../../utils/isExpoGo';
@@ -301,17 +301,14 @@ export function SignUp({
 
       {/* Privacy Policy and Community Guidelines checkbox */}
       <View style={styles.checkboxRow}>
-        <CheckBox
-          checked={isChecked}
-          onPress={() => setIsChecked(!isChecked)}
-          containerStyle={styles.checkboxContainer}
-          iconType='material-community'
-          checkedIcon='checkbox-marked'
-          uncheckedIcon='checkbox-blank-outline'
-          checkedColor='black'
-          uncheckedColor='black'
-          wrapperStyle={styles.checkboxWrapper}
-        />
+        <View style={styles.checkboxContainer}>
+          <Checkbox
+            status={isChecked ? 'checked' : 'unchecked'}
+            onPress={() => setIsChecked(!isChecked)}
+            color='black'
+            uncheckedColor='black'
+          />
+        </View>
         <Text style={styles.checkboxText}>
           I agree to the{' '}
           <Text
@@ -477,10 +474,8 @@ const styles = {
   // Terms and conditions checkbox style
   checkboxContainer: {
     backgroundColor: 'transparent' as 'transparent',
-    borderWidth: 0,
-    padding: 0,
     margin: 0,
-    marginVertical: 10 * 0.87,
+    marginVertical: 6 * 0.87,
     alignSelf: 'flex-start' as 'flex-start',
   },
   checkboxText: {
@@ -500,10 +495,6 @@ const styles = {
     fontSize: 16 * 0.87,
     color: '#5182C7', // Style the link text
     textDecorationLine: 'underline' as 'underline',
-  },
-  checkboxWrapper: {
-    margin: 0, // Remove wrapper margin
-    padding: 0, // Remove wrapper padding
   },
   buttonDisabled: {
     backgroundColor: '#E7E7E9',

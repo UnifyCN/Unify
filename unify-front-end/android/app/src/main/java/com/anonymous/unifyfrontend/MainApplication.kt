@@ -2,6 +2,7 @@ package com.anonymous.unifyfrontend
 
 import android.app.Application
 import android.content.res.Configuration
+import android.util.Log
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -17,6 +18,9 @@ import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
 class MainApplication : Application(), ReactApplication {
+  companion object {
+    private const val TAG = "MainApplication"
+  }
 
   override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
       this,
@@ -43,6 +47,11 @@ class MainApplication : Application(), ReactApplication {
     DefaultNewArchitectureEntryPoint.releaseLevel = try {
       ReleaseLevel.valueOf(BuildConfig.REACT_NATIVE_RELEASE_LEVEL.uppercase())
     } catch (e: IllegalArgumentException) {
+      Log.w(
+          TAG,
+          "Invalid REACT_NATIVE_RELEASE_LEVEL='${BuildConfig.REACT_NATIVE_RELEASE_LEVEL}'. Falling back to STABLE.",
+          e
+      )
       ReleaseLevel.STABLE
     }
     loadReactNative(this)

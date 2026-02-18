@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
-import { CheckBox } from 'react-native-elements';
+import { Checkbox } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
 import LegalWebView from '@/components/LegalWebView';
@@ -96,16 +96,14 @@ export default function LegalConsentModal({
 
             {/* Checkbox row */}
             <View style={styles.checkboxRow}>
-              <CheckBox
-                checked={isChecked}
-                onPress={() => setIsChecked(!isChecked)}
-                containerStyle={styles.checkboxContainer}
-                iconType='material-community'
-                checkedIcon='checkbox-marked'
-                uncheckedIcon='checkbox-blank-outline'
-                checkedColor={Theme.black}
-                uncheckedColor={Theme.black}
-              />
+              <View style={styles.checkboxContainer}>
+                <Checkbox
+                  status={isChecked ? 'checked' : 'unchecked'}
+                  onPress={() => setIsChecked(!isChecked)}
+                  color={Theme.black}
+                  uncheckedColor={Theme.black}
+                />
+              </View>
               <Text style={styles.checkboxText}>
                 I agree to the{' '}
                 <Text
@@ -192,9 +190,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   checkboxContainer: {
-    backgroundColor: 'transparent',
-    borderWidth: 0,
-    padding: 0,
     margin: 0,
     marginRight: 8,
   },

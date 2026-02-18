@@ -7,8 +7,8 @@ import Animated, {
   withSequence,
   withDelay,
   Easing,
-  runOnJS,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -45,7 +45,7 @@ export default function AnimatedSplash({
         { duration: 200, easing: Easing.out(Easing.ease) },
         finished => {
           if (finished) {
-            runOnJS(onAnimationComplete)();
+            scheduleOnRN(onAnimationComplete);
           }
         }
       )

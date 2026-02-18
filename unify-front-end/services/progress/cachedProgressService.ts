@@ -33,8 +33,10 @@ class CachedProgressService {
     try {
       let user = null;
       try {
+        // getSession() reads the locally cached auth session without a network request.
+        // This avoids startup instability we hit with getUser(), while Supabase still
+        // enforces JWT validity via RLS on subsequent database queries.
         const sessionResult = await progressClient.auth.getSession();
-        user = sessionResult?.data?.session?.user || null;
         if (sessionResult?.error) {
           console.error(
             'Error getting session in cachedProgressService:',
@@ -42,6 +44,7 @@ class CachedProgressService {
           );
           return this.cache; // Return stale cache on auth error
         }
+        user = sessionResult?.data?.session?.user || null;
       } catch (authError: any) {
         console.error(
           'Exception getting session in cachedProgressService:',

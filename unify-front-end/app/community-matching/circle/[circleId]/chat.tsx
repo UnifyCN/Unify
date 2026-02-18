@@ -245,14 +245,23 @@ export default function CircleChatScreen() {
           filter: `circle_id=eq.${circleId}`,
         },
         payload => {
-          // Avoid duplicates (in case optimistic update already added it)
           setMessages(prev => {
-            const exists = prev.some(m => m.id === payload.new.id);
+            const deduped = prev.filter(
+              m =>
+                m.id !== payload.new.id &&
+                !(
+                  m.id.startsWith('temp-') &&
+                  m.sender_user_id === payload.new.sender_user_id &&
+                  m.content === payload.new.content
+                )
+            );
+
+            const exists = deduped.some(m => m.id === payload.new.id);
             if (exists) {
-              return prev;
+              return deduped;
             }
             return [
-              ...prev,
+              ...deduped,
               {
                 id: payload.new.id,
                 circle_id: payload.new.circle_id,
@@ -327,6 +336,10 @@ export default function CircleChatScreen() {
     presenceChannelRef.current = presenceChannel;
 
     return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
       supabase.removeChannel(presenceChannel);
       presenceChannelRef.current = null;
     };
@@ -344,8 +357,8 @@ export default function CircleChatScreen() {
       return;
     }
 
-    // Clear input immediately for better UX
-    setText('');
+    // Clear input through the typing-aware handler so presence updates correctly.
+    handleTextChange('');
     setIsSending(true);
 
     // Optimistically add the message to the list
@@ -666,12 +679,7 @@ export default function CircleChatScreen() {
 
       {/* Member Identity Modal */}
       {selectedMember && (
-        <Modal
-          animationType='fade'
-          transparent={true}
-          visible={!!selectedMember}
-          onRequestClose={handleCloseModal}
-        >
+        <Modal animationType='fade' transparent={true} onRequestClose={handleCloseModal}>
           <TouchableOpacity
             style={styles.modalOverlay}
             activeOpacity={1}
