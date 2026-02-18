@@ -20,7 +20,7 @@ const isValidCircleId = (id: unknown): id is string =>
 export function usePushNotifications() {
   const { currentUser } = useCurrentUser();
   const router = useRouter();
-  const responseListenerRef = useRef<Subscription>();
+  const responseListenerRef = useRef<Subscription | null>(null);
 
   useEffect(() => {
     if (!currentUser) return;
