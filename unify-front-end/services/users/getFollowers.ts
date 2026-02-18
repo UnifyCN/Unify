@@ -42,7 +42,7 @@ export const getFollowers = async (userId: string): Promise<FollowerUser[]> => {
           profilePictureUrl: profile.profile_picture_url,
         };
       })
-      .filter((follower) => follower !== null) as FollowerUser[];
+      .filter(follower => follower !== null) as FollowerUser[];
 
     return followers;
   } catch (error) {

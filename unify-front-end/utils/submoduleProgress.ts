@@ -51,10 +51,7 @@ const resolveQuizQuestionCount = (lesson: SanityLessonWithQuizzes): number => {
 };
 
 const getLessonPageBreakdown = (lesson: SanityLessonWithQuizzes) => {
-  const lessonPages = resolvePageCount(
-    lesson.pages,
-    lesson.lesson_page_count
-  );
+  const lessonPages = resolvePageCount(lesson.pages, lesson.lesson_page_count);
   const activityPages = resolvePageCount(
     lesson.activity_pages,
     lesson.activity_page_count

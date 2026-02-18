@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { Message } from '@/helpers/companion/messageHelpers';
+import SourceViewer from './SourceViewer';
 
 interface MessageWithSourcesProps {
   item: Message;
@@ -138,141 +139,140 @@ const renderMarkdownLine = (
  * Supports: ## Headers, **bold**, - bullet points, and [links](url)
  * Special styling for "At a Glance" section
  */
-const MarkdownText: React.FC<{ text: string; isUser: boolean }> = memo(({
-  text,
-  isUser,
-}) => {
-  const baseColor = isUser ? '#fff' : '#333';
+const MarkdownText: React.FC<{ text: string; isUser: boolean }> = memo(
+  ({ text, isUser }) => {
+    const baseColor = isUser ? '#fff' : '#333';
 
-  const elements = useMemo(() => {
-    // Split text into lines for processing
-    const lines = text.split('\n');
-    const nextElements: React.ReactNode[] = [];
+    const elements = useMemo(() => {
+      // Split text into lines for processing
+      const lines = text.split('\n');
+      const nextElements: React.ReactNode[] = [];
 
-    // Find "At a Glance" section boundaries
-    let atAGlanceStart = -1;
-    let atAGlanceEnd = -1;
+      // Find "At a Glance" section boundaries
+      let atAGlanceStart = -1;
+      let atAGlanceEnd = -1;
 
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine.startsWith('## ')) {
-        const headerText = trimmedLine.substring(3).toLowerCase();
-        if (headerText.includes('at a glance') && atAGlanceStart === -1) {
-          atAGlanceStart = index;
-        } else if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
-          // Found next header after "At a Glance"
-          atAGlanceEnd = index;
+      lines.forEach((line, index) => {
+        const trimmedLine = line.trim();
+        if (trimmedLine.startsWith('## ')) {
+          const headerText = trimmedLine.substring(3).toLowerCase();
+          if (headerText.includes('at a glance') && atAGlanceStart === -1) {
+            atAGlanceStart = index;
+          } else if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
+            // Found next header after "At a Glance"
+            atAGlanceEnd = index;
+          }
         }
-      }
-    });
+      });
 
-    // If "At a Glance" exists but no following header, it goes to the first empty line or end
-    if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
-      // Find the end by looking for an empty line after content
-      let foundContent = false;
-      for (let i = atAGlanceStart + 1; i < lines.length; i++) {
-        const trimmed = lines[i].trim();
-        if (trimmed.length > 0) {
-          foundContent = true;
-        } else if (foundContent) {
-          atAGlanceEnd = i;
-          break;
+      // If "At a Glance" exists but no following header, it goes to the first empty line or end
+      if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
+        // Find the end by looking for an empty line after content
+        let foundContent = false;
+        for (let i = atAGlanceStart + 1; i < lines.length; i++) {
+          const trimmed = lines[i].trim();
+          if (trimmed.length > 0) {
+            foundContent = true;
+          } else if (foundContent) {
+            atAGlanceEnd = i;
+            break;
+          }
         }
-      }
-      if (atAGlanceEnd === -1) {
-        atAGlanceEnd = lines.length;
-      }
-    }
-
-    // Process lines and group "At a Glance" section
-    const atAGlanceContent: React.ReactNode[] = [];
-    let isFirstHeader = true;
-    let currentSection: SectionType = 'general';
-
-    lines.forEach((line, lineIndex) => {
-      const trimmedLine = line.trim();
-
-      // Determine current section based on headers
-      if (trimmedLine.startsWith('## ')) {
-        const headerText = trimmedLine.substring(3).toLowerCase();
-        if (headerText.includes('at a glance')) {
-          currentSection = 'at_a_glance';
-        } else if (headerText.includes('what you need to know')) {
-          currentSection = 'need_to_know';
-        } else if (headerText.includes('next steps')) {
-          currentSection = 'next_steps';
-        } else if (headerText.includes('learn more')) {
-          currentSection = 'learn_more';
-        } else {
-          currentSection = 'general';
+        if (atAGlanceEnd === -1) {
+          atAGlanceEnd = lines.length;
         }
       }
 
-      // Check if we're in the "At a Glance" section
-      const isInAtAGlance =
-        atAGlanceStart !== -1 &&
-        lineIndex >= atAGlanceStart &&
-        lineIndex < atAGlanceEnd;
+      // Process lines and group "At a Glance" section
+      const atAGlanceContent: React.ReactNode[] = [];
+      let isFirstHeader = true;
+      let currentSection: SectionType = 'general';
 
-      if (isInAtAGlance) {
+      lines.forEach((line, lineIndex) => {
+        const trimmedLine = line.trim();
+
+        // Determine current section based on headers
+        if (trimmedLine.startsWith('## ')) {
+          const headerText = trimmedLine.substring(3).toLowerCase();
+          if (headerText.includes('at a glance')) {
+            currentSection = 'at_a_glance';
+          } else if (headerText.includes('what you need to know')) {
+            currentSection = 'need_to_know';
+          } else if (headerText.includes('next steps')) {
+            currentSection = 'next_steps';
+          } else if (headerText.includes('learn more')) {
+            currentSection = 'learn_more';
+          } else {
+            currentSection = 'general';
+          }
+        }
+
+        // Check if we're in the "At a Glance" section
+        const isInAtAGlance =
+          atAGlanceStart !== -1 &&
+          lineIndex >= atAGlanceStart &&
+          lineIndex < atAGlanceEnd;
+
+        if (isInAtAGlance) {
+          const element = renderMarkdownLine(
+            trimmedLine,
+            lineIndex,
+            baseColor,
+            trimmedLine.startsWith('## ') && isFirstHeader,
+            currentSection,
+            true
+          );
+          if (element) {
+            if (trimmedLine.startsWith('## ')) {
+              isFirstHeader = false;
+            }
+            atAGlanceContent.push(element);
+          }
+
+          // If this is the last line of "At a Glance", wrap and add the section
+          if (lineIndex === atAGlanceEnd - 1) {
+            nextElements.push(
+              <View key='at-a-glance-section' style={styles.atAGlanceCard}>
+                {atAGlanceContent}
+              </View>
+            );
+          }
+          return;
+        }
+
+        // Track first header for regular sections too
+        if (trimmedLine.startsWith('## ')) {
+          isFirstHeader = false;
+        }
+
         const element = renderMarkdownLine(
           trimmedLine,
           lineIndex,
           baseColor,
-          trimmedLine.startsWith('## ') && isFirstHeader,
+          false,
           currentSection,
-          true
+          false
         );
         if (element) {
-          if (trimmedLine.startsWith('## ')) {
-            isFirstHeader = false;
-          }
-          atAGlanceContent.push(element);
-        }
-
-        // If this is the last line of "At a Glance", wrap and add the section
-        if (lineIndex === atAGlanceEnd - 1) {
+          nextElements.push(element);
+        } else if (
+          lineIndex > 0 &&
+          lineIndex < lines.length - 1 &&
+          trimmedLine.length === 0
+        ) {
+          // Empty line (paragraph break) - but not at start or end
           nextElements.push(
-            <View key="at-a-glance-section" style={styles.atAGlanceCard}>
-              {atAGlanceContent}
-            </View>
+            <View key={`line-${lineIndex}`} style={styles.paragraphBreak} />
           );
         }
-        return;
-      }
+      });
 
-      // Track first header for regular sections too
-      if (trimmedLine.startsWith('## ')) {
-        isFirstHeader = false;
-      }
+      return nextElements;
+    }, [text, baseColor]);
 
-      const element = renderMarkdownLine(
-        trimmedLine,
-        lineIndex,
-        baseColor,
-        false,
-        currentSection,
-        false
-      );
-      if (element) {
-        nextElements.push(element);
-      } else if (
-        lineIndex > 0 &&
-        lineIndex < lines.length - 1 &&
-        trimmedLine.length === 0
-      ) {
-        // Empty line (paragraph break) - but not at start or end
-        nextElements.push(
-          <View key={`line-${lineIndex}`} style={styles.paragraphBreak} />
-        );
-      }
-    });
-
-    return nextElements;
-  }, [text, baseColor]);
-
-  return <View style={styles.markdownContainer}>{elements}</View>;
-});
+    return <View style={styles.markdownContainer}>{elements}</View>;
+  }
+);
 MarkdownText.displayName = 'MarkdownText';
 
 /**
@@ -358,6 +358,10 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
   onSuggestionPress,
 }) => {
   const [showSources, setShowSources] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<{
+    url: string;
+    title: string;
+  } | null>(null);
 
   return (
     <View
@@ -414,7 +418,13 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
                     key={index}
                     style={styles.sourceItem}
                     onPress={() => {
-                      if (source.url) {
+                      // Only use SourceViewer for .md files, open others in browser
+                      if (source.url.toLowerCase().endsWith('.md')) {
+                        setSelectedSource({
+                          url: source.url,
+                          title: source.document_title,
+                        });
+                      } else {
                         Linking.openURL(source.url).catch(err =>
                           console.error('Failed to open URL:', err)
                         );
@@ -459,6 +469,16 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
             </View>
           )}
       </View>
+
+      {/* Source Viewer Modal */}
+      {selectedSource && (
+        <SourceViewer
+          visible={!!selectedSource}
+          sourceUrl={selectedSource.url}
+          sourceTitle={selectedSource.title}
+          onClose={() => setSelectedSource(null)}
+        />
+      )}
     </View>
   );
 };
