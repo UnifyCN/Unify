@@ -97,7 +97,7 @@ export default function LegalConsentModal({
             {/* Checkbox row */}
             <View style={styles.checkboxRow}>
               <View style={styles.checkboxContainer}>
-                <Checkbox
+                <Checkbox.Android
                   status={isChecked ? 'checked' : 'unchecked'}
                   onPress={() => setIsChecked(!isChecked)}
                   color={Theme.black}

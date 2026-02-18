@@ -246,20 +246,19 @@ export default function CircleChatScreen() {
         },
         payload => {
           setMessages(prev => {
+            const exists = prev.some(m => m.id === payload.new.id);
+            if (exists) {
+              return prev;
+            }
+
             const deduped = prev.filter(
               m =>
-                m.id !== payload.new.id &&
                 !(
                   m.id.startsWith('temp-') &&
                   m.sender_user_id === payload.new.sender_user_id &&
                   m.content === payload.new.content
                 )
             );
-
-            const exists = deduped.some(m => m.id === payload.new.id);
-            if (exists) {
-              return deduped;
-            }
             return [
               ...deduped,
               {
@@ -434,10 +433,16 @@ export default function CircleChatScreen() {
         online_at: new Date().toISOString(),
       });
 
-      // Clear typing indicator after 2 seconds of inactivity
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
       }
+
+      if (newText.length === 0) {
+        return;
+      }
+
+      // Clear typing indicator after 2 seconds of inactivity
       typingTimeoutRef.current = setTimeout(() => {
         if (presenceChannelRef.current && currentUser) {
           presenceChannelRef.current.track({
@@ -678,8 +683,13 @@ export default function CircleChatScreen() {
       </KeyboardAvoidingView>
 
       {/* Member Identity Modal */}
-      {selectedMember && (
-        <Modal animationType='fade' transparent={true} onRequestClose={handleCloseModal}>
+      <Modal
+        animationType='fade'
+        transparent={true}
+        visible={!!selectedMember}
+        onRequestClose={handleCloseModal}
+      >
+        {selectedMember && (
           <TouchableOpacity
             style={styles.modalOverlay}
             activeOpacity={1}
@@ -743,8 +753,8 @@ export default function CircleChatScreen() {
               </View>
             </TouchableOpacity>
           </TouchableOpacity>
-        </Modal>
-      )}
+        )}
+      </Modal>
     </View>
   );
 }

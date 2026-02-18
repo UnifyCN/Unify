@@ -24,6 +24,15 @@ export async function registerForPushNotifications(): Promise<string | null> {
     return null;
   }
 
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('community-circles', {
+      name: 'Community Circles',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#ff9d40',
+    });
+  }
+
   // Check existing permission status
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;

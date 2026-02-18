@@ -22,6 +22,7 @@ import {
 import { useAnalytics } from '@/utils/analytics';
 import LegalWebView from '@/components/LegalWebView';
 import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
+import { Theme } from '@/constants/Theme';
 
 export function SignUp({
   onSwitchToSignIn,
@@ -302,11 +303,11 @@ export function SignUp({
       {/* Privacy Policy and Community Guidelines checkbox */}
       <View style={styles.checkboxRow}>
         <View style={styles.checkboxContainer}>
-          <Checkbox
+          <Checkbox.Android
             status={isChecked ? 'checked' : 'unchecked'}
             onPress={() => setIsChecked(!isChecked)}
-            color='black'
-            uncheckedColor='black'
+            color={Theme.black}
+            uncheckedColor={Theme.black}
           />
         </View>
         <Text style={styles.checkboxText}>
@@ -476,7 +477,6 @@ const styles = {
     backgroundColor: 'transparent' as 'transparent',
     margin: 0,
     marginVertical: 6 * 0.87,
-    alignSelf: 'flex-start' as 'flex-start',
   },
   checkboxText: {
     fontSize: 16 * 0.87,
@@ -485,7 +485,7 @@ const styles = {
   },
   checkboxRow: {
     flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    alignItems: 'flex-start' as 'flex-start',
     alignSelf: 'flex-start' as 'flex-start',
     marginVertical: 10 * 0.87,
     marginLeft: 0,

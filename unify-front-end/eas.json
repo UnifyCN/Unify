@@ -8,14 +8,14 @@
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
-        "image": "latest"
+        "image": "macos-sequoia-15.6-xcode-26.1"
       },
       "channel": "development"
     },
     "preview": {
       "distribution": "internal",
       "ios": {
-        "image": "latest"
+        "image": "macos-sequoia-15.6-xcode-26.1"
       },
       "android": {
         "buildType": "apk"
@@ -34,7 +34,7 @@
     },
     "simulator": {
       "ios": {
-        "image": "latest",
+        "image": "macos-sequoia-15.6-xcode-26.1",
         "simulator": true
       },
       "channel": "simulator"
