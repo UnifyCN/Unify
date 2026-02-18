@@ -18,12 +18,6 @@ export const useUserReportStatus = (reportedUserId: string) => {
         .eq('reporter_id', currentUser.id)
         .maybeSingle();
 
-      console.log('user report status', {
-        reportedUserId,
-        reporterId: currentUser.id,
-        data,
-        error,
-      });
       if (error) {
         console.error('Failed to fetch user report status:', error);
         return false;
