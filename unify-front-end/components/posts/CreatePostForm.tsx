@@ -17,10 +17,7 @@ import {
   EnrichedTextInput,
   type EnrichedTextInputInstance,
   type EnrichedTextInputProps,
-  OnChangeHtmlEvent,
   type OnChangeStateEvent,
-  OnChangeTextEvent,
-  type OnChangeSelectionEvent,
 } from 'react-native-enriched';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
 import GroupSelectionSheet from './GroupSelectionSheet';
@@ -45,7 +42,8 @@ interface CreatePostFormProps {
 const TITLE_MAX_LENGTH = 100;
 const CONTENT_MAX_LENGTH = 2000;
 
-const RichTextInput = EnrichedTextInput as React.ComponentType<EnrichedTextInputProps>;
+const RichTextInput =
+  EnrichedTextInput as React.ComponentType<EnrichedTextInputProps>;
 
 interface ToolbarButtonProps {
   icon: string;
@@ -55,11 +53,11 @@ interface ToolbarButtonProps {
 }
 
 const ToolbarButton: React.FC<ToolbarButtonProps> = ({
-                                                       icon,
-                                                       isActive,
-                                                       isBlocked,
-                                                       onPress,
-                                                     }) => (
+  icon,
+  isActive,
+  isBlocked,
+  onPress,
+}) => (
   <TouchableOpacity
     onPress={onPress}
     disabled={isBlocked}
@@ -82,23 +80,35 @@ const ToolbarButton: React.FC<ToolbarButtonProps> = ({
 );
 
 export default function CreatePostForm({
-                                         preselectedGroup,
-                                         onCancel,
-                                         onSuccessNavigate,
-                                       }: CreatePostFormProps) {
+  preselectedGroup,
+  onCancel,
+  onSuccessNavigate,
+}: Readonly<CreatePostFormProps>) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [contentHtml, setContentHtml] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [destination, setDestination] = useState<DestinationType>('4u');
   const [showGroupSelector, setShowGroupSelector] = useState(false);
-  const [stylesState, setStylesState] = useState<OnChangeStateEvent | null>(null);
+  const [stylesState, setStylesState] = useState<OnChangeStateEvent | null>(
+    null
+  );
+  const [isEditorFocused, setIsEditorFocused] = useState(false);
+  const [pendingSelection, setPendingSelection] = useState<{
+    start: number;
+    end: number;
+    text: string;
+  } | null>(null);
 
   // Link modal state
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
-  const [selection, setSelection] = useState<{ start: number; end: number; text: string } | null>(null);
+  const [selection, setSelection] = useState<{
+    start: number;
+    end: number;
+    text: string;
+  } | null>(null);
 
   const contentInputRef = useRef<EnrichedTextInputInstance>(null);
   const insets = useSafeAreaInsets();
@@ -142,6 +152,7 @@ export default function CreatePostForm({
       Alert.alert('Error', 'Please select a group to post to');
       return;
     }
+
     createPostMutation.mutate(
       {
         title: trimmedTitle,
@@ -194,32 +205,34 @@ export default function CreatePostForm({
     setDestination('4u');
   };
 
-  const handleContentTextChange = (e: NativeSyntheticEvent<OnChangeTextEvent>) => {
-    const textValue = (e.nativeEvent as any).text || '';
+  const handleContentTextChange = (e: any) => {
+    const textValue = e.nativeEvent?.value || '';
     setContent(textValue);
   };
 
-  const handleContentHtmlChange = (e: NativeSyntheticEvent<OnChangeHtmlEvent>) => {
-    const htmlValue = (e.nativeEvent as any).html || '';
+  const handleContentHtmlChange = (e: any) => {
+    const htmlValue = e.nativeEvent?.value || '';
     setContentHtml(htmlValue);
   };
 
-  const handleContentStateChange = (e: NativeSyntheticEvent<OnChangeStateEvent>) => {
+  const handleContentStateChange = (e: any) => {
     setStylesState(e.nativeEvent);
   };
 
-  const handleSelectionChange = (e: NativeSyntheticEvent<OnChangeSelectionEvent>) => {
-    const { start, end, text } = e.nativeEvent as any;
+  const handleSelectionChange = (e: any) => {
+    const { start, end, text } = e.nativeEvent;
     setSelection({ start, end, text: text || '' });
   };
 
   const handleToggleBold = () => contentInputRef.current?.toggleBold();
   const handleToggleItalic = () => contentInputRef.current?.toggleItalic();
-  const handleToggleUnderline = () => contentInputRef.current?.toggleUnderline();
-  const handleToggleStrikethrough = () => contentInputRef.current?.toggleStrikeThrough();
+  const handleToggleUnderline = () =>
+    contentInputRef.current?.toggleUnderline();
+  const handleToggleStrikethrough = () =>
+    contentInputRef.current?.toggleStrikeThrough();
 
   const handleLinkButtonPress = () => {
-    // Pre-fill link text with current selection if any
+    setPendingSelection(selection);
     setLinkText(selection?.text || '');
     setLinkUrl('');
     setShowLinkModal(true);
@@ -235,15 +248,16 @@ export default function CreatePostForm({
       : `https://${linkUrl.trim()}`;
 
     contentInputRef.current?.setLink(
-      selection?.start ?? 0,
-      selection?.end ?? 0,
-      linkText.trim() || selection?.text || url,
+      pendingSelection?.start ?? 0,
+      pendingSelection?.end ?? 0,
+      linkText.trim() || pendingSelection?.text || url,
       url
     );
 
     setShowLinkModal(false);
     setLinkUrl('');
     setLinkText('');
+    setPendingSelection(null);
   };
 
   return (
@@ -319,11 +333,14 @@ export default function CreatePostForm({
             onChangeHtml={handleContentHtmlChange}
             onChangeState={handleContentStateChange}
             onChangeSelection={handleSelectionChange}
+            onFocus={() => setIsEditorFocused(true)}
+            onBlur={() => setTimeout(() => setIsEditorFocused(false), 150)}
           />
           <Text
             style={[
               styles.charCount,
-              content.length > CONTENT_MAX_LENGTH * 0.9 && styles.charCountWarning,
+              content.length > CONTENT_MAX_LENGTH * 0.9 &&
+                styles.charCountWarning,
             ]}
           >
             {content.length}/{CONTENT_MAX_LENGTH}
@@ -332,45 +349,47 @@ export default function CreatePostForm({
       </ScrollView>
 
       {/* Toolbar sticks above keyboard */}
-      <View style={[styles.toolbar, { paddingBottom: insets.bottom || 8 }]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.toolbarContent}
-          keyboardShouldPersistTaps='handled'
-        >
-          <ToolbarButton
-            icon='B'
-            isActive={stylesState?.bold?.isActive}
-            isBlocked={stylesState?.bold?.isBlocking}
-            onPress={handleToggleBold}
-          />
-          <ToolbarButton
-            icon='I'
-            isActive={stylesState?.italic?.isActive}
-            isBlocked={stylesState?.italic?.isBlocking}
-            onPress={handleToggleItalic}
-          />
-          <ToolbarButton
-            icon='U'
-            isActive={stylesState?.underline?.isActive}
-            isBlocked={stylesState?.underline?.isBlocking}
-            onPress={handleToggleUnderline}
-          />
-          <ToolbarButton
-            icon='S'
-            isActive={stylesState?.strikeThrough?.isActive}
-            isBlocked={stylesState?.strikeThrough?.isBlocking}
-            onPress={handleToggleStrikethrough}
-          />
-          <View style={styles.toolbarDivider} />
-          <ToolbarButton
-            icon='🔗'
-            isActive={false}
-            onPress={handleLinkButtonPress}
-          />
-        </ScrollView>
-      </View>
+      {isEditorFocused && (
+        <View style={[styles.toolbar, { paddingBottom: insets.bottom || 8 }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.toolbarContent}
+            keyboardShouldPersistTaps='handled'
+          >
+            <ToolbarButton
+              icon='B'
+              isActive={stylesState?.bold?.isActive}
+              isBlocked={stylesState?.bold?.isBlocking}
+              onPress={handleToggleBold}
+            />
+            <ToolbarButton
+              icon='I'
+              isActive={stylesState?.italic?.isActive}
+              isBlocked={stylesState?.italic?.isBlocking}
+              onPress={handleToggleItalic}
+            />
+            <ToolbarButton
+              icon='U'
+              isActive={stylesState?.underline?.isActive}
+              isBlocked={stylesState?.underline?.isBlocking}
+              onPress={handleToggleUnderline}
+            />
+            <ToolbarButton
+              icon='S'
+              isActive={stylesState?.strikeThrough?.isActive}
+              isBlocked={stylesState?.strikeThrough?.isBlocking}
+              onPress={handleToggleStrikethrough}
+            />
+            <View style={styles.toolbarDivider} />
+            <ToolbarButton
+              icon='🔗'
+              isActive={false}
+              onPress={handleLinkButtonPress}
+            />
+          </ScrollView>
+        </View>
+      )}
 
       {/* Link insertion modal */}
       <Modal

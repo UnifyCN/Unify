@@ -152,7 +152,6 @@ function AppContent() {
       <Stack.Screen name='event-detail' options={{ headerShown: false }} />
       <Stack.Screen name='events' options={{ headerShown: false }} />
       <Stack.Screen name='create-post' options={{ headerShown: false }} />
-      <Stack.Screen name='ReportScreen' options={{ headerShown: false }} />
       <Stack.Screen
         name='followers-following'
         options={{ headerShown: false }}

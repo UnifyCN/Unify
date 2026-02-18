@@ -59,7 +59,7 @@ export default function SeeMoreUsersScreen() {
         <FlatList
           data={users}
           renderItem={renderUser}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           ItemSeparatorComponent={() => (
             <View style={styles.userItemSeparator} />
           )}

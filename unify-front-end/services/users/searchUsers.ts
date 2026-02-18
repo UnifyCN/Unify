@@ -28,7 +28,7 @@ export const searchUsers = async (
     }
 
     return (
-      data?.map((user) => ({
+      data?.map(user => ({
         id: user.id,
         username: user.username ?? '',
         profilePictureUrl: user.profile_picture_url ?? null,

@@ -5,9 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Modal,
+  Linking,
   Pressable,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
+import RenderHtml, { MixedStyleDeclaration } from 'react-native-render-html';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import Like from '@/assets/images/Like.svg';
@@ -30,7 +33,6 @@ import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
 import { getGroupByName } from '@/services/groups/getGroupByName';
-import { usePostReportStatus } from '@/hooks/posts/usePostReportStatus';
 
 export interface PostItemProps {
   post: PostData;
@@ -41,8 +43,6 @@ export interface PostItemProps {
     isSaved: boolean;
     likeCount: number;
     commentCount: number;
-    isReported?: boolean;
-    reportCount?: number; //maybe keeping this hidden is a good idea
   };
   metadataLoading?: boolean;
   isAbleToDelete?: boolean;
@@ -59,6 +59,7 @@ export const PostItem = memo(
     const router = useRouter();
     const { currentUser } = useCurrentUser();
     const { showToast } = useToast();
+    const { width } = useWindowDimensions();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const {
       trackPostLike,
@@ -73,17 +74,128 @@ export const PostItem = memo(
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
     const pinPostMutation = useMutatePinPost();
-    //const reportMutation = useMutateReport();
 
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
-    const canDelete = isAbleToDelete && isAdmin;
+    const isPartner = currentUser?.permissions === Permissions.PARTNER;
+    const ownsPost = currentUser?.id === String(post.user.id);
+    const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
     const canPin = isAdmin; // Only admins can pin/unpin
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
-    const shouldShowReadMore = content.length > 170;
+
+    // Function to help generate a preview of text for posts on the feed
+    const getPreviewFromHtml = (
+      html: string,
+      lineLimit: number,
+      charsPerLine: number
+    ): string => {
+      // Helper function for splicing HTML tags to get plain text
+      const getTextFromHtml = (charCount: number): string => {
+        let hIdx = 0;
+        let pIdx = 0;
+
+        while (pIdx < charCount && hIdx < html.length) {
+          if (html[hIdx] === '<') {
+            while (hIdx < html.length && html[hIdx] !== '>') hIdx++;
+            hIdx++;
+          } else {
+            hIdx++;
+            pIdx++;
+          }
+        }
+
+        const openTags: string[] = [];
+        const tagPattern = /<(\/?)([biuspa])\b[^>]*>/gi;
+        const tempHtml = html.slice(0, hIdx);
+        let m;
+
+        while ((m = tagPattern.exec(tempHtml)) !== null) {
+          if (m[1] === '/') {
+            const last = openTags.lastIndexOf(m[2].toLowerCase());
+            if (last !== -1) openTags.splice(last, 1);
+          } else {
+            openTags.push(m[2].toLowerCase());
+          }
+        }
+
+        const closingTags = openTags
+          .toReversed()
+          .map(t => `</${t}>`)
+          .join('');
+
+        return html.slice(0, hIdx) + '...' + closingTags;
+      };
+
+      const segments = html.split(/<\/p>|<br\s*\/?>/gi); // e.g. "<p>Bold"
+      let totalLines = 0; // Running count of occupied lines
+      let charsToShow = 0; // Keeps track of which index to splice text from in HTML
+
+      for (const element of segments) {
+        const segmentText = element // e.g. "Bold"
+          .replaceAll(/<[^>]*>/g, '')
+          .replaceAll('&nbsp;', ' ')
+          .replaceAll('\r', '');
+
+        if (segmentText.length === 0) continue;
+
+        const segmentLines = Math.ceil(segmentText.length / charsPerLine);
+
+        if (totalLines + segmentLines >= lineLimit) {
+          const linesAvailable = lineLimit - totalLines;
+
+          // If out of lines, cut off text
+          if (linesAvailable <= 0) {
+            return getTextFromHtml(charsToShow);
+          }
+
+          const charsAvailable = linesAvailable * charsPerLine;
+          const truncatedSegment = segmentText.slice(0, charsAvailable);
+
+          const lastSpace = truncatedSegment.lastIndexOf(' ');
+          const cutSegment =
+            lastSpace > 0
+              ? truncatedSegment.slice(0, lastSpace)
+              : truncatedSegment;
+
+          return getTextFromHtml(charsToShow + cutSegment.length);
+        }
+
+        totalLines += segmentLines;
+        charsToShow += segmentText.length;
+      }
+
+      return html;
+    };
+
+    // Max characters considered to be a "line break" based on the width of the screen
+    // Adjust if necessary to keep it easy on the eyes
+    // NOTE: Calculation is an estimate and will not be exact, if text overflows beyond MAX_LINES this may be the cause
+    const CHARS_PER_LINE = Math.floor(width / 10);
+    const MAX_LINES = 3;
+
+    // Calculate number potentially visible lines based on HTML and enforced CHARS_PER_LINE
+    const countVisualLines = (html: string) => {
+      const segments = html.split(/<\/p>|<br\s*\/?>/gi);
+      let total = 0;
+      for (const element of segments) {
+        const seg = element
+          .replaceAll(/<[^>]*>/g, '')
+          .replaceAll('&nbsp;', ' ')
+          .replaceAll('\r', '');
+        if (seg.length === 0) continue;
+        const wrappedLines = Math.ceil(seg.length / CHARS_PER_LINE);
+        total += wrappedLines;
+      }
+      return Math.max(1, total);
+    };
+
+    // Determine if "Read more" text should be displayed
+    const shouldShowReadMore = countVisualLines(content) > MAX_LINES;
     const useMaxBodyPreviewHeight = shouldShowReadMore;
-    const previewContent = shouldShowReadMore
-      ? `${content.slice(0, 170).trimEnd()}...`
+
+    // Get preview text that will be displayed on cards
+    const previewHtml = shouldShowReadMore
+      ? getPreviewFromHtml(content, MAX_LINES, CHARS_PER_LINE)
       : content;
 
     const handlePinPost = () => {
@@ -103,7 +215,7 @@ export const PostItem = memo(
         }
       );
     };
-    const { data: isReportedPost } = usePostReportStatus(post.id);
+
     const toggleLike = (postId: number, isLiked: boolean) => {
       if (isLiked) {
         trackPostUnlike(postId.toString());
@@ -163,6 +275,16 @@ export const PostItem = memo(
       }
     };
 
+    const navigateToComments = () => {
+      trackPostCommentOpened(post.id.toString());
+      router.push({
+        pathname: '/post-details',
+        params: {
+          post: JSON.stringify(post),
+        },
+      });
+    };
+
     const handleDeletePost = () => {
       Alert.alert(
         'Delete Post',
@@ -192,29 +314,6 @@ export const PostItem = memo(
           },
         ]
       );
-    };
-
-    const navigateToComments = () => {
-      trackPostCommentOpened(post.id.toString());
-      router.push({
-        pathname: '/post-details',
-        params: {
-          post: JSON.stringify(post),
-        },
-      });
-    };
-
-    const navigateToReport = () => {
-      setDeleteModalVisible(false);
-      if (showMetadataLoading) return;
-      if (isReportedPost) {
-        showToast("You've already reported this post.");
-        return;
-      }
-      router.push({
-        pathname: '/ReportScreen',
-        params: { postId: String(post.id) },
-      });
     };
 
     // Use batch-loaded metadata with loading state
@@ -321,6 +420,64 @@ export const PostItem = memo(
       </View>
     );
 
+    // HTML rendering config
+    const tagsStyles: Record<string, MixedStyleDeclaration> = {
+      body: {
+        fontSize: 16,
+        lineHeight: 22,
+        color: Theme.black,
+      },
+      a: {
+        color: '#f68b26',
+        textDecorationLine: 'underline',
+      },
+      strong: {
+        fontWeight: '700',
+      },
+      b: {
+        fontWeight: '700',
+      },
+      em: {
+        fontStyle: 'italic',
+      },
+      i: {
+        fontStyle: 'italic',
+      },
+      u: {
+        textDecorationLine: 'underline',
+      },
+      s: {
+        textDecorationLine: 'line-through',
+      },
+      del: {
+        textDecorationLine: 'line-through',
+      },
+      strike: {
+        textDecorationLine: 'line-through',
+      },
+    };
+
+    // Warning text for when links are being opened
+    const linkWarningTitle = 'You are about to leave Unify';
+    const linkWarningBody =
+      'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
+
+    // For handling clicks on links
+    const renderersProps = {
+      a: {
+        // Only make link clickable when post opened
+        onPress: isHomeCardVariant
+          ? undefined
+          : (_: any, href: string) => {
+              // Open warning alert on click
+              Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
+                { text: 'Go back', style: 'cancel' },
+                { text: 'Open link', onPress: () => Linking.openURL(href) },
+              ]);
+            },
+      },
+    };
+
     return (
       <View>
         <View
@@ -330,6 +487,7 @@ export const PostItem = memo(
             isHomeCardVariant && styles.homeCardContainer,
           ]}
         >
+          {/* Home card variant */}
           {isHomeCardVariant ? (
             <Pressable
               style={({ pressed }) => [
@@ -380,16 +538,23 @@ export const PostItem = memo(
                   </Text>
                 </View>
 
-                <TouchableOpacity
-                  onPress={() => setDeleteModalVisible(true)}
-                  style={styles.menuButton}
-                >
-                  <Feather name='more-vertical' size={20} color={Theme.black} />
-                </TouchableOpacity>
+                {canDelete && (
+                  <TouchableOpacity
+                    onPress={() => setDeleteModalVisible(true)}
+                    style={styles.menuButton}
+                  >
+                    <Feather
+                      name='more-vertical'
+                      size={20}
+                      color={Theme.black}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={[styles.postBody, styles.homePostBody]}>
                 {!shouldHideContent && (
+                  // Enforce max height if long text, otherwise keep compact
                   <View
                     style={[
                       styles.homeDescriptionContainer,
@@ -397,12 +562,17 @@ export const PostItem = memo(
                         styles.homeDescriptionContainerCompact,
                     ]}
                   >
-                    <Text style={styles.homeDescription} numberOfLines={3}>
-                      {previewContent}
-                      {shouldShowReadMore && (
-                        <Text style={styles.homeReadMore}> Read more</Text>
-                      )}
-                    </Text>
+                    <View>
+                      <RenderHtml
+                        contentWidth={width - 92}
+                        source={{ html: previewHtml }}
+                        tagsStyles={tagsStyles}
+                        renderersProps={renderersProps}
+                      />
+                    </View>
+                    {shouldShowReadMore && (
+                      <Text style={styles.homeReadMore}>Read more</Text>
+                    )}
                   </View>
                 )}
               </View>
@@ -410,6 +580,7 @@ export const PostItem = memo(
               {footer}
             </Pressable>
           ) : (
+            // Non home card variant
             <>
               <TouchableOpacity
                 style={styles.headshot}
@@ -448,12 +619,18 @@ export const PostItem = memo(
                       </View>
                     )}
                   </View>
-                  <TouchableOpacity
-                    onPress={() => setDeleteModalVisible(true)}
-                    style={styles.menuButton}
-                  >
-                    <Feather name='more-vertical' size={20} color={Theme.black} />
-                  </TouchableOpacity>
+                  {canDelete && (
+                    <TouchableOpacity
+                      onPress={() => setDeleteModalVisible(true)}
+                      style={styles.menuButton}
+                    >
+                      <Feather
+                        name='more-vertical'
+                        size={20}
+                        color={Theme.black}
+                      />
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 <TouchableOpacity
@@ -466,7 +643,14 @@ export const PostItem = memo(
                   </View>
 
                   {!shouldHideContent && (
-                    <Text style={styles.description}>{post.content}</Text>
+                    <View style={styles.contentWrapper}>
+                      <RenderHtml
+                        contentWidth={width - 92}
+                        source={{ html: content }}
+                        tagsStyles={tagsStyles}
+                        renderersProps={renderersProps}
+                      />
+                    </View>
                   )}
                 </TouchableOpacity>
                 {footer}
@@ -495,40 +679,18 @@ export const PostItem = memo(
                 <View style={styles.dragHandle} />
                 <TouchableOpacity
                   style={styles.modalOption}
-                  onPress={navigateToReport}
-                  disabled={showMetadataLoading || !!isReportedPost}
+                  onPress={handleDeletePost}
                 >
-                  <MaterialCommunityIcons
-                    name={isReportedPost ? 'flag' : 'flag-outline'}
+                  <Feather
+                    name='trash-2'
                     size={20}
-                    color={isReportedPost ? Theme.textPostTime : Theme.black}
+                    color='#FF3B30'
                     style={styles.optionIcon}
                   />
-                  <Text
-                    style={[
-                      styles.modalOptionText,
-                      isReportedPost && styles.disabledOptionText,
-                    ]}
-                  >
-                    {isReportedPost ? 'Post Reported' : 'Report Post'}
+                  <Text style={[styles.modalOptionText, styles.deleteText]}>
+                    Delete Post
                   </Text>
                 </TouchableOpacity>
-                {canDelete && (
-                  <TouchableOpacity
-                    style={styles.modalOption}
-                    onPress={handleDeletePost}
-                  >
-                    <Feather
-                      name='trash-2'
-                      size={20}
-                      color='#FF3B30'
-                      style={styles.optionIcon}
-                    />
-                    <Text style={[styles.modalOptionText, styles.deleteText]}>
-                      Delete Post
-                    </Text>
-                  </TouchableOpacity>
-                )}
                 {canPin && (
                   <TouchableOpacity
                     style={styles.modalOption}
@@ -720,9 +882,7 @@ const styles = StyleSheet.create({
     minHeight: 24,
     marginTop: 6,
   },
-  description: {
-    fontSize: 16,
-    lineHeight: 22,
+  contentWrapper: {
     marginTop: 4,
   },
   homeDescriptionContainer: {
@@ -733,14 +893,10 @@ const styles = StyleSheet.create({
   homeDescriptionContainerCompact: {
     minHeight: 0,
   },
-  homeDescription: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: Theme.black,
-  },
   homeReadMore: {
     color: Theme.black,
     fontWeight: '600',
+    marginTop: 6,
   },
   postBody: {
     marginBottom: 12,
@@ -832,9 +988,6 @@ const styles = StyleSheet.create({
   },
   deleteText: {
     color: '#FF3B30',
-  },
-  disabledOptionText: {
-    color: Theme.textPostTime,
   },
   pinnedBadge: {
     backgroundColor: '#F0F0F0',

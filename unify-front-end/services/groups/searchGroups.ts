@@ -25,7 +25,10 @@ export const searchGroups = async (searchQuery: string): Promise<Group[]> => {
       throw new Error('Failed to search groups');
     }
 
-    const mergedGroups = [...(nameResult.data ?? []), ...(descriptionResult.data ?? [])];
+    const mergedGroups = [
+      ...(nameResult.data ?? []),
+      ...(descriptionResult.data ?? []),
+    ];
     const dedupedGroups = Array.from(
       new Map(mergedGroups.map(group => [group.id, group])).values()
     ).sort((a, b) => (b.member_count ?? 0) - (a.member_count ?? 0));
