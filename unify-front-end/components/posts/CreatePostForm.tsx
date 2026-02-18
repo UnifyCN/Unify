@@ -27,6 +27,10 @@ import BackHeader from '@/components/BackHeader';
 import { useToast } from '@/context/ToastContext';
 import { Group } from '@/types/groups';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import { Image, ScrollView as RNScrollView } from 'react-native';
+import { uploadProfilePicture } from '@/services/s3/uploadProfilePicture';
+import { Feather } from 'lucide-react-native';
 
 type DestinationType = '4u' | 'group';
 
@@ -109,6 +113,7 @@ export default function CreatePostForm({
     end: number;
     text: string;
   } | null>(null);
+  const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
   const contentInputRef = useRef<EnrichedTextInputInstance>(null);
   const insets = useSafeAreaInsets();
@@ -143,14 +148,22 @@ export default function CreatePostForm({
     setSelection(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!trimmedTitle || !trimmedContent) {
       Alert.alert('Error', 'Please fill in title and content');
       return;
     }
-    if (destination === 'group' && !selectedGroup) {
-      Alert.alert('Error', 'Please select a group to post to');
-      return;
+
+    // Upload images first
+    const imageKeys: string[] = [];
+    for (const image of images) {
+      const response = await fetch(image.uri);
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
+      const result = await uploadProfilePicture(buffer, 'image/jpeg');
+      if (result.success && result.key) {
+        imageKeys.push(result.key);
+      }
     }
 
     createPostMutation.mutate(
@@ -158,6 +171,7 @@ export default function CreatePostForm({
         title: trimmedTitle,
         content: contentHtml || trimmedContent,
         group_id: destination === '4u' ? null : String(selectedGroup?.id),
+        image_keys: imageKeys,
       },
       {
         onSuccess: () => {
@@ -260,6 +274,32 @@ export default function CreatePostForm({
     setPendingSelection(null);
   };
 
+  const handleImagePick = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permission Required',
+        'Please grant access to your photo library.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 0.8,
+      selectionLimit: 4,
+    });
+
+    if (!result.canceled) {
+      setImages(prev => [...prev, ...result.assets].slice(0, 4)); // cap at 4
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.root}
@@ -324,6 +364,22 @@ export default function CreatePostForm({
         <View style={styles.separator} />
 
         <View style={styles.contentContainer}>
+          {/* Image preview strip */}
+          {images.length > 0 && (
+            <View style={styles.imageStrip}>
+              {images.map((img, index) => (
+                <View key={index} style={styles.imageThumb}>
+                  <Image source={{ uri: img.uri }} style={styles.thumbImage} />
+                  <TouchableOpacity
+                    style={styles.removeImageButton}
+                    onPress={() => handleRemoveImage(index)}
+                  >
+                    <Feather name='x' size={12} color='white' />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
           <RichTextInput
             ref={contentInputRef}
             style={styles.contentInput}
@@ -386,6 +442,12 @@ export default function CreatePostForm({
               icon='🔗'
               isActive={false}
               onPress={handleLinkButtonPress}
+            />
+            <View style={styles.toolbarDivider} />
+            <ToolbarButton
+              icon='🖼️'
+              isActive={false}
+              onPress={handleImagePick}
             />
           </ScrollView>
         </View>
@@ -635,5 +697,32 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: '#fff',
+  },
+  imageStrip: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  imageThumb: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  thumbImage: {
+    width: '100%',
+    height: '100%',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
