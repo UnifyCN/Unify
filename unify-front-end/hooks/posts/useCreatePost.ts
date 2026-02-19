@@ -8,13 +8,15 @@ export const useMutateCreatePost = () => {
     mutationFn: async ({
       title,
       content,
+      post_image_urls,
       group_id,
     }: {
       title: string;
       content: string;
+      post_image_urls?: string[];
       group_id?: string | null;
     }) => {
-      await CreatePost(title, content, group_id);
+      await CreatePost(title, content, post_image_urls ?? [], group_id);
     },
     onSuccess: () => {
       // Reset feeds to immediately show new post
@@ -32,6 +34,6 @@ export const useMutateCreatePost = () => {
 // Usage in component:
 // const { mutate: createPostMutation, isPending } = useMutateCreatePost();
 //
-// const onSubmit = (title: string, content: string, group_id: string) => {
-//   createPostMutation({ title, content, group_id });
+// const onSubmit = (title: string, content: string, post_image_urls: string[], group_id: string) => {
+//   createPostMutation({ title, content, post_image_urls, group_id });
 // };

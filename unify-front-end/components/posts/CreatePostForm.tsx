@@ -9,9 +9,9 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
-  NativeSyntheticEvent,
   KeyboardAvoidingView,
   Modal,
+  Image,
 } from 'react-native';
 import {
   EnrichedTextInput,
@@ -28,9 +28,8 @@ import { useToast } from '@/context/ToastContext';
 import { Group } from '@/types/groups';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { Image, ScrollView as RNScrollView } from 'react-native';
-import { uploadProfilePicture } from '@/services/s3/uploadProfilePicture';
-import { Feather } from 'lucide-react-native';
+import { uploadPostImage } from '@/services/s3/uploadPostImage';
+import { Feather } from '@expo/vector-icons';
 
 type DestinationType = '4u' | 'group';
 
@@ -113,7 +112,10 @@ export default function CreatePostForm({
     end: number;
     text: string;
   } | null>(null);
+
+  // Image state
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
 
   const contentInputRef = useRef<EnrichedTextInputInstance>(null);
   const insets = useSafeAreaInsets();
@@ -146,6 +148,7 @@ export default function CreatePostForm({
     setLinkUrl('');
     setLinkText('');
     setSelection(null);
+    setImages([]);
   };
 
   const handleSubmit = async () => {
@@ -153,16 +156,30 @@ export default function CreatePostForm({
       Alert.alert('Error', 'Please fill in title and content');
       return;
     }
+    if (destination === 'group' && !selectedGroup) {
+      Alert.alert('Error', 'Please select a group to post to');
+      return;
+    }
 
-    // Upload images first
-    const imageKeys: string[] = [];
-    for (const image of images) {
-      const response = await fetch(image.uri);
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = new Uint8Array(arrayBuffer);
-      const result = await uploadProfilePicture(buffer, 'image/jpeg');
-      if (result.success && result.key) {
-        imageKeys.push(result.key);
+    let post_image_urls: string[] = [];
+    if (images.length > 0) {
+      setIsUploadingImages(true);
+      try {
+        const results = await Promise.all(
+          images.map(img => uploadPostImage(img))
+        );
+        post_image_urls = results
+          .filter(r => r.success && r.key)
+          .map(r => r.key!);
+        if (post_image_urls.length !== images.length) {
+          Alert.alert('Warning', 'Some images failed to upload.');
+        }
+      } catch (e) {
+        Alert.alert('Error', 'Failed to upload images. Please try again.');
+        setIsUploadingImages(false);
+        return;
+      } finally {
+        setIsUploadingImages(false);
       }
     }
 
@@ -171,7 +188,7 @@ export default function CreatePostForm({
         title: trimmedTitle,
         content: contentHtml || trimmedContent,
         group_id: destination === '4u' ? null : String(selectedGroup?.id),
-        image_keys: imageKeys,
+        post_image_urls,
       },
       {
         onSuccess: () => {
@@ -192,6 +209,8 @@ export default function CreatePostForm({
         },
       }
     );
+    const results = await Promise.all(images.map(img => uploadPostImage(img)));
+    console.log('upload results:', results);
   };
 
   const handleCancel = () => {
@@ -283,22 +302,22 @@ export default function CreatePostForm({
       );
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
       quality: 0.8,
-      selectionLimit: 4,
+      selectionLimit: 4 - images.length,
     });
-
     if (!result.canceled) {
-      setImages(prev => [...prev, ...result.assets].slice(0, 4)); // cap at 4
+      setImages(prev => [...prev, ...result.assets].slice(0, 4));
     }
   };
 
   const handleRemoveImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
   };
+
+  const isPending = createPostMutation.isPending || isUploadingImages;
 
   return (
     <KeyboardAvoidingView
@@ -316,11 +335,9 @@ export default function CreatePostForm({
               styles.postButton,
               (!trimmedTitle || !trimmedContent) && styles.disabledButton,
             ]}
-            disabled={
-              !trimmedTitle || !trimmedContent || createPostMutation.isPending
-            }
+            disabled={!trimmedTitle || !trimmedContent || isPending}
           >
-            {createPostMutation.isPending ? (
+            {isPending ? (
               <ActivityIndicator size='small' color='white' />
             ) : (
               <Text style={styles.postButtonText}>Post</Text>
@@ -363,26 +380,56 @@ export default function CreatePostForm({
 
         <View style={styles.separator} />
 
-        <View style={styles.contentContainer}>
-          {/* Image preview strip */}
-          {images.length > 0 && (
-            <View style={styles.imageStrip}>
-              {images.map((img, index) => (
-                <View key={index} style={styles.imageThumb}>
-                  <Image source={{ uri: img.uri }} style={styles.thumbImage} />
-                  <TouchableOpacity
-                    style={styles.removeImageButton}
-                    onPress={() => handleRemoveImage(index)}
-                  >
-                    <Feather name='x' size={12} color='white' />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
+        {/* Image carousel — shown between title and content when images are selected */}
+        {images.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.imageCarousel}
+            contentContainerStyle={styles.imageCarouselContent}
+            keyboardShouldPersistTaps='handled'
+          >
+            {images.map((img, index) => (
+              <View key={index} style={styles.imageThumbnailContainer}>
+                <Image
+                  source={{ uri: img.uri }}
+                  style={styles.imageThumbnail}
+                />
+                <TouchableOpacity
+                  style={styles.removeImageButton}
+                  onPress={() => handleRemoveImage(index)}
+                >
+                  <Feather name='x' size={12} color='white' />
+                </TouchableOpacity>
+              </View>
+            ))}
+            {images.length < 4 && (
+              <TouchableOpacity
+                style={styles.addMoreButton}
+                onPress={handleImagePick}
+              >
+                <Feather
+                  name='plus'
+                  size={20}
+                  color={Theme.textAlternateGray}
+                />
+              </TouchableOpacity>
+            )}
+          </ScrollView>
+        )}
+
+        <View
+          style={[
+            styles.contentContainer,
+            images.length > 0 && styles.contentContainerWithImages,
+          ]}
+        >
           <RichTextInput
             ref={contentInputRef}
-            style={styles.contentInput}
+            style={{
+              ...styles.contentInput,
+              ...(images.length > 0 ? styles.contentInputWithImages : {}),
+            }}
             placeholder="What's on your mind?"
             placeholderTextColor={Theme.textAlternateGray}
             onChangeText={handleContentTextChange}
@@ -443,10 +490,10 @@ export default function CreatePostForm({
               isActive={false}
               onPress={handleLinkButtonPress}
             />
-            <View style={styles.toolbarDivider} />
             <ToolbarButton
-              icon='🖼️'
-              isActive={false}
+              icon='📷'
+              isActive={images.length > 0}
+              isBlocked={images.length >= 4}
               onPress={handleImagePick}
             />
           </ScrollView>
@@ -468,7 +515,7 @@ export default function CreatePostForm({
           <TouchableOpacity
             style={styles.modalCard}
             activeOpacity={1}
-            onPress={() => {}} // prevent overlay dismiss when tapping card
+            onPress={() => {}}
           >
             <Text style={styles.modalTitle}>Insert Link</Text>
 
@@ -537,7 +584,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   scrollContent: {
-    flexGrow: 1,
+    paddingBottom: 20,
   },
   postButton: {
     backgroundColor: Theme.primaryGatherRed,
@@ -611,9 +658,52 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.surfaceGray,
     marginHorizontal: 8,
   },
+  imageCarousel: {
+    height: 130,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  imageCarouselContent: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 2,
+  },
+  imageThumbnailContainer: {
+    width: 100,
+    height: 120,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  imageThumbnail: {
+    width: '100%',
+    height: '100%',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addMoreButton: {
+    width: 100,
+    height: 120,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: Theme.surfaceGray,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   contentContainer: {
-    flex: 1,
-    minHeight: 200,
+    minHeight: 150,
+  },
+  contentContainerWithImages: {
+    minHeight: 80,
   },
   contentInput: {
     fontSize: 16,
@@ -621,6 +711,9 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 4,
     minHeight: 150,
+  },
+  contentInputWithImages: {
+    minHeight: 60,
   },
   charCount: {
     fontSize: 12,
@@ -697,32 +790,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
     color: '#fff',
-  },
-  imageStrip: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  imageThumb: {
-    width: 72,
-    height: 72,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  thumbImage: {
-    width: '100%',
-    height: '100%',
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });

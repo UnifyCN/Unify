@@ -41,7 +41,8 @@ export const getUserPosts = async (
         groups!group_id(
           id,
           group_name
-        )
+        ),
+        post_image_urls,
       `
       )
       .eq('user_id', targetUserId)
@@ -68,6 +69,7 @@ export const getUserPosts = async (
       title: post.title,
       content: post.content,
       group: post.groups?.group_name?.trim() || null,
+      post_image_urls: post.post_image_urls ?? [],
     }));
 
     return {

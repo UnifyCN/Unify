@@ -57,7 +57,8 @@ export const getPostsFromJoinedGroups = async (
 				groups!group_id(
 					id,
 					group_name
-				)
+				),
+				post_image_urls
 			`
       )
       .in('group_id', groupIds)

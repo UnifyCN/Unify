@@ -43,7 +43,8 @@ export const getForYouFeed = async (
             id,
             username,
             profile_picture_url
-          )
+          ),
+          post_image_urls
         `
         )
         .is('group_id', null)
@@ -78,7 +79,8 @@ export const getForYouFeed = async (
               id,
               username,
               profile_picture_url
-            )
+            ),
+            post_image_urls
           `
           )
           .is('group_id', null)
@@ -127,7 +129,8 @@ export const getForYouFeed = async (
             id,
             username,
             profile_picture_url
-          )
+          ),
+          post_image_urls
         `
         )
         .is('group_id', null)

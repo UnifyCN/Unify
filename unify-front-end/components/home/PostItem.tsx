@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,10 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
+  Image,
+  ScrollView as ImageScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import RenderHtml, { MixedStyleDeclaration } from 'react-native-render-html';
 import { useRouter } from 'expo-router';
@@ -33,6 +37,7 @@ import { useToast } from '@/context/ToastContext';
 import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
 import { getGroupByName } from '@/services/groups/getGroupByName';
+import { resolvePostImageUrls } from '@/services/s3/postImageUrlCache';
 
 export interface PostItemProps {
   post: PostData;
@@ -47,6 +52,7 @@ export interface PostItemProps {
   metadataLoading?: boolean;
   isAbleToDelete?: boolean;
 }
+
 export const PostItem = memo(
   ({
     post,
@@ -61,6 +67,8 @@ export const PostItem = memo(
     const { showToast } = useToast();
     const { width } = useWindowDimensions();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [imageUrls, setImageUrls] = useState<string[]>([]);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
     const {
       trackPostLike,
       trackPostUnlike,
@@ -69,7 +77,6 @@ export const PostItem = memo(
       trackPostCommentOpened,
     } = useAnalytics();
 
-    // Use batch-loaded metadata (no individual queries needed)
     const likePostMutation = useMutateLikePost();
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
@@ -79,17 +86,34 @@ export const PostItem = memo(
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
-    const canPin = isAdmin; // Only admins can pin/unpin
+    const canPin = isAdmin;
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
 
-    // Function to help generate a preview of text for posts on the feed
+    // card content width: screen width minus card horizontal padding (22*2) minus outer list padding (16*2 assumed)
+    const cardImageWidth = width - 44 - 32;
+
+    // Fetch signed URLs for post images
+    useEffect(() => {
+      if (!post.post_image_urls?.length) return;
+      resolvePostImageUrls(post.post_image_urls)
+        .then(urls => setImageUrls(urls))
+        .catch(err => console.error('resolvePostImageUrls failed:', err));
+    }, [post.post_image_urls]);
+
+    // Track which image is active in the homeCard carousel
+    const handleCarouselScroll = (
+      e: NativeSyntheticEvent<NativeScrollEvent>
+    ) => {
+      const index = Math.round(e.nativeEvent.contentOffset.x / cardImageWidth);
+      setActiveImageIndex(index);
+    };
+
     const getPreviewFromHtml = (
       html: string,
       lineLimit: number,
       charsPerLine: number
     ): string => {
-      // Helper function for splicing HTML tags to get plain text
       const getTextFromHtml = (charCount: number): string => {
         let hIdx = 0;
         let pIdx = 0;
@@ -126,12 +150,12 @@ export const PostItem = memo(
         return html.slice(0, hIdx) + '...' + closingTags;
       };
 
-      const segments = html.split(/<\/p>|<br\s*\/?>/gi); // e.g. "<p>Bold"
-      let totalLines = 0; // Running count of occupied lines
-      let charsToShow = 0; // Keeps track of which index to splice text from in HTML
+      const segments = html.split(/<\/p>|<br\s*\/?>/gi);
+      let totalLines = 0;
+      let charsToShow = 0;
 
       for (const element of segments) {
-        const segmentText = element // e.g. "Bold"
+        const segmentText = element
           .replaceAll(/<[^>]*>/g, '')
           .replaceAll('&nbsp;', ' ')
           .replaceAll('\r', '');
@@ -143,14 +167,12 @@ export const PostItem = memo(
         if (totalLines + segmentLines >= lineLimit) {
           const linesAvailable = lineLimit - totalLines;
 
-          // If out of lines, cut off text
           if (linesAvailable <= 0) {
             return getTextFromHtml(charsToShow);
           }
 
           const charsAvailable = linesAvailable * charsPerLine;
           const truncatedSegment = segmentText.slice(0, charsAvailable);
-
           const lastSpace = truncatedSegment.lastIndexOf(' ');
           const cutSegment =
             lastSpace > 0
@@ -167,13 +189,9 @@ export const PostItem = memo(
       return html;
     };
 
-    // Max characters considered to be a "line break" based on the width of the screen
-    // Adjust if necessary to keep it easy on the eyes
-    // NOTE: Calculation is an estimate and will not be exact, if text overflows beyond MAX_LINES this may be the cause
     const CHARS_PER_LINE = Math.floor(width / 10);
     const MAX_LINES = 3;
 
-    // Calculate number potentially visible lines based on HTML and enforced CHARS_PER_LINE
     const countVisualLines = (html: string) => {
       const segments = html.split(/<\/p>|<br\s*\/?>/gi);
       let total = 0;
@@ -183,17 +201,14 @@ export const PostItem = memo(
           .replaceAll('&nbsp;', ' ')
           .replaceAll('\r', '');
         if (seg.length === 0) continue;
-        const wrappedLines = Math.ceil(seg.length / CHARS_PER_LINE);
-        total += wrappedLines;
+        total += Math.ceil(seg.length / CHARS_PER_LINE);
       }
       return Math.max(1, total);
     };
 
-    // Determine if "Read more" text should be displayed
     const shouldShowReadMore = countVisualLines(content) > MAX_LINES;
     const useMaxBodyPreviewHeight = shouldShowReadMore;
 
-    // Get preview text that will be displayed on cards
     const previewHtml = shouldShowReadMore
       ? getPreviewFromHtml(content, MAX_LINES, CHARS_PER_LINE)
       : content;
@@ -202,9 +217,7 @@ export const PostItem = memo(
       pinPostMutation.mutate(
         { postId: post.id, isPinned: post.isPinned ?? false },
         {
-          onSuccess: () => {
-            setDeleteModalVisible(false);
-          },
+          onSuccess: () => setDeleteModalVisible(false),
           onError: error => {
             Alert.alert(
               'Error',
@@ -251,7 +264,6 @@ export const PostItem = memo(
 
     const navigateToGroupDetail = async () => {
       if (!post.group) return;
-
       try {
         const group = await getGroupByName(post.group);
         if (group) {
@@ -261,7 +273,6 @@ export const PostItem = memo(
           });
           return;
         }
-
         router.push({
           pathname: '/group-detail' as any,
           params: { groupName: post.group },
@@ -279,9 +290,7 @@ export const PostItem = memo(
       trackPostCommentOpened(post.id.toString());
       router.push({
         pathname: '/post-details',
-        params: {
-          post: JSON.stringify(post),
-        },
+        params: { post: JSON.stringify(post) },
       });
     };
 
@@ -300,9 +309,7 @@ export const PostItem = memo(
             style: 'destructive',
             onPress: () => {
               deletePostMutation.mutate(post.id, {
-                onSuccess: () => {
-                  setDeleteModalVisible(false);
-                },
+                onSuccess: () => setDeleteModalVisible(false),
                 onError: error => {
                   Alert.alert(
                     'Error',
@@ -316,13 +323,10 @@ export const PostItem = memo(
       );
     };
 
-    // Use batch-loaded metadata with loading state
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked ?? false;
     const isSaved = metadata?.isSaved ?? false;
     const commentCount = metadata?.commentCount ?? 0;
-
-    // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
     const iconSize = isHomeCardVariant ? 24 : 20;
 
@@ -330,9 +334,7 @@ export const PostItem = memo(
       <View style={styles.footerItem}>
         <TouchableOpacity
           onPress={() => {
-            if (!showMetadataLoading) {
-              toggleLike(post.id, isLiked);
-            }
+            if (!showMetadataLoading) toggleLike(post.id, isLiked);
           }}
           disabled={showMetadataLoading}
           style={isHomeCardVariant ? styles.homeActionTouchable : undefined}
@@ -383,9 +385,7 @@ export const PostItem = memo(
     const saveAction = (
       <TouchableOpacity
         onPress={() => {
-          if (!showMetadataLoading) {
-            toggleSave(post.id, isSaved);
-          }
+          if (!showMetadataLoading) toggleSave(post.id, isSaved);
         }}
         disabled={showMetadataLoading}
         style={
@@ -420,56 +420,28 @@ export const PostItem = memo(
       </View>
     );
 
-    // HTML rendering config
     const tagsStyles: Record<string, MixedStyleDeclaration> = {
-      body: {
-        fontSize: 16,
-        lineHeight: 22,
-        color: Theme.black,
-      },
-      a: {
-        color: '#f68b26',
-        textDecorationLine: 'underline',
-      },
-      strong: {
-        fontWeight: '700',
-      },
-      b: {
-        fontWeight: '700',
-      },
-      em: {
-        fontStyle: 'italic',
-      },
-      i: {
-        fontStyle: 'italic',
-      },
-      u: {
-        textDecorationLine: 'underline',
-      },
-      s: {
-        textDecorationLine: 'line-through',
-      },
-      del: {
-        textDecorationLine: 'line-through',
-      },
-      strike: {
-        textDecorationLine: 'line-through',
-      },
+      body: { fontSize: 16, lineHeight: 22, color: Theme.black },
+      a: { color: '#f68b26', textDecorationLine: 'underline' },
+      strong: { fontWeight: '700' },
+      b: { fontWeight: '700' },
+      em: { fontStyle: 'italic' },
+      i: { fontStyle: 'italic' },
+      u: { textDecorationLine: 'underline' },
+      s: { textDecorationLine: 'line-through' },
+      del: { textDecorationLine: 'line-through' },
+      strike: { textDecorationLine: 'line-through' },
     };
 
-    // Warning text for when links are being opened
     const linkWarningTitle = 'You are about to leave Unify';
     const linkWarningBody =
       'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
 
-    // For handling clicks on links
     const renderersProps = {
       a: {
-        // Only make link clickable when post opened
         onPress: isHomeCardVariant
           ? undefined
           : (_: any, href: string) => {
-              // Open warning alert on click
               Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
                 { text: 'Go back', style: 'cancel' },
                 { text: 'Open link', onPress: () => Linking.openURL(href) },
@@ -477,6 +449,62 @@ export const PostItem = memo(
             },
       },
     };
+
+    // Swipable full-width paging carousel for homeCard variant
+    const homeCardCarousel =
+      isHomeCardVariant && imageUrls.length > 0 ? (
+        <View style={styles.homeCarouselContainer}>
+          <ImageScrollView
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleCarouselScroll}
+            scrollEventThrottle={16}
+            decelerationRate='fast'
+            snapToInterval={cardImageWidth}
+            snapToAlignment='start'
+            style={{ width: cardImageWidth, overflow: 'hidden' }}
+            contentContainerStyle={styles.homeCarouselContent}
+          >
+            {imageUrls.map((url, index) => (
+              <Image
+                key={index}
+                source={{ uri: url }}
+                style={[styles.homeCarouselImage, { width: cardImageWidth }]}
+              />
+            ))}
+          </ImageScrollView>
+          {/* Dot indicators — only shown when there are multiple images */}
+          {imageUrls.length > 1 && (
+            <View style={styles.dotsContainer}>
+              {imageUrls.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.dot,
+                    index === activeImageIndex && styles.dotActive,
+                  ]}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+      ) : null;
+
+    // Horizontal scrollable carousel for default (feed) variant
+    const defaultCarousel =
+      !isHomeCardVariant && imageUrls.length > 0 ? (
+        <ImageScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageCarousel}
+          contentContainerStyle={styles.imageCarouselContent}
+        >
+          {imageUrls.map((url, index) => (
+            <Image key={index} source={{ uri: url }} style={styles.postImage} />
+          ))}
+        </ImageScrollView>
+      ) : null;
 
     return (
       <View>
@@ -552,9 +580,11 @@ export const PostItem = memo(
                 )}
               </View>
 
+              {/* Swipable image carousel */}
+              {homeCardCarousel}
+
               <View style={[styles.postBody, styles.homePostBody]}>
                 {!shouldHideContent && (
-                  // Enforce max height if long text, otherwise keep compact
                   <View
                     style={[
                       styles.homeDescriptionContainer,
@@ -641,6 +671,9 @@ export const PostItem = memo(
                   <View>
                     <Text style={styles.title}>{post.title}</Text>
                   </View>
+
+                  {/* Horizontal scroll image carousel */}
+                  {defaultCarousel}
 
                   {!shouldHideContent && (
                     <View style={styles.contentWrapper}>
@@ -1000,5 +1033,55 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#666',
+  },
+  // HomeCard swipable paging carousel
+  homeCarouselContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderRadius: 10,
+  },
+  homeCarouselContent: {
+    flexDirection: 'row',
+  },
+  homeCarouselImage: {
+    height: 200,
+    borderRadius: 10,
+    resizeMode: 'cover',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 8,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Theme.surfaceGray,
+  },
+  dotActive: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Theme.black,
+  },
+  // Default variant horizontal scroll carousel
+  imageCarousel: {
+    height: 200,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  imageCarouselContent: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  postImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 10,
   },
 });

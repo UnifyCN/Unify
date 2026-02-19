@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 export const CreatePost = async (
   title: string,
   content: string,
+  post_image_urls: string[],
   group_id?: string | null
 ) => {
   try {
@@ -17,6 +18,7 @@ export const CreatePost = async (
       .insert({
         title: title,
         content: content,
+        post_image_urls: post_image_urls ?? [],
         user_id: user.id,
         group_id: group_id || null,
       })
