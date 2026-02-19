@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useRef } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,10 @@ import {
   Alert,
   useWindowDimensions,
   Image,
-  ScrollView as ImageScrollView,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
+import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import RenderHtml, { MixedStyleDeclaration } from 'react-native-render-html';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -93,7 +93,6 @@ export const PostItem = memo(
     // card content width: screen width minus card horizontal padding (22*2) minus outer list padding (16*2 assumed)
     const cardImageWidth = width - 44 - 32;
 
-    // Fetch signed URLs for post images
     useEffect(() => {
       if (!post.post_image_urls?.length) return;
       resolvePostImageUrls(post.post_image_urls)
@@ -101,7 +100,6 @@ export const PostItem = memo(
         .catch(err => console.error('resolvePostImageUrls failed:', err));
     }, [post.post_image_urls]);
 
-    // Track which image is active in the homeCard carousel
     const handleCarouselScroll = (
       e: NativeSyntheticEvent<NativeScrollEvent>
     ) => {
@@ -117,7 +115,6 @@ export const PostItem = memo(
       const getTextFromHtml = (charCount: number): string => {
         let hIdx = 0;
         let pIdx = 0;
-
         while (pIdx < charCount && hIdx < html.length) {
           if (html[hIdx] === '<') {
             while (hIdx < html.length && html[hIdx] !== '>') hIdx++;
@@ -127,12 +124,10 @@ export const PostItem = memo(
             pIdx++;
           }
         }
-
         const openTags: string[] = [];
         const tagPattern = /<(\/?)([biuspa])\b[^>]*>/gi;
         const tempHtml = html.slice(0, hIdx);
         let m;
-
         while ((m = tagPattern.exec(tempHtml)) !== null) {
           if (m[1] === '/') {
             const last = openTags.lastIndexOf(m[2].toLowerCase());
@@ -141,12 +136,10 @@ export const PostItem = memo(
             openTags.push(m[2].toLowerCase());
           }
         }
-
         const closingTags = openTags
           .toReversed()
           .map(t => `</${t}>`)
           .join('');
-
         return html.slice(0, hIdx) + '...' + closingTags;
       };
 
@@ -159,18 +152,11 @@ export const PostItem = memo(
           .replaceAll(/<[^>]*>/g, '')
           .replaceAll('&nbsp;', ' ')
           .replaceAll('\r', '');
-
         if (segmentText.length === 0) continue;
-
         const segmentLines = Math.ceil(segmentText.length / charsPerLine);
-
         if (totalLines + segmentLines >= lineLimit) {
           const linesAvailable = lineLimit - totalLines;
-
-          if (linesAvailable <= 0) {
-            return getTextFromHtml(charsToShow);
-          }
-
+          if (linesAvailable <= 0) return getTextFromHtml(charsToShow);
           const charsAvailable = linesAvailable * charsPerLine;
           const truncatedSegment = segmentText.slice(0, charsAvailable);
           const lastSpace = truncatedSegment.lastIndexOf(' ');
@@ -178,14 +164,11 @@ export const PostItem = memo(
             lastSpace > 0
               ? truncatedSegment.slice(0, lastSpace)
               : truncatedSegment;
-
           return getTextFromHtml(charsToShow + cutSegment.length);
         }
-
         totalLines += segmentLines;
         charsToShow += segmentText.length;
       }
-
       return html;
     };
 
@@ -208,7 +191,6 @@ export const PostItem = memo(
 
     const shouldShowReadMore = countVisualLines(content) > MAX_LINES;
     const useMaxBodyPreviewHeight = shouldShowReadMore;
-
     const previewHtml = shouldShowReadMore
       ? getPreviewFromHtml(content, MAX_LINES, CHARS_PER_LINE)
       : content;
@@ -258,9 +240,8 @@ export const PostItem = memo(
       );
     };
 
-    const navigateToUserProfile = () => {
+    const navigateToUserProfile = () =>
       router.push(`/profile?userId=${post.user.id}`);
-    };
 
     const navigateToGroupDetail = async () => {
       if (!post.group) return;
@@ -310,12 +291,11 @@ export const PostItem = memo(
             onPress: () => {
               deletePostMutation.mutate(post.id, {
                 onSuccess: () => setDeleteModalVisible(false),
-                onError: error => {
+                onError: error =>
                   Alert.alert(
                     'Error',
                     error.message || 'Failed to delete post'
-                  );
-                },
+                  ),
               });
             },
           },
@@ -450,62 +430,6 @@ export const PostItem = memo(
       },
     };
 
-    // Swipable full-width paging carousel for homeCard variant
-    const homeCardCarousel =
-      isHomeCardVariant && imageUrls.length > 0 ? (
-        <View style={styles.homeCarouselContainer}>
-          <ImageScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={handleCarouselScroll}
-            scrollEventThrottle={16}
-            decelerationRate='fast'
-            snapToInterval={cardImageWidth}
-            snapToAlignment='start'
-            style={{ width: cardImageWidth, overflow: 'hidden' }}
-            contentContainerStyle={styles.homeCarouselContent}
-          >
-            {imageUrls.map((url, index) => (
-              <Image
-                key={index}
-                source={{ uri: url }}
-                style={[styles.homeCarouselImage, { width: cardImageWidth }]}
-              />
-            ))}
-          </ImageScrollView>
-          {/* Dot indicators — only shown when there are multiple images */}
-          {imageUrls.length > 1 && (
-            <View style={styles.dotsContainer}>
-              {imageUrls.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.dot,
-                    index === activeImageIndex && styles.dotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
-        </View>
-      ) : null;
-
-    // Horizontal scrollable carousel for default (feed) variant
-    const defaultCarousel =
-      !isHomeCardVariant && imageUrls.length > 0 ? (
-        <ImageScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.imageCarousel}
-          contentContainerStyle={styles.imageCarouselContent}
-        >
-          {imageUrls.map((url, index) => (
-            <Image key={index} source={{ uri: url }} style={styles.postImage} />
-          ))}
-        </ImageScrollView>
-      ) : null;
-
     return (
       <View>
         <View
@@ -515,102 +439,155 @@ export const PostItem = memo(
             isHomeCardVariant && styles.homeCardContainer,
           ]}
         >
-          {/* Home card variant */}
+          {/* ── Home card variant ── */}
           {isHomeCardVariant ? (
-            <Pressable
-              style={({ pressed }) => [
-                styles.postContent,
-                styles.homeCardContent,
-                pressed && styles.homeCardPressed,
-              ]}
-              onPress={navigateToComments}
-            >
-              <View style={styles.homeHeaderRow}>
-                <TouchableOpacity
-                  style={[styles.headshot, styles.homeHeadshot]}
-                  onPress={navigateToUserProfile}
-                >
-                  <Avatar
-                    profilePictureUrl={post.user.profilePictureUrl}
-                    username={post.user.username}
-                    size={52}
-                  />
-                </TouchableOpacity>
-
-                <View style={styles.homeHeaderMetaContainer}>
-                  <View style={styles.homeMetaRow}>
-                    <View style={styles.homeMetaLeft}>
-                      <TouchableOpacity onPress={navigateToUserProfile}>
-                        <Text style={styles.homeName} numberOfLines={1}>
-                          {post.user.name}
-                        </Text>
-                      </TouchableOpacity>
-                      <Text style={styles.homeTime}>
-                        {formatSmartTime(post.time)}
-                      </Text>
-                      {post.group && (
-                        <TouchableOpacity
-                          onPress={navigateToGroupDetail}
-                          style={styles.homeMetaGroupWrap}
-                        >
-                          <Text style={styles.homeMetaGroup} numberOfLines={2}>
-                            {post.group}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-                  <Text style={styles.homeTitle} numberOfLines={2}>
-                    {post.isPinned ? '📌 ' : ''}
-                    {post.title}
-                  </Text>
-                </View>
-
-                {canDelete && (
+            <View style={styles.homeCardContent}>
+              {/*
+               * The Pressable only wraps the tappable header + body.
+               * The image carousel and footer live OUTSIDE the Pressable so
+               * horizontal swipe gestures are not intercepted by it.
+               */}
+              <Pressable
+                style={({ pressed }) => [pressed && styles.homeCardPressed]}
+                onPress={navigateToComments}
+              >
+                {/* Header: avatar + meta + title */}
+                <View style={styles.homeHeaderRow}>
                   <TouchableOpacity
-                    onPress={() => setDeleteModalVisible(true)}
-                    style={styles.menuButton}
+                    style={[styles.headshot, styles.homeHeadshot]}
+                    onPress={navigateToUserProfile}
                   >
-                    <Feather
-                      name='more-vertical'
-                      size={20}
-                      color={Theme.black}
+                    <Avatar
+                      profilePictureUrl={post.user.profilePictureUrl}
+                      username={post.user.username}
+                      size={52}
                     />
                   </TouchableOpacity>
-                )}
-              </View>
 
-              {/* Swipable image carousel */}
-              {homeCardCarousel}
+                  <View style={styles.homeHeaderMetaContainer}>
+                    <View style={styles.homeMetaRow}>
+                      <View style={styles.homeMetaLeft}>
+                        <TouchableOpacity onPress={navigateToUserProfile}>
+                          <Text style={styles.homeName} numberOfLines={1}>
+                            {post.user.name}
+                          </Text>
+                        </TouchableOpacity>
+                        <Text style={styles.homeTime}>
+                          {formatSmartTime(post.time)}
+                        </Text>
+                        {post.group && (
+                          <TouchableOpacity
+                            onPress={navigateToGroupDetail}
+                            style={styles.homeMetaGroupWrap}
+                          >
+                            <Text
+                              style={styles.homeMetaGroup}
+                              numberOfLines={2}
+                            >
+                              {post.group}
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                    <Text style={styles.homeTitle} numberOfLines={2}>
+                      {post.isPinned ? '📌 ' : ''}
+                      {post.title}
+                    </Text>
+                  </View>
 
-              <View style={[styles.postBody, styles.homePostBody]}>
-                {!shouldHideContent && (
-                  <View
-                    style={[
-                      styles.homeDescriptionContainer,
-                      !useMaxBodyPreviewHeight &&
-                        styles.homeDescriptionContainerCompact,
-                    ]}
-                  >
-                    <View>
+                  {canDelete && (
+                    <TouchableOpacity
+                      onPress={() => setDeleteModalVisible(true)}
+                      style={styles.menuButton}
+                    >
+                      <Feather
+                        name='more-vertical'
+                        size={20}
+                        color={Theme.black}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Text content */}
+                <View style={[styles.postBody, styles.homePostBody]}>
+                  {!shouldHideContent && (
+                    <View
+                      style={[
+                        styles.homeDescriptionContainer,
+                        !useMaxBodyPreviewHeight &&
+                          styles.homeDescriptionContainerCompact,
+                      ]}
+                    >
                       <RenderHtml
                         contentWidth={width - 92}
                         source={{ html: previewHtml }}
                         tagsStyles={tagsStyles}
                         renderersProps={renderersProps}
                       />
+                      {shouldShowReadMore && (
+                        <Text style={styles.homeReadMore}>Read more</Text>
+                      )}
                     </View>
-                    {shouldShowReadMore && (
-                      <Text style={styles.homeReadMore}>Read more</Text>
-                    )}
-                  </View>
-                )}
-              </View>
+                  )}
+                </View>
+              </Pressable>
 
+              {/*
+               * Image carousel — outside the Pressable so the GHScrollView
+               * can freely receive horizontal swipe gestures without the
+               * Pressable intercepting them. disallowInterruption tells the
+               * parent tab-pager to back off once the carousel has claimed
+               * the touch.
+               */}
+              {imageUrls.length > 0 && (
+                <View style={styles.homeCarouselContainer}>
+                  <GHScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={handleCarouselScroll}
+                    scrollEventThrottle={16}
+                    decelerationRate='fast'
+                    snapToInterval={cardImageWidth}
+                    snapToAlignment='start'
+                    disableIntervalMomentum
+                    disallowInterruption
+                    style={{ width: cardImageWidth }}
+                    contentContainerStyle={styles.homeCarouselContent}
+                  >
+                    {imageUrls.map((url, index) => (
+                      <Image
+                        key={index}
+                        source={{ uri: url }}
+                        style={[
+                          styles.homeCarouselImage,
+                          { width: cardImageWidth },
+                        ]}
+                      />
+                    ))}
+                  </GHScrollView>
+                  {imageUrls.length > 1 && (
+                    <View style={styles.dotsContainer}>
+                      {imageUrls.map((_, index) => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.dot,
+                            index === activeImageIndex && styles.dotActive,
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Footer — outside the Pressable so taps register correctly */}
               {footer}
-            </Pressable>
+            </View>
           ) : (
-            // Non home card variant
+            // ── Default (feed) variant ──
             <>
               <TouchableOpacity
                 style={styles.headshot}
@@ -622,6 +599,7 @@ export const PostItem = memo(
                   size={40}
                 />
               </TouchableOpacity>
+
               <View style={styles.postContent}>
                 <View style={styles.header}>
                   <View style={styles.headerLeft}>
@@ -668,12 +646,7 @@ export const PostItem = memo(
                   activeOpacity={0.5}
                   style={styles.postBody}
                 >
-                  <View>
-                    <Text style={styles.title}>{post.title}</Text>
-                  </View>
-
-                  {/* Horizontal scroll image carousel */}
-                  {defaultCarousel}
+                  <Text style={styles.title}>{post.title}</Text>
 
                   {!shouldHideContent && (
                     <View style={styles.contentWrapper}>
@@ -686,6 +659,27 @@ export const PostItem = memo(
                     </View>
                   )}
                 </TouchableOpacity>
+
+                {/* Horizontal scroll carousel — outside TouchableOpacity
+                    so scroll gestures aren't blocked */}
+                {imageUrls.length > 0 && (
+                  <GHScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    disallowInterruption
+                    style={styles.imageCarousel}
+                    contentContainerStyle={styles.imageCarouselContent}
+                  >
+                    {imageUrls.map((url, index) => (
+                      <Image
+                        key={index}
+                        source={{ uri: url }}
+                        style={styles.postImage}
+                      />
+                    ))}
+                  </GHScrollView>
+                )}
+
                 {footer}
               </View>
             </>
@@ -693,7 +687,7 @@ export const PostItem = memo(
         </View>
         {!isHomeCardVariant && <View style={styles.divider} />}
 
-        {/* Delete Modal */}
+        {/* Delete / options modal */}
         <Modal
           animationType='fade'
           transparent={true}
@@ -823,26 +817,22 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 10,
-    marginTop: 0,
   },
   homeHeadshot: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    marginTop: 0,
   },
   homeHeaderMetaContainer: {
     flex: 1,
     marginLeft: 14,
     marginRight: 10,
-    marginTop: 0,
   },
   homeMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     minHeight: 20,
-    marginTop: 0,
   },
   homeMetaLeft: {
     flexDirection: 'row',
@@ -864,7 +854,6 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: 4,
-    marginRight: 0,
   },
   headshot: {
     width: 40,
@@ -891,7 +880,6 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
   time: {
-    paddingTop: 0,
     fontSize: 14,
     color: Theme.textPostTime,
     fontWeight: '500',
@@ -1039,8 +1027,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     alignItems: 'center',
-    overflow: 'hidden',
     borderRadius: 10,
+    overflow: 'hidden',
   },
   homeCarouselContent: {
     flexDirection: 'row',
@@ -1069,11 +1057,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Theme.black,
   },
-  // Default variant horizontal scroll carousel
   imageCarousel: {
     height: 200,
     marginTop: 8,
-    marginBottom: 4,
+    marginBottom: 12,
   },
   imageCarouselContent: {
     flexDirection: 'row',
