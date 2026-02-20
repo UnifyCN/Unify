@@ -20,7 +20,11 @@ import {
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
-import { ChecklistLinkTabSlug, Priority, UserTaskWithDetails } from '@/types/checklist';
+import {
+  ChecklistLinkTabSlug,
+  Priority,
+  UserTaskWithDetails,
+} from '@/types/checklist';
 import Header from '@/components/Header';
 import LoadingScreen from '@/components/LoadingScreen';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';

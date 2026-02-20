@@ -93,11 +93,11 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss}/>
+        <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
-          style={{ flex:1, justifyContent: 'flex-end', width: '100%' }}  
+          style={{ flex: 1, justifyContent: 'flex-end', width: '100%' }}
         >
           <View style={styles.sheet}>
             <View style={styles.header}>
@@ -122,9 +122,9 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
               </View>
             ) : (
               <ScrollView
-                contentContainerStyle={[styles.content, {paddingBottom: 24}]}
+                contentContainerStyle={[styles.content, { paddingBottom: 24 }]}
                 keyboardShouldPersistTaps='always'
-                keyboardDismissMode="on-drag"
+                keyboardDismissMode='on-drag'
                 showsVerticalScrollIndicator={false}
               >
                 <Text style={styles.label}>Group name *</Text>
@@ -143,7 +143,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
                   placeholder='e.g., international students, PR applicants...'
                   style={styles.input}
                   editable={!submitting}
-                  />
+                />
 
                 <Text style={styles.label}>
                   Why should we create this group? *
@@ -199,7 +199,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
               </ScrollView>
             )}
           </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );

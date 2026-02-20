@@ -423,7 +423,9 @@ export default function SubmoduleIndex() {
                   {section.id === 'learn' && isResolvingLearnHref ? (
                     <ActivityIndicator size='small' color={subjectColor} />
                   ) : (
-                    <Text style={[styles.startCtaText, { color: subjectColor }]}>
+                    <Text
+                      style={[styles.startCtaText, { color: subjectColor }]}
+                    >
                       {ctaLabel}
                     </Text>
                   )}

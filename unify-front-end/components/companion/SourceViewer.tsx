@@ -122,7 +122,9 @@ const renderInlineMarkdown = (text: string): React.ReactNode => {
     }
 
     // Italic text (*text* or _text_)
-    const italicMatch = remaining.match(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)|_(.+?)_/);
+    const italicMatch = remaining.match(
+      /(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)|_(.+?)_/
+    );
     if (italicMatch && italicMatch.index !== undefined) {
       if (italicMatch.index > 0) {
         parts.push(remaining.substring(0, italicMatch.index));
@@ -132,7 +134,9 @@ const renderInlineMarkdown = (text: string): React.ReactNode => {
           {italicMatch[1] || italicMatch[2]}
         </Text>
       );
-      remaining = remaining.substring(italicMatch.index + italicMatch[0].length);
+      remaining = remaining.substring(
+        italicMatch.index + italicMatch[0].length
+      );
       continue;
     }
 
@@ -215,7 +219,7 @@ export default function SourceViewer({
         setError(false);
 
         const response = await fetch(sourceUrl);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -264,8 +268,8 @@ export default function SourceViewer({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
+      animationType='slide'
+      presentationStyle='pageSheet'
       onRequestClose={onClose}
     >
       <View style={styles.container}>
@@ -281,7 +285,7 @@ export default function SourceViewer({
         >
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Feather
-              name="x"
+              name='x'
               size={Layout.header.iconSize}
               color={Theme.black}
             />
@@ -293,11 +297,7 @@ export default function SourceViewer({
             onPress={handleOpenInBrowser}
             style={styles.browserButton}
           >
-            <Feather
-              name="external-link"
-              size={20}
-              color={Theme.surfaceBlue}
-            />
+            <Feather name='external-link' size={20} color={Theme.surfaceBlue} />
           </TouchableOpacity>
         </View>
 
@@ -305,7 +305,7 @@ export default function SourceViewer({
         <View style={styles.contentContainer}>
           {loading && (
             <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color={Theme.surfaceBlue} />
+              <ActivityIndicator size='large' color={Theme.surfaceBlue} />
               <Text style={styles.loadingText}>Loading source...</Text>
             </View>
           )}
@@ -313,7 +313,7 @@ export default function SourceViewer({
           {error && !loading && (
             <View style={styles.centerContainer}>
               <Feather
-                name="alert-circle"
+                name='alert-circle'
                 size={48}
                 color={Theme.textInput}
                 style={styles.errorIcon}

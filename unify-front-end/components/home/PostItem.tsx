@@ -179,7 +179,7 @@ export const PostItem = memo(
       }
 
       return html;
-    }
+    };
 
     // Max characters considered to be a "line break" based on the width of the screen
     // Adjust if necessary to keep it easy on the eyes
@@ -222,7 +222,7 @@ export const PostItem = memo(
             Alert.alert(
               'Error',
               error.message ||
-              `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
+                `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
             );
           },
         }
@@ -498,7 +498,8 @@ export const PostItem = memo(
 
     // Warning text for when links are being opened
     const linkWarningTitle = 'You are about to leave Unify';
-    const linkWarningBody = 'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
+    const linkWarningBody =
+      'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
 
     // For handling clicks on links
     const renderersProps = {
@@ -507,12 +508,12 @@ export const PostItem = memo(
         onPress: isHomeCardVariant
           ? undefined
           : (_: any, href: string) => {
-            // Open warning alert on click
-            Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
-              { text: 'Go back', style: 'cancel' },
-              { text: 'Open link', onPress: () => Linking.openURL(href) },
-            ]);
-          },
+              // Open warning alert on click
+              Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
+                { text: 'Go back', style: 'cancel' },
+                { text: 'Open link', onPress: () => Linking.openURL(href) },
+              ]);
+            },
       },
     };
 
@@ -561,7 +562,10 @@ export const PostItem = memo(
                             onPress={navigateToGroupDetail}
                             style={styles.homeMetaGroupWrap}
                           >
-                            <Text style={styles.homeMetaGroup} numberOfLines={2}>
+                            <Text
+                              style={styles.homeMetaGroup}
+                              numberOfLines={2}
+                            >
                               {post.group}
                             </Text>
                           </TouchableOpacity>
@@ -595,7 +599,7 @@ export const PostItem = memo(
                       style={[
                         styles.homeDescriptionContainer,
                         !useMaxBodyPreviewHeight &&
-                        styles.homeDescriptionContainerCompact,
+                          styles.homeDescriptionContainerCompact,
                       ]}
                     >
                       <RenderHtml

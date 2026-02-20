@@ -82,12 +82,20 @@ export default function PracticeQuizQuestionPage() {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [selectedLeftItem, setSelectedLeftItem] = useState<string | null>(null);
-  const [selectedRightIndex, setSelectedRightIndex] = useState<number | null>(null);
-  const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>({});
+  const [selectedRightIndex, setSelectedRightIndex] = useState<number | null>(
+    null
+  );
+  const [matchedPairs, setMatchedPairs] = useState<{ [key: string]: string }>(
+    {}
+  );
   const [completedLeftItems, setCompletedLeftItems] = useState<string[]>([]);
-  const [completedRightIndices, setCompletedRightIndices] = useState<number[]>([]);
+  const [completedRightIndices, setCompletedRightIndices] = useState<number[]>(
+    []
+  );
   const [incorrectLeftItems, setIncorrectLeftItems] = useState<string[]>([]);
-  const [incorrectRightIndices, setIncorrectRightIndices] = useState<number[]>([]);
+  const [incorrectRightIndices, setIncorrectRightIndices] = useState<number[]>(
+    []
+  );
   const [showExitModal, setShowExitModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
@@ -192,7 +200,10 @@ export default function PracticeQuizQuestionPage() {
     }
   };
 
-  const handleMatchingItemSelect = (itemOrIndex: string | number, side: 'left' | 'right') => {
+  const handleMatchingItemSelect = (
+    itemOrIndex: string | number,
+    side: 'left' | 'right'
+  ) => {
     if (side === 'left') {
       const item = itemOrIndex as string;
       if (completedLeftItems.includes(item)) return;
@@ -218,9 +229,14 @@ export default function PracticeQuizQuestionPage() {
     if (correctMatch) {
       setCompletedLeftItems(prev => [...prev, selectedLeftItem]);
       setCompletedRightIndices(prev => [...prev, selectedRightIndex]);
-      setMatchedPairs(prev => ({ ...prev, [selectedLeftItem]: selectedRightItem }));
+      setMatchedPairs(prev => ({
+        ...prev,
+        [selectedLeftItem]: selectedRightItem,
+      }));
       setIncorrectLeftItems(prev => prev.filter(i => i !== selectedLeftItem));
-      setIncorrectRightIndices(prev => prev.filter(i => i !== selectedRightIndex));
+      setIncorrectRightIndices(prev =>
+        prev.filter(i => i !== selectedRightIndex)
+      );
     } else {
       setIncorrectLeftItems(prev => [...prev, selectedLeftItem]);
       setIncorrectRightIndices(prev => [...prev, selectedRightIndex]);
@@ -232,7 +248,9 @@ export default function PracticeQuizQuestionPage() {
   const handleNext = async () => {
     if (isNavigating) return;
     if (currentQuestion.question_type === 'matching') {
-      const allDone = completedLeftItems.length === (currentQuestion.matching_pairs?.length || 0);
+      const allDone =
+        completedLeftItems.length ===
+        (currentQuestion.matching_pairs?.length || 0);
       if (!allDone) return;
       if (isLastQuestion) {
         setIsNavigating(true);
@@ -394,21 +412,30 @@ export default function PracticeQuizQuestionPage() {
               <View style={styles.matchingContainer}>
                 <View style={styles.matchingGrid}>
                   <View style={styles.matchingColumn}>
-                    {(currentQuestion.matching_pairs || []).map((pair: any, i: number) => (
-                      <TouchableOpacity
-                        key={`left-${i}`}
-                        style={[
-                          styles.matchingItem,
-                          selectedLeftItem === pair.left_item && styles.matchingItemSelected,
-                          completedLeftItems.includes(pair.left_item) && styles.matchingItemCompleted,
-                          incorrectLeftItems.includes(pair.left_item) && styles.matchingItemIncorrect,
-                        ]}
-                        onPress={() => handleMatchingItemSelect(pair.left_item, 'left')}
-                        disabled={completedLeftItems.includes(pair.left_item)}
-                      >
-                        <Text style={styles.matchingItemText}>{pair.left_item}</Text>
-                      </TouchableOpacity>
-                    ))}
+                    {(currentQuestion.matching_pairs || []).map(
+                      (pair: any, i: number) => (
+                        <TouchableOpacity
+                          key={`left-${i}`}
+                          style={[
+                            styles.matchingItem,
+                            selectedLeftItem === pair.left_item &&
+                              styles.matchingItemSelected,
+                            completedLeftItems.includes(pair.left_item) &&
+                              styles.matchingItemCompleted,
+                            incorrectLeftItems.includes(pair.left_item) &&
+                              styles.matchingItemIncorrect,
+                          ]}
+                          onPress={() =>
+                            handleMatchingItemSelect(pair.left_item, 'left')
+                          }
+                          disabled={completedLeftItems.includes(pair.left_item)}
+                        >
+                          <Text style={styles.matchingItemText}>
+                            {pair.left_item}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    )}
                   </View>
                   <View style={styles.matchingColumn}>
                     {scrambledRightItems.map((rightItem: string, i: number) => (
@@ -416,9 +443,12 @@ export default function PracticeQuizQuestionPage() {
                         key={`right-${i}-${rightItem}`}
                         style={[
                           styles.matchingItem,
-                          selectedRightIndex === i && styles.matchingItemSelected,
-                          completedRightIndices.includes(i) && styles.matchingItemCompleted,
-                          incorrectRightIndices.includes(i) && styles.matchingItemIncorrect,
+                          selectedRightIndex === i &&
+                            styles.matchingItemSelected,
+                          completedRightIndices.includes(i) &&
+                            styles.matchingItemCompleted,
+                          incorrectRightIndices.includes(i) &&
+                            styles.matchingItemIncorrect,
                         ]}
                         onPress={() => handleMatchingItemSelect(i, 'right')}
                         disabled={completedRightIndices.includes(i)}
@@ -431,15 +461,21 @@ export default function PracticeQuizQuestionPage() {
                 <TouchableOpacity
                   style={[
                     styles.matchingCheckButton,
-                    (selectedLeftItem === null || selectedRightIndex === null) && styles.matchingCheckButtonDisabled,
+                    (selectedLeftItem === null ||
+                      selectedRightIndex === null) &&
+                      styles.matchingCheckButtonDisabled,
                   ]}
                   onPress={handleMatchingCheck}
-                  disabled={selectedLeftItem === null || selectedRightIndex === null}
+                  disabled={
+                    selectedLeftItem === null || selectedRightIndex === null
+                  }
                 >
                   <Text
                     style={[
                       styles.matchingCheckButtonText,
-                      (selectedLeftItem === null || selectedRightIndex === null) && styles.matchingCheckButtonTextDisabled,
+                      (selectedLeftItem === null ||
+                        selectedRightIndex === null) &&
+                        styles.matchingCheckButtonTextDisabled,
                     ]}
                   >
                     Check

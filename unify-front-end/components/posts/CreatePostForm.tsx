@@ -151,6 +151,27 @@ export default function CreatePostForm({
     setImages([]);
   };
 
+  const trimHtmlTrailingNewlines = (html: string): string => {
+    let content = html
+      .replace(/^<html>\n?/, '')
+      .replace(/<\/html>$/, '')
+      .trim();
+
+    // Remove leading and trailing <br> and empty <p> blocks
+    content = content
+      .replace(
+        /^(\s*<br\s*\/?>\s*|\s*<p>\s*<\/p>\s*|\s*<p>\s*<br\s*\/?>\s*<\/p>\s*)+/gi,
+        ''
+      )
+      .replace(
+        /(\s*<br\s*\/?>\s*|\s*<p>\s*<\/p>\s*|\s*<p>\s*<br\s*\/?>\s*<\/p>\s*)+$/gi,
+        ''
+      )
+      .trim();
+
+    return content;
+  };
+
   const handleSubmit = async () => {
     if (!trimmedTitle || !trimmedContent) {
       Alert.alert('Error', 'Please fill in title and content');
@@ -162,6 +183,7 @@ export default function CreatePostForm({
     }
 
     let post_image_urls: string[] = [];
+
     if (images.length > 0) {
       setIsUploadingImages(true);
       try {
@@ -182,12 +204,6 @@ export default function CreatePostForm({
         setIsUploadingImages(false);
       }
     }
-
-    const trimHtmlTrailingNewlines = (html: string): string => {
-      return html
-        .replace(/(<p>\s*<\/p>|<p>\s*<br\s*\/?>\s*<\/p>|<br\s*\/?>)+$/gi, '')
-        .trim();
-    };
 
     createPostMutation.mutate(
       {

@@ -49,7 +49,9 @@ const SANITY_CLASS_TO_PRIORITY: Record<SanityChecklistItem['class'], Priority> =
     optional_later: 'Optional / later',
   };
 
-function normalizeLinkTab(link_tab: SanityChecklistItem['link_tab']): ChecklistLinkTabSlug | undefined {
+function normalizeLinkTab(
+  link_tab: SanityChecklistItem['link_tab']
+): ChecklistLinkTabSlug | undefined {
   if (link_tab == null || typeof link_tab !== 'string') return undefined;
   const slug = link_tab.trim().toLowerCase();
   return slug.length > 0 ? (slug as ChecklistLinkTabSlug) : undefined;
@@ -67,7 +69,9 @@ export function sanityChecklistItemToTaskDetails(
     priority: SANITY_CLASS_TO_PRIORITY[item.class],
     task_module: moduleOrSub?.title,
     linkTab,
-    linkModuleId: linkTab ? undefined : item.module?._id ?? item.submodule?.moduleId,
+    linkModuleId: linkTab
+      ? undefined
+      : (item.module?._id ?? item.submodule?.moduleId),
     linkSubmoduleId: linkTab ? undefined : item.submodule?._id,
     linkModuleTitle: moduleOrSub?.title,
   };
