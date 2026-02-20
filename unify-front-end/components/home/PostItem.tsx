@@ -77,6 +77,7 @@ export const PostItem = memo(
       trackPostCommentOpened,
     } = useAnalytics();
 
+    // Use batch-loaded metadata (no individual queries needed)
     const likePostMutation = useMutateLikePost();
     const savePostMutation = useMutateSavePost();
     const deletePostMutation = useMutateDeletePost();
@@ -86,13 +87,14 @@ export const PostItem = memo(
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
-    const canPin = isAdmin;
+    const canPin = isAdmin; // Only admins can pin/unpin
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
 
-    // card content width: screen width minus card horizontal padding (22*2) minus outer list padding (16*2 assumed)
+    // Card image width = screen width - horizontal card padding (22 * 2) - outer list padding (16 * 2)
     const cardImageWidth = width - 44 - 32;
 
+    // When post_image_urls received, call service to get images
     useEffect(() => {
       if (!post.post_image_urls?.length) return;
       resolvePostImageUrls(post.post_image_urls)
@@ -100,18 +102,13 @@ export const PostItem = memo(
         .catch(err => console.error('resolvePostImageUrls failed:', err));
     }, [post.post_image_urls]);
 
-    const handleCarouselScroll = (
-      e: NativeSyntheticEvent<NativeScrollEvent>
-    ) => {
-      const index = Math.round(e.nativeEvent.contentOffset.x / cardImageWidth);
-      setActiveImageIndex(index);
-    };
-
+    // Function to help generate a preview of text for posts on the feed
     const getPreviewFromHtml = (
       html: string,
       lineLimit: number,
       charsPerLine: number
     ): string => {
+      // Helper function for splicing HTML tags to get plain text
       const getTextFromHtml = (charCount: number): string => {
         let hIdx = 0;
         let pIdx = 0;
@@ -143,38 +140,54 @@ export const PostItem = memo(
         return html.slice(0, hIdx) + '...' + closingTags;
       };
 
-      const segments = html.split(/<\/p>|<br\s*\/?>/gi);
-      let totalLines = 0;
-      let charsToShow = 0;
+      const segments = html.split(/<\/p>|<br\s*\/?>/gi); // e.g. "<p>Bold"
+      let totalLines = 0; // Running count of occupied lines
+      let charsToShow = 0; // Keeps track of which index to splice text from in HTML
 
       for (const element of segments) {
-        const segmentText = element
+        const segmentText = element // e.g. "Bold"
           .replaceAll(/<[^>]*>/g, '')
           .replaceAll('&nbsp;', ' ')
           .replaceAll('\r', '');
+
         if (segmentText.length === 0) continue;
+
         const segmentLines = Math.ceil(segmentText.length / charsPerLine);
+
         if (totalLines + segmentLines >= lineLimit) {
           const linesAvailable = lineLimit - totalLines;
-          if (linesAvailable <= 0) return getTextFromHtml(charsToShow);
+
+          // If out of lines, cut off text
+          if (linesAvailable <= 0) {
+            return getTextFromHtml(charsToShow);
+          }
+
           const charsAvailable = linesAvailable * charsPerLine;
           const truncatedSegment = segmentText.slice(0, charsAvailable);
+
           const lastSpace = truncatedSegment.lastIndexOf(' ');
           const cutSegment =
             lastSpace > 0
               ? truncatedSegment.slice(0, lastSpace)
               : truncatedSegment;
+
           return getTextFromHtml(charsToShow + cutSegment.length);
         }
+
         totalLines += segmentLines;
         charsToShow += segmentText.length;
       }
-      return html;
-    };
 
+      return html;
+    }
+
+    // Max characters considered to be a "line break" based on the width of the screen
+    // Adjust if necessary to keep it easy on the eyes
+    // NOTE: Calculation is an estimate and will not be exact, if text overflows beyond MAX_LINES this may be the cause
     const CHARS_PER_LINE = Math.floor(width / 10);
     const MAX_LINES = 3;
 
+    // Calculate number potentially visible lines based on HTML and enforced CHARS_PER_LINE
     const countVisualLines = (html: string) => {
       const segments = html.split(/<\/p>|<br\s*\/?>/gi);
       let total = 0;
@@ -189,8 +202,11 @@ export const PostItem = memo(
       return Math.max(1, total);
     };
 
+    // Determine if "Read more" text should be displayed
     const shouldShowReadMore = countVisualLines(content) > MAX_LINES;
     const useMaxBodyPreviewHeight = shouldShowReadMore;
+
+    // Get preview text that will be displayed on cards
     const previewHtml = shouldShowReadMore
       ? getPreviewFromHtml(content, MAX_LINES, CHARS_PER_LINE)
       : content;
@@ -199,16 +215,25 @@ export const PostItem = memo(
       pinPostMutation.mutate(
         { postId: post.id, isPinned: post.isPinned ?? false },
         {
-          onSuccess: () => setDeleteModalVisible(false),
+          onSuccess: () => {
+            setDeleteModalVisible(false);
+          },
           onError: error => {
             Alert.alert(
               'Error',
               error.message ||
-                `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
+              `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
             );
           },
         }
       );
+    };
+
+    const handleCarouselScroll = (
+      e: NativeSyntheticEvent<NativeScrollEvent>
+    ) => {
+      const index = Math.round(e.nativeEvent.contentOffset.x / cardImageWidth);
+      setActiveImageIndex(index);
     };
 
     const toggleLike = (postId: number, isLiked: boolean) => {
@@ -240,11 +265,13 @@ export const PostItem = memo(
       );
     };
 
-    const navigateToUserProfile = () =>
+    const navigateToUserProfile = () => {
       router.push(`/profile?userId=${post.user.id}`);
+    };
 
     const navigateToGroupDetail = async () => {
       if (!post.group) return;
+
       try {
         const group = await getGroupByName(post.group);
         if (group) {
@@ -254,6 +281,7 @@ export const PostItem = memo(
           });
           return;
         }
+
         router.push({
           pathname: '/group-detail' as any,
           params: { groupName: post.group },
@@ -271,7 +299,9 @@ export const PostItem = memo(
       trackPostCommentOpened(post.id.toString());
       router.push({
         pathname: '/post-details',
-        params: { post: JSON.stringify(post) },
+        params: {
+          post: JSON.stringify(post),
+        },
       });
     };
 
@@ -290,12 +320,15 @@ export const PostItem = memo(
             style: 'destructive',
             onPress: () => {
               deletePostMutation.mutate(post.id, {
-                onSuccess: () => setDeleteModalVisible(false),
-                onError: error =>
+                onSuccess: () => {
+                  setDeleteModalVisible(false);
+                },
+                onError: error => {
                   Alert.alert(
                     'Error',
                     error.message || 'Failed to delete post'
-                  ),
+                  );
+                },
               });
             },
           },
@@ -303,10 +336,13 @@ export const PostItem = memo(
       );
     };
 
+    // Use batch-loaded metadata with loading state
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked ?? false;
     const isSaved = metadata?.isSaved ?? false;
     const commentCount = metadata?.commentCount ?? 0;
+
+    // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
     const iconSize = isHomeCardVariant ? 24 : 20;
 
@@ -384,8 +420,52 @@ export const PostItem = memo(
       </TouchableOpacity>
     );
 
+    const imageCarousel =
+      imageUrls.length > 0 ? (
+        <View style={styles.carouselWrapper}>
+          <View style={styles.carouselContainer}>
+            <GHScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              onScroll={handleCarouselScroll}
+              scrollEventThrottle={16}
+              decelerationRate='fast'
+              snapToInterval={cardImageWidth}
+              snapToAlignment='start'
+              disableIntervalMomentum
+              disallowInterruption
+              style={{ width: cardImageWidth }}
+              contentContainerStyle={styles.carouselContent}
+            >
+              {imageUrls.map((url, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: url }}
+                  style={[styles.carouselImage, { width: cardImageWidth }]}
+                />
+              ))}
+            </GHScrollView>
+            {imageUrls.length > 1 && (
+              <View style={styles.dotsContainer} pointerEvents='none'>
+                <View style={styles.dotsIsland}>
+                  {imageUrls.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.dot,
+                        index === activeImageIndex && styles.dotActive,
+                      ]}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+      ) : null;
+
     const footer = isHomeCardVariant ? (
-      <View style={[styles.footer, styles.homeFooter]}>
+      <View style={styles.footer}>
         <View style={styles.homeFooterLeft}>
           {likeAction}
           {commentAction}
@@ -394,12 +474,15 @@ export const PostItem = memo(
       </View>
     ) : (
       <View style={styles.footer}>
-        {likeAction}
-        {commentAction}
-        {saveAction}
+        <View style={styles.homeFooterLeft}>
+          {likeAction}
+          {commentAction}
+          {saveAction}
+        </View>
       </View>
     );
 
+    // 'react-native-render-HTML' HTML rendering config
     const tagsStyles: Record<string, MixedStyleDeclaration> = {
       body: { fontSize: 16, lineHeight: 22, color: Theme.black },
       a: { color: '#f68b26', textDecorationLine: 'underline' },
@@ -413,20 +496,23 @@ export const PostItem = memo(
       strike: { textDecorationLine: 'line-through' },
     };
 
+    // Warning text for when links are being opened
     const linkWarningTitle = 'You are about to leave Unify';
-    const linkWarningBody =
-      'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
+    const linkWarningBody = 'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
 
+    // For handling clicks on links
     const renderersProps = {
       a: {
+        // Only make link clickable when post opened
         onPress: isHomeCardVariant
           ? undefined
           : (_: any, href: string) => {
-              Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
-                { text: 'Go back', style: 'cancel' },
-                { text: 'Open link', onPress: () => Linking.openURL(href) },
-              ]);
-            },
+            // Open warning alert on click
+            Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
+              { text: 'Go back', style: 'cancel' },
+              { text: 'Open link', onPress: () => Linking.openURL(href) },
+            ]);
+          },
       },
     };
 
@@ -439,19 +525,14 @@ export const PostItem = memo(
             isHomeCardVariant && styles.homeCardContainer,
           ]}
         >
-          {/* ── Home card variant ── */}
+          {/* Home card variant */}
           {isHomeCardVariant ? (
             <View style={styles.homeCardContent}>
-              {/*
-               * The Pressable only wraps the tappable header + body.
-               * The image carousel and footer live OUTSIDE the Pressable so
-               * horizontal swipe gestures are not intercepted by it.
-               */}
               <Pressable
                 style={({ pressed }) => [pressed && styles.homeCardPressed]}
                 onPress={navigateToComments}
               >
-                {/* Header: avatar + meta + title */}
+                {/* Header */}
                 <View style={styles.homeHeaderRow}>
                   <TouchableOpacity
                     style={[styles.headshot, styles.homeHeadshot]}
@@ -480,10 +561,7 @@ export const PostItem = memo(
                             onPress={navigateToGroupDetail}
                             style={styles.homeMetaGroupWrap}
                           >
-                            <Text
-                              style={styles.homeMetaGroup}
-                              numberOfLines={2}
-                            >
+                            <Text style={styles.homeMetaGroup} numberOfLines={2}>
                               {post.group}
                             </Text>
                           </TouchableOpacity>
@@ -510,14 +588,14 @@ export const PostItem = memo(
                   )}
                 </View>
 
-                {/* Text content */}
+                {/* Content */}
                 <View style={[styles.postBody, styles.homePostBody]}>
                   {!shouldHideContent && (
                     <View
                       style={[
                         styles.homeDescriptionContainer,
                         !useMaxBodyPreviewHeight &&
-                          styles.homeDescriptionContainerCompact,
+                        styles.homeDescriptionContainerCompact,
                       ]}
                     >
                       <RenderHtml
@@ -527,7 +605,7 @@ export const PostItem = memo(
                         renderersProps={renderersProps}
                       />
                       {shouldShowReadMore && (
-                        <Text style={styles.homeReadMore}>Read more</Text>
+                        <Text style={styles.readMoreText}>Read more</Text>
                       )}
                     </View>
                   )}
@@ -535,57 +613,12 @@ export const PostItem = memo(
               </Pressable>
 
               {/* Image carousel */}
-              {imageUrls.length > 0 && (
-                <View style={styles.homeCarouselWrapper}>
-                  <View style={styles.homeCarouselContainer}>
-                    <GHScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      onScroll={handleCarouselScroll}
-                      scrollEventThrottle={16}
-                      decelerationRate='fast'
-                      snapToInterval={cardImageWidth}
-                      snapToAlignment='start'
-                      disableIntervalMomentum
-                      disallowInterruption
-                      style={{ width: cardImageWidth }}
-                      contentContainerStyle={styles.homeCarouselContent}
-                    >
-                      {imageUrls.map((url, index) => (
-                        <Image
-                          key={index}
-                          source={{ uri: url }}
-                          style={[
-                            styles.homeCarouselImage,
-                            { width: cardImageWidth },
-                          ]}
-                        />
-                      ))}
-                    </GHScrollView>
-                    {imageUrls.length > 1 && (
-                      <View style={styles.dotsContainer} pointerEvents='none'>
-                        <View style={styles.dotsIsland}>
-                          {imageUrls.map((_, index) => (
-                            <View
-                              key={index}
-                              style={[
-                                styles.dot,
-                                index === activeImageIndex && styles.dotActive,
-                              ]}
-                            />
-                          ))}
-                        </View>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              )}
+              {imageCarousel}
 
               {/* Footer */}
               {footer}
             </View>
           ) : (
-            // Home feed variant
             <>
               <TouchableOpacity
                 style={styles.headshot}
@@ -658,53 +691,7 @@ export const PostItem = memo(
                   )}
                 </TouchableOpacity>
 
-                {/* Horizontal scroll carousel */}
-                {imageUrls.length > 0 && (
-                  <View style={styles.homeCarouselWrapper}>
-                    <View style={styles.homeCarouselContainer}>
-                      <GHScrollView
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        onScroll={handleCarouselScroll}
-                        scrollEventThrottle={16}
-                        decelerationRate='fast'
-                        snapToInterval={cardImageWidth}
-                        snapToAlignment='start'
-                        disableIntervalMomentum
-                        disallowInterruption
-                        style={{ width: cardImageWidth }}
-                        contentContainerStyle={styles.imageCarouselContent}
-                      >
-                        {imageUrls.map((url, index) => (
-                          <Image
-                            key={index}
-                            source={{ uri: url }}
-                            style={[
-                              styles.postImage,
-                              { width: cardImageWidth },
-                            ]}
-                          />
-                        ))}
-                      </GHScrollView>
-                      {imageUrls.length > 1 && (
-                        <View style={styles.dotsContainer} pointerEvents='none'>
-                          <View style={styles.dotsIsland}>
-                            {imageUrls.map((_, index) => (
-                              <View
-                                key={index}
-                                style={[
-                                  styles.dot,
-                                  index === activeImageIndex &&
-                                    styles.dotActive,
-                                ]}
-                              />
-                            ))}
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                )}
+                {imageCarousel}
 
                 {footer}
               </View>
@@ -940,10 +927,9 @@ const styles = StyleSheet.create({
   homeDescriptionContainerCompact: {
     minHeight: 0,
   },
-  homeReadMore: {
+  readMoreText: {
     color: Theme.black,
     fontWeight: '600',
-    marginTop: 6,
   },
   postBody: {
     marginBottom: 12,
@@ -955,13 +941,10 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    gap: 25,
-  },
-  homeFooter: {
     flex: 0,
     justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 25,
     marginTop: 14,
   },
   homeFooterLeft: {
@@ -1048,17 +1031,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#666',
   },
-  homeCarouselWrapper: {
-    marginTop: 22,
+  carouselWrapper: {
+    marginTop: 12,
   },
-  homeCarouselContainer: {
+  carouselContainer: {
     borderRadius: 10,
     overflow: 'hidden',
   },
-  homeCarouselContent: {
+  carouselContent: {
     flexDirection: 'row',
   },
-  homeCarouselImage: {
+  carouselImage: {
     height: 200,
     resizeMode: 'cover',
   },
@@ -1091,18 +1074,5 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: Theme.white,
-  },
-  imageCarousel: {
-    width: '100%',
-    height: 300,
-  },
-  imageCarouselContent: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  postImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
   },
 });

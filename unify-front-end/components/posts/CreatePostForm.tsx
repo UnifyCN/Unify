@@ -183,10 +183,16 @@ export default function CreatePostForm({
       }
     }
 
+    const trimHtmlTrailingNewlines = (html: string): string => {
+      return html
+        .replace(/(<p>\s*<\/p>|<p>\s*<br\s*\/?>\s*<\/p>|<br\s*\/?>)+$/gi, '')
+        .trim();
+    };
+
     createPostMutation.mutate(
       {
         title: trimmedTitle,
-        content: contentHtml || trimmedContent,
+        content: trimHtmlTrailingNewlines(contentHtml || trimmedContent),
         group_id: destination === '4u' ? null : String(selectedGroup?.id),
         post_image_urls,
       },
@@ -209,8 +215,6 @@ export default function CreatePostForm({
         },
       }
     );
-    const results = await Promise.all(images.map(img => uploadPostImage(img)));
-    console.log('upload results:', results);
   };
 
   const handleCancel = () => {
@@ -408,11 +412,7 @@ export default function CreatePostForm({
                 style={styles.addMoreImagesButton}
                 onPress={handleImagePick}
               >
-                <Feather
-                  name='plus'
-                  size={20}
-                  color={Theme.surfaceGray}
-                />
+                <Feather name='plus' size={20} color={Theme.surfaceGray} />
               </TouchableOpacity>
             )}
           </ScrollView>
@@ -515,7 +515,7 @@ export default function CreatePostForm({
           <TouchableOpacity
             style={styles.modalCard}
             activeOpacity={1}
-            onPress={() => {}}
+            onPress={() => {}} // prevent overlay dismiss when tapping card
           >
             <Text style={styles.modalTitle}>Insert Link</Text>
 
@@ -725,7 +725,6 @@ const styles = StyleSheet.create({
   charCountWarning: {
     color: Theme.primaryGatherRed,
   },
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
