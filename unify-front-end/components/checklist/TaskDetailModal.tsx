@@ -61,7 +61,8 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
             {/* Task Description (longer when available, else short) */}
             <Text style={styles.taskDescription}>
-              {task.task.longer_description?.trim() || task.task.task_description}
+              {task.task.longer_description?.trim() ||
+                task.task.task_description}
             </Text>
 
             {/* Buttons */}

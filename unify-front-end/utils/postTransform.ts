@@ -8,8 +8,6 @@ import { User } from '@/types/user';
  * @returns Transformed PostData object
  */
 export const transformPostDto = (dto: PostDto): PostData => {
-  console.log('dto.post_image_urls:', dto.post_image_urls);
-  console.log('dto id:', dto.id, 'post_image_urls:', dto.post_image_urls);
   return {
     id: dto.id,
     user: {

@@ -42,7 +42,7 @@ export const getUserPosts = async (
           id,
           group_name
         ),
-        post_image_urls,
+        post_image_urls
       `
       )
       .eq('user_id', targetUserId)

@@ -151,6 +151,27 @@ export default function CreatePostForm({
     setImages([]);
   };
 
+  const trimHtmlTrailingNewlines = (html: string): string => {
+    let content = html
+      .replace(/^<html>\n?/, '')
+      .replace(/<\/html>$/, '')
+      .trim();
+
+    // Remove leading and trailing <br> and empty <p> blocks
+    content = content
+      .replace(
+        /^(\s*<br\s*\/?>\s*|\s*<p>\s*<\/p>\s*|\s*<p>\s*<br\s*\/?>\s*<\/p>\s*)+/gi,
+        ''
+      )
+      .replace(
+        /(\s*<br\s*\/?>\s*|\s*<p>\s*<\/p>\s*|\s*<p>\s*<br\s*\/?>\s*<\/p>\s*)+$/gi,
+        ''
+      )
+      .trim();
+
+    return content;
+  };
+
   const handleSubmit = async () => {
     if (!trimmedTitle || !trimmedContent) {
       Alert.alert('Error', 'Please fill in title and content');
@@ -162,6 +183,7 @@ export default function CreatePostForm({
     }
 
     let post_image_urls: string[] = [];
+
     if (images.length > 0) {
       setIsUploadingImages(true);
       try {
@@ -186,7 +208,7 @@ export default function CreatePostForm({
     createPostMutation.mutate(
       {
         title: trimmedTitle,
-        content: contentHtml || trimmedContent,
+        content: trimHtmlTrailingNewlines(contentHtml || trimmedContent),
         group_id: destination === '4u' ? null : String(selectedGroup?.id),
         post_image_urls,
       },
@@ -209,8 +231,6 @@ export default function CreatePostForm({
         },
       }
     );
-    const results = await Promise.all(images.map(img => uploadPostImage(img)));
-    console.log('upload results:', results);
   };
 
   const handleCancel = () => {
@@ -408,11 +428,7 @@ export default function CreatePostForm({
                 style={styles.addMoreImagesButton}
                 onPress={handleImagePick}
               >
-                <Feather
-                  name='plus'
-                  size={20}
-                  color={Theme.surfaceGray}
-                />
+                <Feather name='plus' size={20} color={Theme.surfaceGray} />
               </TouchableOpacity>
             )}
           </ScrollView>
@@ -515,7 +531,7 @@ export default function CreatePostForm({
           <TouchableOpacity
             style={styles.modalCard}
             activeOpacity={1}
-            onPress={() => {}}
+            onPress={() => {}} // prevent overlay dismiss when tapping card
           >
             <Text style={styles.modalTitle}>Insert Link</Text>
 
@@ -725,7 +741,6 @@ const styles = StyleSheet.create({
   charCountWarning: {
     color: Theme.primaryGatherRed,
   },
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.4)',
