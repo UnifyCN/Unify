@@ -190,7 +190,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         rightButton={
           !isCurrentUser && userInfo ? (
             <View style={styles.headerActionRow}>
-              <FollowButton targetUserId={userInfo.id} compact largeCompact />
+              <FollowButton targetUserId={userInfo.id} compact />
               {reportButton}
             </View>
           ) : undefined
