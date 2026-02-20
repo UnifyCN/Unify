@@ -534,60 +534,58 @@ export const PostItem = memo(
                 </View>
               </Pressable>
 
-              {/*
-               * Image carousel — outside the Pressable so the GHScrollView
-               * can freely receive horizontal swipe gestures without the
-               * Pressable intercepting them. disallowInterruption tells the
-               * parent tab-pager to back off once the carousel has claimed
-               * the touch.
-               */}
+              {/* Image carousel */}
               {imageUrls.length > 0 && (
-                <View style={styles.homeCarouselContainer}>
-                  <GHScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    onScroll={handleCarouselScroll}
-                    scrollEventThrottle={16}
-                    decelerationRate='fast'
-                    snapToInterval={cardImageWidth}
-                    snapToAlignment='start'
-                    disableIntervalMomentum
-                    disallowInterruption
-                    style={{ width: cardImageWidth }}
-                    contentContainerStyle={styles.homeCarouselContent}
-                  >
-                    {imageUrls.map((url, index) => (
-                      <Image
-                        key={index}
-                        source={{ uri: url }}
-                        style={[
-                          styles.homeCarouselImage,
-                          { width: cardImageWidth },
-                        ]}
-                      />
-                    ))}
-                  </GHScrollView>
-                  {imageUrls.length > 1 && (
-                    <View style={styles.dotsContainer}>
-                      {imageUrls.map((_, index) => (
-                        <View
+                <View style={styles.homeCarouselWrapper}>
+                  <View style={styles.homeCarouselContainer}>
+                    <GHScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      onScroll={handleCarouselScroll}
+                      scrollEventThrottle={16}
+                      decelerationRate='fast'
+                      snapToInterval={cardImageWidth}
+                      snapToAlignment='start'
+                      disableIntervalMomentum
+                      disallowInterruption
+                      style={{ width: cardImageWidth }}
+                      contentContainerStyle={styles.homeCarouselContent}
+                    >
+                      {imageUrls.map((url, index) => (
+                        <Image
                           key={index}
+                          source={{ uri: url }}
                           style={[
-                            styles.dot,
-                            index === activeImageIndex && styles.dotActive,
+                            styles.homeCarouselImage,
+                            { width: cardImageWidth },
                           ]}
                         />
                       ))}
-                    </View>
-                  )}
+                    </GHScrollView>
+                    {imageUrls.length > 1 && (
+                      <View style={styles.dotsContainer} pointerEvents='none'>
+                        <View style={styles.dotsIsland}>
+                          {imageUrls.map((_, index) => (
+                            <View
+                              key={index}
+                              style={[
+                                styles.dot,
+                                index === activeImageIndex && styles.dotActive,
+                              ]}
+                            />
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </View>
                 </View>
               )}
 
-              {/* Footer — outside the Pressable so taps register correctly */}
+              {/* Footer */}
               {footer}
             </View>
           ) : (
-            // ── Default (feed) variant ──
+            // Home feed variant
             <>
               <TouchableOpacity
                 style={styles.headshot}
@@ -660,24 +658,52 @@ export const PostItem = memo(
                   )}
                 </TouchableOpacity>
 
-                {/* Horizontal scroll carousel — outside TouchableOpacity
-                    so scroll gestures aren't blocked */}
+                {/* Horizontal scroll carousel */}
                 {imageUrls.length > 0 && (
-                  <GHScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    disallowInterruption
-                    style={styles.imageCarousel}
-                    contentContainerStyle={styles.imageCarouselContent}
-                  >
-                    {imageUrls.map((url, index) => (
-                      <Image
-                        key={index}
-                        source={{ uri: url }}
-                        style={styles.postImage}
-                      />
-                    ))}
-                  </GHScrollView>
+                  <View style={styles.homeCarouselWrapper}>
+                    <View style={styles.homeCarouselContainer}>
+                      <GHScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        onScroll={handleCarouselScroll}
+                        scrollEventThrottle={16}
+                        decelerationRate='fast'
+                        snapToInterval={cardImageWidth}
+                        snapToAlignment='start'
+                        disableIntervalMomentum
+                        disallowInterruption
+                        style={{ width: cardImageWidth }}
+                        contentContainerStyle={styles.imageCarouselContent}
+                      >
+                        {imageUrls.map((url, index) => (
+                          <Image
+                            key={index}
+                            source={{ uri: url }}
+                            style={[
+                              styles.postImage,
+                              { width: cardImageWidth },
+                            ]}
+                          />
+                        ))}
+                      </GHScrollView>
+                      {imageUrls.length > 1 && (
+                        <View style={styles.dotsContainer} pointerEvents='none'>
+                          <View style={styles.dotsIsland}>
+                            {imageUrls.map((_, index) => (
+                              <View
+                                key={index}
+                                style={[
+                                  styles.dot,
+                                  index === activeImageIndex &&
+                                    styles.dotActive,
+                                ]}
+                              />
+                            ))}
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  </View>
                 )}
 
                 {footer}
@@ -1022,11 +1048,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#666',
   },
-  // HomeCard swipable paging carousel
+  homeCarouselWrapper: {
+    marginTop: 22,
+  },
   homeCarouselContainer: {
-    marginTop: 10,
-    marginBottom: 10,
-    alignItems: 'center',
     borderRadius: 10,
     overflow: 'hidden',
   },
@@ -1035,32 +1060,41 @@ const styles = StyleSheet.create({
   },
   homeCarouselImage: {
     height: 200,
-    borderRadius: 10,
     resizeMode: 'cover',
   },
   dotsContainer: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  dotsIsland: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 5,
-    marginTop: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   dot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: Theme.surfaceGray,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   dotActive: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Theme.black,
+    backgroundColor: Theme.white,
   },
   imageCarousel: {
-    height: 200,
-    marginTop: 8,
-    marginBottom: 12,
+    width: '100%',
+    height: 300,
   },
   imageCarouselContent: {
     flexDirection: 'row',

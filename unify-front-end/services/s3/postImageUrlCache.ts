@@ -1,11 +1,5 @@
 import { resolveAvatarUrl } from '@/services/s3/avatarUrlCache';
 
-export const resolvePostImageUrl = (
-  key: string
-): Promise<string | undefined> => {
-  return resolveAvatarUrl(key);
-};
-
 export const resolvePostImageUrls = async (
   keys: string[]
 ): Promise<string[]> => {

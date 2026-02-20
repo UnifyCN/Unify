@@ -306,10 +306,10 @@ export default function CreatePostForm({
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
       quality: 0.8,
-      selectionLimit: 4 - images.length,
+      selectionLimit: 10 - images.length,
     });
     if (!result.canceled) {
-      setImages(prev => [...prev, ...result.assets].slice(0, 4));
+      setImages(prev => [...prev, ...result.assets].slice(0, 10));
     }
   };
 
@@ -403,15 +403,15 @@ export default function CreatePostForm({
                 </TouchableOpacity>
               </View>
             ))}
-            {images.length < 4 && (
+            {images.length < 10 && (
               <TouchableOpacity
-                style={styles.addMoreButton}
+                style={styles.addMoreImagesButton}
                 onPress={handleImagePick}
               >
                 <Feather
                   name='plus'
                   size={20}
-                  color={Theme.textAlternateGray}
+                  color={Theme.surfaceGray}
                 />
               </TouchableOpacity>
             )}
@@ -493,7 +493,7 @@ export default function CreatePostForm({
             <ToolbarButton
               icon='📷'
               isActive={images.length > 0}
-              isBlocked={images.length >= 4}
+              isBlocked={images.length >= 10}
               onPress={handleImagePick}
             />
           </ScrollView>
@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addMoreButton: {
+  addMoreImagesButton: {
     width: 100,
     height: 120,
     borderRadius: 8,
