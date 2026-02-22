@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
@@ -9,19 +9,13 @@ export const getFeedFollowing = async (
   limit: number = 20
 ): Promise<FeedResponse> => {
   try {
-    // Get current user's ID
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    const userId = await getAuthUserId();
 
     // First, get the list of user IDs that the current user is following
     const { data: followingData, error: followingError } = await supabase
       .from('user_followers')
       .select('following_id')
-      .eq('follower_id', user.id);
+      .eq('follower_id', userId);
 
     if (followingError) {
       throw new Error(

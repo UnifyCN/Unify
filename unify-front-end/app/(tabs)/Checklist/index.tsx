@@ -32,7 +32,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
  */
 const TAB_SLUG_TO_ROUTE: Record<ChecklistLinkTabSlug, string> = {
   home: '/(tabs)/index',
-  community: '/(tabs)/Gather/gather',
+  community: '/(tabs)/Gather',
   companion: '/(tabs)/companion',
   checklist: '/(tabs)/Checklist',
   learn: '/(tabs)/Learn',

@@ -1,20 +1,15 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 
 export const getFollowStatus = async (
   targetUserId: string
 ): Promise<boolean> => {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    const userId = await getAuthUserId();
 
     const { data, error } = await supabase
       .from('user_followers')
       .select('*')
-      .eq('follower_id', user.id)
+      .eq('follower_id', userId)
       .eq('following_id', targetUserId)
       .single();
 

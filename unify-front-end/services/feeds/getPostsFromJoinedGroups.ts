@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
@@ -9,19 +9,13 @@ export const getPostsFromJoinedGroups = async (
   limit: number = 20
 ): Promise<FeedResponse> => {
   try {
-    // Get current user's ID
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    const userId = await getAuthUserId();
 
     // 1) Get the list of group IDs the user has joined
     const { data: memberships, error: membershipError } = await supabase
       .from('group_members')
       .select('group_id')
-      .eq('user_id', user.id);
+      .eq('user_id', userId);
 
     if (membershipError) {
       throw new Error(

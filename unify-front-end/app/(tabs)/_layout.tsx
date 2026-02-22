@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Tabs, useRouter, usePathname } from 'expo-router';
+import { Tabs, usePathname } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -38,7 +38,6 @@ const TabIcon = ({ IconComponent, title, focused }: any) => {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
   const pathname = usePathname();
   const [currentTab, setCurrentTab] = useState('index');
   const previousTabRef = useRef('index');
@@ -101,17 +100,7 @@ export default function TabLayout() {
               previousTabRef.current = routeName;
             }
 
-            if (routeName === 'Gather') {
-              // If already on Gather tab, replace to main screen
-              if (currentTab === 'Gather') {
-                router.replace('/(tabs)/Gather/gather');
-              }
-              // Update current tab state
-              setCurrentTab('Gather');
-            } else {
-              // Update current tab state for other tabs
-              setCurrentTab(routeName || 'index');
-            }
+            setCurrentTab(routeName || 'index');
           },
         }}
       >

@@ -1,14 +1,9 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 import { Group } from '@/types/groups';
 
 export const getAllGroups = async (): Promise<Group[]> => {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    await getAuthUserId();
 
     const { data, error } = await supabase
       .from('groups')

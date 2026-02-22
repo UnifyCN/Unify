@@ -1,16 +1,13 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 
 export const leaveGroup = async (group_id: number) => {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
+    const userId = await getAuthUserId();
 
     const { error } = await supabase
       .from('group_members')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('group_id', group_id);
 
     if (error) {

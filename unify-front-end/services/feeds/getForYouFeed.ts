@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
@@ -15,13 +15,7 @@ export const getForYouFeed = async (
   limit: number = 20
 ): Promise<FeedResponse> => {
   try {
-    // Get current user's ID
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    await getAuthUserId();
 
     const isFirstPage = !cursor || cursor === '0';
 

@@ -1,20 +1,15 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 
 export const checkUserGroupMembership = async (
   group_id: number
 ): Promise<boolean> => {
   try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    // If there's no authenticated user, return false (not a member)
-    if (!user) return false;
+    const userId = await getAuthUserId();
 
     const { data, error } = await supabase
       .from('group_members')
       .select('user_id')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('group_id', group_id)
       .maybeSingle();
 

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 
 interface PostMetadata {
   postId: number;
@@ -15,10 +15,7 @@ export const usePostMetadata = (postIds: number[]) => {
     queryFn: async (): Promise<Record<number, PostMetadata>> => {
       if (postIds.length === 0) return {};
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
+      const userId = await getAuthUserId();
 
       // Batch load all metadata in parallel
       const [likesData, commentsData, savesData] = await Promise.all([
@@ -55,7 +52,7 @@ export const usePostMetadata = (postIds: number[]) => {
       for (const like of likesData.data || []) {
         if (!postIdSet.has(like.post_id)) continue;
         metadata[like.post_id].likeCount += 1;
-        if (like.user_id === user.id) {
+        if (like.user_id === userId) {
           metadata[like.post_id].isLiked = true;
         }
       }
@@ -67,7 +64,7 @@ export const usePostMetadata = (postIds: number[]) => {
 
       for (const save of savesData.data || []) {
         if (!postIdSet.has(save.post_id)) continue;
-        if (save.user_id === user.id) {
+        if (save.user_id === userId) {
           metadata[save.post_id].isSaved = true;
         }
       }

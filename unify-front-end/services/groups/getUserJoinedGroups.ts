@@ -1,21 +1,11 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 import { Group } from '@/types/groups';
 
 export const getUserJoinedGroups = async (
   targetUserId?: string
 ): Promise<Group[]> => {
   try {
-    let userId = targetUserId;
-
-    if (!userId) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-      userId = user.id;
-    }
+    const userId = targetUserId || (await getAuthUserId());
 
     const { data, error } = await supabase
       .from('group_members')

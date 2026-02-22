@@ -37,13 +37,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     ? queryClient.getQueryData(['userInfo', userId])
     : null;
 
-  // Get user ID and email from auth
   useEffect(() => {
     const getAuthUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUserId(data.user.id);
-        setUserEmail(data.user.email || null);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserId(session.user.id);
+        setUserEmail(session.user.email || null);
       } else {
         setUserId(null);
         setUserEmail(null);

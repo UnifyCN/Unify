@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthUserId } from '@/lib/supabase';
 import { Permissions } from '@/types/permissions';
 import dayjs from 'dayjs';
 import { StageNumber } from '@/types/checklist';
@@ -40,15 +40,8 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
   try {
     let targetUserId = userId;
 
-    // If no userId provided, get current user's ID
     if (!targetUserId) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-      targetUserId = user.id;
+      targetUserId = await getAuthUserId();
     }
 
     const [
