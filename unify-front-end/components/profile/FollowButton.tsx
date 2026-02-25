@@ -7,13 +7,11 @@ import { Theme } from '@/constants/Theme';
 interface FollowButtonProps {
   targetUserId: string;
   compact?: boolean;
-  largeCompact?: boolean;
 }
 
 export const FollowButton = ({
   targetUserId,
   compact = false,
-  largeCompact = false,
 }: FollowButtonProps) => {
   const { data: isFollowing } = useFollowStatus(targetUserId);
   const followUserMutation = useFollowUser();
@@ -43,25 +41,13 @@ export const FollowButton = ({
   return (
     <TouchableOpacity
       style={[
-        compact
-          ? largeCompact
-            ? styles.buttonCompactLarge
-            : styles.buttonCompact
-          : styles.button,
+        compact ? styles.buttonCompact : styles.button,
         localIsFollowing ? styles.followingButton : styles.followButton,
       ]}
       onPress={handleFollowToggle}
       disabled={followUserMutation.isPending}
     >
-      <Text
-        style={
-          compact
-            ? largeCompact
-              ? styles.buttonTextCompactLarge
-              : styles.buttonTextCompact
-            : styles.buttonText
-        }
-      >
+      <Text style={compact ? styles.buttonTextCompact : styles.buttonText}>
         {localIsFollowing ? (compact ? 'Following' : 'Unfollow') : 'Follow'}
       </Text>
     </TouchableOpacity>
@@ -85,14 +71,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minWidth: 80,
   },
-  buttonCompactLarge: {
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 112,
-  },
   followButton: {
     backgroundColor: Theme.primaryGatherRed,
   },
@@ -108,10 +86,5 @@ const styles = StyleSheet.create({
     color: Theme.white,
     fontSize: 13,
     fontWeight: '600',
-  },
-  buttonTextCompactLarge: {
-    color: Theme.white,
-    fontSize: 15,
-    fontWeight: '700',
   },
 });

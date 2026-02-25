@@ -20,7 +20,6 @@ import {
 } from '@/utils/onboardingBadges';
 import { useUserJoinedGroups } from '@/hooks/groups/useUserJoinedGroups';
 import { Group } from '@/types/groups';
-import { Permissions } from '@/types/permissions';
 
 interface ProfileHeaderProps {
   userInfo: UserInfo | undefined;
@@ -37,13 +36,12 @@ export const ProfileHeader = ({
 }: ProfileHeaderProps) => {
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
-  const isAdmin = userInfo?.permissions === Permissions.ADMIN;
 
   const {
     data: joinedGroups = [],
     isLoading: groupsLoading,
     isError: groupsError,
-  } = useUserJoinedGroups(isAdmin ? undefined : userInfo?.id);
+  } = useUserJoinedGroups(userInfo?.id);
 
   const personaBadge = getPersonaBadgeInfo(
     userInfo?.persona ?? null,
@@ -184,91 +182,88 @@ export const ProfileHeader = ({
       </View>
 
       <View style={styles.identitySection}>
-        <View style={styles.identityHeaderRow}>
-          {isCurrentUser ? (
-            <TouchableOpacity
-              style={styles.nameRow}
-              onPress={() => router.push('/edit-name')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.nameText}>{userInfo.username}</Text>
-              <Feather name='edit-3' size={18} color={Theme.black} />
-            </TouchableOpacity>
-          ) : (
+        {isCurrentUser ? (
+          <TouchableOpacity
+            style={styles.nameRow}
+            onPress={() => router.push('/edit-name')}
+            activeOpacity={0.7}
+          >
             <Text style={styles.nameText}>{userInfo.username}</Text>
-          )}
+            <Feather name='edit-3' size={18} color={Theme.black} />
+          </TouchableOpacity>
+        ) : (
+          <Text style={styles.nameText}>{userInfo.username}</Text>
+        )}
 
-          {!isAdmin && (personaBadge || timeInCanadaBadge) && (
-            <View style={styles.badgesInlineRow}>
-              {personaBadge && (
-                <InfoBadge
-                  label={personaBadge.label}
-                  iconName={personaBadge.iconName}
-                  backgroundColor={personaBadge.colors.backgroundColor}
-                  textColor={personaBadge.colors.textColor}
-                  style={styles.badge}
-                />
-              )}
-              {timeInCanadaBadge && (
-                <InfoBadge
-                  label={timeInCanadaBadge.label}
-                  iconName={timeInCanadaBadge.iconName}
-                  backgroundColor={timeInCanadaBadge.colors.backgroundColor}
-                  textColor={timeInCanadaBadge.colors.textColor}
-                  style={styles.badge}
-                />
-              )}
-            </View>
-          )}
-        </View>
+        {(personaBadge || timeInCanadaBadge) && (
+          <View style={styles.badgesRow}>
+            {personaBadge && (
+              <InfoBadge
+                label={personaBadge.label}
+                iconName={personaBadge.iconName}
+                backgroundColor={personaBadge.colors.backgroundColor}
+                textColor={personaBadge.colors.textColor}
+                style={styles.badge}
+              />
+            )}
+            {timeInCanadaBadge && (
+              <InfoBadge
+                label={timeInCanadaBadge.label}
+                iconName={timeInCanadaBadge.iconName}
+                backgroundColor={timeInCanadaBadge.colors.backgroundColor}
+                textColor={timeInCanadaBadge.colors.textColor}
+                style={styles.badge}
+              />
+            )}
+          </View>
+        )}
       </View>
-      {!isAdmin && (
-        <View style={styles.groupsSection}>
-          <Text style={styles.groupsTitle}>Groups</Text>
 
-          {groupsLoading ? (
-            <View style={styles.groupSkeletonRow}>
-              {[0, 1, 2, 3].map(item => (
-                <SkeletonLoader
-                  key={item}
-                  width={GROUP_TILE_SIZE}
-                  height={GROUP_TILE_SIZE}
-                  borderRadius={18}
+      <View style={styles.groupsSection}>
+        <Text style={styles.groupsTitle}>Groups</Text>
+
+        {groupsLoading ? (
+          <View style={styles.groupSkeletonRow}>
+            {[0, 1, 2, 3].map(item => (
+              <SkeletonLoader
+                key={item}
+                width={GROUP_TILE_SIZE}
+                height={GROUP_TILE_SIZE}
+                borderRadius={18}
+              />
+            ))}
+          </View>
+        ) : groupsError ? (
+          <Text style={styles.emptyGroupsText}>Unable to load groups</Text>
+        ) : joinedGroups.length > 0 ? (
+          <FlatList
+            data={joinedGroups}
+            keyExtractor={item => String(item.id)}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.groupsList}
+            initialNumToRender={4}
+            maxToRenderPerBatch={4}
+            windowSize={5}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.groupTile}
+                onPress={() => handleGroupPress(item)}
+                activeOpacity={0.8}
+              >
+                <Avatar
+                  profilePictureUrl={item.coverPhotoUrl || undefined}
+                  username={item.name}
+                  size={GROUP_TILE_SIZE}
+                  style={styles.groupAvatar}
                 />
-              ))}
-            </View>
-          ) : groupsError ? (
-            <Text style={styles.emptyGroupsText}>Unable to load groups</Text>
-          ) : joinedGroups.length > 0 ? (
-            <FlatList
-              data={joinedGroups}
-              keyExtractor={item => String(item.id)}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.groupsList}
-              initialNumToRender={4}
-              maxToRenderPerBatch={4}
-              windowSize={5}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.groupTile}
-                  onPress={() => handleGroupPress(item)}
-                  activeOpacity={0.8}
-                >
-                  <Avatar
-                    profilePictureUrl={item.coverPhotoUrl || undefined}
-                    username={item.name}
-                    size={GROUP_TILE_SIZE}
-                    style={styles.groupAvatar}
-                  />
-                </TouchableOpacity>
-              )}
-            />
-          ) : (
-            <Text style={styles.emptyGroupsText}>No groups yet</Text>
-          )}
-        </View>
-      )}
+              </TouchableOpacity>
+            )}
+          />
+        ) : (
+          <Text style={styles.emptyGroupsText}>No groups yet</Text>
+        )}
+      </View>
     </View>
   );
 };
@@ -297,12 +292,6 @@ const styles = StyleSheet.create({
   identitySection: {
     gap: 8,
   },
-  identityHeaderRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 10,
-  },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -315,12 +304,6 @@ const styles = StyleSheet.create({
     color: Theme.black,
   },
   badgesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 6,
-  },
-  badgesInlineRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
@@ -378,8 +361,8 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     marginTop: 1,
-    fontSize: 15,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '500',
     color: Theme.textAlternateGray,
   },

@@ -9,6 +9,6 @@ export type PostData = {
   time: string;
   title: string;
   content: string;
-  pictures?: React.FC[];
   isPinned?: boolean;
+  post_image_urls?: string[];
 };

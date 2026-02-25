@@ -60,7 +60,8 @@ export const getFeedFollowing = async (
         groups!group_id(
           id,
           group_name
-        )
+        ),
+        post_image_urls
       `
       )
       .in('user_id', followingUserIds)

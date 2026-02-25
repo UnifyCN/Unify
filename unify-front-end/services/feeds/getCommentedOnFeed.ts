@@ -35,7 +35,8 @@ export const getCommentedOnFeed = async ({
           groups!group_id(
             id,
             group_name
-          )
+          ),
+          post_image_urls
         )
       `
       )

@@ -21,6 +21,7 @@ export const transformPostDto = (dto: PostDto): PostData => {
     content: dto.content,
     group: dto.groups?.group_name?.trim() || undefined,
     isPinned: dto.is_pinned ?? false,
+    post_image_urls: dto.post_image_urls || undefined,
   };
 };
 

@@ -38,7 +38,8 @@ export const getSavedPosts = async (
           groups!group_id(
             id,
             group_name
-          )
+          ),
+          post_image_urls
         )
       `
       )
@@ -66,6 +67,7 @@ export const getSavedPosts = async (
       title: save.posts.title,
       content: save.posts.content,
       group: save.posts.groups?.group_name?.trim() || null,
+      post_image_urls: save.post_image_urls || null,
     }));
 
     return {

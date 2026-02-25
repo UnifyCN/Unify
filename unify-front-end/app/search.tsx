@@ -312,7 +312,7 @@ const SearchScreen = () => {
                 <FlatList
                   data={filterUsers.slice(0, 3)}
                   renderItem={renderUser}
-                  keyExtractor={(item) => item.id}
+                  keyExtractor={item => item.id}
                   scrollEnabled={false}
                   ItemSeparatorComponent={() => (
                     <View style={styles.userItemSeparator} />

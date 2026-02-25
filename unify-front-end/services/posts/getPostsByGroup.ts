@@ -37,7 +37,8 @@ export const getPostsByGroup = async (
         groups!group_id(
           id,
           group_name
-        )
+        ),
+        post_image_urls
       `
       )
       .eq('group_id', group_id)
@@ -58,6 +59,7 @@ export const getPostsByGroup = async (
       title: post.title,
       content: post.content,
       group: post.groups?.group_name?.trim() || null,
+      post_image_urls: post.post_image_urls || null,
     }));
 
     return {

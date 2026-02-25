@@ -111,7 +111,7 @@ export default function CircleChatScreen() {
   const [selectedMember, setSelectedMember] =
     useState<CommunityCircleMemberProfile | null>(null);
   const presenceChannelRef = useRef<RealtimeChannel | null>(null);
-  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
   const memberAvatarSetRef = useRef<Set<string>>(new Set());
   const senderAvatarSetRef = useRef<Set<string>>(new Set());
 

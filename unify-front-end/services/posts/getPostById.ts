@@ -25,7 +25,8 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
       groups!group_id(
         id,
         group_name
-      )
+      ),
+      post_image_urls
     `
     )
     .eq('id', postId)
@@ -54,6 +55,7 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
     pinned_by: data.pinned_by ?? null,
     users: user,
     groups: group ?? null,
+    post_image_urls: data.post_image_urls ?? null,
   };
 
   return transformPostDto(dto);

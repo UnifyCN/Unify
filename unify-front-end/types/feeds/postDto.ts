@@ -17,4 +17,5 @@ export interface PostDto {
     id: number;
     group_name: string;
   } | null;
+  post_image_urls: string[] | null;
 }
