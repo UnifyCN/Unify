@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
@@ -69,7 +70,11 @@ export default function EditNamePage() {
   return (
     <View style={styles.container}>
       <BackHeader title='Name' onBack={() => router.back()} />
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.label}>Name</Text>
         <View style={styles.inputContainer}>
           <TextInput
@@ -106,7 +111,7 @@ export default function EditNamePage() {
             {isSaving ? 'Saving...' : 'Save'}
           </Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -117,8 +122,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   content: {
+    flex: 1,
+  },
+  contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 24,
+    paddingBottom: 40,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   label: {
     fontSize: 24,

@@ -7,6 +7,7 @@ import {
   Pressable,
   Modal,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LegalDocumentType } from '@/utils/legalUrls';
@@ -138,7 +139,7 @@ export default function AccountSettingsPage() {
   return (
     <View style={styles.container}>
       <BackHeader title='Settings' onBack={() => router.back()} />
-      <View style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <TouchableOpacity
@@ -262,7 +263,7 @@ export default function AccountSettingsPage() {
             ))}
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Delete account confirmation modal */}
       <Modal
@@ -313,9 +314,15 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 40,
     gap: 25,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   profileSection: {
     flexDirection: 'row',
@@ -441,7 +448,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     width: '100%',
-    maxWidth: 340,
+    maxWidth: 400,
   },
   deleteModalTitle: {
     fontSize: 20,
