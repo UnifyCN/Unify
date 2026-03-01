@@ -11,7 +11,6 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Google from '../../assets/images/Google.svg';
-import Apple from '../../assets/images/Apple.svg';
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
@@ -379,13 +378,17 @@ export function SignIn({
         >
           <Google width={20} height={20} />
         </TouchableOpacity>
-        {Platform.OS === 'ios' && (
-          <TouchableOpacity
-            style={styles.buttonWithIcon}
+        {Platform.OS === 'ios' && !isExpoGo && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={10 * 0.87}
+            style={{
+              flex: 1,
+              height: 56 * 0.87,
+            }}
             onPress={handleAppleSignIn}
-          >
-            <Apple width={20} height={20} />
-          </TouchableOpacity>
+          />
         )}
       </View>
       <View style={styles.footer}>
