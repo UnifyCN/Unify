@@ -46,6 +46,7 @@ export const AnalyticsEvents = {
   SIGN_IN_COMPLETED: 'sign_in_completed',
   SIGN_IN_FAILED: 'sign_in_failed',
   GOOGLE_SIGN_IN_USED: 'google_sign_in_used',
+  APPLE_SIGN_IN_USED: 'apple_sign_in_used',
 
   // Search
   SEARCH_OPENED: 'search_opened',
@@ -108,6 +109,10 @@ export interface AuthErrorProperties {
 }
 
 export interface GoogleSignInProperties {
+  auth_type: 'sign_up' | 'sign_in';
+}
+
+export interface AppleSignInProperties {
   auth_type: 'sign_up' | 'sign_in';
 }
 
@@ -331,6 +336,11 @@ export function useAnalytics() {
       },
       trackGoogleSignInUsed: (authType: 'sign_up' | 'sign_in') => {
         posthog?.capture(AnalyticsEvents.GOOGLE_SIGN_IN_USED, {
+          auth_type: authType,
+        });
+      },
+      trackAppleSignInUsed: (authType: 'sign_up' | 'sign_in') => {
+        posthog?.capture(AnalyticsEvents.APPLE_SIGN_IN_USED, {
           auth_type: authType,
         });
       },

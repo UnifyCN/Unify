@@ -10,7 +10,9 @@ import {
 } from '@react-native-google-signin/google-signin';
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import Google from '../../assets/images/Google.svg';
+import Apple from '../../assets/images/Apple.svg';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
   SubmitButton,
@@ -36,6 +38,7 @@ export function SignUp({
     trackSignUpCompleted,
     trackSignUpFailed,
     trackGoogleSignInUsed,
+    trackAppleSignInUsed,
   } = useAnalytics();
   // State vars
   const [email, setEmail] = React.useState('');
@@ -223,6 +226,71 @@ export function SignUp({
     setLoading(false);
   };
 
+  const handleAppleSignIn = async () => {
+    if (isExpoGo) return;
+
+    setLoading(true);
+    setErrorMessage(null);
+    trackAppleSignInUsed('sign_up');
+
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (credential.identityToken) {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'apple',
+          token: credential.identityToken,
+        });
+
+        if (error) {
+          setErrorMessage(error.message);
+          setLoading(false);
+          return;
+        }
+
+        if (data?.user?.id && data?.user?.email) {
+          try {
+            await createUserIfNotExists(data.user.id, data.user.email);
+          } catch (userCreationError: any) {
+            console.error('Failed to create user record:', userCreationError);
+            setErrorMessage(
+              userCreationError?.message || 'Failed to complete sign-up setup'
+            );
+            setLoading(false);
+            return;
+          }
+
+          await queryClient.ensureQueryData({
+            queryKey: ['userInfo', data.user.id],
+            queryFn: () => getUserInfo(data.user.id),
+          });
+        } else if (data?.user?.id && !data?.user?.email) {
+          setErrorMessage('Unable to retrieve email from Apple account');
+          setLoading(false);
+          return;
+        } else if (!data?.user?.id) {
+          setErrorMessage('Unable to retrieve user information from Apple');
+          setLoading(false);
+          return;
+        }
+      } else {
+        setErrorMessage('No Apple identity token received');
+      }
+    } catch (error: any) {
+      if (error?.code === 'ERR_REQUEST_CANCELED') {
+        setLoading(false);
+        return;
+      }
+      setErrorMessage(error?.message || 'Apple sign-up failed');
+    }
+    setLoading(false);
+  };
+
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Create account</ViewHeader>
@@ -367,6 +435,14 @@ export function SignUp({
         >
           <Google width={20} height={20} />
         </TouchableOpacity>
+        {Platform.OS === 'ios' && (
+          <TouchableOpacity
+            style={styles.buttonWithIcon}
+            onPress={handleAppleSignIn}
+          >
+            <Apple width={20} height={20} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.footer}>
