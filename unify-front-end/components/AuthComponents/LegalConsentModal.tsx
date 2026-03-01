@@ -38,7 +38,7 @@ export default function LegalConsentModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [webViewDoc, setWebViewDoc] = useState<
-    'privacyPolicy' | 'communityGuidelines' | null
+    'privacyPolicy' | 'communityGuidelines' | 'termsOfService' | null
   >(null);
 
   const handleAccept = async () => {
@@ -62,7 +62,7 @@ export default function LegalConsentModal({
     onCancel();
   };
 
-  const openDocument = (doc: 'privacyPolicy' | 'communityGuidelines') => {
+  const openDocument = (doc: 'privacyPolicy' | 'communityGuidelines' | 'termsOfService') => {
     setWebViewDoc(doc);
   };
 
@@ -110,11 +110,18 @@ export default function LegalConsentModal({
                 I agree to the{' '}
                 <Text
                   style={styles.linkText}
+                  onPress={() => openDocument('termsOfService')}
+                >
+                  Terms of Service
+                </Text>
+                {', '}
+                <Text
+                  style={styles.linkText}
                   onPress={() => openDocument('privacyPolicy')}
                 >
                   Privacy Policy
                 </Text>
-                {' and '}
+                {', and '}
                 <Text
                   style={styles.linkText}
                   onPress={() => openDocument('communityGuidelines')}

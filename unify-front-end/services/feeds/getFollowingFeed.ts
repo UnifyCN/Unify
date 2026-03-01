@@ -3,6 +3,7 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDtos } from '@/utils/postTransform';
+import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
 
 export const getFeedFollowing = async (
   cursor?: string,
@@ -29,11 +30,12 @@ export const getFeedFollowing = async (
       );
     }
 
-    // Extract the user IDs
-    const followingUserIds =
-      followingData?.map(item => item.following_id) || [];
+    // Extract the user IDs and filter out blocked users
+    const blockedIds = await getBlockedUserIds();
+    const followingUserIds = (followingData?.map(item => item.following_id) || [])
+      .filter(id => !blockedIds.includes(id));
 
-    // If not following anyone, return empty feed
+    // If not following anyone (or all are blocked), return empty feed
     if (followingUserIds.length === 0) {
       return {
         posts: [],

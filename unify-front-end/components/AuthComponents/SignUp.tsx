@@ -383,11 +383,18 @@ export function SignUp({
           I agree to the{' '}
           <Text
             style={styles.checkboxLinkText}
+            onPress={() => setWebViewDoc('termsOfService')}
+          >
+            Terms of Service
+          </Text>
+          {', '}
+          <Text
+            style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('privacyPolicy')}
           >
             Privacy Policy
           </Text>
-          {' and '}
+          {', and '}
           <Text
             style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('communityGuidelines')}

@@ -3,6 +3,7 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDto } from '@/utils/postTransform';
+import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
 
 interface GetCommentedOnFeedProps {
   cursor?: string;

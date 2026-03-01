@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { uploadPostImage } from '@/services/s3/uploadPostImage';
 import { Feather } from '@expo/vector-icons';
+import { isContentAllowed } from '@/utils/contentFilter';
 
 type DestinationType = '4u' | 'group';
 
@@ -179,6 +180,18 @@ export default function CreatePostForm({
     }
     if (destination === 'group' && !selectedGroup) {
       Alert.alert('Error', 'Please select a group to post to');
+      return;
+    }
+
+    // Check content against banned words filter
+    const titleCheck = isContentAllowed(trimmedTitle);
+    if (!titleCheck.allowed) {
+      Alert.alert('Content Not Allowed', titleCheck.reason);
+      return;
+    }
+    const contentCheck = isContentAllowed(trimmedContent);
+    if (!contentCheck.allowed) {
+      Alert.alert('Content Not Allowed', contentCheck.reason);
       return;
     }
 
