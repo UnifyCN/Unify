@@ -14,6 +14,7 @@
       "url": "https://u.expo.dev/3772d4d9-79dd-4848-9691-bae1b19eefb8"
     },
     "ios": {
+      "supportsTablet": true,
       "bundleIdentifier": "com.anonymous.unifyfrontend",
       "googleServicesFile": "./GoogleService_ios.plist",
       "infoPlist": {
