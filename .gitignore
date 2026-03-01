@@ -43,6 +43,7 @@ out/
 .vscode/
 .idea/
 .cursor/
+.mcp.json
 *.swp
 *.swo
 *~
