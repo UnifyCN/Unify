@@ -88,6 +88,7 @@ export const PostItem = memo(
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
     const canPin = isAdmin; // Only admins can pin/unpin
+    const canReport = !ownsPost;
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
 
@@ -578,7 +579,7 @@ export const PostItem = memo(
                     </Text>
                   </View>
 
-                  {canDelete && (
+                  {(canDelete || canReport) && (
                     <TouchableOpacity
                       onPress={() => setDeleteModalVisible(true)}
                       style={styles.menuButton}
@@ -662,7 +663,7 @@ export const PostItem = memo(
                       </View>
                     )}
                   </View>
-                  {canDelete && (
+                  {(canDelete || canReport) && (
                     <TouchableOpacity
                       onPress={() => setDeleteModalVisible(true)}
                       style={styles.menuButton}
@@ -756,6 +757,26 @@ export const PostItem = memo(
                           ? 'Unpin Post'
                           : 'Pin Post'}
                     </Text>
+                  </TouchableOpacity>
+                )}
+                {canReport && (
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setDeleteModalVisible(false);
+                      router.push({
+                        pathname: '/ReportScreen',
+                        params: { postId: String(post.id), type: 'post' },
+                      });
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name='flag-outline'
+                      size={20}
+                      color={Theme.black}
+                      style={styles.optionIcon}
+                    />
+                    <Text style={styles.modalOptionText}>Report Post</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity

@@ -52,11 +52,17 @@ export const getCommentedOnFeed = async ({
       throw new Error(`Failed to fetch commented on feed: ${error.message}`);
     }
 
-    // Use Map to deduplicate by post ID
+    const blockedIds = await getBlockedUserIds();
+
+    // Use Map to deduplicate by post ID, excluding blocked users
     const postsMap = new Map();
 
     (data || []).forEach((item: any) => {
-      if (item.posts && item.posts.users.id !== userId) {
+      if (
+        item.posts &&
+        item.posts.users.id !== userId &&
+        !blockedIds.includes(item.posts.users.id)
+      ) {
         const postDto: PostDto = item.posts;
         // Only add if we haven't seen this post ID before
         if (!postsMap.has(postDto.id)) {
