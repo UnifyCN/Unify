@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, Modal } from 'react-native';
 import { CheckBox } from 'react-native-elements';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import isExpoGo from '../../utils/isExpoGo';
 import {
@@ -387,14 +387,14 @@ export function SignUp({
           >
             Terms of Service
           </Text>
-          {', '}
+          ,{' '}
           <Text
             style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('privacyPolicy')}
           >
             Privacy Policy
           </Text>
-          {', and '}
+          {' & '}
           <Text
             style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('communityGuidelines')}
@@ -442,16 +442,12 @@ export function SignUp({
           <Google width={20} height={20} />
         </TouchableOpacity>
         {Platform.OS === 'ios' && !isExpoGo && (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={10 * 0.87}
-            style={{
-              flex: 1,
-              height: 56 * 0.87,
-            }}
+          <TouchableOpacity
+            style={styles.buttonWithIcon}
             onPress={handleAppleSignIn}
-          />
+          >
+            <Ionicons name='logo-apple' size={22} color='#000' />
+          </TouchableOpacity>
         )}
       </View>
 
@@ -573,6 +569,7 @@ const styles = {
     fontSize: 16 * 0.87,
     color: '#000',
     marginLeft: 0 * 0.87,
+    flex: 1,
   },
   checkboxRow: {
     flexDirection: 'row' as 'row',
