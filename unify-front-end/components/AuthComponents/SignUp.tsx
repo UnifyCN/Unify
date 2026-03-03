@@ -384,6 +384,8 @@ export function SignUp({
           <Text
             style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('termsOfService')}
+            accessibilityRole="link"
+            accessibilityLabel="Open Terms of Service"
           >
             Terms of Service
           </Text>
@@ -391,6 +393,8 @@ export function SignUp({
           <Text
             style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('privacyPolicy')}
+            accessibilityRole="link"
+            accessibilityLabel="Open Privacy Policy"
           >
             Privacy Policy
           </Text>
@@ -398,6 +402,8 @@ export function SignUp({
           <Text
             style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('communityGuidelines')}
+            accessibilityRole="link"
+            accessibilityLabel="Open Community Guidelines"
           >
             Community Guidelines
           </Text>

@@ -730,7 +730,7 @@ export const PostItem = memo(
                     <Feather
                       name='trash-2'
                       size={20}
-                      color='#FF3B30'
+                      color={Theme.destructive}
                       style={styles.optionIcon}
                     />
                     <Text style={[styles.modalOptionText, styles.deleteText]}>
@@ -1044,7 +1044,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deleteText: {
-    color: '#FF3B30',
+    color: Theme.destructive,
   },
   pinnedBadge: {
     backgroundColor: '#F0F0F0',

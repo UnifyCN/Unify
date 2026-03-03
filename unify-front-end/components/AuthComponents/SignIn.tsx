@@ -308,7 +308,7 @@ export function SignIn({
           <AppleAuthentication.AppleAuthenticationButton
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
             buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={10 * 0.87}
+            cornerRadius={10 * S}
             style={styles.appleButton}
             onPress={handleAppleSignIn}
           />
@@ -472,7 +472,7 @@ const styles = {
     borderWidth: 1 * S,
     borderRadius: 12 * S,
     padding: 8 * S,
-    height: 50,
+    height: 50 * S,
   },
   textFieldError: {
     borderColor: '#f00',
@@ -529,13 +529,13 @@ const styles = {
     gap: 5 * S,
   },
   footerText: {
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: 14 * S,
+    lineHeight: 18 * S,
     color: 'rgba(0, 0, 0, 0.7)',
   },
   footerLink: {
-    fontSize: 14,
-    lineHeight: 18,
+    fontSize: 14 * S,
+    lineHeight: 18 * S,
     textDecorationLine: 'underline' as 'underline',
     fontWeight: '600' as '600',
     color: '#000',
