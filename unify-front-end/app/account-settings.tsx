@@ -121,6 +121,15 @@ export default function AccountSettingsPage() {
           params: { doc: 'communityGuidelines' satisfies LegalDocumentType },
         }),
     },
+    {
+      title: 'Terms of Service',
+      icon: 'book-open' as const,
+      onPress: () =>
+        router.push({
+          pathname: '/legal-document' as any,
+          params: { doc: 'termsOfService' satisfies LegalDocumentType },
+        }),
+    },
   ];
 
   const accountRows = [

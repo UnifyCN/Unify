@@ -8,7 +8,7 @@ export const LEGAL_URLS = {
   communityGuidelines:
     'https://www.notion.so/Unify-s-Community-Guidelines-2e55af89dddb8098aff0d1460b3fb694',
   termsOfService:
-    'https://www.notion.so/Unify-s-Terms-of-Service-PLACEHOLDER',
+    'https://www.notion.so/Unify-s-End-User-License-Agreement-Terms-of-Service-3185af89dddb80a68410fa8d65d615c7',
 } as const;
 
 export type LegalDocumentType = keyof typeof LEGAL_URLS;
