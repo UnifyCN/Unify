@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from 'react-native';
 import { useState, memo, useCallback, useMemo } from 'react';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
@@ -20,6 +21,8 @@ import { useCurrentUser } from '@/context/UserContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useUserReportStatus } from '@/hooks/users/useUserReportStatus';
+import { useUserBlockStatus } from '@/hooks/users/useUserBlockStatus';
+import { useMutateBlockUser } from '@/hooks/users/useMutateBlockUser';
 import { useToast } from '@/context/ToastContext';
 
 interface TabHeaderProps {
@@ -67,6 +70,8 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     [userId]
   );
   const { data: isReportedUser } = useUserReportStatus(userId);
+  const { data: isBlockedUser } = useUserBlockStatus(userId);
+  const { blockMutation, unblockMutation } = useMutateBlockUser();
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
   const { showToast } = useToast();
 
@@ -79,6 +84,36 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     ],
     []
   );
+
+  const blockStatusResolved = isBlockedUser !== undefined;
+
+  const handleBlockToggle = useCallback(() => {
+    if (!blockStatusResolved) return;
+    if (isBlockedUser) {
+      unblockMutation.mutate(userId, {
+        onSuccess: () => showToast?.('User unblocked'),
+        onError: () => showToast?.('Failed to unblock user'),
+      });
+    } else {
+      Alert.alert(
+        'Block User',
+        'Are you sure you want to block this user? Their posts will be hidden from your feed.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Block',
+            style: 'destructive',
+            onPress: () => {
+              blockMutation.mutate(userId, {
+                onSuccess: () => showToast?.('User blocked'),
+                onError: () => showToast?.('Failed to block user'),
+              });
+            },
+          },
+        ]
+      );
+    }
+  }, [blockStatusResolved, isBlockedUser, userId, blockMutation, unblockMutation, showToast]);
 
   const reportButton = useMemo(() => {
     if (isCurrentUser) return null;
@@ -105,6 +140,30 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
       </TouchableOpacity>
     );
   }, [isCurrentUser, isReportedUser, router, showToast, userId]);
+
+  const blockButton = useMemo(() => {
+    if (isCurrentUser) return null;
+
+    return (
+      <TouchableOpacity
+        style={styles.blockButton}
+        onPress={handleBlockToggle}
+        disabled={!blockStatusResolved || blockMutation.isPending || unblockMutation.isPending}
+        hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}
+        accessibilityLabel={isBlockedUser ? 'Unblock user' : 'Block user'}
+        accessibilityRole="button"
+        accessibilityHint={isBlockedUser ? 'Unblocks this user so their posts appear in your feed' : 'Blocks this user and hides their posts from your feed'}
+        accessibilityState={{ disabled: !blockStatusResolved || blockMutation.isPending || unblockMutation.isPending }}
+        testID="block-user-button"
+      >
+        <MaterialCommunityIcons
+          name={isBlockedUser ? 'cancel' : 'block-helper'}
+          size={22}
+          color={isBlockedUser ? Theme.destructive : Theme.black}
+        />
+      </TouchableOpacity>
+    );
+  }, [isCurrentUser, isBlockedUser, blockStatusResolved, handleBlockToggle, blockMutation.isPending, unblockMutation.isPending]);
 
   const renderTabContent = useMemo(() => {
     if (activeTab === 'Comments') {
@@ -191,6 +250,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
           !isCurrentUser && userInfo ? (
             <View style={styles.headerActionRow}>
               <FollowButton targetUserId={userInfo.id} compact />
+              {blockButton}
               {reportButton}
             </View>
           ) : undefined
@@ -225,6 +285,12 @@ const styles = StyleSheet.create({
   reportButton: {
     minWidth: 34,
     minHeight: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  blockButton: {
+    minWidth: 44,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

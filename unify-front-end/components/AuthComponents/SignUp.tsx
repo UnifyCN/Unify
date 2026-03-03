@@ -79,7 +79,7 @@ export function SignUp({
 
     if (!isChecked) {
       setErrorMessage(
-        'Please accept the Privacy Policy and Community Guidelines'
+        'Please accept the Terms of Service, Privacy Policy, and Community Guidelines'
       );
       trackSignUpFailed('terms_not_accepted');
       return;
@@ -383,14 +383,27 @@ export function SignUp({
           I agree to the{' '}
           <Text
             style={styles.checkboxLinkText}
+            onPress={() => setWebViewDoc('termsOfService')}
+            accessibilityRole="link"
+            accessibilityLabel="Open Terms of Service"
+          >
+            Terms of Service
+          </Text>
+          ,{' '}
+          <Text
+            style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('privacyPolicy')}
+            accessibilityRole="link"
+            accessibilityLabel="Open Privacy Policy"
           >
             Privacy Policy
           </Text>
-          {' and '}
+          {' & '}
           <Text
             style={styles.checkboxLinkText}
             onPress={() => setWebViewDoc('communityGuidelines')}
+            accessibilityRole="link"
+            accessibilityLabel="Open Community Guidelines"
           >
             Community Guidelines
           </Text>
@@ -433,16 +446,14 @@ export function SignUp({
           onPress={handleGoogleSignIn}
         >
           <Google width={20} height={20} />
+          <Text style={styles.oauthButtonText}>Sign up with Google</Text>
         </TouchableOpacity>
         {Platform.OS === 'ios' && !isExpoGo && (
           <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
             buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
             cornerRadius={10 * 0.87}
-            style={{
-              flex: 1,
-              height: 56 * 0.87,
-            }}
+            style={styles.appleButton}
             onPress={handleAppleSignIn}
           />
         )}
@@ -566,6 +577,7 @@ const styles = {
     fontSize: 16 * 0.87,
     color: '#000',
     marginLeft: 0 * 0.87,
+    flex: 1,
   },
   checkboxRow: {
     flexDirection: 'row' as 'row',
@@ -608,9 +620,8 @@ const styles = {
   },
   buttonBucket: {
     marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    gap: 15 * 0.87,
+    flexDirection: 'column' as 'column',
+    gap: 12 * 0.87,
   },
   buttonWithIcon: {
     borderRadius: 10 * 0.87,
@@ -618,11 +629,18 @@ const styles = {
     borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
     borderWidth: 1 * 0.87,
-    flex: 1,
-    width: '100%' as '100%',
+    flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
-    paddingHorizontal: 45 * 0.87,
-    paddingVertical: 18 * 0.87,
+    height: 50 * 0.87,
+    gap: 10 * 0.87,
+  },
+  oauthButtonText: {
+    fontSize: 16 * 0.87,
+    fontWeight: '500' as '500',
+    color: '#000',
+  },
+  appleButton: {
+    height: 50 * 0.87,
   },
 };

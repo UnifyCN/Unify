@@ -15,12 +15,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import {
-  LinkButton,
-  LinksContainer,
   SubmitButton,
   ViewHeader,
   ViewContainer,
-  ViewSection,
   SimpleTextField,
 } from './Components';
 import { useAnalytics } from '@/utils/analytics';
@@ -190,7 +187,7 @@ export function SignIn({
         setLoading(false);
         return;
       }
-      setErrorMessage(error?.message || 'Google sign-in failed');
+      setErrorMessage('Google sign-in failed. Please try again.');
     }
     setLoading(false);
   };
@@ -255,7 +252,7 @@ export function SignIn({
         setLoading(false);
         return;
       }
-      setErrorMessage(error?.message || 'Apple sign-in failed');
+      setErrorMessage('Apple sign-in failed. Please try again.');
     }
     setLoading(false);
   };
@@ -297,7 +294,35 @@ export function SignIn({
   return (
     <ViewContainer style={styles.container}>
       <ViewHeader style={styles.header}>Log In</ViewHeader>
-      <ViewSection style={{ marginTop: 30 }}>
+
+      {/* OAuth buttons first — fastest path for most users */}
+      <View style={styles.oauthSection}>
+        <TouchableOpacity
+          style={styles.buttonWithIcon}
+          onPress={handleGoogleSignIn}
+        >
+          <Google width={20} height={20} />
+          <Text style={styles.oauthButtonText}>Sign in with Google</Text>
+        </TouchableOpacity>
+        {Platform.OS === 'ios' && !isExpoGo && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={10 * S}
+            style={styles.appleButton}
+            onPress={handleAppleSignIn}
+          />
+        )}
+      </View>
+
+      <View style={styles.divider}>
+        <View style={styles.lineView} />
+        <Text style={styles.orText}>Or continue with email</Text>
+        <View style={styles.lineView} />
+      </View>
+
+      {/* Email / password section */}
+      <View>
         <View style={{ position: 'relative' }}>
           <Text style={styles.label}>Email Address</Text>
           <SimpleTextField
@@ -306,9 +331,8 @@ export function SignIn({
               setEmail(text);
               validateEmail(text);
             }}
-            // name="email"
             placeholder='Email address'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
+            style={[styles.textField, errorMessage && styles.textFieldError]}
             autoCapitalize='none'
           />
           {isEmailValid && (
@@ -325,9 +349,8 @@ export function SignIn({
           <SimpleTextField
             value={password}
             onChangeText={setPassword}
-            // name="password"
             placeholder='Password'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
+            style={[styles.textField, errorMessage && styles.textFieldError]}
             secureTextEntry={!passwordVisible}
             autoCapitalize='none'
           />
@@ -342,10 +365,18 @@ export function SignIn({
             />
           </TouchableOpacity>
         </View>
-        {errorMessage && (
-          <Text style={styles.errorMessage}>{errorMessage}</Text>
-        )}
-      </ViewSection>
+
+        <View style={styles.passwordRow}>
+          {errorMessage ? (
+            <Text style={styles.errorMessage}>{errorMessage}</Text>
+          ) : (
+            <View />
+          )}
+          <TouchableOpacity onPress={() => setShowForgotPassword(true)}>
+            <Text style={styles.forgotText}>Forgot Password?</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <SubmitButton
         loading={loading}
@@ -356,63 +387,9 @@ export function SignIn({
         Log in
       </SubmitButton>
 
-      <LinksContainer>
-        <LinkButton
-          onPress={() => setShowForgotPassword(true)}
-          style={undefined}
-          labelStyle={[styles.link, styles.linkText]}
-        >
-          Forgot Password?
-        </LinkButton>
-      </LinksContainer>
-
-      <View style={styles.orLogIn}>
-        <View style={styles.lineView}></View>
-        <Text style={styles.orText}>Or Login with</Text>
-        <View style={styles.lineView}></View>
-      </View>
-      <View style={styles.buttonBucket}>
-        <TouchableOpacity
-          style={styles.buttonWithIcon}
-          onPress={handleGoogleSignIn}
-        >
-          <Google width={20} height={20} />
-        </TouchableOpacity>
-        {Platform.OS === 'ios' && !isExpoGo && (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={10 * 0.87}
-            style={{
-              flex: 1,
-              height: 56 * 0.87,
-            }}
-            onPress={handleAppleSignIn}
-          />
-        )}
-      </View>
       <View style={styles.footer}>
-        <Text
-          style={{
-            fontSize: 14,
-            lineHeight: 18,
-            color: 'rgba(0, 0, 0, 0.7)',
-            textAlign: 'left',
-          }}
-        >
-          Don't have an account?
-        </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            lineHeight: 18,
-            textDecorationLine: 'underline',
-            fontWeight: '600',
-            textAlign: 'left',
-            color: '#000',
-          }}
-          onPress={onSwitchToSignUp}
-        >
+        <Text style={styles.footerText}>Don't have an account?</Text>
+        <Text style={styles.footerLink} onPress={onSwitchToSignUp}>
           Sign up
         </Text>
       </View>
@@ -420,118 +397,147 @@ export function SignIn({
   );
 }
 
+const S = 0.87;
+
 const styles = {
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16 * 0.87,
-    paddingLeft: 24 * 0.87,
-    paddingRight: 24 * 0.87,
+    padding: 16 * S,
+    paddingLeft: 24 * S,
+    paddingRight: 24 * S,
   },
   header: {
-    fontSize: 34 * 0.87,
+    fontSize: 34 * S,
     fontWeight: '700' as '700',
     color: '#000',
-    marginBottom: 7 * 0.87,
-    marginTop: 110 * 0.87,
+    marginBottom: 20 * S,
+    marginTop: 90 * S,
   },
+  // OAuth section — appears first
+  oauthSection: {
+    gap: 12 * S,
+    marginBottom: 20 * S,
+  },
+  buttonWithIcon: {
+    borderRadius: 10 * S,
+    backgroundColor: '#fff',
+    borderStyle: 'solid' as 'solid',
+    borderColor: '#d8dadc',
+    borderWidth: 1 * S,
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    justifyContent: 'center' as 'center',
+    height: 50 * S,
+    gap: 10 * S,
+  },
+  oauthButtonText: {
+    fontSize: 16 * S,
+    fontWeight: '500' as '500',
+    color: '#000',
+  },
+  appleButton: {
+    height: 50 * S,
+  },
+  // Divider
+  divider: {
+    flexDirection: 'row' as 'row',
+    alignItems: 'center' as 'center',
+    marginBottom: 8 * S,
+  },
+  lineView: {
+    borderColor: '#d8dadc',
+    borderTopWidth: 1 * S,
+    flex: 1,
+    height: 1 * S,
+  },
+  orText: {
+    color: 'rgba(0, 0, 0, 0.5)',
+    fontSize: 13 * S,
+    lineHeight: 18 * S,
+    marginHorizontal: 12 * S,
+  },
+  // Form fields
+  label: {
+    fontSize: 15 * S,
+    fontWeight: '500' as '500',
+    color: '#000',
+    marginBottom: 6 * S,
+    marginTop: 10 * S,
+  },
+  textField: {
+    backgroundColor: '#fff',
+    color: '#000',
+    borderColor: '#ccc',
+    borderWidth: 1 * S,
+    borderRadius: 12 * S,
+    padding: 8 * S,
+    height: 50 * S,
+  },
+  textFieldError: {
+    borderColor: '#f00',
+  },
+  eyeIcon: {
+    position: 'absolute' as 'absolute',
+    right: 16 * S,
+    top: 56 * S,
+  },
+  tickIcon: {
+    position: 'absolute' as 'absolute',
+    right: 16 * S,
+    top: 54 * S,
+  },
+  // Password row: error left, forgot right
+  passwordRow: {
+    flexDirection: 'row' as 'row',
+    justifyContent: 'space-between' as 'space-between',
+    alignItems: 'center' as 'center',
+    marginTop: 2 * S,
+  },
+  errorMessage: {
+    color: '#f00',
+    fontSize: 13 * S,
+    flex: 1,
+    marginRight: 8 * S,
+  },
+  forgotText: {
+    color: '#5182C7',
+    fontSize: 14 * S,
+    fontWeight: '400' as '400',
+  },
+  // CTA
   button: {
     backgroundColor: '#343434',
-    borderRadius: 40 * 0.87,
-    marginTop: 37 * 0.87,
-    width: 110 * 0.87,
-    height: 42 * 0.87,
-    alignSelf: 'center' as 'center',
+    borderRadius: 40 * S,
+    marginTop: 24 * S,
+    height: 48 * S,
     justifyContent: 'center' as 'center',
     alignItems: 'center' as 'center',
   },
   buttonText: {
     color: 'white',
     textAlign: 'center' as 'center',
-    fontSize: 16 * 0.87,
+    fontSize: 16 * S,
+    fontWeight: '600' as '600',
   },
-  textField: {
-    backgroundColor: '#fff',
-    color: '#000',
-    borderColor: '#ccc',
-    borderWidth: 1 * 0.87,
-    borderRadius: 12 * 0.87,
-    padding: 8 * 0.87,
-    height: 57,
-  },
-  errorMessage: {
-    color: '#f00',
-    fontSize: 14 * 0.87,
-  },
-  link: {
-    color: '#5182C7',
-    textDecorationLine: 'underline' as 'underline',
-  },
-  linkText: {
-    color: '#5182C7',
-    fontSize: 15 * 0.87,
-    fontWeight: '400' as '400',
-  },
-  label: {
-    fontSize: 16 * 0.87,
-    fontWeight: '400' as '400',
-    color: '#000',
-    marginBottom: 8 * 0.87,
-    marginTop: 13 * 0.87,
-  },
-  eyeIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 62 * 0.87,
-  },
-  tickIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 60 * 0.87,
-  },
-  orLogIn: {
-    marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-  },
-  lineView: {
-    borderStyle: 'solid' as 'solid',
-    borderColor: '#d8dadc',
-    borderTopWidth: 1 * 0.87,
-    flex: 1,
-    width: '100%' as '100%',
-    height: 1 * 0.87,
-  },
-  orText: {
-    color: 'rgba(0, 0, 0, 0.7)',
-    fontSize: 14 * 0.87,
-    lineHeight: 18 * 0.87,
-    marginHorizontal: 10 * 0.87,
-  },
-  buttonBucket: {
-    marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    gap: 15 * 0.87,
-  },
-  buttonWithIcon: {
-    borderRadius: 10 * 0.87,
-    backgroundColor: '#fff',
-    borderStyle: 'solid' as 'solid',
-    borderColor: '#d8dadc',
-    borderWidth: 1 * 0.87,
-    flex: 1,
-    width: '100%' as '100%',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    paddingHorizontal: 45 * 0.87,
-    paddingVertical: 18 * 0.87,
-  },
+  // Footer
   footer: {
-    marginTop: 50 * 0.87,
+    marginTop: 32 * S,
     flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
-    gap: 5 * 0.87,
+    gap: 5 * S,
+  },
+  footerText: {
+    fontSize: 14 * S,
+    lineHeight: 18 * S,
+    color: 'rgba(0, 0, 0, 0.7)',
+  },
+  footerLink: {
+    fontSize: 14 * S,
+    lineHeight: 18 * S,
+    textDecorationLine: 'underline' as 'underline',
+    fontWeight: '600' as '600',
+    color: '#000',
   },
 };

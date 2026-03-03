@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { useMutateReport } from '@/hooks/posts/useMutateReport';
 import { useToast } from '@/context/ToastContext';
 import BackHeader from '@/components/BackHeader';
@@ -76,6 +76,7 @@ export default function ReportScreen() {
 
   return (
     <View style={styles.screen}>
+      <Stack.Screen options={{ headerShown: false }} />
       <BackHeader title='' />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

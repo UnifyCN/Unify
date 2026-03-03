@@ -3,6 +3,7 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDtos } from '@/utils/postTransform';
+import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
 
 /**
  * Get the For You feed with pinned posts appearing first on page 1.
@@ -23,11 +24,14 @@ export const getForYouFeed = async (
       throw new Error('User not authenticated');
     }
 
+    // Get blocked user IDs to filter from feed
+    const blockedIds = await getBlockedUserIds();
+
     const isFirstPage = !cursor || cursor === '0';
 
     if (isFirstPage) {
       // Page 1: Fetch pinned posts first, then fill with non-pinned
-      const { data: pinnedData, error: pinnedError } = await supabase
+      let pinnedQuery = supabase
         .from('posts')
         .select(
           `
@@ -51,6 +55,12 @@ export const getForYouFeed = async (
         .eq('is_pinned', true)
         .order('pinned_at', { ascending: false });
 
+      if (blockedIds.length > 0) {
+        pinnedQuery = pinnedQuery.not('user_id', 'in', `(${blockedIds.join(',')})`);
+      }
+
+      const { data: pinnedData, error: pinnedError } = await pinnedQuery;
+
       if (pinnedError) {
         throw new Error(`Failed to fetch pinned posts: ${pinnedError.message}`);
       }
@@ -64,7 +74,7 @@ export const getForYouFeed = async (
       let lastNonPinnedCreatedAt: string | undefined;
 
       if (remainingSlots > 0) {
-        const { data: nonPinnedData, error: nonPinnedError } = await supabase
+        let nonPinnedQuery = supabase
           .from('posts')
           .select(
             `
@@ -87,6 +97,12 @@ export const getForYouFeed = async (
           .eq('is_pinned', false)
           .order('created_at', { ascending: false })
           .limit(remainingSlots);
+
+        if (blockedIds.length > 0) {
+          nonPinnedQuery = nonPinnedQuery.not('user_id', 'in', `(${blockedIds.join(',')})`);
+        }
+
+        const { data: nonPinnedData, error: nonPinnedError } = await nonPinnedQuery;
 
         if (nonPinnedError) {
           throw new Error(
@@ -114,7 +130,7 @@ export const getForYouFeed = async (
       };
     } else {
       // Page 2+: Only non-pinned posts, using cursor (created_at of last post)
-      const { data, error } = await supabase
+      let query = supabase
         .from('posts')
         .select(
           `
@@ -138,6 +154,12 @@ export const getForYouFeed = async (
         .lt('created_at', cursor) // Keyset pagination: get posts older than cursor
         .order('created_at', { ascending: false })
         .limit(limit);
+
+      if (blockedIds.length > 0) {
+        query = query.not('user_id', 'in', `(${blockedIds.join(',')})`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         throw new Error(`Failed to fetch feed: ${error.message}`);

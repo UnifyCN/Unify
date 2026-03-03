@@ -88,6 +88,7 @@ export const PostItem = memo(
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
     const canPin = isAdmin; // Only admins can pin/unpin
+    const canReport = !!currentUser?.id && !ownsPost;
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
 
@@ -578,7 +579,7 @@ export const PostItem = memo(
                     </Text>
                   </View>
 
-                  {canDelete && (
+                  {(canDelete || canReport) && (
                     <TouchableOpacity
                       onPress={() => setDeleteModalVisible(true)}
                       style={styles.menuButton}
@@ -662,7 +663,7 @@ export const PostItem = memo(
                       </View>
                     )}
                   </View>
-                  {canDelete && (
+                  {(canDelete || canReport) && (
                     <TouchableOpacity
                       onPress={() => setDeleteModalVisible(true)}
                       style={styles.menuButton}
@@ -721,20 +722,22 @@ export const PostItem = memo(
                 onPress={e => e.stopPropagation()}
               >
                 <View style={styles.dragHandle} />
-                <TouchableOpacity
-                  style={styles.modalOption}
-                  onPress={handleDeletePost}
-                >
-                  <Feather
-                    name='trash-2'
-                    size={20}
-                    color='#FF3B30'
-                    style={styles.optionIcon}
-                  />
-                  <Text style={[styles.modalOptionText, styles.deleteText]}>
-                    Delete Post
-                  </Text>
-                </TouchableOpacity>
+                {canDelete && (
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={handleDeletePost}
+                  >
+                    <Feather
+                      name='trash-2'
+                      size={20}
+                      color={Theme.destructive}
+                      style={styles.optionIcon}
+                    />
+                    <Text style={[styles.modalOptionText, styles.deleteText]}>
+                      Delete Post
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 {canPin && (
                   <TouchableOpacity
                     style={styles.modalOption}
@@ -756,6 +759,26 @@ export const PostItem = memo(
                           ? 'Unpin Post'
                           : 'Pin Post'}
                     </Text>
+                  </TouchableOpacity>
+                )}
+                {canReport && (
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setDeleteModalVisible(false);
+                      router.push({
+                        pathname: '/ReportScreen',
+                        params: { postId: String(post.id), type: 'post' },
+                      });
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name='flag-outline'
+                      size={20}
+                      color={Theme.black}
+                      style={styles.optionIcon}
+                    />
+                    <Text style={styles.modalOptionText}>Report Post</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -1021,7 +1044,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deleteText: {
-    color: '#FF3B30',
+    color: Theme.destructive,
   },
   pinnedBadge: {
     backgroundColor: '#F0F0F0',

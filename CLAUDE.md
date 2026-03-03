@@ -13,3 +13,13 @@ Never speculate about code you have not opened. If the user references a specifi
 ## 3. Design
 
 Always use the design skill when changing the UI (frontend-design)
+
+## 4. Commits
+
+When committing, only stage files relevant to the change. Skip unrelated modifications (e.g. package-lock.json, build.gradle) unless they're part of the feature.
+
+## 5. Backend
+
+- Supabase edge functions are in `unify-front-end/supabase/functions/`
+- Moderator notification emails go to `contact@unifysocial.ca` via Resend API
+- Legal documents are hosted on Notion — URLs are in `unify-front-end/utils/legalUrls.ts`
