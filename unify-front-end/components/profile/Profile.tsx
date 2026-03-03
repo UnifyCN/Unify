@@ -143,14 +143,20 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
 
     return (
       <TouchableOpacity
-        style={styles.reportButton}
+        style={styles.blockButton}
         onPress={handleBlockToggle}
         disabled={blockMutation.isPending || unblockMutation.isPending}
+        hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}
+        accessibilityLabel={isBlockedUser ? 'Unblock user' : 'Block user'}
+        accessibilityRole="button"
+        accessibilityHint={isBlockedUser ? 'Unblocks this user so their posts appear in your feed' : 'Blocks this user and hides their posts from your feed'}
+        accessibilityState={{ disabled: blockMutation.isPending || unblockMutation.isPending }}
+        testID="block-user-button"
       >
         <MaterialCommunityIcons
           name={isBlockedUser ? 'cancel' : 'block-helper'}
           size={22}
-          color={isBlockedUser ? '#FF3B30' : Theme.black}
+          color={isBlockedUser ? Theme.destructive : Theme.black}
         />
       </TouchableOpacity>
     );
@@ -276,6 +282,12 @@ const styles = StyleSheet.create({
   reportButton: {
     minWidth: 34,
     minHeight: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  blockButton: {
+    minWidth: 44,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

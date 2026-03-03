@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS blocked_users (
     blocker_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     blocked_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE(blocker_id, blocked_id)
+    UNIQUE(blocker_id, blocked_id),
+    CONSTRAINT blocked_users_no_self_block CHECK (blocker_id <> blocked_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_blocked_users_blocker ON blocked_users(blocker_id);

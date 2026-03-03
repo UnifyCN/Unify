@@ -4,10 +4,19 @@ import { Resend } from "https://esm.sh/resend";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const RESEND_FROM = Deno.env.get("RESEND_FROM");
-const RESEND_TO = 'contact@unifysocial.ca';
+const RESEND_TO = Deno.env.get("RESEND_TO") || 'contact@unifysocial.ca';
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 Deno.serve(async (req) => {
   if (!RESEND_API_KEY || !RESEND_FROM || !RESEND_TO) {
@@ -89,27 +98,31 @@ Deno.serve(async (req) => {
     }
 
     // Send notification email
-    await resend.emails.send({
-      from: RESEND_FROM,
-      to: RESEND_TO,
-      subject: "User Blocked Notification",
-      html: `
-        <h2>User Blocked</h2>
+    try {
+      await resend.emails.send({
+        from: RESEND_FROM,
+        to: RESEND_TO,
+        subject: "User Blocked Notification",
+        html: `
+          <h2>User Blocked</h2>
 
-        <p><strong>Blocker:</strong> ${blockerUsername}</p>
-        <p><strong>Blocked User:</strong> ${blockedUsername}</p>
-        <p><strong>Blocked User ID:</strong> ${blockedUserId}</p>
+          <p><strong>Blocker:</strong> ${escapeHtml(blockerUsername)}</p>
+          <p><strong>Blocked User:</strong> ${escapeHtml(blockedUsername)}</p>
+          <p><strong>Blocked User ID:</strong> ${escapeHtml(String(blockedUserId))}</p>
 
-        <hr/>
+          <hr/>
 
-        <p>This notification is sent so the team can review the blocked user's content for potential violations.</p>
-      `,
-    });
+          <p>This notification is sent so the team can review the blocked user's content for potential violations.</p>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("Failed to send block notification email:", emailErr);
+    }
 
     return new Response(JSON.stringify({ success: true }), { status: 200 });
 
   } catch (err) {
     console.error("Block User Function Error:", err);
-    return new Response(JSON.stringify({ success: false, error: "Server error", details: (err as Error).message }), { status: 200 });
+    return new Response(JSON.stringify({ success: false, error: "Server error" }), { status: 500 });
   }
 });

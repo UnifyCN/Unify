@@ -38,6 +38,15 @@ function normalizeLeet(text: string): string {
     .join('');
 }
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Pre-build regexes for each banned word for performance
+const BANNED_REGEXES = BANNED_WORDS.map(
+  word => new RegExp(`\\b${escapeRegex(word)}\\b`, 'i')
+);
+
 export interface ContentFilterResult {
   allowed: boolean;
   reason?: string;
@@ -46,6 +55,7 @@ export interface ContentFilterResult {
 /**
  * Checks if text content is allowed (does not contain banned words).
  * Case-insensitive, handles basic l33t speak obfuscation.
+ * Uses word-boundary matching to avoid overblocking.
  */
 export function isContentAllowed(text: string): ContentFilterResult {
   if (!text || !text.trim()) {
@@ -54,8 +64,8 @@ export function isContentAllowed(text: string): ContentFilterResult {
 
   const normalized = normalizeLeet(text.toLowerCase());
 
-  for (const word of BANNED_WORDS) {
-    if (normalized.includes(word)) {
+  for (const regex of BANNED_REGEXES) {
+    if (regex.test(normalized)) {
       return {
         allowed: false,
         reason: 'Your post contains language that violates our Community Guidelines. Please revise and try again.',

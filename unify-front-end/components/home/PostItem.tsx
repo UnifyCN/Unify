@@ -88,7 +88,7 @@ export const PostItem = memo(
     const ownsPost = currentUser?.id === String(post.user.id);
     const canDelete = isAbleToDelete && (isAdmin || (isPartner && ownsPost));
     const canPin = isAdmin; // Only admins can pin/unpin
-    const canReport = !ownsPost;
+    const canReport = !!currentUser?.id && !ownsPost;
     const isHomeCardVariant = variant === 'homeCard';
     const content = post.content?.trim() ?? '';
 
@@ -722,20 +722,22 @@ export const PostItem = memo(
                 onPress={e => e.stopPropagation()}
               >
                 <View style={styles.dragHandle} />
-                <TouchableOpacity
-                  style={styles.modalOption}
-                  onPress={handleDeletePost}
-                >
-                  <Feather
-                    name='trash-2'
-                    size={20}
-                    color='#FF3B30'
-                    style={styles.optionIcon}
-                  />
-                  <Text style={[styles.modalOptionText, styles.deleteText]}>
-                    Delete Post
-                  </Text>
-                </TouchableOpacity>
+                {canDelete && (
+                  <TouchableOpacity
+                    style={styles.modalOption}
+                    onPress={handleDeletePost}
+                  >
+                    <Feather
+                      name='trash-2'
+                      size={20}
+                      color='#FF3B30'
+                      style={styles.optionIcon}
+                    />
+                    <Text style={[styles.modalOptionText, styles.deleteText]}>
+                      Delete Post
+                    </Text>
+                  </TouchableOpacity>
+                )}
                 {canPin && (
                   <TouchableOpacity
                     style={styles.modalOption}

@@ -2,10 +2,12 @@ import { supabase } from '@/lib/supabase';
 
 export const unblockUser = async (blockedUserId: string): Promise<void> => {
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+    error: authError,
+  } = await supabase.auth.getSession();
 
-  if (!user) {
+  const user = session?.user;
+  if (authError || !user) {
     throw new Error('User not authenticated');
   }
 

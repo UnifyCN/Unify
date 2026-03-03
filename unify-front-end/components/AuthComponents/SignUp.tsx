@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, Modal } from 'react-native';
 import { CheckBox } from 'react-native-elements';
-import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import isExpoGo from '../../utils/isExpoGo';
 import {
@@ -79,7 +79,7 @@ export function SignUp({
 
     if (!isChecked) {
       setErrorMessage(
-        'Please accept the Privacy Policy and Community Guidelines'
+        'Please accept the Terms of Service, Privacy Policy, and Community Guidelines'
       );
       trackSignUpFailed('terms_not_accepted');
       return;
@@ -440,14 +440,16 @@ export function SignUp({
           onPress={handleGoogleSignIn}
         >
           <Google width={20} height={20} />
+          <Text style={styles.oauthButtonText}>Sign up with Google</Text>
         </TouchableOpacity>
         {Platform.OS === 'ios' && !isExpoGo && (
-          <TouchableOpacity
-            style={styles.buttonWithIcon}
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={10 * 0.87}
+            style={styles.appleButton}
             onPress={handleAppleSignIn}
-          >
-            <Ionicons name='logo-apple' size={22} color='#000' />
-          </TouchableOpacity>
+          />
         )}
       </View>
 
@@ -612,9 +614,8 @@ const styles = {
   },
   buttonBucket: {
     marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    gap: 15 * 0.87,
+    flexDirection: 'column' as 'column',
+    gap: 12 * 0.87,
   },
   buttonWithIcon: {
     borderRadius: 10 * 0.87,
@@ -622,11 +623,18 @@ const styles = {
     borderStyle: 'solid' as 'solid',
     borderColor: '#d8dadc',
     borderWidth: 1 * 0.87,
-    flex: 1,
-    width: '100%' as '100%',
+    flexDirection: 'row' as 'row',
     alignItems: 'center' as 'center',
     justifyContent: 'center' as 'center',
-    paddingHorizontal: 45 * 0.87,
-    paddingVertical: 18 * 0.87,
+    height: 50 * 0.87,
+    gap: 10 * 0.87,
+  },
+  oauthButtonText: {
+    fontSize: 16 * 0.87,
+    fontWeight: '500' as '500',
+    color: '#000',
+  },
+  appleButton: {
+    height: 50 * 0.87,
   },
 };

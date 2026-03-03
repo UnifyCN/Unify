@@ -27,4 +27,6 @@ export const Theme = {
 
   borderInfoText: '#C1C1C1',
   borderCard: '#CDCBCB',
+
+  destructive: '#FF3B30',
 } as const;
