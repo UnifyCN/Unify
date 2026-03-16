@@ -36,16 +36,26 @@ class CachedProgressService {
         const userResult = await progressClient.auth.getUser();
         user = userResult?.data?.user || null;
         if (userResult?.error) {
-          console.error(
-            'Error getting user in cachedProgressService:',
-            userResult.error
-          );
+          const isSessionMissing =
+            userResult.error?.name === 'AuthSessionMissingError' ||
+            userResult.error?.message?.includes('Auth session missing');
+          if (!isSessionMissing) {
+            console.error(
+              'Error getting user in cachedProgressService:',
+              userResult.error
+            );
+          }
         }
       } catch (authError: any) {
-        console.error(
-          'Exception getting user in cachedProgressService:',
-          authError
-        );
+        const isSessionMissing =
+          authError?.name === 'AuthSessionMissingError' ||
+          authError?.message?.includes('Auth session missing');
+        if (!isSessionMissing) {
+          console.error(
+            'Exception getting user in cachedProgressService:',
+            authError
+          );
+        }
         return this.cache; // Return stale cache on auth error
       }
 
