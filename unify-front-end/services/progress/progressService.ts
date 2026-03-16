@@ -421,13 +421,23 @@ export async function getModuleProgress(
       const userResult = await progressClient.auth.getUser();
       user = userResult?.data?.user || null;
       if (userResult?.error) {
-        console.error(
-          'Error getting user in getModuleProgress:',
-          userResult.error
-        );
+        const isSessionMissing =
+          userResult.error?.name === 'AuthSessionMissingError' ||
+          userResult.error?.message?.includes('Auth session missing');
+        if (!isSessionMissing) {
+          console.error(
+            'Error getting user in getModuleProgress:',
+            userResult.error
+          );
+        }
       }
     } catch (authError: any) {
-      console.error('Exception getting user in getModuleProgress:', authError);
+      const isSessionMissing =
+        authError?.name === 'AuthSessionMissingError' ||
+        authError?.message?.includes('Auth session missing');
+      if (!isSessionMissing) {
+        console.error('Exception getting user in getModuleProgress:', authError);
+      }
       return null;
     }
 
