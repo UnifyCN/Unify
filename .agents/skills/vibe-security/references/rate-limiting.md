@@ -44,17 +44,32 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(10, '1 m'), // 10 requests per minute
 });
 
-// Trusted proxy CIDRs (e.g., Cloudflare, AWS ELB). Adjust for your infra.
+// Trusted proxy IPs/CIDRs (e.g., your load balancer, reverse proxy). Adjust for your infra.
 const TRUSTED_PROXIES = new Set(['127.0.0.1', '::1']);
 
-function getClientIp(request: Request): string {
-  // Platform-provided peer IP (varies by runtime — Cloudflare, Vercel, etc.)
-  const peerIp =
-    request.headers.get('cf-connecting-ip') ??   // Cloudflare
-    request.headers.get('x-real-ip') ??           // Nginx / Vercel
-    '127.0.0.1';
+// Obtain the immediate TCP peer IP from the runtime/platform connection metadata.
+// This is NOT a request header — it comes from the socket layer and cannot be spoofed.
+// Adapt to your runtime: Node.js, Deno, Bun, Cloudflare Workers, etc.
+function getPeerIp(request: Request): string {
+  // Node.js (express/fastify): request.socket.remoteAddress
+  // Deno.serve: connInfo.remoteAddr.hostname
+  // Bun: server.requestIP(request)?.address
+  // Cloudflare Workers: request.cf?.clientTcpRtt is set but IP comes from cf-connecting-ip
+  //
+  // Cast to access runtime-specific properties. Replace with your runtime's API.
+  const req = request as any;
+  return (
+    req.socket?.remoteAddress ??        // Node.js
+    req.connInfo?.remoteAddr?.hostname ?? // Deno
+    req.ip ??                            // Express-like
+    '127.0.0.1'
+  );
+}
 
-  // Only trust X-Forwarded-For if the immediate peer is a known proxy
+function getClientIp(request: Request): string {
+  const peerIp = getPeerIp(request);
+
+  // Only trust X-Forwarded-For if the immediate TCP peer is a known proxy
   if (TRUSTED_PROXIES.has(peerIp)) {
     const xff = request.headers.get('x-forwarded-for');
     if (xff) {

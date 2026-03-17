@@ -90,7 +90,12 @@ Use `import 'server-only'` at the top of data access modules to prevent them fro
 - localStorage is accessible to any JavaScript on the page — a single XSS vulnerability exposes all tokens.
 - `HttpOnly` cookies are invisible to JavaScript and sent automatically by the browser.
 
-**Client-side SPAs and native apps (React Native, Expo):**
+**Native apps (React Native, Expo):**
 - These apps manage auth via client SDKs (e.g., Supabase JS client) that need programmatic access to the token, so `HttpOnly` cookies are not an option.
-- Use platform-specific secure storage: `expo-secure-store` (Expo), `react-native-keychain` (bare React Native), or the Web Crypto API with encrypted storage for browser SPAs.
-- **Never use `localStorage` (web) or `AsyncStorage` (React Native)** for auth tokens — both store plaintext on disk.
+- Use platform-specific secure storage: `expo-secure-store` (Expo) or `react-native-keychain` (bare React Native).
+- **Never use `AsyncStorage` (React Native)** for auth tokens — it stores plaintext on disk.
+
+**Browser SPAs:**
+- The preferred approach is a **backend-for-frontend (BFF)** pattern: the BFF handles token exchange and stores tokens in `HttpOnly + Secure` cookies, so the browser JS never sees the token at all.
+- If JS-accessible tokens are unavoidable (e.g., third-party auth SDK with no BFF option), be aware that **any XSS vulnerability can steal or use the token** regardless of client-side encryption. The Web Crypto API with encrypted storage is risk-reduction only — it raises the bar but does not eliminate the threat. In this case: minimize token lifetime and scope, enforce strict Content-Security-Policy, and document the tradeoff.
+- **Never use `localStorage`** for auth tokens — it's accessible to any JavaScript on the page with no expiration.
