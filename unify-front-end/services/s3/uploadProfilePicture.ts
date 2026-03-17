@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-const SUPABASE_URL = 'https://wrbauxutkysljmsqojts.supabase.co';
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 
 export interface UploadResult {
   success: boolean;

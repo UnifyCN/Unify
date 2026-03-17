@@ -31,6 +31,7 @@ export const createCommentNotification = async (
 
   await supabase.from('community_notifications').insert({
     user_id: post.user_id,
+    triggered_by_user_id: user.id,
     type: 'commented',
     title: 'New comment on your post',
     body: `${username} commented on your post.`,
