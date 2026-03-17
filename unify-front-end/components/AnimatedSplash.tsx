@@ -17,16 +17,26 @@ export default function AnimatedSplash({
   onAnimationComplete,
 }: AnimatedSplashProps) {
   const rotation = useSharedValue(0);
+  const scale = useSharedValue(1);
   const containerOpacity = useSharedValue(1);
 
   useEffect(() => {
-    // Spin 360deg with linear ease
+    // Spin 360deg
     rotation.value = withTiming(360, {
       duration: 800,
       easing: Easing.linear,
     });
 
-    // Fade out the whole container after spin
+    // After spin, expand the logo big
+    scale.value = withDelay(
+      800,
+      withTiming(8, {
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+      })
+    );
+
+    // Fade out as it expands
     containerOpacity.value = withDelay(
       900,
       withTiming(
@@ -42,7 +52,7 @@ export default function AnimatedSplash({
   }, []);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
+    transform: [{ rotate: `${rotation.value}deg` }, { scale: scale.value }],
   }));
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
