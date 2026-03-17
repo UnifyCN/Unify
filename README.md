@@ -1,6 +1,6 @@
 # Unify
 
-A mobile app helping newcomers settle in Canada — built by [Enactus SFU](https://enactussfu.com).
+A mobile app helping newcomers settle in Canada — built by [Unify](https://unifysocial.ca/).
 
 Unify provides community, personalized checklists, AI-powered guidance, and educational content to support immigrants, refugees, international students, and skilled workers through their settlement journey.
 
