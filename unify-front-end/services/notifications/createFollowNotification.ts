@@ -24,6 +24,7 @@ export const createFollowNotification = async (
 
   const { error } = await supabase.from('community_notifications').insert({
     user_id: followingId,
+    triggered_by_user_id: user.id,
     type: 'followed',
     title: 'New follower',
     body: `${username} started following you.`,
