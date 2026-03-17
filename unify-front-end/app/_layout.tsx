@@ -113,7 +113,7 @@ export default function RootLayout() {
           </SafeAreaProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>
-      {showAnimatedSplash && !isReady && (
+      {showAnimatedSplash && (
         <AnimatedSplash onAnimationComplete={handleSplashAnimationComplete} />
       )}
     </QueryClientProvider>
