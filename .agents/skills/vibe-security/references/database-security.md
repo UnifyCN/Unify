@@ -93,7 +93,8 @@ CREATE POLICY "Users upload to own folder"
 ### Default Rules Are Dangerous
 
 Never ship these:
-```
+
+```javascript
 // BAD: world-readable and writable
 allow read, write: if true;
 
@@ -102,7 +103,8 @@ allow read, write: if request.auth != null;
 ```
 
 Always validate ownership:
-```
+
+```javascript
 allow read, write: if request.auth.uid == userId;
 ```
 
@@ -110,7 +112,7 @@ allow read, write: if request.auth.uid == userId;
 
 Without restricting which fields users can modify, they can set `isAdmin: true` or `credits: 99999`:
 
-```
+```javascript
 // GOOD: restrict modifiable fields on UPDATE
 allow update: if request.auth.uid == userId
   && request.resource.data.diff(resource.data)
@@ -125,13 +127,15 @@ Subcollections are **NOT** secured by parent rules. Each subcollection needs its
 ### Data Validation
 
 Validate data types and sizes on writes:
-```
+
+```javascript
 allow create: if request.resource.data.displayName is string
   && request.resource.data.displayName.size() <= 50;
 ```
 
 Enforce server timestamps:
-```
+
+```javascript
 allow create: if request.resource.data.createdAt == request.time;
 ```
 

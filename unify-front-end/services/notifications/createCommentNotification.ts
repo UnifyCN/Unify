@@ -29,7 +29,7 @@ export const createCommentNotification = async (
 
   const username = actor?.username ?? 'Someone';
 
-  await supabase.from('community_notifications').insert({
+  const { error } = await supabase.from('community_notifications').insert({
     user_id: post.user_id,
     triggered_by_user_id: user.id,
     type: 'commented',
@@ -37,4 +37,14 @@ export const createCommentNotification = async (
     body: `${username} commented on your post.`,
     data: { post_id: postId, comment_id: commentId, actor_user_id: user.id },
   });
+
+  if (error) {
+    console.error('Failed to create comment notification', {
+      postId,
+      commentId,
+      postOwnerId: post.user_id,
+      actorUserId: user.id,
+      error,
+    });
+  }
 };

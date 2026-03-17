@@ -1,5 +1,14 @@
 import { supabase } from '@/lib/supabase';
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+
+function requireSupabaseUrl(): string {
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  if (!url) {
+    throw new Error(
+      'Missing EXPO_PUBLIC_SUPABASE_URL — check your .env file'
+    );
+  }
+  return url;
+}
 
 export interface UploadResult {
   success: boolean;
@@ -25,7 +34,7 @@ export async function uploadProfilePicture(
 
     // 1) sign PUT
     const signResp = await fetch(
-      `${SUPABASE_URL}/functions/v1/profile-picture-upload`,
+      `${requireSupabaseUrl()}/functions/v1/profile-picture-upload`,
       {
         method: 'POST',
         headers: {
@@ -71,7 +80,7 @@ export async function uploadProfilePicture(
 export async function getProfilePictureUrl(key: string): Promise<string> {
   const token = await getAccessToken();
 
-  const resp = await fetch(`${SUPABASE_URL}/functions/v1/profile-picture-get`, {
+  const resp = await fetch(`${requireSupabaseUrl()}/functions/v1/profile-picture-get`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -92,7 +101,7 @@ export async function deleteProfilePicture(key: string): Promise<UploadResult> {
     const token = await getAccessToken();
 
     const resp = await fetch(
-      `${SUPABASE_URL}/functions/v1/profile-picture-remove`,
+      `${requireSupabaseUrl()}/functions/v1/profile-picture-remove`,
       {
         method: 'POST',
         headers: {

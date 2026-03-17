@@ -25,15 +25,19 @@ const response = await fetch('https://your-api.com/ai/chat', {
 
 ## Secure Token Storage
 
-- **Use `expo-secure-store`** (Expo) or **`react-native-keychain`** (bare React Native) for auth tokens.
-- **Never use `AsyncStorage`** — it's unencrypted plaintext on disk. On a rooted/jailbroken device, tokens are trivially readable.
+- **Use `expo-secure-store`** (Expo) or **`react-native-keychain`** (bare React Native) for auth tokens and any sensitive data (session tokens, API keys, PII).
+- **`AsyncStorage` is acceptable for non-sensitive UI preferences** (theme, onboarding flags, haptics toggle, disclaimer acknowledgements) — these don't need encryption.
+- **Never use `AsyncStorage` for auth tokens or secrets** — it's unencrypted plaintext on disk. On a rooted/jailbroken device, tokens are trivially readable.
 
 ```typescript
-// BAD: plaintext on disk
+// BAD: auth token in plaintext on disk
 await AsyncStorage.setItem('authToken', token);
 
-// GOOD: encrypted in device keychain
+// GOOD: auth token encrypted in device keychain
 await SecureStore.setItemAsync('authToken', token);
+
+// OK: non-sensitive UI preference in AsyncStorage
+await AsyncStorage.setItem('hapticsEnabled', 'true');
 ```
 
 ## Deep Link Security

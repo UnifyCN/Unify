@@ -44,8 +44,31 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(10, '1 m'), // 10 requests per minute
 });
 
+// Trusted proxy CIDRs (e.g., Cloudflare, AWS ELB). Adjust for your infra.
+const TRUSTED_PROXIES = new Set(['127.0.0.1', '::1']);
+
+function getClientIp(request: Request): string {
+  // Platform-provided peer IP (varies by runtime — Cloudflare, Vercel, etc.)
+  const peerIp =
+    request.headers.get('cf-connecting-ip') ??   // Cloudflare
+    request.headers.get('x-real-ip') ??           // Nginx / Vercel
+    '127.0.0.1';
+
+  // Only trust X-Forwarded-For if the immediate peer is a known proxy
+  if (TRUSTED_PROXIES.has(peerIp)) {
+    const xff = request.headers.get('x-forwarded-for');
+    if (xff) {
+      // Left-most entry is the original client (standard append convention)
+      const clientIp = xff.split(',')[0].trim();
+      if (clientIp) return clientIp;
+    }
+  }
+
+  return peerIp;
+}
+
 export async function POST(request: Request) {
-  const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+  const ip = getClientIp(request);
   const { success } = await ratelimit.limit(ip);
   if (!success) {
     return new Response('Too many requests', { status: 429 });

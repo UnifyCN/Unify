@@ -22,7 +22,7 @@ Preview deployments should **never** use production API keys, database credentia
 
 Set these headers on all responses:
 
-```
+```http
 Content-Security-Policy: default-src 'self'; script-src 'self'
 Strict-Transport-Security: max-age=31536000; includeSubDomains
 X-Frame-Options: DENY

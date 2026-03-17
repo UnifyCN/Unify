@@ -85,6 +85,12 @@ Use `import 'server-only'` at the top of data access modules to prevent them fro
 
 ## Session & Token Storage
 
+**Server-rendered web apps (Next.js, Rails, etc.):**
 - Store tokens in `HttpOnly + Secure + SameSite=Lax` cookies, **not localStorage**.
 - localStorage is accessible to any JavaScript on the page — a single XSS vulnerability exposes all tokens.
 - `HttpOnly` cookies are invisible to JavaScript and sent automatically by the browser.
+
+**Client-side SPAs and native apps (React Native, Expo):**
+- These apps manage auth via client SDKs (e.g., Supabase JS client) that need programmatic access to the token, so `HttpOnly` cookies are not an option.
+- Use platform-specific secure storage: `expo-secure-store` (Expo), `react-native-keychain` (bare React Native), or the Web Crypto API with encrypted storage for browser SPAs.
+- **Never use `localStorage` (web) or `AsyncStorage` (React Native)** for auth tokens — both store plaintext on disk.

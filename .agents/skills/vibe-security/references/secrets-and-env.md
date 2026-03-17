@@ -22,7 +22,7 @@ These prefixes cause env vars to be inlined into the client bundle at build time
 
 **What belongs client-side:**
 - Stripe publishable key (`pk_live_*`, `pk_test_*`)
-- Supabase anon key
+- Supabase anon key (**only safe if Row-Level Security is enabled** with appropriate policies on all tables — without RLS, the anon key grants full read/write access to every table; contrast with the `service_role` key listed below, which bypasses RLS entirely and must never leave the server)
 - Firebase client config (apiKey, authDomain, projectId)
 - Public analytics IDs
 
