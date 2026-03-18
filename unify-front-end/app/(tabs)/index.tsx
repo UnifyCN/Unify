@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 16,
     marginHorizontal: 20,
-    marginTop: 10,
+    marginTop: 16,
     marginBottom: 8,
     padding: 4,
     position: 'relative',

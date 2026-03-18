@@ -426,7 +426,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    paddingTop: 8,
     fontSize: 24,
     fontWeight: '600',
     color: '#000',
@@ -435,7 +434,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 8,
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 20,

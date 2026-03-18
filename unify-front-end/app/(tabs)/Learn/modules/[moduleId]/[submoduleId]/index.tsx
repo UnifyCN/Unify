@@ -22,6 +22,7 @@ import { useSanityTasks } from '@/hooks/sanity/useSanityTasks';
 import { getLearnHref } from '@/utils/learnHref';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Layout } from '@/constants/Layout';
 
 const SUBJECT_COLOR = '#10B981'; // green for Learn (active)
 
@@ -467,7 +468,7 @@ export default function SubmoduleIndex() {
       <View
         style={[
           styles.header,
-          { backgroundColor: '#FFFFFF', paddingTop: insets.top },
+          { backgroundColor: '#FFFFFF', paddingTop: insets.top + Layout.header.topInsetOffset },
         ]}
       >
         <View style={styles.headerTopRow}>
