@@ -9,6 +9,7 @@ import {
   View,
   Text,
   TextInput,
+  Pressable,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -18,8 +19,8 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { History, Plus } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
@@ -34,8 +35,8 @@ import { MessageWithSources } from '@/components/companion/MessageWithSources';
 import { TypingIndicator } from '@/components/companion/TypingIndicator';
 import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
+import { TAB_HEADER_METRICS } from '@/constants/TabHeader';
 import SendIcon from '@/components/icons/SendIcon.svg';
-import HistoryIcon from '@/components/icons/HistoryIcon.svg';
 import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
@@ -325,25 +326,43 @@ export default function CompanionScreen() {
           title='AI Companion'
           showBackButton={false}
           leftButton={
-            <TouchableOpacity
+            <Pressable
               onPress={() => {
                 router.push('/(tabs)/companion/history' as any);
                 trackCompanionHistoryViewed();
               }}
-              style={styles.headerButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole='button'
+              accessibilityLabel='Open conversation history'
+              style={({ pressed }) => [
+                styles.headerButton,
+                pressed && styles.headerButtonPressed,
+              ]}
             >
-              <HistoryIcon width={20} height={20} />
-            </TouchableOpacity>
+              <History
+                color='#000'
+                size={TAB_HEADER_METRICS.iconSize}
+                strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
+                absoluteStrokeWidth
+              />
+            </Pressable>
           }
           rightButton={
-            <TouchableOpacity
+            <Pressable
               onPress={handleNewChatPress}
-              style={styles.headerButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole='button'
+              accessibilityLabel='Start a new chat'
+              style={({ pressed }) => [
+                styles.headerButton,
+                pressed && styles.headerButtonPressed,
+              ]}
             >
-              <Feather name='plus' size={22} color='#000' />
-            </TouchableOpacity>
+              <Plus
+                color='#000'
+                size={TAB_HEADER_METRICS.iconSize}
+                strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
+                absoluteStrokeWidth
+              />
+            </Pressable>
           }
         />
 
@@ -560,7 +579,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerButton: {
-    padding: 4,
+    width: TAB_HEADER_METRICS.actionSize,
+    height: TAB_HEADER_METRICS.actionSize,
+    borderRadius: TAB_HEADER_METRICS.actionSize / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerButtonPressed: {
+    opacity: 0.7,
   },
   disclaimerContainer: {
     paddingHorizontal: 20,
