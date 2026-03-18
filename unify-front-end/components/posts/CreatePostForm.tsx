@@ -24,6 +24,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { uploadPostImage } from '@/services/s3/uploadPostImage';
 import { Feather } from '@expo/vector-icons';
 import { isContentAllowed } from '@/utils/contentFilter';
+import { useAnalytics } from '@/utils/analytics';
 
 type DestinationType = '4u' | 'group';
 
@@ -93,6 +94,7 @@ export default function CreatePostForm({
   const insets = useSafeAreaInsets();
 
   const { showToast } = useToast();
+  const { trackPostCreated } = useAnalytics();
   const createPostMutation = useMutateCreatePost();
 
   const trimmedTitle = title.trim();
@@ -170,7 +172,8 @@ export default function CreatePostForm({
         post_image_urls,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
+          if (data?.id) trackPostCreated(String(data.id));
           const postedToGroup = destination === 'group' && selectedGroup;
           const toastMessage = postedToGroup
             ? `Posted to ${selectedGroup.name}`

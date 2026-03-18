@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAnalytics } from '@/utils/analytics';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
 import { getOnboardingProfile } from '@/services/onboarding/getOnboardingProfile';
@@ -70,6 +71,12 @@ const personaDisplayNames: Record<string, string> = {
 export default function ChecklistScreen() {
   const router = useRouter();
   const {
+    trackScreen,
+    trackChecklistTaskCompleted,
+    trackChecklistTaskUncompleted,
+    trackChecklistCustomTaskDeleted,
+  } = useAnalytics();
+  const {
     currentStage,
     stageChanged,
     isLoading: stageLoading,
@@ -116,10 +123,11 @@ export default function ChecklistScreen() {
   // Refetch when Checklist tab is focused so new/updated Sanity tasks show up
   useFocusEffect(
     useCallback(() => {
+      trackScreen('Checklist');
       if (currentStage !== null && persona) {
         refetch();
       }
-    }, [currentStage, persona, refetch])
+    }, [currentStage, persona, refetch, trackScreen])
   );
 
   // Compute progress
@@ -217,6 +225,15 @@ export default function ChecklistScreen() {
         completed_at: completedAt,
       });
 
+      const taskTitle = selectedTask.task?.task_name || 'Unknown';
+      const taskPriority = selectedTask.task?.priority || 'Unknown';
+      const taskSource = selectedTask.source === 'custom' ? 'custom' : 'sanity';
+      if (newCompletedStatus) {
+        trackChecklistTaskCompleted(taskTitle, taskPriority, taskSource);
+      } else {
+        trackChecklistTaskUncompleted(taskTitle, taskPriority, taskSource);
+      }
+
       if (selectedTask.source === 'custom' && selectedTask.custom_task_id) {
         await setCustomChecklistTaskCompletion({
           userId: user.id,
@@ -258,6 +275,7 @@ export default function ChecklistScreen() {
               prev.filter(task => task.custom_task_id !== customTaskId)
             );
             handleCloseModal();
+            trackChecklistCustomTaskDeleted();
 
             await deleteCustomChecklistTask({
               userId: user.id,
