@@ -1,6 +1,8 @@
 export interface ChatbotUsage {
   message_count: number;
   last_message_at: string | null;
+  total_tokens_used?: number;
+  total_estimated_cost_usd?: number;
 }
 
 // Query classification types from the RAG chatbot
@@ -11,13 +13,22 @@ export type QueryType =
   | 'fact_check'
   | 'form_help';
 
+// Token usage from the AI model
+export interface TokenUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 // RAG API response structure
 export interface RAGResponse {
   answer: string;
   sources?: Source[];
   queryType: QueryType;
   disclaimer?: string;
-  suggestedNextSteps?: string[]; // AI-generated follow-up questions
+  suggestedNextSteps?: string[];
+  tokenUsage?: TokenUsage;
+  estimatedCostUsd?: number;
 }
 
 // Source document reference

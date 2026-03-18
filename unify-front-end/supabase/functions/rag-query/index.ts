@@ -760,7 +760,7 @@ Deno.serve(async (req: Request) => {
     console.log('- Has good KB hits:', hasGoodKBHits);
 
     const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -783,6 +783,54 @@ Deno.serve(async (req: Request) => {
       rawAnswer = geminiData.candidates[0].content.parts[0].text.trim();
     }
 
+    // Extract token usage from Gemini response
+    const usageMetadata = geminiData.usageMetadata;
+    const tokenUsage = usageMetadata
+      ? {
+          prompt_tokens: usageMetadata.promptTokenCount || 0,
+          completion_tokens: usageMetadata.candidatesTokenCount || 0,
+          total_tokens: usageMetadata.totalTokenCount || 0,
+        }
+      : undefined;
+
+    // Calculate estimated cost (Gemini 2.0 Flash pricing)
+    // Input: $0.10/1M tokens, Output: $0.40/1M tokens
+    let estimatedCostUsd: number | undefined;
+    if (tokenUsage) {
+      estimatedCostUsd =
+        tokenUsage.prompt_tokens * 0.0000001 +
+        tokenUsage.completion_tokens * 0.0000004;
+    }
+
+    // Store token usage in chatbot_usage table
+    if (effectiveUserId && tokenUsage) {
+      try {
+        const { data: existingUsage } = await supabase
+          .from('chatbot_usage')
+          .select('total_tokens_used, total_estimated_cost_usd')
+          .eq('user_id', effectiveUserId)
+          .maybeSingle();
+
+        const prevTokens = existingUsage?.total_tokens_used || 0;
+        const prevCost = existingUsage?.total_estimated_cost_usd || 0;
+
+        await supabase
+          .from('chatbot_usage')
+          .upsert(
+            {
+              user_id: effectiveUserId,
+              total_tokens_used: prevTokens + tokenUsage.total_tokens,
+              total_estimated_cost_usd:
+                prevCost + (estimatedCostUsd || 0),
+              last_message_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' }
+          );
+      } catch (costError) {
+        console.error('Failed to store token usage:', costError);
+      }
+    }
+
     // Parse out suggestions from the response
     const { cleanAnswer, suggestions } =
       parseSuggestionsFromResponse(rawAnswer);
@@ -797,6 +845,8 @@ Deno.serve(async (req: Request) => {
         queryType,
         disclaimer,
         suggestedNextSteps: suggestions.length > 0 ? suggestions : undefined,
+        tokenUsage,
+        estimatedCostUsd,
       }),
       {
         headers: { 'Content-Type': 'application/json' },

@@ -28,6 +28,7 @@ import {
   LearningInterest,
   Hobby,
 } from '@/types/onboardingProfile';
+import { useAnalytics } from '@/utils/analytics';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
@@ -35,8 +36,23 @@ interface OnboardingQuizProps {
 
 const TOTAL_STEPS = 10;
 
+const STEP_NAMES: Record<number, string> = {
+  1: 'welcome',
+  2: 'persona',
+  3: 'referral_source',
+  4: 'arrival_date',
+  5: 'goals',
+  6: 'learning_interests',
+  7: 'hobbies',
+  8: 'reminders',
+  9: 'outcomes',
+  10: 'thank_you',
+};
+
 export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
+  const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
+    useAnalytics();
   const insets = useSafeAreaInsets();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -156,6 +172,11 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       return;
     }
 
+    trackOnboardingStepCompleted(
+      currentStep,
+      STEP_NAMES[currentStep] || `step_${currentStep}`
+    );
+
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
     }
@@ -211,6 +232,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         },
       });
 
+      trackOnboardingCompleted(persona);
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
