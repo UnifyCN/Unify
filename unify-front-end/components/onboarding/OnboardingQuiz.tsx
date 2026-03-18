@@ -32,6 +32,7 @@ import { useAnalytics } from '@/utils/analytics';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
+  isRedo?: boolean;
 }
 
 const TOTAL_STEPS = 10;
@@ -49,7 +50,7 @@ const STEP_NAMES: Record<number, string> = {
   10: 'thank_you',
 };
 
-export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
+export default function OnboardingQuiz({ onComplete, isRedo = false }: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
   const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
     useAnalytics();
@@ -273,7 +274,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <WelcomeStep onNext={handleNext} />;
+        return <WelcomeStep onNext={handleNext} isRedo={isRedo} />;
       case 2:
         return (
           <SingleSelectQuestion
@@ -566,7 +567,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 9:
         return <OutcomesStep />;
       case 10:
-        return <ThankYouStep />;
+        return <ThankYouStep isRedo={isRedo} />;
       default:
         return null;
     }
@@ -576,7 +577,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
   return (
     <View style={styles.root}>
-      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} skipSafeArea={isRedo} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -646,7 +647,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>Explore Unify</Text>
+                <Text style={styles.nextButtonText}>{isRedo ? 'Save Changes' : 'Explore Unify'}</Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}

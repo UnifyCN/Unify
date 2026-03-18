@@ -230,6 +230,15 @@ export default function AccountSettingsPage() {
                 <View style={styles.toggleThumb} />
               </Pressable>
             </View>
+            <TouchableOpacity
+              style={styles.row}
+              onPress={() => router.push('/redo-onboarding' as any)}
+            >
+              <View style={styles.bookmarkIconContainer}>
+                <Feather name='refresh-cw' size={24} color={Theme.black} />
+              </View>
+              <Text style={styles.rowText}>Redo Onboarding Quiz</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.divider} />
 
