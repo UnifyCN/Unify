@@ -62,8 +62,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Layout.header.horizontalPadding,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
   },
   rightButtons: {
     flexDirection: 'row',
