@@ -6,17 +6,19 @@ import { Theme } from '@/constants/Theme';
 interface OnboardingProgressProps {
   currentStep: number;
   totalSteps: number;
+  skipSafeArea?: boolean;
 }
 
 export default function OnboardingProgress({
   currentStep,
   totalSteps,
+  skipSafeArea = false,
 }: OnboardingProgressProps) {
   const insets = useSafeAreaInsets();
   const progress = (currentStep / totalSteps) * 100;
 
   return (
-    <View style={[styles.container, { paddingTop: 25 + insets.top }]}>
+    <View style={[styles.container, { paddingTop: skipSafeArea ? 10 : 25 + insets.top }]}>
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: `${progress}%` }]} />
       </View>

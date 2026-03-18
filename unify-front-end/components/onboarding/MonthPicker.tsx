@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -57,6 +57,27 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
   };
 
   const years = generateYears();
+  const yearScrollRef = useRef<ScrollView>(null);
+  const monthScrollRef = useRef<ScrollView>(null);
+
+  const ITEM_HEIGHT = 45; // paddingVertical(12)*2 + lineHeight(~20) + border(1)
+  const SCROLL_LIST_HEIGHT = 300 - 33; // scrollContainer height minus columnTitle
+
+  const handleOpenPicker = useCallback(() => {
+    setShowPicker(true);
+    // Scroll to selected year/month after modal renders
+    setTimeout(() => {
+      const yearIndex = years.indexOf(selectedYear);
+      if (yearIndex >= 0 && yearScrollRef.current) {
+        const offset = Math.max(0, yearIndex * ITEM_HEIGHT - SCROLL_LIST_HEIGHT / 2 + ITEM_HEIGHT / 2);
+        yearScrollRef.current.scrollTo({ y: offset, animated: false });
+      }
+      if (monthScrollRef.current) {
+        const monthOffset = Math.max(0, selectedMonth * ITEM_HEIGHT - SCROLL_LIST_HEIGHT / 2 + ITEM_HEIGHT / 2);
+        monthScrollRef.current.scrollTo({ y: monthOffset, animated: false });
+      }
+    }, 100);
+  }, [selectedYear, selectedMonth, years]);
 
   const handleConfirm = () => {
     const newDate = new Date(selectedYear, selectedMonth, 1);
@@ -72,7 +93,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
     <>
       <TouchableOpacity
         style={styles.dateInput}
-        onPress={() => setShowPicker(true)}
+        onPress={handleOpenPicker}
       >
         <Text style={{ color: value ? Theme.black : Theme.textInput }}>
           {value
@@ -100,7 +121,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
               {/* Month Selector */}
               <View style={styles.column}>
                 <Text style={styles.columnTitle}>Month</Text>
-                <ScrollView style={styles.scrollList}>
+                <ScrollView ref={monthScrollRef} style={styles.scrollList}>
                   {months.map((month, index) => (
                     <TouchableOpacity
                       key={month}
@@ -126,7 +147,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
               {/* Year Selector */}
               <View style={styles.column}>
                 <Text style={styles.columnTitle}>Year</Text>
-                <ScrollView style={styles.scrollList}>
+                <ScrollView ref={yearScrollRef} style={styles.scrollList}>
                   {years.map(year => (
                     <TouchableOpacity
                       key={year}
