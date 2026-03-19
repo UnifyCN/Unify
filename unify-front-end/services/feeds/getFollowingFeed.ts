@@ -90,6 +90,12 @@ export const getFeedFollowing = async (
           : undefined,
     };
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes('Runtime is shutting down')
+    ) {
+      return { posts: [], next_cursor: undefined };
+    }
     console.error('Error fetching following feed:', error);
     throw error;
   }

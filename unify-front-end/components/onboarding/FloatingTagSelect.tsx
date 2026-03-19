@@ -17,6 +17,7 @@ import Animated, {
   withSequence,
   Easing,
   interpolate,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
@@ -78,6 +79,8 @@ const FloatingTag = React.memo(function FloatingTag({
   color,
   rotation,
 }: FloatingTagProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   // Entrance animation
   const entrance = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -96,10 +99,18 @@ const FloatingTag = React.memo(function FloatingTag({
   useEffect(() => {
     // Staggered entrance — pop in from random scale
     const delay = index * 70;
-    entrance.value = withDelay(
-      delay,
-      withSpring(1, { damping: 10, stiffness: 80, mass: 0.8 })
-    );
+    entrance.value = prefersReducedMotion
+      ? withTiming(1, { duration: 0 })
+      : withDelay(
+          delay,
+          withSpring(1, { damping: 10, stiffness: 80, mass: 0.8 })
+        );
+
+    if (prefersReducedMotion) {
+      floatX.value = withTiming(0, { duration: 0 });
+      floatY.value = withTiming(0, { duration: 0 });
+      return;
+    }
 
     // Start floating with unique timing — more dramatic movement
     floatX.value = withDelay(
@@ -140,19 +151,21 @@ const FloatingTag = React.memo(function FloatingTag({
   }, []);
 
   const handlePress = useCallback(() => {
-    // Satisfying squish → overshoot → settle
-    scale.value = withSequence(
-      withSpring(0.85, { damping: 20, stiffness: 500 }),
-      withSpring(1.12, { damping: 6, stiffness: 250 }),
-      withSpring(1, { damping: 10, stiffness: 200 })
-    );
-    // Upward bounce on tap
-    bounce.value = withSequence(
-      withSpring(-12, { damping: 6, stiffness: 400 }),
-      withSpring(0, { damping: 8, stiffness: 150 })
-    );
+    if (!prefersReducedMotion) {
+      // Satisfying squish → overshoot → settle
+      scale.value = withSequence(
+        withSpring(0.85, { damping: 20, stiffness: 500 }),
+        withSpring(1.12, { damping: 6, stiffness: 250 }),
+        withSpring(1, { damping: 10, stiffness: 200 })
+      );
+      // Upward bounce on tap
+      bounce.value = withSequence(
+        withSpring(-12, { damping: 6, stiffness: 400 }),
+        withSpring(0, { damping: 8, stiffness: 150 })
+      );
+    }
     onPress();
-  }, [onPress]);
+  }, [onPress, prefersReducedMotion]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const entranceScale = interpolate(entrance.value, [0, 1], [0.1, 1]);
@@ -175,6 +188,9 @@ const FloatingTag = React.memo(function FloatingTag({
     <Animated.View style={animatedStyle}>
       <Pressable
         onPress={handlePress}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: isSelected }}
+        accessibilityLabel={option.label}
         style={[
           styles.tag,
           {
@@ -256,9 +272,12 @@ export default function FloatingTagSelect({
   return (
     <View style={styles.container}>
       <Text style={styles.question}>{question}</Text>
-      {required && selectedValues.length === 0 && error && (
-        <Text style={styles.errorText}>{error}</Text>
-      )}
+      {required &&
+        error &&
+        (selectedValues.length === 0 ||
+          (showOtherInput && !otherValue?.trim())) && (
+          <Text style={styles.errorText}>{error}</Text>
+        )}
 
       <View style={styles.tagsContainer}>
         {options.map((option, index) => (
