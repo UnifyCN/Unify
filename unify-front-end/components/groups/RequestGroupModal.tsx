@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,6 @@ import {
   ToastAndroid,
   View,
 } from 'react-native';
-import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { sendGroupRequestEmail } from '@/services/groups/sendGroupRequestEmail';
 
 type Props = {
@@ -35,6 +34,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
 
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const canSubmit = useMemo(() => {
     return (
@@ -94,9 +94,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
-        <KeyboardAvoidingView
-          style={{ flex: 1, justifyContent: 'flex-end', width: '100%' }}
-        >
+        <View style={{ flex: 1, justifyContent: 'flex-end', width: '100%' }}>
           <View style={styles.sheet}>
             <View style={styles.header}>
               <Text style={styles.title}>
@@ -120,10 +118,12 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
               </View>
             ) : (
               <ScrollView
+                ref={scrollViewRef}
                 contentContainerStyle={[styles.content, { paddingBottom: 24 }]}
                 keyboardShouldPersistTaps='always'
                 keyboardDismissMode='on-drag'
                 showsVerticalScrollIndicator={false}
+                automaticallyAdjustKeyboardInsets
               >
                 <Text style={styles.label}>Group name *</Text>
                 <TextInput
@@ -174,6 +174,12 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
                   style={[styles.input, styles.textArea]}
                   multiline
                   editable={!submitting}
+                  onFocus={() =>
+                    setTimeout(
+                      () => scrollViewRef.current?.scrollToEnd({ animated: true }),
+                      300
+                    )
+                  }
                 />
 
                 <Pressable
@@ -197,7 +203,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
               </ScrollView>
             )}
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </View>
     </Modal>
   );
