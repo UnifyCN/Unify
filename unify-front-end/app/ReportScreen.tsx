@@ -5,11 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { useMutateReport } from '@/hooks/posts/useMutateReport';
 import { useToast } from '@/context/ToastContext';
@@ -81,10 +80,7 @@ export default function ReportScreen() {
     <View style={styles.screen}>
       <Stack.Screen options={{ headerShown: false }} />
       <BackHeader title='' />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}
-      >
+      <KeyboardAvoidingView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>

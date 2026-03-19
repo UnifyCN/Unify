@@ -9,9 +9,9 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
-  KeyboardAvoidingView,
   Image,
 } from 'react-native';
+import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
 import GroupSelectionSheet from './GroupSelectionSheet';
 import DestinationToggle from './DestinationToggle';
@@ -245,10 +245,7 @@ export default function CreatePostForm({
   const isPending = createPostMutation.isPending || isUploadingImages;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <KeyboardAvoidingView style={styles.root}>
       <BackHeader
         title=''
         backIcon='x'
