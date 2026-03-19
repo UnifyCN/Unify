@@ -126,6 +126,10 @@ const PostDetails = () => {
   const { data: commentMetadata, isLoading: commentMetadataLoading } =
     useCommentMetadata(commentIds);
   const createCommentMutation = useMutateCreateComment();
+  const { height: kbHeight } = useReanimatedKeyboardAnimation();
+  const inputAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: kbHeight.value }],
+  }));
 
   const likeCount = metadata?.likeCount ?? 0;
   const isLiked = metadata?.isLiked ?? false;
@@ -177,11 +181,6 @@ const PostDetails = () => {
       }
     );
   };
-
-  const { height: kbHeight } = useReanimatedKeyboardAnimation();
-  const inputAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: kbHeight.value }],
-  }));
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
