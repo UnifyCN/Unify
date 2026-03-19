@@ -7,7 +7,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "userInterfaceStyle": "automatic",
     "runtimeVersion": "exposdk:52.0.0",
     "updates": {
@@ -63,7 +63,8 @@
           "color": "#ff9d40",
           "defaultChannel": "community-circles"
         }
-      ]
+      ],
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true

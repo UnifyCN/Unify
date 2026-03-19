@@ -346,24 +346,30 @@ export function SignIn({
         </View>
         <View>
           <Text style={styles.label}>Password</Text>
-          <SimpleTextField
-            value={password}
-            onChangeText={setPassword}
-            placeholder='Password'
-            style={[styles.textField, errorMessage && styles.textFieldError]}
-            secureTextEntry={!passwordVisible}
-            autoCapitalize='none'
-          />
-          <TouchableOpacity
-            onPress={() => setPasswordVisible(!passwordVisible)}
-            style={styles.eyeIcon}
-          >
-            <MaterialIcons
-              name={passwordVisible ? 'visibility' : 'visibility-off'}
-              size={24}
-              color='#333'
+          <View style={styles.inputWithIconContainer}>
+            <SimpleTextField
+              value={password}
+              onChangeText={setPassword}
+              placeholder='Password'
+              style={[
+                styles.textField,
+                styles.textFieldWithIcon,
+                errorMessage && styles.textFieldError,
+              ]}
+              secureTextEntry={!passwordVisible}
+              autoCapitalize='none'
             />
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              style={styles.eyeIcon}
+            >
+              <MaterialIcons
+                name={passwordVisible ? 'visibility' : 'visibility-off'}
+                size={24}
+                color='#333'
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.passwordRow}>
@@ -477,10 +483,17 @@ const styles = {
   textFieldError: {
     borderColor: '#f00',
   },
+  inputWithIconContainer: {
+    position: 'relative' as 'relative',
+  },
+  textFieldWithIcon: {
+    paddingRight: 48 * S,
+  },
   eyeIcon: {
     position: 'absolute' as 'absolute',
     right: 16 * S,
-    top: 56 * S,
+    top: '30%' as '30%',
+    transform: [{ translateY: -12 * S }],
   },
   tickIcon: {
     position: 'absolute' as 'absolute',
