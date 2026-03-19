@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   Keyboard,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
@@ -14,6 +13,7 @@ import {
   ToastAndroid,
   View,
 } from 'react-native';
+import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { sendGroupRequestEmail } from '@/services/groups/sendGroupRequestEmail';
 
 type Props = {
@@ -95,8 +95,6 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
           style={{ flex: 1, justifyContent: 'flex-end', width: '100%' }}
         >
           <View style={styles.sheet}>

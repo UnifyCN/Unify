@@ -17,7 +17,6 @@ import {
   Keyboard,
   ActivityIndicator,
   Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { History, Plus } from 'lucide-react-native';
@@ -27,6 +26,8 @@ import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
 import { useCurrentUser } from '@/context/UserContext';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import {
   formatMessagesForUI,
   Message,
@@ -75,6 +76,17 @@ export default function CompanionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const { height: kbHeight, progress: kbProgress } =
+    useReanimatedKeyboardAnimation();
+  const bottomAnimatedStyle = useAnimatedStyle(() => {
+    // kbHeight is negative when keyboard is open, 0 when closed.
+    // Add tabBarHeight only while keyboard is open to compensate for the tab bar
+    // that the keyboard covers.
+    const tabBarCompensation = kbProgress.value * tabBarHeight;
+    return {
+      transform: [{ translateY: kbHeight.value + tabBarCompensation }],
+    };
+  });
   const {
     trackScreen,
     trackCompanionMessageSent,
@@ -101,7 +113,6 @@ export default function CompanionScreen() {
   >(null);
 
   const [inputText, setInputText] = useState('');
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const emptyStateTopPadding = Math.max(
@@ -190,25 +201,6 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-  // Track keyboard visibility so iOS uses interactive dismiss only when keyboard is open.
-  useEffect(() => {
-    const showEvent =
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent =
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSub = Keyboard.addListener(showEvent, () =>
-      setIsKeyboardVisible(true)
-    );
-    const hideSub = Keyboard.addListener(hideEvent, () =>
-      setIsKeyboardVisible(false)
-    );
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
@@ -396,16 +388,7 @@ export default function CompanionScreen() {
             contentContainerStyle={styles.messagesContent}
             ListFooterComponent={renderLoadingIndicator}
             keyboardShouldPersistTaps='handled'
-            keyboardDismissMode={
-              Platform.OS === 'ios'
-                ? isKeyboardVisible
-                  ? 'interactive'
-                  : 'none'
-                : 'on-drag'
-            }
-            onScrollBeginDrag={
-              Platform.OS === 'ios' ? undefined : Keyboard.dismiss
-            }
+            keyboardDismissMode='interactive'
             initialNumToRender={10}
             maxToRenderPerBatch={8}
             windowSize={7}
@@ -418,12 +401,7 @@ export default function CompanionScreen() {
         )}
       </View>
 
-      {/* couldnt run without modifying this*/}
-      <KeyboardAvoidingView
-        style={styles.stickyContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={insets.bottom + tabBarHeight - 12}
-      >
+      <Animated.View style={[styles.stickyContainer, bottomAnimatedStyle]}>
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
           {showEmptyState && (
@@ -472,7 +450,7 @@ export default function CompanionScreen() {
             </Text>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </Animated.View>
     </View>
   );
 }
