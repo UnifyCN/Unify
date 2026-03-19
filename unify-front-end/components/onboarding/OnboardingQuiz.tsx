@@ -16,6 +16,7 @@ import OnboardingProgress from './OnboardingProgress';
 import WelcomeStep from './WelcomeStep';
 import SingleSelectQuestion from './SingleSelectQuestion';
 import MultiSelectQuestion from './MultiSelectQuestion';
+import FloatingTagSelect from './FloatingTagSelect';
 import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
@@ -342,7 +343,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         );
       case 5:
         return (
-          <MultiSelectQuestion
+          <FloatingTagSelect
             question='What do you want to accomplish? (Select all that apply)'
             options={[
               {
@@ -352,12 +353,12 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
               },
               {
                 value: 'build_community',
-                label: 'Build a community & make friends',
+                label: 'Build community & friends',
                 icon: 'users',
               },
               {
                 value: 'quick_answers',
-                label: 'Quick, trustworthy answers to my questions',
+                label: 'Quick answers',
                 icon: 'zap',
               },
               {
@@ -377,8 +378,8 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         );
       case 6:
         return (
-          <MultiSelectQuestion
-            question='Which topic would you like to explore? (Select all that apply)'
+          <FloatingTagSelect
+            question='Which topics interest you? (Select all that apply)'
             options={[
               {
                 value: 'documents',
@@ -431,8 +432,8 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         );
       case 7:
         return (
-          <MultiSelectQuestion
-            question='What are your hobbies and interests? (Select all that apply)'
+          <FloatingTagSelect
+            question='What are your hobbies? (Select all that apply)'
             options={[
               {
                 value: 'career_growth',
@@ -489,7 +490,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
             selectedValues={hobbies}
             otherValue={null}
             onToggle={value => toggleHobby(value as Hobby)}
-            onOtherChange={() => {}} // No "other" option for this question
+            onOtherChange={() => {}}
             required={false}
           />
         );
