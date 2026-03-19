@@ -5,15 +5,15 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { useMutateReport } from '@/hooks/posts/useMutateReport';
 import { useToast } from '@/context/ToastContext';
 import BackHeader from '@/components/BackHeader';
+import { useAnalytics } from '@/utils/analytics';
 
 const MIN_LENGTH = 5;
 const MAX_LENGTH = 500;
@@ -23,6 +23,7 @@ export default function ReportScreen() {
   const router = useRouter();
   const { showToast } = useToast();
   const mutation = useMutateReport();
+  const { trackScreen, trackReportSubmitted } = useAnalytics();
 
   const [message, setMessage] = useState('');
 
@@ -63,6 +64,7 @@ export default function ReportScreen() {
       },
       {
         onSuccess: () => {
+          trackReportSubmitted(isPost ? 'post' : 'user');
           showToast?.('Report submitted. Thank you.');
           router.back();
         },
@@ -78,10 +80,7 @@ export default function ReportScreen() {
     <View style={styles.screen}>
       <Stack.Screen options={{ headerShown: false }} />
       <BackHeader title='' />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}
-      >
+      <KeyboardAvoidingView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>

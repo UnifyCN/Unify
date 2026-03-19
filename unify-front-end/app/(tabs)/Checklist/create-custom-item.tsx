@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Layout } from '@/constants/Layout';
 import { supabase } from '@/lib/supabase';
 import { createCustomChecklistTask } from '@/services/checklist/customChecklistTasks';
 import { CustomPriority } from '@/types/checklist';
@@ -73,7 +74,7 @@ export default function CreateCustomItemScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + Layout.header.topInsetOffset }]}>
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}

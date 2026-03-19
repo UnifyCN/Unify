@@ -90,6 +90,13 @@ export const getPostsFromJoinedGroups = async (
         transformedPosts.length === limit ? String(offset + limit) : undefined,
     };
   } catch (error) {
+    // Suppress errors from runtime teardown (hot reload, app suspend)
+    if (
+      error instanceof Error &&
+      error.message.includes('Runtime is shutting down')
+    ) {
+      return { posts: [], next_cursor: undefined };
+    }
     console.error('Error fetching posts from joined groups:', error);
     throw error;
   }

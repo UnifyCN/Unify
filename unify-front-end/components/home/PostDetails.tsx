@@ -25,9 +25,9 @@ import { Theme } from '@/constants/Theme';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import BackHeader from '@/components/BackHeader';
-import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
-import KeyboardSafeAreaView from '@/components/common/KeyboardSafeAreaView';
 import LoadingScreen from '@/components/LoadingScreen';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 // Loading state component
 const CommentsLoadingState = () => (
@@ -126,6 +126,10 @@ const PostDetails = () => {
   const { data: commentMetadata, isLoading: commentMetadataLoading } =
     useCommentMetadata(commentIds);
   const createCommentMutation = useMutateCreateComment();
+  const { height: kbHeight } = useReanimatedKeyboardAnimation();
+  const inputAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: kbHeight.value }],
+  }));
 
   const likeCount = metadata?.likeCount ?? 0;
   const isLiked = metadata?.isLiked ?? false;
@@ -179,11 +183,7 @@ const PostDetails = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      behavior='translate-with-padding'
-      keyboardVerticalOffset={0}
-    >
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <BackHeader onBack={onBack} />
 
       <FlatList
@@ -191,6 +191,9 @@ const PostDetails = () => {
         keyExtractor={item => item.id.toString()}
         renderItem={renderPost}
         contentContainerStyle={{ paddingBottom: 25 }}
+        keyboardDismissMode='interactive'
+        keyboardShouldPersistTaps='handled'
+        automaticallyAdjustKeyboardInsets
         ListHeaderComponent={
           <>
             <PostItem
@@ -235,7 +238,7 @@ const PostDetails = () => {
         }}
       />
 
-      <KeyboardSafeAreaView style={styles.commentInputSafeArea}>
+      <Animated.View style={[styles.commentInputSafeArea, inputAnimatedStyle]}>
         <CommentInput
           placeholder={`Reply to ${post.user.name}`}
           value={commentTextBox}
@@ -243,8 +246,8 @@ const PostDetails = () => {
           onSend={handleCreateComment}
           disabled={commentTextBox.trim() === ''}
         />
-      </KeyboardSafeAreaView>
-    </KeyboardAvoidingView>
+      </Animated.View>
+    </View>
   );
 };
 

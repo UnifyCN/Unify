@@ -62,6 +62,26 @@ export const AnalyticsEvents = {
   QUIZ_CARD_CLICKED: 'quiz_card_clicked',
   QUIZ_COMPLETED: 'quiz_completed',
   ACTIVITY_COMPLETED: 'activity_completed',
+
+  // Checklist
+  CHECKLIST_TASK_COMPLETED: 'checklist_task_completed',
+  CHECKLIST_TASK_UNCOMPLETED: 'checklist_task_uncompleted',
+  CHECKLIST_CUSTOM_TASK_CREATED: 'checklist_custom_task_created',
+  CHECKLIST_CUSTOM_TASK_DELETED: 'checklist_custom_task_deleted',
+
+  // Reports
+  REPORT_SUBMITTED: 'report_submitted',
+
+  // Onboarding
+  ONBOARDING_STEP_COMPLETED: 'onboarding_step_completed',
+  ONBOARDING_COMPLETED: 'onboarding_completed',
+
+  // Notifications
+  NOTIFICATION_OPENED: 'notification_opened',
+  NOTIFICATIONS_MARK_ALL_READ: 'notifications_mark_all_read',
+
+  // AI Companion (extended)
+  COMPANION_RESPONSE_RECEIVED: 'companion_response_received',
 } as const;
 
 export type AnalyticsEventName =
@@ -118,6 +138,35 @@ export interface AppleSignInProperties {
 
 export interface FeedTabProperties {
   tab_name: 'For You' | 'Following' | 'Groups';
+}
+
+export interface ChecklistTaskProperties {
+  task_title: string;
+  task_priority: string;
+  source: 'sanity' | 'custom';
+}
+
+export interface ReportProperties {
+  report_type: 'post' | 'user';
+}
+
+export interface OnboardingStepProperties {
+  step_number: number;
+  step_name: string;
+}
+
+export interface NotificationProperties {
+  notification_type: string;
+}
+
+export interface CompanionResponseProperties {
+  query_type: string;
+  has_sources: boolean;
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  total_tokens?: number;
+  estimated_cost_usd?: number;
+  response_time_ms?: number;
 }
 
 // Hook for analytics tracking
@@ -358,6 +407,78 @@ export function useAnalytics() {
         posthog?.capture(AnalyticsEvents.FEED_TAB_SWITCHED, {
           tab_name: tabName,
         });
+      },
+
+      // Checklist
+      trackChecklistTaskCompleted: (
+        taskTitle: string,
+        taskPriority: string,
+        source: 'sanity' | 'custom'
+      ) => {
+        posthog?.capture(AnalyticsEvents.CHECKLIST_TASK_COMPLETED, {
+          task_title: taskTitle,
+          task_priority: taskPriority,
+          source,
+        });
+      },
+      trackChecklistTaskUncompleted: (
+        taskTitle: string,
+        taskPriority: string,
+        source: 'sanity' | 'custom'
+      ) => {
+        posthog?.capture(AnalyticsEvents.CHECKLIST_TASK_UNCOMPLETED, {
+          task_title: taskTitle,
+          task_priority: taskPriority,
+          source,
+        });
+      },
+      trackChecklistCustomTaskCreated: () => {
+        posthog?.capture(AnalyticsEvents.CHECKLIST_CUSTOM_TASK_CREATED);
+      },
+      trackChecklistCustomTaskDeleted: () => {
+        posthog?.capture(AnalyticsEvents.CHECKLIST_CUSTOM_TASK_DELETED);
+      },
+
+      // Reports
+      trackReportSubmitted: (reportType: 'post' | 'user') => {
+        posthog?.capture(AnalyticsEvents.REPORT_SUBMITTED, {
+          report_type: reportType,
+        });
+      },
+
+      // Onboarding
+      trackOnboardingStepCompleted: (stepNumber: number, stepName: string) => {
+        posthog?.capture(AnalyticsEvents.ONBOARDING_STEP_COMPLETED, {
+          step_number: stepNumber,
+          step_name: stepName,
+        });
+      },
+      trackOnboardingCompleted: (persona: string | null) => {
+        posthog?.capture(AnalyticsEvents.ONBOARDING_COMPLETED, {
+          ...(persona && { persona }),
+        });
+      },
+
+      // Notifications
+      trackNotificationOpened: (notificationType: string) => {
+        posthog?.capture(AnalyticsEvents.NOTIFICATION_OPENED, {
+          notification_type: notificationType,
+        });
+      },
+      trackNotificationsMarkAllRead: (count: number) => {
+        posthog?.capture(AnalyticsEvents.NOTIFICATIONS_MARK_ALL_READ, {
+          count,
+        });
+      },
+
+      // AI Companion (extended)
+      trackCompanionResponseReceived: (
+        properties: CompanionResponseProperties
+      ) => {
+        posthog?.capture(
+          AnalyticsEvents.COMPANION_RESPONSE_RECEIVED,
+          { ...properties }
+        );
       },
 
       // Generic event capture

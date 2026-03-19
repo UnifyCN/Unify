@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
+import { DoubleTapHeart } from '@/components/home/DoubleTapHeart';
 import RenderHtml, { MixedStyleDeclaration } from 'react-native-render-html';
 import { useRouter } from 'expo-router';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -345,6 +346,14 @@ export const PostItem = memo(
 
     // Show loading state for metadata if it's still loading
     const showMetadataLoading = metadataLoading && !metadata;
+
+    // Double-tap to like: only likes (never unlikes), consistent with Instagram
+    const handleDoubleTapLike = useCallback(() => {
+      if (!isLiked && !showMetadataLoading) {
+        trackPostLike(post.id.toString());
+        likePostMutation.mutate({ postId: post.id, isLiked: false });
+      }
+    }, [isLiked, showMetadataLoading, post.id, trackPostLike, likePostMutation]);
     const iconSize = isHomeCardVariant ? 24 : 20;
 
     const likeAction = (
@@ -530,9 +539,10 @@ export const PostItem = memo(
           {/* Home card variant */}
           {isHomeCardVariant ? (
             <View style={styles.homeCardContent}>
-              <Pressable
-                style={({ pressed }) => [pressed && styles.homeCardPressed]}
-                onPress={navigateToComments}
+              <DoubleTapHeart
+                onDoubleTap={handleDoubleTapLike}
+                onSingleTap={navigateToComments}
+                enabled={!showMetadataLoading}
               >
                 {/* Header */}
                 <View style={styles.homeHeaderRow}>
@@ -615,7 +625,7 @@ export const PostItem = memo(
                     </View>
                   )}
                 </View>
-              </Pressable>
+              </DoubleTapHeart>
 
               {/* Image carousel */}
               {imageCarousel}
@@ -831,10 +841,6 @@ const styles = StyleSheet.create({
   },
   homeCardContent: {
     width: '100%',
-  },
-  homeCardPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.995 }],
   },
   header: {
     flexDirection: 'row',

@@ -2,7 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { Theme } from '@/constants/Theme';
 
-export default function ThankYouStep() {
+interface ThankYouStepProps {
+  isRedo?: boolean;
+}
+
+export default function ThankYouStep({ isRedo = false }: ThankYouStepProps) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -12,12 +16,22 @@ export default function ThankYouStep() {
           resizeMode='contain'
         />
         <Text style={styles.headline}>
-          Your journey to Canada,{' '}
-          <Text style={styles.headlineItalic}>simplified</Text>
+          {isRedo ? (
+            <>
+              Profile{' '}
+              <Text style={styles.headlineItalic}>updated</Text>
+            </>
+          ) : (
+            <>
+              Your journey to Canada,{' '}
+              <Text style={styles.headlineItalic}>simplified</Text>
+            </>
+          )}
         </Text>
         <Text style={styles.body}>
-          You're all set to start exploring Unify. We'll keep working to make
-          your journey easier!
+          {isRedo
+            ? "Your preferences have been updated. Your Checklist and Companion responses will now reflect your latest answers."
+            : "You're all set to start exploring Unify. We'll keep working to make your journey easier!"}
         </Text>
       </View>
     </View>

@@ -9,16 +9,9 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
-  KeyboardAvoidingView,
-  Modal,
   Image,
 } from 'react-native';
-import {
-  EnrichedTextInput,
-  type EnrichedTextInputInstance,
-  type EnrichedTextInputProps,
-  type OnChangeStateEvent,
-} from 'react-native-enriched';
+import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
 import GroupSelectionSheet from './GroupSelectionSheet';
 import DestinationToggle from './DestinationToggle';
@@ -31,6 +24,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { uploadPostImage } from '@/services/s3/uploadPostImage';
 import { Feather } from '@expo/vector-icons';
 import { isContentAllowed } from '@/utils/contentFilter';
+import { useAnalytics } from '@/utils/analytics';
 
 type DestinationType = '4u' | 'group';
 
@@ -45,9 +39,6 @@ interface CreatePostFormProps {
 
 const TITLE_MAX_LENGTH = 100;
 const CONTENT_MAX_LENGTH = 2000;
-
-const RichTextInput =
-  EnrichedTextInput as React.ComponentType<EnrichedTextInputProps>;
 
 interface ToolbarButtonProps {
   icon: string;
@@ -90,38 +81,20 @@ export default function CreatePostForm({
 }: Readonly<CreatePostFormProps>) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [contentHtml, setContentHtml] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [destination, setDestination] = useState<DestinationType>('4u');
   const [showGroupSelector, setShowGroupSelector] = useState(false);
-  const [stylesState, setStylesState] = useState<OnChangeStateEvent | null>(
-    null
-  );
   const [isEditorFocused, setIsEditorFocused] = useState(false);
-  const [pendingSelection, setPendingSelection] = useState<{
-    start: number;
-    end: number;
-    text: string;
-  } | null>(null);
-
-  // Link modal state
-  const [showLinkModal, setShowLinkModal] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
-  const [linkText, setLinkText] = useState('');
-  const [selection, setSelection] = useState<{
-    start: number;
-    end: number;
-    text: string;
-  } | null>(null);
 
   // Image state
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
 
-  const contentInputRef = useRef<EnrichedTextInputInstance>(null);
+  const contentInputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
 
   const { showToast } = useToast();
+  const { trackPostCreated } = useAnalytics();
   const createPostMutation = useMutateCreatePost();
 
   const trimmedTitle = title.trim();
@@ -140,37 +113,10 @@ export default function CreatePostForm({
   const resetForm = () => {
     setTitle('');
     setContent('');
-    setContentHtml('');
     setSelectedGroup(null);
     setDestination('4u');
     setShowGroupSelector(false);
-    setStylesState(null);
-    setShowLinkModal(false);
-    setLinkUrl('');
-    setLinkText('');
-    setSelection(null);
     setImages([]);
-  };
-
-  const trimHtmlTrailingNewlines = (html: string): string => {
-    let content = html
-      .replace(/^<html>\n?/, '')
-      .replace(/<\/html>$/, '')
-      .trim();
-
-    // Remove leading and trailing <br> and empty <p> blocks
-    content = content
-      .replace(
-        /^(\s*<br\s*\/?>\s*|\s*<p>\s*<\/p>\s*|\s*<p>\s*<br\s*\/?>\s*<\/p>\s*)+/gi,
-        ''
-      )
-      .replace(
-        /(\s*<br\s*\/?>\s*|\s*<p>\s*<\/p>\s*|\s*<p>\s*<br\s*\/?>\s*<\/p>\s*)+$/gi,
-        ''
-      )
-      .trim();
-
-    return content;
   };
 
   const handleSubmit = async () => {
@@ -221,12 +167,13 @@ export default function CreatePostForm({
     createPostMutation.mutate(
       {
         title: trimmedTitle,
-        content: trimHtmlTrailingNewlines(contentHtml || trimmedContent),
+        content: trimmedContent,
         group_id: destination === '4u' ? null : String(selectedGroup?.id),
         post_image_urls,
       },
       {
-        onSuccess: () => {
+        onSuccess: (data: any) => {
+          if (data?.id) trackPostCreated(String(data.id));
           const postedToGroup = destination === 'group' && selectedGroup;
           const toastMessage = postedToGroup
             ? `Posted to ${selectedGroup.name}`
@@ -271,61 +218,6 @@ export default function CreatePostForm({
     setDestination('4u');
   };
 
-  const handleContentTextChange = (e: any) => {
-    const textValue = e.nativeEvent?.value || '';
-    setContent(textValue);
-  };
-
-  const handleContentHtmlChange = (e: any) => {
-    const htmlValue = e.nativeEvent?.value || '';
-    setContentHtml(htmlValue);
-  };
-
-  const handleContentStateChange = (e: any) => {
-    setStylesState(e.nativeEvent);
-  };
-
-  const handleSelectionChange = (e: any) => {
-    const { start, end, text } = e.nativeEvent;
-    setSelection({ start, end, text: text || '' });
-  };
-
-  const handleToggleBold = () => contentInputRef.current?.toggleBold();
-  const handleToggleItalic = () => contentInputRef.current?.toggleItalic();
-  const handleToggleUnderline = () =>
-    contentInputRef.current?.toggleUnderline();
-  const handleToggleStrikethrough = () =>
-    contentInputRef.current?.toggleStrikeThrough();
-
-  const handleLinkButtonPress = () => {
-    setPendingSelection(selection);
-    setLinkText(selection?.text || '');
-    setLinkUrl('');
-    setShowLinkModal(true);
-  };
-
-  const handleInsertLink = () => {
-    if (!linkUrl.trim()) {
-      Alert.alert('Error', 'Please enter a URL');
-      return;
-    }
-    const url = linkUrl.trim().startsWith('http')
-      ? linkUrl.trim()
-      : `https://${linkUrl.trim()}`;
-
-    contentInputRef.current?.setLink(
-      pendingSelection?.start ?? 0,
-      pendingSelection?.end ?? 0,
-      linkText.trim() || pendingSelection?.text || url,
-      url
-    );
-
-    setShowLinkModal(false);
-    setLinkUrl('');
-    setLinkText('');
-    setPendingSelection(null);
-  };
-
   const handleImagePick = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -353,10 +245,7 @@ export default function CreatePostForm({
   const isPending = createPostMutation.isPending || isUploadingImages;
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <KeyboardAvoidingView style={styles.root}>
       <BackHeader
         title=''
         backIcon='x'
@@ -453,18 +342,18 @@ export default function CreatePostForm({
             images.length > 0 && styles.contentContainerWithImages,
           ]}
         >
-          <RichTextInput
+          <TextInput
             ref={contentInputRef}
-            style={{
-              ...styles.contentInput,
-              ...(images.length > 0 ? styles.contentInputWithImages : {}),
-            }}
+            style={[
+              styles.contentInput,
+              images.length > 0 && styles.contentInputWithImages,
+            ]}
             placeholder="What's on your mind?"
             placeholderTextColor={Theme.textAlternateGray}
-            onChangeText={handleContentTextChange}
-            onChangeHtml={handleContentHtmlChange}
-            onChangeState={handleContentStateChange}
-            onChangeSelection={handleSelectionChange}
+            value={content}
+            onChangeText={setContent}
+            multiline
+            maxLength={CONTENT_MAX_LENGTH}
             onFocus={() => setIsEditorFocused(true)}
             onBlur={() => setTimeout(() => setIsEditorFocused(false), 150)}
           />
@@ -480,7 +369,7 @@ export default function CreatePostForm({
         </View>
       </ScrollView>
 
-      {/* Toolbar sticks above keyboard */}
+      {/* Toolbar sticks above keyboard — image pick only (rich text removed for Android build path limit) */}
       {isEditorFocused && (
         <View style={[styles.toolbar, { paddingBottom: insets.bottom || 8 }]}>
           <ScrollView
@@ -490,36 +379,6 @@ export default function CreatePostForm({
             keyboardShouldPersistTaps='handled'
           >
             <ToolbarButton
-              icon='B'
-              isActive={stylesState?.bold?.isActive}
-              isBlocked={stylesState?.bold?.isBlocking}
-              onPress={handleToggleBold}
-            />
-            <ToolbarButton
-              icon='I'
-              isActive={stylesState?.italic?.isActive}
-              isBlocked={stylesState?.italic?.isBlocking}
-              onPress={handleToggleItalic}
-            />
-            <ToolbarButton
-              icon='U'
-              isActive={stylesState?.underline?.isActive}
-              isBlocked={stylesState?.underline?.isBlocking}
-              onPress={handleToggleUnderline}
-            />
-            <ToolbarButton
-              icon='S'
-              isActive={stylesState?.strikeThrough?.isActive}
-              isBlocked={stylesState?.strikeThrough?.isBlocking}
-              onPress={handleToggleStrikethrough}
-            />
-            <View style={styles.toolbarDivider} />
-            <ToolbarButton
-              icon='🔗'
-              isActive={false}
-              onPress={handleLinkButtonPress}
-            />
-            <ToolbarButton
               icon='📷'
               isActive={images.length > 0}
               isBlocked={images.length >= 10}
@@ -528,69 +387,6 @@ export default function CreatePostForm({
           </ScrollView>
         </View>
       )}
-
-      {/* Link insertion modal */}
-      <Modal
-        visible={showLinkModal}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setShowLinkModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowLinkModal(false)}
-        >
-          <TouchableOpacity
-            style={styles.modalCard}
-            activeOpacity={1}
-            onPress={() => {}} // prevent overlay dismiss when tapping card
-          >
-            <Text style={styles.modalTitle}>Insert Link</Text>
-
-            <Text style={styles.modalLabel}>Display text</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder='Link text (optional)'
-              placeholderTextColor={Theme.textAlternateGray}
-              value={linkText}
-              onChangeText={setLinkText}
-              autoCapitalize='none'
-            />
-
-            <Text style={styles.modalLabel}>URL</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder='https://example.com'
-              placeholderTextColor={Theme.textAlternateGray}
-              value={linkUrl}
-              onChangeText={setLinkUrl}
-              autoCapitalize='none'
-              keyboardType='url'
-              autoFocus
-            />
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => setShowLinkModal(false)}
-              >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalInsertButton,
-                  !linkUrl.trim() && styles.disabledButton,
-                ]}
-                onPress={handleInsertLink}
-                disabled={!linkUrl.trim()}
-              >
-                <Text style={styles.modalInsertText}>Insert</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
 
       <GroupSelectionSheet
         visible={showGroupSelector}

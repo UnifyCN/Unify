@@ -16,6 +16,7 @@ import OnboardingProgress from './OnboardingProgress';
 import WelcomeStep from './WelcomeStep';
 import SingleSelectQuestion from './SingleSelectQuestion';
 import MultiSelectQuestion from './MultiSelectQuestion';
+import FloatingTagSelect from './FloatingTagSelect';
 import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
@@ -28,15 +29,32 @@ import {
   LearningInterest,
   Hobby,
 } from '@/types/onboardingProfile';
+import { useAnalytics } from '@/utils/analytics';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
+  isRedo?: boolean;
 }
 
 const TOTAL_STEPS = 10;
 
-export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
+const STEP_NAMES: Record<number, string> = {
+  1: 'welcome',
+  2: 'persona',
+  3: 'referral_source',
+  4: 'arrival_date',
+  5: 'goals',
+  6: 'learning_interests',
+  7: 'hobbies',
+  8: 'reminders',
+  9: 'outcomes',
+  10: 'thank_you',
+};
+
+export default function OnboardingQuiz({ onComplete, isRedo = false }: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
+  const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
+    useAnalytics();
   const insets = useSafeAreaInsets();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -156,6 +174,11 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       return;
     }
 
+    trackOnboardingStepCompleted(
+      currentStep,
+      STEP_NAMES[currentStep] || `step_${currentStep}`
+    );
+
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
     }
@@ -211,6 +234,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         },
       });
 
+      trackOnboardingCompleted(persona);
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
@@ -251,7 +275,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <WelcomeStep onNext={handleNext} />;
+        return <WelcomeStep onNext={handleNext} isRedo={isRedo} />;
       case 2:
         return (
           <SingleSelectQuestion
@@ -319,7 +343,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         );
       case 5:
         return (
-          <MultiSelectQuestion
+          <FloatingTagSelect
             question='What do you want to accomplish? (Select all that apply)'
             options={[
               {
@@ -329,12 +353,12 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
               },
               {
                 value: 'build_community',
-                label: 'Build a community & make friends',
+                label: 'Build community & friends',
                 icon: 'users',
               },
               {
                 value: 'quick_answers',
-                label: 'Quick, trustworthy answers to my questions',
+                label: 'Quick answers',
                 icon: 'zap',
               },
               {
@@ -354,8 +378,8 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         );
       case 6:
         return (
-          <MultiSelectQuestion
-            question='Which topic would you like to explore? (Select all that apply)'
+          <FloatingTagSelect
+            question='Which topics interest you? (Select all that apply)'
             options={[
               {
                 value: 'documents',
@@ -408,8 +432,8 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         );
       case 7:
         return (
-          <MultiSelectQuestion
-            question='What are your hobbies and interests? (Select all that apply)'
+          <FloatingTagSelect
+            question='What are your hobbies? (Select all that apply)'
             options={[
               {
                 value: 'career_growth',
@@ -466,7 +490,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             selectedValues={hobbies}
             otherValue={null}
             onToggle={value => toggleHobby(value as Hobby)}
-            onOtherChange={() => {}} // No "other" option for this question
+            onOtherChange={() => {}}
             required={false}
           />
         );
@@ -544,7 +568,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
       case 9:
         return <OutcomesStep />;
       case 10:
-        return <ThankYouStep />;
+        return <ThankYouStep isRedo={isRedo} />;
       default:
         return null;
     }
@@ -554,7 +578,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
   return (
     <View style={styles.root}>
-      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} skipSafeArea={isRedo} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -624,7 +648,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>Explore Unify</Text>
+                <Text style={styles.nextButtonText}>{isRedo ? 'Save Changes' : 'Explore Unify'}</Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}

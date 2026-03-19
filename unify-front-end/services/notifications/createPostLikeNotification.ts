@@ -30,6 +30,7 @@ export const createPostLikeNotification = async (
 
   const { error } = await supabase.from('community_notifications').insert({
     user_id: post.user_id,
+    triggered_by_user_id: user.id,
     type: 'liked',
     title: 'New like on your post',
     body: `${username} liked your post.`,

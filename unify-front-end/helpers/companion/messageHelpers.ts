@@ -1,5 +1,5 @@
 import { ConversationMessage } from '@/services/companion/getConversationMessages';
-import { QueryType, RAGResponse } from '@/types/chatbot';
+import { QueryType, RAGResponse, TokenUsage } from '@/types/chatbot';
 
 export interface Source {
   document_id: number;
@@ -32,6 +32,8 @@ export interface ParsedRAGResponse {
   queryType?: QueryType;
   disclaimer?: string;
   suggestedNextSteps?: string[];
+  tokenUsage?: TokenUsage;
+  estimatedCostUsd?: number;
 }
 
 // NOTE: This sanitizer logic is intentionally mirrored in:
@@ -158,6 +160,8 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
   let queryType: QueryType | undefined;
   let disclaimer: string | undefined;
   let suggestedNextSteps: string[] | undefined;
+  let tokenUsage: TokenUsage | undefined;
+  let estimatedCostUsd: number | undefined;
 
   // Handle new RAG response format with queryType, disclaimer, and suggestedNextSteps
   if (response && response.answer) {
@@ -166,6 +170,8 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
     queryType = response.queryType;
     disclaimer = response.disclaimer;
     suggestedNextSteps = response.suggestedNextSteps;
+    tokenUsage = response.tokenUsage;
+    estimatedCostUsd = response.estimatedCostUsd;
   }
   // Fallback: Handle old Gemini response format (for backward compatibility)
   else if (response && response.candidates && response.candidates[0]) {
@@ -185,5 +191,7 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
     queryType,
     disclaimer,
     suggestedNextSteps: sanitizeSuggestedNextSteps(suggestedNextSteps),
+    tokenUsage,
+    estimatedCostUsd,
   };
 };

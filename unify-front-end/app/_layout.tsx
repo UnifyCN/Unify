@@ -113,7 +113,7 @@ export default function RootLayout() {
           </SafeAreaProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>
-      {showAnimatedSplash && !isReady && (
+      {showAnimatedSplash && (
         <AnimatedSplash onAnimationComplete={handleSplashAnimationComplete} />
       )}
     </QueryClientProvider>
@@ -152,6 +152,7 @@ function AppContent() {
       <Stack.Screen name='event-detail' options={{ headerShown: false }} />
       <Stack.Screen name='events' options={{ headerShown: false }} />
       <Stack.Screen name='create-post' options={{ headerShown: false }} />
+      <Stack.Screen name='redo-onboarding' options={{ headerShown: false }} />
       <Stack.Screen
         name='followers-following'
         options={{ headerShown: false }}

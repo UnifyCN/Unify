@@ -1,20 +1,72 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter, Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Bell, Search, Settings } from 'lucide-react-native';
 import UnifyLogo from '@/components/icons/UnifyLogo.svg';
 import { useUnreadNotificationCount } from '@/hooks/useCommunityNotifications';
-import { Layout, getHeaderHeight } from '@/constants/Layout';
+import { TAB_HEADER_METRICS, getTabHeaderHeight } from '@/constants/TabHeader';
 
 interface HeaderProps {
   showSearchIcon?: boolean;
 }
 
+interface ActionButtonProps {
+  accessibilityLabel: string;
+  icon: React.ComponentType<{
+    color?: string;
+    size?: number;
+    strokeWidth?: number;
+    absoluteStrokeWidth?: boolean;
+  }>;
+  onPress: () => void;
+  showBadge?: boolean;
+  badgeValue?: number;
+  isFirst?: boolean;
+}
+
+const ActionButton = ({
+  accessibilityLabel,
+  icon: Icon,
+  onPress,
+  showBadge = false,
+  badgeValue = 0,
+  isFirst = false,
+}: ActionButtonProps) => {
+  return (
+    <Pressable
+      accessibilityRole='button'
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.actionButton,
+        !isFirst && styles.actionButtonOverlap,
+        pressed && styles.actionButtonPressed,
+      ]}
+    >
+      <View style={styles.actionIconWrap}>
+        <Icon
+          color='#000'
+          size={TAB_HEADER_METRICS.iconSize}
+          strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
+          absoluteStrokeWidth
+        />
+        {showBadge && badgeValue > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>
+              {badgeValue > 9 ? '9+' : badgeValue}
+            </Text>
+          </View>
+        )}
+      </View>
+    </Pressable>
+  );
+};
+
 const Header = ({ showSearchIcon = true }: HeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const headerHeight = getHeaderHeight(insets.top);
+  const headerHeight = getTabHeaderHeight(insets.top);
   const unreadCount = useUnreadNotificationCount();
 
   return (
@@ -22,34 +74,36 @@ const Header = ({ showSearchIcon = true }: HeaderProps) => {
       style={[
         styles.header,
         {
-          paddingTop: insets.top + Layout.header.topInsetOffset,
+          paddingTop: insets.top,
           height: headerHeight,
         },
       ]}
     >
-      <UnifyLogo width={28} height={28} />
+      <UnifyLogo
+        width={TAB_HEADER_METRICS.logoSize}
+        height={TAB_HEADER_METRICS.logoSize}
+      />
       <View style={styles.rightButtons}>
         {showSearchIcon && (
-          <TouchableOpacity onPress={() => router.push('/search' as any)}>
-            <Feather name='search' size={28} color='#000' />
-          </TouchableOpacity>
+          <ActionButton
+            accessibilityLabel='Open search'
+            icon={Search}
+            isFirst
+            onPress={() => router.push('/search' as any)}
+          />
         )}
-        <TouchableOpacity
+        <ActionButton
+          accessibilityLabel='Open notifications'
+          icon={Bell}
           onPress={() => router.push('/notifications' as Href)}
-          style={styles.bellContainer}
-        >
-          <Feather name='bell' size={28} color='#000' />
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push('/account-settings')}>
-          <Feather name='settings' size={28} color='#000' />
-        </TouchableOpacity>
+          showBadge
+          badgeValue={unreadCount}
+        />
+        <ActionButton
+          accessibilityLabel='Open settings'
+          icon={Settings}
+          onPress={() => router.push('/account-settings')}
+        />
       </View>
     </View>
   );
@@ -60,23 +114,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Layout.header.horizontalPadding,
+    paddingHorizontal: TAB_HEADER_METRICS.horizontalPadding,
     backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
   },
   rightButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 15,
+    gap: TAB_HEADER_METRICS.actionGap,
   },
-  bellContainer: {
+  actionButton: {
+    width: TAB_HEADER_METRICS.actionSize,
+    height: TAB_HEADER_METRICS.actionSize,
+    borderRadius: TAB_HEADER_METRICS.actionSize / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonOverlap: {
+    marginLeft: TAB_HEADER_METRICS.actionOverlap,
+  },
+  actionButtonPressed: {
+    opacity: 0.7,
+  },
+  actionIconWrap: {
     position: 'relative',
+    width: TAB_HEADER_METRICS.actionSize,
+    height: TAB_HEADER_METRICS.actionSize,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badge: {
     position: 'absolute',
-    top: -4,
-    right: -6,
+    top: TAB_HEADER_METRICS.badgeTop,
+    right: TAB_HEADER_METRICS.badgeRight,
     backgroundColor: '#FF7A18',
     borderRadius: 10,
     minWidth: 18,

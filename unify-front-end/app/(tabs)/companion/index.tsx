@@ -9,6 +9,7 @@ import {
   View,
   Text,
   TextInput,
+  Pressable,
   TouchableOpacity,
   FlatList,
   StyleSheet,
@@ -16,16 +17,17 @@ import {
   Keyboard,
   ActivityIndicator,
   Platform,
-  KeyboardAvoidingView,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { History, Plus } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
 import { useCurrentUser } from '@/context/UserContext';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import {
   formatMessagesForUI,
   Message,
@@ -34,8 +36,8 @@ import { MessageWithSources } from '@/components/companion/MessageWithSources';
 import { TypingIndicator } from '@/components/companion/TypingIndicator';
 import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
+import { TAB_HEADER_METRICS } from '@/constants/TabHeader';
 import SendIcon from '@/components/icons/SendIcon.svg';
-import HistoryIcon from '@/components/icons/HistoryIcon.svg';
 import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
@@ -74,6 +76,17 @@ export default function CompanionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const { height: kbHeight, progress: kbProgress } =
+    useReanimatedKeyboardAnimation();
+  const bottomAnimatedStyle = useAnimatedStyle(() => {
+    // kbHeight is negative when keyboard is open, 0 when closed.
+    // Add tabBarHeight only while keyboard is open to compensate for the tab bar
+    // that the keyboard covers.
+    const tabBarCompensation = kbProgress.value * tabBarHeight;
+    return {
+      transform: [{ translateY: kbHeight.value + tabBarCompensation }],
+    };
+  });
   const {
     trackScreen,
     trackCompanionMessageSent,
@@ -100,7 +113,6 @@ export default function CompanionScreen() {
   >(null);
 
   const [inputText, setInputText] = useState('');
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const emptyStateTopPadding = Math.max(
@@ -189,25 +201,6 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-  // Track keyboard visibility so iOS uses interactive dismiss only when keyboard is open.
-  useEffect(() => {
-    const showEvent =
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent =
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSub = Keyboard.addListener(showEvent, () =>
-      setIsKeyboardVisible(true)
-    );
-    const hideSub = Keyboard.addListener(hideEvent, () =>
-      setIsKeyboardVisible(false)
-    );
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
@@ -325,25 +318,43 @@ export default function CompanionScreen() {
           title='AI Companion'
           showBackButton={false}
           leftButton={
-            <TouchableOpacity
+            <Pressable
               onPress={() => {
                 router.push('/(tabs)/companion/history' as any);
                 trackCompanionHistoryViewed();
               }}
-              style={styles.headerButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole='button'
+              accessibilityLabel='Open conversation history'
+              style={({ pressed }) => [
+                styles.headerButton,
+                pressed && styles.headerButtonPressed,
+              ]}
             >
-              <HistoryIcon width={20} height={20} />
-            </TouchableOpacity>
+              <History
+                color='#000'
+                size={TAB_HEADER_METRICS.iconSize}
+                strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
+                absoluteStrokeWidth
+              />
+            </Pressable>
           }
           rightButton={
-            <TouchableOpacity
+            <Pressable
               onPress={handleNewChatPress}
-              style={styles.headerButton}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessibilityRole='button'
+              accessibilityLabel='Start a new chat'
+              style={({ pressed }) => [
+                styles.headerButton,
+                pressed && styles.headerButtonPressed,
+              ]}
             >
-              <Feather name='plus' size={22} color='#000' />
-            </TouchableOpacity>
+              <Plus
+                color='#000'
+                size={TAB_HEADER_METRICS.iconSize}
+                strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
+                absoluteStrokeWidth
+              />
+            </Pressable>
           }
         />
 
@@ -377,16 +388,7 @@ export default function CompanionScreen() {
             contentContainerStyle={styles.messagesContent}
             ListFooterComponent={renderLoadingIndicator}
             keyboardShouldPersistTaps='handled'
-            keyboardDismissMode={
-              Platform.OS === 'ios'
-                ? isKeyboardVisible
-                  ? 'interactive'
-                  : 'none'
-                : 'on-drag'
-            }
-            onScrollBeginDrag={
-              Platform.OS === 'ios' ? undefined : Keyboard.dismiss
-            }
+            keyboardDismissMode='interactive'
             initialNumToRender={10}
             maxToRenderPerBatch={8}
             windowSize={7}
@@ -399,12 +401,7 @@ export default function CompanionScreen() {
         )}
       </View>
 
-      {/* couldnt run without modifying this*/}
-      <KeyboardAvoidingView
-        style={styles.stickyContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={insets.bottom + tabBarHeight - 12}
-      >
+      <Animated.View style={[styles.stickyContainer, bottomAnimatedStyle]}>
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
           {showEmptyState && (
@@ -453,7 +450,7 @@ export default function CompanionScreen() {
             </Text>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </Animated.View>
     </View>
   );
 }
@@ -560,7 +557,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerButton: {
-    padding: 4,
+    width: TAB_HEADER_METRICS.actionSize,
+    height: TAB_HEADER_METRICS.actionSize,
+    borderRadius: TAB_HEADER_METRICS.actionSize / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerButtonPressed: {
+    opacity: 0.7,
   },
   disclaimerContainer: {
     paddingHorizontal: 20,

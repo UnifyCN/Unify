@@ -8,12 +8,14 @@ import {
   View,
 } from 'react-native';
 import { useRouter, Href } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { useCommunityNotifications } from '@/hooks/useCommunityNotifications';
 import type { CommunityNotification } from '@/types/matching';
 import BackHeader from '@/components/BackHeader';
 import { Theme } from '@/constants/Theme';
 import LoadingScreen from '@/components/LoadingScreen';
+import { useAnalytics } from '@/utils/analytics';
 
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
@@ -52,16 +54,33 @@ function getNotificationIcon(type: CommunityNotification['type']): string {
 export default function NotificationsScreen() {
   const router = useRouter();
   const {
+    trackScreen,
+    trackNotificationOpened,
+    trackNotificationsMarkAllRead,
+  } = useAnalytics();
+  const {
     notifications,
     isLoading,
     markAsRead,
-    markAllAsRead,
+    markAllAsRead: originalMarkAllAsRead,
     unreadCount,
     isMarkingAllAsRead,
   } = useCommunityNotifications();
 
+  useFocusEffect(
+    useCallback(() => {
+      trackScreen('Notifications');
+    }, [trackScreen])
+  );
+
+  const markAllAsRead = useCallback(() => {
+    trackNotificationsMarkAllRead(unreadCount);
+    originalMarkAllAsRead();
+  }, [unreadCount, originalMarkAllAsRead, trackNotificationsMarkAllRead]);
+
   const handleNotificationPress = useCallback(
     (notification: CommunityNotification) => {
+      trackNotificationOpened(notification.type);
       if (!notification.read_at) {
         markAsRead(notification.id);
       }
@@ -91,7 +110,7 @@ export default function NotificationsScreen() {
         router.push(`/community-matching/circle/${data.circle_id}` as Href);
       }
     },
-    [markAsRead, router]
+    [markAsRead, router, trackNotificationOpened]
   );
 
   const renderNotification = ({ item }: { item: CommunityNotification }) => {

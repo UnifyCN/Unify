@@ -9,6 +9,7 @@ import {
   formatMessagesForAPI,
   parseRAGResponse,
 } from '@/helpers/companion/messageHelpers';
+import { useAnalytics } from '@/utils/analytics';
 
 interface UseSendMessageParams {
   messages: Message[];
@@ -32,6 +33,7 @@ export const useSendMessage = ({
   const updateUsage = useUpdateChatbotUsage();
   const createConversation = useCreateConversation();
   const saveMessage = useSaveMessage();
+  const { trackCompanionResponseReceived } = useAnalytics();
 
   const sendMessage = async (messageText: string): Promise<void> => {
     setIsLoading(true);
@@ -73,11 +75,13 @@ export const useSendMessage = ({
       const conversationMessages = formatMessagesForAPI(messages, messageText);
 
       // Call the Gemini API through Supabase edge function with conversation context
+      const apiStartTime = Date.now();
       const response = await callGeminiAPI(
         messageText,
         conversationIdToUse,
         conversationMessages
       );
+      const responseTimeMs = Date.now() - apiStartTime;
 
       // Update usage count only for non-premium users
       if (!isPremium) {
@@ -85,14 +89,27 @@ export const useSendMessage = ({
         updateUsage.mutate(newMessageCount);
       }
 
-      // Parse the response (includes queryType, disclaimer, and suggestedNextSteps for UI only)
+      // Parse the response (includes queryType, disclaimer, suggestedNextSteps, and tokenUsage)
       const {
         answer: botResponse,
         sources,
         queryType,
         disclaimer,
         suggestedNextSteps,
+        tokenUsage,
+        estimatedCostUsd,
       } = parseRAGResponse(response);
+
+      // Track companion response with cost metrics
+      trackCompanionResponseReceived({
+        query_type: queryType || 'unknown',
+        has_sources: sources.length > 0,
+        prompt_tokens: tokenUsage?.prompt_tokens,
+        completion_tokens: tokenUsage?.completion_tokens,
+        total_tokens: tokenUsage?.total_tokens,
+        estimated_cost_usd: estimatedCostUsd,
+        response_time_ms: responseTimeMs,
+      });
 
       // Store suggested next steps for UI display (not persisted to DB)
       setLastSuggestedNextSteps(suggestedNextSteps);

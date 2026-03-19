@@ -1,16 +1,13 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Image, Dimensions } from 'react-native';
+import { StyleSheet, Image } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withSequence,
   withDelay,
   Easing,
   runOnJS,
 } from 'react-native-reanimated';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface AnimatedSplashProps {
   onAnimationComplete: () => void;
@@ -19,31 +16,33 @@ interface AnimatedSplashProps {
 export default function AnimatedSplash({
   onAnimationComplete,
 }: AnimatedSplashProps) {
-  const logoScale = useSharedValue(1);
-  const logoOpacity = useSharedValue(1);
+  const rotation = useSharedValue(0);
+  const scale = useSharedValue(1);
   const containerOpacity = useSharedValue(1);
 
   useEffect(() => {
-    // Sequence: pulse -> pause -> fade out
-    logoScale.value = withSequence(
-      // Pulse up
-      withTiming(1.08, { duration: 300, easing: Easing.out(Easing.ease) }),
-      // Pulse down
-      withTiming(1, { duration: 300, easing: Easing.inOut(Easing.ease) })
+    // Spin 360deg
+    rotation.value = withTiming(360, {
+      duration: 800,
+      easing: Easing.linear,
+    });
+
+    // After spin, expand the logo big
+    scale.value = withDelay(
+      800,
+      withTiming(8, {
+        duration: 400,
+        easing: Easing.out(Easing.cubic),
+      })
     );
 
-    // After pulse, fade out
-    logoOpacity.value = withDelay(
-      600,
-      withTiming(0, { duration: 300, easing: Easing.out(Easing.ease) })
-    );
-
+    // Fade out as it expands
     containerOpacity.value = withDelay(
-      700,
+      900,
       withTiming(
         0,
-        { duration: 200, easing: Easing.out(Easing.ease) },
-        finished => {
+        { duration: 300, easing: Easing.out(Easing.ease) },
+        (finished) => {
           if (finished) {
             runOnJS(onAnimationComplete)();
           }
@@ -53,8 +52,7 @@ export default function AnimatedSplash({
   }, []);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-    opacity: logoOpacity.value,
+    transform: [{ rotate: `${rotation.value}deg` }, { scale: scale.value }],
   }));
 
   const containerAnimatedStyle = useAnimatedStyle(() => ({
@@ -67,7 +65,7 @@ export default function AnimatedSplash({
         <Image
           source={require('@/assets/images/splash-icon-light.png')}
           style={styles.logo}
-          resizeMode='contain'
+          resizeMode="contain"
         />
       </Animated.View>
     </Animated.View>
@@ -83,7 +81,7 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   logo: {
-    width: SCREEN_WIDTH * 0.4,
-    height: SCREEN_WIDTH * 0.4,
+    width: 200,
+    height: 200,
   },
 });
