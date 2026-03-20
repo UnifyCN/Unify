@@ -43,8 +43,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Font Family',
     fontWeight: '700',
     fontStyle: 'normal',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 18,
+    lineHeight: 27,
 
     //if needed:
     //color: '#FFFFFF',
