@@ -304,14 +304,14 @@ export default MarkdownText;
 
 const styles = StyleSheet.create({
   markdownContainer: {
-    gap: 8,
+    gap: 4,
   },
   markdownHeader: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.2,
-    marginTop: 8,
-    marginBottom: 4,
+    marginTop: 10,
+    marginBottom: 0,
     color: '#1a1a1a',
   },
   regularText: {
