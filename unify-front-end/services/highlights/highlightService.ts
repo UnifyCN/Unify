@@ -10,6 +10,10 @@ export interface Highlight {
   end_word_index: number;
   selected_text: string;
   created_at: string;
+  module_id?: string;
+  submodule_id?: string;
+  submodule_title?: string;
+  page_num?: number;
 }
 
 /**
@@ -58,7 +62,8 @@ export async function saveHighlight(
   endWordIndex: number,
   selectedText: string,
   existingHighlights: Highlight[],
-  allWordsInBlock: string[]
+  allWordsInBlock: string[],
+  navContext?: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number }
 ): Promise<Highlight> {
   // Filter out optimistic (non-UUID) entries before checking overlaps
   const realHighlights = existingHighlights.filter(h => !h.id.startsWith('optimistic-'));
@@ -98,6 +103,12 @@ export async function saveHighlight(
         start_word_index: mergedStart,
         end_word_index: mergedEnd,
         selected_text: mergedText,
+        ...(navContext && {
+          module_id: navContext.moduleId,
+          submodule_id: navContext.submoduleId,
+          submodule_title: navContext.submoduleTitle,
+          page_num: navContext.pageNum,
+        }),
       })
       .select()
       .single();
@@ -116,6 +127,12 @@ export async function saveHighlight(
       start_word_index: startWordIndex,
       end_word_index: endWordIndex,
       selected_text: selectedText,
+      ...(navContext && {
+        module_id: navContext.moduleId,
+        submodule_id: navContext.submoduleId,
+        submodule_title: navContext.submoduleTitle,
+        page_num: navContext.pageNum,
+      }),
     })
     .select()
     .single();

@@ -328,6 +328,12 @@ export default function LessonPageScreen() {
           setAskAIVisible={setAskAIVisible}
           askAITerm={askAITerm}
           setAskAITerm={setAskAITerm}
+          navContext={{
+            moduleId: moduleId || '',
+            submoduleId: submoduleId || '',
+            submoduleTitle: submoduleData?.title || '',
+            pageNum: currentPage,
+          }}
         />
 
         {/* Navigation buttons - anchored at bottom */}
@@ -407,6 +413,7 @@ function LessonPageContent({
   setAskAIVisible,
   askAITerm,
   setAskAITerm,
+  navContext,
 }: {
   currentPageData: any;
   highlights: any[];
@@ -420,42 +427,28 @@ function LessonPageContent({
   setAskAIVisible: (v: boolean) => void;
   askAITerm: string;
   setAskAITerm: (t: string) => void;
+  navContext: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number };
 }) {
   const { selection, clearSelection } = useSelection();
 
   const handleHighlight = useCallback(() => {
-    if (!selection.startWord || !selection.endWord) {
-      console.warn('[Highlight] No selection start/end word — aborting');
-      return;
-    }
+    if (!selection.startWord || !selection.endWord) return;
 
     const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
     const end = Math.max(selection.startWord.wordIndex, selection.endWord.wordIndex);
 
-    console.log('[Highlight] Saving:', {
+    saveHighlightMutation.mutate({
       blockKey: selection.startWord.blockKey,
-      start, end,
-      text: selection.selectedText,
-      wordsCount: selection.allWords?.length,
+      startWordIndex: start,
+      endWordIndex: end,
+      selectedText: selection.selectedText,
+      allWordsInBlock: selection.allWords || [],
+      navContext,
     });
-
-    saveHighlightMutation.mutate(
-      {
-        blockKey: selection.startWord.blockKey,
-        startWordIndex: start,
-        endWordIndex: end,
-        selectedText: selection.selectedText,
-        allWordsInBlock: selection.allWords || [],
-      },
-      {
-        onSuccess: (data: any) => console.log('[Highlight] Saved successfully:', data?.id),
-        onError: (err: any) => console.error('[Highlight] Save failed:', err?.message || err),
-      }
-    );
 
     trackLessonHighlightCreated(lessonId, selection.selectedText);
     clearSelection();
-  }, [selection, saveHighlightMutation, lessonId, trackLessonHighlightCreated, clearSelection]);
+  }, [selection, saveHighlightMutation, lessonId, trackLessonHighlightCreated, clearSelection, navContext]);
 
   const handleRemoveHighlight = useCallback(() => {
     if (!selection.existingHighlight) return;

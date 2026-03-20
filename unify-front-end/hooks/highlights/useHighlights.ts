@@ -45,12 +45,14 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
       endWordIndex,
       selectedText,
       allWordsInBlock,
+      navContext,
     }: {
       blockKey: string;
       startWordIndex: number;
       endWordIndex: number;
       selectedText: string;
       allWordsInBlock: string[];
+      navContext?: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number };
     }) => {
       const existingHighlights =
         queryClient.getQueryData<Highlight[]>(queryKey) || [];
@@ -62,7 +64,8 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
         endWordIndex,
         selectedText,
         existingHighlights,
-        allWordsInBlock
+        allWordsInBlock,
+        navContext
       );
     },
     onMutate: async ({ blockKey, startWordIndex, endWordIndex, selectedText }) => {

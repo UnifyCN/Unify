@@ -5,7 +5,6 @@ import {
   Pressable,
   StyleSheet,
   Dimensions,
-  Modal,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSelection } from '@/context/SelectionContext';
@@ -25,7 +24,7 @@ export default function SelectionActionBubble({
   onRemoveHighlight,
   onAskAI,
 }: SelectionActionBubbleProps) {
-  const { selection, clearSelection } = useSelection();
+  const { selection } = useSelection();
   const screenWidth = Dimensions.get('window').width;
 
   if (selection.mode !== 'selected' || !selection.startWord) return null;
@@ -41,49 +40,44 @@ export default function SelectionActionBubble({
   const bubbleTop = anchorY - BUBBLE_HEIGHT - ARROW_SIZE - 12;
 
   return (
-    <Modal transparent visible animationType="none" onRequestClose={clearSelection}>
-      <View style={styles.fullScreen}>
-        {/* Backdrop: tapping anywhere outside the bubble dismisses */}
-        <Pressable style={StyleSheet.absoluteFill} onPress={clearSelection} />
+    <View style={styles.fullScreen} pointerEvents="box-none">
+      <View style={[styles.container, { top: bubbleTop, left: bubbleLeft }]}>
+        <View style={styles.bubble}>
+          <Pressable
+            style={styles.button}
+            onPress={isHighlighted ? onRemoveHighlight : onHighlight}
+          >
+            <Feather
+              name={isHighlighted ? 'x' : 'edit-3'}
+              size={16}
+              color="#fff"
+            />
+            <Text style={styles.buttonText}>
+              {isHighlighted ? 'Remove' : 'Highlight'}
+            </Text>
+          </Pressable>
 
-        {/* Bubble positioned absolutely — not inside the backdrop Pressable */}
-        <View style={[styles.container, { top: bubbleTop, left: bubbleLeft }]}>
-          <View style={styles.bubble}>
-            <Pressable
-              style={styles.button}
-              onPress={isHighlighted ? onRemoveHighlight : onHighlight}
-            >
-              <Feather
-                name={isHighlighted ? 'x' : 'edit-3'}
-                size={16}
-                color="#fff"
-              />
-              <Text style={styles.buttonText}>
-                {isHighlighted ? 'Remove' : 'Highlight'}
-              </Text>
-            </Pressable>
+          <View style={styles.divider} />
 
-            <View style={styles.divider} />
-
-            <Pressable
-              style={styles.button}
-              onPress={onAskAI}
-            >
-              <Feather name="help-circle" size={16} color="#fff" />
-              <Text style={styles.buttonText}>Ask AI</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.arrow} />
+          <Pressable
+            style={styles.button}
+            onPress={onAskAI}
+          >
+            <Feather name="help-circle" size={16} color="#fff" />
+            <Text style={styles.buttonText}>Ask AI</Text>
+          </Pressable>
         </View>
+
+        <View style={styles.arrow} />
       </View>
-    </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   fullScreen: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
   },
   container: {
     position: 'absolute',
