@@ -94,6 +94,11 @@ export default function AccountSettingsPage() {
       onPress: () => router.push('/saved'),
     },
     {
+      title: 'Saved Lessons',
+      icon: 'book' as const,
+      onPress: () => router.push('/saved-lessons'),
+    },
+    {
       title: 'Give Feedback',
       icon: 'star' as const,
       onPress: handleGiveFeedback,
