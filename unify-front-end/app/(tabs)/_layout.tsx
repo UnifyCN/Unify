@@ -104,8 +104,7 @@ export default function TabLayout() {
               if (currentTab === 'Gather') {
                 e.preventDefault();
                 // Only navigate if deep in the Gather stack (not on main screen)
-                const isOnMainGatherScreen =
-                  pathname === '/Gather/gather' || pathname === '/Gather';
+                const isOnMainGatherScreen = pathname === '/Gather/gather';
                 if (!isOnMainGatherScreen) {
                   router.replace('/(tabs)/Gather/gather');
                 }
