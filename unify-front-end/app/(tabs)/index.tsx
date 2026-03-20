@@ -31,6 +31,7 @@ import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
+import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { useRouter } from 'expo-router';
 import GroupViewMoreCard from '@/components/icons/GroupViewMoreCard.svg';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
@@ -219,6 +220,14 @@ const GroupsCarousel = memo(() => {
   );
 });
 
+const TabFeedPlaceholder = memo(() => (
+  <View style={styles.tabPlaceholder}>
+    <SkeletonLoaderPostItem variant='homeCard' />
+    <View style={styles.tabPlaceholderSpacer} />
+    <SkeletonLoaderPostItem variant='homeCard' />
+  </View>
+));
+
 export default function HomeScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [visitedTabs, setVisitedTabs] = useState<Record<FeedTab, boolean>>({
@@ -380,7 +389,9 @@ export default function HomeScreen() {
                   />
                 }
               />
-            ) : null}
+            ) : (
+              <TabFeedPlaceholder />
+            )}
           </View>
           <View style={[styles.page, { width: screenWidth }]}>
             {visitedTabs.Groups ? (
@@ -402,7 +413,9 @@ export default function HomeScreen() {
                   }
                 />
               </>
-            ) : null}
+            ) : (
+              <TabFeedPlaceholder />
+            )}
           </View>
         </Animated.ScrollView>
         <CreatePostButton />
@@ -578,5 +591,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 144,
     position: 'relative',
+  },
+  tabPlaceholder: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 96,
+  },
+  tabPlaceholderSpacer: {
+    height: 12,
   },
 });

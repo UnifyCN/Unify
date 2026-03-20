@@ -9,6 +9,7 @@ export interface Source {
 
 export interface Message {
   id: string;
+  clientId?: string;
   text: string;
   isUser: boolean;
   timestamp: Date;

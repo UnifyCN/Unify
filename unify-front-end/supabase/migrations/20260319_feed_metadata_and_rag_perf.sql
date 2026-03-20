@@ -14,13 +14,22 @@ as $$
   with requested_posts as (
     select distinct unnest(post_ids) as post_id
   ),
+  comment_counts as (
+    select
+      post_comments.post_id,
+      count(*)::integer as comment_count
+    from public.post_comments
+    join requested_posts on requested_posts.post_id = post_comments.post_id
+    group by post_comments.post_id
+  ),
   post_rows as (
     select
       requested_posts.post_id,
       coalesce(posts.like_count, 0) as like_count,
-      coalesce(posts.comment_count, 0) as comment_count
+      coalesce(comment_counts.comment_count, 0) as comment_count
     from requested_posts
     left join public.posts on posts.id = requested_posts.post_id
+    left join comment_counts on comment_counts.post_id = requested_posts.post_id
   ),
   liked_posts as (
     select post_likes.post_id

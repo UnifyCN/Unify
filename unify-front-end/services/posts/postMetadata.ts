@@ -9,6 +9,31 @@ export interface PostMetadataRow {
   is_saved: boolean | null;
 }
 
+const normalizePostMetadataRow = (row: unknown): PostMetadataRow | null => {
+  if (!row || typeof row !== 'object') {
+    return null;
+  }
+
+  const candidate = row as Record<string, unknown>;
+  const postId = Number(candidate.post_id);
+
+  if (!Number.isFinite(postId)) {
+    return null;
+  }
+
+  return {
+    post_id: postId,
+    like_count:
+      typeof candidate.like_count === 'number' ? candidate.like_count : 0,
+    comment_count:
+      typeof candidate.comment_count === 'number' ? candidate.comment_count : 0,
+    is_liked:
+      typeof candidate.is_liked === 'boolean' ? candidate.is_liked : false,
+    is_saved:
+      typeof candidate.is_saved === 'boolean' ? candidate.is_saved : false,
+  };
+};
+
 export const getPostMetadataBatch = async (
   postIds: number[]
 ): Promise<Record<number, PostMetadataRow>> => {
@@ -38,8 +63,13 @@ export const getPostMetadataBatch = async (
     };
   });
 
-  for (const row of (data || []) as PostMetadataRow[]) {
-    metadataMap[row.post_id] = row;
+  for (const row of data || []) {
+    const normalizedRow = normalizePostMetadataRow(row);
+    if (!normalizedRow) {
+      continue;
+    }
+
+    metadataMap[normalizedRow.post_id] = normalizedRow;
   }
 
   return metadataMap;
@@ -52,7 +82,13 @@ export const enrichPostsWithMetadata = async (
     return posts;
   }
 
-  const metadataMap = await getPostMetadataBatch(posts.map(post => post.id));
+  let metadataMap: Record<number, PostMetadataRow>;
+  try {
+    metadataMap = await getPostMetadataBatch(posts.map(post => post.id));
+  } catch (error) {
+    console.error('Failed to enrich posts with metadata:', error);
+    return posts;
+  }
 
   return posts.map(post => {
     const metadata = metadataMap[post.id];

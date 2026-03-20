@@ -19,8 +19,8 @@ export const usePostMetadata = (postIds: number[]) => {
       const metadata: Record<number, PostMetadata> = {};
 
       for (const [postIdKey, row] of Object.entries(metadataMap)) {
-        const postId = Number(postIdKey);
-        metadata[row.post_id] = {
+        const postId = Number(row.post_id ?? postIdKey);
+        metadata[postId] = {
           postId,
           isLiked: row.is_liked ?? false,
           isSaved: row.is_saved ?? false,

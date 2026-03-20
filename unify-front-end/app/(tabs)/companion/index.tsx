@@ -44,6 +44,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 
 const MESSAGE_LIMIT = 3;
+const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 const dottedLineTopOffset = -windowHeight * 0.001;
 const dottedLineWidth = windowWidth * 2.2;
@@ -136,9 +137,24 @@ export default function CompanionScreen() {
       optimisticMessages.filter(
         optimisticMessage =>
           !dbMessagesFormatted.some(
-            persistedMessage =>
-              persistedMessage.isUser === optimisticMessage.isUser &&
-              persistedMessage.text === optimisticMessage.text
+            persistedMessage => {
+              if (
+                persistedMessage.clientId &&
+                optimisticMessage.clientId &&
+                persistedMessage.clientId === optimisticMessage.clientId
+              ) {
+                return true;
+              }
+
+              return (
+                persistedMessage.isUser === optimisticMessage.isUser &&
+                persistedMessage.text === optimisticMessage.text &&
+                Math.abs(
+                  persistedMessage.timestamp.getTime() -
+                    optimisticMessage.timestamp.getTime()
+                ) <= OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS
+              );
+            }
           )
       ),
     [dbMessagesFormatted, optimisticMessages]
@@ -229,6 +245,7 @@ export default function CompanionScreen() {
         optimisticMessageId = `optimistic-user-${Date.now()}`;
         const optimisticMessage: Message = {
           id: optimisticMessageId,
+          clientId: optimisticMessageId,
           text: textToSend,
           isUser: true,
           timestamp: new Date(),

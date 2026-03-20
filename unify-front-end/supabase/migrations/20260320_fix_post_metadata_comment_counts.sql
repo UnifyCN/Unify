@@ -1,3 +1,6 @@
+create index if not exists idx_post_comments_post_id
+  on public.post_comments (post_id);
+
 create or replace function public.get_post_metadata_batch(post_ids bigint[])
 returns table (
   post_id bigint,

@@ -565,7 +565,8 @@ export const PostItem = memo(
           onPress: isHomeCardVariant ? undefined : handleLinkPress,
         },
       }),
-      [handleLinkPress, isHomeCardVariant]
+      // handleLinkPress is stable because it has an empty dependency array.
+      [isHomeCardVariant]
     );
 
     const previewHtmlSource = useMemo(
