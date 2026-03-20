@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  Pressable,
   Dimensions,
   Modal,
   TextInput,
@@ -462,33 +461,26 @@ function LessonPageContent({
 
   return (
     <>
-      <Pressable
-        style={{ flex: 1 }}
-        onPress={() => {
-          if (selection.mode !== 'idle') clearSelection();
-        }}
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+        onScrollBeginDrag={handleScroll}
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-          onScrollBeginDrag={handleScroll}
-        >
-          {/* Page title */}
-          <Text style={styles.pageTitle}>{currentPageData.title}</Text>
+        {/* Page title */}
+        <Text style={styles.pageTitle}>{currentPageData.title}</Text>
 
-          {/* Page contents */}
-          <View style={styles.content}>
-            <RichTextRenderer
-              blocks={currentPageData.content || []}
-              markDefs={currentPageData.markDefs}
-              styles={{ normal: styles.contentText }}
-              highlights={highlights}
-            />
-          </View>
-        </ScrollView>
-      </Pressable>
+        {/* Page contents */}
+        <View style={styles.content}>
+          <RichTextRenderer
+            blocks={currentPageData.content || []}
+            markDefs={currentPageData.markDefs}
+            styles={{ normal: styles.contentText }}
+            highlights={highlights}
+          />
+        </View>
+      </ScrollView>
 
-      {/* Selection action bubble */}
+      {/* Selection action bubble — renders as a Modal overlay */}
       <SelectionActionBubble
         onHighlight={handleHighlight}
         onRemoveHighlight={handleRemoveHighlight}

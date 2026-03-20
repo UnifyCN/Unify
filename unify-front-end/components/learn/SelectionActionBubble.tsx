@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Modal,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSelection } from '@/context/SelectionContext';
@@ -15,7 +16,6 @@ interface SelectionActionBubbleProps {
   onAskAI: () => void;
 }
 
-const BUBBLE_WIDTH = 200;
 const BUBBLE_HEIGHT = 44;
 const ARROW_SIZE = 8;
 const SCREEN_PADDING = 16;
@@ -25,7 +25,7 @@ export default function SelectionActionBubble({
   onRemoveHighlight,
   onAskAI,
 }: SelectionActionBubbleProps) {
-  const { selection } = useSelection();
+  const { selection, clearSelection } = useSelection();
   const screenWidth = Dimensions.get('window').width;
 
   if (selection.mode !== 'selected' || !selection.startWord) return null;
@@ -35,54 +35,66 @@ export default function SelectionActionBubble({
   const anchorX = selection.startWord.pageX;
   const anchorY = selection.startWord.pageY;
 
-  let bubbleLeft = anchorX - BUBBLE_WIDTH / 2;
-  bubbleLeft = Math.max(SCREEN_PADDING, bubbleLeft);
-  bubbleLeft = Math.min(screenWidth - BUBBLE_WIDTH - SCREEN_PADDING, bubbleLeft);
+  // Center horizontally, clamped to screen
+  let bubbleLeft = Math.max(SCREEN_PADDING, anchorX - 100);
+  bubbleLeft = Math.min(screenWidth - 200 - SCREEN_PADDING, bubbleLeft);
 
-  const bubbleTop = anchorY - BUBBLE_HEIGHT - ARROW_SIZE - 8;
+  // Position above the word
+  const bubbleTop = anchorY - BUBBLE_HEIGHT - ARROW_SIZE - 12;
 
   return (
-    <View
-      style={[
-        styles.container,
-        { top: bubbleTop, left: bubbleLeft },
-      ]}
-      pointerEvents="box-none"
-    >
-      <View style={styles.bubble}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={isHighlighted ? onRemoveHighlight : onHighlight}
-          activeOpacity={0.7}
+    <Modal transparent visible animationType="none" onRequestClose={clearSelection}>
+      {/* Tapping the backdrop dismisses the selection */}
+      <TouchableOpacity
+        style={styles.backdrop}
+        activeOpacity={1}
+        onPress={clearSelection}
+      >
+        <View
+          style={[styles.container, { top: bubbleTop, left: bubbleLeft }]}
+          pointerEvents="box-none"
         >
-          <Feather
-            name={isHighlighted ? 'x' : 'edit-3'}
-            size={16}
-            color="#fff"
-          />
-          <Text style={styles.buttonText}>
-            {isHighlighted ? 'Remove' : 'Highlight'}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <View style={styles.bubble}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={isHighlighted ? onRemoveHighlight : onHighlight}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name={isHighlighted ? 'x' : 'edit-3'}
+                  size={16}
+                  color="#fff"
+                />
+                <Text style={styles.buttonText}>
+                  {isHighlighted ? 'Remove' : 'Highlight'}
+                </Text>
+              </TouchableOpacity>
 
-        <View style={styles.divider} />
+              <View style={styles.divider} />
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={onAskAI}
-          activeOpacity={0.7}
-        >
-          <Feather name="help-circle" size={16} color="#fff" />
-          <Text style={styles.buttonText}>Ask AI</Text>
-        </TouchableOpacity>
-      </View>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={onAskAI}
+                activeOpacity={0.7}
+              >
+                <Feather name="help-circle" size={16} color="#fff" />
+                <Text style={styles.buttonText}>Ask AI</Text>
+              </TouchableOpacity>
+            </View>
 
-      <View style={styles.arrow} />
-    </View>
+            <View style={styles.arrow} />
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+  },
   container: {
     position: 'absolute',
     zIndex: 1000,
@@ -121,9 +133,10 @@ const styles = StyleSheet.create({
   arrow: {
     width: 0,
     height: 0,
-    borderLeftWidth: ARROW_SIZE,
-    borderRightWidth: ARROW_SIZE,
-    borderTopWidth: ARROW_SIZE,
+    alignSelf: 'center',
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderTopWidth: 8,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: '#1F2937',
