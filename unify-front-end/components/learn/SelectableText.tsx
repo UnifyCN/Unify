@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Text, View, StyleSheet, Linking } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Text, StyleSheet, Linking } from 'react-native';
 import { Theme } from '@/constants/Theme';
 import { useSelectionOptional } from '@/context/SelectionContext';
 import { Highlight } from '@/services/highlights/highlightService';
@@ -187,7 +187,6 @@ function InteractiveSelectableText({
   selectionCtx,
 }: SelectableTextProps & { selectionCtx: NonNullable<ReturnType<typeof useSelectionOptional>> }) {
   const { selection, onWordLongPress, onWordTap, setSelectedText } = selectionCtx;
-  const wordRefs = useRef<{ [key: number]: View | null }>({});
 
   const styledWords = useMemo(
     () => flattenSpansToWords(spans, allMarkDefs, mergedStyles),
@@ -211,41 +210,38 @@ function InteractiveSelectableText({
   );
 
   const handleLongPress = useCallback(
-    (wordIndex: number, word: string) => {
-      const ref = wordRefs.current[wordIndex];
-      if (!ref) return;
+    (wordIndex: number, word: string, event: any) => {
+      // Use touch coordinates from the native event for bubble positioning
+      const pageX = event?.nativeEvent?.pageX ?? 0;
+      const pageY = event?.nativeEvent?.pageY ?? 0;
 
-      ref.measureInWindow((x, y) => {
-        const existingHighlight = findHighlightForWord(wordIndex, highlights);
-        onWordLongPress(
-          { blockKey, wordIndex, word, pageX: x, pageY: y },
-          existingHighlight,
-          plainWords
-        );
-      });
+      const existingHighlight = findHighlightForWord(wordIndex, highlights);
+      onWordLongPress(
+        { blockKey, wordIndex, word, pageX, pageY },
+        existingHighlight,
+        plainWords
+      );
     },
     [blockKey, highlights, onWordLongPress, plainWords]
   );
 
   const handleTap = useCallback(
-    (wordIndex: number, word: string) => {
+    (wordIndex: number, word: string, event: any) => {
       if (selection.mode !== 'selected') return;
       if (selection.startWord?.blockKey !== blockKey) return;
 
-      const ref = wordRefs.current[wordIndex];
-      if (!ref) return;
+      const pageX = event?.nativeEvent?.pageX ?? 0;
+      const pageY = event?.nativeEvent?.pageY ?? 0;
 
-      ref.measureInWindow((x, y) => {
-        onWordTap({ blockKey, wordIndex, word, pageX: x, pageY: y });
+      onWordTap({ blockKey, wordIndex, word, pageX, pageY });
 
-        const start = Math.min(selection.startWord!.wordIndex, wordIndex);
-        const end = Math.max(
-          selection.endWord?.wordIndex ?? selection.startWord!.wordIndex,
-          wordIndex
-        );
-        const selectedWords = plainWords.slice(start, end + 1);
-        setSelectedText(selectedWords.join(' '));
-      });
+      const start = Math.min(selection.startWord!.wordIndex, wordIndex);
+      const end = Math.max(
+        selection.endWord?.wordIndex ?? selection.startWord!.wordIndex,
+        wordIndex
+      );
+      const selectedWords = plainWords.slice(start, end + 1);
+      setSelectedText(selectedWords.join(' '));
     },
     [selection, blockKey, onWordTap, setSelectedText, plainWords]
   );
@@ -264,27 +260,20 @@ function InteractiveSelectableText({
         ].filter(Boolean);
 
         return (
-          <Text key={`${blockKey}-w-${index}`}>
-            <View
-              ref={(ref) => { wordRefs.current[index] = ref; }}
-              collapsable={false}
-            >
-              <Text
-                style={wordStyle.length > 0 ? wordStyle : undefined}
-                onLongPress={() => handleLongPress(index, sw.word)}
-                onPress={() => {
-                  if (sw.linkHref && selection.mode !== 'selected') {
-                    Linking.openURL(sw.linkHref);
-                  } else {
-                    handleTap(index, sw.word);
-                  }
-                }}
-                suppressHighlighting
-              >
-                {sw.word}
-              </Text>
-            </View>
-            {index < styledWords.length - 1 ? ' ' : ''}
+          <Text
+            key={`${blockKey}-w-${index}`}
+            style={wordStyle.length > 0 ? wordStyle : undefined}
+            onLongPress={(e) => handleLongPress(index, sw.word, e)}
+            onPress={(e) => {
+              if (sw.linkHref && selection.mode !== 'selected') {
+                Linking.openURL(sw.linkHref);
+              } else {
+                handleTap(index, sw.word, e);
+              }
+            }}
+            suppressHighlighting
+          >
+            {sw.word}{index < styledWords.length - 1 ? ' ' : ''}
           </Text>
         );
       })}
