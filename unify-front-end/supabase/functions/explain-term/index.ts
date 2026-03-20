@@ -1,0 +1,157 @@
+// @ts-nocheck We do not need the actual Deno import since it's used by supabase serverless functions so ignore
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.0-flash";
+
+const SYSTEM_PROMPT = `You are a friendly, patient guide helping newcomers to Canada understand unfamiliar terms they encounter while learning about immigration, finances, taxes, housing, healthcare, and life in Canada.
+
+When given a term or phrase, provide:
+1. A clear, simple explanation in 2-3 sentences maximum
+2. Use plain everyday language — avoid jargon
+3. If relevant, briefly mention how this applies specifically in the Canadian context
+4. If the term is an acronym, spell it out first
+
+Your audience has recently arrived in Canada and may not be familiar with Canadian-specific terminology, government programs, financial systems, or legal language. Be warm and encouraging.
+
+Respond ONLY with the explanation text — no formatting, no headers, no bullet points.`;
+
+Deno.serve(async (req) => {
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers":
+          "authorization, x-client-info, apikey, content-type",
+      },
+    });
+  }
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(
+      JSON.stringify({ error: "Missing Supabase env vars" }),
+      { status: 500 }
+    );
+  }
+
+  if (!GEMINI_API_KEY) {
+    return new Response(
+      JSON.stringify({ error: "Missing GEMINI_API_KEY" }),
+      { status: 500 }
+    );
+  }
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+  try {
+    // Validate auth
+    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
+    const { data: authData, error: userError } =
+      await supabase.auth.getUser(token);
+    if (userError || !authData?.user) {
+      return new Response(JSON.stringify({ error: "Invalid user" }), {
+        status: 401,
+      });
+    }
+
+    // Parse request body
+    const body = await req.json();
+    const { term, lessonContext } = body;
+
+    if (!term || typeof term !== "string" || term.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: "Missing or empty term" }),
+        { status: 400 }
+      );
+    }
+
+    if (term.length > 500) {
+      return new Response(
+        JSON.stringify({ error: "Term too long (max 500 chars)" }),
+        { status: 400 }
+      );
+    }
+
+    // Build the prompt
+    const userPrompt = lessonContext
+      ? `The user is reading a lesson about "${lessonContext}" and wants to understand this term or phrase: "${term.trim()}"`
+      : `Explain this term or phrase to a newcomer to Canada: "${term.trim()}"`;
+
+    // Call Gemini API
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: userPrompt }],
+            },
+          ],
+          systemInstruction: {
+            parts: [{ text: SYSTEM_PROMPT }],
+          },
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 256,
+          },
+        }),
+      }
+    );
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.error(`Gemini API error: ${response.status}`);
+      return new Response(
+        JSON.stringify({ error: "AI service unavailable" }),
+        { status: 502 }
+      );
+    }
+
+    const data = await response.json();
+    const explanation =
+      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+
+    if (!explanation) {
+      return new Response(
+        JSON.stringify({ error: "No explanation generated" }),
+        { status: 502 }
+      );
+    }
+
+    return new Response(JSON.stringify({ explanation }), {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return new Response(JSON.stringify({ error: "Request timed out" }), {
+        status: 504,
+      });
+    }
+    console.error("explain-term error:", error);
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+    });
+  }
+});

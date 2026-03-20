@@ -1,0 +1,134 @@
+import { supabase } from '@/lib/supabase';
+
+export interface Highlight {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  page_key: string;
+  block_key: string;
+  start_word_index: number;
+  end_word_index: number;
+  selected_text: string;
+  created_at: string;
+}
+
+/**
+ * Fetch all highlights for a specific lesson page, scoped to the current user via RLS.
+ */
+export async function getHighlightsForPage(
+  lessonId: string,
+  pageKey: string
+): Promise<Highlight[]> {
+  const { data, error } = await supabase
+    .from('lesson_highlights')
+    .select('*')
+    .eq('lesson_id', lessonId)
+    .eq('page_key', pageKey)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Fetch all highlights for the current user across all lessons (for Saved screen).
+ */
+export async function getAllUserHighlights(): Promise<Highlight[]> {
+  const { data, error } = await supabase
+    .from('lesson_highlights')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Save a new highlight. Handles merge logic: if the new highlight overlaps
+ * an existing one in the same block, they are merged into a single highlight.
+ *
+ * @param allWordsInBlock - The complete word list for the block, used to
+ *   reconstruct the merged selected_text when highlights overlap.
+ */
+export async function saveHighlight(
+  lessonId: string,
+  pageKey: string,
+  blockKey: string,
+  startWordIndex: number,
+  endWordIndex: number,
+  selectedText: string,
+  existingHighlights: Highlight[],
+  allWordsInBlock: string[]
+): Promise<Highlight> {
+  // Check for overlapping highlights in the same block
+  const overlapping = existingHighlights.filter(
+    h =>
+      h.block_key === blockKey &&
+      h.start_word_index <= endWordIndex &&
+      h.end_word_index >= startWordIndex
+  );
+
+  if (overlapping.length > 0) {
+    // Merge: find the combined range
+    const mergedStart = Math.min(startWordIndex, ...overlapping.map(h => h.start_word_index));
+    const mergedEnd = Math.max(endWordIndex, ...overlapping.map(h => h.end_word_index));
+
+    // Reconstruct the full merged text from the word list
+    const mergedText = allWordsInBlock.slice(mergedStart, mergedEnd + 1).join(' ');
+
+    // Delete the old overlapping highlights
+    const idsToDelete = overlapping.map(h => h.id);
+    const { error: deleteError } = await supabase
+      .from('lesson_highlights')
+      .delete()
+      .in('id', idsToDelete);
+
+    if (deleteError) throw deleteError;
+
+    // Insert the merged highlight with the full reconstructed text
+    const { data, error } = await supabase
+      .from('lesson_highlights')
+      .insert({
+        lesson_id: lessonId,
+        page_key: pageKey,
+        block_key: blockKey,
+        start_word_index: mergedStart,
+        end_word_index: mergedEnd,
+        selected_text: mergedText,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  // No overlap — simple insert
+  const { data, error } = await supabase
+    .from('lesson_highlights')
+    .insert({
+      lesson_id: lessonId,
+      page_key: pageKey,
+      block_key: blockKey,
+      start_word_index: startWordIndex,
+      end_word_index: endWordIndex,
+      selected_text: selectedText,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Delete a highlight by ID.
+ */
+export async function deleteHighlight(highlightId: string): Promise<void> {
+  const { error } = await supabase
+    .from('lesson_highlights')
+    .delete()
+    .eq('id', highlightId);
+
+  if (error) throw error;
+}
