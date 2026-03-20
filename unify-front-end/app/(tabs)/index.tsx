@@ -6,6 +6,7 @@ import {
   ImageBackground,
   Dimensions,
   useWindowDimensions,
+  ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
@@ -227,8 +228,7 @@ export default function HomeScreen() {
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
   const activeTabRef = useRef<FeedTab>(TABS[0]);
-  const scrollViewRef =
-    useRef<React.ElementRef<typeof Animated.ScrollView>>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const { width: screenWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
 

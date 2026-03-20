@@ -218,7 +218,7 @@ export default function Learn() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
   pageTitle: {
     fontSize: 24,
     fontWeight: '600',
