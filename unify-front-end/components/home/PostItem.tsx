@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useCallback } from 'react';
+import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -54,6 +54,98 @@ export interface PostItemProps {
   isAbleToDelete?: boolean;
 }
 
+const HTML_TAG_STYLES: Record<string, MixedStyleDeclaration> = {
+  body: { fontSize: 16, lineHeight: 22, color: Theme.black },
+  a: { color: '#f68b26', textDecorationLine: 'underline' },
+  strong: { fontWeight: '700' },
+  b: { fontWeight: '700' },
+  em: { fontStyle: 'italic' },
+  i: { fontStyle: 'italic' },
+  u: { textDecorationLine: 'underline' },
+  s: { textDecorationLine: 'line-through' },
+  del: { textDecorationLine: 'line-through' },
+  strike: { textDecorationLine: 'line-through' },
+};
+
+const PostImageCarousel = memo(
+  ({
+    cardImageWidth,
+    imageUrls,
+    postId,
+  }: {
+    cardImageWidth: number;
+    imageUrls: string[];
+    postId: number;
+  }) => {
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+    useEffect(() => {
+      setActiveImageIndex(0);
+    }, [postId, imageUrls.length]);
+
+    const handleCarouselScroll = useCallback(
+      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const index = Math.round(
+          e.nativeEvent.contentOffset.x / cardImageWidth
+        );
+        setActiveImageIndex(index);
+      },
+      [cardImageWidth]
+    );
+
+    if (imageUrls.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.carouselWrapper}>
+        <View style={styles.carouselContainer}>
+          <GHScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleCarouselScroll}
+            scrollEventThrottle={16}
+            decelerationRate='fast'
+            snapToInterval={cardImageWidth}
+            snapToAlignment='start'
+            disableIntervalMomentum
+            disallowInterruption
+            style={{ width: cardImageWidth }}
+            contentContainerStyle={styles.carouselContent}
+          >
+            {imageUrls.map((url, index) => (
+              <Image
+                key={`${postId}-${index}`}
+                source={{ uri: url }}
+                style={[styles.carouselImage, { width: cardImageWidth }]}
+                contentFit='cover'
+                cachePolicy='memory-disk'
+                transition={120}
+                recyclingKey={`${postId}-${index}`}
+              />
+            ))}
+          </GHScrollView>
+          {imageUrls.length > 1 && (
+            <View style={styles.dotsContainer} pointerEvents='none'>
+              <View style={styles.dotsIsland}>
+                {imageUrls.map((_, index) => (
+                  <View
+                    key={`${postId}-dot-${index}`}
+                    style={[
+                      styles.dot,
+                      index === activeImageIndex && styles.dotActive,
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }
+);
+
 export const PostItem = memo(
   ({
     post,
@@ -69,7 +161,6 @@ export const PostItem = memo(
     const { width } = useWindowDimensions();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
-    const [activeImageIndex, setActiveImageIndex] = useState(0);
     const {
       trackPostLike,
       trackPostUnlike,
@@ -229,13 +320,6 @@ export const PostItem = memo(
           },
         }
       );
-    };
-
-    const handleCarouselScroll = (
-      e: NativeSyntheticEvent<NativeScrollEvent>
-    ) => {
-      const index = Math.round(e.nativeEvent.contentOffset.x / cardImageWidth);
-      setActiveImageIndex(index);
     };
 
     const toggleLike = (postId: number, isLiked: boolean) => {
@@ -436,54 +520,6 @@ export const PostItem = memo(
       </TouchableOpacity>
     );
 
-    const imageCarousel =
-      imageUrls.length > 0 ? (
-        <View style={styles.carouselWrapper}>
-          <View style={styles.carouselContainer}>
-            <GHScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleCarouselScroll}
-              scrollEventThrottle={16}
-              decelerationRate='fast'
-              snapToInterval={cardImageWidth}
-              snapToAlignment='start'
-              disableIntervalMomentum
-              disallowInterruption
-              style={{ width: cardImageWidth }}
-              contentContainerStyle={styles.carouselContent}
-            >
-              {imageUrls.map((url, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: url }}
-                  style={[styles.carouselImage, { width: cardImageWidth }]}
-                  contentFit='cover'
-                  cachePolicy='memory-disk'
-                  transition={120}
-                  recyclingKey={`${post.id}-${index}`}
-                />
-              ))}
-            </GHScrollView>
-            {imageUrls.length > 1 && (
-              <View style={styles.dotsContainer} pointerEvents='none'>
-                <View style={styles.dotsIsland}>
-                  {imageUrls.map((_, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.dot,
-                        index === activeImageIndex && styles.dotActive,
-                      ]}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
-      ) : null;
-
     const footer = isHomeCardVariant ? (
       <View style={styles.footer}>
         <View style={styles.homeFooterLeft}>
@@ -503,39 +539,35 @@ export const PostItem = memo(
     );
 
     // 'react-native-render-HTML' HTML rendering config
-    const tagsStyles: Record<string, MixedStyleDeclaration> = {
-      body: { fontSize: 16, lineHeight: 22, color: Theme.black },
-      a: { color: '#f68b26', textDecorationLine: 'underline' },
-      strong: { fontWeight: '700' },
-      b: { fontWeight: '700' },
-      em: { fontStyle: 'italic' },
-      i: { fontStyle: 'italic' },
-      u: { textDecorationLine: 'underline' },
-      s: { textDecorationLine: 'line-through' },
-      del: { textDecorationLine: 'line-through' },
-      strike: { textDecorationLine: 'line-through' },
-    };
-
     // Warning text for when links are being opened
     const linkWarningTitle = 'You are about to leave Unify';
     const linkWarningBody =
       'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
 
-    // For handling clicks on links
-    const renderersProps = {
-      a: {
-        // Only make link clickable when post opened
-        onPress: isHomeCardVariant
-          ? undefined
-          : (_: any, href: string) => {
-              // Open warning alert on click
-              Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
-                { text: 'Go back', style: 'cancel' },
-                { text: 'Open link', onPress: () => Linking.openURL(href) },
-              ]);
-            },
+    const handleLinkPress = useCallback(
+      (_: any, href: string) => {
+        Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
+          { text: 'Go back', style: 'cancel' },
+          { text: 'Open link', onPress: () => Linking.openURL(href) },
+        ]);
       },
-    };
+      [linkWarningBody]
+    );
+
+    const renderersProps = useMemo(
+      () => ({
+        a: {
+          onPress: isHomeCardVariant ? undefined : handleLinkPress,
+        },
+      }),
+      [handleLinkPress, isHomeCardVariant]
+    );
+
+    const previewHtmlSource = useMemo(
+      () => ({ html: previewHtml }),
+      [previewHtml]
+    );
+    const contentHtmlSource = useMemo(() => ({ html: content }), [content]);
 
     return (
       <View>
@@ -625,8 +657,8 @@ export const PostItem = memo(
                     >
                       <RenderHtml
                         contentWidth={width - 92}
-                        source={{ html: previewHtml }}
-                        tagsStyles={tagsStyles}
+                        source={previewHtmlSource}
+                        tagsStyles={HTML_TAG_STYLES}
                         renderersProps={renderersProps}
                       />
                       {shouldShowReadMore && (
@@ -638,7 +670,11 @@ export const PostItem = memo(
               </DoubleTapHeart>
 
               {/* Image carousel */}
-              {imageCarousel}
+              <PostImageCarousel
+                cardImageWidth={cardImageWidth}
+                imageUrls={imageUrls}
+                postId={post.id}
+              />
 
               {/* Footer */}
               {footer}
@@ -708,15 +744,19 @@ export const PostItem = memo(
                     <View style={styles.contentWrapper}>
                       <RenderHtml
                         contentWidth={width - 92}
-                        source={{ html: content }}
-                        tagsStyles={tagsStyles}
+                        source={contentHtmlSource}
+                        tagsStyles={HTML_TAG_STYLES}
                         renderersProps={renderersProps}
                       />
                     </View>
                   )}
                 </TouchableOpacity>
 
-                {imageCarousel}
+                <PostImageCarousel
+                  cardImageWidth={cardImageWidth}
+                  imageUrls={imageUrls}
+                  postId={post.id}
+                />
 
                 {footer}
               </View>
