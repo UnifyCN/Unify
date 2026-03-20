@@ -12,6 +12,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  Easing,
   runOnJS,
 } from 'react-native-reanimated';
 import {
@@ -50,18 +51,18 @@ export default function BottomSheet({
       // Mount immediately when becoming visible
       setShouldRender(true);
       // Animate to 0 to show the sheet
-      translateY.value = withSpring(0, {
-        damping: 20,
-        stiffness: 90,
+      translateY.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
       });
       opacity.value = withTiming(1, { duration: ANIMATION_DURATION });
     } else if (shouldRender) {
       // Animate down to hide the sheet, then unmount
-      translateY.value = withSpring(sheetHeight, {
-        damping: 20,
-        stiffness: 90,
+      translateY.value = withTiming(sheetHeight, {
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
       });
-      opacity.value = withTiming(0, { duration: ANIMATION_DURATION });
+      opacity.value = withTiming(0, { duration: 250 });
       // Wait for animation to complete before unmounting
       const timeout = setTimeout(() => {
         setShouldRender(false);
@@ -82,16 +83,16 @@ export default function BottomSheet({
         event.translationY > CLOSE_THRESHOLD || event.velocityY > 500;
 
       if (shouldClose) {
-        translateY.value = withSpring(sheetHeight, {
-          damping: 20,
-          stiffness: 90,
+        translateY.value = withTiming(sheetHeight, {
+          duration: 250,
+          easing: Easing.in(Easing.cubic),
         });
-        opacity.value = withTiming(0, { duration: ANIMATION_DURATION });
+        opacity.value = withTiming(0, { duration: 250 });
         runOnJS(onClose)();
       } else {
-        translateY.value = withSpring(0, {
-          damping: 20,
-          stiffness: 90,
+        translateY.value = withTiming(0, {
+          duration: 200,
+          easing: Easing.out(Easing.cubic),
         });
       }
     });
