@@ -3,6 +3,7 @@ import { QueryType } from '@/types/chatbot';
 
 export interface ConversationMessage {
   id: number;
+  clientId?: string;
   role: 'user' | 'assistant';
   content: string;
   sources: any | null; // JSONB field

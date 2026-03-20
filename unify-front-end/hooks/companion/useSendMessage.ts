@@ -11,6 +11,10 @@ import {
 } from '@/helpers/companion/messageHelpers';
 import { useAnalytics } from '@/utils/analytics';
 
+type SendMessageError = Error & {
+  messagePersisted?: boolean;
+};
+
 interface UseSendMessageParams {
   messages: Message[];
   currentConversationId: string | null;
@@ -35,10 +39,14 @@ export const useSendMessage = ({
   const saveMessage = useSaveMessage();
   const { trackCompanionResponseReceived } = useAnalytics();
 
-  const sendMessage = async (messageText: string): Promise<void> => {
+  const sendMessage = async (
+    messageText: string,
+    optimisticClientId?: string
+  ): Promise<void> => {
     setIsLoading(true);
     setIsWaitingForBot(true);
     setLastSuggestedNextSteps(undefined);
+    let userMessagePersisted = false;
 
     try {
       let conversationIdToUse = currentConversationId;
@@ -65,7 +73,9 @@ export const useSendMessage = ({
           conversationIdentifier: conversationIdToUse,
           role: 'user',
           content: messageText,
+          clientId: optimisticClientId,
         });
+        userMessagePersisted = true;
       } catch (error) {
         console.error('Failed to save user message:', error);
         // Continue anyway - message will be saved but might not show immediately
@@ -136,7 +146,12 @@ export const useSendMessage = ({
         'Error details:',
         error instanceof Error ? error.message : String(error)
       );
-      throw error;
+      const sendError =
+        error instanceof Error
+          ? (error as SendMessageError)
+          : (new Error(String(error)) as SendMessageError);
+      sendError.messagePersisted = userMessagePersisted;
+      throw sendError;
     } finally {
       setIsLoading(false);
       setIsWaitingForBot(false);

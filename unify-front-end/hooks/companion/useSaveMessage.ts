@@ -35,6 +35,7 @@ export const useSaveMessage = () => {
 
       const optimisticMessage: ConversationMessage = {
         id: getNextOptimisticMessageId(),
+        clientId: variables.clientId,
         role: variables.role,
         content: variables.content,
         sources: variables.sources ?? null,

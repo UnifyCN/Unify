@@ -122,6 +122,7 @@ export const formatMessagesForUI = (
 
   return dbMessages.map(msg => ({
     id: msg.id.toString(),
+    clientId: msg.clientId,
     text: msg.content,
     isUser: msg.role === 'user',
     timestamp: new Date(msg.created_at),

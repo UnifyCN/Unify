@@ -426,7 +426,7 @@ export default function HomeScreen() {
                 }
               />
             ) : (
-              <GroupsFeedPlaceholder />
+              <TabFeedPlaceholder />
             )}
           </View>
           <View style={[styles.page, { width: screenWidth }]}>
@@ -450,7 +450,7 @@ export default function HomeScreen() {
                 />
               </>
             ) : (
-              <TabFeedPlaceholder />
+              <GroupsFeedPlaceholder />
             )}
           </View>
         </Animated.ScrollView>

@@ -207,6 +207,12 @@ export default function CompanionScreen() {
     messages.length === 0 && (isLoadingMessages || isLoading);
   const showEmptyState = !showLoadingState && messages.length === 0;
 
+  const resetDraftState = useCallback(() => {
+    setOptimisticMessages([]);
+    setGreetingMessage(null);
+    setInputText('');
+  }, []);
+
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
   useEffect(() => {
     if (conversationId && typeof conversationId === 'string') {
@@ -215,9 +221,9 @@ export default function CompanionScreen() {
       // Clear conversation ID when starting a new conversation (no conversationId param)
       setCurrentConversationId(null);
     }
-    setOptimisticMessages([]);
+    resetDraftState();
     previousMessageCountRef.current = 0;
-  }, [conversationId]);
+  }, [conversationId, resetDraftState]);
 
   // Scroll to end only when new messages are added (not when sources expand/collapse)
   useEffect(() => {
@@ -257,14 +263,19 @@ export default function CompanionScreen() {
       trackCompanionMessageSent(textToSend.length);
 
       try {
-        await sendMessage(textToSend);
-      } catch {
+        await sendMessage(textToSend, optimisticMessageId ?? undefined);
+      } catch (error) {
         if (optimisticMessageId) {
           setOptimisticMessages(current =>
             current.filter(message => message.id !== optimisticMessageId)
           );
         }
-        setInputText(textToSend);
+        if (
+          !(error instanceof Error) ||
+          !(error as Error & { messagePersisted?: boolean }).messagePersisted
+        ) {
+          setInputText(textToSend);
+        }
       }
     },
     [
@@ -275,7 +286,6 @@ export default function CompanionScreen() {
       trackCompanionMessageSent,
       currentConversationId,
       setOptimisticMessages,
-      setInputText,
     ]
   );
 
@@ -363,13 +373,11 @@ export default function CompanionScreen() {
 
   const handleNewChatPress = useCallback(() => {
     setCurrentConversationId(null);
-    setGreetingMessage(null);
-    setOptimisticMessages([]);
-    setInputText('');
+    resetDraftState();
     previousMessageCountRef.current = 0;
     Keyboard.dismiss();
     router.replace('/(tabs)/companion' as any);
-  }, [router]);
+  }, [resetDraftState, router]);
 
   return (
     <View style={styles.container}>
