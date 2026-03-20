@@ -100,6 +100,14 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * Returns the selection context, or null if no SelectionProvider is present.
+ * This allows SelectableText to render as plain text outside lesson pages.
+ */
+export function useSelectionOptional(): SelectionContextType | null {
+  return useContext(SelectionContext) ?? null;
+}
+
 export function useSelection() {
   const context = useContext(SelectionContext);
   if (!context) {

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Text, View, StyleSheet, Linking } from 'react-native';
 import { Theme } from '@/constants/Theme';
-import { useSelection } from '@/context/SelectionContext';
+import { useSelectionOptional } from '@/context/SelectionContext';
 import { Highlight } from '@/services/highlights/highlightService';
 
 interface SelectableTextProps {
@@ -119,15 +119,74 @@ function findHighlightForWord(
   return null;
 }
 
-export default function SelectableText({
+/**
+ * Wrapper that checks for SelectionProvider. If absent, renders plain text.
+ * If present, renders the interactive version with selection + highlights.
+ */
+export default function SelectableText(props: SelectableTextProps) {
+  const selectionCtx = useSelectionOptional();
+
+  if (!selectionCtx) {
+    return <PlainStyledText {...props} />;
+  }
+
+  return <InteractiveSelectableText {...props} selectionCtx={selectionCtx} />;
+}
+
+/**
+ * Plain text rendering — used when no SelectionProvider is available
+ * (e.g. submodule intro screens, boxes outside lesson pages).
+ */
+function PlainStyledText({
+  spans,
+  allMarkDefs,
+  blockKey,
+  style,
+  mergedStyles,
+}: SelectableTextProps) {
+  const styledWords = useMemo(
+    () => flattenSpansToWords(spans, allMarkDefs, mergedStyles),
+    [spans, allMarkDefs, mergedStyles]
+  );
+
+  return (
+    <Text style={style}>
+      {styledWords.map((sw, index) => {
+        const wordStyle = [
+          ...sw.styles,
+          sw.linkHref ? componentStyles.link : undefined,
+        ].filter(Boolean);
+
+        return (
+          <Text key={`${blockKey}-w-${index}`}>
+            <Text
+              style={wordStyle.length > 0 ? wordStyle : undefined}
+              onPress={sw.linkHref ? () => Linking.openURL(sw.linkHref!) : undefined}
+            >
+              {sw.word}
+            </Text>
+            {index < styledWords.length - 1 ? ' ' : ''}
+          </Text>
+        );
+      })}
+    </Text>
+  );
+}
+
+/**
+ * Interactive text with selection, highlights, long-press, and tap-to-extend.
+ * Only rendered when SelectionProvider is available.
+ */
+function InteractiveSelectableText({
   spans,
   allMarkDefs,
   blockKey,
   highlights,
   style,
   mergedStyles,
-}: SelectableTextProps) {
-  const { selection, onWordLongPress, onWordTap, setSelectedText } = useSelection();
+  selectionCtx,
+}: SelectableTextProps & { selectionCtx: NonNullable<ReturnType<typeof useSelectionOptional>> }) {
+  const { selection, onWordLongPress, onWordTap, setSelectedText } = selectionCtx;
   const wordRefs = useRef<{ [key: number]: View | null }>({});
 
   const styledWords = useMemo(
@@ -199,12 +258,12 @@ export default function SelectableText({
 
         const wordStyle = [
           ...sw.styles,
-          highlight ? styles.highlighted : undefined,
-          isSelected ? styles.activeSelection : undefined,
-          sw.linkHref ? styles.link : undefined,
+          highlight ? componentStyles.highlighted : undefined,
+          isSelected ? componentStyles.activeSelection : undefined,
+          sw.linkHref ? componentStyles.link : undefined,
         ].filter(Boolean);
 
-        const wordElement = (
+        return (
           <Text key={`${blockKey}-w-${index}`}>
             <View
               ref={(ref) => { wordRefs.current[index] = ref; }}
@@ -228,14 +287,12 @@ export default function SelectableText({
             {index < styledWords.length - 1 ? ' ' : ''}
           </Text>
         );
-
-        return wordElement;
       })}
     </Text>
   );
 }
 
-const styles = StyleSheet.create({
+const componentStyles = StyleSheet.create({
   highlighted: {
     backgroundColor: Theme.highlightYellow,
     borderRadius: 2,
