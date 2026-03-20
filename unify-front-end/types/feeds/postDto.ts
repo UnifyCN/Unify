@@ -2,6 +2,8 @@ export interface PostDto {
   id: number;
   title: string;
   content: string;
+  like_count?: number | null;
+  comment_count?: number | null;
   created_at: string;
   user_id: number;
   group_id: number | null;

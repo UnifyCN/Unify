@@ -170,6 +170,74 @@ ${JSON.stringify(cleanedProfile, null, 2)}
 Use this profile context to personalize your response when it is relevant to the user's question.`;
 }
 
+async function fetchUserProfileContext(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<string> {
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('user_onboarding_profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      return '';
+    }
+
+    const userProfileContext = buildUserProfileContext(profile);
+    console.log('User profile context loaded:', userProfileContext.length > 0);
+    return userProfileContext;
+  } catch (_profileFetchError) {
+    console.error('Failed to fetch user onboarding profile context');
+    return '';
+  }
+}
+
+async function persistChatbotUsage(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  tokenUsage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  },
+  estimatedCostUsd?: number
+): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('increment_chatbot_usage', {
+      p_user_id: userId,
+      p_tokens: tokenUsage.total_tokens,
+      p_cost: estimatedCostUsd || 0,
+    });
+
+    if (error) {
+      throw error;
+    }
+  } catch (costError) {
+    console.error('Failed to store token usage:', costError);
+  }
+}
+
+function scheduleBackgroundTask(task: Promise<unknown>) {
+  const edgeRuntime = (
+    globalThis as typeof globalThis & {
+      EdgeRuntime?: {
+        waitUntil?: (promise: Promise<unknown>) => void;
+      };
+    }
+  ).EdgeRuntime;
+
+  if (edgeRuntime?.waitUntil) {
+    edgeRuntime.waitUntil(task);
+    return;
+  }
+
+  void task.catch(error => {
+    console.error('Background task failed:', error);
+  });
+}
+
 async function resolveAuthenticatedUserId(
   req: Request,
   supabaseUrl: string,
@@ -496,6 +564,28 @@ function parseSuggestionsFromResponse(answer: string): {
 // ============================================================================
 
 Deno.serve(async (req: Request) => {
+  const totalStart = performance.now();
+  const stageTimings = {
+    auth_ms: 0,
+    profile_ms: 0,
+    classify_ms: 0,
+    embedding_ms: 0,
+    vector_search_ms: 0,
+    generation_ms: 0,
+    total_ms: 0,
+  };
+
+  const logStageTimings = (status: 'success' | 'error') => {
+    stageTimings.total_ms = Math.round(performance.now() - totalStart);
+    console.log(
+      'rag-query timing',
+      JSON.stringify({
+        status,
+        ...stageTimings,
+      })
+    );
+  };
+
   try {
     const {
       prompt,
@@ -524,11 +614,26 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const authenticatedUserId = await resolveAuthenticatedUserId(
+    const authStartedAt = performance.now();
+    const authPromise = resolveAuthenticatedUserId(
       req,
       supabaseUrl,
       supabaseServiceKey
+    ).then(userId => {
+      stageTimings.auth_ms = Math.round(performance.now() - authStartedAt);
+      return userId;
+    });
+    const classifyStartedAt = performance.now();
+    const classifyPromise = classifyQuery(prompt.trim(), apiKey!, model).then(
+      queryType => {
+        stageTimings.classify_ms = Math.round(
+          performance.now() - classifyStartedAt
+        );
+        return queryType;
+      }
     );
+
+    const authenticatedUserId = await authPromise;
     const effectiveUserId = authenticatedUserId || null;
 
     if (
@@ -539,32 +644,24 @@ Deno.serve(async (req: Request) => {
       console.warn('Ignoring mismatched request userId and authenticated user');
     }
 
-    // Fetch user onboarding profile securely from JWT-derived user id
-    let userProfileContext = '';
-    if (effectiveUserId) {
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from('user_onboarding_profiles')
-          .select('*')
-          .eq('id', effectiveUserId)
-          .maybeSingle();
-
-        if (!profileError && profile) {
-          userProfileContext = buildUserProfileContext(profile);
-          console.log(
-            'User profile context loaded:',
-            userProfileContext.length > 0
+    const profilePromise = effectiveUserId
+      ? (async () => {
+          const profileStartedAt = performance.now();
+          const userProfileContext = await fetchUserProfileContext(
+            supabase,
+            effectiveUserId
           );
-        }
-      } catch (profileFetchError) {
-        console.error('Failed to fetch user onboarding profile context');
-      }
-    }
+          stageTimings.profile_ms = Math.round(
+            performance.now() - profileStartedAt
+          );
+          return userProfileContext;
+        })()
+      : Promise.resolve('');
 
     // ========================================================================
     // STEP 1: CLASSIFY THE QUERY (runs BEFORE embeddings to save costs)
     // ========================================================================
-    const queryType = await classifyQuery(prompt.trim(), apiKey!, model);
+    const queryType = await classifyPromise;
     console.log('Query classified as:', queryType);
 
     // Determine if we need RAG (knowledge base search)
@@ -596,6 +693,7 @@ Deno.serve(async (req: Request) => {
         );
       } else {
         // Generate embedding for user query
+        const embeddingStartedAt = performance.now();
         const embeddingResponse = await fetchWithRetry(
           'https://api.openai.com/v1/embeddings',
           {
@@ -620,8 +718,12 @@ Deno.serve(async (req: Request) => {
 
         const embeddingData = await embeddingResponse.json();
         const queryEmbedding = embeddingData.data[0].embedding;
+        stageTimings.embedding_ms = Math.round(
+          performance.now() - embeddingStartedAt
+        );
 
         // Search for similar chunks in database
+        const vectorSearchStartedAt = performance.now();
         let { data: chunks, error: searchError } = await supabase.rpc(
           'match_chunks',
           {
@@ -629,6 +731,9 @@ Deno.serve(async (req: Request) => {
             match_threshold: 0.3,
             match_count: 10,
           }
+        );
+        stageTimings.vector_search_ms = Math.round(
+          performance.now() - vectorSearchStartedAt
         );
 
         console.log(`Chunks received for "${prompt}":`, chunks?.length || 0);
@@ -728,6 +833,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Add preprompt if available
+    const userProfileContext = await profilePromise;
     let fullSystemInstruction = preprompt
       ? `${preprompt}\n\n${systemInstruction}`
       : systemInstruction;
@@ -759,6 +865,7 @@ Deno.serve(async (req: Request) => {
     console.log('- Query type:', queryType);
     console.log('- Has good KB hits:', hasGoodKBHits);
 
+    const generationStartedAt = performance.now();
     const response = await fetchWithRetry(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
@@ -776,6 +883,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const geminiData = await response.json();
+    stageTimings.generation_ms = Math.round(
+      performance.now() - generationStartedAt
+    );
 
     // Extract answer from Gemini response
     let rawAnswer = 'Sorry, I could not generate a response.';
@@ -802,33 +912,16 @@ Deno.serve(async (req: Request) => {
         tokenUsage.completion_tokens * 0.0000004;
     }
 
-    // Store token usage in chatbot_usage table
+    // Store token usage outside the response critical path.
     if (effectiveUserId && tokenUsage) {
-      try {
-        const { data: existingUsage } = await supabase
-          .from('chatbot_usage')
-          .select('total_tokens_used, total_estimated_cost_usd')
-          .eq('user_id', effectiveUserId)
-          .maybeSingle();
-
-        const prevTokens = existingUsage?.total_tokens_used || 0;
-        const prevCost = existingUsage?.total_estimated_cost_usd || 0;
-
-        await supabase
-          .from('chatbot_usage')
-          .upsert(
-            {
-              user_id: effectiveUserId,
-              total_tokens_used: prevTokens + tokenUsage.total_tokens,
-              total_estimated_cost_usd:
-                prevCost + (estimatedCostUsd || 0),
-              last_message_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id' }
-          );
-      } catch (costError) {
-        console.error('Failed to store token usage:', costError);
-      }
+      scheduleBackgroundTask(
+        persistChatbotUsage(
+          supabase,
+          effectiveUserId,
+          tokenUsage,
+          estimatedCostUsd
+        )
+      );
     }
 
     // Parse out suggestions from the response
@@ -838,6 +931,7 @@ Deno.serve(async (req: Request) => {
     // ========================================================================
     // STEP 6: RETURN RESPONSE
     // ========================================================================
+    logStageTimings('success');
     return new Response(
       JSON.stringify({
         answer: cleanAnswer,
@@ -853,6 +947,7 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error: unknown) {
+    logStageTimings('error');
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

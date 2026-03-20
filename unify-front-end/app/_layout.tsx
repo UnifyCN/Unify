@@ -9,15 +9,15 @@ import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
 // import Onboarding from './onboarding';
-import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import { UserProvider } from '@/context/UserContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
 import AnimatedSplash from '@/components/AnimatedSplash';
+import { queryClient } from '@/lib/queryClient';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -30,29 +30,9 @@ export default function RootLayout() {
   // const [onboardingChecked, setOnboardingChecked] = useState(false);
   // const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Intentionally fire-and-forget: useProgressCache internally calls
-  // cachedProgressService.getProgressData(), and failures are logged but
-  // should not block loaded/isReady/showAnimatedSplash startup flow.
-  useProgressCache();
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
   const isReady = loaded;
-
-  // Create a client
-  const queryClient = React.useMemo(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 1000 * 60 * 5, // 5 minutes
-            gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
-            retry: 2,
-            refetchOnWindowFocus: false,
-          },
-        },
-      }),
-    []
-  );
 
   // useEffect(() => {
   //   const checkOnboarding = async () => {

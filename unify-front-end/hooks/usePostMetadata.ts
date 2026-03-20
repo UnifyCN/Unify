@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { getPostMetadataBatch } from '@/services/posts/postMetadata';
 
 interface PostMetadata {
   postId: number;
@@ -10,72 +10,31 @@ interface PostMetadata {
 }
 
 export const usePostMetadata = (postIds: number[]) => {
+  const normalizedPostIds = Array.from(new Set(postIds)).sort((a, b) => a - b);
+
   return useQuery({
-    queryKey: ['post-metadata', postIds],
+    queryKey: ['post-metadata', normalizedPostIds],
     queryFn: async (): Promise<Record<number, PostMetadata>> => {
-      if (postIds.length === 0) return {};
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
-
-      // Batch load all metadata in parallel
-      const [likesData, commentsData, savesData] = await Promise.all([
-        // Get all likes for these posts
-        supabase
-          .from('post_likes')
-          .select('post_id, user_id')
-          .in('post_id', postIds),
-
-        // Get comment count for these posts
-        supabase.from('post_comments').select('post_id').in('post_id', postIds),
-
-        // Get all saves for these posts
-        supabase
-          .from('post_saves')
-          .select('post_id, user_id')
-          .in('post_id', postIds),
-      ]);
-
-      // Process the data
+      const metadataMap = await getPostMetadataBatch(normalizedPostIds);
       const metadata: Record<number, PostMetadata> = {};
-      const postIdSet = new Set(postIds);
 
-      postIds.forEach(postId => {
+      for (const [postIdKey, row] of Object.entries(metadataMap)) {
+        const postId = Number(row.post_id ?? postIdKey);
         metadata[postId] = {
           postId,
-          isLiked: false,
-          isSaved: false,
-          likeCount: 0,
-          commentCount: 0,
+          isLiked: row.is_liked ?? false,
+          isSaved: row.is_saved ?? false,
+          likeCount: row.like_count ?? 0,
+          commentCount: row.comment_count ?? 0,
         };
-      });
-
-      for (const like of likesData.data || []) {
-        if (!postIdSet.has(like.post_id)) continue;
-        metadata[like.post_id].likeCount += 1;
-        if (like.user_id === user.id) {
-          metadata[like.post_id].isLiked = true;
-        }
-      }
-
-      for (const comment of commentsData.data || []) {
-        if (!postIdSet.has(comment.post_id)) continue;
-        metadata[comment.post_id].commentCount += 1;
-      }
-
-      for (const save of savesData.data || []) {
-        if (!postIdSet.has(save.post_id)) continue;
-        if (save.user_id === user.id) {
-          metadata[save.post_id].isSaved = true;
-        }
       }
 
       return metadata;
     },
-    enabled: postIds.length > 0,
+    enabled: normalizedPostIds.length > 0,
     staleTime: 1000 * 30, // 30 seconds
+    placeholderData: previousData =>
+      normalizedPostIds.length === 0 ? {} : previousData,
   });
 };
 

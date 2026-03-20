@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
+import { enrichPostsWithMetadata } from './postMetadata';
 
 export const getSavedPosts = async (
   cursor?: string,
@@ -66,14 +67,18 @@ export const getSavedPosts = async (
       time: save.posts.created_at,
       title: save.posts.title,
       content: save.posts.content,
+      likeCount: save.posts.like_count ?? 0,
+      commentCount: save.posts.comment_count ?? 0,
       group: save.posts.groups?.group_name?.trim() || null,
-      post_image_urls: save.post_image_urls || null,
+      post_image_urls: save.posts.post_image_urls ?? [],
     }));
 
+    const postsWithMetadata = await enrichPostsWithMetadata(transformedPosts);
+
     return {
-      posts: transformedPosts,
+      posts: postsWithMetadata,
       next_cursor:
-        transformedPosts.length === limit
+        postsWithMetadata.length === limit
           ? String(cursor ? parseInt(cursor) + limit : limit)
           : undefined,
     };

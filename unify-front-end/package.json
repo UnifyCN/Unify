@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "postinstall": "node ./scripts/fix-expo-autolinking-swift-access.js",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -22,6 +23,7 @@
     "@aws-sdk/credential-providers": "^3.956.0",
     "@aws-sdk/types": "^3.956.0",
     "@expo/vector-icons": "^14.1.0",
+    "@legendapp/list": "^2.0.19",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-google-signin/google-signin": "^15.0.0",
     "@react-navigation/native": "^7.0.0",
@@ -79,6 +81,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/plugin-transform-class-static-block": "^7.28.3",
+    "@tsconfig/node18": "^18.2.6",
     "@types/jest": "^29.5.12",
     "@types/node": "^24.10.1",
     "@types/react": "~19.0.10",
