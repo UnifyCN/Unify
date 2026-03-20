@@ -2,7 +2,7 @@ import React from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   Dimensions,
   Modal,
@@ -35,64 +35,54 @@ export default function SelectionActionBubble({
   const anchorX = selection.startWord.pageX;
   const anchorY = selection.startWord.pageY;
 
-  // Center horizontally, clamped to screen
   let bubbleLeft = Math.max(SCREEN_PADDING, anchorX - 100);
   bubbleLeft = Math.min(screenWidth - 200 - SCREEN_PADDING, bubbleLeft);
 
-  // Position above the word
   const bubbleTop = anchorY - BUBBLE_HEIGHT - ARROW_SIZE - 12;
 
   return (
     <Modal transparent visible animationType="none" onRequestClose={clearSelection}>
-      {/* Tapping the backdrop dismisses the selection */}
-      <TouchableOpacity
-        style={styles.backdrop}
-        activeOpacity={1}
-        onPress={clearSelection}
-      >
-        <View
-          style={[styles.container, { top: bubbleTop, left: bubbleLeft }]}
-          pointerEvents="box-none"
-        >
-          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-            <View style={styles.bubble}>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={isHighlighted ? onRemoveHighlight : onHighlight}
-                activeOpacity={0.7}
-              >
-                <Feather
-                  name={isHighlighted ? 'x' : 'edit-3'}
-                  size={16}
-                  color="#fff"
-                />
-                <Text style={styles.buttonText}>
-                  {isHighlighted ? 'Remove' : 'Highlight'}
-                </Text>
-              </TouchableOpacity>
+      <View style={styles.fullScreen}>
+        {/* Backdrop: tapping anywhere outside the bubble dismisses */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={clearSelection} />
 
-              <View style={styles.divider} />
+        {/* Bubble positioned absolutely — not inside the backdrop Pressable */}
+        <View style={[styles.container, { top: bubbleTop, left: bubbleLeft }]}>
+          <View style={styles.bubble}>
+            <Pressable
+              style={styles.button}
+              onPress={isHighlighted ? onRemoveHighlight : onHighlight}
+            >
+              <Feather
+                name={isHighlighted ? 'x' : 'edit-3'}
+                size={16}
+                color="#fff"
+              />
+              <Text style={styles.buttonText}>
+                {isHighlighted ? 'Remove' : 'Highlight'}
+              </Text>
+            </Pressable>
 
-              <TouchableOpacity
-                style={styles.button}
-                onPress={onAskAI}
-                activeOpacity={0.7}
-              >
-                <Feather name="help-circle" size={16} color="#fff" />
-                <Text style={styles.buttonText}>Ask AI</Text>
-              </TouchableOpacity>
-            </View>
+            <View style={styles.divider} />
 
-            <View style={styles.arrow} />
-          </TouchableOpacity>
+            <Pressable
+              style={styles.button}
+              onPress={onAskAI}
+            >
+              <Feather name="help-circle" size={16} color="#fff" />
+              <Text style={styles.buttonText}>Ask AI</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.arrow} />
         </View>
-      </TouchableOpacity>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  fullScreen: {
     flex: 1,
   },
   container: {

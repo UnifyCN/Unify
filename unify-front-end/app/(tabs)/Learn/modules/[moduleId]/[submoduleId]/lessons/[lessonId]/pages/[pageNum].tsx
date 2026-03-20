@@ -424,18 +424,34 @@ function LessonPageContent({
   const { selection, clearSelection } = useSelection();
 
   const handleHighlight = useCallback(() => {
-    if (!selection.startWord || !selection.endWord) return;
+    if (!selection.startWord || !selection.endWord) {
+      console.warn('[Highlight] No selection start/end word — aborting');
+      return;
+    }
 
     const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
     const end = Math.max(selection.startWord.wordIndex, selection.endWord.wordIndex);
 
-    saveHighlightMutation.mutate({
+    console.log('[Highlight] Saving:', {
       blockKey: selection.startWord.blockKey,
-      startWordIndex: start,
-      endWordIndex: end,
-      selectedText: selection.selectedText,
-      allWordsInBlock: selection.allWords || [],
+      start, end,
+      text: selection.selectedText,
+      wordsCount: selection.allWords?.length,
     });
+
+    saveHighlightMutation.mutate(
+      {
+        blockKey: selection.startWord.blockKey,
+        startWordIndex: start,
+        endWordIndex: end,
+        selectedText: selection.selectedText,
+        allWordsInBlock: selection.allWords || [],
+      },
+      {
+        onSuccess: (data: any) => console.log('[Highlight] Saved successfully:', data?.id),
+        onError: (err: any) => console.error('[Highlight] Save failed:', err?.message || err),
+      }
+    );
 
     trackLessonHighlightCreated(lessonId, selection.selectedText);
     clearSelection();
