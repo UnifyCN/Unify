@@ -3,7 +3,7 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDtos } from '@/utils/postTransform';
-import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
+import { getBlockedUserIdsForUser } from '@/services/users/getBlockedUserIds';
 
 export const getPostsFromJoinedGroups = async (
   cursor?: string,
@@ -39,7 +39,7 @@ export const getPostsFromJoinedGroups = async (
     }
 
     // 2) Fetch posts from those groups, excluding blocked users
-    const blockedIds = await getBlockedUserIds();
+    const blockedIds = await getBlockedUserIdsForUser(user.id);
     const offset = cursor ? parseInt(cursor) : 0;
     let query = supabase
       .from('posts')

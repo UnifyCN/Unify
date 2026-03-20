@@ -12,7 +12,6 @@ import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
 // import Onboarding from './onboarding';
-import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import { UserProvider } from '@/context/UserContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
@@ -30,10 +29,6 @@ export default function RootLayout() {
   // const [onboardingChecked, setOnboardingChecked] = useState(false);
   // const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Intentionally fire-and-forget: useProgressCache internally calls
-  // cachedProgressService.getProgressData(), and failures are logged but
-  // should not block loaded/isReady/showAnimatedSplash startup flow.
-  useProgressCache();
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
   const isReady = loaded;

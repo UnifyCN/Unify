@@ -115,6 +115,7 @@ export default function CompanionScreen() {
   const [inputText, setInputText] = useState('');
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
+  const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
   const emptyStateTopPadding = Math.max(
     220,
     (windowHeight - insets.top - insets.bottom) * 0.52
@@ -133,10 +134,13 @@ export default function CompanionScreen() {
   // Combine greeting message with real messages
   const messages: Message[] = useMemo(
     () =>
-      greetingMessage
-        ? [greetingMessage, ...dbMessagesFormatted]
-        : dbMessagesFormatted,
-    [greetingMessage, dbMessagesFormatted]
+      (greetingMessage
+        ? [greetingMessage, ...dbMessagesFormatted, ...optimisticMessages]
+        : [...dbMessagesFormatted, ...optimisticMessages]
+      ).sort(
+        (left, right) => left.timestamp.getTime() - right.timestamp.getTime()
+      ),
+    [greetingMessage, dbMessagesFormatted, optimisticMessages]
   );
 
   // Clear greeting when real messages exist
@@ -160,6 +164,7 @@ export default function CompanionScreen() {
       currentConversationId,
       setCurrentConversationId,
       isPremium,
+      onInitialUserMessagePersisted: () => setOptimisticMessages([]),
     });
 
   const messageCount = usage?.message_count ?? 0;
@@ -171,7 +176,7 @@ export default function CompanionScreen() {
     canSend
   );
   const showLoadingState =
-    isLoadingMessages || (isLoading && messages.length === 0);
+    messages.length === 0 && (isLoadingMessages || isLoading);
   const showEmptyState = !showLoadingState && messages.length === 0;
 
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
@@ -182,6 +187,7 @@ export default function CompanionScreen() {
       // Clear conversation ID when starting a new conversation (no conversationId param)
       setCurrentConversationId(null);
     }
+    setOptimisticMessages([]);
     previousMessageCountRef.current = 0;
   }, [conversationId]);
 
@@ -201,11 +207,20 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
       const textToSend = messageText || inputText.trim();
       if (!textToSend || isLoading || !canSend) return;
+
+      if (!currentConversationId) {
+        const optimisticMessage: Message = {
+          id: `optimistic-user-${Date.now()}`,
+          text: textToSend,
+          isUser: true,
+          timestamp: new Date(),
+        };
+        setOptimisticMessages(current => [...current, optimisticMessage]);
+      }
 
       setInputText('');
       trackCompanionMessageSent(textToSend.length);
@@ -216,7 +231,14 @@ export default function CompanionScreen() {
         // Error is already logged in useSendMessage hook
       }
     },
-    [inputText, isLoading, canSend, sendMessage, trackCompanionMessageSent]
+    [
+      inputText,
+      isLoading,
+      canSend,
+      sendMessage,
+      trackCompanionMessageSent,
+      currentConversationId,
+    ]
   );
 
   // Handle starter prompt selection
@@ -304,6 +326,7 @@ export default function CompanionScreen() {
   const handleNewChatPress = useCallback(() => {
     setCurrentConversationId(null);
     setGreetingMessage(null);
+    setOptimisticMessages([]);
     setInputText('');
     previousMessageCountRef.current = 0;
     Keyboard.dismiss();

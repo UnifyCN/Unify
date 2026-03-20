@@ -3,7 +3,7 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDtos } from '@/utils/postTransform';
-import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
+import { getBlockedUserIdsForUser } from '@/services/users/getBlockedUserIds';
 
 /**
  * Get the For You feed with pinned posts appearing first on page 1.
@@ -25,7 +25,7 @@ export const getForYouFeed = async (
     }
 
     // Get blocked user IDs to filter from feed
-    const blockedIds = await getBlockedUserIds();
+    const blockedIds = await getBlockedUserIdsForUser(user.id);
 
     const isFirstPage = !cursor || cursor === '0';
 
@@ -56,28 +56,17 @@ export const getForYouFeed = async (
         .order('pinned_at', { ascending: false });
 
       if (blockedIds.length > 0) {
-        pinnedQuery = pinnedQuery.not('user_id', 'in', `(${blockedIds.join(',')})`);
+        pinnedQuery = pinnedQuery.not(
+          'user_id',
+          'in',
+          `(${blockedIds.join(',')})`
+        );
       }
 
-      const { data: pinnedData, error: pinnedError } = await pinnedQuery;
-
-      if (pinnedError) {
-        throw new Error(`Failed to fetch pinned posts: ${pinnedError.message}`);
-      }
-
-      const pinnedPosts = transformPostDtos(pinnedData as unknown as PostDto[]);
-
-      // Calculate how many non-pinned posts we need to fill the page
-      const remainingSlots = Math.max(0, limit - pinnedPosts.length);
-
-      let nonPinnedPosts: PostData[] = [];
-      let lastNonPinnedCreatedAt: string | undefined;
-
-      if (remainingSlots > 0) {
-        let nonPinnedQuery = supabase
-          .from('posts')
-          .select(
-            `
+      let nonPinnedQuery = supabase
+        .from('posts')
+        .select(
+          `
             id,
             title,
             content,
@@ -92,34 +81,52 @@ export const getForYouFeed = async (
             ),
             post_image_urls
           `
-          )
-          .is('group_id', null)
-          .eq('is_pinned', false)
-          .order('created_at', { ascending: false })
-          .limit(remainingSlots);
+        )
+        .is('group_id', null)
+        .eq('is_pinned', false)
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-        if (blockedIds.length > 0) {
-          nonPinnedQuery = nonPinnedQuery.not('user_id', 'in', `(${blockedIds.join(',')})`);
-        }
-
-        const { data: nonPinnedData, error: nonPinnedError } = await nonPinnedQuery;
-
-        if (nonPinnedError) {
-          throw new Error(
-            `Failed to fetch non-pinned posts: ${nonPinnedError.message}`
-          );
-        }
-
-        nonPinnedPosts = transformPostDtos(
-          nonPinnedData as unknown as PostDto[]
+      if (blockedIds.length > 0) {
+        nonPinnedQuery = nonPinnedQuery.not(
+          'user_id',
+          'in',
+          `(${blockedIds.join(',')})`
         );
-
-        // Use the last non-pinned post's created_at as cursor for next page
-        if (nonPinnedData && nonPinnedData.length > 0) {
-          lastNonPinnedCreatedAt =
-            nonPinnedData[nonPinnedData.length - 1].created_at;
-        }
       }
+
+      const [
+        { data: pinnedData, error: pinnedError },
+        { data: nonPinnedData, error: nonPinnedError },
+      ] = await Promise.all([pinnedQuery, nonPinnedQuery]);
+
+      if (pinnedError) {
+        throw new Error(`Failed to fetch pinned posts: ${pinnedError.message}`);
+      }
+
+      if (nonPinnedError) {
+        throw new Error(
+          `Failed to fetch non-pinned posts: ${nonPinnedError.message}`
+        );
+      }
+
+      const pinnedPosts = transformPostDtos(pinnedData as unknown as PostDto[]);
+
+      // Calculate how many non-pinned posts we need to fill the page
+      const remainingSlots = Math.max(0, limit - pinnedPosts.length);
+
+      const limitedNonPinnedData = (nonPinnedData || []).slice(
+        0,
+        remainingSlots
+      );
+      const nonPinnedPosts = transformPostDtos(
+        limitedNonPinnedData as unknown as PostDto[]
+      );
+
+      const lastNonPinnedCreatedAt =
+        limitedNonPinnedData.length > 0
+          ? limitedNonPinnedData[limitedNonPinnedData.length - 1].created_at
+          : undefined;
 
       const allPosts = [...pinnedPosts, ...nonPinnedPosts];
 

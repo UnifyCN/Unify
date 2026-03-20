@@ -14,7 +14,7 @@ export const SkeletonLoader = ({
   borderRadius = 4,
   style,
 }: SkeletonLoaderProps) => {
-  const animatedValue = new Animated.Value(0);
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     const animation = Animated.loop(

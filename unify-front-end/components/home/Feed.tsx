@@ -12,6 +12,9 @@ import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
 import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
+import { prefetchPostImageUrls } from '@/services/s3/postImageUrlCache';
+
+const INITIAL_VIEWPORT_COUNT = 6;
 
 const HomeCardSpacer = () => <View style={styles.homeCardSpacer} />;
 
@@ -52,13 +55,23 @@ const Feed = ({
       return;
     }
 
-    const firstViewportAvatarUrls = allPosts
-      .slice(0, 20)
-      .map((post: PostData) => post.user.profilePictureUrl);
+    const firstViewportPosts = allPosts.slice(0, INITIAL_VIEWPORT_COUNT);
 
-    prefetchAvatarUrls(firstViewportAvatarUrls).catch(error => {
-      console.warn('Failed to prefetch feed avatar URLs', error);
-    });
+    const firstViewportAvatarUrls = firstViewportPosts.map(
+      (post: PostData) => post.user.profilePictureUrl
+    );
+    const firstViewportImageKeys = firstViewportPosts.flatMap(
+      (post: PostData) => post.post_image_urls ?? []
+    );
+
+    void Promise.all([
+      prefetchAvatarUrls(firstViewportAvatarUrls).catch(error => {
+        console.warn('Failed to prefetch feed avatar URLs', error);
+      }),
+      prefetchPostImageUrls(firstViewportImageKeys).catch(error => {
+        console.warn('Failed to prefetch feed post image URLs', error);
+      }),
+    ]);
   }, [allPosts]);
 
   const { data: metadata, isLoading: metadataLoading } = usePostMetadata(

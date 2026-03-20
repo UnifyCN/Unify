@@ -9,11 +9,11 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
-  Image,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
+import { Image } from 'expo-image';
 import { DoubleTapHeart } from '@/components/home/DoubleTapHeart';
 import RenderHtml, { MixedStyleDeclaration } from 'react-native-render-html';
 import { useRouter } from 'expo-router';
@@ -353,7 +353,13 @@ export const PostItem = memo(
         trackPostLike(post.id.toString());
         likePostMutation.mutate({ postId: post.id, isLiked: false });
       }
-    }, [isLiked, showMetadataLoading, post.id, trackPostLike, likePostMutation]);
+    }, [
+      isLiked,
+      showMetadataLoading,
+      post.id,
+      trackPostLike,
+      likePostMutation,
+    ]);
     const iconSize = isHomeCardVariant ? 24 : 20;
 
     const likeAction = (
@@ -452,6 +458,10 @@ export const PostItem = memo(
                   key={index}
                   source={{ uri: url }}
                   style={[styles.carouselImage, { width: cardImageWidth }]}
+                  contentFit='cover'
+                  cachePolicy='memory-disk'
+                  transition={120}
+                  recyclingKey={`${post.id}-${index}`}
                 />
               ))}
             </GHScrollView>

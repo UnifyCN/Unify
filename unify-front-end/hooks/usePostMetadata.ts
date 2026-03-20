@@ -10,39 +10,24 @@ interface PostMetadata {
 }
 
 export const usePostMetadata = (postIds: number[]) => {
+  const normalizedPostIds = Array.from(new Set(postIds)).sort((a, b) => a - b);
+
   return useQuery({
-    queryKey: ['post-metadata', postIds],
+    queryKey: ['post-metadata', normalizedPostIds],
     queryFn: async (): Promise<Record<number, PostMetadata>> => {
-      if (postIds.length === 0) return {};
+      if (normalizedPostIds.length === 0) return {};
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) throw new Error('No user');
+      const { data, error } = await supabase.rpc('get_post_metadata_batch', {
+        post_ids: normalizedPostIds,
+      });
 
-      // Batch load all metadata in parallel
-      const [likesData, commentsData, savesData] = await Promise.all([
-        // Get all likes for these posts
-        supabase
-          .from('post_likes')
-          .select('post_id, user_id')
-          .in('post_id', postIds),
+      if (error) {
+        throw error;
+      }
 
-        // Get comment count for these posts
-        supabase.from('post_comments').select('post_id').in('post_id', postIds),
-
-        // Get all saves for these posts
-        supabase
-          .from('post_saves')
-          .select('post_id, user_id')
-          .in('post_id', postIds),
-      ]);
-
-      // Process the data
       const metadata: Record<number, PostMetadata> = {};
-      const postIdSet = new Set(postIds);
 
-      postIds.forEach(postId => {
+      normalizedPostIds.forEach(postId => {
         metadata[postId] = {
           postId,
           isLiked: false,
@@ -52,30 +37,21 @@ export const usePostMetadata = (postIds: number[]) => {
         };
       });
 
-      for (const like of likesData.data || []) {
-        if (!postIdSet.has(like.post_id)) continue;
-        metadata[like.post_id].likeCount += 1;
-        if (like.user_id === user.id) {
-          metadata[like.post_id].isLiked = true;
-        }
-      }
-
-      for (const comment of commentsData.data || []) {
-        if (!postIdSet.has(comment.post_id)) continue;
-        metadata[comment.post_id].commentCount += 1;
-      }
-
-      for (const save of savesData.data || []) {
-        if (!postIdSet.has(save.post_id)) continue;
-        if (save.user_id === user.id) {
-          metadata[save.post_id].isSaved = true;
-        }
+      for (const row of data || []) {
+        metadata[row.post_id] = {
+          postId: row.post_id,
+          isLiked: row.is_liked ?? false,
+          isSaved: row.is_saved ?? false,
+          likeCount: row.like_count ?? 0,
+          commentCount: row.comment_count ?? 0,
+        };
       }
 
       return metadata;
     },
-    enabled: postIds.length > 0,
+    enabled: normalizedPostIds.length > 0,
     staleTime: 1000 * 30, // 30 seconds
+    placeholderData: previousData => previousData,
   });
 };
 

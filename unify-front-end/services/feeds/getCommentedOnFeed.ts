@@ -3,7 +3,7 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDto } from '@/utils/postTransform';
-import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
+import { getBlockedUserIdsForUser } from '@/services/users/getBlockedUserIds';
 
 interface GetCommentedOnFeedProps {
   cursor?: string;
@@ -52,7 +52,7 @@ export const getCommentedOnFeed = async ({
       throw new Error(`Failed to fetch commented on feed: ${error.message}`);
     }
 
-    const blockedIds = await getBlockedUserIds();
+    const blockedIds = await getBlockedUserIdsForUser(userId);
 
     // Use Map to deduplicate by post ID, excluding blocked users
     const postsMap = new Map();

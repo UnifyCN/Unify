@@ -11,6 +11,7 @@ import {
   NativeSyntheticEvent,
 } from 'react-native';
 import Animated, {
+  runOnJS,
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -221,6 +222,11 @@ const GroupsCarousel = memo(() => {
 
 export default function HomeScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [visitedTabs, setVisitedTabs] = useState<Record<FeedTab, boolean>>({
+    'For You': true,
+    Following: false,
+    Groups: false,
+  });
   const activeTab = TABS[activeIndex];
   const { trackScreen, trackFeedTabSwitched } = useAnalytics();
   const isFocused = useIsFocused();
@@ -231,6 +237,22 @@ export default function HomeScreen() {
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const { width: screenWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
+
+  const markTabVisited = useCallback((tab: FeedTab) => {
+    setVisitedTabs(current =>
+      current[tab] ? current : { ...current, [tab]: true }
+    );
+  }, []);
+
+  const markTabVisitedByIndex = useCallback(
+    (index: number) => {
+      const tab = TABS[index];
+      if (tab) {
+        markTabVisited(tab);
+      }
+    },
+    [markTabVisited]
+  );
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -271,6 +293,7 @@ export default function HomeScreen() {
   const handleTabPress = useCallback(
     (index: number) => {
       if (index === activeIndex) return;
+      markTabVisited(TABS[index]);
       (scrollViewRef.current as unknown as ScrollView)?.scrollTo({
         x: index * screenWidth,
         animated: true,
@@ -278,23 +301,28 @@ export default function HomeScreen() {
       setActiveIndex(index);
       handleFeedTabChange(TABS[index]);
     },
-    [activeIndex, screenWidth, handleFeedTabChange]
+    [activeIndex, screenWidth, handleFeedTabChange, markTabVisited]
   );
 
   const handlePagerMomentumEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
       if (index !== activeIndex) {
+        markTabVisited(TABS[index]);
         setActiveIndex(index);
         handleFeedTabChange(TABS[index]);
       }
     },
-    [activeIndex, screenWidth, handleFeedTabChange]
+    [activeIndex, screenWidth, handleFeedTabChange, markTabVisited]
   );
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
       scrollX.value = event.contentOffset.x;
+      const nearestIndex = Math.round(event.contentOffset.x / screenWidth);
+      if (nearestIndex >= 0 && nearestIndex < TABS.length) {
+        runOnJS(markTabVisitedByIndex)(nearestIndex);
+      }
     },
   });
 
@@ -351,39 +379,45 @@ export default function HomeScreen() {
             />
           </View>
           <View style={[styles.page, { width: screenWidth }]}>
-            <FeedWithHook
-              useFeedHook={useFollowingFeed}
-              postVariant='homeCard'
-              ListEmptyComponent={
-                <EmptyFeedMessage
-                  message='No posts here...'
-                  submessage={
-                    <Text style={styles.emptyMessageSubtext}>
-                      You haven't followed any users yet.{'\n'}
-                      Follow other users to see their posts!
-                    </Text>
-                  }
-                />
-              }
-            />
+            {visitedTabs.Following ? (
+              <FeedWithHook
+                useFeedHook={useFollowingFeed}
+                postVariant='homeCard'
+                ListEmptyComponent={
+                  <EmptyFeedMessage
+                    message='No posts here...'
+                    submessage={
+                      <Text style={styles.emptyMessageSubtext}>
+                        You haven't followed any users yet.{'\n'}
+                        Follow other users to see their posts!
+                      </Text>
+                    }
+                  />
+                }
+              />
+            ) : null}
           </View>
           <View style={[styles.page, { width: screenWidth }]}>
-            <GroupsCarousel />
-            <FeedWithHook
-              useFeedHook={useGroupsFeed}
-              postVariant='homeCard'
-              ListEmptyComponent={
-                <EmptyFeedMessage
-                  message='No group posts here...'
-                  submessage={
-                    <Text style={styles.emptyMessageSubtext}>
-                      You haven't joined any groups yet.{'\n'}
-                      Join a group to see their posts!
-                    </Text>
+            {visitedTabs.Groups ? (
+              <>
+                <GroupsCarousel />
+                <FeedWithHook
+                  useFeedHook={useGroupsFeed}
+                  postVariant='homeCard'
+                  ListEmptyComponent={
+                    <EmptyFeedMessage
+                      message='No group posts here...'
+                      submessage={
+                        <Text style={styles.emptyMessageSubtext}>
+                          You haven't joined any groups yet.{'\n'}
+                          Join a group to see their posts!
+                        </Text>
+                      }
+                    />
                   }
                 />
-              }
-            />
+              </>
+            ) : null}
           </View>
         </Animated.ScrollView>
         <CreatePostButton />

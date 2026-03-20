@@ -9,14 +9,25 @@ const CACHE_TTL_MS = 30_000; // 30 seconds
 const cache = new Map<string, { ids: string[]; timestamp: number }>();
 
 export const getBlockedUserIds = async (): Promise<string[]> => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  return getBlockedUserIdsForUser();
+};
 
-  if (!user) return [];
+export const getBlockedUserIdsForUser = async (
+  userId?: string | null
+): Promise<string[]> => {
+  let resolvedUserId = userId;
+
+  if (!resolvedUserId) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return [];
+    resolvedUserId = user.id;
+  }
 
   const now = Date.now();
-  const entry = cache.get(user.id);
+  const entry = cache.get(resolvedUserId);
   if (entry && now - entry.timestamp < CACHE_TTL_MS) {
     return entry.ids;
   }
@@ -24,7 +35,7 @@ export const getBlockedUserIds = async (): Promise<string[]> => {
   const { data, error } = await supabase
     .from('blocked_users')
     .select('blocked_id')
-    .eq('blocker_id', user.id);
+    .eq('blocker_id', resolvedUserId);
 
   if (error) {
     console.error('Failed to fetch blocked users:', error);
@@ -32,7 +43,7 @@ export const getBlockedUserIds = async (): Promise<string[]> => {
   }
 
   const ids = data?.map(row => row.blocked_id) || [];
-  cache.set(user.id, { ids, timestamp: now });
+  cache.set(resolvedUserId, { ids, timestamp: now });
   return ids;
 };
 

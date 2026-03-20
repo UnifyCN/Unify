@@ -9,6 +9,13 @@ export interface CreateConversationParams {
   firstMessage?: string;
 }
 
+const FALLBACK_TITLE_MAX_LENGTH = 50;
+
+const buildFallbackTitle = (firstMessage: string): string =>
+  firstMessage.length > FALLBACK_TITLE_MAX_LENGTH
+    ? firstMessage.substring(0, FALLBACK_TITLE_MAX_LENGTH) + '...'
+    : firstMessage;
+
 const generateTitle = async (firstMessage: string): Promise<string> => {
   try {
     const { data, error } = await supabase.functions.invoke('generate-title', {
@@ -18,19 +25,40 @@ const generateTitle = async (firstMessage: string): Promise<string> => {
     });
 
     if (error || !data || !data.title) {
-      // Fallback to truncated message
-      return firstMessage.length > 50
-        ? firstMessage.substring(0, 50) + '...'
-        : firstMessage;
+      return buildFallbackTitle(firstMessage);
     }
 
     return data.title.trim();
   } catch (error) {
     console.error('Error generating title:', error);
-    // Fallback to truncated message
-    return firstMessage.length > 50
-      ? firstMessage.substring(0, 50) + '...'
-      : firstMessage;
+    return buildFallbackTitle(firstMessage);
+  }
+};
+
+const updateConversationTitle = async (
+  conversationId: number,
+  userId: string,
+  firstMessage: string
+) => {
+  try {
+    const generatedTitle = await generateTitle(firstMessage);
+    const trimmedTitle = generatedTitle.trim();
+
+    if (!trimmedTitle) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from('conversations')
+      .update({ title: trimmedTitle })
+      .eq('id', conversationId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Failed to update conversation title:', error);
+    }
+  } catch (error) {
+    console.error('Failed to generate or update conversation title:', error);
   }
 };
 
@@ -46,11 +74,7 @@ export const createConversation = async (
     // Generate title from first message if provided
     let title = 'New Conversation';
     if (params?.firstMessage && params.firstMessage.trim()) {
-      try {
-        title = await generateTitle(params.firstMessage.trim());
-      } catch (error) {
-        console.error('Failed to generate title, using default:', error);
-      }
+      title = buildFallbackTitle(params.firstMessage.trim());
     }
 
     const { data, error } = await supabase
@@ -70,6 +94,14 @@ export const createConversation = async (
 
     if (!data) {
       throw new Error('No data returned from conversation creation');
+    }
+
+    if (params?.firstMessage && params.firstMessage.trim()) {
+      void updateConversationTitle(
+        data.id,
+        user.id,
+        params.firstMessage.trim()
+      );
     }
 
     return {
