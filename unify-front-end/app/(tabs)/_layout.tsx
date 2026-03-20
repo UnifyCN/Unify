@@ -100,9 +100,15 @@ export default function TabLayout() {
             }
 
             if (routeName === 'Gather') {
-              // If already on Gather tab, replace to main screen
+              // If already on Gather tab, prevent re-navigation animation
               if (currentTab === 'Gather') {
-                router.replace('/(tabs)/Gather/gather');
+                e.preventDefault();
+                // Only navigate if deep in the Gather stack (not on main screen)
+                const isOnMainGatherScreen =
+                  pathname === '/Gather/gather' || pathname === '/Gather';
+                if (!isOnMainGatherScreen) {
+                  router.replace('/(tabs)/Gather/gather');
+                }
               }
               // Update current tab state
               setCurrentTab('Gather');
