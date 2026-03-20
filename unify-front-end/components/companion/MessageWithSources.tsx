@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useState } from 'react';
+import React, { memo, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,14 @@ import {
   StyleSheet,
   Linking,
   ScrollView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { Theme } from '@/constants/Theme';
 import { Message } from '@/helpers/companion/messageHelpers';
 import SourceViewer from './SourceViewer';
+import MarkdownText, { hexToRgba } from './MarkdownText';
 
 interface MessageWithSourcesProps {
   item: Message;
@@ -19,336 +22,84 @@ interface MessageWithSourcesProps {
 }
 
 /**
- * Converts a hex color to rgba format with specified opacity
- * @param hexColor - Hex color (e.g., '#5182C7' or '5182C7')
- * @param opacity - Opacity value from 0 to 1 (e.g., 0.08 for 8% opacity)
- * @returns rgba color string, or original color if invalid
+ * Parse domain from a URL string. Returns null if URL is invalid, empty,
+ * or is the generic IRCC fallback URL (not a specific source).
  */
-const hexToRgba = (hexColor: string, opacity: number): string => {
-  // Remove # if present
-  const hex = hexColor.replace('#', '');
-
-  // Validate: must be 6 characters (RGB)
-  if (hex.length !== 6 || !/^[0-9A-Fa-f]{6}$/.test(hex)) {
-    console.warn(
-      `Invalid hex color format: ${hexColor}. Expected format: #RRGGBB`
-    );
-    return hexColor;
+const parseDomain = (url: string | undefined): string | null => {
+  if (!url || url.length === 0) return null;
+  // Skip the generic IRCC fallback URL — it's not a specific source
+  if (
+    url ===
+    'https://www.canada.ca/en/immigration-refugees-citizenship.html'
+  )
+    return null;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
   }
-
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-};
-
-type SectionType =
-  | 'general'
-  | 'at_a_glance'
-  | 'need_to_know'
-  | 'next_steps'
-  | 'learn_more';
-
-/**
- * Renders a single line of markdown content
- * @param isInAtAGlance - Whether this line is inside the At a Glance card (for special styling)
- */
-const renderMarkdownLine = (
-  trimmedLine: string,
-  lineIndex: number,
-  baseColor: string,
-  isFirstHeader: boolean,
-  currentSection: SectionType,
-  isInAtAGlance: boolean = false
-): React.ReactNode => {
-  // Handle ## Headers
-  if (trimmedLine.startsWith('## ')) {
-    return (
-      <Text
-        key={`line-${lineIndex}`}
-        style={[
-          isInAtAGlance ? styles.atAGlanceHeader : styles.markdownHeader,
-          // Remove top margin for first header (At a Glance)
-          isFirstHeader && { marginTop: 0 },
-        ]}
-      >
-        {trimmedLine.substring(3)}
-      </Text>
-    );
-  }
-
-  // Handle - Bullet points
-  if (trimmedLine.startsWith('- ')) {
-    // For 'need_to_know' and 'learn_more', render as text block without bullet
-    if (currentSection === 'need_to_know' || currentSection === 'learn_more') {
-      return (
-        <Text
-          key={`line-${lineIndex}`}
-          style={[
-            styles.regularText,
-            styles.sectionTextItem,
-            { color: baseColor },
-          ]}
-        >
-          {renderInlineFormatting(trimmedLine.substring(2), baseColor)}
-        </Text>
-      );
-    }
-
-    return (
-      <View key={`line-${lineIndex}`} style={styles.bulletContainer}>
-        <Text style={styles.bulletPoint}>•</Text>
-        <Text style={styles.bulletText}>
-          {renderInlineFormatting(trimmedLine.substring(2), baseColor)}
-        </Text>
-      </View>
-    );
-  }
-
-  // Handle numbered lists (1., 2., etc.)
-  const numberedMatch = trimmedLine.match(/^(\d+)\.\s+(.*)$/);
-  if (numberedMatch) {
-    return (
-      <View key={`line-${lineIndex}`} style={styles.numberedContainer}>
-        <Text style={styles.numberedPoint}>{numberedMatch[1]}.</Text>
-        <Text style={styles.bulletText}>
-          {renderInlineFormatting(numberedMatch[2], baseColor)}
-        </Text>
-      </View>
-    );
-  }
-
-  // Regular line with inline formatting
-  if (trimmedLine.length > 0) {
-    return (
-      <Text
-        key={`line-${lineIndex}`}
-        style={isInAtAGlance ? styles.atAGlanceText : styles.regularText}
-      >
-        {renderInlineFormatting(trimmedLine, baseColor)}
-      </Text>
-    );
-  }
-
-  return null;
 };
 
 /**
- * Simple Markdown renderer for chat messages.
- * Supports: ## Headers, **bold**, - bullet points, and [links](url)
- * Special styling for "At a Glance" section
+ * Favicon component for source items. Shows a 16px favicon from Google S2 service
+ * with fallback to a globe icon on load failure.
  */
-const MarkdownText: React.FC<{ text: string; isUser: boolean }> = memo(
-  ({ text, isUser }) => {
-    const baseColor = isUser ? '#fff' : '#333';
+const SourceFavicon: React.FC<{ domain: string }> = ({ domain }) => {
+  const [failed, setFailed] = useState(false);
 
-    const elements = useMemo(() => {
-      // Split text into lines for processing
-      const lines = text.split('\n');
-      const nextElements: React.ReactNode[] = [];
-
-      // Find "At a Glance" section boundaries
-      let atAGlanceStart = -1;
-      let atAGlanceEnd = -1;
-
-      lines.forEach((line, index) => {
-        const trimmedLine = line.trim();
-        if (trimmedLine.startsWith('## ')) {
-          const headerText = trimmedLine.substring(3).toLowerCase();
-          if (headerText.includes('at a glance') && atAGlanceStart === -1) {
-            atAGlanceStart = index;
-          } else if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
-            // Found next header after "At a Glance"
-            atAGlanceEnd = index;
-          }
-        }
-      });
-
-      // If "At a Glance" exists but no following header, it goes to the first empty line or end
-      if (atAGlanceStart !== -1 && atAGlanceEnd === -1) {
-        // Find the end by looking for an empty line after content
-        let foundContent = false;
-        for (let i = atAGlanceStart + 1; i < lines.length; i++) {
-          const trimmed = lines[i].trim();
-          if (trimmed.length > 0) {
-            foundContent = true;
-          } else if (foundContent) {
-            atAGlanceEnd = i;
-            break;
-          }
-        }
-        if (atAGlanceEnd === -1) {
-          atAGlanceEnd = lines.length;
-        }
-      }
-
-      // Process lines and group "At a Glance" section
-      const atAGlanceContent: React.ReactNode[] = [];
-      let isFirstHeader = true;
-      let currentSection: SectionType = 'general';
-
-      lines.forEach((line, lineIndex) => {
-        const trimmedLine = line.trim();
-
-        // Determine current section based on headers
-        if (trimmedLine.startsWith('## ')) {
-          const headerText = trimmedLine.substring(3).toLowerCase();
-          if (headerText.includes('at a glance')) {
-            currentSection = 'at_a_glance';
-          } else if (headerText.includes('what you need to know')) {
-            currentSection = 'need_to_know';
-          } else if (headerText.includes('next steps')) {
-            currentSection = 'next_steps';
-          } else if (headerText.includes('learn more')) {
-            currentSection = 'learn_more';
-          } else {
-            currentSection = 'general';
-          }
-        }
-
-        // Check if we're in the "At a Glance" section
-        const isInAtAGlance =
-          atAGlanceStart !== -1 &&
-          lineIndex >= atAGlanceStart &&
-          lineIndex < atAGlanceEnd;
-
-        if (isInAtAGlance) {
-          const element = renderMarkdownLine(
-            trimmedLine,
-            lineIndex,
-            baseColor,
-            trimmedLine.startsWith('## ') && isFirstHeader,
-            currentSection,
-            true
-          );
-          if (element) {
-            if (trimmedLine.startsWith('## ')) {
-              isFirstHeader = false;
-            }
-            atAGlanceContent.push(element);
-          }
-
-          // If this is the last line of "At a Glance", wrap and add the section
-          if (lineIndex === atAGlanceEnd - 1) {
-            nextElements.push(
-              <View key='at-a-glance-section' style={styles.atAGlanceCard}>
-                {atAGlanceContent}
-              </View>
-            );
-          }
-          return;
-        }
-
-        // Track first header for regular sections too
-        if (trimmedLine.startsWith('## ')) {
-          isFirstHeader = false;
-        }
-
-        const element = renderMarkdownLine(
-          trimmedLine,
-          lineIndex,
-          baseColor,
-          false,
-          currentSection,
-          false
-        );
-        if (element) {
-          nextElements.push(element);
-        } else if (
-          lineIndex > 0 &&
-          lineIndex < lines.length - 1 &&
-          trimmedLine.length === 0
-        ) {
-          // Empty line (paragraph break) - but not at start or end
-          nextElements.push(
-            <View key={`line-${lineIndex}`} style={styles.paragraphBreak} />
-          );
-        }
-      });
-
-      return nextElements;
-    }, [text, baseColor]);
-
-    return <View style={styles.markdownContainer}>{elements}</View>;
+  if (failed) {
+    return (
+      <Ionicons
+        name='globe-outline'
+        size={14}
+        color={Theme.textInput}
+        style={styles.faviconIcon}
+      />
+    );
   }
-);
-MarkdownText.displayName = 'MarkdownText';
+
+  return (
+    <Image
+      source={{
+        uri: `https://www.google.com/s2/favicons?domain=${domain}&sz=16`,
+      }}
+      style={styles.faviconImage}
+      onError={() => setFailed(true)}
+    />
+  );
+};
 
 /**
- * Renders inline formatting like **bold** and [links](url)
+ * Copy button for bot messages. Shows a copy icon that flips to a checkmark
+ * for 2 seconds after tapping.
  */
-const renderInlineFormatting = (
-  text: string,
-  baseColor: string
-): React.ReactNode => {
-  const parts: React.ReactNode[] = [];
-  let remaining = text;
-  let keyIndex = 0;
+const CopyButton: React.FC<{ content: string }> = ({ content }) => {
+  const [copied, setCopied] = useState(false);
 
-  while (remaining.length > 0) {
-    // Check for **bold**
-    const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
-    // Check for [link](url)
-    const linkMatch = remaining.match(/\[(.+?)\]\((.+?)\)/);
-
-    // Find which comes first
-    const boldIndex = boldMatch ? remaining.indexOf(boldMatch[0]) : -1;
-    const linkIndex = linkMatch ? remaining.indexOf(linkMatch[0]) : -1;
-
-    if (boldIndex === -1 && linkIndex === -1) {
-      // No more formatting, add remaining text
-      parts.push(remaining);
-      break;
+  const handleCopy = useCallback(async () => {
+    if (copied) return;
+    try {
+      await Clipboard.setStringAsync(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
     }
+  }, [content, copied]);
 
-    // Process whichever comes first
-    const firstMatch =
-      boldIndex !== -1 && (linkIndex === -1 || boldIndex < linkIndex)
-        ? 'bold'
-        : 'link';
-
-    if (firstMatch === 'bold' && boldMatch) {
-      // Add text before bold
-      if (boldIndex > 0) {
-        parts.push(remaining.substring(0, boldIndex));
-      }
-      // Add bold text
-      parts.push(
-        <Text key={`bold-${keyIndex++}`} style={styles.boldText}>
-          {boldMatch[1]}
-        </Text>
-      );
-      remaining = remaining.substring(boldIndex + boldMatch[0].length);
-    } else if (firstMatch === 'link' && linkMatch) {
-      // Add text before link
-      if (linkIndex > 0) {
-        parts.push(remaining.substring(0, linkIndex));
-      }
-      // Add link
-      const linkText = linkMatch[1];
-      const linkUrl = linkMatch[2];
-      parts.push(
-        <Text
-          key={`link-${keyIndex++}`}
-          style={styles.linkText}
-          onPress={() => {
-            Linking.openURL(linkUrl).catch(err =>
-              console.error('Failed to open URL:', err)
-            );
-          }}
-        >
-          {linkText}
-        </Text>
-      );
-      remaining = remaining.substring(linkIndex + linkMatch[0].length);
-    }
-  }
-
-  return parts.length === 1 && typeof parts[0] === 'string' ? (
-    parts[0]
-  ) : (
-    <>{parts}</>
+  return (
+    <TouchableOpacity
+      onPress={handleCopy}
+      style={styles.copyButton}
+      activeOpacity={0.6}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+    >
+      <Ionicons
+        name={copied ? 'checkmark-outline' : 'copy-outline'}
+        size={16}
+        color={copied ? '#4CAF50' : Theme.textInput}
+      />
+    </TouchableOpacity>
   );
 };
 
@@ -376,6 +127,13 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
           item.isUser ? styles.userBubble : styles.botBubble,
         ]}
       >
+        {/* Copy button for bot messages */}
+        {!item.isUser && (
+          <View style={styles.copyButtonRow}>
+            <CopyButton content={item.text} />
+          </View>
+        )}
+
         {/* Render markdown for bot messages, plain text for user */}
         {item.isUser ? (
           <Text style={[styles.messageText, styles.userText]}>{item.text}</Text>
@@ -423,29 +181,46 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
             </TouchableOpacity>
             {showSources && (
               <View style={styles.sourcesList}>
-                {item.sources.map((source, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.sourceItem}
-                    onPress={() => {
-                      // Only use SourceViewer for .md files, open others in browser
-                      if (source.url.toLowerCase().endsWith('.md')) {
-                        setSelectedSource({
-                          url: source.url,
-                          title: source.document_title,
-                        });
-                      } else {
-                        Linking.openURL(source.url).catch(err =>
-                          console.error('Failed to open URL:', err)
-                        );
-                      }
-                    }}
-                  >
-                    <Text style={styles.sourceLink}>
-                      {source.document_title}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {item.sources.map((source, index) => {
+                  const domain = parseDomain(source.url);
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.sourceItem}
+                      onPress={() => {
+                        if (source.url.toLowerCase().endsWith('.md')) {
+                          setSelectedSource({
+                            url: source.url,
+                            title: source.document_title,
+                          });
+                        } else {
+                          Linking.openURL(source.url).catch(err =>
+                            console.error('Failed to open URL:', err)
+                          );
+                        }
+                      }}
+                    >
+                      <View style={styles.sourceItemContent}>
+                        {domain && (
+                          <>
+                            <SourceFavicon domain={domain} />
+                            <Text style={styles.sourceDomain}>{domain}</Text>
+                            <Text style={styles.sourceSeparator}>·</Text>
+                          </>
+                        )}
+                        <Text
+                          style={[
+                            styles.sourceLink,
+                            domain ? styles.sourceLinkWithDomain : null,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {source.document_title}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             )}
           </View>
@@ -596,90 +371,25 @@ const styles = StyleSheet.create({
   botText: {
     color: '#333',
   },
-  // Markdown styles
-  markdownContainer: {
-    gap: 8,
-  },
-  markdownHeader: {
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.2,
-    marginTop: 8,
-    marginBottom: 4,
-    color: '#1a1a1a',
-  },
-  regularText: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: '#444',
-  },
-  boldText: {
-    fontWeight: '700',
-    color: '#222',
-  },
-  linkText: {
-    color: Theme.surfaceBlue,
-    textDecorationLine: 'underline',
-    fontWeight: '500',
-  },
-  bulletContainer: {
+  // Copy button
+  copyButtonRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingLeft: 4,
-    marginVertical: 8,
-  },
-  bulletPoint: {
-    fontSize: 8,
-    lineHeight: 26,
-    marginRight: 14,
-    marginTop: 8,
-    color: Theme.surfaceBlue,
-  },
-  bulletText: {
-    fontSize: 16,
-    lineHeight: 26,
-    flex: 1,
-    color: '#444',
-  },
-  paragraphBreak: {
-    height: 4,
-  },
-  // Numbered list styles (distinct from bullets)
-  numberedContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingLeft: 4,
-  },
-  numberedPoint: {
-    fontSize: 16,
-    lineHeight: 26,
-    marginRight: 12,
-    minWidth: 12,
-    color: '#000',
-    fontWeight: '600',
-  },
-  sectionTextItem: {
+    justifyContent: 'flex-end',
     marginBottom: 4,
+    marginTop: -4,
   },
-  // At a Glance section highlight
-  atAGlanceCard: {
-    backgroundColor: hexToRgba(Theme.surfaceBlue, 0.08),
-    borderRadius: 14,
-    paddingHorizontal: 18,
-    paddingVertical: 18,
-    marginBottom: 16,
+  copyButton: {
+    padding: 4,
   },
-  atAGlanceHeader: {
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-    marginBottom: 10,
-    color: '#000',
+  // Favicon
+  faviconImage: {
+    width: 14,
+    height: 14,
+    borderRadius: 2,
   },
-  atAGlanceText: {
-    fontSize: 16,
-    lineHeight: 26,
-    color: '#333',
+  faviconIcon: {
+    width: 14,
+    height: 14,
   },
   // Disclaimer styles
   disclaimerContainer: {
@@ -731,10 +441,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
   },
+  sourceItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sourceDomain: {
+    fontSize: 11,
+    color: Theme.textInput,
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  sourceSeparator: {
+    fontSize: 11,
+    color: Theme.textInput,
+    marginHorizontal: 6,
+  },
   sourceLink: {
     fontSize: 12,
     color: Theme.surfaceBlue,
     textDecorationLine: 'underline',
+    flex: 1,
+  },
+  sourceLinkWithDomain: {
+    fontSize: 12,
   },
   // Suggested Next Steps styles
   suggestionsContainer: {
@@ -754,7 +483,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   suggestionChip: {
-    backgroundColor: hexToRgba(Theme.surfaceBlue, 0.08), // 8% opacity
+    backgroundColor: hexToRgba(Theme.surfaceBlue, 0.08),
     borderWidth: 1,
     borderColor: Theme.surfaceBlue,
     borderRadius: 16,
