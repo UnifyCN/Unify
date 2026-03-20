@@ -33,6 +33,9 @@ export const useSendMessage = ({
   const [lastSuggestedNextSteps, setLastSuggestedNextSteps] = useState<
     string[] | undefined
   >(undefined);
+  const [lastVerified, setLastVerified] = useState<string | undefined>(
+    undefined
+  );
   const { data: usage } = useChatbotUsage();
   const updateUsage = useUpdateChatbotUsage();
   const createConversation = useCreateConversation();
@@ -46,6 +49,7 @@ export const useSendMessage = ({
     setIsLoading(true);
     setIsWaitingForBot(true);
     setLastSuggestedNextSteps(undefined);
+    setLastVerified(undefined);
     let userMessagePersisted = false;
 
     try {
@@ -106,6 +110,7 @@ export const useSendMessage = ({
         queryType,
         disclaimer,
         suggestedNextSteps,
+        lastVerified: responseLastVerified,
         tokenUsage,
         estimatedCostUsd,
       } = parseRAGResponse(response);
@@ -121,8 +126,9 @@ export const useSendMessage = ({
         response_time_ms: responseTimeMs,
       });
 
-      // Store suggested next steps for UI display (not persisted to DB)
+      // Store real-time-only fields for UI display (not persisted to DB)
       setLastSuggestedNextSteps(suggestedNextSteps);
+      setLastVerified(responseLastVerified);
 
       // Save bot message to database
       // Note: queryType, disclaimer, and suggestedNextSteps are not persisted to DB
@@ -158,5 +164,5 @@ export const useSendMessage = ({
     }
   };
 
-  return { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps };
+  return { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps, lastVerified };
 };

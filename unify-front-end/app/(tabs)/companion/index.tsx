@@ -187,7 +187,7 @@ export default function CompanionScreen() {
   const { data: usage } = useChatbotUsage();
   const { currentUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
-  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps } =
+  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps, lastVerified } =
     useSendMessage({
       messages,
       currentConversationId,
@@ -345,14 +345,20 @@ export default function CompanionScreen() {
 
   const renderMessage = useCallback(
     ({ item, index }: { item: Message; index: number }) => {
-      // Only show suggestions on the last bot message
+      // Only show suggestions and lastVerified on the last bot message
       const isLastMessage = index === messages.length - 1;
-      const showSuggestions =
-        isLastMessage && !item.isUser && lastSuggestedNextSteps;
+      const isLastBotMessage = isLastMessage && !item.isUser;
+      const showSuggestions = isLastBotMessage && lastSuggestedNextSteps;
+
+      // Attach lastVerified to the last bot message for real-time display
+      const displayItem =
+        isLastBotMessage && lastVerified
+          ? { ...item, lastVerified }
+          : item;
 
       return (
         <MessageWithSources
-          item={item}
+          item={displayItem}
           suggestedNextSteps={
             showSuggestions ? lastSuggestedNextSteps : undefined
           }
@@ -360,7 +366,7 @@ export default function CompanionScreen() {
         />
       );
     },
-    [messages.length, lastSuggestedNextSteps, handleSuggestionClick]
+    [messages.length, lastSuggestedNextSteps, lastVerified, handleSuggestionClick]
   );
 
   const renderLoadingIndicator = useCallback(() => {

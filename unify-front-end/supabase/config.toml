@@ -351,15 +351,17 @@ entrypoint = "./functions/gemini-proxy/index.ts"
 
 [functions.matchmake_circles]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/matchmake_circles/deno.json"
 entrypoint = "./functions/matchmake_circles/index.ts"
 
-# Cron trigger for scheduled matchmaking - configure in Supabase Dashboard
-[[functions.matchmake_circles.triggers]]
-type = "cron"
-name = "community-matching-schedule"
-value = "*/3 * * * *"
+# Cron trigger reference for scheduled matchmaking.
+# Supabase CLI cron triggers are not supported here, so the
+# `community-matching-schedule` job (`*/3 * * * *`) is created by SQL migration.
+# [[functions.matchmake_circles.triggers]]
+# type = "cron"
+# name = "community-matching-schedule"
+# value = "*/3 * * * *"
 
 [functions.request-group]
 enabled = true

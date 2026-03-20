@@ -1,6 +1,7 @@
 // @ts-nocheck We do not need the actual Deno import since it's used by supabase serverless functions so ignore
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -22,9 +23,6 @@ type QueryType =
   | 'fact_check'
   | 'form_help';
 
-const FETCH_TIMEOUT_MS = 20000;
-const MAX_FETCH_RETRIES = 2;
-const RETRY_DELAY_MS = 400;
 const EMBEDDING_MODEL =
   Deno.env.get('OPENAI_EMBEDDING_MODEL') || 'text-embedding-3-small';
 
@@ -58,58 +56,6 @@ const USER_QUESTION_STARTS = [
   'would',
   'who',
 ];
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function fetchWithRetry(
-  url: string,
-  init: RequestInit,
-  options?: { timeoutMs?: number; retries?: number; retryDelayMs?: number }
-): Promise<Response> {
-  const timeoutMs = options?.timeoutMs ?? FETCH_TIMEOUT_MS;
-  const retries = options?.retries ?? MAX_FETCH_RETRIES;
-  const retryDelayMs = options?.retryDelayMs ?? RETRY_DELAY_MS;
-
-  let attempt = 0;
-  let lastError: unknown;
-
-  while (attempt <= retries) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const response = await fetch(url, {
-        ...init,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        return response;
-      }
-
-      const retriable = response.status >= 500 || response.status === 429;
-      if (!retriable || attempt === retries) {
-        return response;
-      }
-    } catch (error) {
-      clearTimeout(timeoutId);
-      lastError = error;
-
-      if (attempt === retries) {
-        throw error;
-      }
-    }
-
-    attempt += 1;
-    await sleep(retryDelayMs * attempt);
-  }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('Request failed after retries');
-}
 
 function sanitizeSuggestedNextSteps(suggestions: string[]): string[] {
   if (!suggestions || suggestions.length === 0) return [];
@@ -384,22 +330,16 @@ CONTEXT FROM KNOWLEDGE BASE:
 ${contextText}
 
 CRITICAL: BREVITY IS KEY
-Users are on mobile. Keep responses short and scannable. Avoid walls of text. Each section should be 2-3 sentences MAX. Get to the point quickly.
+Users are on mobile. Keep responses short and scannable. Avoid walls of text. Get to the point quickly.
 
 RESPONSE FORMAT:
-Structure your response using these sections:
+Start with a direct 1-2 sentence answer. Then provide 2-3 sentences of essential context using simple, newcomer-friendly language. Explain acronyms briefly (e.g., "TFSA" = Tax-Free Savings Account).
 
-## Short Answer
-1-2 sentences MAX. Direct answer only.
+If there are key steps or items to list, use bullet points (- item).
 
-## Explanation
-2-3 sentences of essential context. Only include what the user truly needs to know. Use simple, newcomer-friendly language. Explain acronyms briefly (e.g., "TFSA" = Tax-Free Savings Account).
+End with one actionable next step the user can take.
 
-## What You Can Do Next
-One actionable step OR a user-action prompt (for example: "You can ask: 'How do I open one step by step?'"). Keep it to 1-2 lines.
-
-## Important Notes
-One key caveat only: "${STANDARD_DISCLAIMER}"
+Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
 CRITICAL GUARDRAILS:
 1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
@@ -415,22 +355,18 @@ function buildImmigrationNoKBInstruction(): string {
   return `You are Unify's AI assistant, helping newcomers to Canada navigate immigration and settlement topics. You are friendly, supportive, and knowledgeable.
 
 CRITICAL: BREVITY IS KEY
-Users are on mobile. Keep responses short and scannable. Avoid walls of text. Each section should be 2-3 sentences MAX. Get to the point quickly.
+Users are on mobile. Keep responses short and scannable. Avoid walls of text. Get to the point quickly.
 
 RESPONSE FORMAT:
-Structure your response using these sections:
+Start with a direct 1-2 sentence answer. Then provide 2-3 sentences of essential context using simple, newcomer-friendly language. Explain acronyms briefly.
 
-## Short Answer
-1-2 sentences MAX. Direct answer only.
+If there are key steps or items to list, use bullet points (- item).
 
-## Explanation
-2-3 sentences of essential context. Only include what the user truly needs to know. Use simple, newcomer-friendly language. Explain acronyms briefly.
+End with one actionable next step the user can take.
 
-## What You Can Do Next
-One actionable step OR a user-action prompt (for example: "You can ask: 'Can you explain this in simpler terms?'"). Keep it to 1-2 lines.
+Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
-## Important Notes
-"${NO_KB_HITS_DISCLAIMER}" "${STANDARD_DISCLAIMER}"
+Note: You are answering from general knowledge (not the knowledge base). Mention that users should verify with official sources like IRCC.
 
 CRITICAL GUARDRAILS:
 1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
@@ -504,8 +440,7 @@ Example: "This field asks for your travel history - list all countries you've vi
 ## Tips
 1-2 practical tips for filling out this section accurately.
 
-## ⚠️ Important Disclaimer
-"This is educational guidance to help you understand what's being asked. For legal advice on how to answer specific questions about YOUR situation, please consult a licensed immigration consultant or lawyer."
+Do NOT include a disclaimer section — the app already shows one.
 
 NEVER DO:
 - Tell them what to write in a field
@@ -601,7 +536,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
+    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
     const apiKey = Deno.env.get('GEMINI_API_KEY');
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -682,6 +617,7 @@ Deno.serve(async (req: Request) => {
     }> = [];
     let hasGoodKBHits = false;
     let disclaimer: string | undefined;
+    let lastVerified: string | undefined;
 
     if (needsRAG) {
       // Use RAG pipeline for immigration-related queries
@@ -756,11 +692,23 @@ Deno.serve(async (req: Request) => {
         hasGoodKBHits = chunks && chunks.length > 0;
 
         if (hasGoodKBHits) {
+          // Track the most recent updated_at across all returned chunks
+          let mostRecentUpdate: string | undefined;
+
           chunks.forEach((chunk: any) => {
             const doc = chunk.knowledge_documents || {};
             contextText += `[Document: ${doc.title || 'Unknown'}]\n${chunk.chunk_text}\n\n`;
 
+            // Track most recent document update for lastVerified
+            const docUpdatedAt = doc.updated_at;
+            if (docUpdatedAt && (!mostRecentUpdate || docUpdatedAt > mostRecentUpdate)) {
+              mostRecentUpdate = docUpdatedAt;
+            }
+
             if (!sourcesMap.has(chunk.document_id)) {
+              // Prefer source_url from the document (set by crawler),
+              // fall back to S3 URL, then generic IRCC page
+              const sourceUrl = doc.source_url;
               const storagePath = doc.storage_path || '';
               const hasSourceConfig =
                 !!s3BucketName &&
@@ -775,11 +723,14 @@ Deno.serve(async (req: Request) => {
                 document_id: chunk.document_id,
                 document_title: doc.title || 'Unknown',
                 url:
+                  sourceUrl ||
                   s3Url ||
                   'https://www.canada.ca/en/immigration-refugees-citizenship.html',
               });
             }
           });
+
+          lastVerified = mostRecentUpdate;
 
           sources = Array.from(sourcesMap.values());
           disclaimer = STANDARD_DISCLAIMER;
@@ -939,6 +890,7 @@ Deno.serve(async (req: Request) => {
         queryType,
         disclaimer,
         suggestedNextSteps: suggestions.length > 0 ? suggestions : undefined,
+        lastVerified: lastVerified || undefined,
         tokenUsage,
         estimatedCostUsd,
       }),
