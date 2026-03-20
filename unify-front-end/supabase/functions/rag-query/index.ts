@@ -536,7 +536,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
+    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
     const apiKey = Deno.env.get('GEMINI_API_KEY');
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
