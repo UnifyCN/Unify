@@ -228,7 +228,7 @@ export default function HomeScreen() {
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
   const activeTabRef = useRef<FeedTab>(TABS[0]);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<Animated.ScrollView>(null);
   const { width: screenWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
 
@@ -271,7 +271,7 @@ export default function HomeScreen() {
   const handleTabPress = useCallback(
     (index: number) => {
       if (index === activeIndex) return;
-      scrollViewRef.current?.scrollTo({
+      (scrollViewRef.current as unknown as ScrollView)?.scrollTo({
         x: index * screenWidth,
         animated: true,
       });
