@@ -26,7 +26,7 @@ import {
   Priority,
   UserTaskWithDetails,
 } from '@/types/checklist';
-import Header from '@/components/Header';
+import TabHeader from '@/components/home/HomeHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
@@ -328,7 +328,7 @@ export default function ChecklistScreen() {
 
   return (
     <View style={styles.container}>
-      <Header showSearchIcon={true} />
+      <TabHeader variant="minimal" />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

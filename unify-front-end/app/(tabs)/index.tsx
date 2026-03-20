@@ -16,7 +16,7 @@ import Animated, {
   SharedValue,
 } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
-import HomeHeader from '@/components/home/HomeHeader';
+import TabHeader from '@/components/home/HomeHeader';
 import { Theme } from '@/constants/Theme';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -309,7 +309,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <HomeHeader />
+      <TabHeader />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <FeedTabs

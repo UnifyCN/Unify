@@ -25,7 +25,7 @@ import {
   PathwayCardSkeletonLoader,
   CarouselDotsSkeletonLoader,
 } from '../../../components/learn/learn-index-skeleton-loader';
-import Header from '../../../components/Header';
+import TabHeader from '@/components/home/HomeHeader';
 
 export default function Learn() {
   const { trackScreen } = useAnalytics();
@@ -81,7 +81,7 @@ export default function Learn() {
   }, [refreshLessons]);
   return (
     <View style={styles.root}>
-      <Header showSearchIcon={false} />
+      <TabHeader variant="minimal" />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView

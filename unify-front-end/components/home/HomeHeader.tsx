@@ -10,7 +10,12 @@ import { useUnreadNotificationCount } from '@/hooks/useCommunityNotifications';
 import { useCurrentUser } from '@/context/UserContext';
 import { TAB_HEADER_METRICS, getTabHeaderHeight } from '@/constants/TabHeader';
 
-const HomeHeader = () => {
+interface TabHeaderProps {
+  variant?: 'full' | 'minimal';
+  title?: string;
+}
+
+const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const headerHeight = getTabHeaderHeight(insets.top);
@@ -34,48 +39,61 @@ const HomeHeader = () => {
           height={TAB_HEADER_METRICS.logoSize}
         />
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.searchBar,
-            pressed && styles.searchBarPressed,
-          ]}
-          onPress={() => router.push('/search' as any)}
-          accessibilityRole="button"
-          accessibilityLabel="Open search"
-        >
-          <Search color="#999" size={18} strokeWidth={2.5} />
-          <Text style={styles.searchPlaceholder}>Search</Text>
-        </Pressable>
+        {variant === 'full' && (
+          <>
+            <Pressable
+              style={({ pressed }) => [
+                styles.searchBar,
+                pressed && styles.searchBarPressed,
+              ]}
+              onPress={() => router.push('/search' as any)}
+              accessibilityRole="button"
+              accessibilityLabel="Open search"
+            >
+              <Search color="#999" size={18} strokeWidth={2.5} />
+              <Text style={styles.searchPlaceholder}>Search</Text>
+            </Pressable>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.bellButton,
-            pressed && styles.actionButtonPressed,
-          ]}
-          onPress={() => router.push('/notifications' as Href)}
-          accessibilityRole="button"
-          accessibilityLabel="Open notifications"
-        >
-          <View style={styles.bellWrap}>
-            <Bell
-              color="#000"
-              size={TAB_HEADER_METRICS.iconSize}
-              strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
-              absoluteStrokeWidth
-            />
-            {unreadCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.bellButton,
+                pressed && styles.actionButtonPressed,
+              ]}
+              onPress={() => router.push('/notifications' as Href)}
+              accessibilityRole="button"
+              accessibilityLabel="Open notifications"
+            >
+              <View style={styles.bellWrap}>
+                <Bell
+                  color="#000"
+                  size={TAB_HEADER_METRICS.iconSize}
+                  strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
+                  absoluteStrokeWidth
+                />
+                {unreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
+            </Pressable>
+          </>
+        )}
+
+        {variant === 'minimal' && (
+          <View style={styles.spacer}>
+            {title && <Text style={styles.headerTitle}>{title}</Text>}
           </View>
-        </Pressable>
+        )}
 
         <Pressable
           onPress={() => setProfileModalVisible(true)}
-          style={({ pressed }) => [styles.avatarButton, pressed && styles.actionButtonPressed]}
+          style={({ pressed }) => [
+            variant === 'full' && styles.avatarButton,
+            pressed && styles.actionButtonPressed,
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Open profile menu"
         >
@@ -102,6 +120,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: TAB_HEADER_METRICS.horizontalPadding,
     backgroundColor: '#fff',
+  },
+  spacer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
   },
   searchBar: {
     flex: 1,
@@ -155,4 +182,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomeHeader;
+export default TabHeader;
