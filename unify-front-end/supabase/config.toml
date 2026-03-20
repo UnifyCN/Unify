@@ -356,10 +356,11 @@ import_map = "./functions/matchmake_circles/deno.json"
 entrypoint = "./functions/matchmake_circles/index.ts"
 
 # Cron trigger for scheduled matchmaking - configure in Supabase Dashboard
-[[functions.matchmake_circles.triggers]]
-type = "cron"
-name = "community-matching-schedule"
-value = "*/3 * * * *"
+# NOTE: triggers config not supported by current CLI version; cron is set in Dashboard
+# [[functions.matchmake_circles.triggers]]
+# type = "cron"
+# name = "community-matching-schedule"
+# value = "*/3 * * * *"
 
 [functions.request-group]
 enabled = true

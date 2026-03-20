@@ -398,6 +398,16 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
         {/* Sources section for bot messages */}
         {!item.isUser && item.sources && item.sources.length > 0 && (
           <View style={styles.sourcesContainer}>
+            {item.lastVerified && (
+              <Text style={styles.lastVerifiedText}>
+                Sources last verified:{' '}
+                {new Date(item.lastVerified).toLocaleDateString('en-CA', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </Text>
+            )}
             <TouchableOpacity
               style={styles.sourcesHeader}
               onPress={() => setShowSources(!showSources)}
@@ -540,6 +550,7 @@ export const MessageWithSources = memo(
     prev.item.text === next.item.text &&
     prev.item.disclaimer === next.item.disclaimer &&
     prev.item.isUser === next.item.isUser &&
+    prev.item.lastVerified === next.item.lastVerified &&
     areSourcesEqual(prev.item.sources, next.item.sources) &&
     areStringArraysEqual(prev.suggestedNextSteps, next.suggestedNextSteps) &&
     prev.onSuggestionPress === next.onSuggestionPress
@@ -693,6 +704,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
     paddingTop: 12,
+  },
+  lastVerifiedText: {
+    fontSize: 11,
+    color: Theme.textInput,
+    fontStyle: 'italic',
+    marginBottom: 4,
   },
   sourcesHeader: {
     flexDirection: 'row',
