@@ -40,11 +40,11 @@ export default function DropdownBlock({
 
 const styles = StyleSheet.create({
   closedTitle: {
-    fontFamily: 'Font Family',
+    fontFamily: 'Inter',
     fontWeight: '700',
     fontStyle: 'normal',
-    fontSize: 18,
-    lineHeight: 27,
+    fontSize: 14,
+    lineHeight: 20,
 
     //if needed:
     //color: '#FFFFFF',

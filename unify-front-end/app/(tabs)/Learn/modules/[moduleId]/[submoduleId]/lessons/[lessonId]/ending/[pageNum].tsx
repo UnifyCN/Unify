@@ -24,7 +24,6 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import LessonPageSkeletonLoader from '@/components/learn/lesson-page-skeleton-loader/LessonPageSkeletonLoader';
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
@@ -274,7 +273,9 @@ export default function EndingPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <LessonPageSkeletonLoader />
+        <View style={styles.loading}>
+          <Text>Loading ending page...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -326,7 +327,7 @@ export default function EndingPageScreen() {
         <TouchableOpacity
           style={[
             styles.nextBtn,
-            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+            { backgroundColor: moduleData?.colorTheme?.hex || '#1A1919' },
             isSaving && styles.nextBtnDisabled,
           ]}
           onPress={handleNext}
@@ -460,7 +461,7 @@ export default function EndingPageScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  container: { paddingHorizontal: 23, paddingBottom: 100 },
+  container: { paddingHorizontal: 20, paddingBottom: 100 },
 
   // Page indicator
   pageIndicatorContainer: {
@@ -485,14 +486,16 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    gap: 20,
+    gap: 25,
     marginBottom: 30,
   },
   contentText: {
-    fontSize: 18,
+    fontFamily: 'Inter',
+    fontSize: 14,
+    lineHeight: 20,
     fontWeight: '400',
     color: '#424242',
-    marginBottom: 15,
+    marginBottom: 10,
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -505,23 +508,23 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 23,
+    paddingHorizontal: 20,
     paddingVertical: 20,
     paddingBottom: 15,
     backgroundColor: '#fff',
     gap: 12,
   },
   backBtn: {
-    backgroundColor: '#E5E7EB',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    backgroundColor: '#E6E6E6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
     alignItems: 'center',
     flex: 1,
   },
   backBtnText: { color: '#374151', fontSize: 16, fontWeight: '600' },
   nextBtn: {
-    backgroundColor: '#575757',
+    backgroundColor: '#1A1919',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,

@@ -16,7 +16,6 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import LessonPageSkeletonLoader from '@/components/learn/lesson-page-skeleton-loader/LessonPageSkeletonLoader';
 import { calculateActivityProgress } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
@@ -286,7 +285,9 @@ export default function ActivityPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <LessonPageSkeletonLoader />
+        <View style={styles.loading}>
+          <Text>Loading activity...</Text>
+        </View>
       </SafeAreaView>
     );
   }
