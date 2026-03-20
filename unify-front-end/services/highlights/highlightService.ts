@@ -60,8 +60,11 @@ export async function saveHighlight(
   existingHighlights: Highlight[],
   allWordsInBlock: string[]
 ): Promise<Highlight> {
+  // Filter out optimistic (non-UUID) entries before checking overlaps
+  const realHighlights = existingHighlights.filter(h => !h.id.startsWith('optimistic-'));
+
   // Check for overlapping highlights in the same block
-  const overlapping = existingHighlights.filter(
+  const overlapping = realHighlights.filter(
     h =>
       h.block_key === blockKey &&
       h.start_word_index <= endWordIndex &&
