@@ -24,6 +24,7 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import LessonPageSkeletonLoader from '@/components/learn/lesson-page-skeleton-loader/LessonPageSkeletonLoader';
 
 // Progress related imports
 import { calculateEndingProgress } from '@/utils/submoduleProgress';
@@ -273,9 +274,7 @@ export default function EndingPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.loading}>
-          <Text>Loading ending page...</Text>
-        </View>
+        <LessonPageSkeletonLoader />
       </SafeAreaView>
     );
   }

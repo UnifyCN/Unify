@@ -21,9 +21,7 @@ class MainApplication : Application(), ReactApplication {
     ReactNativeHostWrapper(
       this,
       object : DefaultReactNativeHost(this) {
-        override fun getPackages(): List<ReactPackage> {
-          return PackageList(this).packages
-        }
+        override fun getPackages(): List<ReactPackage> = PackageList(this).packages
 
         override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
 

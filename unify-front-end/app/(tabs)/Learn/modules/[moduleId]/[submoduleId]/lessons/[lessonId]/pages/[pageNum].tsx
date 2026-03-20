@@ -18,6 +18,7 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import LessonPageSkeletonLoader from '@/components/learn/lesson-page-skeleton-loader/LessonPageSkeletonLoader';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -274,9 +275,7 @@ export default function LessonPageScreen() {
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
-        <View style={styles.loading}>
-          <Text>Loading lesson...</Text>
-        </View>
+        <LessonPageSkeletonLoader />
       </SafeAreaView>
     );
   }

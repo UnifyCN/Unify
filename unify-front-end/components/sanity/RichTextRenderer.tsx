@@ -117,6 +117,16 @@ export default function RichTextRenderer({
 
   const numberingMap = createNumberingMap(blocks);
 
+  const BODY_TEXT_STYLE = {
+    fontFamily: 'Font Family',
+    fontWeight: '400' as const,
+    fontStyle: 'normal' as const,
+    fontSize: 18,
+    lineHeight: 27,
+    letterSpacing: 0,
+    color: '#374151',
+  };
+
   const defaultStyles = {
     // Headings
     h1: {
@@ -150,47 +160,24 @@ export default function RichTextRenderer({
 
     // Paragraphs
     normal: {
-      fontFamily: 'Font Family',
-      fontWeight: '400', // Regular
-      fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
-      letterSpacing: 0,
-      color: '#374151',
-      marginBottom: 5, // Consistent spacing between paragraphs
+      ...BODY_TEXT_STYLE,
+      marginBottom: 5,
     },
 
     // Lists (lineHeight matches normal for consistent body text)
     bullet: {
-      fontFamily: 'Font Family',
-      fontWeight: '400',
-      fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
-      letterSpacing: 0,
-      color: '#374151',
-      marginBottom: 10, // Spacing between bullet items
+      ...BODY_TEXT_STYLE,
+      marginBottom: 5,
       marginTop: 0,
     },
     number: {
-      fontFamily: 'Font Family',
-      fontWeight: '400',
-      fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
-      letterSpacing: 0,
-      color: '#374151',
-      marginBottom: 3, // Spacing between numbered items
+      ...BODY_TEXT_STYLE,
+      marginBottom: 5,
     },
 
     strong: {
-      fontFamily: 'Font Family',
-      fontWeight: '700', // Semi-Bold
-      fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 20,
-      letterSpacing: 0,
-      color: '#374151',
+      ...BODY_TEXT_STYLE,
+      fontWeight: '700',
     },
     // Quote
     blockquote: {
@@ -258,13 +245,7 @@ export default function RichTextRenderer({
       textTransform: 'uppercase',
     },
     exampleText: {
-      fontFamily: 'Font Family',
-      fontWeight: '400',
-      fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
-      letterSpacing: 0,
-      color: '#374151',
+      ...BODY_TEXT_STYLE,
     },
 
     // ✅ TIP BOX (merged from your ActivityPageScreen, Figma spec)
@@ -284,19 +265,13 @@ export default function RichTextRenderer({
       marginBottom: 30,
     },
     tipTitleText: {
-      fontFamily: 'Font Family',
-      fontSize: 14,
-      lineHeight: 20,
-      fontWeight: '600', // Semi-bold
-      color: '#3F3F3F',
+      ...BODY_TEXT_STYLE,
+      fontWeight: '700',
+      marginBottom: 0,
     },
     tipBodyText: {
-      fontFamily: 'Font Family',
-      fontSize: 14,
-      lineHeight: 20,
-      fontWeight: '400', // Regular
-      color: '#3F3F3F',
-      marginBottom: 0,
+      ...BODY_TEXT_STYLE,
+      marginBottom: 5,
     },
 
     // Note box (unchanged)
@@ -557,11 +532,21 @@ export default function RichTextRenderer({
           block.listItem === 'bullet'
             ? mergedStyles.bullet
             : mergedStyles.number;
+        const paragraphStyle = mergedStyles.normal || {};
 
         // Remove marginBottom from last item in list to ensure consistent spacing
         const listStyle = isLastInList
-          ? { ...baseListStyle, marginBottom: 0 }
-          : baseListStyle;
+          ? {
+              ...baseListStyle,
+              fontSize: paragraphStyle.fontSize ?? baseListStyle.fontSize,
+              lineHeight: paragraphStyle.lineHeight ?? baseListStyle.lineHeight,
+              marginBottom: 0,
+            }
+          : {
+              ...baseListStyle,
+              fontSize: paragraphStyle.fontSize ?? baseListStyle.fontSize,
+              lineHeight: paragraphStyle.lineHeight ?? baseListStyle.lineHeight,
+            };
 
         const bullet =
           block.listItem === 'bullet'
@@ -578,11 +563,11 @@ export default function RichTextRenderer({
           else displayBullet = '▫';
         }
 
-        // Adjust spacing for last item in list to match paragraph spacing (20px)
+        // Keep list spacing aligned with normal paragraph rhythm.
         const containerStyle = isLastInList
           ? [
               styles.listItemContainer,
-              { marginLeft: indentLevel, marginBottom: 20 },
+              { marginLeft: indentLevel, marginBottom: 5 },
             ]
           : [styles.listItemContainer, { marginLeft: indentLevel }];
 
