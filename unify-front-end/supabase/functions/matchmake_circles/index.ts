@@ -43,6 +43,24 @@ const responseHeaders = {
   'Content-Type': 'application/json',
 };
 
+function isAuthorizedRequest(req: Request): boolean {
+  const apiKey = req.headers.get('x-api-key');
+  const expectedKey = Deno.env.get('MATCHMAKE_API_KEY');
+
+  if (expectedKey && apiKey === expectedKey) {
+    return true;
+  }
+
+  const authorization = req.headers.get('authorization');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  return Boolean(
+    serviceRoleKey &&
+      authorization &&
+      authorization === `Bearer ${serviceRoleKey}`
+  );
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST' && req.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -51,12 +69,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Secret-based authorization - verify API key for scheduled/internal calls
-  const apiKey = req.headers.get('x-api-key');
-  const expectedKey = Deno.env.get('MATCHMAKE_API_KEY');
-
-  // Only allow requests with valid API key (for cron jobs and authorized internal calls)
-  if (!expectedKey || !apiKey || apiKey !== expectedKey) {
+  // Allow either the legacy internal API key or a service-role bearer token.
+  if (!isAuthorizedRequest(req)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: responseHeaders,

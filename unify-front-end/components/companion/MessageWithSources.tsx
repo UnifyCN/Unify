@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Linking,
   ScrollView,
-  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -41,30 +40,16 @@ const parseDomain = (url: string | undefined): string | null => {
 };
 
 /**
- * Favicon component for source items. Shows a 16px favicon from Google S2 service
- * with fallback to a globe icon on load failure.
+ * Icon for source items. Shows a local globe icon next to the domain text.
+ * No external network requests — avoids dependency on third-party favicon services.
  */
-const SourceFavicon: React.FC<{ domain: string }> = ({ domain }) => {
-  const [failed, setFailed] = useState(false);
-
-  if (failed) {
-    return (
-      <Ionicons
-        name='globe-outline'
-        size={14}
-        color={Theme.textInput}
-        style={styles.faviconIcon}
-      />
-    );
-  }
-
+const SourceIcon: React.FC = () => {
   return (
-    <Image
-      source={{
-        uri: `https://www.google.com/s2/favicons?domain=${domain}&sz=16`,
-      }}
-      style={styles.faviconImage}
-      onError={() => setFailed(true)}
+    <Ionicons
+      name='globe-outline'
+      size={14}
+      color={Theme.textInput}
+      style={styles.faviconIcon}
     />
   );
 };
@@ -214,7 +199,7 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
                       <View style={styles.sourceItemContent}>
                         {domain && (
                           <>
-                            <SourceFavicon domain={domain} />
+                            <SourceIcon />
                             <Text style={styles.sourceDomain}>{domain}</Text>
                             <Text style={styles.sourceSeparator}>·</Text>
                           </>
@@ -393,11 +378,6 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   // Favicon
-  faviconImage: {
-    width: 14,
-    height: 14,
-    borderRadius: 2,
-  },
   faviconIcon: {
     width: 14,
     height: 14,

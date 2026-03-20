@@ -218,20 +218,11 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const url = typeof body?.url === 'string' ? body.url : '';
     const crawl_source_id = body?.crawl_source_id ?? null;
-    capturedUrl = url || null;
     capturedCrawlSourceId =
       typeof crawl_source_id === 'number' || typeof crawl_source_id === 'string'
         ? crawl_source_id
         : null;
-
-    if (!url || typeof url !== 'string') {
-      return new Response(JSON.stringify({ error: 'url is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiApiKey) {
@@ -241,6 +232,48 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // SSRF fix: resolve URL from crawl_sources table, never trust body.url directly.
+    let url: string;
+    if (capturedCrawlSourceId != null) {
+      const { data: sourceRow, error: sourceErr } = await supabase
+        .from('crawl_sources')
+        .select('url')
+        .eq('id', capturedCrawlSourceId)
+        .single();
+
+      if (sourceErr || !sourceRow) {
+        return new Response(
+          JSON.stringify({ error: `crawl_source_id ${capturedCrawlSourceId} not found` }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      url = sourceRow.url;
+    } else {
+      // Fallback for manual/ad-hoc calls — still validate against allowlist
+      const bodyUrl = typeof body?.url === 'string' ? body.url : '';
+      if (!bodyUrl) {
+        return new Response(JSON.stringify({ error: 'crawl_source_id or url is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      const { data: allowedSource } = await supabase
+        .from('crawl_sources')
+        .select('id')
+        .eq('url', bodyUrl)
+        .eq('enabled', true)
+        .maybeSingle();
+
+      if (!allowedSource) {
+        return new Response(
+          JSON.stringify({ error: 'URL not in crawl_sources allowlist' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      url = bodyUrl;
+    }
+    capturedUrl = url;
 
     // ========================================================================
     // STEP 1: FETCH THE URL
@@ -403,12 +436,11 @@ Deno.serve(async (req: Request) => {
     let documentId: number;
 
     if (existingDoc) {
-      // Update existing document
+      // Update existing document — content_hash deferred until chunks succeed
       const { error: updateError } = await supabase
         .from('knowledge_documents')
         .update({
           title,
-          content_hash: contentHash,
           source_url: url,
           updated_at: now,
           metadata: {
@@ -425,13 +457,12 @@ Deno.serve(async (req: Request) => {
 
       documentId = existingDoc.id;
     } else {
-      // Insert new document
+      // Insert new document — content_hash deferred until chunks succeed
       const { data: newDoc, error: insertError } = await supabase
         .from('knowledge_documents')
         .insert({
           title,
           storage_path: '',
-          content_hash: contentHash,
           source_url: url,
           updated_at: now,
           metadata: {
@@ -468,6 +499,18 @@ Deno.serve(async (req: Request) => {
 
     if (chunkInsertError) {
       throw new Error(`Chunk insert failed: ${chunkInsertError.message}`);
+    }
+
+    // Atomicity: only advance content_hash AFTER chunks are successfully written.
+    // If chunk insertion fails above, the old hash remains and the next crawl will
+    // correctly detect the content as changed and retry.
+    const { error: hashError } = await supabase
+      .from('knowledge_documents')
+      .update({ content_hash: contentHash })
+      .eq('id', documentId);
+
+    if (hashError) {
+      console.error(`Warning: content_hash update failed: ${hashError.message}`);
     }
 
     // Delete old chunks only AFTER new ones are successfully written

@@ -63,6 +63,11 @@ grant all on public.crawl_logs to service_role;
 create index if not exists crawl_logs_source_crawled_idx
   on public.crawl_logs (crawl_source_id, crawled_at desc);
 
+-- 4b. Unique partial index on source_url to prevent duplicate documents for the same URL
+create unique index if not exists knowledge_documents_source_url_uniq
+  on public.knowledge_documents (source_url)
+  where source_url is not null;
+
 -- 5. Update match_chunks() with recency boost + source_url
 create or replace function public.match_chunks(
   query_embedding vector(1536),

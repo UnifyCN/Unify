@@ -351,7 +351,7 @@ entrypoint = "./functions/gemini-proxy/index.ts"
 
 [functions.matchmake_circles]
 enabled = true
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/matchmake_circles/deno.json"
 entrypoint = "./functions/matchmake_circles/index.ts"
 

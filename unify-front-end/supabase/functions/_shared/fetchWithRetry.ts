@@ -59,6 +59,11 @@ export async function fetchWithRetry(
     } catch (error) {
       lastError = error;
 
+      // If the caller's signal triggered the abort, rethrow immediately — don't retry.
+      if (init?.signal?.aborted || (error instanceof DOMException && error.name === 'AbortError')) {
+        throw error;
+      }
+
       if (attempt === retries) {
         throw error;
       }
