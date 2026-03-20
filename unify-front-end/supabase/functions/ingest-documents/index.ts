@@ -71,7 +71,12 @@ function htmlToCleanText(html: string): string {
   text = text.replace(/&quot;/g, '"');
   text = text.replace(/&#39;/g, "'");
   text = text.replace(/&nbsp;/g, ' ');
-  text = text.replace(/&#\d+;/g, '');
+  text = text.replace(/&#x([0-9a-fA-F]+);/g, (_, value: string) =>
+    String.fromCharCode(parseInt(value, 16))
+  );
+  text = text.replace(/&#(\d+);/g, (_, value: string) =>
+    String.fromCharCode(parseInt(value, 10))
+  );
 
   // Normalize whitespace: collapse multiple spaces/tabs, trim lines
   text = text
@@ -124,10 +129,8 @@ function chunkText(text: string): string[] {
     chunks.push(text.slice(start, end).trim());
 
     // Move start with overlap
-    start = end - CHUNK_OVERLAP_CHARS;
-    if (start < 0) start = 0;
-    // Avoid infinite loop
-    if (start >= end) start = end;
+    const nextStart = Math.max(0, end - CHUNK_OVERLAP_CHARS);
+    start = nextStart <= start ? end : nextStart;
   }
 
   return chunks.filter(c => c.length > 0);
@@ -210,9 +213,18 @@ async function generateEmbeddings(
 
 Deno.serve(async (req: Request) => {
   const startTime = performance.now();
+  let capturedUrl: string | null = null;
+  let capturedCrawlSourceId: number | string | null = null;
 
   try {
-    const { url, crawl_source_id } = await req.json();
+    const body = await req.json();
+    const url = typeof body?.url === 'string' ? body.url : '';
+    const crawl_source_id = body?.crawl_source_id ?? null;
+    capturedUrl = url || null;
+    capturedCrawlSourceId =
+      typeof crawl_source_id === 'number' || typeof crawl_source_id === 'string'
+        ? crawl_source_id
+        : null;
 
     if (!url || typeof url !== 'string') {
       return new Response(JSON.stringify({ error: 'url is required' }), {
@@ -445,7 +457,7 @@ Deno.serve(async (req: Request) => {
       document_id: documentId,
       chunk_index: index,
       chunk_text: text,
-      embedding: JSON.stringify(allEmbeddings[index]),
+      embedding: allEmbeddings[index],
       updated_at: now,
       metadata: { source: 'crawler' },
     }));
@@ -520,20 +532,13 @@ Deno.serve(async (req: Request) => {
       const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
       if (supabaseUrl && supabaseServiceKey) {
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
-        const body = await (async () => {
-          try {
-            return JSON.parse(await new Request(req.url).text());
-          } catch {
-            return {};
-          }
-        })();
 
         await supabase.from('crawl_logs').insert({
-          crawl_source_id: body?.crawl_source_id || null,
-          url: body?.url || 'unknown',
+          crawl_source_id: capturedCrawlSourceId || null,
+          url: capturedUrl || 'unknown',
           status: 'error',
           error_message: errorMsg,
-          duration_ms: Math.round(performance.now() - (globalThis as any).__startTime || 0),
+          duration_ms: Math.round(performance.now() - startTime || 0),
         });
       }
     } catch {

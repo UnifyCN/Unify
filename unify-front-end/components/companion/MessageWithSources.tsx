@@ -156,16 +156,27 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
         {/* Sources section for bot messages */}
         {!item.isUser && item.sources && item.sources.length > 0 && (
           <View style={styles.sourcesContainer}>
-            {item.lastVerified && (
-              <Text style={styles.lastVerifiedText}>
-                Sources last verified:{' '}
-                {new Date(item.lastVerified).toLocaleDateString('en-CA', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </Text>
-            )}
+            {(() => {
+              if (!item.lastVerified) {
+                return null;
+              }
+
+              const parsedLastVerified = new Date(item.lastVerified);
+              if (Number.isNaN(parsedLastVerified.getTime())) {
+                return null;
+              }
+
+              return (
+                <Text style={styles.lastVerifiedText}>
+                  Sources last verified:{' '}
+                  {parsedLastVerified.toLocaleDateString('en-CA', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                </Text>
+              );
+            })()}
             <TouchableOpacity
               style={styles.sourcesHeader}
               onPress={() => setShowSources(!showSources)}

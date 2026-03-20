@@ -24,14 +24,29 @@ export async function fetchWithRetry(
   while (attempt <= retries) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    let cleanupAbortListener: (() => void) | undefined;
+    let signal: AbortSignal = controller.signal;
+
+    if (init.signal) {
+      if (typeof AbortSignal.any === 'function') {
+        signal = AbortSignal.any([init.signal, controller.signal]);
+      } else if (init.signal.aborted) {
+        controller.abort(init.signal.reason);
+      } else {
+        const abortWithCallerReason = () => controller.abort(init.signal?.reason);
+        init.signal.addEventListener('abort', abortWithCallerReason, {
+          once: true,
+        });
+        cleanupAbortListener = () =>
+          init.signal?.removeEventListener('abort', abortWithCallerReason);
+      }
+    }
 
     try {
       const response = await fetch(url, {
         ...init,
-        signal: controller.signal,
+        signal,
       });
-
-      clearTimeout(timeoutId);
 
       if (response.ok) {
         return response;
@@ -42,12 +57,14 @@ export async function fetchWithRetry(
         return response;
       }
     } catch (error) {
-      clearTimeout(timeoutId);
       lastError = error;
 
       if (attempt === retries) {
         throw error;
       }
+    } finally {
+      clearTimeout(timeoutId);
+      cleanupAbortListener?.();
     }
 
     attempt += 1;

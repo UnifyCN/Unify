@@ -4,7 +4,7 @@
 
 -- 1. Add updated_at, content_hash, source_url to knowledge_documents
 alter table public.knowledge_documents
-  add column if not exists updated_at timestamptz default now(),
+  add column if not exists updated_at timestamptz,
   add column if not exists content_hash text,
   add column if not exists source_url text;
 
@@ -15,11 +15,17 @@ update public.knowledge_documents
 
 -- 2. Add updated_at to knowledge_chunks
 alter table public.knowledge_chunks
-  add column if not exists updated_at timestamptz default now();
+  add column if not exists updated_at timestamptz;
 
 update public.knowledge_chunks
   set updated_at = created_at
   where updated_at is null;
+
+alter table public.knowledge_documents
+  alter column updated_at set default now();
+
+alter table public.knowledge_chunks
+  alter column updated_at set default now();
 
 -- 3. Create crawl_sources table (URL allowlist)
 create table if not exists public.crawl_sources (
@@ -75,39 +81,43 @@ language plpgsql
 as $$
 begin
   return query
+  with candidate_chunks as (
+    select
+      kc.id,
+      kc.document_id,
+      kc.chunk_index,
+      kc.chunk_text,
+      kc.embedding <=> query_embedding as embedding_distance,
+      greatest(
+        0,
+        1.0 - extract(epoch from (now() - coalesce(kc.updated_at, kc.created_at))) / (180.0 * 86400)
+      ) as recency_factor,
+      jsonb_build_object(
+        'id', kd.id,
+        'title', kd.title,
+        'storage_path', kd.storage_path,
+        'subject', kd.subject,
+        'section', kd.section,
+        'source_url', kd.source_url,
+        'updated_at', kd.updated_at
+      ) as knowledge_documents
+    from public.knowledge_chunks kc
+    join public.knowledge_documents kd on kc.document_id = kd.id
+    where kc.embedding is not null
+    order by kc.embedding <=> query_embedding
+    limit greatest(match_count * 8, 50)
+  )
   select
-    kc.id,
-    kc.document_id,
-    kc.chunk_index,
-    kc.chunk_text,
-    -- Recency-boosted score:
-    --   85% cosine similarity + 15% recency factor
-    --   recency_factor decays from 1.0 (just updated) to ~0 over 180 days
-    (
-      (1 - (kc.embedding <=> query_embedding)) * 0.85
-      + greatest(0, 1.0 - extract(epoch from (now() - coalesce(kc.updated_at, kc.created_at))) / (180.0 * 86400)) * 0.15
-    )::float as similarity,
-    jsonb_build_object(
-      'id', kd.id,
-      'title', kd.title,
-      'storage_path', kd.storage_path,
-      'subject', kd.subject,
-      'section', kd.section,
-      'source_url', kd.source_url,
-      'updated_at', kd.updated_at
-    ) as knowledge_documents
-  from public.knowledge_chunks kc
-  join public.knowledge_documents kd on kc.document_id = kd.id
-  where kc.embedding is not null
-    and (
-      match_threshold <= 0
-      or 1 - (kc.embedding <=> query_embedding) > match_threshold
-    )
-  order by
-    (
-      (1 - (kc.embedding <=> query_embedding)) * 0.85
-      + greatest(0, 1.0 - extract(epoch from (now() - coalesce(kc.updated_at, kc.created_at))) / (180.0 * 86400)) * 0.15
-    ) desc
+    id,
+    document_id,
+    chunk_index,
+    chunk_text,
+    ((1 - embedding_distance) * 0.85 + recency_factor * 0.15)::float as similarity,
+    knowledge_documents
+  from candidate_chunks
+  where match_threshold <= 0
+    or 1 - embedding_distance > match_threshold
+  order by similarity desc
   limit match_count;
 end;
 $$;
@@ -135,6 +145,13 @@ declare
   _source record;
   _supabase_url text;
   _service_key text;
+  _batch_size int := greatest(
+    coalesce(
+      nullif(current_setting('app.settings.rag_crawl_batch_size', true), '')::int,
+      12
+    ),
+    1
+  );
 begin
   -- Read config from environment / vault
   _supabase_url := current_setting('app.settings.supabase_url', true);
@@ -155,10 +172,8 @@ begin
     return;
   end if;
 
-  -- Process ONE URL per invocation to stay within edge function worker limits.
-  -- pg_net dispatches all requests at transaction commit, so batching across
-  -- separate cron invocations (every 5 min) is the only way to stagger them.
-  -- 25 URLs completes in ~2 hours, well within the daily/weekly crawl windows.
+  -- Process a bounded batch each run so crawl throughput can keep pace with the
+  -- default 24-hour source cadence as the source count grows.
   for _source in
     select id, url
     from public.crawl_sources
@@ -166,9 +181,9 @@ begin
       and (
         last_crawled_at is null
         or last_crawled_at < now() - (crawl_frequency_hours || ' hours')::interval
-      )
+    )
     order by last_crawled_at nulls first, id
-    limit 1
+    limit _batch_size
   loop
     perform net.http_post(
       url := _supabase_url || '/functions/v1/ingest-documents',
@@ -189,13 +204,24 @@ $$;
 revoke execute on function public.trigger_crawl_all() from public, anon, authenticated;
 grant execute on function public.trigger_crawl_all() to service_role;
 
--- 8. Schedule crawl hourly (processes 1 URL per run to avoid worker limits).
---    Each URL has its own crawl_frequency_hours; the function skips URLs not yet due.
-select cron.schedule(
-  'rag-crawl-batch',
-  '0 * * * *',
-  $$select public.trigger_crawl_all()$$
-);
+-- 8. Schedule crawl every 5 minutes and process a bounded batch per run.
+do $$
+declare
+  _job_id bigint;
+begin
+  for _job_id in
+    select jobid from cron.job where jobname = 'rag-crawl-batch'
+  loop
+    perform cron.unschedule(_job_id);
+  end loop;
+
+  perform cron.schedule(
+    'rag-crawl-batch',
+    '*/5 * * * *',
+    'select public.trigger_crawl_all()'
+  );
+end;
+$$;
 
 -- 9. Seed trusted Government of Canada / IRCC URLs
 INSERT INTO public.crawl_sources (url, label, subject, enabled, crawl_frequency_hours) VALUES
