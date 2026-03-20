@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { likePost, unlikePost } from '@/services/posts/likePost';
+import { updatePostAcrossCaches } from '@/utils/updatePostCaches';
 
 export const useMutateLikePost = () => {
   const queryClient = useQueryClient();
@@ -29,6 +30,12 @@ export const useMutateLikePost = () => {
           return updatedData;
         }
       );
+
+      updatePostAcrossCaches(queryClient, postId, post => ({
+        ...post,
+        isLiked: !isLiked,
+        likeCount: (post.likeCount ?? 0) + (isLiked ? -1 : 1),
+      }));
 
       // Then make server request
       if (isLiked) {

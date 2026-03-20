@@ -423,13 +423,18 @@ export const PostItem = memo(
     };
 
     // Use batch-loaded metadata with loading state
-    const likeCount = metadata?.likeCount ?? 0;
-    const isLiked = metadata?.isLiked ?? false;
-    const isSaved = metadata?.isSaved ?? false;
-    const commentCount = metadata?.commentCount ?? 0;
+    const likeCount = metadata?.likeCount ?? post.likeCount ?? 0;
+    const isLiked = metadata?.isLiked ?? post.isLiked ?? false;
+    const isSaved = metadata?.isSaved ?? post.isSaved ?? false;
+    const commentCount = metadata?.commentCount ?? post.commentCount ?? 0;
+    const hasInlineMetadata =
+      post.likeCount !== undefined &&
+      post.commentCount !== undefined &&
+      post.isLiked !== undefined &&
+      post.isSaved !== undefined;
 
     // Show loading state for metadata if it's still loading
-    const showMetadataLoading = metadataLoading && !metadata;
+    const showMetadataLoading = !!metadataLoading && !metadata && !hasInlineMetadata;
 
     // Double-tap to like: only likes (never unlikes), consistent with Instagram
     const handleDoubleTapLike = useCallback(() => {

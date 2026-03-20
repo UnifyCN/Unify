@@ -5,7 +5,6 @@ import { LegendList } from '@legendapp/list';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
-import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
 import { prefetchPostImageUrls } from '@/services/s3/postImageUrlCache';
 
@@ -75,22 +74,11 @@ const Feed = ({
     ]);
   }, [allPosts]);
 
-  const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
-    allPosts.map((post: PostData) => post.id)
-  );
-
   const renderPost = useCallback(
     ({ item }: { item: PostData }) => {
-      return (
-        <PostItem
-          post={item}
-          metadata={metadata?.[item.id]}
-          metadataLoading={metadataLoading}
-          variant={postVariant}
-        />
-      );
+      return <PostItem post={item} variant={postVariant} />;
     },
-    [metadata, metadataLoading, postVariant]
+    [postVariant]
   );
 
   const handleLoadMore = () => {

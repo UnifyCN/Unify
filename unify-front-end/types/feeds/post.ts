@@ -11,4 +11,8 @@ export type PostData = {
   content: string;
   isPinned?: boolean;
   post_image_urls?: string[];
+  likeCount?: number;
+  commentCount?: number;
+  isLiked?: boolean;
+  isSaved?: boolean;
 };

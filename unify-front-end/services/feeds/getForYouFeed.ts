@@ -4,6 +4,7 @@ import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDtos } from '@/utils/postTransform';
 import { getBlockedUserIdsForUser } from '@/services/users/getBlockedUserIds';
+import { enrichPostsWithMetadata } from '@/services/posts/postMetadata';
 
 /**
  * Get the For You feed with pinned posts appearing first on page 1.
@@ -38,6 +39,8 @@ export const getForYouFeed = async (
           id,
           title,
           content,
+          like_count,
+          comment_count,
           created_at,
           user_id,
           group_id,
@@ -70,6 +73,8 @@ export const getForYouFeed = async (
             id,
             title,
             content,
+            like_count,
+            comment_count,
             created_at,
             user_id,
             group_id,
@@ -128,7 +133,10 @@ export const getForYouFeed = async (
           ? limitedNonPinnedData[limitedNonPinnedData.length - 1].created_at
           : undefined;
 
-      const allPosts = [...pinnedPosts, ...nonPinnedPosts];
+      const allPosts = await enrichPostsWithMetadata([
+        ...pinnedPosts,
+        ...nonPinnedPosts,
+      ]);
 
       return {
         posts: allPosts,
@@ -144,6 +152,8 @@ export const getForYouFeed = async (
           id,
           title,
           content,
+          like_count,
+          comment_count,
           created_at,
           user_id,
           group_id,
@@ -172,8 +182,10 @@ export const getForYouFeed = async (
         throw new Error(`Failed to fetch feed: ${error.message}`);
       }
 
-      const transformedPosts: PostData[] = transformPostDtos(
+      const transformedPosts: PostData[] = await enrichPostsWithMetadata(
+        transformPostDtos(
         data as unknown as PostDto[]
+        )
       );
 
       // Use created_at of last post as next cursor

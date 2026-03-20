@@ -4,6 +4,7 @@ import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDto } from '@/utils/postTransform';
 import { getBlockedUserIdsForUser } from '@/services/users/getBlockedUserIds';
+import { enrichPostsWithMetadata } from '@/services/posts/postMetadata';
 
 interface GetCommentedOnFeedProps {
   cursor?: string;
@@ -25,6 +26,8 @@ export const getCommentedOnFeed = async ({
           id,
           title,
           content,
+          like_count,
+          comment_count,
           created_at,
           user_id,
           group_id,
@@ -71,7 +74,9 @@ export const getCommentedOnFeed = async ({
       }
     });
 
-    const uniquePosts: PostData[] = Array.from(postsMap.values());
+    const uniquePosts: PostData[] = await enrichPostsWithMetadata(
+      Array.from(postsMap.values())
+    );
 
     return {
       posts: uniquePosts,

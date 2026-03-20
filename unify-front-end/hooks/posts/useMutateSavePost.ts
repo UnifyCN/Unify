@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { savePost, unsavePost } from '@/services/posts/savePost';
+import { updatePostAcrossCaches } from '@/utils/updatePostCaches';
 
 export const useMutateSavePost = () => {
   const queryClient = useQueryClient();
@@ -28,6 +29,11 @@ export const useMutateSavePost = () => {
           return updatedData;
         }
       );
+
+      updatePostAcrossCaches(queryClient, postId, post => ({
+        ...post,
+        isSaved: !isSaved,
+      }));
 
       // Then make server request
       if (isSaved) {

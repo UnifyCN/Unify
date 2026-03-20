@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { getPostMetadataBatch } from '@/services/posts/postMetadata';
 
 interface PostMetadata {
   postId: number;
@@ -15,31 +15,13 @@ export const usePostMetadata = (postIds: number[]) => {
   return useQuery({
     queryKey: ['post-metadata', normalizedPostIds],
     queryFn: async (): Promise<Record<number, PostMetadata>> => {
-      if (normalizedPostIds.length === 0) return {};
-
-      const { data, error } = await supabase.rpc('get_post_metadata_batch', {
-        post_ids: normalizedPostIds,
-      });
-
-      if (error) {
-        throw error;
-      }
-
+      const metadataMap = await getPostMetadataBatch(normalizedPostIds);
       const metadata: Record<number, PostMetadata> = {};
 
-      normalizedPostIds.forEach(postId => {
-        metadata[postId] = {
-          postId,
-          isLiked: false,
-          isSaved: false,
-          likeCount: 0,
-          commentCount: 0,
-        };
-      });
-
-      for (const row of data || []) {
+      for (const [postIdKey, row] of Object.entries(metadataMap)) {
+        const postId = Number(postIdKey);
         metadata[row.post_id] = {
-          postId: row.post_id,
+          postId,
           isLiked: row.is_liked ?? false,
           isSaved: row.is_saved ?? false,
           likeCount: row.like_count ?? 0,

@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDto } from '@/utils/postTransform';
+import { enrichPostsWithMetadata } from './postMetadata';
 
 export const getPostById = async (postId: number): Promise<PostData | null> => {
   const { data, error } = await supabase
@@ -11,6 +12,8 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
       id,
       title,
       content,
+      like_count,
+      comment_count,
       created_at,
       user_id,
       group_id,
@@ -47,6 +50,8 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
     id: data.id,
     title: data.title,
     content: data.content,
+    like_count: data.like_count ?? 0,
+    comment_count: data.comment_count ?? 0,
     created_at: data.created_at,
     user_id: data.user_id,
     group_id: data.group_id,
@@ -58,5 +63,6 @@ export const getPostById = async (postId: number): Promise<PostData | null> => {
     post_image_urls: data.post_image_urls ?? null,
   };
 
-  return transformPostDto(dto);
+  const [post] = await enrichPostsWithMetadata([transformPostDto(dto)]);
+  return post ?? null;
 };
