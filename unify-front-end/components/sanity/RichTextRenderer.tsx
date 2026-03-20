@@ -21,6 +21,8 @@ import {
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
+import SelectableText from '@/components/learn/SelectableText';
+import { Highlight } from '@/services/highlights/highlightService';
 interface RichTextRendererProps {
   blocks: any[];
   styles?: any;
@@ -32,6 +34,8 @@ interface RichTextRendererProps {
   showQuestionFeedback?: boolean;
   /** When true, root container does not use flex: 1 so it sizes to content (e.g. for option text alignment). */
   compactContainer?: boolean;
+  /** Persisted highlights for this page — passed to SelectableText for rendering */
+  highlights?: Highlight[];
 }
 
 export default function RichTextRenderer({
@@ -44,6 +48,7 @@ export default function RichTextRenderer({
   onQuestionAnswer,
   showQuestionFeedback = false,
   compactContainer = false,
+  highlights = [],
 }: RichTextRendererProps) {
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -590,8 +595,15 @@ export default function RichTextRenderer({
           <View key={block._key || index} style={containerStyle}>
             <Text style={listStyle}>
               {displayBullet}{' '}
-              {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
+            <SelectableText
+              blockKey={block._key || `block-${index}`}
+              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              style={listStyle}
+              spans={block.children}
+              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+              mergedStyles={mergedStyles}
+            />
           </View>
         );
       }
@@ -656,40 +668,67 @@ export default function RichTextRenderer({
       switch (style) {
         case 'h1':
           return (
-            <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs, block.markDefs)}
-            </Text>
+            <SelectableText
+              key={block._key || index}
+              blockKey={block._key || `block-${index}`}
+              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              style={blockStyle}
+              spans={block.children}
+              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+              mergedStyles={mergedStyles}
+            />
           );
         case 'h2':
           return (
-            <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs, block.markDefs)}
-            </Text>
+            <SelectableText
+              key={block._key || index}
+              blockKey={block._key || `block-${index}`}
+              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              style={blockStyle}
+              spans={block.children}
+              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+              mergedStyles={mergedStyles}
+            />
           );
         case 'h3':
           return (
-            <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs, block.markDefs)}
-            </Text>
+            <SelectableText
+              key={block._key || index}
+              blockKey={block._key || `block-${index}`}
+              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              style={blockStyle}
+              spans={block.children}
+              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+              mergedStyles={mergedStyles}
+            />
           );
         case 'h4':
           return (
-            <Text key={block._key || index} style={blockStyle}>
-              {renderInlineText(block.children, markDefs, block.markDefs)}
-            </Text>
+            <SelectableText
+              key={block._key || index}
+              blockKey={block._key || `block-${index}`}
+              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              style={blockStyle}
+              spans={block.children}
+              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+              mergedStyles={mergedStyles}
+            />
           );
         case 'blockquote':
           return (
             <View key={block._key || index} style={mergedStyles.blockquote}>
-              <Text
+              <SelectableText
+                blockKey={block._key || `block-${index}`}
+                highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
                 style={
                   blockTextAlign && blockTextAlign !== 'left'
                     ? { textAlign: blockTextAlign }
                     : {}
                 }
-              >
-                {renderInlineText(block.children, markDefs, block.markDefs)}
-              </Text>
+                spans={block.children}
+                allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+                mergedStyles={mergedStyles}
+              />
             </View>
           );
         case 'code':
@@ -716,16 +755,16 @@ export default function RichTextRenderer({
               blockStyle.marginTop === null)
               ? { ...blockStyle, marginTop: 8 }
               : blockStyle;
-          const textProps: any = {
-            style: finalBlockStyle,
-          };
-          if (Platform.OS === 'android') {
-            textProps.includeFontPadding = false;
-          }
           return (
-            <Text key={block._key || index} {...textProps}>
-              {renderInlineText(block.children, markDefs, block.markDefs)}
-            </Text>
+            <SelectableText
+              key={block._key || index}
+              blockKey={block._key || `block-${index}`}
+              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              style={finalBlockStyle}
+              spans={block.children}
+              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+              mergedStyles={mergedStyles}
+            />
           );
       }
     }
@@ -800,6 +839,7 @@ export default function RichTextRenderer({
               number: mergedStyles.exampleText,
               link: mergedStyles.link,
             }}
+            highlights={highlights}
           />
         </View>
       );
@@ -820,6 +860,7 @@ export default function RichTextRenderer({
               // bold lead-in (e.g., "**Safety tip:**")
               strong: mergedStyles.tipTitleText,
             }}
+            highlights={highlights}
           />
         </View>
       );
@@ -832,6 +873,7 @@ export default function RichTextRenderer({
             blocks={block.content || []}
             markDefs={markDefs}
             styles={{ normal: mergedStyles.noteBoxText }}
+            highlights={highlights}
           />
         </View>
       );

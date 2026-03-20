@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  Pressable,
   Dimensions,
   Modal,
   TextInput,
@@ -20,6 +21,10 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
+import { SelectionProvider, useSelection } from '@/context/SelectionContext';
+import { usePageHighlights, useSaveHighlight, useDeleteHighlight } from '@/hooks/highlights/useHighlights';
+import SelectionActionBubble from '@/components/learn/SelectionActionBubble';
+import ExplainTermModal from '@/components/learn/ExplainTermModal';
 
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
@@ -33,9 +38,11 @@ export default function LessonPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
-  const { trackScreen, trackLessonPageViewed } = useAnalytics();
+  const { trackScreen, trackLessonPageViewed, trackLessonHighlightCreated, trackLessonHighlightRemoved } = useAnalytics();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [askAIVisible, setAskAIVisible] = useState(false);
+  const [askAITerm, setAskAITerm] = useState('');
 
   const currentPage = parseInt(pageNum || '1');
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
@@ -56,6 +63,12 @@ export default function LessonPageScreen() {
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
+
+  // Highlights
+  const currentPageKey = currentPageData?._key || `page-${currentPage}`;
+  const { data: highlights } = usePageHighlights(lessonId || '', currentPageKey);
+  const saveHighlightMutation = useSaveHighlight(lessonId || '', currentPageKey);
+  const deleteHighlightMutation = useDeleteHighlight(lessonId || '', currentPageKey);
 
   // Calculate progress for the progress bar - keep it static/offline
   const progress = calculateLessonProgress(
@@ -292,89 +305,205 @@ export default function LessonPageScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Progress Bar */}
-      <SubmoduleProgressBar
-        currentProgress={progress.currentPage}
-        totalPages={progress.totalPages}
-        submoduleTitle={submoduleData?.title || 'Submodule'}
-        submoduleOrder={submoduleData?.order || 1}
-        onClose={() => setShowExitModal(true)}
+    <SelectionProvider>
+      <SafeAreaView style={styles.safe}>
+        {/* Progress Bar */}
+        <SubmoduleProgressBar
+          currentProgress={progress.currentPage}
+          totalPages={progress.totalPages}
+          submoduleTitle={submoduleData?.title || 'Submodule'}
+          submoduleOrder={submoduleData?.order || 1}
+          onClose={() => setShowExitModal(true)}
+        />
+
+        <LessonPageContent
+          currentPageData={currentPageData}
+          highlights={highlights || []}
+          lessonId={lessonId || ''}
+          lessonTitle={lesson?.title}
+          saveHighlightMutation={saveHighlightMutation}
+          deleteHighlightMutation={deleteHighlightMutation}
+          trackLessonHighlightCreated={trackLessonHighlightCreated}
+          trackLessonHighlightRemoved={trackLessonHighlightRemoved}
+          askAIVisible={askAIVisible}
+          setAskAIVisible={setAskAIVisible}
+          askAITerm={askAITerm}
+          setAskAITerm={setAskAITerm}
+        />
+
+        {/* Navigation buttons - anchored at bottom */}
+        <View style={styles.navigationContainer}>
+          <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+            <Text style={styles.backBtnText}>Back</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.nextBtn,
+              { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+              isSaving && styles.nextBtnDisabled,
+            ]}
+            onPress={handleNext}
+            disabled={isSaving}
+          >
+            <Text style={styles.nextBtnText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Exit modal, make this into component after in refactoring*/}
+
+        <Modal
+          visible={showExitModal}
+          transparent
+          animationType='fade'
+          onRequestClose={() => setShowExitModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                Take a break from this lesson?
+              </Text>
+              <Text style={styles.modalDesc}>
+                No worries, your progress will be saved!{'\n'}
+                You can pick up right where you left off.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.modalPrimaryBtn}
+                onPress={handleSaveAndLeave}
+              >
+                <Text style={styles.modalPrimaryBtnText}>
+                  Save progress & leave
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalSecondaryBtn}
+                onPress={handleContinue}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Continue Lesson</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </SelectionProvider>
+  );
+}
+
+/**
+ * Inner component that uses SelectionContext for highlight/Ask AI actions.
+ * Must be rendered inside SelectionProvider.
+ */
+function LessonPageContent({
+  currentPageData,
+  highlights,
+  lessonId,
+  lessonTitle,
+  saveHighlightMutation,
+  deleteHighlightMutation,
+  trackLessonHighlightCreated,
+  trackLessonHighlightRemoved,
+  askAIVisible,
+  setAskAIVisible,
+  askAITerm,
+  setAskAITerm,
+}: {
+  currentPageData: any;
+  highlights: any[];
+  lessonId: string;
+  lessonTitle?: string;
+  saveHighlightMutation: any;
+  deleteHighlightMutation: any;
+  trackLessonHighlightCreated: (lessonId: string, text: string) => void;
+  trackLessonHighlightRemoved: (lessonId: string) => void;
+  askAIVisible: boolean;
+  setAskAIVisible: (v: boolean) => void;
+  askAITerm: string;
+  setAskAITerm: (t: string) => void;
+}) {
+  const { selection, clearSelection } = useSelection();
+
+  const handleHighlight = useCallback(() => {
+    if (!selection.startWord || !selection.endWord) return;
+
+    const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
+    const end = Math.max(selection.startWord.wordIndex, selection.endWord.wordIndex);
+
+    saveHighlightMutation.mutate({
+      blockKey: selection.startWord.blockKey,
+      startWordIndex: start,
+      endWordIndex: end,
+      selectedText: selection.selectedText,
+      allWordsInBlock: selection.allWords || [],
+    });
+
+    trackLessonHighlightCreated(lessonId, selection.selectedText);
+    clearSelection();
+  }, [selection, saveHighlightMutation, lessonId, trackLessonHighlightCreated, clearSelection]);
+
+  const handleRemoveHighlight = useCallback(() => {
+    if (!selection.existingHighlight) return;
+
+    deleteHighlightMutation.mutate(selection.existingHighlight.id);
+    trackLessonHighlightRemoved(lessonId);
+    clearSelection();
+  }, [selection, deleteHighlightMutation, lessonId, trackLessonHighlightRemoved, clearSelection]);
+
+  const handleAskAI = useCallback(() => {
+    setAskAITerm(selection.selectedText);
+    setAskAIVisible(true);
+    clearSelection();
+  }, [selection, setAskAITerm, setAskAIVisible, clearSelection]);
+
+  const handleScroll = useCallback(() => {
+    if (selection.mode !== 'idle') clearSelection();
+  }, [selection.mode, clearSelection]);
+
+  return (
+    <>
+      <Pressable
+        style={{ flex: 1 }}
+        onPress={() => {
+          if (selection.mode !== 'idle') clearSelection();
+        }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={handleScroll}
+        >
+          {/* Page title */}
+          <Text style={styles.pageTitle}>{currentPageData.title}</Text>
+
+          {/* Page contents */}
+          <View style={styles.content}>
+            <RichTextRenderer
+              blocks={currentPageData.content || []}
+              markDefs={currentPageData.markDefs}
+              styles={{ normal: styles.contentText }}
+              highlights={highlights}
+            />
+          </View>
+        </ScrollView>
+      </Pressable>
+
+      {/* Selection action bubble */}
+      <SelectionActionBubble
+        onHighlight={handleHighlight}
+        onRemoveHighlight={handleRemoveHighlight}
+        onAskAI={handleAskAI}
       />
 
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Page title */}
-        <Text style={styles.pageTitle}>{currentPageData.title}</Text>
-
-        {/* Page contents */}
-        <View style={styles.content}>
-          <RichTextRenderer
-            blocks={currentPageData.content || []}
-            markDefs={currentPageData.markDefs}
-            styles={{ normal: styles.contentText }}
-          />
-        </View>
-      </ScrollView>
-
-      {/* Navigation buttons - anchored at bottom */}
-      <View style={styles.navigationContainer}>
-        <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <Text style={styles.backBtnText}>Back</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.nextBtn,
-            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
-            isSaving && styles.nextBtnDisabled,
-          ]}
-          onPress={handleNext}
-          disabled={isSaving}
-        >
-          <Text style={styles.nextBtnText}>Next</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Exit modal, make this into component after in refactoring*/}
-
-      <Modal
-        visible={showExitModal}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setShowExitModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              Take a break from this lesson?
-            </Text>
-            <Text style={styles.modalDesc}>
-              No worries, your progress will be saved!{'\n'}
-              You can pick up right where you left off.
-            </Text>
-
-            <TouchableOpacity
-              style={styles.modalPrimaryBtn}
-              onPress={handleSaveAndLeave}
-            >
-              <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalSecondaryBtn}
-              onPress={handleContinue}
-            >
-              <Text style={styles.modalSecondaryBtnText}>Continue Lesson</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+      {/* Ask AI modal */}
+      <ExplainTermModal
+        visible={askAIVisible}
+        term={askAITerm}
+        lessonContext={lessonTitle}
+        lessonId={lessonId}
+        onClose={() => setAskAIVisible(false)}
+      />
+    </>
   );
 }
 

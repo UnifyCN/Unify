@@ -29,7 +29,7 @@ interface StyledWord {
  * Takes Portable Text span children and flattens them into per-word items
  * that preserve inline styling (bold, italic, code, links).
  */
-function flattenSpansToWords(
+export function flattenSpansToWords(
   spans: any[],
   allMarkDefs: any[],
   mergedStyles?: any
