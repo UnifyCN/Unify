@@ -1,38 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { savePost, unsavePost } from '@/services/posts/savePost';
-import { updatePostAcrossCaches } from '@/utils/updatePostCaches';
-
-interface PostCacheSnapshot {
-  queryKey: readonly unknown[];
-  data: unknown;
-}
+import {
+  getSnapshotsForPost,
+  PostCacheSnapshot,
+  shouldUpdateFeedCache,
+  updatePostAcrossCaches,
+} from '@/utils/updatePostCaches';
 
 interface SavePostContext {
   snapshots: PostCacheSnapshot[];
 }
-
-const getSnapshotsForPost = (
-  queryClient: ReturnType<typeof useQueryClient>,
-  postId: number
-): PostCacheSnapshot[] => [
-  ...queryClient
-    .getQueriesData({
-      queryKey: ['post-metadata'],
-    })
-    .map(([queryKey, data]) => ({ queryKey, data })),
-  ...queryClient
-    .getQueriesData({
-      predicate: query =>
-        Array.isArray(query.queryKey) &&
-        (query.queryKey[0] === 'feed' ||
-          query.queryKey[0] === 'userPosts' ||
-          (query.queryKey[0] === 'group' && query.queryKey[1] === 'posts') ||
-          query.queryKey[0] === 'searchPosts' ||
-          query.queryKey[0] === 'morePosts' ||
-          (query.queryKey[0] === 'post' && query.queryKey[1] === postId)),
-    })
-    .map(([queryKey, data]) => ({ queryKey, data })),
-];
 
 export const useMutateSavePost = () => {
   const queryClient = useQueryClient();
@@ -46,6 +23,14 @@ export const useMutateSavePost = () => {
       }
     },
     onMutate: async ({ postId, isSaved }) => {
+      await queryClient.cancelQueries({
+        predicate: query =>
+          Array.isArray(query.queryKey) &&
+          (query.queryKey[0] === 'post-metadata' ||
+            shouldUpdateFeedCache(query.queryKey) ||
+            (query.queryKey[0] === 'post' && query.queryKey[1] === postId)),
+      });
+
       const snapshots = getSnapshotsForPost(queryClient, postId);
 
       queryClient.setQueriesData(

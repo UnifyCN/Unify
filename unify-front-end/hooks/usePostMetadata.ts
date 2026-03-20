@@ -33,7 +33,8 @@ export const usePostMetadata = (postIds: number[]) => {
     },
     enabled: normalizedPostIds.length > 0,
     staleTime: 1000 * 30, // 30 seconds
-    placeholderData: previousData => previousData,
+    placeholderData: previousData =>
+      normalizedPostIds.length === 0 ? {} : previousData,
   });
 };
 

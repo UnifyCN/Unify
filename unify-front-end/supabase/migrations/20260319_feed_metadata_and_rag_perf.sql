@@ -99,6 +99,11 @@ begin
 end;
 $$;
 
+revoke execute on function public.match_chunks(vector, double precision, integer) from public;
+revoke execute on function public.match_chunks(vector, double precision, integer) from anon;
+revoke execute on function public.match_chunks(vector, double precision, integer) from authenticated;
+grant execute on function public.match_chunks(vector, double precision, integer) to service_role;
+
 create index if not exists knowledge_chunks_embedding_idx
   on public.knowledge_chunks
   using ivfflat (embedding vector_cosine_ops)

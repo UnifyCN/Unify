@@ -105,6 +105,7 @@ const PostImageCarousel = memo(
       <View style={styles.carouselWrapper}>
         <View style={styles.carouselContainer}>
           <GHScrollView
+            key={`${postId}-${imageUrls.length}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             onScroll={handleCarouselScroll}
@@ -165,6 +166,7 @@ export const PostItem = memo(
     const { width } = useWindowDimensions();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
+    const imageResolutionRequestId = React.useRef(0);
     const {
       trackPostLike,
       trackPostUnlike,
@@ -193,11 +195,22 @@ export const PostItem = memo(
 
     // When post_image_urls received, call service to get images
     useEffect(() => {
-      if (!post.post_image_urls?.length) return;
+      const requestId = imageResolutionRequestId.current + 1;
+      imageResolutionRequestId.current = requestId;
+
+      if (!post.post_image_urls?.length) {
+        setImageUrls([]);
+        return;
+      }
+
       resolvePostImageUrls(post.post_image_urls)
-        .then(urls => setImageUrls(urls))
+        .then(urls => {
+          if (imageResolutionRequestId.current === requestId) {
+            setImageUrls(urls);
+          }
+        })
         .catch(err => console.error('resolvePostImageUrls failed:', err));
-    }, [post.post_image_urls]);
+    }, [post.id, post.post_image_urls]);
 
     // Function to help generate a preview of text for posts on the feed
     const getPreviewFromHtml = (
@@ -551,9 +564,47 @@ export const PostItem = memo(
     // Warning text for when links are being opened
     const handleLinkPress = useCallback(
       (_: any, href: string) => {
+        let parsedUrl: URL;
+        try {
+          parsedUrl = new URL(href);
+        } catch {
+          Alert.alert(LINK_WARNING_TITLE, 'This link is invalid or unsupported.');
+          return;
+        }
+
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+          Alert.alert(
+            LINK_WARNING_TITLE,
+            'Only secure web links can be opened from Unify.'
+          );
+          return;
+        }
+
         Alert.alert(LINK_WARNING_TITLE, `${LINK_WARNING_BODY} ${href}?`, [
           { text: 'Go back', style: 'cancel' },
-          { text: 'Open link', onPress: () => Linking.openURL(href) },
+          {
+            text: 'Open link',
+            onPress: () => {
+              void Linking.canOpenURL(href)
+                .then(canOpen => {
+                  if (!canOpen) {
+                    Alert.alert(
+                      'Unable to open link',
+                      'This link is not supported on your device.'
+                    );
+                    return;
+                  }
+
+                  return Linking.openURL(href);
+                })
+                .catch(() => {
+                  Alert.alert(
+                    'Unable to open link',
+                    'Something went wrong while opening this link.'
+                  );
+                });
+            },
+          },
         ]);
       },
       []

@@ -264,6 +264,7 @@ export default function CompanionScreen() {
             current.filter(message => message.id !== optimisticMessageId)
           );
         }
+        setInputText(textToSend);
       }
     },
     [
@@ -274,6 +275,7 @@ export default function CompanionScreen() {
       trackCompanionMessageSent,
       currentConversationId,
       setOptimisticMessages,
+      setInputText,
     ]
   );
 

@@ -10,7 +10,12 @@ const FEED_CACHE_PREFIXES = [
   ['morePosts'],
 ] as const;
 
-const shouldUpdateFeedCache = (queryKey: readonly unknown[]) =>
+export interface PostCacheSnapshot {
+  queryKey: readonly unknown[];
+  data: unknown;
+}
+
+export const shouldUpdateFeedCache = (queryKey: readonly unknown[]) =>
   FEED_CACHE_PREFIXES.some(prefix =>
     prefix.every((segment, index) => queryKey[index] === segment)
   );
@@ -79,3 +84,22 @@ export const updatePostAcrossCaches = (
     }
   );
 };
+
+export const getSnapshotsForPost = (
+  queryClient: QueryClient,
+  postId: number
+): PostCacheSnapshot[] => [
+  ...queryClient
+    .getQueriesData({
+      queryKey: ['post-metadata'],
+    })
+    .map(([queryKey, data]) => ({ queryKey, data })),
+  ...queryClient
+    .getQueriesData({
+      predicate: query =>
+        Array.isArray(query.queryKey) &&
+        (shouldUpdateFeedCache(query.queryKey) ||
+          (query.queryKey[0] === 'post' && query.queryKey[1] === postId)),
+    })
+    .map(([queryKey, data]) => ({ queryKey, data })),
+];

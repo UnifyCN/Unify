@@ -228,6 +228,42 @@ const TabFeedPlaceholder = memo(() => (
   </View>
 ));
 
+const GroupsFeedPlaceholder = memo(() => (
+  <>
+    <View style={styles.groupsCarouselContainer}>
+      <SkeletonLoader
+        width={140}
+        height={28}
+        borderRadius={8}
+        style={styles.groupsPlaceholderTitle}
+      />
+      <View style={styles.groupsPlaceholderRow}>
+        <View style={styles.groupCardWrapper}>
+          <View style={styles.groupCardSkeleton}>
+            <SkeletonLoader
+              width='70%'
+              height={20}
+              borderRadius={4}
+              style={styles.groupCardSkeletonText}
+            />
+          </View>
+        </View>
+        <View style={styles.groupCardWrapper}>
+          <View style={styles.groupCardSkeleton}>
+            <SkeletonLoader
+              width='70%'
+              height={20}
+              borderRadius={4}
+              style={styles.groupCardSkeletonText}
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <TabFeedPlaceholder />
+  </>
+));
+
 export default function HomeScreen() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [visitedTabs, setVisitedTabs] = useState<Record<FeedTab, boolean>>({
@@ -390,7 +426,7 @@ export default function HomeScreen() {
                 }
               />
             ) : (
-              <TabFeedPlaceholder />
+              <GroupsFeedPlaceholder />
             )}
           </View>
           <View style={[styles.page, { width: screenWidth }]}>
@@ -495,6 +531,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     paddingTop: 8,
+  },
+  groupsPlaceholderTitle: {
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  groupsPlaceholderRow: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingBottom: 16,
   },
   groupCardWrapper: {
     width: 185,
