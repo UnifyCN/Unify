@@ -25,7 +25,7 @@ import {
   PathwayCardSkeletonLoader,
   CarouselDotsSkeletonLoader,
 } from '../../../components/learn/learn-index-skeleton-loader';
-import Header from '../../../components/Header';
+import TabHeader from '@/components/home/HomeHeader';
 
 export default function Learn() {
   const { trackScreen } = useAnalytics();
@@ -81,7 +81,7 @@ export default function Learn() {
   }, [refreshLessons]);
   return (
     <View style={styles.root}>
-      <Header showSearchIcon={false} />
+      <TabHeader variant="minimal" />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView
@@ -218,7 +218,7 @@ export default function Learn() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { padding: 20, paddingBottom: 100 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
   pageTitle: {
     fontSize: 24,
     fontWeight: '600',

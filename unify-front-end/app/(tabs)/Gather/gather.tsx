@@ -13,7 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { EventsCarousel } from '@/components/EventsCarousel';
-import Header from '@/components/Header';
+import TabHeader from '@/components/home/HomeHeader';
 import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from '@/types/groups';
@@ -284,7 +284,7 @@ export default function GatherScreen() {
 
   return (
     <View style={styles.root}>
-      <Header />
+      <TabHeader variant="minimal" title="Community" />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView

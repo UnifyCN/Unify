@@ -6,6 +6,7 @@ import {
   ImageBackground,
   Dimensions,
   useWindowDimensions,
+  ScrollView,
   NativeScrollEvent,
   NativeSyntheticEvent,
 } from 'react-native';
@@ -16,7 +17,7 @@ import Animated, {
   SharedValue,
 } from 'react-native-reanimated';
 import { StatusBar } from 'expo-status-bar';
-import Header from '@/components/Header';
+import TabHeader from '@/components/home/HomeHeader';
 import { Theme } from '@/constants/Theme';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -227,8 +228,7 @@ export default function HomeScreen() {
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
   const activeTabRef = useRef<FeedTab>(TABS[0]);
-  const scrollViewRef =
-    useRef<React.ElementRef<typeof Animated.ScrollView>>(null);
+  const scrollViewRef = useRef<Animated.ScrollView>(null);
   const { width: screenWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
 
@@ -271,7 +271,7 @@ export default function HomeScreen() {
   const handleTabPress = useCallback(
     (index: number) => {
       if (index === activeIndex) return;
-      scrollViewRef.current?.scrollTo({
+      (scrollViewRef.current as unknown as ScrollView)?.scrollTo({
         x: index * screenWidth,
         animated: true,
       });
@@ -309,7 +309,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <Header />
+      <TabHeader />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <FeedTabs
