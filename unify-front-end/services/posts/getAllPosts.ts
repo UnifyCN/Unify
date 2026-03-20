@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDtos } from '@/utils/postTransform';
+import { enrichPostsWithMetadata } from './postMetadata';
 
 export const getAllPosts = async (
   cursor?: string,
@@ -15,6 +16,8 @@ export const getAllPosts = async (
 				id,
 				title,
 				content,
+				like_count,
+				comment_count,
 				created_at,
 				user_id,
 				group_id,
@@ -48,8 +51,10 @@ export const getAllPosts = async (
 
     // Transform data using helper function
     // Note: Posts without groups (group_id is null) are included - groups will be null
-    const transformedPosts: PostData[] = transformPostDtos(
-      (data || []).filter((row: any) => row.users) as unknown as PostDto[]
+    const transformedPosts: PostData[] = await enrichPostsWithMetadata(
+      transformPostDtos(
+        (data || []).filter((row: any) => row.users) as unknown as PostDto[]
+      )
     );
 
     return {

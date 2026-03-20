@@ -26,8 +26,10 @@ import {
   CarouselDotsSkeletonLoader,
 } from '../../../components/learn/learn-index-skeleton-loader';
 import TabHeader from '@/components/home/HomeHeader';
+import { useProgressCache } from '@/hooks/progress/useProgressCache';
 
 export default function Learn() {
+  useProgressCache();
   const { trackScreen } = useAnalytics();
   const isFocused = useIsFocused();
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -81,7 +83,7 @@ export default function Learn() {
   }, [refreshLessons]);
   return (
     <View style={styles.root}>
-      <TabHeader variant="minimal" />
+      <TabHeader variant='minimal' />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView

@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
+import { enrichPostsWithMetadata } from './postMetadata';
 
 export const getPostsByGroup = async (
   group_id: number,
@@ -26,6 +27,8 @@ export const getPostsByGroup = async (
         id,
         title,
         content,
+        like_count,
+        comment_count,
         created_at,
         user_id,
         group_id,
@@ -58,14 +61,18 @@ export const getPostsByGroup = async (
       time: post.created_at,
       title: post.title,
       content: post.content,
+      likeCount: post.like_count ?? 0,
+      commentCount: post.comment_count ?? 0,
       group: post.groups?.group_name?.trim() || null,
       post_image_urls: post.post_image_urls || null,
     }));
 
+    const postsWithMetadata = await enrichPostsWithMetadata(transformed);
+
     return {
-      posts: transformed,
+      posts: postsWithMetadata,
       next_cursor:
-        transformed.length === limit ? String(offset + limit) : undefined,
+        postsWithMetadata.length === limit ? String(offset + limit) : undefined,
     };
   } catch (err) {
     console.error('getPostsByGroup error', err);
