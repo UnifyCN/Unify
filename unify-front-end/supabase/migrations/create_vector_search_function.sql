@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION match_chunks(
+CREATE OR REPLACE FUNCTION public.match_chunks(
   query_embedding vector(1536),
   match_threshold float DEFAULT 0.5,
   match_count int DEFAULT 5
@@ -28,8 +28,8 @@ BEGIN
       'subject', kd.subject,
       'section', kd.section
     ) AS knowledge_documents
-  FROM knowledge_chunks kc
-  JOIN knowledge_documents kd ON kc.document_id = kd.id
+  FROM public.knowledge_chunks kc
+  JOIN public.knowledge_documents kd ON kc.document_id = kd.id
   WHERE kc.embedding IS NOT NULL
     AND (match_threshold <= 0 OR 1 - (kc.embedding <=> query_embedding) > match_threshold)
   ORDER BY kc.embedding <=> query_embedding

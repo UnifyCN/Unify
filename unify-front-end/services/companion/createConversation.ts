@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { queryClient } from '@/lib/queryClient';
 
 export interface CreateConversationResponse {
   conversation_identifier: string;
@@ -42,21 +43,24 @@ const updateConversationTitle = async (
 ) => {
   try {
     const generatedTitle = await generateTitle(firstMessage);
-    const trimmedTitle = generatedTitle.trim();
-
-    if (!trimmedTitle) {
+    if (!generatedTitle) {
       return;
     }
 
     const { error } = await supabase
       .from('conversations')
-      .update({ title: trimmedTitle })
+      .update({ title: generatedTitle })
       .eq('id', conversationId)
       .eq('user_id', userId);
 
     if (error) {
       console.error('Failed to update conversation title:', error);
+      return;
     }
+
+    queryClient.invalidateQueries({
+      queryKey: ['conversations'],
+    });
   } catch (error) {
     console.error('Failed to generate or update conversation title:', error);
   }

@@ -18,6 +18,10 @@ export const getCommentedOnFeed = async ({
   cursor,
 }: GetCommentedOnFeedProps): Promise<FeedResponse> => {
   try {
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+
     const { data, error } = await supabase
       .from('post_comments')
       .select(
@@ -55,7 +59,7 @@ export const getCommentedOnFeed = async ({
       throw new Error(`Failed to fetch commented on feed: ${error.message}`);
     }
 
-    const blockedIds = await getBlockedUserIdsForUser(userId);
+    const blockedIds = await getBlockedUserIdsForUser(currentUser?.id);
 
     // Use Map to deduplicate by post ID, excluding blocked users
     const postsMap = new Map();

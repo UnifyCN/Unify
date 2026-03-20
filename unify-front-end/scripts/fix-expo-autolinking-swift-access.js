@@ -31,22 +31,33 @@ const replacements = [
   ],
 ];
 
+const escapeRegExp = value =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 if (!fs.existsSync(targetPath)) {
   console.warn(`Skipping Expo autolinking patch, file not found: ${targetPath}`);
   process.exit(0);
 }
 
-const original = fs.readFileSync(targetPath, 'utf8');
-let patched = original;
+try {
+  const original = fs.readFileSync(targetPath, 'utf8');
+  let patched = original;
 
-for (const [search, replace] of replacements) {
-  patched = patched.replace(search, replace);
+  for (const [search, replace] of replacements) {
+    patched = patched.replace(new RegExp(escapeRegExp(search), 'g'), replace);
+  }
+
+  if (patched === original) {
+    console.log('Expo autolinking Swift access patch already applied.');
+    process.exit(0);
+  }
+
+  fs.writeFileSync(targetPath, patched, 'utf8');
+  console.log('Applied Expo autolinking Swift access patch.');
+} catch (error) {
+  console.error(
+    `Failed to patch Expo autolinking Swift access file at ${targetPath}:`,
+    error
+  );
+  process.exit(1);
 }
-
-if (patched === original) {
-  console.log('Expo autolinking Swift access patch already applied.');
-  process.exit(0);
-}
-
-fs.writeFileSync(targetPath, patched, 'utf8');
-console.log('Applied Expo autolinking Swift access patch.');

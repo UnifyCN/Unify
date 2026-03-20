@@ -131,16 +131,29 @@ export default function CompanionScreen() {
     [dbMessages]
   );
 
+  const visibleOptimisticMessages = useMemo(
+    () =>
+      optimisticMessages.filter(
+        optimisticMessage =>
+          !dbMessagesFormatted.some(
+            persistedMessage =>
+              persistedMessage.isUser === optimisticMessage.isUser &&
+              persistedMessage.text === optimisticMessage.text
+          )
+      ),
+    [dbMessagesFormatted, optimisticMessages]
+  );
+
   // Combine greeting message with real messages
   const messages: Message[] = useMemo(
     () =>
       (greetingMessage
-        ? [greetingMessage, ...dbMessagesFormatted, ...optimisticMessages]
-        : [...dbMessagesFormatted, ...optimisticMessages]
+        ? [greetingMessage, ...dbMessagesFormatted, ...visibleOptimisticMessages]
+        : [...dbMessagesFormatted, ...visibleOptimisticMessages]
       ).sort(
         (left, right) => left.timestamp.getTime() - right.timestamp.getTime()
       ),
-    [greetingMessage, dbMessagesFormatted, optimisticMessages]
+    [greetingMessage, dbMessagesFormatted, visibleOptimisticMessages]
   );
 
   // Clear greeting when real messages exist
@@ -164,7 +177,6 @@ export default function CompanionScreen() {
       currentConversationId,
       setCurrentConversationId,
       isPremium,
-      onInitialUserMessagePersisted: () => setOptimisticMessages([]),
     });
 
   const messageCount = usage?.message_count ?? 0;
@@ -212,9 +224,11 @@ export default function CompanionScreen() {
       const textToSend = messageText || inputText.trim();
       if (!textToSend || isLoading || !canSend) return;
 
+      let optimisticMessageId: string | null = null;
       if (!currentConversationId) {
+        optimisticMessageId = `optimistic-user-${Date.now()}`;
         const optimisticMessage: Message = {
-          id: `optimistic-user-${Date.now()}`,
+          id: optimisticMessageId,
           text: textToSend,
           isUser: true,
           timestamp: new Date(),
@@ -228,7 +242,11 @@ export default function CompanionScreen() {
       try {
         await sendMessage(textToSend);
       } catch {
-        // Error is already logged in useSendMessage hook
+        if (optimisticMessageId) {
+          setOptimisticMessages(current =>
+            current.filter(message => message.id !== optimisticMessageId)
+          );
+        }
       }
     },
     [
@@ -238,6 +256,7 @@ export default function CompanionScreen() {
       sendMessage,
       trackCompanionMessageSent,
       currentConversationId,
+      setOptimisticMessages,
     ]
   );
 

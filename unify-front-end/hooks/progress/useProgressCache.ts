@@ -3,6 +3,7 @@ import { InteractionManager } from 'react-native';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 
 let hasScheduledProgressWarmup = false;
+let progressWarmupPromise: Promise<void> | null = null;
 
 export function useProgressCache() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -15,13 +16,25 @@ export function useProgressCache() {
       return;
     }
 
-    hasScheduledProgressWarmup = true;
     let isCancelled = false;
 
     const initializeCache = async () => {
       try {
         setIsLoading(true);
-        await cachedProgressService.getProgressData();
+
+        if (!progressWarmupPromise) {
+          progressWarmupPromise = cachedProgressService
+            .getProgressData()
+            .then(() => {
+              hasScheduledProgressWarmup = true;
+            })
+            .catch(error => {
+              progressWarmupPromise = null;
+              throw error;
+            });
+        }
+
+        await progressWarmupPromise;
         if (!isCancelled) {
           setIsInitialized(true);
         }

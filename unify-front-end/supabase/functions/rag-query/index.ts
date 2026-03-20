@@ -205,24 +205,15 @@ async function persistChatbotUsage(
   estimatedCostUsd?: number
 ): Promise<void> {
   try {
-    const { data: existingUsage } = await supabase
-      .from('chatbot_usage')
-      .select('total_tokens_used, total_estimated_cost_usd')
-      .eq('user_id', userId)
-      .maybeSingle();
+    const { error } = await supabase.rpc('increment_chatbot_usage', {
+      p_user_id: userId,
+      p_tokens: tokenUsage.total_tokens,
+      p_cost: estimatedCostUsd || 0,
+    });
 
-    const prevTokens = existingUsage?.total_tokens_used || 0;
-    const prevCost = existingUsage?.total_estimated_cost_usd || 0;
-
-    await supabase.from('chatbot_usage').upsert(
-      {
-        user_id: userId,
-        total_tokens_used: prevTokens + tokenUsage.total_tokens,
-        total_estimated_cost_usd: prevCost + (estimatedCostUsd || 0),
-        last_message_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id' }
-    );
+    if (error) {
+      throw error;
+    }
   } catch (costError) {
     console.error('Failed to store token usage:', costError);
   }
@@ -242,7 +233,9 @@ function scheduleBackgroundTask(task: Promise<unknown>) {
     return;
   }
 
-  void task;
+  void task.catch(error => {
+    console.error('Background task failed:', error);
+  });
 }
 
 async function resolveAuthenticatedUserId(

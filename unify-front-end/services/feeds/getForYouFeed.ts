@@ -132,6 +132,10 @@ export const getForYouFeed = async (
         limitedNonPinnedData.length > 0
           ? limitedNonPinnedData[limitedNonPinnedData.length - 1].created_at
           : undefined;
+      const fallbackPinnedCursor =
+        pinnedPosts.length > 0
+          ? pinnedPosts[pinnedPosts.length - 1].time
+          : undefined;
 
       const allPosts = await enrichPostsWithMetadata([
         ...pinnedPosts,
@@ -141,7 +145,7 @@ export const getForYouFeed = async (
       return {
         posts: allPosts,
         // Use created_at of last non-pinned post as cursor
-        next_cursor: lastNonPinnedCreatedAt || undefined,
+        next_cursor: lastNonPinnedCreatedAt || fallbackPinnedCursor,
       };
     } else {
       // Page 2+: Only non-pinned posts, using cursor (created_at of last post)
@@ -184,7 +188,7 @@ export const getForYouFeed = async (
 
       const transformedPosts: PostData[] = await enrichPostsWithMetadata(
         transformPostDtos(
-        data as unknown as PostDto[]
+          data as unknown as PostDto[]
         )
       );
 

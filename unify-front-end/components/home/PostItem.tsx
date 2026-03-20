@@ -67,6 +67,10 @@ const HTML_TAG_STYLES: Record<string, MixedStyleDeclaration> = {
   strike: { textDecorationLine: 'line-through' },
 };
 
+const LINK_WARNING_TITLE = 'You are about to leave Unify';
+const LINK_WARNING_BODY =
+  'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
+
 const PostImageCarousel = memo(
   ({
     cardImageWidth,
@@ -545,18 +549,14 @@ export const PostItem = memo(
 
     // 'react-native-render-HTML' HTML rendering config
     // Warning text for when links are being opened
-    const linkWarningTitle = 'You are about to leave Unify';
-    const linkWarningBody =
-      'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
-
     const handleLinkPress = useCallback(
       (_: any, href: string) => {
-        Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
+        Alert.alert(LINK_WARNING_TITLE, `${LINK_WARNING_BODY} ${href}?`, [
           { text: 'Go back', style: 'cancel' },
           { text: 'Open link', onPress: () => Linking.openURL(href) },
         ]);
       },
-      [linkWarningBody]
+      []
     );
 
     const renderersProps = useMemo(
@@ -1131,7 +1131,6 @@ const styles = StyleSheet.create({
   },
   carouselImage: {
     height: 200,
-    resizeMode: 'cover',
   },
   dotsContainer: {
     position: 'absolute',

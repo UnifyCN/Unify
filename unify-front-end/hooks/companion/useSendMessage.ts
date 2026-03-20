@@ -16,7 +16,6 @@ interface UseSendMessageParams {
   currentConversationId: string | null;
   setCurrentConversationId: (id: string | null) => void;
   isPremium: boolean;
-  onInitialUserMessagePersisted?: () => void;
 }
 
 export const useSendMessage = ({
@@ -24,7 +23,6 @@ export const useSendMessage = ({
   currentConversationId,
   setCurrentConversationId,
   isPremium,
-  onInitialUserMessagePersisted,
 }: UseSendMessageParams) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
@@ -68,9 +66,6 @@ export const useSendMessage = ({
           role: 'user',
           content: messageText,
         });
-        if (isNewConversation) {
-          onInitialUserMessagePersisted?.();
-        }
       } catch (error) {
         console.error('Failed to save user message:', error);
         // Continue anyway - message will be saved but might not show immediately

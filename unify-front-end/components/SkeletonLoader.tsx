@@ -33,7 +33,7 @@ export const SkeletonLoader = ({
     );
     animation.start();
     return () => animation.stop();
-  }, []);
+  }, [animatedValue]);
 
   const opacity = animatedValue.interpolate({
     inputRange: [0, 1],

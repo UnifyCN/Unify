@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { LegendList } from '@legendapp/list';
@@ -45,6 +45,8 @@ const Feed = ({
   const estimatedItemSize = isHomeCardVariant
     ? HOME_CARD_ESTIMATED_ITEM_SIZE
     : DEFAULT_ESTIMATED_ITEM_SIZE;
+  const prefetchedAvatarUrlsRef = useRef(new Set<string>());
+  const prefetchedImageKeysRef = useRef(new Set<string>());
   const allPosts = useMemo(
     () => data?.pages?.flatMap((page: any) => page.posts) ?? [],
     [data]
@@ -60,15 +62,38 @@ const Feed = ({
     const firstViewportAvatarUrls = firstViewportPosts.map(
       (post: PostData) => post.user.profilePictureUrl
     );
-    const firstViewportImageKeys = firstViewportPosts.flatMap(
-      (post: PostData) => post.post_image_urls ?? []
+    const firstViewportImageKeys = firstViewportPosts.flatMap((post: PostData) =>
+      post.post_image_urls ?? []
+    );
+    const nextAvatarUrls = firstViewportAvatarUrls.filter(
+      (url: string | null | undefined): url is string =>
+        typeof url === 'string' &&
+        url.trim().length > 0 &&
+        !prefetchedAvatarUrlsRef.current.has(url)
+    );
+    const nextImageKeys = firstViewportImageKeys.filter(
+      (key: string | null | undefined): key is string =>
+        typeof key === 'string' &&
+        key.trim().length > 0 &&
+        !prefetchedImageKeysRef.current.has(key)
+    );
+
+    if (nextAvatarUrls.length === 0 && nextImageKeys.length === 0) {
+      return;
+    }
+
+    nextAvatarUrls.forEach((url: string) =>
+      prefetchedAvatarUrlsRef.current.add(url)
+    );
+    nextImageKeys.forEach((key: string) =>
+      prefetchedImageKeysRef.current.add(key)
     );
 
     void Promise.all([
-      prefetchAvatarUrls(firstViewportAvatarUrls).catch(error => {
+      prefetchAvatarUrls(nextAvatarUrls).catch(error => {
         console.warn('Failed to prefetch feed avatar URLs', error);
       }),
-      prefetchPostImageUrls(firstViewportImageKeys).catch(error => {
+      prefetchPostImageUrls(nextImageKeys).catch(error => {
         console.warn('Failed to prefetch feed post image URLs', error);
       }),
     ]);

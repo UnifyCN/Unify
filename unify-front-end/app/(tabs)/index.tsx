@@ -11,7 +11,6 @@ import {
   NativeSyntheticEvent,
 } from 'react-native';
 import Animated, {
-  runOnJS,
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -244,16 +243,6 @@ export default function HomeScreen() {
     );
   }, []);
 
-  const markTabVisitedByIndex = useCallback(
-    (index: number) => {
-      const tab = TABS[index];
-      if (tab) {
-        markTabVisited(tab);
-      }
-    },
-    [markTabVisited]
-  );
-
   // Keep ref in sync with state
   useEffect(() => {
     activeTabRef.current = activeTab;
@@ -319,10 +308,6 @@ export default function HomeScreen() {
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
       scrollX.value = event.contentOffset.x;
-      const nearestIndex = Math.round(event.contentOffset.x / screenWidth);
-      if (nearestIndex >= 0 && nearestIndex < TABS.length) {
-        runOnJS(markTabVisitedByIndex)(nearestIndex);
-      }
     },
   });
 

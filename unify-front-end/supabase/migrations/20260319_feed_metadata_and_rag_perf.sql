@@ -1,6 +1,6 @@
 create or replace function public.get_post_metadata_batch(post_ids bigint[])
 returns table (
-  post_id integer,
+  post_id bigint,
   like_count integer,
   comment_count integer,
   is_liked boolean,
@@ -12,7 +12,7 @@ security definer
 set search_path = public
 as $$
   with requested_posts as (
-    select distinct unnest(post_ids)::integer as post_id
+    select distinct unnest(post_ids) as post_id
   ),
   post_rows as (
     select
@@ -93,4 +93,6 @@ $$;
 create index if not exists knowledge_chunks_embedding_idx
   on public.knowledge_chunks
   using ivfflat (embedding vector_cosine_ops)
+  -- Tune ivfflat lists against the live row count. A good rule of thumb is
+  -- lists ~= sqrt(rows), once the table has representative production data.
   with (lists = 100);
