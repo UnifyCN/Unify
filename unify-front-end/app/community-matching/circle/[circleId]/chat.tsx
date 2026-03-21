@@ -780,7 +780,8 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     color: '#7C4A00',
-    fontSize: 13,
+    fontSize: 14,
+    lineHeight: 18,
   },
   loader: {
     flex: 1,
@@ -797,10 +798,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   dateSeparatorText: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#98A2B3',
     fontWeight: '600',
-    letterSpacing: 0.2,
+    letterSpacing: 0.15,
   },
   inputContainer: {
     paddingTop: 8,
@@ -817,10 +818,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     backgroundColor: '#F5F7FA',
-    borderRadius: 20,
-    paddingVertical: 4,
-    paddingLeft: 12,
-    paddingRight: 5,
+    borderRadius: 22,
+    paddingVertical: 5,
+    paddingLeft: 13,
+    paddingRight: 6,
     gap: 8,
     borderWidth: 1,
     borderColor: '#E8EDF3',
@@ -831,21 +832,22 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 36,
-    maxHeight: 108,
+    minHeight: 38,
+    maxHeight: 112,
     paddingHorizontal: 0,
     paddingTop: Platform.OS === 'ios' ? 8 : 6,
     paddingBottom: Platform.OS === 'ios' ? 8 : 6,
-    fontSize: 15,
+    fontSize: 16,
+    lineHeight: 20,
     color: '#1F2937',
   },
   inputDisabled: {
     opacity: 0.6,
   },
   sendButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#ff9b3d',
     alignItems: 'center',
     justifyContent: 'center',
@@ -906,6 +908,7 @@ const styles = StyleSheet.create({
   presenceText: {
     marginLeft: 8,
     fontSize: 13,
+    lineHeight: 17,
     color: '#64748B',
   },
   // Typing indicator styles
@@ -916,6 +919,7 @@ const styles = StyleSheet.create({
   },
   typingText: {
     fontSize: 13,
+    lineHeight: 17,
     color: '#64748B',
     fontStyle: 'italic',
   },

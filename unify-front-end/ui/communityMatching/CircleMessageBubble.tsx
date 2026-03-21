@@ -144,16 +144,16 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginTop: 4,
-    width: 32,
+    width: 36,
     alignItems: 'center',
   },
   avatarSpacer: {
-    width: 32,
+    width: 36,
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#E5E7EB',
   },
   avatarFallback: {
@@ -174,9 +174,9 @@ const styles = StyleSheet.create({
   },
   bubble: {
     maxWidth: '100%',
-    paddingVertical: 8,
-    paddingHorizontal: 13,
-    borderRadius: 18,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 20,
   },
   bubbleOwn: {
     backgroundColor: '#ff9d40',
@@ -210,8 +210,8 @@ const styles = StyleSheet.create({
   },
   messageText: {
     color: '#1F2937',
-    fontSize: 15,
-    lineHeight: 21,
+    fontSize: 16,
+    lineHeight: 22,
   },
   messageTextOwn: {
     color: '#fff',
@@ -219,13 +219,15 @@ const styles = StyleSheet.create({
   senderName: {
     color: '#667085',
     fontSize: 12,
-    marginBottom: 3,
+    lineHeight: 15,
+    marginBottom: 4,
     fontWeight: '600',
   },
   timestamp: {
     fontSize: 11,
     color: '#98A2B3',
-    marginTop: 3,
+    lineHeight: 14,
+    marginTop: 4,
   },
   timestampOwn: {
     textAlign: 'right',
@@ -237,7 +239,7 @@ const styles = StyleSheet.create({
   },
   systemRow: {
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 12,
     paddingHorizontal: 24,
   },
   systemBubble: {
@@ -245,14 +247,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8F1',
     borderWidth: 1,
     borderColor: '#FEE9D1',
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 16,
   },
   systemText: {
     color: '#D97706',
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 17,
+    lineHeight: 20,
   },
 });
