@@ -12,6 +12,9 @@ export const fetchCircleMessages = async (
         circle_id,
         sender_user_id,
         content,
+        message_type,
+        metadata,
+        dedupe_key,
         created_at,
         users:users!left(
           id,
@@ -36,6 +39,9 @@ export const fetchCircleMessages = async (
         circle_id: r.circle_id,
         sender_user_id: r.sender_user_id,
         content: r.content,
+        message_type: r.message_type,
+        metadata: r.metadata || null,
+        dedupe_key: r.dedupe_key ?? null,
         created_at: r.created_at,
         sender: user
           ? {
@@ -66,6 +72,7 @@ export const sendCircleMessage = async (circleId: string, content: string) => {
     circle_id: circleId,
     sender_user_id: user.id,
     content: trimmed,
+    message_type: 'user',
   });
 
   if (error) {

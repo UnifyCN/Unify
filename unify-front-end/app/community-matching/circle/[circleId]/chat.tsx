@@ -258,6 +258,8 @@ export default function CircleChatScreen() {
                 circle_id: payload.new.circle_id,
                 sender_user_id: payload.new.sender_user_id,
                 content: payload.new.content,
+                message_type: payload.new.message_type ?? 'user',
+                metadata: payload.new.metadata ?? null,
                 created_at: payload.new.created_at,
                 sender: payload.new.sender_user_id
                   ? {
@@ -355,6 +357,8 @@ export default function CircleChatScreen() {
       circle_id: circleId as string,
       sender_user_id: currentUser?.id || '',
       content: trimmed,
+      message_type: 'user',
+      metadata: null,
       created_at: new Date().toISOString(),
       sender: currentUser
         ? {

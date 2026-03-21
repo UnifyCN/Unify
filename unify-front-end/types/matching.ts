@@ -3,13 +3,18 @@ import type { MatchingTimeInCanada as TimeInCanada } from '@/matching/pools';
 
 export type CommunityWaitlistStatus = 'waiting' | 'matched' | 'paused';
 export type CommunityCircleStatus = 'active' | 'ended';
+export type CommunityMessageType = 'user' | 'system_notice' | 'daily_prompt';
+export type CommunityMatchingPersona = Persona | string | null;
 
 export interface CommunityWaitlistEntry {
   id: string;
   user_id: string;
-  persona: Persona;
+  persona: CommunityMatchingPersona;
   time_in_canada: TimeInCanada;
   pool_key: string;
+  goal: string | null;
+  topics: string[];
+  placement_deadline_at: string;
   status: CommunityWaitlistStatus;
   created_at: string;
 }
@@ -17,8 +22,11 @@ export interface CommunityWaitlistEntry {
 export interface CommunityCircle {
   id: string;
   pool_key: string;
-  persona: Persona;
+  persona: CommunityMatchingPersona;
   time_in_canada: TimeInCanada;
+  goal: string | null;
+  topics: string[];
+  match_metadata: Record<string, unknown> | null;
   created_at: string;
   ends_at: string;
   status: CommunityCircleStatus;
@@ -52,6 +60,9 @@ export interface CommunityMessage {
   sender_user_id: string | null;
   content: string;
   created_at: string;
+  message_type: CommunityMessageType;
+  metadata: Record<string, unknown> | null;
+  dedupe_key?: string | null;
   sender?: {
     id: string;
     username: string;
