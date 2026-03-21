@@ -1,6 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import type { CommunityMessage } from '@/types/matching';
 
+type SentMessageResult = {
+  id: string;
+  dedupe_key: string | null;
+};
+
 export const fetchCircleMessages = async (
   circleId: string
 ): Promise<CommunityMessage[]> => {
@@ -12,6 +17,9 @@ export const fetchCircleMessages = async (
         circle_id,
         sender_user_id,
         content,
+        message_type,
+        metadata,
+        dedupe_key,
         created_at,
         users:users!left(
           id,
@@ -36,6 +44,9 @@ export const fetchCircleMessages = async (
         circle_id: r.circle_id,
         sender_user_id: r.sender_user_id,
         content: r.content,
+        message_type: r.message_type ?? 'user',
+        metadata: r.metadata || null,
+        dedupe_key: r.dedupe_key ?? null,
         created_at: r.created_at,
         sender: user
           ? {
@@ -49,10 +60,14 @@ export const fetchCircleMessages = async (
   );
 };
 
-export const sendCircleMessage = async (circleId: string, content: string) => {
+export const sendCircleMessage = async (
+  circleId: string,
+  content: string,
+  dedupeKey: string
+): Promise<SentMessageResult | null> => {
   const trimmed = content.trim();
   if (!trimmed) {
-    return;
+    return null;
   }
 
   const {
@@ -62,13 +77,21 @@ export const sendCircleMessage = async (circleId: string, content: string) => {
     throw new Error('User not authenticated');
   }
 
-  const { error } = await supabase.from('community_messages').insert({
-    circle_id: circleId,
-    sender_user_id: user.id,
-    content: trimmed,
-  });
+  const { data, error } = await supabase
+    .from('community_messages')
+    .insert({
+      circle_id: circleId,
+      sender_user_id: user.id,
+      content: trimmed,
+      message_type: 'user',
+      dedupe_key: dedupeKey,
+    })
+    .select('id,dedupe_key')
+    .single();
 
   if (error) {
     throw new Error(`Failed to send message: ${error.message}`);
   }
+
+  return (data as SentMessageResult | null) ?? null;
 };
