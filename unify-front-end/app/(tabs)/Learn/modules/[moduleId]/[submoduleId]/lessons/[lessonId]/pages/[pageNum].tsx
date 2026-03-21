@@ -9,6 +9,7 @@ import {
   Dimensions,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -24,6 +25,9 @@ import { useFocusEffect } from '@react-navigation/native';
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { useToast } from '@/context/ToastContext';
+import { useLessonPageSaved } from '@/hooks/learn/useLessonPageSaved';
+import { useMutateSaveLessonPage } from '@/hooks/learn/useMutateSaveLessonPage';
 
 export default function LessonPageScreen() {
   const router = useRouter();
@@ -34,10 +38,17 @@ export default function LessonPageScreen() {
     pageNum: string;
   }>();
   const { trackScreen, trackLessonPageViewed } = useAnalytics();
+  const { showToast } = useToast();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
+
+  const saveLessonPageMutation = useMutateSaveLessonPage();
+  const { data: isLessonPageBookmarked } = useLessonPageSaved(
+    lessonId,
+    currentPage
+  );
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
     lessonId || ''
   );
@@ -271,6 +282,51 @@ export default function LessonPageScreen() {
     }
   };
 
+  const handleBookmarkPress = useCallback(() => {
+    if (!lessonId || !moduleId || !submoduleId || !lesson || !currentPageData) {
+      return;
+    }
+    const wasSaved = !!isLessonPageBookmarked;
+    const input = {
+      lessonId,
+      pageNumber: currentPage,
+      moduleId,
+      submoduleId,
+      lessonTitleSnapshot: lesson.title ?? null,
+      pageTitleSnapshot: currentPageData.title ?? null,
+    };
+    saveLessonPageMutation.mutate(
+      { input, isSaved: wasSaved },
+      {
+        onSuccess: () => {
+          if (!wasSaved) {
+            showToast(
+              'Lesson page saved! Find it in Settings > Saved Lessons',
+              () => router.push('/saved-lessons' as any)
+            );
+          }
+        },
+        onError: err => {
+          Alert.alert(
+            'Could not update',
+            err instanceof Error ? err.message : 'Please try again.'
+          );
+        },
+      }
+    );
+  }, [
+    lessonId,
+    moduleId,
+    submoduleId,
+    lesson,
+    currentPageData,
+    currentPage,
+    isLessonPageBookmarked,
+    saveLessonPageMutation,
+    showToast,
+    router,
+  ]);
+
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -300,6 +356,9 @@ export default function LessonPageScreen() {
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
+        onBookmarkPress={handleBookmarkPress}
+        isBookmarked={!!isLessonPageBookmarked}
+        bookmarkLoading={saveLessonPageMutation.isPending}
       />
 
       <ScrollView

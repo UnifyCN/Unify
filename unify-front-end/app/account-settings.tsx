@@ -3,7 +3,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Linking,
   Pressable,
   Modal,
   Alert,
@@ -47,12 +46,6 @@ export default function AccountSettingsPage() {
     }
   };
 
-  const handleGiveFeedback = () => {
-    Linking.openURL('https://unify.userjot.com').catch(err =>
-      console.error('Failed to open URL:', err)
-    );
-  };
-
   const toggleHaptics = () => {
     setHapticsEnabled(!hapticsEnabled);
   };
@@ -77,28 +70,6 @@ export default function AccountSettingsPage() {
       );
     }
   };
-
-  const settingsRows = [
-    {
-      title: 'View Profile',
-      icon: 'user' as const,
-      onPress: () => {
-        if (currentUser?.id) {
-          router.push(`/profile?userId=${currentUser.id}`);
-        }
-      },
-    },
-    {
-      title: 'Saved Posts',
-      icon: 'bookmark' as const,
-      onPress: () => router.push('/saved'),
-    },
-    {
-      title: 'Give Feedback',
-      icon: 'star' as const,
-      onPress: handleGiveFeedback,
-    },
-  ];
 
   // Note: pathname uses 'as any' because expo-router generates types at build time
   // and legal-document.tsx may not be included in the typed routes yet
@@ -191,22 +162,6 @@ export default function AccountSettingsPage() {
           </View>
         </View>
         <View style={styles.rowsContainer}>
-          <View style={styles.settingsCard}>
-            {settingsRows.map((row, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.row}
-                onPress={row.onPress}
-              >
-                <View style={styles.bookmarkIconContainer}>
-                  <Feather name={row.icon} size={24} color={Theme.black} />
-                </View>
-                <Text style={styles.rowText}>{row.title}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.divider} />
-
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.settingsCard}>
             <View style={[styles.row, styles.toggleRow]}>
