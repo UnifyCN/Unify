@@ -14,6 +14,9 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useCurrentUser } from '@/context/UserContext';
 import { Avatar } from '@/components/Avatar';
 import {
@@ -35,8 +38,6 @@ import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import BackHeader from '@/components/BackHeader';
-import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
-import KeyboardSafeAreaView from '@/components/common/KeyboardSafeAreaView';
 import {
   normalizeAvatarSource,
   prefetchAvatarUrls,
@@ -97,6 +98,8 @@ const formatDateSeparatorLabel = (isoDate: string): string => {
 export default function CircleChatScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { height: kbHeight } = useReanimatedKeyboardAnimation();
   const { currentUser } = useCurrentUser();
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -516,12 +519,13 @@ export default function CircleChatScreen() {
   const inputDisabled =
     circle?.status === 'ended' || membership?.left_at !== null;
 
+  const bottomAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: kbHeight.value }],
+  }));
+
   return (
     <View style={styles.root}>
-      <KeyboardAvoidingView
-        behavior='translate-with-padding'
-        style={styles.flex}
-      >
+      <View style={styles.contentWrapper}>
         <BackHeader
           title=''
           onBack={() => router.back()}
@@ -613,10 +617,13 @@ export default function CircleChatScreen() {
               );
             }}
             keyboardShouldPersistTaps='handled'
+            keyboardDismissMode='interactive'
             contentContainerStyle={styles.messagesList}
           />
         )}
+      </View>
 
+      <Animated.View style={[styles.stickyContainer, bottomAnimatedStyle]}>
         {/* Typing indicator */}
         {typingMemberNames.length > 0 && (
           <View style={styles.typingIndicator}>
@@ -627,9 +634,11 @@ export default function CircleChatScreen() {
           </View>
         )}
 
-        <KeyboardSafeAreaView
-          basePaddingBottom={16}
-          style={styles.inputSafeArea}
+        <View
+          style={[
+            styles.inputSafeArea,
+            { paddingBottom: Math.max(insets.bottom, 12) },
+          ]}
         >
           <View style={styles.inputContainer}>
             <View
@@ -665,8 +674,8 @@ export default function CircleChatScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </KeyboardSafeAreaView>
-      </KeyboardAvoidingView>
+        </View>
+      </Animated.View>
 
       {/* Member Identity Modal */}
       {selectedMember && (
@@ -750,7 +759,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  flex: {
+  contentWrapper: {
     flex: 1,
   },
   header: {
@@ -790,7 +799,7 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     paddingTop: 10,
-    paddingBottom: 92,
+    paddingBottom: 16,
   },
   dateSeparatorRow: {
     alignItems: 'center',
@@ -813,6 +822,10 @@ const styles = StyleSheet.create({
   },
   inputSafeArea: {
     backgroundColor: '#fff',
+  },
+  stickyContainer: {
+    backgroundColor: '#fff',
+    width: '100%',
   },
   inputWrapper: {
     flexDirection: 'row',
