@@ -2,6 +2,8 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import type { CommunityMessage } from '@/types/matching';
 import { Avatar } from '@/components/Avatar';
 
+const AVATAR_SIZE = 36;
+
 interface CircleMessageBubbleProps {
   message: CommunityMessage;
   isOwn: boolean;
@@ -62,7 +64,7 @@ export function CircleMessageBubble({
                 message.sender?.profile_picture_url ?? undefined
               }
               username={message.sender?.username || '?'}
-              size={32}
+              size={AVATAR_SIZE}
               style={styles.avatar}
               fallbackStyle={styles.avatarFallback}
               textStyle={styles.avatarText}
@@ -144,16 +146,16 @@ const styles = StyleSheet.create({
   },
   avatarContainer: {
     marginTop: 4,
-    width: 36,
+    width: AVATAR_SIZE,
     alignItems: 'center',
   },
   avatarSpacer: {
-    width: 36,
+    width: AVATAR_SIZE,
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
     backgroundColor: '#E5E7EB',
   },
   avatarFallback: {

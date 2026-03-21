@@ -8,6 +8,7 @@ const MIN_CIRCLE_SIZE = 2;
 const PLACEMENT_DEADLINE_DAYS = 3;
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const HOUR_IN_MS = 60 * 60 * 1000;
+const DELETE_ENDED_CIRCLES_GRACE_PERIOD_MS = 24 * HOUR_IN_MS;
 
 const WELCOME_MESSAGE =
   'You have a new Unify Circle. Take a moment to introduce yourself and share what you hope to get from the next 14 days together.';
@@ -113,7 +114,18 @@ const responseHeaders = {
   'Content-Type': 'application/json',
 };
 
-function decodeBase64Url(value: string): string | null {
+function normalizePoolSegment(value?: string | null, fallback = 'open') {
+  return (value || fallback).trim().toLowerCase().replace(/\s+/g, '_');
+}
+
+function buildPoolKey(persona?: string | null, timeInCanada?: string | null) {
+  return `${normalizePoolSegment(persona, 'mixed')}__${normalizePoolSegment(
+    timeInCanada,
+    'unknown'
+  )}`;
+}
+
+function decodeBase64Url(value: string): Uint8Array | null {
   const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
   const padded = normalized.padEnd(
     normalized.length + ((4 - (normalized.length % 4)) % 4),
@@ -121,39 +133,112 @@ function decodeBase64Url(value: string): string | null {
   );
 
   try {
-    return atob(padded);
+    return Uint8Array.from(atob(padded), char => char.charCodeAt(0));
   } catch {
     return null;
   }
 }
 
-function isServiceRoleJwt(authorization: string | null): boolean {
+function decodeJwtPayload(token: string): Record<string, unknown> | null {
+  const [, payloadSegment] = token.split('.');
+  if (!payloadSegment) {
+    return null;
+  }
+
+  const payloadBytes = decodeBase64Url(payloadSegment);
+  if (!payloadBytes) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(new TextDecoder().decode(payloadBytes)) as Record<
+      string,
+      unknown
+    >;
+  } catch {
+    return null;
+  }
+}
+
+async function verifyServiceRoleJwt(
+  authorization: string | null
+): Promise<boolean> {
   if (!authorization?.startsWith('Bearer ')) {
     return false;
   }
 
   const token = authorization.slice('Bearer '.length).trim();
-  const [, payloadSegment] = token.split('.');
+  const [encodedHeader, encodedPayload, encodedSignature] = token.split('.');
+  const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
 
-  if (!payloadSegment) {
+  if (!encodedHeader || !encodedPayload || !encodedSignature || !jwtSecret) {
     return false;
   }
 
-  const payloadJson = decodeBase64Url(payloadSegment);
+  const headerBytes = decodeBase64Url(encodedHeader);
+  const payload = decodeJwtPayload(token);
+  const signatureBytes = decodeBase64Url(encodedSignature);
 
-  if (!payloadJson) {
+  if (!headerBytes || !payload || !signatureBytes) {
     return false;
   }
 
   try {
-    const payload = JSON.parse(payloadJson) as { role?: string };
+    const header = JSON.parse(new TextDecoder().decode(headerBytes)) as {
+      alg?: string;
+      typ?: string;
+    };
+
+    if (header.alg !== 'HS256') {
+      return false;
+    }
+
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const expiration =
+      typeof payload.exp === 'number' ? payload.exp : Number(payload.exp);
+    const notBefore =
+      typeof payload.nbf === 'number' ? payload.nbf : Number(payload.nbf);
+
+    if (Number.isFinite(expiration) && expiration <= nowInSeconds) {
+      return false;
+    }
+
+    if (Number.isFinite(notBefore) && notBefore > nowInSeconds) {
+      return false;
+    }
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(jwtSecret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const expectedSignature = new Uint8Array(
+      await crypto.subtle.sign(
+        'HMAC',
+        key,
+        new TextEncoder().encode(`${encodedHeader}.${encodedPayload}`)
+      )
+    );
+
+    if (expectedSignature.length !== signatureBytes.length) {
+      return false;
+    }
+
+    for (let index = 0; index < expectedSignature.length; index += 1) {
+      if (expectedSignature[index] !== signatureBytes[index]) {
+        return false;
+      }
+    }
+
     return payload.role === 'service_role';
   } catch {
     return false;
   }
 }
 
-function isAuthorizedRequest(req: Request): boolean {
+async function isAuthorizedRequest(req: Request): Promise<boolean> {
   const apiKey = req.headers.get('x-api-key');
   const expectedKey = Deno.env.get('MATCHMAKE_API_KEY');
 
@@ -164,11 +249,17 @@ function isAuthorizedRequest(req: Request): boolean {
   const authorization = req.headers.get('authorization');
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  return Boolean(
-    serviceRoleKey &&
-      authorization &&
-      authorization === `Bearer ${serviceRoleKey}`
-  ) || isServiceRoleJwt(authorization);
+  if (
+    Boolean(
+      serviceRoleKey &&
+        authorization &&
+        authorization === `Bearer ${serviceRoleKey}`
+    )
+  ) {
+    return true;
+  }
+
+  return verifyServiceRoleJwt(authorization);
 }
 
 Deno.serve(async (req: Request) => {
@@ -179,7 +270,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (!isAuthorizedRequest(req)) {
+  if (!(await isAuthorizedRequest(req))) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: responseHeaders,
@@ -333,6 +424,7 @@ async function fetchWaitlist(supabase: SupabaseClient): Promise<WaitlistRow[]> {
 
   return ((data || []) as WaitlistRow[]).map(entry => ({
     ...entry,
+    pool_key: buildPoolKey(entry.persona, entry.time_in_canada),
     topics: normalizeTopics(entry.topics),
   }));
 }
@@ -513,7 +605,7 @@ function buildGroup(
     }
   }
 
-  return group.length >= options.minSize ? group : group;
+  return group;
 }
 
 function compareWaitlistEntries(a: WaitlistRow, b: WaitlistRow) {
@@ -662,7 +754,7 @@ function buildGroupContext(group: MatchingGroup): GroupContext {
   };
 
   return {
-    poolKey: `${persona || 'mixed'}__${timeInCanada}`,
+    poolKey: buildPoolKey(persona, timeInCanada),
     persona,
     timeInCanada,
     goal: goal || null,
@@ -1007,7 +1099,9 @@ function selectDailyPrompt(circle: CirclePromptRow, todayKey: string) {
 }
 
 async function deleteEndedCircles(supabase: SupabaseClient) {
-  const gracePeriodAgo = new Date(Date.now() - HOUR_IN_MS);
+  const gracePeriodAgo = new Date(
+    Date.now() - DELETE_ENDED_CIRCLES_GRACE_PERIOD_MS
+  );
 
   const { data, error } = await supabase
     .from('community_circles')
@@ -1026,46 +1120,19 @@ async function deleteEndedCircles(supabase: SupabaseClient) {
 
   const circleIds = data.map(circle => circle.id as string);
 
-  const { error: messagesError } = await supabase
-    .from('community_messages')
-    .delete()
-    .in('circle_id', circleIds);
-
-  if (messagesError) {
-    console.error('Failed to delete circle messages', messagesError);
-  }
-
-  const { error: membersError } = await supabase
-    .from('community_circle_members')
-    .delete()
-    .in('circle_id', circleIds);
-
-  if (membersError) {
-    console.error('Failed to delete circle members', membersError);
-  }
-
-  if (circleIds.length > 0) {
-    const { error: notifError } = await supabase
-      .from('community_notifications')
-      .delete()
-      .or(circleIds.map(id => `data->>circle_id.eq.${id}`).join(','));
-
-    if (notifError) {
-      console.error('Failed to delete notifications for circles', notifError);
+  const { data: deletedCount, error: deleteError } = await supabase.rpc(
+    'delete_expired_community_circles',
+    {
+      _circle_ids: circleIds,
     }
-  }
+  );
 
-  const { error: circlesError } = await supabase
-    .from('community_circles')
-    .delete()
-    .in('id', circleIds);
-
-  if (circlesError) {
-    console.error('Failed to delete circles', circlesError);
+  if (deleteError) {
+    console.error('Failed to delete ended circles atomically', deleteError);
     return 0;
   }
 
-  return circleIds.length;
+  return Number(deletedCount) || 0;
 }
 
 async function sendPushNotifications(

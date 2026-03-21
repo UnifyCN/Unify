@@ -15,8 +15,7 @@ import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useCurrentUser } from '@/context/UserContext';
 import { Avatar } from '@/components/Avatar';
 import {
@@ -99,7 +98,6 @@ export default function CircleChatScreen() {
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { height: kbHeight } = useReanimatedKeyboardAnimation();
   const { currentUser } = useCurrentUser();
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -248,35 +246,47 @@ export default function CircleChatScreen() {
           filter: `circle_id=eq.${circleId}`,
         },
         payload => {
-          // Avoid duplicates (in case optimistic update already added it)
           setMessages(prev => {
-            const exists = prev.some(m => m.id === payload.new.id);
-            if (exists) {
+            const incomingDedupeKey = payload.new.dedupe_key ?? null;
+            const incomingMessage: CommunityMessage = {
+              id: payload.new.id,
+              circle_id: payload.new.circle_id,
+              sender_user_id: payload.new.sender_user_id,
+              content: payload.new.content,
+              message_type: payload.new.message_type ?? 'user',
+              metadata: payload.new.metadata ?? null,
+              dedupe_key: incomingDedupeKey,
+              created_at: payload.new.created_at,
+              sender: payload.new.sender_user_id
+                ? {
+                    id: payload.new.sender_user_id,
+                    username:
+                      memberLookup[payload.new.sender_user_id]?.user.username ||
+                      'Circle member',
+                    profile_picture_url:
+                      memberLookup[payload.new.sender_user_id]?.user
+                        .profile_picture_url || null,
+                  }
+                : null,
+            };
+            const existingIndex = prev.findIndex(
+              message =>
+                message.id === payload.new.id ||
+                (Boolean(incomingDedupeKey) &&
+                  message.dedupe_key === incomingDedupeKey)
+            );
+
+            if (existingIndex >= 0) {
+              const nextMessages = [...prev];
+              nextMessages[existingIndex] = incomingMessage;
+              return nextMessages;
+            }
+
+            if (prev.some(message => message.id === payload.new.id)) {
               return prev;
             }
-            return [
-              ...prev,
-              {
-                id: payload.new.id,
-                circle_id: payload.new.circle_id,
-                sender_user_id: payload.new.sender_user_id,
-                content: payload.new.content,
-                message_type: payload.new.message_type ?? 'user',
-                metadata: payload.new.metadata ?? null,
-                created_at: payload.new.created_at,
-                sender: payload.new.sender_user_id
-                  ? {
-                      id: payload.new.sender_user_id,
-                      username:
-                        memberLookup[payload.new.sender_user_id]?.user
-                          .username || 'Circle member',
-                      profile_picture_url:
-                        memberLookup[payload.new.sender_user_id]?.user
-                          .profile_picture_url || null,
-                    }
-                  : null,
-              },
-            ];
+
+            return [...prev, incomingMessage];
           });
         }
       )
@@ -355,6 +365,9 @@ export default function CircleChatScreen() {
 
     // Optimistically add the message to the list
     const tempId = `temp-${Date.now()}`;
+    const dedupeKey = `circle-msg-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 10)}`;
     const optimisticMessage: CommunityMessage = {
       id: tempId,
       circle_id: circleId as string,
@@ -362,6 +375,7 @@ export default function CircleChatScreen() {
       content: trimmed,
       message_type: 'user',
       metadata: null,
+      dedupe_key: dedupeKey,
       created_at: new Date().toISOString(),
       sender: currentUser
         ? {
@@ -375,10 +389,25 @@ export default function CircleChatScreen() {
     setMessages(prev => [...prev, optimisticMessage]);
 
     try {
-      await sendCircleMessage(circleId as string, trimmed);
-      // The realtime subscription will handle updating the message with the real ID,
-      // or the duplicate check will skip it if the temp message already exists.
-      // We'll remove the temp message when the real one comes in.
+      const sentMessage = await sendCircleMessage(
+        circleId as string,
+        trimmed,
+        dedupeKey
+      );
+
+      if (sentMessage) {
+        setMessages(prev =>
+          prev.map(message =>
+            message.id === tempId
+              ? {
+                  ...message,
+                  id: sentMessage.id,
+                  dedupe_key: sentMessage.dedupe_key ?? dedupeKey,
+                }
+              : message
+          )
+        );
+      }
     } catch (error) {
       console.error('Failed to send message', error);
       // Remove the optimistic message on failure
@@ -519,10 +548,6 @@ export default function CircleChatScreen() {
   const inputDisabled =
     circle?.status === 'ended' || membership?.left_at !== null;
 
-  const bottomAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: kbHeight.value }],
-  }));
-
   return (
     <View style={styles.root}>
       <View style={styles.contentWrapper}>
@@ -623,7 +648,7 @@ export default function CircleChatScreen() {
         )}
       </View>
 
-      <Animated.View style={[styles.stickyContainer, bottomAnimatedStyle]}>
+      <KeyboardStickyView style={styles.stickyContainer}>
         {/* Typing indicator */}
         {typingMemberNames.length > 0 && (
           <View style={styles.typingIndicator}>
@@ -675,7 +700,7 @@ export default function CircleChatScreen() {
             </View>
           </View>
         </View>
-      </Animated.View>
+      </KeyboardStickyView>
 
       {/* Member Identity Modal */}
       {selectedMember && (
