@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { Tabs, useRouter, usePathname } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
@@ -39,8 +39,6 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const pathname = usePathname();
-  const [currentTab, setCurrentTab] = useState('index');
-  const previousTabRef = useRef('index');
   const { trackTabSwitch } = useAnalytics();
   const { hapticsEnabled } = useHapticsPreference();
 
@@ -60,6 +58,14 @@ export default function TabLayout() {
       default:
         return routeName;
     }
+  };
+
+  const getCurrentTabFromPath = (path: string) => {
+    if (path.startsWith('/Gather')) return 'Gather';
+    if (path.startsWith('/companion')) return 'companion';
+    if (path.startsWith('/Checklist')) return 'Checklist';
+    if (path.startsWith('/Learn')) return 'Learn';
+    return 'index';
   };
 
   return (
@@ -84,7 +90,8 @@ export default function TabLayout() {
         screenListeners={{
           tabPress: e => {
             const routeName = e.target?.split('-')[0] || 'index';
-            const isTabSwitch = routeName !== previousTabRef.current;
+            const currentTab = getCurrentTabFromPath(pathname);
+            const isTabSwitch = routeName !== currentTab;
 
             if (isTabSwitch && hapticsEnabled) {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -93,27 +100,17 @@ export default function TabLayout() {
             // Track tab switch
             if (isTabSwitch) {
               trackTabSwitch(
-                getTabDisplayName(previousTabRef.current),
+                getTabDisplayName(currentTab),
                 getTabDisplayName(routeName)
               );
-              previousTabRef.current = routeName;
             }
 
-            if (routeName === 'Gather') {
-              // If already on Gather tab, prevent re-navigation animation
-              if (currentTab === 'Gather') {
-                e.preventDefault();
-                // Only navigate if deep in the Gather stack (not on main screen)
-                const isOnMainGatherScreen = pathname === '/Gather/gather';
-                if (!isOnMainGatherScreen) {
-                  router.replace('/(tabs)/Gather/gather');
-                }
+            if (routeName === 'Gather' && currentTab === 'Gather') {
+              // Prevent redundant tab navigation; only pop to the root Gather screen
+              e.preventDefault();
+              if (pathname !== '/Gather') {
+                router.replace('/(tabs)/Gather');
               }
-              // Update current tab state
-              setCurrentTab('Gather');
-            } else {
-              // Update current tab state for other tabs
-              setCurrentTab(routeName || 'index');
             }
           },
         }}
