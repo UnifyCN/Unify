@@ -46,6 +46,7 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
       selectedText,
       allWordsInBlock,
       navContext,
+      _snapshotHighlights,
     }: {
       blockKey: string;
       startWordIndex: number;
@@ -53,9 +54,11 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
       selectedText: string;
       allWordsInBlock: string[];
       navContext?: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number };
+      _snapshotHighlights?: Highlight[];
     }) => {
-      const existingHighlights =
-        queryClient.getQueryData<Highlight[]>(queryKey) || [];
+      // Use the pre-mutation snapshot captured in onMutate (falls back to current cache)
+      const existingHighlights = _snapshotHighlights ??
+        queryClient.getQueryData<Highlight[]>(queryKey) ?? [];
       return saveHighlight(
         lessonId,
         pageKey,
@@ -68,9 +71,13 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
         navContext
       );
     },
-    onMutate: async ({ blockKey, startWordIndex, endWordIndex, selectedText }) => {
+    onMutate: async (variables) => {
+      const { blockKey, startWordIndex, endWordIndex, selectedText } = variables;
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<Highlight[]>(queryKey);
+
+      // Capture pre-mutation snapshot for mutationFn overlap detection
+      variables._snapshotHighlights = previous || [];
 
       queryClient.setQueryData<Highlight[]>(queryKey, old => {
         const existing = old || [];

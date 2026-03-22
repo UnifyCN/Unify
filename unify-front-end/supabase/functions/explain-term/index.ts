@@ -62,7 +62,8 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const body = await req.json();
-    const { term, lessonContext } = body;
+    const { term } = body;
+    let { lessonContext } = body;
 
     if (!term || typeof term !== "string" || term.trim().length === 0) {
       return jsonResponse({ error: "Missing or empty term" }, 400);
@@ -70,6 +71,20 @@ Deno.serve(async (req) => {
 
     if (term.length > 500) {
       return jsonResponse({ error: "Term too long (max 500 chars)" }, 400);
+    }
+
+    // Validate and bound lessonContext
+    if (lessonContext != null) {
+      if (typeof lessonContext !== "string") {
+        lessonContext = undefined;
+      } else {
+        lessonContext = lessonContext.trim().replace(/\s+/g, " ");
+        if (lessonContext.length === 0) {
+          lessonContext = undefined;
+        } else if (lessonContext.length > 500) {
+          lessonContext = lessonContext.slice(0, 500);
+        }
+      }
     }
 
     // Build the prompt

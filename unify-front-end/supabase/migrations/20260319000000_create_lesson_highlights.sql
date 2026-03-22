@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS lesson_highlights (
   start_word_index INTEGER NOT NULL,
   end_word_index INTEGER NOT NULL,
   selected_text TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT chk_non_negative_indices CHECK (start_word_index >= 0 AND end_word_index >= 0),
+  CONSTRAINT chk_valid_range CHECK (start_word_index <= end_word_index)
 );
 
 -- Composite index for the primary query: fetch all highlights for a user on a specific lesson page

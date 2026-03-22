@@ -141,11 +141,10 @@ const HighlightItem = React.memo(function HighlightItem({
   highlight: Highlight;
   onNavigate: (h: Highlight) => void;
 }) {
-  const canNavigate = !!(
-    highlight.module_id &&
-    highlight.submodule_id &&
-    highlight.page_num
-  );
+  const canNavigate =
+    highlight.module_id != null &&
+    highlight.submodule_id != null &&
+    highlight.page_num != null;
   return (
     <Pressable
       style={({ pressed }) => [
@@ -227,7 +226,7 @@ export default function SavedLessonsPage() {
 
   const navigateToHighlight = useCallback(
     (h: Highlight) => {
-      if (!h.module_id || !h.submodule_id || !h.page_num) return;
+      if (h.module_id == null || h.submodule_id == null || h.page_num == null) return;
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,

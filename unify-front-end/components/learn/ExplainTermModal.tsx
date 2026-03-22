@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -30,19 +30,25 @@ export default function ExplainTermModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { trackLessonAskAiUsed, trackLessonAskAiRetry } = useAnalytics();
+  const requestIdRef = useRef(0);
 
   const fetchExplanation = async () => {
+    const currentRequestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     setExplanation(null);
 
     try {
       const result = await explainTerm(term, lessonContext);
+      if (currentRequestId !== requestIdRef.current) return;
       setExplanation(result);
     } catch (err: any) {
+      if (currentRequestId !== requestIdRef.current) return;
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -52,6 +58,8 @@ export default function ExplainTermModal({
       trackLessonAskAiUsed(lessonId, term);
     }
     if (!visible) {
+      // Bump requestId to cancel any in-flight request
+      requestIdRef.current++;
       setExplanation(null);
       setError(null);
       setLoading(false);

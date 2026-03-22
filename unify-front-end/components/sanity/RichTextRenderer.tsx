@@ -740,11 +740,12 @@ export default function RichTextRenderer({
               <SelectableText
                 blockKey={block._key || `block-${index}`}
                 highlights={getBlockHighlights(block, index)}
-                style={
+                style={[
+                  mergedStyles.blockquoteText,
                   blockTextAlign && blockTextAlign !== 'left'
                     ? { textAlign: blockTextAlign }
-                    : {}
-                }
+                    : undefined,
+                ]}
                 spans={block.children}
                 allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
                 mergedStyles={mergedStyles}

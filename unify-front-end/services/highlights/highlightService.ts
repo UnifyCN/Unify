@@ -88,34 +88,21 @@ export async function saveHighlight(
     // Reconstruct the full merged text from the word list
     const mergedText = allWordsInBlock.slice(clampedStart, clampedEnd + 1).join(' ');
 
-    // Delete the old overlapping highlights
+    // Atomic delete + insert via RPC (single transaction)
     const idsToDelete = overlapping.map(h => h.id);
-    const { error: deleteError } = await supabase
-      .from('lesson_highlights')
-      .delete()
-      .in('id', idsToDelete);
-
-    if (deleteError) throw deleteError;
-
-    // Insert the merged highlight with the full reconstructed text
-    const { data, error } = await supabase
-      .from('lesson_highlights')
-      .insert({
-        lesson_id: lessonId,
-        page_key: pageKey,
-        block_key: blockKey,
-        start_word_index: clampedStart,
-        end_word_index: clampedEnd,
-        selected_text: mergedText,
-        ...(navContext && {
-          module_id: navContext.moduleId,
-          submodule_id: navContext.submoduleId,
-          submodule_title: navContext.submoduleTitle,
-          page_num: navContext.pageNum,
-        }),
-      })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('merge_highlights', {
+      p_ids_to_delete: idsToDelete,
+      p_lesson_id: lessonId,
+      p_page_key: pageKey,
+      p_block_key: blockKey,
+      p_start_word_index: clampedStart,
+      p_end_word_index: clampedEnd,
+      p_selected_text: mergedText,
+      p_module_id: navContext?.moduleId ?? null,
+      p_submodule_id: navContext?.submoduleId ?? null,
+      p_submodule_title: navContext?.submoduleTitle ?? null,
+      p_page_num: navContext?.pageNum ?? null,
+    });
 
     if (error) throw error;
     return data;

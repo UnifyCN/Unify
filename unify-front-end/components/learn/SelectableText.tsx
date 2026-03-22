@@ -23,11 +23,14 @@ interface StyledWord {
   word: string;
   styles: any[];
   linkHref?: string;
+  /** Sequential index among non-whitespace words only (undefined for whitespace tokens) */
+  wordIndex?: number;
 }
 
 /**
- * Takes Portable Text span children and flattens them into per-word items
- * that preserve inline styling (bold, italic, code, links).
+ * Takes Portable Text span children and flattens them into per-segment items
+ * that preserve inline styling (bold, italic, code, links) and whitespace.
+ * Non-whitespace words get a sequential wordIndex for highlight/selection alignment.
  */
 export function flattenSpansToWords(
   spans: any[],
@@ -37,6 +40,7 @@ export function flattenSpansToWords(
   if (!spans || !Array.isArray(spans)) return [];
 
   const styledWords: StyledWord[] = [];
+  let wordCounter = 0;
 
   for (const child of spans) {
     if (child._type !== 'span') continue;
@@ -92,12 +96,17 @@ export function flattenSpansToWords(
       }
     }
 
-    // Split text into words, preserving each word individually
-    const words = text.split(/(\s+)/);
-    for (const segment of words) {
-      if (segment.trim().length > 0) {
-        styledWords.push({ word: segment, styles: wordStyles, linkHref });
-      }
+    // Split text into words and whitespace, preserving both
+    const segments = text.split(/(\s+)/);
+    for (const segment of segments) {
+      if (segment.length === 0) continue;
+      const isWhitespace = /^\s+$/.test(segment);
+      styledWords.push({
+        word: segment,
+        styles: wordStyles,
+        linkHref,
+        wordIndex: isWhitespace ? undefined : wordCounter++,
+      });
     }
   }
 
@@ -108,9 +117,10 @@ export function flattenSpansToWords(
  * Checks if a word index is within any highlight range for this block.
  */
 function findHighlightForWord(
-  wordIndex: number,
+  wordIndex: number | undefined,
   highlights: Highlight[]
 ): Highlight | null {
+  if (wordIndex == null) return null;
   for (const h of highlights) {
     if (wordIndex >= h.start_word_index && wordIndex <= h.end_word_index) {
       return h;
@@ -158,14 +168,12 @@ function PlainStyledText({
         ].filter(Boolean);
 
         return (
-          <Text key={`${blockKey}-w-${index}`}>
-            <Text
-              style={wordStyle.length > 0 ? wordStyle : undefined}
-              onPress={sw.linkHref ? () => Linking.openURL(sw.linkHref!) : undefined}
-            >
-              {sw.word}
-            </Text>
-            {index < styledWords.length - 1 ? ' ' : ''}
+          <Text
+            key={`${blockKey}-w-${index}`}
+            style={wordStyle.length > 0 ? wordStyle : undefined}
+            onPress={sw.linkHref ? () => Linking.openURL(sw.linkHref!) : undefined}
+          >
+            {sw.word}
           </Text>
         );
       })}
@@ -193,13 +201,15 @@ function InteractiveSelectableText({
     [spans, allMarkDefs, mergedStyles]
   );
 
+  // Non-whitespace words only, for selection context (allWords array)
   const plainWords = useMemo(
-    () => styledWords.map(sw => sw.word),
+    () => styledWords.filter(sw => sw.wordIndex != null).map(sw => sw.word),
     [styledWords]
   );
 
   const isWordInSelection = useCallback(
-    (wordIndex: number): boolean => {
+    (wordIndex: number | undefined): boolean => {
+      if (wordIndex == null) return false;
       if (selection.mode !== 'selected' || !selection.startWord || !selection.endWord) return false;
       if (selection.startWord.blockKey !== blockKey) return false;
       const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
@@ -211,7 +221,6 @@ function InteractiveSelectableText({
 
   const handleLongPress = useCallback(
     (wordIndex: number, word: string, event: any) => {
-      // Use touch coordinates from the native event for bubble positioning
       const pageX = event?.nativeEvent?.pageX ?? 0;
       const pageY = event?.nativeEvent?.pageY ?? 0;
 
@@ -249,31 +258,54 @@ function InteractiveSelectableText({
   return (
     <Text style={style}>
       {styledWords.map((sw, index) => {
-        const highlight = findHighlightForWord(index, highlights);
-        const isSelected = isWordInSelection(index);
+        const highlight = findHighlightForWord(sw.wordIndex, highlights);
+        const isSelected = isWordInSelection(sw.wordIndex);
+        const isWhitespace = sw.wordIndex == null;
+
+        // Whitespace between highlighted/selected words inherits the highlight style
+        const inHighlightRange = isWhitespace && index > 0 && index < styledWords.length - 1
+          ? (findHighlightForWord(styledWords[index - 1]?.wordIndex, highlights) != null &&
+             findHighlightForWord(styledWords[index + 1]?.wordIndex, highlights) != null)
+          : false;
+        const inSelectionRange = isWhitespace && index > 0 && index < styledWords.length - 1
+          ? (isWordInSelection(styledWords[index - 1]?.wordIndex) &&
+             isWordInSelection(styledWords[index + 1]?.wordIndex))
+          : false;
 
         const wordStyle = [
           ...sw.styles,
-          highlight ? componentStyles.highlighted : undefined,
-          isSelected ? componentStyles.activeSelection : undefined,
+          (highlight || inHighlightRange) ? componentStyles.highlighted : undefined,
+          (isSelected || inSelectionRange) ? componentStyles.activeSelection : undefined,
           sw.linkHref ? componentStyles.link : undefined,
         ].filter(Boolean);
+
+        // Whitespace tokens are not interactive
+        if (isWhitespace) {
+          return (
+            <Text
+              key={`${blockKey}-w-${index}`}
+              style={wordStyle.length > 0 ? wordStyle : undefined}
+            >
+              {sw.word}
+            </Text>
+          );
+        }
 
         return (
           <Text
             key={`${blockKey}-w-${index}`}
             style={wordStyle.length > 0 ? wordStyle : undefined}
-            onLongPress={(e) => handleLongPress(index, sw.word, e)}
+            onLongPress={(e) => handleLongPress(sw.wordIndex!, sw.word, e)}
             onPress={(e) => {
               if (sw.linkHref && selection.mode !== 'selected') {
                 Linking.openURL(sw.linkHref);
               } else {
-                handleTap(index, sw.word, e);
+                handleTap(sw.wordIndex!, sw.word, e);
               }
             }}
             suppressHighlighting
           >
-            {sw.word}{index < styledWords.length - 1 ? ' ' : ''}
+            {sw.word}
           </Text>
         );
       })}

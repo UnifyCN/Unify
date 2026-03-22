@@ -71,6 +71,13 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
         // Recompute selected text from allWords
         const selectedWords = prev.allWords.slice(newStart, newEnd + 1);
 
+        // Clear existingHighlight if the range no longer matches it
+        const existingH = prev.existingHighlight;
+        const highlightStillMatches = existingH &&
+          prev.startWord.blockKey === word.blockKey &&
+          newStart === existingH.start_word_index &&
+          newEnd === existingH.end_word_index;
+
         return {
           ...prev,
           startWord: newStart === prev.startWord.wordIndex
@@ -78,6 +85,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
             : { ...word, wordIndex: newStart },
           endWord: { ...word, wordIndex: newEnd },
           selectedText: selectedWords.join(' '),
+          existingHighlight: highlightStillMatches ? existingH : null,
         };
       });
     },
