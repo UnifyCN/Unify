@@ -194,7 +194,7 @@ function InteractiveSelectableText({
   mergedStyles,
   selectionCtx,
 }: SelectableTextProps & { selectionCtx: NonNullable<ReturnType<typeof useSelectionOptional>> }) {
-  const { selection, onWordLongPress, onWordTap, setSelectedText } = selectionCtx;
+  const { selection, onWordLongPress, onWordTap } = selectionCtx;
 
   const styledWords = useMemo(
     () => flattenSpansToWords(spans, allMarkDefs, mergedStyles),
@@ -242,17 +242,10 @@ function InteractiveSelectableText({
       const pageX = event?.nativeEvent?.pageX ?? 0;
       const pageY = event?.nativeEvent?.pageY ?? 0;
 
+      // onWordTap in SelectionContext computes and sets selectedText
       onWordTap({ blockKey, wordIndex, word, pageX, pageY });
-
-      const start = Math.min(selection.startWord!.wordIndex, wordIndex);
-      const end = Math.max(
-        selection.endWord?.wordIndex ?? selection.startWord!.wordIndex,
-        wordIndex
-      );
-      const selectedWords = plainWords.slice(start, end + 1);
-      setSelectedText(selectedWords.join(' '));
     },
-    [selection, blockKey, onWordTap, setSelectedText, plainWords]
+    [selection, blockKey, onWordTap]
   );
 
   return (
@@ -262,15 +255,27 @@ function InteractiveSelectableText({
         const isSelected = isWordInSelection(sw.wordIndex);
         const isWhitespace = sw.wordIndex == null;
 
-        // Whitespace between highlighted/selected words inherits the highlight style
-        const inHighlightRange = isWhitespace && index > 0 && index < styledWords.length - 1
-          ? (findHighlightForWord(styledWords[index - 1]?.wordIndex, highlights) != null &&
-             findHighlightForWord(styledWords[index + 1]?.wordIndex, highlights) != null)
-          : false;
-        const inSelectionRange = isWhitespace && index > 0 && index < styledWords.length - 1
-          ? (isWordInSelection(styledWords[index - 1]?.wordIndex) &&
-             isWordInSelection(styledWords[index + 1]?.wordIndex))
-          : false;
+        // Whitespace between highlighted/selected words inherits the highlight style.
+        // Scan outward to find nearest non-whitespace neighbors (handles consecutive whitespace).
+        let inHighlightRange = false;
+        let inSelectionRange = false;
+        if (isWhitespace) {
+          let prevWordIndex: number | undefined;
+          let nextWordIndex: number | undefined;
+          for (let i = index - 1; i >= 0; i--) {
+            if (styledWords[i].wordIndex != null) { prevWordIndex = styledWords[i].wordIndex; break; }
+          }
+          for (let i = index + 1; i < styledWords.length; i++) {
+            if (styledWords[i].wordIndex != null) { nextWordIndex = styledWords[i].wordIndex; break; }
+          }
+          if (prevWordIndex != null && nextWordIndex != null) {
+            inHighlightRange =
+              findHighlightForWord(prevWordIndex, highlights) != null &&
+              findHighlightForWord(nextWordIndex, highlights) != null;
+            inSelectionRange =
+              isWordInSelection(prevWordIndex) && isWordInSelection(nextWordIndex);
+          }
+        }
 
         const wordStyle = [
           ...sw.styles,

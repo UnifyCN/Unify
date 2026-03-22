@@ -16,6 +16,7 @@ CREATE OR REPLACE FUNCTION merge_highlights(
 RETURNS lesson_highlights
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   result lesson_highlights;
@@ -25,10 +26,13 @@ BEGIN
     RAISE EXCEPTION 'Not authenticated';
   END IF;
 
-  -- Delete overlapping highlights (only user's own, enforced by filter)
+  -- Delete overlapping highlights scoped to this user + lesson/page/block context
   DELETE FROM lesson_highlights
   WHERE id = ANY(p_ids_to_delete)
-    AND user_id = current_uid;
+    AND user_id = current_uid
+    AND lesson_id = p_lesson_id
+    AND page_key = p_page_key
+    AND block_key = p_block_key;
 
   -- Insert the merged highlight
   INSERT INTO lesson_highlights (

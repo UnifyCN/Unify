@@ -190,22 +190,30 @@ export default function SavedLessonsPage() {
 
   const { data: modules } = useSanityModules();
 
-  // Build a lookup from moduleId → { color, icon, title }
-  const moduleMap = useMemo(() => {
-    const map: Record<
+  // Build lookups: moduleId → { color, icon, title } and submoduleId → submodule title
+  const { moduleMap, submoduleTitleMap } = useMemo(() => {
+    const mMap: Record<
       string,
       { color: string; icon: string; title: string }
     > = {};
+    const sMap: Record<string, string> = {};
     if (modules) {
       for (const m of modules) {
-        map[m._id] = {
+        mMap[m._id] = {
           color: m.colorTheme?.hex || DEFAULT_ACCENT,
           icon: m.icon || 'book',
           title: m.title,
         };
+        if (m.submodules) {
+          for (const s of m.submodules) {
+            if (s._id && s.title) {
+              sMap[s._id] = s.title;
+            }
+          }
+        }
       }
     }
-    return map;
+    return { moduleMap: mMap, submoduleTitleMap: sMap };
   }, [modules]);
 
   const openLessonPage = useCallback(
@@ -329,8 +337,9 @@ export default function SavedLessonsPage() {
       const hasBoth = section.pages.length > 0 && section.highlights.length > 0;
       const itemCount = section.pages.length + section.highlights.length;
 
-      // Resolve submodule title: prefer snapshot from pages, fall back to highlight field
+      // Resolve submodule title: prefer Sanity source-of-truth, fall back to DB snapshot
       const displayTitle =
+        submoduleTitleMap[section.key] ||
         section.submoduleTitle ||
         (section.pages[0]?.lessonTitleSnapshot ?? moduleTitle);
 
@@ -400,7 +409,7 @@ export default function SavedLessonsPage() {
         </View>
       );
     },
-    [moduleMap, openLessonPage, navigateToHighlight]
+    [moduleMap, submoduleTitleMap, openLessonPage, navigateToHighlight]
   );
 
   const keyExtractor = useCallback(
@@ -419,7 +428,7 @@ export default function SavedLessonsPage() {
     );
   }
 
-  if (pagesError) {
+  if (pagesError && !pagesData && !highlightsData) {
     return (
       <View style={styles.container}>
         <BackHeader title="Saved from Learn" />
