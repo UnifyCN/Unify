@@ -483,7 +483,7 @@ export function useAnalytics() {
         posthog?.capture(AnalyticsEvents.LESSON_TEXT_SELECTED, {
           lesson_id: lessonId,
           text_length: selectedText.length,
-          word_count: selectedText.split(/\s+/).length,
+          word_count: selectedText.trim().split(/\s+/).filter(Boolean).length,
         });
       },
       trackLessonHighlightCreated: (lessonId: string, selectedText: string) => {

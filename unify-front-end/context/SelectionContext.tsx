@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { Highlight } from '@/services/highlights/highlightService';
 
 export type SelectionMode = 'idle' | 'selecting' | 'selected';
 
@@ -16,12 +17,12 @@ export interface SelectionState {
   endWord: WordPosition | null;
   selectedText: string;
   allWords: string[];
-  existingHighlight: any | null;
+  existingHighlight: Highlight | null;
 }
 
 interface SelectionContextType {
   selection: SelectionState;
-  onWordLongPress: (word: WordPosition, existingHighlight: any | null, allWords: string[]) => void;
+  onWordLongPress: (word: WordPosition, existingHighlight: Highlight | null, allWords: string[]) => void;
   onWordTap: (word: WordPosition) => void;
   clearSelection: () => void;
   setSelectedText: (text: string) => void;
@@ -42,7 +43,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
   const [selection, setSelection] = useState<SelectionState>(initialState);
 
   const onWordLongPress = useCallback(
-    (word: WordPosition, existingHighlight: any | null, allWords: string[]) => {
+    (word: WordPosition, existingHighlight: Highlight | null, allWords: string[]) => {
       setSelection({
         mode: 'selected',
         startWord: word,

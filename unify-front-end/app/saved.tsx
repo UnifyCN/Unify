@@ -22,6 +22,10 @@ export default function SavedPage() {
         <TouchableOpacity
           style={[styles.segment, activeTab === 'posts' && styles.segmentActive]}
           onPress={() => setActiveTab('posts')}
+          accessibilityRole="button"
+          accessibilityLabel="Posts tab"
+          accessibilityHint="Activates the Posts tab"
+          accessibilityState={{ selected: activeTab === 'posts' }}
         >
           <Text
             style={[
@@ -35,6 +39,10 @@ export default function SavedPage() {
         <TouchableOpacity
           style={[styles.segment, activeTab === 'highlights' && styles.segmentActive]}
           onPress={() => setActiveTab('highlights')}
+          accessibilityRole="button"
+          accessibilityLabel="Highlights tab"
+          accessibilityHint="Activates the Highlights tab"
+          accessibilityState={{ selected: activeTab === 'highlights' }}
         >
           <Text
             style={[

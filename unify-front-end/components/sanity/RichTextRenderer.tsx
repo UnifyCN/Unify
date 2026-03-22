@@ -95,6 +95,9 @@ export default function RichTextRenderer({
     return map;
   }, [blocks]);
 
+  const getBlockHighlights = (block: any, index: number) =>
+    highlights.filter(h => h.block_key === (block._key || `block-${index}`));
+
   if (!blocks || !Array.isArray(blocks)) return null;
 
   // Create numbering map for ordered lists (keep prev behavior)
@@ -598,7 +601,7 @@ export default function RichTextRenderer({
             </Text>
             <SelectableText
               blockKey={block._key || `block-${index}`}
-              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              highlights={getBlockHighlights(block, index)}
               style={listStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
@@ -671,7 +674,7 @@ export default function RichTextRenderer({
             <SelectableText
               key={block._key || index}
               blockKey={block._key || `block-${index}`}
-              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              highlights={getBlockHighlights(block, index)}
               style={blockStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
@@ -683,7 +686,7 @@ export default function RichTextRenderer({
             <SelectableText
               key={block._key || index}
               blockKey={block._key || `block-${index}`}
-              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              highlights={getBlockHighlights(block, index)}
               style={blockStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
@@ -695,7 +698,7 @@ export default function RichTextRenderer({
             <SelectableText
               key={block._key || index}
               blockKey={block._key || `block-${index}`}
-              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              highlights={getBlockHighlights(block, index)}
               style={blockStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
@@ -707,7 +710,7 @@ export default function RichTextRenderer({
             <SelectableText
               key={block._key || index}
               blockKey={block._key || `block-${index}`}
-              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              highlights={getBlockHighlights(block, index)}
               style={blockStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
@@ -719,7 +722,7 @@ export default function RichTextRenderer({
             <View key={block._key || index} style={mergedStyles.blockquote}>
               <SelectableText
                 blockKey={block._key || `block-${index}`}
-                highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+                highlights={getBlockHighlights(block, index)}
                 style={
                   blockTextAlign && blockTextAlign !== 'left'
                     ? { textAlign: blockTextAlign }
@@ -759,7 +762,7 @@ export default function RichTextRenderer({
             <SelectableText
               key={block._key || index}
               blockKey={block._key || `block-${index}`}
-              highlights={highlights.filter(h => h.block_key === (block._key || `block-${index}`))}
+              highlights={getBlockHighlights(block, index)}
               style={finalBlockStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
@@ -819,6 +822,7 @@ export default function RichTextRenderer({
               questionAnswers={questionAnswers}
               onQuestionAnswer={onQuestionAnswer}
               showQuestionFeedback={showQuestionFeedback}
+              highlights={highlights}
             />
           )}
         />

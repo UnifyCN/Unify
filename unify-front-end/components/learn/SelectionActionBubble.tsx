@@ -4,7 +4,7 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSelection } from '@/context/SelectionContext';
@@ -25,7 +25,7 @@ export default function SelectionActionBubble({
   onAskAI,
 }: SelectionActionBubbleProps) {
   const { selection } = useSelection();
-  const screenWidth = Dimensions.get('window').width;
+  const { width: screenWidth } = useWindowDimensions();
 
   if (selection.mode !== 'selected' || !selection.startWord) return null;
 
@@ -34,14 +34,21 @@ export default function SelectionActionBubble({
   const anchorX = selection.startWord.pageX;
   const anchorY = selection.startWord.pageY;
 
-  let bubbleLeft = Math.max(SCREEN_PADDING, anchorX - 100);
-  bubbleLeft = Math.min(screenWidth - 200 - SCREEN_PADDING, bubbleLeft);
+  const maxBubbleWidth = 200;
+  let bubbleLeft = Math.max(SCREEN_PADDING, anchorX - maxBubbleWidth / 2);
+  bubbleLeft = Math.min(screenWidth - maxBubbleWidth - SCREEN_PADDING, bubbleLeft);
 
-  const bubbleTop = anchorY - BUBBLE_HEIGHT - ARROW_SIZE - 12;
+  const computedTop = anchorY - BUBBLE_HEIGHT - ARROW_SIZE - 12;
+  const showBelow = computedTop < 0;
+  const bubbleTop = showBelow
+    ? anchorY + ARROW_SIZE + 12
+    : computedTop;
 
   return (
     <View style={styles.fullScreen} pointerEvents="box-none">
       <View style={[styles.container, { top: bubbleTop, left: bubbleLeft }]}>
+        {showBelow && <View style={styles.arrowUp} />}
+
         <View style={styles.bubble}>
           <Pressable
             style={styles.button}
@@ -68,7 +75,7 @@ export default function SelectionActionBubble({
           </Pressable>
         </View>
 
-        <View style={styles.arrow} />
+        {!showBelow && <View style={styles.arrow} />}
       </View>
     </View>
   );
@@ -124,5 +131,16 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: '#1F2937',
+  },
+  arrowUp: {
+    width: 0,
+    height: 0,
+    alignSelf: 'center',
+    borderLeftWidth: 8,
+    borderRightWidth: 8,
+    borderBottomWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderBottomColor: '#1F2937',
   },
 });

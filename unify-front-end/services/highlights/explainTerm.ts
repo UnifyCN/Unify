@@ -8,9 +8,16 @@ export async function explainTerm(
   term: string,
   lessonContext?: string
 ): Promise<string> {
-  const { data, error } = await supabase.functions.invoke('explain-term', {
-    body: { term, lessonContext },
-  });
+  let data, error;
+  try {
+    const result = await supabase.functions.invoke('explain-term', {
+      body: { term, lessonContext },
+    });
+    data = result.data;
+    error = result.error;
+  } catch (err: any) {
+    throw new Error(`Failed to reach explanation service: ${err.message || err}`);
+  }
 
   if (error) {
     throw new Error(error.message || 'Failed to get explanation');

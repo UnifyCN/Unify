@@ -291,7 +291,7 @@ const componentStyles = StyleSheet.create({
     borderRadius: 2,
   },
   link: {
-    color: '#5182C7',
+    color: Theme.surfaceBlue,
     textDecorationLine: 'underline',
   },
 });

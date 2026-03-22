@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,9 +14,67 @@ import { Highlight } from '@/services/highlights/highlightService';
 import { Theme } from '@/constants/Theme';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 
+const HighlightItem = React.memo(function HighlightItem({
+  highlight,
+  onNavigate,
+}: {
+  highlight: Highlight;
+  onNavigate: (h: Highlight) => void;
+}) {
+  const canNavigate = !!(highlight.module_id && highlight.submodule_id && highlight.page_num);
+  return (
+    <Pressable
+      style={styles.highlightItem}
+      onPress={() => onNavigate(highlight)}
+      disabled={!canNavigate}
+    >
+      <View style={styles.highlightBar} />
+      <Text style={styles.highlightText} numberOfLines={3}>"{highlight.selected_text}"</Text>
+      {canNavigate && (
+        <Feather name="chevron-right" size={16} color="#9CA3AF" style={styles.chevron} />
+      )}
+    </Pressable>
+  );
+});
+
 export default function SavedHighlightsList() {
   const router = useRouter();
   const { data: highlights, isLoading } = useAllHighlights();
+
+  const sections = useMemo(() => {
+    if (!highlights || highlights.length === 0) return [];
+
+    const grouped = highlights.reduce<Record<string, { title: string; highlights: Highlight[] }>>((acc, h) => {
+      const groupKey = h.submodule_id || h.lesson_id;
+      if (!acc[groupKey]) {
+        acc[groupKey] = {
+          title: h.submodule_title || 'Lesson',
+          highlights: [],
+        };
+      }
+      acc[groupKey].highlights.push(h);
+      return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([key, value]) => ({
+      key,
+      title: value.title,
+      highlights: value.highlights,
+    }));
+  }, [highlights]);
+
+  const navigateToHighlight = useCallback((h: Highlight) => {
+    if (!h.module_id || !h.submodule_id || !h.page_num) return;
+    router.push({
+      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+      params: {
+        moduleId: h.module_id,
+        submoduleId: h.submodule_id,
+        lessonId: h.lesson_id,
+        pageNum: h.page_num.toString(),
+      },
+    });
+  }, [router]);
 
   if (isLoading) {
     return (
@@ -40,38 +98,6 @@ export default function SavedHighlightsList() {
     );
   }
 
-  // Group by submodule (fall back to lesson_id for older highlights without submodule_id)
-  const grouped = highlights.reduce<Record<string, { title: string; highlights: Highlight[] }>>((acc, h) => {
-    const groupKey = h.submodule_id || h.lesson_id;
-    if (!acc[groupKey]) {
-      acc[groupKey] = {
-        title: h.submodule_title || 'Lesson',
-        highlights: [],
-      };
-    }
-    acc[groupKey].highlights.push(h);
-    return acc;
-  }, {});
-
-  const sections = Object.entries(grouped).map(([key, value]) => ({
-    key,
-    title: value.title,
-    highlights: value.highlights,
-  }));
-
-  const navigateToHighlight = (h: Highlight) => {
-    if (!h.module_id || !h.submodule_id || !h.page_num) return;
-    router.push({
-      pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
-      params: {
-        moduleId: h.module_id,
-        submoduleId: h.submodule_id,
-        lessonId: h.lesson_id,
-        pageNum: h.page_num.toString(),
-      },
-    });
-  };
-
   const renderSection = ({
     item,
   }: {
@@ -87,23 +113,9 @@ export default function SavedHighlightsList() {
           {item.highlights.length} highlight{item.highlights.length !== 1 ? 's' : ''}
         </Text>
       </View>
-      {item.highlights.map(h => {
-        const canNavigate = !!(h.module_id && h.submodule_id && h.page_num);
-        return (
-          <Pressable
-            key={h.id}
-            style={styles.highlightItem}
-            onPress={() => navigateToHighlight(h)}
-            disabled={!canNavigate}
-          >
-            <View style={styles.highlightBar} />
-            <Text style={styles.highlightText} numberOfLines={3}>"{h.selected_text}"</Text>
-            {canNavigate && (
-              <Feather name="chevron-right" size={16} color="#9CA3AF" style={styles.chevron} />
-            )}
-          </Pressable>
-        );
-      })}
+      {item.highlights.map(h => (
+        <HighlightItem key={h.id} highlight={h} onNavigate={navigateToHighlight} />
+      ))}
     </View>
   );
 

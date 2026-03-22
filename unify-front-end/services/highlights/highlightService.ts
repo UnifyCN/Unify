@@ -81,8 +81,12 @@ export async function saveHighlight(
     const mergedStart = Math.min(startWordIndex, ...overlapping.map(h => h.start_word_index));
     const mergedEnd = Math.max(endWordIndex, ...overlapping.map(h => h.end_word_index));
 
+    // Validate bounds before slicing
+    const clampedStart = Math.max(0, Math.min(mergedStart, allWordsInBlock.length - 1));
+    const clampedEnd = Math.max(clampedStart, Math.min(mergedEnd, allWordsInBlock.length - 1));
+
     // Reconstruct the full merged text from the word list
-    const mergedText = allWordsInBlock.slice(mergedStart, mergedEnd + 1).join(' ');
+    const mergedText = allWordsInBlock.slice(clampedStart, clampedEnd + 1).join(' ');
 
     // Delete the old overlapping highlights
     const idsToDelete = overlapping.map(h => h.id);
@@ -100,8 +104,8 @@ export async function saveHighlight(
         lesson_id: lessonId,
         page_key: pageKey,
         block_key: blockKey,
-        start_word_index: mergedStart,
-        end_word_index: mergedEnd,
+        start_word_index: clampedStart,
+        end_word_index: clampedEnd,
         selected_text: mergedText,
         ...(navContext && {
           module_id: navContext.moduleId,

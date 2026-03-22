@@ -56,7 +56,7 @@ export default function ExplainTermModal({
       setError(null);
       setLoading(false);
     }
-  }, [visible, term]);
+  }, [visible, term, lessonContext]);
 
   const handleRetry = () => {
     trackLessonAskAiRetry(lessonId);

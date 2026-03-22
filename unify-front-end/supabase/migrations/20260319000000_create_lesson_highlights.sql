@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS lesson_highlights (
   start_word_index INTEGER NOT NULL,
   end_word_index INTEGER NOT NULL,
   selected_text TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT now()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Composite index for the primary query: fetch all highlights for a user on a specific lesson page

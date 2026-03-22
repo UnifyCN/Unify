@@ -84,7 +84,7 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
           ...nonOverlapping,
           {
             id: `optimistic-${Date.now()}`,
-            user_id: '',
+            user_id: 'optimistic-user',
             lesson_id: lessonId,
             page_key: pageKey,
             block_key: blockKey,
