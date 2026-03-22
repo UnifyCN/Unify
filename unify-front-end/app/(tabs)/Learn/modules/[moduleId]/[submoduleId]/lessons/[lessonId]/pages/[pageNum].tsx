@@ -495,26 +495,35 @@ function LessonPageContent({
 
     const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
     const end = Math.max(selection.startWord.wordIndex, selection.endWord.wordIndex);
+    const selectedText = selection.selectedText;
 
-    saveHighlightMutation.mutate({
-      blockKey: selection.startWord.blockKey,
-      startWordIndex: start,
-      endWordIndex: end,
-      selectedText: selection.selectedText,
-      allWordsInBlock: selection.allWords || [],
-      navContext,
-    });
-
-    trackLessonHighlightCreated(lessonId, selection.selectedText);
-    clearSelection();
+    saveHighlightMutation.mutate(
+      {
+        blockKey: selection.startWord.blockKey,
+        startWordIndex: start,
+        endWordIndex: end,
+        selectedText,
+        allWordsInBlock: selection.allWords || [],
+        navContext,
+      },
+      {
+        onSuccess: () => {
+          trackLessonHighlightCreated(lessonId, selectedText);
+          clearSelection();
+        },
+      }
+    );
   }, [selection, saveHighlightMutation, lessonId, trackLessonHighlightCreated, clearSelection, navContext]);
 
   const handleRemoveHighlight = useCallback(() => {
     if (!selection.existingHighlight) return;
 
-    deleteHighlightMutation.mutate(selection.existingHighlight.id);
-    trackLessonHighlightRemoved(lessonId);
-    clearSelection();
+    deleteHighlightMutation.mutate(selection.existingHighlight.id, {
+      onSuccess: () => {
+        trackLessonHighlightRemoved(lessonId);
+        clearSelection();
+      },
+    });
   }, [selection, deleteHighlightMutation, lessonId, trackLessonHighlightRemoved, clearSelection]);
 
   const handleAskAI = useCallback(() => {
