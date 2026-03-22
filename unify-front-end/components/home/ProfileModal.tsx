@@ -93,7 +93,7 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
         />
         <MenuRow
           icon="book"
-          label="Saved Lessons"
+          label="Saved from Learn"
           onPress={() => navigate('/saved-lessons')}
         />
         <MenuRow
