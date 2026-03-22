@@ -21,11 +21,9 @@ export default function GroupMembersSheet({
     ...(mutuals.length > 0
       ? [{ key: 'mutuals', title: 'People you know', data: mutuals }]
       : []),
-    {
-      key: 'all',
-      title: 'All members',
-      data: others.length > 0 ? others : members,
-    },
+    ...(others.length > 0
+      ? [{ key: 'all', title: 'All members', data: others }]
+      : []),
   ];
 
   return (

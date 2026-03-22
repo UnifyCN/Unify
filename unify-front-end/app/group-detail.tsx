@@ -128,7 +128,8 @@ const GroupDetailScreen = () => {
     return () => {
       mounted = false;
     };
-  }, [groupName, groupData, isMember]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groupName, groupData]);
 
   // posts for this group
   const groupId = groupData?.id;
