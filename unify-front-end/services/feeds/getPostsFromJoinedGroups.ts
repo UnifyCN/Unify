@@ -3,7 +3,8 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDtos } from '@/utils/postTransform';
-import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
+import { getBlockedUserIdsForUser } from '@/services/users/getBlockedUserIds';
+import { enrichPostsWithMetadata } from '@/services/posts/postMetadata';
 
 export const getPostsFromJoinedGroups = async (
   cursor?: string,
@@ -39,7 +40,7 @@ export const getPostsFromJoinedGroups = async (
     }
 
     // 2) Fetch posts from those groups, excluding blocked users
-    const blockedIds = await getBlockedUserIds();
+    const blockedIds = await getBlockedUserIdsForUser(user.id);
     const offset = cursor ? parseInt(cursor) : 0;
     let query = supabase
       .from('posts')
@@ -48,6 +49,8 @@ export const getPostsFromJoinedGroups = async (
 				id,
 				title,
 				content,
+				like_count,
+				comment_count,
 				created_at,
 				user_id,
 				group_id,
@@ -80,8 +83,8 @@ export const getPostsFromJoinedGroups = async (
     }
 
     // Transform data using helper function
-    const transformedPosts: PostData[] = transformPostDtos(
-      data as unknown as PostDto[]
+    const transformedPosts: PostData[] = await enrichPostsWithMetadata(
+      transformPostDtos(data as unknown as PostDto[])
     );
 
     return {

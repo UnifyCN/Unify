@@ -125,92 +125,100 @@ export default function RichTextRenderer({
 
   const numberingMap = createNumberingMap(blocks);
 
+  // Lesson body typography — matches Figma "Section 3 - Lesson" (Inter, Grey/800 body)
   const defaultStyles = {
-    // Headings
+    // Headings (in-content; page title uses screen styles)
     h1: {
-      fontSize: 28,
-      fontWeight: '700',
+      fontSize: 32,
+      lineHeight: 40,
+      fontWeight: '600',
       color: '#000',
       marginBottom: 20,
-      marginTop: 24,
+      marginTop: 0,
     },
     h2: {
       fontSize: 24,
+      lineHeight: 32,
       fontWeight: '600',
       color: '#000',
       marginBottom: 16,
-      marginTop: 20,
+      marginTop: 16,
     },
     h3: {
       fontSize: 20,
-      fontWeight: '600',
-      color: '#000',
-      marginBottom: 14,
-      marginTop: 16,
-    },
-    h4: {
-      fontSize: 18,
+      lineHeight: 28,
       fontWeight: '600',
       color: '#000',
       marginBottom: 12,
-      marginTop: 14,
+      marginTop: 12,
+    },
+    h4: {
+      fontSize: 18,
+      lineHeight: 24,
+      fontWeight: '600',
+      color: '#000',
+      marginBottom: 10,
+      marginTop: 10,
     },
 
     // Paragraphs
     normal: {
-      fontFamily: 'Font Family',
-      fontWeight: '400', // Regular
-      fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
-      letterSpacing: 0,
-      color: '#374151',
-      marginBottom: 5, // Consistent spacing between paragraphs
-    },
-
-    // Lists (lineHeight matches normal for consistent body text)
-    bullet: {
-      fontFamily: 'Font Family',
+      fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
+      fontSize: 14,
+      lineHeight: 20,
       letterSpacing: 0,
-      color: '#374151',
-      marginBottom: 10, // Spacing between bullet items
+      color: '#424242',
+      marginBottom: 10,
+    },
+
+    // Lists — 14/20, 10px between items (Figma mb-[10px])
+    bullet: {
+      fontFamily: 'Inter',
+      fontWeight: '400',
+      fontStyle: 'normal',
+      fontSize: 14,
+      lineHeight: 20,
+      letterSpacing: 0,
+      color: '#424242',
+      marginBottom: 10,
       marginTop: 0,
     },
     number: {
-      fontFamily: 'Font Family',
+      fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
+      fontSize: 14,
+      lineHeight: 20,
       letterSpacing: 0,
-      color: '#374151',
-      marginBottom: 3, // Spacing between numbered items
+      color: '#424242',
+      marginBottom: 10,
     },
 
     strong: {
-      fontFamily: 'Font Family',
-      fontWeight: '700', // Semi-Bold
+      fontFamily: 'Inter',
+      fontWeight: '700',
       fontStyle: 'normal',
-      fontSize: 18,
+      fontSize: 14,
       lineHeight: 20,
       letterSpacing: 0,
-      color: '#374151',
+      color: '#424242',
     },
-    // Quote
+    // Quote / callout strip (Figma: border-l 5 #3F3F3F, 14/20, not italic)
     blockquote: {
-      fontSize: 16,
-      color: '#6B7280',
-      fontStyle: 'italic',
-      lineHeight: 24,
-      marginBottom: 16,
-      marginTop: 16,
-      paddingLeft: 16,
-      borderLeftWidth: 4,
-      borderLeftColor: '#E5E7EB',
+      marginBottom: 0,
+      marginTop: 0,
+      paddingLeft: 15,
+      borderLeftWidth: 5,
+      borderLeftColor: '#3F3F3F',
+    },
+    blockquoteText: {
+      fontFamily: 'Inter',
+      fontSize: 14,
+      lineHeight: 20,
+      color: '#424242',
+      fontStyle: 'normal',
     },
 
     // Code
@@ -245,9 +253,11 @@ export default function RichTextRenderer({
     dropdown: { marginVertical: 16 },
 
     exampleBox: {
+      flexDirection: 'column',
       backgroundColor: '#EAEAEA',
       borderRadius: 10,
-      padding: 15,
+      padding: 25,
+      gap: 10,
       marginVertical: 5,
       marginBottom: 25,
       shadowColor: '#000',
@@ -259,20 +269,22 @@ export default function RichTextRenderer({
       borderColor: '#C9C9C9',
     },
     exampleBoxTitle: {
-      fontSize: 18,
-      fontWeight: '700',
-      color: '#374151',
-      marginBottom: 8,
+      fontFamily: 'Inter',
+      fontSize: 14,
+      fontWeight: '600',
+      lineHeight: 20,
+      color: '#424242',
+      marginBottom: 0,
       textTransform: 'uppercase',
     },
     exampleText: {
-      fontFamily: 'Font Family',
+      fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 18,
-      lineHeight: 27,
+      fontSize: 14,
+      lineHeight: 20,
       letterSpacing: 0,
-      color: '#374151',
+      color: '#424242',
     },
 
     // ✅ TIP BOX (merged from your ActivityPageScreen, Figma spec)
@@ -292,18 +304,18 @@ export default function RichTextRenderer({
       marginBottom: 30,
     },
     tipTitleText: {
-      fontFamily: 'Font Family',
+      fontFamily: 'Inter',
       fontSize: 14,
       lineHeight: 20,
-      fontWeight: '600', // Semi-bold
-      color: '#3F3F3F',
+      fontWeight: '600',
+      color: '#424242',
     },
     tipBodyText: {
-      fontFamily: 'Font Family',
+      fontFamily: 'Inter',
       fontSize: 14,
       lineHeight: 20,
-      fontWeight: '400', // Regular
-      color: '#3F3F3F',
+      fontWeight: '400',
+      color: '#424242',
       marginBottom: 0,
     },
 
@@ -323,7 +335,12 @@ export default function RichTextRenderer({
       shadowRadius: 2,
       elevation: 1,
     },
-    noteBoxText: { fontSize: 16, color: '#3F3F3F', lineHeight: 24 },
+    noteBoxText: {
+      fontFamily: 'Inter',
+      fontSize: 14,
+      lineHeight: 20,
+      color: '#424242',
+    },
 
     // Links
     link: {
@@ -590,7 +607,7 @@ export default function RichTextRenderer({
         const containerStyle = isLastInList
           ? [
               styles.listItemContainer,
-              { marginLeft: indentLevel, marginBottom: 20 },
+              { marginLeft: indentLevel, marginBottom: 25 },
             ]
           : [styles.listItemContainer, { marginLeft: indentLevel }];
 
@@ -1543,7 +1560,7 @@ export default function RichTextRenderer({
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 4 }, // Add top padding to prevent text clipping
   listItemContainer: { marginBottom: 0 }, // Spacing between list items handled by bullet marginBottom
-  skipLineSpacer: { height: 20, marginBottom: 0 }, // Skip lines create consistent 20px spacing
+  skipLineSpacer: { height: 25, marginBottom: 0 }, // Figma content column gap
   inputFieldContainer: {
     marginVertical: 12,
     borderWidth: 1,

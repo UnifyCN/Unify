@@ -261,6 +261,7 @@ export default function SubmoduleIndex() {
   };
 
   const hasTasks = (tasks?.length ?? 0) > 0;
+  const hasPractice = (practices?.length ?? 0) > 0;
 
   const sections: SubmoduleSectionViewModel[] = [
     {
@@ -294,20 +295,24 @@ export default function SubmoduleIndex() {
           } as SubmoduleSectionViewModel,
         ]
       : []),
-    {
-      id: 'practice',
-      title: 'Practice',
-      description: 'Test your understanding',
-      iconName: 'target',
-      progressPercent: practiceProgressPercent,
-      uiState:
-        practiceProgressPercent >= 100
-          ? 'completed'
-          : practiceProgressPercent > 0
-            ? 'active'
-            : 'unlocked',
-      onPress: handlePracticePress,
-    },
+    ...(hasPractice
+      ? [
+          {
+            id: 'practice',
+            title: 'Practice',
+            description: 'Test your understanding',
+            iconName: 'target',
+            progressPercent: practiceProgressPercent,
+            uiState:
+              practiceProgressPercent >= 100
+                ? 'completed'
+                : practiceProgressPercent > 0
+                  ? 'active'
+                  : 'unlocked',
+            onPress: handlePracticePress,
+          } as SubmoduleSectionViewModel,
+        ]
+      : []),
   ];
 
   const handleCardTap = (section: SubmoduleSectionViewModel) => {

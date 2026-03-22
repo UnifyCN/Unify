@@ -44,6 +44,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 
 const MESSAGE_LIMIT = 3;
+const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 const dottedLineTopOffset = -windowHeight * 0.001;
 const dottedLineWidth = windowWidth * 2.2;
@@ -115,6 +116,7 @@ export default function CompanionScreen() {
   const [inputText, setInputText] = useState('');
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
+  const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
   const emptyStateTopPadding = Math.max(
     220,
     (windowHeight - insets.top - insets.bottom) * 0.52
@@ -130,13 +132,44 @@ export default function CompanionScreen() {
     [dbMessages]
   );
 
+  const visibleOptimisticMessages = useMemo(
+    () =>
+      optimisticMessages.filter(
+        optimisticMessage =>
+          !dbMessagesFormatted.some(
+            persistedMessage => {
+              if (
+                persistedMessage.clientId &&
+                optimisticMessage.clientId &&
+                persistedMessage.clientId === optimisticMessage.clientId
+              ) {
+                return true;
+              }
+
+              return (
+                persistedMessage.isUser === optimisticMessage.isUser &&
+                persistedMessage.text === optimisticMessage.text &&
+                Math.abs(
+                  persistedMessage.timestamp.getTime() -
+                    optimisticMessage.timestamp.getTime()
+                ) <= OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS
+              );
+            }
+          )
+      ),
+    [dbMessagesFormatted, optimisticMessages]
+  );
+
   // Combine greeting message with real messages
   const messages: Message[] = useMemo(
     () =>
-      greetingMessage
-        ? [greetingMessage, ...dbMessagesFormatted]
-        : dbMessagesFormatted,
-    [greetingMessage, dbMessagesFormatted]
+      (greetingMessage
+        ? [greetingMessage, ...dbMessagesFormatted, ...visibleOptimisticMessages]
+        : [...dbMessagesFormatted, ...visibleOptimisticMessages]
+      ).sort(
+        (left, right) => left.timestamp.getTime() - right.timestamp.getTime()
+      ),
+    [greetingMessage, dbMessagesFormatted, visibleOptimisticMessages]
   );
 
   // Clear greeting when real messages exist
@@ -154,7 +187,7 @@ export default function CompanionScreen() {
   const { data: usage } = useChatbotUsage();
   const { currentUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
-  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps } =
+  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps, lastVerified } =
     useSendMessage({
       messages,
       currentConversationId,
@@ -171,8 +204,14 @@ export default function CompanionScreen() {
     canSend
   );
   const showLoadingState =
-    isLoadingMessages || (isLoading && messages.length === 0);
+    messages.length === 0 && (isLoadingMessages || isLoading);
   const showEmptyState = !showLoadingState && messages.length === 0;
+
+  const resetDraftState = useCallback(() => {
+    setOptimisticMessages([]);
+    setGreetingMessage(null);
+    setInputText('');
+  }, []);
 
   // Initialize conversation ID from query params if it exists, or clear it for new conversation
   useEffect(() => {
@@ -182,8 +221,9 @@ export default function CompanionScreen() {
       // Clear conversation ID when starting a new conversation (no conversationId param)
       setCurrentConversationId(null);
     }
+    resetDraftState();
     previousMessageCountRef.current = 0;
-  }, [conversationId]);
+  }, [conversationId, resetDraftState]);
 
   // Scroll to end only when new messages are added (not when sources expand/collapse)
   useEffect(() => {
@@ -201,22 +241,52 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = currentMessageCount;
   }, [messages.length]);
 
-
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
       const textToSend = messageText || inputText.trim();
       if (!textToSend || isLoading || !canSend) return;
 
+      let optimisticMessageId: string | null = null;
+      if (!currentConversationId) {
+        optimisticMessageId = `optimistic-user-${Date.now()}`;
+        const optimisticMessage: Message = {
+          id: optimisticMessageId,
+          clientId: optimisticMessageId,
+          text: textToSend,
+          isUser: true,
+          timestamp: new Date(),
+        };
+        setOptimisticMessages(current => [...current, optimisticMessage]);
+      }
+
       setInputText('');
       trackCompanionMessageSent(textToSend.length);
 
       try {
-        await sendMessage(textToSend);
-      } catch {
-        // Error is already logged in useSendMessage hook
+        await sendMessage(textToSend, optimisticMessageId ?? undefined);
+      } catch (error) {
+        if (optimisticMessageId) {
+          setOptimisticMessages(current =>
+            current.filter(message => message.id !== optimisticMessageId)
+          );
+        }
+        if (
+          !(error instanceof Error) ||
+          !(error as Error & { messagePersisted?: boolean }).messagePersisted
+        ) {
+          setInputText(textToSend);
+        }
       }
     },
-    [inputText, isLoading, canSend, sendMessage, trackCompanionMessageSent]
+    [
+      inputText,
+      isLoading,
+      canSend,
+      sendMessage,
+      trackCompanionMessageSent,
+      currentConversationId,
+      setOptimisticMessages,
+    ]
   );
 
   // Handle starter prompt selection
@@ -275,14 +345,20 @@ export default function CompanionScreen() {
 
   const renderMessage = useCallback(
     ({ item, index }: { item: Message; index: number }) => {
-      // Only show suggestions on the last bot message
+      // Only show suggestions and lastVerified on the last bot message
       const isLastMessage = index === messages.length - 1;
-      const showSuggestions =
-        isLastMessage && !item.isUser && lastSuggestedNextSteps;
+      const isLastBotMessage = isLastMessage && !item.isUser;
+      const showSuggestions = isLastBotMessage && lastSuggestedNextSteps;
+
+      // Attach lastVerified to the last bot message for real-time display
+      const displayItem =
+        isLastBotMessage && lastVerified
+          ? { ...item, lastVerified }
+          : item;
 
       return (
         <MessageWithSources
-          item={item}
+          item={displayItem}
           suggestedNextSteps={
             showSuggestions ? lastSuggestedNextSteps : undefined
           }
@@ -290,7 +366,7 @@ export default function CompanionScreen() {
         />
       );
     },
-    [messages.length, lastSuggestedNextSteps, handleSuggestionClick]
+    [messages.length, lastSuggestedNextSteps, lastVerified, handleSuggestionClick]
   );
 
   const renderLoadingIndicator = useCallback(() => {
@@ -303,12 +379,11 @@ export default function CompanionScreen() {
 
   const handleNewChatPress = useCallback(() => {
     setCurrentConversationId(null);
-    setGreetingMessage(null);
-    setInputText('');
+    resetDraftState();
     previousMessageCountRef.current = 0;
     Keyboard.dismiss();
     router.replace('/(tabs)/companion' as any);
-  }, [router]);
+  }, [resetDraftState, router]);
 
   return (
     <View style={styles.container}>

@@ -30,16 +30,24 @@ export const TIME_IN_CANADA_LABELS: Record<PoolTimeInCanada, string> = {
 
 export type PoolKey = string;
 
-export const buildPoolKey = (
-  persona: PoolPersona,
-  timeInCanada: PoolTimeInCanada
-): PoolKey => `${persona}__${timeInCanada}`;
+const normalizePoolSegment = (value?: string | null, fallback = 'open') =>
+  (value || fallback).trim().toLowerCase().replace(/\s+/g, '_');
 
-export const formatPersonaLabel = (persona?: PoolPersona | null) => {
+export const buildPoolKey = (
+  persona: PoolPersona | string | null,
+  timeInCanada: PoolTimeInCanada | string
+): PoolKey =>
+  `${normalizePoolSegment(persona, 'mixed')}__${normalizePoolSegment(
+    timeInCanada,
+    'unknown'
+  )}`;
+
+export const formatPersonaLabel = (persona?: PoolPersona | string | null) => {
   if (!persona) {
     return 'Newcomers';
   }
-  return PERSONA_LABELS[persona] ?? persona.replace(/_/g, ' ');
+  const labels = PERSONA_LABELS as Record<string, string>;
+  return labels[persona] ?? persona.replace(/_/g, ' ');
 };
 
 export const formatTimeInCanadaLabel = (
@@ -95,5 +103,5 @@ export const deriveTimeInCanadaFromArrivalDate = (
   }
 };
 
-export type MatchingPersona = PoolPersona;
+export type MatchingPersona = PoolPersona | string | null;
 export type MatchingTimeInCanada = PoolTimeInCanada;

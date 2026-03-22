@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createComment } from '@/services/posts/createComment';
 import { useInvalidatePostMetadata } from '@/hooks/usePostMetadata';
+import { updatePostAcrossCaches } from '@/utils/updatePostCaches';
 
 export const useMutateCreateComment = () => {
   const queryClient = useQueryClient();
@@ -20,6 +21,11 @@ export const useMutateCreateComment = () => {
     },
 
     onSuccess: (_, { postId }) => {
+      updatePostAcrossCaches(queryClient, postId, post => ({
+        ...post,
+        commentCount: (post.commentCount ?? 0) + 1,
+      }));
+
       // Refresh the comments list
       queryClient.invalidateQueries({
         queryKey: ['post-comments', postId],

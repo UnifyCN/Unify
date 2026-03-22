@@ -9,6 +9,7 @@ import {
   Dimensions,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -28,6 +29,9 @@ import ExplainTermModal from '@/components/learn/ExplainTermModal';
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { useToast } from '@/context/ToastContext';
+import { useLessonPageSaved } from '@/hooks/learn/useLessonPageSaved';
+import { useMutateSaveLessonPage } from '@/hooks/learn/useMutateSaveLessonPage';
 
 export default function LessonPageScreen() {
   const router = useRouter();
@@ -38,12 +42,19 @@ export default function LessonPageScreen() {
     pageNum: string;
   }>();
   const { trackScreen, trackLessonPageViewed, trackLessonHighlightCreated, trackLessonHighlightRemoved } = useAnalytics();
+  const { showToast } = useToast();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [askAIVisible, setAskAIVisible] = useState(false);
   const [askAITerm, setAskAITerm] = useState('');
 
   const currentPage = parseInt(pageNum || '1');
+
+  const saveLessonPageMutation = useMutateSaveLessonPage();
+  const { data: isLessonPageBookmarked } = useLessonPageSaved(
+    lessonId,
+    currentPage
+  );
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
     lessonId || ''
   );
@@ -283,6 +294,51 @@ export default function LessonPageScreen() {
     }
   };
 
+  const handleBookmarkPress = useCallback(() => {
+    if (!lessonId || !moduleId || !submoduleId || !lesson || !currentPageData) {
+      return;
+    }
+    const wasSaved = !!isLessonPageBookmarked;
+    const input = {
+      lessonId,
+      pageNumber: currentPage,
+      moduleId,
+      submoduleId,
+      lessonTitleSnapshot: lesson.title ?? null,
+      pageTitleSnapshot: currentPageData.title ?? null,
+    };
+    saveLessonPageMutation.mutate(
+      { input, isSaved: wasSaved },
+      {
+        onSuccess: () => {
+          if (!wasSaved) {
+            showToast(
+              'Lesson page saved! Find it in Settings > Saved Lessons',
+              () => router.push('/saved-lessons' as any)
+            );
+          }
+        },
+        onError: err => {
+          Alert.alert(
+            'Could not update',
+            err instanceof Error ? err.message : 'Please try again.'
+          );
+        },
+      }
+    );
+  }, [
+    lessonId,
+    moduleId,
+    submoduleId,
+    lesson,
+    currentPageData,
+    currentPage,
+    isLessonPageBookmarked,
+    saveLessonPageMutation,
+    showToast,
+    router,
+  ]);
+
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -313,6 +369,9 @@ export default function LessonPageScreen() {
           submoduleTitle={submoduleData?.title || 'Submodule'}
           submoduleOrder={submoduleData?.order || 1}
           onClose={() => setShowExitModal(true)}
+          onBookmarkPress={handleBookmarkPress}
+          isBookmarked={!!isLessonPageBookmarked}
+          bookmarkLoading={saveLessonPageMutation.isPending}
         />
 
         <LessonPageContent
@@ -510,7 +569,7 @@ function LessonPageContent({
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  container: { paddingHorizontal: 23, paddingBottom: 100 },
+  container: { paddingHorizontal: 20, paddingBottom: 100 },
 
   // Page indicator
   pageIndicatorContainer: {
@@ -535,15 +594,16 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    gap: 20,
+    gap: 25,
     marginBottom: 30,
   },
   contentText: {
-    fontWeight: 400,
+    fontFamily: 'Inter',
+    fontWeight: '400',
     color: '#424242',
-    marginBottom: 15,
-    fontSize: 18,
-    lineHeight: 27,
+    marginBottom: 10,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -556,23 +616,23 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 23,
+    paddingHorizontal: 20,
     paddingVertical: 20,
     paddingBottom: 15,
     backgroundColor: '#fff',
     gap: 12,
   },
   backBtn: {
-    backgroundColor: '#E5E7EB',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    backgroundColor: '#E6E6E6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
     alignItems: 'center',
     flex: 1,
   },
   backBtnText: { color: '#374151', fontSize: 16, fontWeight: '600' },
   nextBtn: {
-    backgroundColor: '#575757',
+    backgroundColor: '#1A1919',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,

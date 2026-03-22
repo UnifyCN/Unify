@@ -92,6 +92,11 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
           onPress={() => navigate('/saved')}
         />
         <MenuRow
+          icon="book"
+          label="Saved Lessons"
+          onPress={() => navigate('/saved-lessons')}
+        />
+        <MenuRow
           icon="message-circle"
           label="Give Feedback"
           onPress={handleFeedback}

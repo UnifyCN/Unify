@@ -1,10 +1,27 @@
 import { AppState } from 'react-native';
 import 'react-native-url-polyfill/auto';
+import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { createClient, processLock } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
+type Extra = {
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+};
+
+const extra = Constants.expoConfig?.extra as Extra | undefined;
+
+// Prefer app.config.js `extra` (reliable in dev); fall back to EXPO_PUBLIC_* from Metro env inlining.
+const supabaseUrl =
+  extra?.supabaseUrl?.trim() || process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+const supabaseAnonKey =
+  extra?.supabaseAnonKey?.trim() || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    '[Supabase] Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env (saved to disk), then restart Metro: npx expo start -c'
+  );
+}
 
 const SecureStoreAdapter = {
   getItem: (key: string) => SecureStore.getItemAsync(key),

@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { User } from '@/types/user';
+import { enrichPostsWithMetadata } from './postMetadata';
 
 export const getUserPosts = async (
   userId?: string,
@@ -30,6 +31,8 @@ export const getUserPosts = async (
         id,
         title,
         content,
+        like_count,
+        comment_count,
         created_at,
         user_id,
         group_id,
@@ -68,14 +71,18 @@ export const getUserPosts = async (
       time: post.created_at,
       title: post.title,
       content: post.content,
+      likeCount: post.like_count ?? 0,
+      commentCount: post.comment_count ?? 0,
       group: post.groups?.group_name?.trim() || null,
       post_image_urls: post.post_image_urls ?? [],
     }));
 
+    const postsWithMetadata = await enrichPostsWithMetadata(transformedPosts);
+
     return {
-      posts: transformedPosts,
+      posts: postsWithMetadata,
       next_cursor:
-        transformedPosts.length === limit
+        postsWithMetadata.length === limit
           ? String(cursor ? parseInt(cursor) + limit : limit)
           : undefined,
     };

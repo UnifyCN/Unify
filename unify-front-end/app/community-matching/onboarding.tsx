@@ -45,14 +45,11 @@ export default function MatchingOnboardingScreen() {
     }
     setIsSubmitting(true);
     try {
-      // Note: selections.goal and selections.topics are collected from the quiz
-      // and can be passed to the waitlist service when the backend supports them
       await joinCommunityWaitlist({
         persona: onboardingProfile.persona,
         timeInCanada: derivedTimeInCanada,
-        // TODO: Add goal and topics when backend schema supports them
-        // goal: selections.goal,
-        // topics: selections.topics,
+        goal: selections.goal ?? null,
+        topics: selections.topics ?? [],
       });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['community-waitlist'] }),
