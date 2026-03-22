@@ -8,7 +8,7 @@
 
 **Tech Stack:** React Native, AsyncStorage, React Native Modal
 
-**Spec:** `docs/superpowers/specs/2026-03-22-learn-feature-announcement-design.md`
+**Spec:** `DOCS/superpowers/specs/2026-03-22-learn-feature-announcement-design.md`
 
 **Skills:** Use `/frontend-design` when building the modal UI.
 
@@ -241,8 +241,8 @@ Expected: No errors
 
 - [ ] **Step 2: Verify no stale references**
 
-Run: `grep -r "AnnouncementModal" unify-front-end/ --include="*.tsx" --include="*.ts"`
-Expected: Exactly 2 matches — the component file and the Learn tab import/usage.
+Run: `grep -rl "AnnouncementModal" unify-front-end/ --include="*.tsx" --include="*.ts"`
+Expected: Exactly 2 files — the component file and the Learn tab import/usage.
 
 - [ ] **Step 3: Push all changes**
 

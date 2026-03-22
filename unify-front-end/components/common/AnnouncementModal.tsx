@@ -68,9 +68,6 @@ export default function AnnouncementModal({
     >
       <View style={styles.overlay}>
         <View style={styles.card}>
-          {/* Warm highlight accent bar — visual tie to the highlighting feature */}
-          <View style={styles.accentBar} />
-
           <View style={styles.content}>
             {/* Badge + Title row */}
             <View style={styles.headerRow}>
@@ -123,12 +120,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.18,
     shadowRadius: 28,
     elevation: 16,
-  },
-
-  // Warm amber bar that echoes the highlight color users will discover
-  accentBar: {
-    height: 4,
-    backgroundColor: '#F59E0B',
   },
 
   content: {

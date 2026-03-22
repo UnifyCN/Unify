@@ -511,6 +511,9 @@ function LessonPageContent({
           trackLessonHighlightCreated(lessonId, selectedText);
           clearSelection();
         },
+        onError: () => {
+          Alert.alert('Error', 'Failed to save highlight. Please try again.');
+        },
       }
     );
   }, [selection, saveHighlightMutation, lessonId, trackLessonHighlightCreated, clearSelection, navContext]);
@@ -522,6 +525,9 @@ function LessonPageContent({
       onSuccess: () => {
         trackLessonHighlightRemoved(lessonId);
         clearSelection();
+      },
+      onError: () => {
+        Alert.alert('Error', 'Failed to remove highlight. Please try again.');
       },
     });
   }, [selection, deleteHighlightMutation, lessonId, trackLessonHighlightRemoved, clearSelection]);
