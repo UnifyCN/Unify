@@ -27,6 +27,7 @@ import {
 } from '../../../components/learn/learn-index-skeleton-loader';
 import TabHeader from '@/components/home/HomeHeader';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
+import AnnouncementModal from '@/components/common/AnnouncementModal';
 
 export default function Learn() {
   useProgressCache();
@@ -213,6 +214,12 @@ export default function Learn() {
           </View>
         </ScrollView>
       </View>
+      <AnnouncementModal
+        storageKey="announcement.learnHighlights.v1"
+        title="New: Highlight & Ask AI"
+        body="Long press any word or phrase in a lesson to highlight it or ask AI to explain it. Your highlights are saved under 'Saved from Learn' in your profile."
+        buttonLabel="Got it"
+      />
     </View>
   );
 }

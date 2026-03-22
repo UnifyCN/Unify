@@ -16,9 +16,10 @@ import { useSavedLessonPages } from '@/hooks/learn/useSavedLessonPages';
 import type { SavedLessonPageRow } from '@/services/learn/lessonPageSaves';
 import { useSanityModules } from '@/hooks/sanity/useSanityModules';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
-import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import { Theme } from '@/constants/Theme';
 import { formatRelativeTime } from '@/helpers/dateHelpers';
+import { useAllHighlights } from '@/hooks/highlights/useHighlights';
+import { Highlight } from '@/services/highlights/highlightService';
 
 const DEFAULT_COLOR = '#F0F0F0';
 const DEFAULT_ACCENT = Theme.textInput;
@@ -49,6 +50,15 @@ const mapIconName = (iconName: string): string => {
   };
   return iconMap[iconName] || 'book-outline';
 };
+
+interface UnifiedSection {
+  key: string;
+  submoduleTitle: string;
+  moduleId: string;
+  pages: SavedLessonPageRow[];
+  highlights: Highlight[];
+  latestDate: string;
+}
 
 interface SavedLessonCardProps {
   item: SavedLessonPageRow;
@@ -124,28 +134,86 @@ const SavedLessonCard = React.memo(function SavedLessonCard({
   );
 });
 
+const HighlightItem = React.memo(function HighlightItem({
+  highlight,
+  onNavigate,
+}: {
+  highlight: Highlight;
+  onNavigate: (h: Highlight) => void;
+}) {
+  const canNavigate =
+    highlight.module_id != null &&
+    highlight.submodule_id != null &&
+    highlight.page_num != null;
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.highlightItem,
+        pressed && styles.highlightItemPressed,
+      ]}
+      onPress={() => onNavigate(highlight)}
+      disabled={!canNavigate}
+    >
+      <View style={styles.highlightBar} />
+      <Text style={styles.highlightText} numberOfLines={3}>
+        "{highlight.selected_text}"
+      </Text>
+      {canNavigate && (
+        <Feather
+          name="chevron-right"
+          size={16}
+          color="#9CA3AF"
+          style={styles.highlightChevron}
+        />
+      )}
+    </Pressable>
+  );
+});
+
 export default function SavedLessonsPage() {
   const router = useRouter();
-  const { data, isLoading, isRefetching, refetch, error } =
-    useSavedLessonPages();
+
+  const {
+    data: pagesData,
+    isLoading: isPagesLoading,
+    isRefetching: isPagesRefetching,
+    refetch: refetchPages,
+    error: pagesError,
+  } = useSavedLessonPages();
+
+  const {
+    data: highlightsData,
+    isLoading: isHighlightsLoading,
+    isRefetching: isHighlightsRefetching,
+    refetch: refetchHighlights,
+  } = useAllHighlights();
+
   const { data: modules } = useSanityModules();
 
-  // Build a lookup from moduleId → { color, icon, title }
-  const moduleMap = useMemo(() => {
-    const map: Record<
+  // Build lookups: moduleId → { color, icon, title } and submoduleId → submodule title
+  const { moduleMap, submoduleTitleMap } = useMemo(() => {
+    const mMap: Record<
       string,
       { color: string; icon: string; title: string }
     > = {};
+    const sMap: Record<string, string> = {};
     if (modules) {
       for (const m of modules) {
-        map[m._id] = {
+        mMap[m._id] = {
           color: m.colorTheme?.hex || DEFAULT_ACCENT,
           icon: m.icon || 'book',
           title: m.title,
         };
+        if (m.submodules) {
+          for (const s of m.submodules) {
+            if (s._id && s.title) {
+              sMap[s._id] = s.title;
+            }
+          }
+        }
       }
     }
-    return map;
+    return { moduleMap: mMap, submoduleTitleMap: sMap };
   }, [modules]);
 
   const openLessonPage = useCallback(
@@ -164,32 +232,195 @@ export default function SavedLessonsPage() {
     [router]
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: SavedLessonPageRow }) => {
-      const mod = moduleMap[item.moduleId];
+  const navigateToHighlight = useCallback(
+    (h: Highlight) => {
+      if (h.module_id == null || h.submodule_id == null || h.page_num == null) return;
+      router.push({
+        pathname:
+          '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
+        params: {
+          moduleId: h.module_id,
+          submoduleId: h.submodule_id,
+          lessonId: h.lesson_id,
+          pageNum: h.page_num.toString(),
+        },
+      });
+    },
+    [router]
+  );
+
+  // Group pages and highlights by submodule, merge, and sort
+  const sections = useMemo((): UnifiedSection[] => {
+    const pages = pagesData ?? [];
+    const highlights = highlightsData ?? [];
+
+    const sectionMap: Record<string, UnifiedSection> = {};
+
+    for (const page of pages) {
+      const key = page.submoduleId;
+      if (!sectionMap[key]) {
+        sectionMap[key] = {
+          key,
+          submoduleTitle: '',
+          moduleId: page.moduleId,
+          pages: [],
+          highlights: [],
+          latestDate: page.createdAt,
+        };
+      }
+      sectionMap[key].pages.push(page);
+      if (page.createdAt > sectionMap[key].latestDate) {
+        sectionMap[key].latestDate = page.createdAt;
+      }
+    }
+
+    for (const h of highlights) {
+      const key = h.submodule_id || h.lesson_id;
+      if (!sectionMap[key]) {
+        sectionMap[key] = {
+          key,
+          submoduleTitle: h.submodule_title || '',
+          moduleId: h.module_id || '',
+          pages: [],
+          highlights: [],
+          latestDate: h.created_at,
+        };
+      } else {
+        // Fill in submoduleTitle if we got it from the highlight
+        if (!sectionMap[key].submoduleTitle && h.submodule_title) {
+          sectionMap[key].submoduleTitle = h.submodule_title;
+        }
+      }
+      sectionMap[key].highlights.push(h);
+      if (h.created_at > sectionMap[key].latestDate) {
+        sectionMap[key].latestDate = h.created_at;
+      }
+    }
+
+    return Object.values(sectionMap)
+      .map((section) => ({
+        ...section,
+        pages: [...section.pages].sort((a, b) =>
+          b.createdAt.localeCompare(a.createdAt)
+        ),
+        highlights: [...section.highlights].sort((a, b) =>
+          b.created_at.localeCompare(a.created_at)
+        ),
+      }))
+      .sort((a, b) => b.latestDate.localeCompare(a.latestDate));
+  }, [pagesData, highlightsData]);
+
+  const totalItems = useMemo(
+    () =>
+      sections.reduce(
+        (sum, s) => sum + s.pages.length + s.highlights.length,
+        0
+      ),
+    [sections]
+  );
+
+  const isLoadingAll =
+    (isPagesLoading && !pagesData) || (isHighlightsLoading && !highlightsData);
+  const isRefetchingAny = isPagesRefetching || isHighlightsRefetching;
+
+  const handleRefresh = useCallback(() => {
+    refetchPages();
+    refetchHighlights();
+  }, [refetchPages, refetchHighlights]);
+
+  const renderSection = useCallback(
+    ({ item: section }: { item: UnifiedSection }) => {
+      const mod = moduleMap[section.moduleId];
       const accentColor = mod?.color || DEFAULT_ACCENT;
       const iconName = mapIconName(mod?.icon || 'book');
       const moduleTitle = mod?.title || 'Lesson';
+      const hasBoth = section.pages.length > 0 && section.highlights.length > 0;
+      const itemCount = section.pages.length + section.highlights.length;
+
+      // Resolve submodule title: prefer Sanity source-of-truth, fall back to DB snapshot
+      const displayTitle =
+        submoduleTitleMap[section.key] ||
+        section.submoduleTitle ||
+        (section.pages[0]?.lessonTitleSnapshot ?? moduleTitle);
 
       return (
-        <SavedLessonCard
-          item={item}
-          accentColor={accentColor}
-          iconName={iconName}
-          moduleTitle={moduleTitle}
-          onPress={() => openLessonPage(item)}
-        />
+        <View style={styles.sectionCard}>
+          {/* Accent top border */}
+          <View style={[styles.sectionAccentBar, { backgroundColor: accentColor }]} />
+
+          {/* Section header */}
+          <View style={styles.sectionHeader}>
+            <View
+              style={[
+                styles.sectionIconCircle,
+                { backgroundColor: accentColor + '20' },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name={iconName as any}
+                size={18}
+                color={accentColor}
+              />
+            </View>
+            <Text style={styles.sectionTitle} numberOfLines={2}>
+              {displayTitle}
+            </Text>
+            <View style={[styles.sectionCountBadge, { backgroundColor: accentColor + '18' }]}>
+              <Text style={[styles.sectionCount, { color: accentColor }]}>
+                {itemCount}
+              </Text>
+            </View>
+          </View>
+
+          {/* Pages */}
+          {section.pages.length > 0 && (
+            <>
+              {hasBoth && (
+                <Text style={styles.subHeader}>SAVED PAGES</Text>
+              )}
+              {section.pages.map((page) => (
+                <SavedLessonCard
+                  key={page.id}
+                  item={page}
+                  accentColor={accentColor}
+                  iconName={iconName}
+                  moduleTitle={moduleTitle}
+                  onPress={() => openLessonPage(page)}
+                />
+              ))}
+            </>
+          )}
+
+          {/* Highlights */}
+          {section.highlights.length > 0 && (
+            <>
+              {hasBoth && (
+                <Text style={styles.subHeader}>HIGHLIGHTS</Text>
+              )}
+              {section.highlights.map((h) => (
+                <HighlightItem
+                  key={h.id}
+                  highlight={h}
+                  onNavigate={navigateToHighlight}
+                />
+              ))}
+            </>
+          )}
+        </View>
       );
     },
-    [moduleMap, openLessonPage]
+    [moduleMap, submoduleTitleMap, openLessonPage, navigateToHighlight]
   );
 
-  const keyExtractor = useCallback((item: SavedLessonPageRow) => item.id, []);
+  const keyExtractor = useCallback(
+    (item: UnifiedSection) => item.key,
+    []
+  );
 
-  if (isLoading && !data) {
+  if (isLoadingAll) {
     return (
       <View style={styles.container}>
-        <BackHeader title="Saved Lessons" />
+        <BackHeader title="Saved from Learn" />
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={Theme.black} />
         </View>
@@ -197,47 +428,45 @@ export default function SavedLessonsPage() {
     );
   }
 
-  if (error) {
+  if (pagesError && !pagesData && !highlightsData) {
     return (
       <View style={styles.container}>
-        <BackHeader title="Saved Lessons" />
+        <BackHeader title="Saved from Learn" />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>Could not load saved lessons.</Text>
+          <Text style={styles.errorText}>Could not load saved content.</Text>
         </View>
       </View>
     );
   }
 
-  const list = data ?? [];
-
   return (
     <View style={styles.container}>
-      <BackHeader title="Saved Lessons" />
-      {list.length > 0 && (
+      <BackHeader title="Saved from Learn" />
+      {totalItems > 0 && (
         <Text style={styles.countLabel}>
-          {list.length} saved {list.length === 1 ? 'lesson' : 'lessons'}
+          {totalItems} saved {totalItems === 1 ? 'item' : 'items'}
         </Text>
       )}
       <FlatList
-        data={list}
+        data={sections}
         keyExtractor={keyExtractor}
-        renderItem={renderItem}
+        renderItem={renderSection}
         contentContainerStyle={
-          list.length === 0 ? styles.emptyListContent : styles.listContent
+          sections.length === 0 ? styles.emptyListContent : styles.listContent
         }
         refreshControl={
           <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={() => refetch()}
+            refreshing={isRefetchingAny}
+            onRefresh={handleRefresh}
           />
         }
         ListEmptyComponent={
           <EmptyFeedMessage
-            icon={<UnifyReplyIcon width={27} height={25} />}
-            message="No saved lesson pages yet"
+            icon={<Feather name="book-open" size={27} color={Theme.textInput} />}
+            message="Nothing saved from Learn yet"
             submessage={
               <Text style={styles.emptyMessageSubtext}>
-                Tap the bookmark on a lesson page to save it here
+                Bookmark lesson pages or highlight text to save them here
               </Text>
             }
           />
@@ -262,7 +491,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 32,
-    gap: 12,
+    gap: 16,
   },
   emptyListContent: {
     flexGrow: 1,
@@ -279,13 +508,102 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Card
+  // Section card
+  sectionCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#EBEBEB',
+    overflow: 'hidden',
+    gap: 0,
+  },
+  sectionAccentBar: {
+    height: 4,
+    width: '100%',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+  },
+  sectionIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitle: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
+    color: Theme.black,
+    lineHeight: 18,
+  },
+  sectionCountBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    minWidth: 24,
+    alignItems: 'center',
+  },
+  sectionCount: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  subHeader: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Theme.textInactiveTab,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginHorizontal: 14,
+    marginTop: 4,
+    marginBottom: 6,
+  },
+
+  // Highlight item
+  highlightItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 14,
+    marginBottom: 8,
+    backgroundColor: '#FAFAFA',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingRight: 10,
+    gap: 10,
+  },
+  highlightItemPressed: {
+    backgroundColor: '#F0F0F0',
+  },
+  highlightBar: {
+    width: 3,
+    alignSelf: 'stretch',
+    backgroundColor: '#FCD34D',
+    borderRadius: 2,
+    marginLeft: 10,
+  },
+  highlightText: {
+    flex: 1,
+    fontSize: 13,
+    color: Theme.black,
+    lineHeight: 19,
+    fontStyle: 'italic',
+  },
+  highlightChevron: {
+    flexShrink: 0,
+  },
+
+  // Card (kept exactly as before)
   card: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#EBEBEB',
+    borderRadius: 0,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
     overflow: 'hidden',
   },
   cardPressed: {
