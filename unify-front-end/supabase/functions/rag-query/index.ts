@@ -1,6 +1,7 @@
 // @ts-nocheck We do not need the actual Deno import since it's used by supabase serverless functions so ignore
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -22,9 +23,6 @@ type QueryType =
   | 'fact_check'
   | 'form_help';
 
-const FETCH_TIMEOUT_MS = 20000;
-const MAX_FETCH_RETRIES = 2;
-const RETRY_DELAY_MS = 400;
 const EMBEDDING_MODEL =
   Deno.env.get('OPENAI_EMBEDDING_MODEL') || 'text-embedding-3-small';
 
@@ -58,58 +56,6 @@ const USER_QUESTION_STARTS = [
   'would',
   'who',
 ];
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-async function fetchWithRetry(
-  url: string,
-  init: RequestInit,
-  options?: { timeoutMs?: number; retries?: number; retryDelayMs?: number }
-): Promise<Response> {
-  const timeoutMs = options?.timeoutMs ?? FETCH_TIMEOUT_MS;
-  const retries = options?.retries ?? MAX_FETCH_RETRIES;
-  const retryDelayMs = options?.retryDelayMs ?? RETRY_DELAY_MS;
-
-  let attempt = 0;
-  let lastError: unknown;
-
-  while (attempt <= retries) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const response = await fetch(url, {
-        ...init,
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        return response;
-      }
-
-      const retriable = response.status >= 500 || response.status === 429;
-      if (!retriable || attempt === retries) {
-        return response;
-      }
-    } catch (error) {
-      clearTimeout(timeoutId);
-      lastError = error;
-
-      if (attempt === retries) {
-        throw error;
-      }
-    }
-
-    attempt += 1;
-    await sleep(retryDelayMs * attempt);
-  }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error('Request failed after retries');
-}
 
 function sanitizeSuggestedNextSteps(suggestions: string[]): string[] {
   if (!suggestions || suggestions.length === 0) return [];
@@ -168,6 +114,74 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
 ${JSON.stringify(cleanedProfile, null, 2)}
 
 Use this profile context to personalize your response when it is relevant to the user's question.`;
+}
+
+async function fetchUserProfileContext(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<string> {
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('user_onboarding_profiles')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      return '';
+    }
+
+    const userProfileContext = buildUserProfileContext(profile);
+    console.log('User profile context loaded:', userProfileContext.length > 0);
+    return userProfileContext;
+  } catch (_profileFetchError) {
+    console.error('Failed to fetch user onboarding profile context');
+    return '';
+  }
+}
+
+async function persistChatbotUsage(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  tokenUsage: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  },
+  estimatedCostUsd?: number
+): Promise<void> {
+  try {
+    const { error } = await supabase.rpc('increment_chatbot_usage', {
+      p_user_id: userId,
+      p_tokens: tokenUsage.total_tokens,
+      p_cost: estimatedCostUsd || 0,
+    });
+
+    if (error) {
+      throw error;
+    }
+  } catch (costError) {
+    console.error('Failed to store token usage:', costError);
+  }
+}
+
+function scheduleBackgroundTask(task: Promise<unknown>) {
+  const edgeRuntime = (
+    globalThis as typeof globalThis & {
+      EdgeRuntime?: {
+        waitUntil?: (promise: Promise<unknown>) => void;
+      };
+    }
+  ).EdgeRuntime;
+
+  if (edgeRuntime?.waitUntil) {
+    edgeRuntime.waitUntil(task);
+    return;
+  }
+
+  void task.catch(error => {
+    console.error('Background task failed:', error);
+  });
 }
 
 async function resolveAuthenticatedUserId(
@@ -316,22 +330,16 @@ CONTEXT FROM KNOWLEDGE BASE:
 ${contextText}
 
 CRITICAL: BREVITY IS KEY
-Users are on mobile. Keep responses short and scannable. Avoid walls of text. Each section should be 2-3 sentences MAX. Get to the point quickly.
+Users are on mobile. Keep responses short and scannable. Avoid walls of text. Get to the point quickly.
 
 RESPONSE FORMAT:
-Structure your response using these sections:
+Start with a direct 1-2 sentence answer. Then provide 2-3 sentences of essential context using simple, newcomer-friendly language. Explain acronyms briefly (e.g., "TFSA" = Tax-Free Savings Account).
 
-## Short Answer
-1-2 sentences MAX. Direct answer only.
+If there are key steps or items to list, use bullet points (- item).
 
-## Explanation
-2-3 sentences of essential context. Only include what the user truly needs to know. Use simple, newcomer-friendly language. Explain acronyms briefly (e.g., "TFSA" = Tax-Free Savings Account).
+End with one actionable next step the user can take.
 
-## What You Can Do Next
-One actionable step OR a user-action prompt (for example: "You can ask: 'How do I open one step by step?'"). Keep it to 1-2 lines.
-
-## Important Notes
-One key caveat only: "${STANDARD_DISCLAIMER}"
+Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
 CRITICAL GUARDRAILS:
 1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
@@ -347,22 +355,18 @@ function buildImmigrationNoKBInstruction(): string {
   return `You are Unify's AI assistant, helping newcomers to Canada navigate immigration and settlement topics. You are friendly, supportive, and knowledgeable.
 
 CRITICAL: BREVITY IS KEY
-Users are on mobile. Keep responses short and scannable. Avoid walls of text. Each section should be 2-3 sentences MAX. Get to the point quickly.
+Users are on mobile. Keep responses short and scannable. Avoid walls of text. Get to the point quickly.
 
 RESPONSE FORMAT:
-Structure your response using these sections:
+Start with a direct 1-2 sentence answer. Then provide 2-3 sentences of essential context using simple, newcomer-friendly language. Explain acronyms briefly.
 
-## Short Answer
-1-2 sentences MAX. Direct answer only.
+If there are key steps or items to list, use bullet points (- item).
 
-## Explanation
-2-3 sentences of essential context. Only include what the user truly needs to know. Use simple, newcomer-friendly language. Explain acronyms briefly.
+End with one actionable next step the user can take.
 
-## What You Can Do Next
-One actionable step OR a user-action prompt (for example: "You can ask: 'Can you explain this in simpler terms?'"). Keep it to 1-2 lines.
+Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
-## Important Notes
-"${NO_KB_HITS_DISCLAIMER}" "${STANDARD_DISCLAIMER}"
+Note: You are answering from general knowledge (not the knowledge base). Mention that users should verify with official sources like IRCC.
 
 CRITICAL GUARDRAILS:
 1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
@@ -436,8 +440,7 @@ Example: "This field asks for your travel history - list all countries you've vi
 ## Tips
 1-2 practical tips for filling out this section accurately.
 
-## ⚠️ Important Disclaimer
-"This is educational guidance to help you understand what's being asked. For legal advice on how to answer specific questions about YOUR situation, please consult a licensed immigration consultant or lawyer."
+Do NOT include a disclaimer section — the app already shows one.
 
 NEVER DO:
 - Tell them what to write in a field
@@ -496,6 +499,28 @@ function parseSuggestionsFromResponse(answer: string): {
 // ============================================================================
 
 Deno.serve(async (req: Request) => {
+  const totalStart = performance.now();
+  const stageTimings = {
+    auth_ms: 0,
+    profile_ms: 0,
+    classify_ms: 0,
+    embedding_ms: 0,
+    vector_search_ms: 0,
+    generation_ms: 0,
+    total_ms: 0,
+  };
+
+  const logStageTimings = (status: 'success' | 'error') => {
+    stageTimings.total_ms = Math.round(performance.now() - totalStart);
+    console.log(
+      'rag-query timing',
+      JSON.stringify({
+        status,
+        ...stageTimings,
+      })
+    );
+  };
+
   try {
     const {
       prompt,
@@ -511,7 +536,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
+    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
     const apiKey = Deno.env.get('GEMINI_API_KEY');
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
@@ -524,11 +549,26 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const authenticatedUserId = await resolveAuthenticatedUserId(
+    const authStartedAt = performance.now();
+    const authPromise = resolveAuthenticatedUserId(
       req,
       supabaseUrl,
       supabaseServiceKey
+    ).then(userId => {
+      stageTimings.auth_ms = Math.round(performance.now() - authStartedAt);
+      return userId;
+    });
+    const classifyStartedAt = performance.now();
+    const classifyPromise = classifyQuery(prompt.trim(), apiKey!, model).then(
+      queryType => {
+        stageTimings.classify_ms = Math.round(
+          performance.now() - classifyStartedAt
+        );
+        return queryType;
+      }
     );
+
+    const authenticatedUserId = await authPromise;
     const effectiveUserId = authenticatedUserId || null;
 
     if (
@@ -539,32 +579,24 @@ Deno.serve(async (req: Request) => {
       console.warn('Ignoring mismatched request userId and authenticated user');
     }
 
-    // Fetch user onboarding profile securely from JWT-derived user id
-    let userProfileContext = '';
-    if (effectiveUserId) {
-      try {
-        const { data: profile, error: profileError } = await supabase
-          .from('user_onboarding_profiles')
-          .select('*')
-          .eq('id', effectiveUserId)
-          .maybeSingle();
-
-        if (!profileError && profile) {
-          userProfileContext = buildUserProfileContext(profile);
-          console.log(
-            'User profile context loaded:',
-            userProfileContext.length > 0
+    const profilePromise = effectiveUserId
+      ? (async () => {
+          const profileStartedAt = performance.now();
+          const userProfileContext = await fetchUserProfileContext(
+            supabase,
+            effectiveUserId
           );
-        }
-      } catch (profileFetchError) {
-        console.error('Failed to fetch user onboarding profile context');
-      }
-    }
+          stageTimings.profile_ms = Math.round(
+            performance.now() - profileStartedAt
+          );
+          return userProfileContext;
+        })()
+      : Promise.resolve('');
 
     // ========================================================================
     // STEP 1: CLASSIFY THE QUERY (runs BEFORE embeddings to save costs)
     // ========================================================================
-    const queryType = await classifyQuery(prompt.trim(), apiKey!, model);
+    const queryType = await classifyPromise;
     console.log('Query classified as:', queryType);
 
     // Determine if we need RAG (knowledge base search)
@@ -585,6 +617,7 @@ Deno.serve(async (req: Request) => {
     }> = [];
     let hasGoodKBHits = false;
     let disclaimer: string | undefined;
+    let lastVerified: string | undefined;
 
     if (needsRAG) {
       // Use RAG pipeline for immigration-related queries
@@ -596,6 +629,7 @@ Deno.serve(async (req: Request) => {
         );
       } else {
         // Generate embedding for user query
+        const embeddingStartedAt = performance.now();
         const embeddingResponse = await fetchWithRetry(
           'https://api.openai.com/v1/embeddings',
           {
@@ -620,8 +654,12 @@ Deno.serve(async (req: Request) => {
 
         const embeddingData = await embeddingResponse.json();
         const queryEmbedding = embeddingData.data[0].embedding;
+        stageTimings.embedding_ms = Math.round(
+          performance.now() - embeddingStartedAt
+        );
 
         // Search for similar chunks in database
+        const vectorSearchStartedAt = performance.now();
         let { data: chunks, error: searchError } = await supabase.rpc(
           'match_chunks',
           {
@@ -629,6 +667,9 @@ Deno.serve(async (req: Request) => {
             match_threshold: 0.3,
             match_count: 10,
           }
+        );
+        stageTimings.vector_search_ms = Math.round(
+          performance.now() - vectorSearchStartedAt
         );
 
         console.log(`Chunks received for "${prompt}":`, chunks?.length || 0);
@@ -651,11 +692,23 @@ Deno.serve(async (req: Request) => {
         hasGoodKBHits = chunks && chunks.length > 0;
 
         if (hasGoodKBHits) {
+          // Track the most recent updated_at across all returned chunks
+          let mostRecentUpdate: string | undefined;
+
           chunks.forEach((chunk: any) => {
             const doc = chunk.knowledge_documents || {};
             contextText += `[Document: ${doc.title || 'Unknown'}]\n${chunk.chunk_text}\n\n`;
 
+            // Track most recent document update for lastVerified
+            const docUpdatedAt = doc.updated_at;
+            if (docUpdatedAt && (!mostRecentUpdate || docUpdatedAt > mostRecentUpdate)) {
+              mostRecentUpdate = docUpdatedAt;
+            }
+
             if (!sourcesMap.has(chunk.document_id)) {
+              // Prefer source_url from the document (set by crawler),
+              // fall back to S3 URL, then generic IRCC page
+              const sourceUrl = doc.source_url;
               const storagePath = doc.storage_path || '';
               const hasSourceConfig =
                 !!s3BucketName &&
@@ -670,11 +723,14 @@ Deno.serve(async (req: Request) => {
                 document_id: chunk.document_id,
                 document_title: doc.title || 'Unknown',
                 url:
+                  sourceUrl ||
                   s3Url ||
                   'https://www.canada.ca/en/immigration-refugees-citizenship.html',
               });
             }
           });
+
+          lastVerified = mostRecentUpdate;
 
           sources = Array.from(sourcesMap.values());
           disclaimer = STANDARD_DISCLAIMER;
@@ -728,6 +784,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Add preprompt if available
+    const userProfileContext = await profilePromise;
     let fullSystemInstruction = preprompt
       ? `${preprompt}\n\n${systemInstruction}`
       : systemInstruction;
@@ -759,6 +816,7 @@ Deno.serve(async (req: Request) => {
     console.log('- Query type:', queryType);
     console.log('- Has good KB hits:', hasGoodKBHits);
 
+    const generationStartedAt = performance.now();
     const response = await fetchWithRetry(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
@@ -776,6 +834,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const geminiData = await response.json();
+    stageTimings.generation_ms = Math.round(
+      performance.now() - generationStartedAt
+    );
 
     // Extract answer from Gemini response
     let rawAnswer = 'Sorry, I could not generate a response.';
@@ -802,33 +863,16 @@ Deno.serve(async (req: Request) => {
         tokenUsage.completion_tokens * 0.0000004;
     }
 
-    // Store token usage in chatbot_usage table
+    // Store token usage outside the response critical path.
     if (effectiveUserId && tokenUsage) {
-      try {
-        const { data: existingUsage } = await supabase
-          .from('chatbot_usage')
-          .select('total_tokens_used, total_estimated_cost_usd')
-          .eq('user_id', effectiveUserId)
-          .maybeSingle();
-
-        const prevTokens = existingUsage?.total_tokens_used || 0;
-        const prevCost = existingUsage?.total_estimated_cost_usd || 0;
-
-        await supabase
-          .from('chatbot_usage')
-          .upsert(
-            {
-              user_id: effectiveUserId,
-              total_tokens_used: prevTokens + tokenUsage.total_tokens,
-              total_estimated_cost_usd:
-                prevCost + (estimatedCostUsd || 0),
-              last_message_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id' }
-          );
-      } catch (costError) {
-        console.error('Failed to store token usage:', costError);
-      }
+      scheduleBackgroundTask(
+        persistChatbotUsage(
+          supabase,
+          effectiveUserId,
+          tokenUsage,
+          estimatedCostUsd
+        )
+      );
     }
 
     // Parse out suggestions from the response
@@ -838,6 +882,7 @@ Deno.serve(async (req: Request) => {
     // ========================================================================
     // STEP 6: RETURN RESPONSE
     // ========================================================================
+    logStageTimings('success');
     return new Response(
       JSON.stringify({
         answer: cleanAnswer,
@@ -845,6 +890,7 @@ Deno.serve(async (req: Request) => {
         queryType,
         disclaimer,
         suggestedNextSteps: suggestions.length > 0 ? suggestions : undefined,
+        lastVerified: lastVerified || undefined,
         tokenUsage,
         estimatedCostUsd,
       }),
@@ -853,6 +899,7 @@ Deno.serve(async (req: Request) => {
       }
     );
   } catch (error: unknown) {
+    logStageTimings('error');
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

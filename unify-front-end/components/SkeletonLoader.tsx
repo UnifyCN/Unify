@@ -14,7 +14,7 @@ export const SkeletonLoader = ({
   borderRadius = 4,
   style,
 }: SkeletonLoaderProps) => {
-  const animatedValue = new Animated.Value(0);
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     const animation = Animated.loop(
@@ -22,18 +22,18 @@ export const SkeletonLoader = ({
         Animated.timing(animatedValue, {
           toValue: 1,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
         Animated.timing(animatedValue, {
           toValue: 0,
           duration: 1000,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }),
       ])
     );
     animation.start();
     return () => animation.stop();
-  }, []);
+  }, [animatedValue]);
 
   const opacity = animatedValue.interpolate({
     inputRange: [0, 1],

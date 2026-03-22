@@ -9,6 +9,7 @@ export interface Source {
 
 export interface Message {
   id: string;
+  clientId?: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
@@ -16,6 +17,7 @@ export interface Message {
   queryType?: QueryType;
   disclaimer?: string;
   suggestedNextSteps?: string[]; // AI-generated follow-up questions
+  lastVerified?: string; // ISO timestamp of when source docs were last verified/crawled
 }
 
 export interface ConversationMessageForAPI {
@@ -32,6 +34,7 @@ export interface ParsedRAGResponse {
   queryType?: QueryType;
   disclaimer?: string;
   suggestedNextSteps?: string[];
+  lastVerified?: string;
   tokenUsage?: TokenUsage;
   estimatedCostUsd?: number;
 }
@@ -121,6 +124,7 @@ export const formatMessagesForUI = (
 
   return dbMessages.map(msg => ({
     id: msg.id.toString(),
+    clientId: msg.clientId,
     text: msg.content,
     isUser: msg.role === 'user',
     timestamp: new Date(msg.created_at),
@@ -160,6 +164,7 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
   let queryType: QueryType | undefined;
   let disclaimer: string | undefined;
   let suggestedNextSteps: string[] | undefined;
+  let lastVerified: string | undefined;
   let tokenUsage: TokenUsage | undefined;
   let estimatedCostUsd: number | undefined;
 
@@ -170,6 +175,7 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
     queryType = response.queryType;
     disclaimer = response.disclaimer;
     suggestedNextSteps = response.suggestedNextSteps;
+    lastVerified = response.lastVerified;
     tokenUsage = response.tokenUsage;
     estimatedCostUsd = response.estimatedCostUsd;
   }
@@ -191,6 +197,7 @@ export const parseRAGResponse = (response: any): ParsedRAGResponse => {
     queryType,
     disclaimer,
     suggestedNextSteps: sanitizeSuggestedNextSteps(suggestedNextSteps),
+    lastVerified,
     tokenUsage,
     estimatedCostUsd,
   };

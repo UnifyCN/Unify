@@ -1,17 +1,17 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import {
-  View,
-  FlatList,
-  StyleSheet,
-  RefreshControl,
-  Platform,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
+import { LegendList } from '@legendapp/list';
 import { PostData } from '@/types/feeds/post';
 import { PostItem } from './PostItem';
 import { SkeletonLoaderPostItem } from '@/components/SkeletonLoaderPostItem';
-import { usePostMetadata } from '@/hooks/usePostMetadata';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
+import { prefetchPostImageUrls } from '@/services/s3/postImageUrlCache';
+
+const INITIAL_VIEWPORT_COUNT = 6;
+const DEFAULT_ESTIMATED_ITEM_SIZE = 420;
+const HOME_CARD_ESTIMATED_ITEM_SIZE = 360;
+const INITIAL_CONTAINER_POOL_RATIO = 3;
 
 const HomeCardSpacer = () => <View style={styles.homeCardSpacer} />;
 
@@ -42,6 +42,11 @@ const Feed = ({
 }: FeedProps) => {
   const isFocused = useIsFocused();
   const isHomeCardVariant = postVariant === 'homeCard';
+  const estimatedItemSize = isHomeCardVariant
+    ? HOME_CARD_ESTIMATED_ITEM_SIZE
+    : DEFAULT_ESTIMATED_ITEM_SIZE;
+  const prefetchedAvatarUrlsRef = useRef(new Set<string>());
+  const prefetchedImageKeysRef = useRef(new Set<string>());
   const allPosts = useMemo(
     () => data?.pages?.flatMap((page: any) => page.posts) ?? [],
     [data]
@@ -52,31 +57,53 @@ const Feed = ({
       return;
     }
 
-    const firstViewportAvatarUrls = allPosts
-      .slice(0, 20)
-      .map((post: PostData) => post.user.profilePictureUrl);
+    const firstViewportPosts = allPosts.slice(0, INITIAL_VIEWPORT_COUNT);
 
-    prefetchAvatarUrls(firstViewportAvatarUrls).catch(error => {
-      console.warn('Failed to prefetch feed avatar URLs', error);
-    });
+    const firstViewportAvatarUrls = firstViewportPosts.map(
+      (post: PostData) => post.user.profilePictureUrl
+    );
+    const firstViewportImageKeys = firstViewportPosts.flatMap((post: PostData) =>
+      post.post_image_urls ?? []
+    );
+    const nextAvatarUrls = firstViewportAvatarUrls.filter(
+      (url: string | null | undefined): url is string =>
+        typeof url === 'string' &&
+        url.trim().length > 0 &&
+        !prefetchedAvatarUrlsRef.current.has(url)
+    );
+    const nextImageKeys = firstViewportImageKeys.filter(
+      (key: string | null | undefined): key is string =>
+        typeof key === 'string' &&
+        key.trim().length > 0 &&
+        !prefetchedImageKeysRef.current.has(key)
+    );
+
+    if (nextAvatarUrls.length === 0 && nextImageKeys.length === 0) {
+      return;
+    }
+
+    nextAvatarUrls.forEach((url: string) =>
+      prefetchedAvatarUrlsRef.current.add(url)
+    );
+    nextImageKeys.forEach((key: string) =>
+      prefetchedImageKeysRef.current.add(key)
+    );
+
+    void Promise.all([
+      prefetchAvatarUrls(nextAvatarUrls).catch(error => {
+        console.warn('Failed to prefetch feed avatar URLs', error);
+      }),
+      prefetchPostImageUrls(nextImageKeys).catch(error => {
+        console.warn('Failed to prefetch feed post image URLs', error);
+      }),
+    ]);
   }, [allPosts]);
-
-  const { data: metadata, isLoading: metadataLoading } = usePostMetadata(
-    allPosts.map((post: PostData) => post.id)
-  );
 
   const renderPost = useCallback(
     ({ item }: { item: PostData }) => {
-      return (
-        <PostItem
-          post={item}
-          metadata={metadata?.[item.id]}
-          metadataLoading={metadataLoading}
-          variant={postVariant}
-        />
-      );
+      return <PostItem post={item} variant={postVariant} />;
     },
-    [metadata, metadataLoading, postVariant]
+    [postVariant]
   );
 
   const handleLoadMore = () => {
@@ -89,11 +116,14 @@ const Feed = ({
     return (
       <View style={styles.container}>
         {ListHeaderComponent}
-        <FlatList
+        <LegendList
           data={Array.from({ length: 3 }, (_, index) => index + 1)}
           keyExtractor={item => `skeleton-${item}`}
           renderItem={() => <SkeletonLoaderPostItem variant={postVariant} />}
           scrollEnabled={false}
+          recycleItems={false}
+          estimatedItemSize={estimatedItemSize}
+          initialContainerPoolRatio={INITIAL_CONTAINER_POOL_RATIO}
           contentContainerStyle={
             isHomeCardVariant ? styles.homeCardListContent : undefined
           }
@@ -106,18 +136,14 @@ const Feed = ({
   }
 
   return (
-    <FlatList
+    <LegendList
       data={allPosts}
       keyExtractor={item => item.id.toString()}
       renderItem={renderPost}
       onEndReached={handleLoadMore}
       onEndReachedThreshold={0.5}
-      refreshControl={
-        <RefreshControl
-          refreshing={isFocused && (isRefetching || false)}
-          onRefresh={refetch}
-        />
-      }
+      onRefresh={refetch}
+      refreshing={isFocused && !!isRefetching}
       ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={ListEmptyComponent}
       contentContainerStyle={
@@ -131,11 +157,9 @@ const Feed = ({
           </View>
         ) : null
       }
-      initialNumToRender={6}
-      maxToRenderPerBatch={6}
-      windowSize={7}
-      updateCellsBatchingPeriod={50}
-      removeClippedSubviews={Platform.OS === 'android'}
+      recycleItems={false}
+      estimatedItemSize={estimatedItemSize}
+      initialContainerPoolRatio={INITIAL_CONTAINER_POOL_RATIO}
     />
   );
 };

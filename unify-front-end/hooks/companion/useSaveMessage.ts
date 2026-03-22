@@ -35,6 +35,7 @@ export const useSaveMessage = () => {
 
       const optimisticMessage: ConversationMessage = {
         id: getNextOptimisticMessageId(),
+        clientId: variables.clientId,
         role: variables.role,
         content: variables.content,
         sources: variables.sources ?? null,
@@ -48,7 +49,11 @@ export const useSaveMessage = () => {
 
       return { previousMessages };
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['conversation-messages', variables.conversationIdentifier],
+      });
+
       // Keep conversation list fresh (updated_at/title changes)
       queryClient.invalidateQueries({
         queryKey: ['conversations'],

@@ -3,7 +3,8 @@ import { FeedResponse } from '@/types/feeds/feedResponse';
 import { PostData } from '@/types/feeds/post';
 import { PostDto } from '@/types/feeds/postDto';
 import { transformPostDto } from '@/utils/postTransform';
-import { getBlockedUserIds } from '@/services/users/getBlockedUserIds';
+import { getBlockedUserIdsForUser } from '@/services/users/getBlockedUserIds';
+import { enrichPostsWithMetadata } from '@/services/posts/postMetadata';
 
 interface GetCommentedOnFeedProps {
   cursor?: string;
@@ -17,6 +18,10 @@ export const getCommentedOnFeed = async ({
   cursor,
 }: GetCommentedOnFeedProps): Promise<FeedResponse> => {
   try {
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+
     const { data, error } = await supabase
       .from('post_comments')
       .select(
@@ -25,6 +30,8 @@ export const getCommentedOnFeed = async ({
           id,
           title,
           content,
+          like_count,
+          comment_count,
           created_at,
           user_id,
           group_id,
@@ -52,7 +59,7 @@ export const getCommentedOnFeed = async ({
       throw new Error(`Failed to fetch commented on feed: ${error.message}`);
     }
 
-    const blockedIds = await getBlockedUserIds();
+    const blockedIds = await getBlockedUserIdsForUser(currentUser?.id);
 
     // Use Map to deduplicate by post ID, excluding blocked users
     const postsMap = new Map();
@@ -71,7 +78,9 @@ export const getCommentedOnFeed = async ({
       }
     });
 
-    const uniquePosts: PostData[] = Array.from(postsMap.values());
+    const uniquePosts: PostData[] = await enrichPostsWithMetadata(
+      Array.from(postsMap.values())
+    );
 
     return {
       posts: uniquePosts,

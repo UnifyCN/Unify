@@ -6,6 +6,7 @@ export interface SaveMessageParams {
   role: 'user' | 'assistant';
   content: string;
   sources?: any; // JSONB field
+  clientId?: string;
   suggestedNextSteps?: string[]; // Optional - not persisted to DB, used for UI only
 }
 

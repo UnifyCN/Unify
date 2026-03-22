@@ -9,6 +9,7 @@ import {
   Dimensions,
   Modal,
   TextInput,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -20,10 +21,17 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
+import { SelectionProvider, useSelection } from '@/context/SelectionContext';
+import { usePageHighlights, useSaveHighlight, useDeleteHighlight } from '@/hooks/highlights/useHighlights';
+import SelectionActionBubble from '@/components/learn/SelectionActionBubble';
+import ExplainTermModal from '@/components/learn/ExplainTermModal';
 
 // Progress related imports
 import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { useToast } from '@/context/ToastContext';
+import { useLessonPageSaved } from '@/hooks/learn/useLessonPageSaved';
+import { useMutateSaveLessonPage } from '@/hooks/learn/useMutateSaveLessonPage';
 
 export default function LessonPageScreen() {
   const router = useRouter();
@@ -33,11 +41,20 @@ export default function LessonPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
-  const { trackScreen, trackLessonPageViewed } = useAnalytics();
+  const { trackScreen, trackLessonPageViewed, trackLessonHighlightCreated, trackLessonHighlightRemoved } = useAnalytics();
+  const { showToast } = useToast();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [askAIVisible, setAskAIVisible] = useState(false);
+  const [askAITerm, setAskAITerm] = useState('');
 
   const currentPage = parseInt(pageNum || '1');
+
+  const saveLessonPageMutation = useMutateSaveLessonPage();
+  const { data: isLessonPageBookmarked } = useLessonPageSaved(
+    lessonId,
+    currentPage
+  );
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
     lessonId || ''
   );
@@ -56,6 +73,12 @@ export default function LessonPageScreen() {
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
+
+  // Highlights
+  const currentPageKey = currentPageData?._key || `page-${currentPage}`;
+  const { data: highlights } = usePageHighlights(lessonId || '', currentPageKey);
+  const saveHighlightMutation = useSaveHighlight(lessonId || '', currentPageKey);
+  const deleteHighlightMutation = useDeleteHighlight(lessonId || '', currentPageKey);
 
   // Calculate progress for the progress bar - keep it static/offline
   const progress = calculateLessonProgress(
@@ -271,6 +294,51 @@ export default function LessonPageScreen() {
     }
   };
 
+  const handleBookmarkPress = useCallback(() => {
+    if (!lessonId || !moduleId || !submoduleId || !lesson || !currentPageData) {
+      return;
+    }
+    const wasSaved = !!isLessonPageBookmarked;
+    const input = {
+      lessonId,
+      pageNumber: currentPage,
+      moduleId,
+      submoduleId,
+      lessonTitleSnapshot: lesson.title ?? null,
+      pageTitleSnapshot: currentPageData.title ?? null,
+    };
+    saveLessonPageMutation.mutate(
+      { input, isSaved: wasSaved },
+      {
+        onSuccess: () => {
+          if (!wasSaved) {
+            showToast(
+              'Lesson page saved! Find it in Settings > Saved Lessons',
+              () => router.push('/saved-lessons' as any)
+            );
+          }
+        },
+        onError: err => {
+          Alert.alert(
+            'Could not update',
+            err instanceof Error ? err.message : 'Please try again.'
+          );
+        },
+      }
+    );
+  }, [
+    lessonId,
+    moduleId,
+    submoduleId,
+    lesson,
+    currentPageData,
+    currentPage,
+    isLessonPageBookmarked,
+    saveLessonPageMutation,
+    showToast,
+    router,
+  ]);
+
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -292,19 +360,194 @@ export default function LessonPageScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Progress Bar */}
-      <SubmoduleProgressBar
-        currentProgress={progress.currentPage}
-        totalPages={progress.totalPages}
-        submoduleTitle={submoduleData?.title || 'Submodule'}
-        submoduleOrder={submoduleData?.order || 1}
-        onClose={() => setShowExitModal(true)}
-      />
+    <SelectionProvider>
+      <SafeAreaView style={styles.safe}>
+        {/* Progress Bar */}
+        <SubmoduleProgressBar
+          currentProgress={progress.currentPage}
+          totalPages={progress.totalPages}
+          submoduleTitle={submoduleData?.title || 'Submodule'}
+          submoduleOrder={submoduleData?.order || 1}
+          onClose={() => setShowExitModal(true)}
+          onBookmarkPress={handleBookmarkPress}
+          isBookmarked={!!isLessonPageBookmarked}
+          bookmarkLoading={saveLessonPageMutation.isPending}
+        />
 
+        <LessonPageContent
+          currentPageData={currentPageData}
+          highlights={highlights || []}
+          lessonId={lessonId || ''}
+          lessonTitle={lesson?.title}
+          saveHighlightMutation={saveHighlightMutation}
+          deleteHighlightMutation={deleteHighlightMutation}
+          trackLessonHighlightCreated={trackLessonHighlightCreated}
+          trackLessonHighlightRemoved={trackLessonHighlightRemoved}
+          askAIVisible={askAIVisible}
+          setAskAIVisible={setAskAIVisible}
+          askAITerm={askAITerm}
+          setAskAITerm={setAskAITerm}
+          navContext={{
+            moduleId: moduleId || '',
+            submoduleId: submoduleId || '',
+            submoduleTitle: submoduleData?.title || '',
+            pageNum: currentPage,
+          }}
+        />
+
+        {/* Navigation buttons - anchored at bottom */}
+        <View style={styles.navigationContainer}>
+          <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
+            <Text style={styles.backBtnText}>Back</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.nextBtn,
+              { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+              isSaving && styles.nextBtnDisabled,
+            ]}
+            onPress={handleNext}
+            disabled={isSaving}
+          >
+            <Text style={styles.nextBtnText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Exit modal, make this into component after in refactoring*/}
+
+        <Modal
+          visible={showExitModal}
+          transparent
+          animationType='fade'
+          onRequestClose={() => setShowExitModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>
+                Take a break from this lesson?
+              </Text>
+              <Text style={styles.modalDesc}>
+                No worries, your progress will be saved!{'\n'}
+                You can pick up right where you left off.
+              </Text>
+
+              <TouchableOpacity
+                style={styles.modalPrimaryBtn}
+                onPress={handleSaveAndLeave}
+              >
+                <Text style={styles.modalPrimaryBtnText}>
+                  Save progress & leave
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalSecondaryBtn}
+                onPress={handleContinue}
+              >
+                <Text style={styles.modalSecondaryBtnText}>Continue Lesson</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    </SelectionProvider>
+  );
+}
+
+/**
+ * Inner component that uses SelectionContext for highlight/Ask AI actions.
+ * Must be rendered inside SelectionProvider.
+ */
+function LessonPageContent({
+  currentPageData,
+  highlights,
+  lessonId,
+  lessonTitle,
+  saveHighlightMutation,
+  deleteHighlightMutation,
+  trackLessonHighlightCreated,
+  trackLessonHighlightRemoved,
+  askAIVisible,
+  setAskAIVisible,
+  askAITerm,
+  setAskAITerm,
+  navContext,
+}: {
+  currentPageData: any;
+  highlights: any[];
+  lessonId: string;
+  lessonTitle?: string;
+  saveHighlightMutation: any;
+  deleteHighlightMutation: any;
+  trackLessonHighlightCreated: (lessonId: string, text: string) => void;
+  trackLessonHighlightRemoved: (lessonId: string) => void;
+  askAIVisible: boolean;
+  setAskAIVisible: (v: boolean) => void;
+  askAITerm: string;
+  setAskAITerm: (t: string) => void;
+  navContext: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number };
+}) {
+  const { selection, clearSelection } = useSelection();
+
+  const handleHighlight = useCallback(() => {
+    if (!selection.startWord || !selection.endWord) return;
+
+    const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
+    const end = Math.max(selection.startWord.wordIndex, selection.endWord.wordIndex);
+    const selectedText = selection.selectedText;
+
+    saveHighlightMutation.mutate(
+      {
+        blockKey: selection.startWord.blockKey,
+        startWordIndex: start,
+        endWordIndex: end,
+        selectedText,
+        allWordsInBlock: selection.allWords || [],
+        navContext,
+      },
+      {
+        onSuccess: () => {
+          trackLessonHighlightCreated(lessonId, selectedText);
+          clearSelection();
+        },
+        onError: () => {
+          Alert.alert('Error', 'Failed to save highlight. Please try again.');
+        },
+      }
+    );
+  }, [selection, saveHighlightMutation, lessonId, trackLessonHighlightCreated, clearSelection, navContext]);
+
+  const handleRemoveHighlight = useCallback(() => {
+    if (!selection.existingHighlight) return;
+
+    deleteHighlightMutation.mutate(selection.existingHighlight.id, {
+      onSuccess: () => {
+        trackLessonHighlightRemoved(lessonId);
+        clearSelection();
+      },
+      onError: () => {
+        Alert.alert('Error', 'Failed to remove highlight. Please try again.');
+      },
+    });
+  }, [selection, deleteHighlightMutation, lessonId, trackLessonHighlightRemoved, clearSelection]);
+
+  const handleAskAI = useCallback(() => {
+    setAskAITerm(selection.selectedText);
+    setAskAIVisible(true);
+    clearSelection();
+  }, [selection, setAskAITerm, setAskAIVisible, clearSelection]);
+
+  const handleScroll = useCallback(() => {
+    if (selection.mode !== 'idle') clearSelection();
+  }, [selection.mode, clearSelection]);
+
+  return (
+    <>
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
+        onScrollBeginDrag={handleScroll}
       >
         {/* Page title */}
         <Text style={styles.pageTitle}>{currentPageData.title}</Text>
@@ -315,72 +558,33 @@ export default function LessonPageScreen() {
             blocks={currentPageData.content || []}
             markDefs={currentPageData.markDefs}
             styles={{ normal: styles.contentText }}
+            highlights={highlights}
           />
         </View>
       </ScrollView>
 
-      {/* Navigation buttons - anchored at bottom */}
-      <View style={styles.navigationContainer}>
-        <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <Text style={styles.backBtnText}>Back</Text>
-        </TouchableOpacity>
+      {/* Selection action bubble — renders as a Modal overlay */}
+      <SelectionActionBubble
+        onHighlight={handleHighlight}
+        onRemoveHighlight={handleRemoveHighlight}
+        onAskAI={handleAskAI}
+      />
 
-        <TouchableOpacity
-          style={[
-            styles.nextBtn,
-            { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
-            isSaving && styles.nextBtnDisabled,
-          ]}
-          onPress={handleNext}
-          disabled={isSaving}
-        >
-          <Text style={styles.nextBtnText}>Next</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Exit modal, make this into component after in refactoring*/}
-
-      <Modal
-        visible={showExitModal}
-        transparent
-        animationType='fade'
-        onRequestClose={() => setShowExitModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              Take a break from this lesson?
-            </Text>
-            <Text style={styles.modalDesc}>
-              No worries, your progress will be saved!{'\n'}
-              You can pick up right where you left off.
-            </Text>
-
-            <TouchableOpacity
-              style={styles.modalPrimaryBtn}
-              onPress={handleSaveAndLeave}
-            >
-              <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalSecondaryBtn}
-              onPress={handleContinue}
-            >
-              <Text style={styles.modalSecondaryBtnText}>Continue Lesson</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+      {/* Ask AI modal */}
+      <ExplainTermModal
+        visible={askAIVisible}
+        term={askAITerm}
+        lessonContext={lessonTitle}
+        lessonId={lessonId}
+        onClose={() => setAskAIVisible(false)}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
-  container: { paddingHorizontal: 23, paddingBottom: 100 },
+  container: { paddingHorizontal: 20, paddingBottom: 100 },
 
   // Page indicator
   pageIndicatorContainer: {
@@ -405,15 +609,16 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    gap: 20,
+    gap: 25,
     marginBottom: 30,
   },
   contentText: {
-    fontWeight: 400,
+    fontFamily: 'Inter',
+    fontWeight: '400',
     color: '#424242',
-    marginBottom: 15,
-    fontSize: 18,
-    lineHeight: 27,
+    marginBottom: 10,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -426,23 +631,23 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 23,
+    paddingHorizontal: 20,
     paddingVertical: 20,
     paddingBottom: 15,
     backgroundColor: '#fff',
     gap: 12,
   },
   backBtn: {
-    backgroundColor: '#E5E7EB',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+    backgroundColor: '#E6E6E6',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 10,
     alignItems: 'center',
     flex: 1,
   },
   backBtnText: { color: '#374151', fontSize: 16, fontWeight: '600' },
   nextBtn: {
-    backgroundColor: '#575757',
+    backgroundColor: '#1A1919',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,

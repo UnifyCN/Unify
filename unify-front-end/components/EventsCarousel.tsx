@@ -110,7 +110,10 @@ export const EventsCarousel = ({
   const handleEventPress = (event: any) => {
     router.push({
       pathname: '/event-detail' as any,
-      params: { event: JSON.stringify(event) },
+      params: {
+        eventId: String(event.id),
+        event: JSON.stringify(event),
+      },
     });
   };
 

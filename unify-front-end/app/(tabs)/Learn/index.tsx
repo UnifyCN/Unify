@@ -26,8 +26,11 @@ import {
   CarouselDotsSkeletonLoader,
 } from '../../../components/learn/learn-index-skeleton-loader';
 import TabHeader from '@/components/home/HomeHeader';
+import { useProgressCache } from '@/hooks/progress/useProgressCache';
+import AnnouncementModal from '@/components/common/AnnouncementModal';
 
 export default function Learn() {
+  useProgressCache();
   const { trackScreen } = useAnalytics();
   const isFocused = useIsFocused();
   const [heroIndex, setHeroIndex] = React.useState(0);
@@ -81,7 +84,7 @@ export default function Learn() {
   }, [refreshLessons]);
   return (
     <View style={styles.root}>
-      <TabHeader variant="minimal" />
+      <TabHeader variant='minimal' />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView
@@ -211,6 +214,12 @@ export default function Learn() {
           </View>
         </ScrollView>
       </View>
+      <AnnouncementModal
+        storageKey="announcement.learnHighlights.v1"
+        title="New: Highlight & Ask AI"
+        body="Long press any word or phrase in a lesson to highlight it or ask AI to explain it. Your highlights are saved under 'Saved from Learn' in your profile."
+        buttonLabel="Got it"
+      />
     </View>
   );
 }

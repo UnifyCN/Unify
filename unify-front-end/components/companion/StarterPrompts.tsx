@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,16 +23,8 @@ interface StarterCard {
   description: string;
 }
 
-const STARTER_CARDS: StarterCard[] = [
-  {
-    id: 'question',
-    label: 'Ask Anything',
-    prompt: '',
-    mode: undefined,
-    iconName: 'message-circle',
-    iconBackground: '#E3A0C9',
-    description: 'Get answers to any immigration question.',
-  },
+// Original mode-based cards (Ask Anything, Fact Check, Form Help)
+const MODE_CARDS: StarterCard[] = [
   {
     id: 'fact_check',
     label: 'Fact Check',
@@ -53,9 +45,148 @@ const STARTER_CARDS: StarterCard[] = [
   },
 ];
 
+// Topic-based starter prompts organized by immigration category
+const TOPIC_STARTERS: StarterCard[] = [
+  // Express Entry
+  {
+    id: 'ee_eligibility',
+    label: 'Express Entry',
+    prompt: 'Am I eligible for Express Entry? What are the requirements?',
+    iconName: 'award',
+    iconBackground: '#5C6BC0',
+    description: 'Check Express Entry eligibility.',
+  },
+  {
+    id: 'ee_crs',
+    label: 'CRS Score',
+    prompt: 'How is the CRS score calculated for Express Entry?',
+    iconName: 'bar-chart-2',
+    iconBackground: '#5C6BC0',
+    description: 'Understand CRS point breakdown.',
+  },
+  {
+    id: 'ee_rounds',
+    label: 'Recent Draws',
+    prompt: 'What were the most recent Express Entry draw scores?',
+    iconName: 'trending-up',
+    iconBackground: '#5C6BC0',
+    description: 'Latest invitation round details.',
+  },
+  // Study Permits
+  {
+    id: 'sp_apply',
+    label: 'Study Permit',
+    prompt: 'How do I apply for a Canadian study permit?',
+    iconName: 'book-open',
+    iconBackground: '#26A69A',
+    description: 'Study permit application steps.',
+  },
+  {
+    id: 'sp_pgwp',
+    label: 'After Graduation',
+    prompt: 'How do I get a post-graduation work permit (PGWP)?',
+    iconName: 'briefcase',
+    iconBackground: '#26A69A',
+    description: 'PGWP eligibility and process.',
+  },
+  // Work Permits
+  {
+    id: 'wp_types',
+    label: 'Work Permits',
+    prompt: 'What types of work permits are available in Canada?',
+    iconName: 'tool',
+    iconBackground: '#EF5350',
+    description: 'Compare open vs employer-specific.',
+  },
+  {
+    id: 'wp_lmia',
+    label: 'LMIA Process',
+    prompt: 'What is an LMIA and when do I need one?',
+    iconName: 'clipboard',
+    iconBackground: '#EF5350',
+    description: 'Labour market impact assessment.',
+  },
+  // Citizenship
+  {
+    id: 'cit_eligibility',
+    label: 'Citizenship',
+    prompt: 'What are the requirements to become a Canadian citizen?',
+    iconName: 'flag',
+    iconBackground: '#E3A0C9',
+    description: 'Citizenship eligibility check.',
+  },
+  {
+    id: 'cit_test',
+    label: 'Citizenship Test',
+    prompt: 'What should I study for the Canadian citizenship test?',
+    iconName: 'edit-3',
+    iconBackground: '#E3A0C9',
+    description: 'Test prep and study guide.',
+  },
+  // Settlement
+  {
+    id: 'settle_health',
+    label: 'Healthcare',
+    prompt: 'How does healthcare work for newcomers to Canada?',
+    iconName: 'heart',
+    iconBackground: '#66BB6A',
+    description: 'Provincial health coverage info.',
+  },
+  {
+    id: 'settle_services',
+    label: 'Newcomer Help',
+    prompt: 'What free settlement services are available for newcomers?',
+    iconName: 'users',
+    iconBackground: '#66BB6A',
+    description: 'Free support for new arrivals.',
+  },
+];
+
+/**
+ * Selects a random subset of topic starters, ensuring variety across categories.
+ * Returns 3 topic cards from different icon backgrounds (categories).
+ */
+const selectRandomStarters = (): StarterCard[] => {
+  // Group by category (using iconBackground as proxy)
+  const categories = new Map<string, StarterCard[]>();
+  TOPIC_STARTERS.forEach(card => {
+    const existing = categories.get(card.iconBackground) || [];
+    existing.push(card);
+    categories.set(card.iconBackground, existing);
+  });
+
+  const selected: StarterCard[] = [];
+  const categoryKeys = Array.from(categories.keys());
+
+  // Shuffle categories
+  for (let i = categoryKeys.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [categoryKeys[i], categoryKeys[j]] = [categoryKeys[j], categoryKeys[i]];
+  }
+
+  // Pick one random card from each category until we have 3
+  for (const key of categoryKeys) {
+    if (selected.length >= 3) break;
+    const cards = categories.get(key)!;
+    const randomCard = cards[Math.floor(Math.random() * cards.length)];
+    selected.push(randomCard);
+  }
+
+  return selected;
+};
+
 export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   onPromptSelect,
 }) => {
+  // Select random topic starters once on mount
+  const topicStarters = useMemo(() => selectRandomStarters(), []);
+
+  // Combine: mode cards first, then topic starters
+  const allCards = useMemo(
+    () => [...MODE_CARDS, ...topicStarters],
+    [topicStarters]
+  );
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -63,7 +194,7 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {STARTER_CARDS.map(card => (
+        {allCards.map(card => (
           <TouchableOpacity
             key={card.id}
             style={styles.card}

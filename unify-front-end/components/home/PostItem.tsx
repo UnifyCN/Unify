@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect, useCallback } from 'react';
+import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,11 @@ import {
   Pressable,
   Alert,
   useWindowDimensions,
-  Image,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
+import { Image } from 'expo-image';
 import { DoubleTapHeart } from '@/components/home/DoubleTapHeart';
 import RenderHtml, { MixedStyleDeclaration } from 'react-native-render-html';
 import { useRouter } from 'expo-router';
@@ -54,6 +54,103 @@ export interface PostItemProps {
   isAbleToDelete?: boolean;
 }
 
+const HTML_TAG_STYLES: Record<string, MixedStyleDeclaration> = {
+  body: { fontSize: 16, lineHeight: 22, color: Theme.black },
+  a: { color: '#f68b26', textDecorationLine: 'underline' },
+  strong: { fontWeight: '700' },
+  b: { fontWeight: '700' },
+  em: { fontStyle: 'italic' },
+  i: { fontStyle: 'italic' },
+  u: { textDecorationLine: 'underline' },
+  s: { textDecorationLine: 'line-through' },
+  del: { textDecorationLine: 'line-through' },
+  strike: { textDecorationLine: 'line-through' },
+};
+
+const LINK_WARNING_TITLE = 'You are about to leave Unify';
+const LINK_WARNING_BODY =
+  'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
+
+const PostImageCarousel = memo(
+  ({
+    cardImageWidth,
+    imageUrls,
+    postId,
+  }: {
+    cardImageWidth: number;
+    imageUrls: string[];
+    postId: number;
+  }) => {
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+    useEffect(() => {
+      setActiveImageIndex(0);
+    }, [postId, imageUrls.length]);
+
+    const handleCarouselScroll = useCallback(
+      (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const index = Math.round(
+          e.nativeEvent.contentOffset.x / cardImageWidth
+        );
+        setActiveImageIndex(index);
+      },
+      [cardImageWidth]
+    );
+
+    if (imageUrls.length === 0) {
+      return null;
+    }
+
+    return (
+      <View style={styles.carouselWrapper}>
+        <View style={styles.carouselContainer}>
+          <GHScrollView
+            key={`${postId}-${imageUrls.length}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onScroll={handleCarouselScroll}
+            scrollEventThrottle={16}
+            decelerationRate='fast'
+            snapToInterval={cardImageWidth}
+            snapToAlignment='start'
+            disableIntervalMomentum
+            disallowInterruption
+            style={{ width: cardImageWidth }}
+            contentContainerStyle={styles.carouselContent}
+          >
+            {imageUrls.map((url, index) => (
+              <Image
+                key={`${postId}-${index}`}
+                source={{ uri: url }}
+                style={[styles.carouselImage, { width: cardImageWidth }]}
+                contentFit='cover'
+                cachePolicy='memory-disk'
+                transition={120}
+                recyclingKey={`${postId}-${index}`}
+              />
+            ))}
+          </GHScrollView>
+          {imageUrls.length > 1 && (
+            <View style={styles.dotsContainer} pointerEvents='none'>
+              <View style={styles.dotsIsland}>
+                {imageUrls.map((_, index) => (
+                  <View
+                    key={`${postId}-dot-${index}`}
+                    style={[
+                      styles.dot,
+                      index === activeImageIndex && styles.dotActive,
+                    ]}
+                  />
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }
+);
+
 export const PostItem = memo(
   ({
     post,
@@ -69,7 +166,7 @@ export const PostItem = memo(
     const { width } = useWindowDimensions();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
-    const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const imageResolutionRequestId = React.useRef(0);
     const {
       trackPostLike,
       trackPostUnlike,
@@ -98,11 +195,22 @@ export const PostItem = memo(
 
     // When post_image_urls received, call service to get images
     useEffect(() => {
-      if (!post.post_image_urls?.length) return;
+      const requestId = imageResolutionRequestId.current + 1;
+      imageResolutionRequestId.current = requestId;
+
+      if (!post.post_image_urls?.length) {
+        setImageUrls([]);
+        return;
+      }
+
       resolvePostImageUrls(post.post_image_urls)
-        .then(urls => setImageUrls(urls))
+        .then(urls => {
+          if (imageResolutionRequestId.current === requestId) {
+            setImageUrls(urls);
+          }
+        })
         .catch(err => console.error('resolvePostImageUrls failed:', err));
-    }, [post.post_image_urls]);
+    }, [post.id, post.post_image_urls]);
 
     // Function to help generate a preview of text for posts on the feed
     const getPreviewFromHtml = (
@@ -231,13 +339,6 @@ export const PostItem = memo(
       );
     };
 
-    const handleCarouselScroll = (
-      e: NativeSyntheticEvent<NativeScrollEvent>
-    ) => {
-      const index = Math.round(e.nativeEvent.contentOffset.x / cardImageWidth);
-      setActiveImageIndex(index);
-    };
-
     const toggleLike = (postId: number, isLiked: boolean) => {
       if (isLiked) {
         trackPostUnlike(postId.toString());
@@ -339,13 +440,18 @@ export const PostItem = memo(
     };
 
     // Use batch-loaded metadata with loading state
-    const likeCount = metadata?.likeCount ?? 0;
-    const isLiked = metadata?.isLiked ?? false;
-    const isSaved = metadata?.isSaved ?? false;
-    const commentCount = metadata?.commentCount ?? 0;
+    const likeCount = metadata?.likeCount ?? post.likeCount ?? 0;
+    const isLiked = metadata?.isLiked ?? post.isLiked ?? false;
+    const isSaved = metadata?.isSaved ?? post.isSaved ?? false;
+    const commentCount = metadata?.commentCount ?? post.commentCount ?? 0;
+    const hasInlineMetadata =
+      post.likeCount !== undefined &&
+      post.commentCount !== undefined &&
+      post.isLiked !== undefined &&
+      post.isSaved !== undefined;
 
     // Show loading state for metadata if it's still loading
-    const showMetadataLoading = metadataLoading && !metadata;
+    const showMetadataLoading = !!metadataLoading && !metadata && !hasInlineMetadata;
 
     // Double-tap to like: only likes (never unlikes), consistent with Instagram
     const handleDoubleTapLike = useCallback(() => {
@@ -353,7 +459,13 @@ export const PostItem = memo(
         trackPostLike(post.id.toString());
         likePostMutation.mutate({ postId: post.id, isLiked: false });
       }
-    }, [isLiked, showMetadataLoading, post.id, trackPostLike, likePostMutation]);
+    }, [
+      isLiked,
+      showMetadataLoading,
+      post.id,
+      trackPostLike,
+      likePostMutation,
+    ]);
     const iconSize = isHomeCardVariant ? 24 : 20;
 
     const likeAction = (
@@ -430,50 +542,6 @@ export const PostItem = memo(
       </TouchableOpacity>
     );
 
-    const imageCarousel =
-      imageUrls.length > 0 ? (
-        <View style={styles.carouselWrapper}>
-          <View style={styles.carouselContainer}>
-            <GHScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleCarouselScroll}
-              scrollEventThrottle={16}
-              decelerationRate='fast'
-              snapToInterval={cardImageWidth}
-              snapToAlignment='start'
-              disableIntervalMomentum
-              disallowInterruption
-              style={{ width: cardImageWidth }}
-              contentContainerStyle={styles.carouselContent}
-            >
-              {imageUrls.map((url, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: url }}
-                  style={[styles.carouselImage, { width: cardImageWidth }]}
-                />
-              ))}
-            </GHScrollView>
-            {imageUrls.length > 1 && (
-              <View style={styles.dotsContainer} pointerEvents='none'>
-                <View style={styles.dotsIsland}>
-                  {imageUrls.map((_, index) => (
-                    <View
-                      key={index}
-                      style={[
-                        styles.dot,
-                        index === activeImageIndex && styles.dotActive,
-                      ]}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
-      ) : null;
-
     const footer = isHomeCardVariant ? (
       <View style={styles.footer}>
         <View style={styles.homeFooterLeft}>
@@ -493,39 +561,70 @@ export const PostItem = memo(
     );
 
     // 'react-native-render-HTML' HTML rendering config
-    const tagsStyles: Record<string, MixedStyleDeclaration> = {
-      body: { fontSize: 16, lineHeight: 22, color: Theme.black },
-      a: { color: '#f68b26', textDecorationLine: 'underline' },
-      strong: { fontWeight: '700' },
-      b: { fontWeight: '700' },
-      em: { fontStyle: 'italic' },
-      i: { fontStyle: 'italic' },
-      u: { textDecorationLine: 'underline' },
-      s: { textDecorationLine: 'line-through' },
-      del: { textDecorationLine: 'line-through' },
-      strike: { textDecorationLine: 'line-through' },
-    };
-
     // Warning text for when links are being opened
-    const linkWarningTitle = 'You are about to leave Unify';
-    const linkWarningBody =
-      'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
+    const handleLinkPress = useCallback(
+      (_: any, href: string) => {
+        let parsedUrl: URL;
+        try {
+          parsedUrl = new URL(href);
+        } catch {
+          Alert.alert(LINK_WARNING_TITLE, 'This link is invalid or unsupported.');
+          return;
+        }
 
-    // For handling clicks on links
-    const renderersProps = {
-      a: {
-        // Only make link clickable when post opened
-        onPress: isHomeCardVariant
-          ? undefined
-          : (_: any, href: string) => {
-              // Open warning alert on click
-              Alert.alert(linkWarningTitle, `${linkWarningBody} ${href}?`, [
-                { text: 'Go back', style: 'cancel' },
-                { text: 'Open link', onPress: () => Linking.openURL(href) },
-              ]);
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+          Alert.alert(
+            LINK_WARNING_TITLE,
+            'Only secure web links can be opened from Unify.'
+          );
+          return;
+        }
+
+        Alert.alert(LINK_WARNING_TITLE, `${LINK_WARNING_BODY} ${href}?`, [
+          { text: 'Go back', style: 'cancel' },
+          {
+            text: 'Open link',
+            onPress: () => {
+              void Linking.canOpenURL(href)
+                .then(canOpen => {
+                  if (!canOpen) {
+                    Alert.alert(
+                      'Unable to open link',
+                      'This link is not supported on your device.'
+                    );
+                    return;
+                  }
+
+                  return Linking.openURL(href);
+                })
+                .catch(() => {
+                  Alert.alert(
+                    'Unable to open link',
+                    'Something went wrong while opening this link.'
+                  );
+                });
             },
+          },
+        ]);
       },
-    };
+      []
+    );
+
+    const renderersProps = useMemo(
+      () => ({
+        a: {
+          onPress: isHomeCardVariant ? undefined : handleLinkPress,
+        },
+      }),
+      // handleLinkPress is stable because it has an empty dependency array.
+      [isHomeCardVariant]
+    );
+
+    const previewHtmlSource = useMemo(
+      () => ({ html: previewHtml }),
+      [previewHtml]
+    );
+    const contentHtmlSource = useMemo(() => ({ html: content }), [content]);
 
     return (
       <View>
@@ -615,8 +714,8 @@ export const PostItem = memo(
                     >
                       <RenderHtml
                         contentWidth={width - 92}
-                        source={{ html: previewHtml }}
-                        tagsStyles={tagsStyles}
+                        source={previewHtmlSource}
+                        tagsStyles={HTML_TAG_STYLES}
                         renderersProps={renderersProps}
                       />
                       {shouldShowReadMore && (
@@ -628,7 +727,11 @@ export const PostItem = memo(
               </DoubleTapHeart>
 
               {/* Image carousel */}
-              {imageCarousel}
+              <PostImageCarousel
+                cardImageWidth={cardImageWidth}
+                imageUrls={imageUrls}
+                postId={post.id}
+              />
 
               {/* Footer */}
               {footer}
@@ -698,15 +801,19 @@ export const PostItem = memo(
                     <View style={styles.contentWrapper}>
                       <RenderHtml
                         contentWidth={width - 92}
-                        source={{ html: content }}
-                        tagsStyles={tagsStyles}
+                        source={contentHtmlSource}
+                        tagsStyles={HTML_TAG_STYLES}
                         renderersProps={renderersProps}
                       />
                     </View>
                   )}
                 </TouchableOpacity>
 
-                {imageCarousel}
+                <PostImageCarousel
+                  cardImageWidth={cardImageWidth}
+                  imageUrls={imageUrls}
+                  postId={post.id}
+                />
 
                 {footer}
               </View>
@@ -1076,7 +1183,6 @@ const styles = StyleSheet.create({
   },
   carouselImage: {
     height: 200,
-    resizeMode: 'cover',
   },
   dotsContainer: {
     position: 'absolute',

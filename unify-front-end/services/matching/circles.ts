@@ -30,6 +30,9 @@ export const getActiveCircleMembership =
           pool_key,
           persona,
           time_in_canada,
+          goal,
+          topics,
+          match_metadata,
           created_at,
           ends_at,
           status
@@ -64,6 +67,9 @@ export const getActiveCircleMembership =
         pool_key: circle.pool_key,
         persona: circle.persona,
         time_in_canada: circle.time_in_canada,
+        goal: circle.goal,
+        topics: circle.topics || [],
+        match_metadata: circle.match_metadata || null,
         created_at: circle.created_at,
         ends_at: circle.ends_at,
         status: circle.status,
@@ -76,7 +82,9 @@ export const getCircleById = async (
 ): Promise<CommunityCircle | null> => {
   const { data, error } = await supabase
     .from('community_circles')
-    .select('id,pool_key,persona,time_in_canada,created_at,ends_at,status')
+    .select(
+      'id,pool_key,persona,time_in_canada,goal,topics,match_metadata,created_at,ends_at,status'
+    )
     .eq('id', circleId)
     .maybeSingle();
 
@@ -84,7 +92,24 @@ export const getCircleById = async (
     throw new Error(`Failed to load circle: ${error.message}`);
   }
 
-  return (data as CommunityCircle) ?? null;
+  if (!data) {
+    return null;
+  }
+
+  const circle = data as any;
+
+  return {
+    id: circle.id,
+    pool_key: circle.pool_key,
+    persona: circle.persona,
+    time_in_canada: circle.time_in_canada,
+    goal: circle.goal ?? null,
+    topics: circle.topics || [],
+    match_metadata: circle.match_metadata || null,
+    created_at: circle.created_at,
+    ends_at: circle.ends_at,
+    status: circle.status,
+  } as CommunityCircle;
 };
 
 export const getCircleMembers = async (
@@ -212,6 +237,9 @@ export const getMembershipForCircle = async (
           pool_key,
           persona,
           time_in_canada,
+          goal,
+          topics,
+          match_metadata,
           created_at,
           ends_at,
           status
@@ -249,6 +277,9 @@ export const getMembershipForCircle = async (
       pool_key: circle.pool_key,
       persona: circle.persona,
       time_in_canada: circle.time_in_canada,
+      goal: circle.goal,
+      topics: circle.topics || [],
+      match_metadata: circle.match_metadata || null,
       created_at: circle.created_at,
       ends_at: circle.ends_at,
       status: circle.status,
