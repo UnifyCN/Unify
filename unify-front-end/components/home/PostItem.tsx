@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  StatusBar,
 } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
@@ -39,6 +40,7 @@ import { Permissions } from '@/types/permissions';
 import { useAnalytics } from '@/utils/analytics';
 import { getGroupByName } from '@/services/groups/getGroupByName';
 import { resolvePostImageUrls } from '@/services/s3/postImageUrlCache';
+import ImageViewerModal from '@/components/home/ImageViewerModal';
 
 export interface PostItemProps {
   post: PostData;
@@ -52,6 +54,7 @@ export interface PostItemProps {
   };
   metadataLoading?: boolean;
   isAbleToDelete?: boolean;
+  onImageViewerOpen?: (imageUrls: string[], index: number) => void;
 }
 
 const HTML_TAG_STYLES: Record<string, MixedStyleDeclaration> = {
@@ -76,10 +79,12 @@ const PostImageCarousel = memo(
     cardImageWidth,
     imageUrls,
     postId,
+    onImagePress,
   }: {
     cardImageWidth: number;
     imageUrls: string[];
     postId: number;
+    onImagePress?: (index: number) => void;
   }) => {
     const [activeImageIndex, setActiveImageIndex] = useState(0);
 
@@ -101,6 +106,29 @@ const PostImageCarousel = memo(
       return null;
     }
 
+    // Single image: no ScrollView needed, just a tappable image
+    if (imageUrls.length === 1) {
+      return (
+        <TouchableOpacity
+          style={styles.carouselWrapper}
+          activeOpacity={0.9}
+          onPress={() => onImagePress?.(0)}
+        >
+          <View style={styles.carouselContainer}>
+            <Image
+              source={{ uri: imageUrls[0] }}
+              style={[styles.carouselImage, { width: cardImageWidth }]}
+              contentFit='cover'
+              cachePolicy='memory-disk'
+              transition={120}
+              recyclingKey={`${postId}-0`}
+            />
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    // Multiple images: horizontal carousel with tap overlay
     return (
       <View style={styles.carouselWrapper}>
         <View style={styles.carouselContainer}>
@@ -119,32 +147,35 @@ const PostImageCarousel = memo(
             contentContainerStyle={styles.carouselContent}
           >
             {imageUrls.map((url, index) => (
-              <Image
+              <TouchableOpacity
                 key={`${postId}-${index}`}
-                source={{ uri: url }}
-                style={[styles.carouselImage, { width: cardImageWidth }]}
-                contentFit='cover'
-                cachePolicy='memory-disk'
-                transition={120}
-                recyclingKey={`${postId}-${index}`}
-              />
+                activeOpacity={0.9}
+                onPress={() => onImagePress?.(index)}
+              >
+                <Image
+                  source={{ uri: url }}
+                  style={[styles.carouselImage, { width: cardImageWidth }]}
+                  contentFit='cover'
+                  cachePolicy='memory-disk'
+                  transition={120}
+                  recyclingKey={`${postId}-${index}`}
+                />
+              </TouchableOpacity>
             ))}
           </GHScrollView>
-          {imageUrls.length > 1 && (
-            <View style={styles.dotsContainer} pointerEvents='none'>
-              <View style={styles.dotsIsland}>
-                {imageUrls.map((_, index) => (
-                  <View
-                    key={`${postId}-dot-${index}`}
-                    style={[
-                      styles.dot,
-                      index === activeImageIndex && styles.dotActive,
-                    ]}
-                  />
-                ))}
-              </View>
+          <View style={styles.dotsContainer} pointerEvents='none'>
+            <View style={styles.dotsIsland}>
+              {imageUrls.map((_, index) => (
+                <View
+                  key={`${postId}-dot-${index}`}
+                  style={[
+                    styles.dot,
+                    index === activeImageIndex && styles.dotActive,
+                  ]}
+                />
+              ))}
             </View>
-          )}
+          </View>
         </View>
       </View>
     );
@@ -159,6 +190,7 @@ export const PostItem = memo(
     metadataLoading,
     isAbleToDelete = true,
     variant = 'default',
+    onImageViewerOpen,
   }: PostItemProps) => {
     const router = useRouter();
     const { currentUser } = useCurrentUser();
@@ -167,6 +199,17 @@ export const PostItem = memo(
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [imageUrls, setImageUrls] = useState<string[]>([]);
     const imageResolutionRequestId = React.useRef(0);
+    const [viewerVisible, setViewerVisible] = useState(false);
+    const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
+
+    const handleImagePress = useCallback((index: number) => {
+      if (onImageViewerOpen) {
+        onImageViewerOpen(imageUrls, index);
+      } else {
+        setViewerInitialIndex(index);
+        setViewerVisible(true);
+      }
+    }, [onImageViewerOpen, imageUrls]);
     const {
       trackPostLike,
       trackPostUnlike,
@@ -731,6 +774,7 @@ export const PostItem = memo(
                 cardImageWidth={cardImageWidth}
                 imageUrls={imageUrls}
                 postId={post.id}
+                onImagePress={handleImagePress}
               />
 
               {/* Footer */}
@@ -813,6 +857,7 @@ export const PostItem = memo(
                   cardImageWidth={cardImageWidth}
                   imageUrls={imageUrls}
                   postId={post.id}
+                  onImagePress={handleImagePress}
                 />
 
                 {footer}
@@ -908,6 +953,22 @@ export const PostItem = memo(
             </View>
           </Pressable>
         </Modal>
+
+        {imageUrls.length > 0 && (
+          <ImageViewerModal
+            visible={viewerVisible}
+            imageUrls={imageUrls}
+            initialIndex={viewerInitialIndex}
+            onClose={() => {
+              setViewerVisible(false);
+              StatusBar.setBarStyle('dark-content');
+            }}
+            author={{
+              username: post.user.username ?? post.user.name,
+              profilePictureUrl: post.user.profilePictureUrl,
+            }}
+          />
+        )}
       </View>
     );
   }
