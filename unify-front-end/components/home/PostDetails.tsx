@@ -7,6 +7,7 @@ import {
   TextInput,
   FlatList,
   Keyboard,
+  StatusBar,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +27,7 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import BackHeader from '@/components/BackHeader';
 import LoadingScreen from '@/components/LoadingScreen';
+import ImageViewerModal from '@/components/home/ImageViewerModal';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
@@ -111,6 +113,20 @@ const PostDetails = () => {
   const post: PostData | null = postParam
     ? (JSON.parse(postParam as string) as PostData)
     : (fetchedPost ?? null);
+
+  // Image viewer state (rendered at screen level, outside FlatList)
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerUrls, setViewerUrls] = useState<string[]>([]);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  const handleImageViewerOpen = useCallback(
+    (urls: string[], index: number) => {
+      setViewerUrls(urls);
+      setViewerIndex(index);
+      setViewerVisible(true);
+    },
+    []
+  );
 
   // Call all hooks unconditionally (before any early return) to avoid "Rendered more hooks than during the previous render"
   const [commentTextBox, setCommentTextBox] = useState('');
@@ -206,6 +222,7 @@ const PostDetails = () => {
               }}
               metadataLoading={postMetadataLoading}
               isAbleToDelete={false}
+              onImageViewerOpen={handleImageViewerOpen}
             />
 
             <View style={styles.largeDivider} />
@@ -247,6 +264,22 @@ const PostDetails = () => {
           disabled={commentTextBox.trim() === ''}
         />
       </Animated.View>
+
+      {viewerUrls.length > 0 && (
+        <ImageViewerModal
+          visible={viewerVisible}
+          imageUrls={viewerUrls}
+          initialIndex={viewerIndex}
+          onClose={() => {
+            setViewerVisible(false);
+            StatusBar.setBarStyle('dark-content');
+          }}
+          author={{
+            username: post.user.username ?? post.user.name,
+            profilePictureUrl: post.user.profilePictureUrl,
+          }}
+        />
+      )}
     </View>
   );
 };
