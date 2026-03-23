@@ -2,6 +2,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
+import { captureAiGeneration, computeGeminiCost } from '../_shared/posthogCapture.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -854,13 +855,33 @@ Deno.serve(async (req: Request) => {
         }
       : undefined;
 
-    // Calculate estimated cost (Gemini 2.0 Flash pricing)
-    // Input: $0.10/1M tokens, Output: $0.40/1M tokens
+    // Calculate estimated cost using shared pricing helper
     let estimatedCostUsd: number | undefined;
     if (tokenUsage) {
-      estimatedCostUsd =
-        tokenUsage.prompt_tokens * 0.0000001 +
-        tokenUsage.completion_tokens * 0.0000004;
+      const cost = computeGeminiCost(
+        tokenUsage.prompt_tokens,
+        tokenUsage.completion_tokens,
+        model
+      );
+      estimatedCostUsd = cost.totalCost;
+
+      // Send $ai_generation event to PostHog LLM analytics
+      captureAiGeneration(effectiveUserId || 'anonymous', {
+        $ai_model: model,
+        $ai_provider: 'google',
+        $ai_input_tokens: tokenUsage.prompt_tokens,
+        $ai_output_tokens: tokenUsage.completion_tokens,
+        $ai_total_tokens: tokenUsage.total_tokens,
+        $ai_input_cost_usd: cost.inputCost,
+        $ai_output_cost_usd: cost.outputCost,
+        $ai_total_cost_usd: cost.totalCost,
+        $ai_trace_id: conversationIdentifier || undefined,
+        // Custom properties for filtering
+        feature: 'ai_companion',
+        query_type: queryType,
+        has_sources: sources.length > 0,
+        response_time_ms: stageTimings.generation_ms,
+      });
     }
 
     // Store token usage outside the response critical path.
