@@ -117,6 +117,10 @@ export default function RichTextRenderer({
 
   const numberingMap = createNumberingMap(blocks);
 
+  // Avoid extra gap under Text on Android (especially list lines).
+  const textMetricsTight =
+    Platform.OS === 'android' ? ({ includeFontPadding: false } as const) : {};
+
   // Lesson body typography — matches Figma "Section 3 - Lesson" (Inter, Grey/800 body)
   const defaultStyles = {
     // Headings (in-content; page title uses screen styles)
@@ -163,9 +167,10 @@ export default function RichTextRenderer({
       letterSpacing: 0,
       color: '#424242',
       marginBottom: 10,
+      ...textMetricsTight,
     },
 
-    // Lists — 14/20, 10px between items (Figma mb-[10px])
+    // Lists — 14/20; vertical gap comes from list row View, not Text (avoids double spacing)
     bullet: {
       fontFamily: 'Inter',
       fontWeight: '400',
@@ -174,8 +179,9 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#424242',
-      marginBottom: 10,
+      marginBottom: 0,
       marginTop: 0,
+      ...textMetricsTight,
     },
     number: {
       fontFamily: 'Inter',
@@ -185,7 +191,9 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#424242',
-      marginBottom: 10,
+      marginBottom: 0,
+      marginTop: 0,
+      ...textMetricsTight,
     },
 
     strong: {
@@ -196,6 +204,7 @@ export default function RichTextRenderer({
       lineHeight: 20,
       letterSpacing: 0,
       color: '#424242',
+      ...textMetricsTight,
     },
     // Quote / callout strip (Figma: border-l 5 #3F3F3F, 14/20, not italic)
     blockquote: {
@@ -311,27 +320,28 @@ export default function RichTextRenderer({
       marginBottom: 0,
     },
 
-    // Note box (unchanged)
+    // Note box — Figma frame 3743:67154 (symmetric py-16, pl-22 pr-14, radius 12)
     noteBox: {
       backgroundColor: '#FFFFFF',
-      borderRadius: 8,
-      paddingRight: 16,
+      borderRadius: 12,
       paddingLeft: 22,
-      paddingVertical: 16,
+      paddingRight: 14,
+      paddingTop: 16,
+      paddingBottom: 16,
       marginVertical: 16,
       borderWidth: 2,
       borderColor: '#878787',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.05,
-      shadowRadius: 2,
-      elevation: 1,
+      overflow: 'hidden',
     },
     noteBoxText: {
       fontFamily: 'Inter',
       fontSize: 14,
       lineHeight: 20,
+      fontWeight: '400',
       color: '#424242',
+      marginTop: 0,
+      marginBottom: 0,
+      ...textMetricsTight,
     },
 
     // Links
@@ -551,9 +561,9 @@ export default function RichTextRenderer({
     block: any,
     index: number,
     nestingLevel: number = 0,
-    isLastInList: boolean = false,
-    afterSkipLine: boolean = false,
-    isFirstInList: boolean = false
+    _isLastInList: boolean = false,
+    _afterSkipLine: boolean = false,
+    _isFirstInList: boolean = false
   ) => {
     if (
       block._type === 'large_input_box' ||
@@ -575,10 +585,12 @@ export default function RichTextRenderer({
             ? mergedStyles.bullet
             : mergedStyles.number;
 
-        // Remove marginBottom from last item in list to ensure consistent spacing
-        const listStyle = isLastInList
-          ? { ...baseListStyle, marginBottom: 0 }
-          : baseListStyle;
+        // Spacing between list rows lives on the wrapper only (matches normal marginBottom: 10).
+        const listTextStyle = {
+          ...baseListStyle,
+          marginBottom: 0,
+          marginTop: 0,
+        };
 
         const bullet =
           block.listItem === 'bullet'
@@ -595,17 +607,14 @@ export default function RichTextRenderer({
           else displayBullet = '▫';
         }
 
-        // Adjust spacing for last item in list to match paragraph spacing (20px)
-        const containerStyle = isLastInList
-          ? [
-              styles.listItemContainer,
-              { marginLeft: indentLevel, marginBottom: 25 },
-            ]
-          : [styles.listItemContainer, { marginLeft: indentLevel }];
+        const containerStyle = [
+          styles.listItemContainer,
+          { marginLeft: indentLevel, marginBottom: 10 },
+        ];
 
         return (
           <View key={block._key || index} style={containerStyle}>
-            <Text style={listStyle}>
+            <Text style={listTextStyle}>
               {displayBullet}{' '}
               {renderInlineText(block.children, markDefs, block.markDefs)}
             </Text>
@@ -847,7 +856,17 @@ export default function RichTextRenderer({
           <RichTextRenderer
             blocks={block.content || []}
             markDefs={markDefs}
-            styles={{ normal: mergedStyles.noteBoxText }}
+            compactContainer
+            styles={{
+              normal: mergedStyles.noteBoxText,
+              bullet: mergedStyles.noteBoxText,
+              number: mergedStyles.noteBoxText,
+              strong: {
+                ...mergedStyles.noteBoxText,
+                fontWeight: '700',
+              },
+              link: mergedStyles.link,
+            }}
           />
         </View>
       );
@@ -1311,7 +1330,7 @@ export default function RichTextRenderer({
 
   const nestingLevels = calculateNestingLevels(blocks);
 
-  // Helper to check if a block is the last item in a list
+  // Kept for stable Metro/Fast Refresh (call sites below); list spacing no longer uses these.
   const isLastListItem = (index: number): boolean => {
     const currentBlock = blocks[index];
     if (
@@ -1321,20 +1340,16 @@ export default function RichTextRenderer({
     ) {
       return false;
     }
-
-    // Check if next block is not a list item (or doesn't exist)
     const nextBlock = blocks[index + 1];
     return !nextBlock || nextBlock._type !== 'block' || !nextBlock.listItem;
   };
 
-  // Helper to check if the previous block was a skip line
   const isAfterSkipLine = (index: number): boolean => {
     if (index === 0) return false;
     const previousBlock = blocks[index - 1];
-    return previousBlock && isEmptyBlock(previousBlock);
+    return !!(previousBlock && isEmptyBlock(previousBlock));
   };
 
-  // Helper to check if this is the first item in a list (after a skip line or paragraph)
   const isFirstListItem = (index: number): boolean => {
     const currentBlock = blocks[index];
     if (
@@ -1344,8 +1359,6 @@ export default function RichTextRenderer({
     ) {
       return false;
     }
-
-    // Check if previous block is not a list item
     if (index === 0) return true;
     const previousBlock = blocks[index - 1];
     return (
@@ -1393,7 +1406,12 @@ export default function RichTextRenderer({
   };
 
   return (
-    <View style={[styles.container, compactContainer && { flex: 0 }]}>
+    <View
+      style={[
+        styles.container,
+        compactContainer && { flex: 0, paddingTop: 0 },
+      ]}
+    >
       {blocks
         .map((block, index) => {
           const isLastInList = isLastListItem(index);
@@ -1512,7 +1530,7 @@ export default function RichTextRenderer({
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 4 }, // Add top padding to prevent text clipping
-  listItemContainer: { marginBottom: 0 }, // Spacing between list items handled by bullet marginBottom
+  listItemContainer: { marginBottom: 0 }, // Row spacing set on list row View (matches paragraph rhythm)
   skipLineSpacer: { height: 25, marginBottom: 0 }, // Figma content column gap
   inputFieldContainer: {
     marginVertical: 12,
