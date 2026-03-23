@@ -15,7 +15,18 @@ const extra = Constants.expoConfig?.extra as Extra | undefined;
 const supabaseUrl =
   extra?.supabaseUrl?.trim() || process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
 const supabaseAnonKey =
-  extra?.supabaseAnonKey?.trim() || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  extra?.supabaseAnonKey?.trim() ||
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+console.log(
+  'process.env.EXPO_PUBLIC_SUPABASE_URL',
+  process.env.EXPO_PUBLIC_SUPABASE_URL
+);
+console.log(
+  'process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY',
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+);
+console.log('Constants.expoConfig?.extra', Constants.expoConfig?.extra);
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
