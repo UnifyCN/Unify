@@ -628,7 +628,7 @@ export default function RichTextRenderer({
             <SelectableText
               blockKey={block._key || `block-${index}`}
               highlights={getBlockHighlights(block, index)}
-              style={listStyle}
+              style={listTextStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
               mergedStyles={mergedStyles}
@@ -903,7 +903,6 @@ export default function RichTextRenderer({
           <RichTextRenderer
             blocks={block.content || []}
             markDefs={markDefs}
-<<<<<<< HEAD
             compactContainer
             styles={{
               normal: mergedStyles.noteBoxText,
@@ -915,10 +914,7 @@ export default function RichTextRenderer({
               },
               link: mergedStyles.link,
             }}
-=======
-            styles={{ normal: mergedStyles.noteBoxText }}
             highlights={highlights}
->>>>>>> 3f1c252f4b757c06f6c368eed1cf1757193a8244
           />
         </View>
       );
