@@ -47,7 +47,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share and change your profile picture."
+          "photosPermission": "Unify needs access to your photo library to attach an existing photo to your post.",
+          "cameraPermission": "Unify needs camera access to let you take a photo for your post."
         }
       ],
       "expo-localization",

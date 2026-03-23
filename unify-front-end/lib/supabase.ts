@@ -18,15 +18,11 @@ const supabaseAnonKey =
   extra?.supabaseAnonKey?.trim() ||
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
-console.log(
-  'process.env.EXPO_PUBLIC_SUPABASE_URL',
-  process.env.EXPO_PUBLIC_SUPABASE_URL
-);
-console.log(
-  'process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY',
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
-);
-console.log('Constants.expoConfig?.extra', Constants.expoConfig?.extra);
+if (__DEV__) {
+  console.log('hasSupabaseUrl:', !!process.env.EXPO_PUBLIC_SUPABASE_URL);
+  console.log('hasSupabaseAnonKey:', !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY);
+  console.log('expoConfigExtraPresent:', !!Constants.expoConfig?.extra);
+}
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
