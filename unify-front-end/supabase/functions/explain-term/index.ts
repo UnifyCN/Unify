@@ -1,6 +1,7 @@
 // @ts-nocheck We do not need the actual Deno import since it's used by supabase serverless functions so ignore
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { captureAiGeneration, computeGeminiCost } from "../_shared/posthogCapture.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -133,6 +134,28 @@ Deno.serve(async (req) => {
 
     if (!explanation) {
       return jsonResponse({ error: "No explanation generated" }, 502);
+    }
+
+    // Send $ai_generation event to PostHog LLM analytics
+    const usageMetadata = data.usageMetadata;
+    if (usageMetadata) {
+      const inputTokens = usageMetadata.promptTokenCount || 0;
+      const outputTokens = usageMetadata.candidatesTokenCount || 0;
+      const cost = computeGeminiCost(inputTokens, outputTokens, GEMINI_MODEL);
+
+      captureAiGeneration(authData.user.id, {
+        $ai_model: GEMINI_MODEL,
+        $ai_provider: "google",
+        $ai_input_tokens: inputTokens,
+        $ai_output_tokens: outputTokens,
+        $ai_total_tokens: usageMetadata.totalTokenCount || 0,
+        $ai_input_cost_usd: cost.inputCost,
+        $ai_output_cost_usd: cost.outputCost,
+        $ai_total_cost_usd: cost.totalCost,
+        // Custom properties for filtering
+        feature: "ask_ai_learn",
+        term_length: term.length,
+      });
     }
 
     return jsonResponse({ explanation });
