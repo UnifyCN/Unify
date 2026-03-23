@@ -114,6 +114,7 @@ function AppContent() {
       <Stack.Screen name='edit-name' options={{ headerShown: false }} />
       <Stack.Screen name='profile' options={{ headerShown: false }} />
       <Stack.Screen name='saved' options={{ headerShown: false }} />
+      <Stack.Screen name='saved-lessons' options={{ headerShown: false }} />
       <Stack.Screen name='reset-password' options={{ headerShown: false }} />
       <Stack.Screen name='post-details' options={{ headerShown: false }} />
       <Stack.Screen name='notifications' options={{ headerShown: false }} />

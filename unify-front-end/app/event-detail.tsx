@@ -16,21 +16,40 @@ import { Theme } from '@/constants/Theme';
 import { useEffect, useMemo } from 'react';
 import { useAnalytics } from '@/utils/analytics';
 import BackHeader from '@/components/BackHeader';
+import { useEvents } from '@/hooks/events/useEvents';
 
 const EventDetailScreen = () => {
   const router = useRouter();
-  const { event } = useLocalSearchParams();
+  const { event, eventId } = useLocalSearchParams<{
+    event?: string | string[];
+    eventId?: string | string[];
+  }>();
+  const { data: events } = useEvents();
 
-  // Memoize parsed event data with safety handling
-  const eventData: Event | null = useMemo(() => {
+  const normalizedEventParam = Array.isArray(event) ? event[0] : event;
+  const normalizedEventId = Array.isArray(eventId) ? eventId[0] : eventId;
+
+  const initialEventData: Event | null = useMemo(() => {
     try {
-      if (!event) return null;
-      return JSON.parse(event as string);
+      if (!normalizedEventParam) return null;
+      return JSON.parse(normalizedEventParam) as Event;
     } catch (error) {
       console.error('Failed to parse event data:', error);
       return null;
     }
-  }, [event]);
+  }, [normalizedEventParam]);
+
+  const eventData: Event | null = useMemo(() => {
+    if (!normalizedEventId) {
+      return initialEventData;
+    }
+
+    const matchedEvent = events?.find(
+      currentEvent => String(currentEvent.id) === normalizedEventId
+    );
+
+    return matchedEvent ?? initialEventData;
+  }, [events, initialEventData, normalizedEventId]);
 
   const { trackEventViewed, trackEventShared, trackEventExternalLinkClicked } =
     useAnalytics();

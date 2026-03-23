@@ -39,6 +39,13 @@ export const AnalyticsEvents = {
   LESSON_PAGE_VIEWED: 'lesson_page_viewed',
   LESSON_COMPLETED: 'lesson_completed',
 
+  // Learn - Text Selection & Highlights
+  LESSON_TEXT_SELECTED: 'lesson_text_selected',
+  LESSON_HIGHLIGHT_CREATED: 'lesson_highlight_created',
+  LESSON_HIGHLIGHT_REMOVED: 'lesson_highlight_removed',
+  LESSON_ASK_AI_USED: 'lesson_ask_ai_used',
+  LESSON_ASK_AI_RETRY: 'lesson_ask_ai_retry',
+
   // Auth
   SIGN_UP_STARTED: 'sign_up_started',
   SIGN_UP_COMPLETED: 'sign_up_completed',
@@ -468,6 +475,37 @@ export function useAnalytics() {
       trackNotificationsMarkAllRead: (count: number) => {
         posthog?.capture(AnalyticsEvents.NOTIFICATIONS_MARK_ALL_READ, {
           count,
+        });
+      },
+
+      // Learn - Text Selection & Highlights
+      trackLessonTextSelected: (lessonId: string, selectedText: string) => {
+        posthog?.capture(AnalyticsEvents.LESSON_TEXT_SELECTED, {
+          lesson_id: lessonId,
+          text_length: selectedText.length,
+          word_count: selectedText.trim().split(/\s+/).filter(Boolean).length,
+        });
+      },
+      trackLessonHighlightCreated: (lessonId: string, selectedText: string) => {
+        posthog?.capture(AnalyticsEvents.LESSON_HIGHLIGHT_CREATED, {
+          lesson_id: lessonId,
+          text_length: selectedText.length,
+        });
+      },
+      trackLessonHighlightRemoved: (lessonId: string) => {
+        posthog?.capture(AnalyticsEvents.LESSON_HIGHLIGHT_REMOVED, {
+          lesson_id: lessonId,
+        });
+      },
+      trackLessonAskAiUsed: (lessonId: string, term: string) => {
+        posthog?.capture(AnalyticsEvents.LESSON_ASK_AI_USED, {
+          lesson_id: lessonId,
+          term_length: term.length,
+        });
+      },
+      trackLessonAskAiRetry: (lessonId: string) => {
+        posthog?.capture(AnalyticsEvents.LESSON_ASK_AI_RETRY, {
+          lesson_id: lessonId,
         });
       },
 

@@ -82,7 +82,10 @@ const EventsScreen = () => {
         onPress={() =>
           router.push({
             pathname: '/event-detail' as any,
-            params: { event: JSON.stringify(item) },
+            params: {
+              eventId: String(item.id),
+              event: JSON.stringify(item),
+            },
           })
         }
       />

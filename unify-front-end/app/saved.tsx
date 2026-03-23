@@ -1,3 +1,4 @@
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import BackHeader from '@/components/BackHeader';
 import FeedWithHook from '@/components/FeedWithHook';
@@ -6,16 +7,16 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import { Theme } from '@/constants/Theme';
 
-export default function SavedPostsPage() {
+export default function SavedPage() {
   return (
     <View style={styles.container}>
-      <BackHeader title='Saved Posts' />
+      <BackHeader title="Saved" />
       <FeedWithHook
         useFeedHook={useGetSavedPosts}
         ListEmptyComponent={
           <EmptyFeedMessage
             icon={<UnifyReplyIcon width={27} height={25} />}
-            message='Looks a little quiet here...'
+            message="Looks a little quiet here..."
             submessage={
               <Text style={styles.emptyMessageSubtext}>
                 Save posts to see them here

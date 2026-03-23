@@ -88,8 +88,13 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
         />
         <MenuRow
           icon="bookmark"
-          label="Saved Posts"
+          label="Saved"
           onPress={() => navigate('/saved')}
+        />
+        <MenuRow
+          icon="book"
+          label="Saved from Learn"
+          onPress={() => navigate('/saved-lessons')}
         />
         <MenuRow
           icon="message-circle"

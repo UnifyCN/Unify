@@ -1,7 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Save from '@/assets/images/Save.svg';
+import Save_Fill from '@/assets/images/Save_filled.svg';
+
+const BOOKMARK_ICON_SIZE = 22;
 
 interface SubmoduleProgressBarProps {
   currentProgress: number;
@@ -9,7 +13,10 @@ interface SubmoduleProgressBarProps {
   submoduleTitle: string;
   submoduleOrder: number;
   onClose: () => void;
-  showLabel?: boolean;
+  /** Lesson content pages only: bookmark control (same row as close). */
+  onBookmarkPress?: () => void;
+  isBookmarked?: boolean;
+  bookmarkLoading?: boolean;
 }
 
 export default function SubmoduleProgressBar({
@@ -18,24 +25,54 @@ export default function SubmoduleProgressBar({
   submoduleTitle,
   submoduleOrder,
   onClose,
-  showLabel = true,
+  onBookmarkPress,
+  isBookmarked = false,
+  bookmarkLoading = false,
 }: SubmoduleProgressBarProps) {
   const progressPercentage =
     totalPages > 0 ? (currentProgress / totalPages) * 100 : 0;
 
+  const showBookmark = typeof onBookmarkPress === 'function';
+
   return (
     <View style={styles.container}>
-      {/* Header with title and close button */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+        <TouchableOpacity
+          onPress={onClose}
+          style={styles.headerSide}
+          accessibilityRole='button'
+          accessibilityLabel='Close lesson'
+        >
           <Feather name='x' size={20} color='#878787' />
         </TouchableOpacity>
-        <Text style={styles.title}>
+
+        <Text style={styles.title} numberOfLines={2}>
           Section {submoduleOrder}: {submoduleTitle}
         </Text>
+
+        <View style={styles.headerSide}>
+          {showBookmark ? (
+            <TouchableOpacity
+              onPress={onBookmarkPress}
+              disabled={bookmarkLoading}
+              style={styles.bookmarkButton}
+              accessibilityRole='button'
+              accessibilityLabel={
+                isBookmarked ? 'Remove saved lesson page' : 'Save lesson page'
+              }
+            >
+              {bookmarkLoading ? (
+                <ActivityIndicator size='small' color='#878787' />
+              ) : isBookmarked ? (
+                <Save_Fill width={BOOKMARK_ICON_SIZE} height={BOOKMARK_ICON_SIZE} />
+              ) : (
+                <Save width={BOOKMARK_ICON_SIZE} height={BOOKMARK_ICON_SIZE} />
+              )}
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
 
-      {/* Progress bar */}
       <View style={styles.progressBarContainer}>
         <View style={styles.progressBarBackground}>
           <LinearGradient
@@ -53,6 +90,8 @@ export default function SubmoduleProgressBar({
   );
 }
 
+const SIDE_WIDTH = 44;
+
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
@@ -66,9 +105,14 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingTop: '2%',
   },
-  closeButton: {
+  headerSide: {
+    width: SIDE_WIDTH,
+    minHeight: SIDE_WIDTH,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookmarkButton: {
     padding: 4,
-    marginRight: 12,
   },
   title: {
     flex: 1,
@@ -76,7 +120,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#343434',
     textAlign: 'center',
-    marginRight: 40, // Offset for the close button
   },
   progressBarContainer: {
     paddingHorizontal: 20,
