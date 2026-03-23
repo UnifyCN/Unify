@@ -31,10 +31,15 @@ import { Theme } from '@/constants/Theme';
 import { useAnalytics } from '@/utils/analytics';
 import BackHeader from '@/components/BackHeader';
 
+import { useGroupMembers } from '@/hooks/groups/useGroupMembers';
+import GroupMemberAvatarStack from '@/components/groups/GroupMemberAvatarStack';
+import GroupMembersSheet from '@/components/groups/GroupMembersSheet';
+
 // Destructive red color for Leave button
 const DESTRUCTIVE_RED = '#DC3545';
 
 const GroupDetailScreen = () => {
+  
   const isFocused = useIsFocused();
   const { group, groupName } = useLocalSearchParams();
   const [groupData, setGroupData] = useState<Group | null>(
@@ -49,6 +54,10 @@ const GroupDetailScreen = () => {
   const queryClient = useQueryClient();
   const { trackGroupViewed, trackGroupJoined, trackGroupLeft } = useAnalytics();
 
+
+  const [membersOpen, setMembersOpen] = useState(false);
+  const { data: members = [], refetch: refetchMembers } = useGroupMembers(groupData?.id);
+  
   // Update groupData when group param changes
   useEffect(() => {
     if (group) {
@@ -119,6 +128,7 @@ const GroupDetailScreen = () => {
     return () => {
       mounted = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupName, groupData]);
 
   // posts for this group
@@ -140,7 +150,7 @@ const GroupDetailScreen = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await refetch();
+      await Promise.all([refetch(), refetchMembers()]);
     } finally {
       setRefreshing(false);
     }
@@ -202,6 +212,7 @@ const GroupDetailScreen = () => {
     } finally {
       queryClient.resetQueries({ queryKey: ['feed', 'groups'] });
       queryClient.invalidateQueries({ queryKey: ['available-groups'] });
+      queryClient.invalidateQueries({ queryKey: ['group-members', groupData.id] });
       setJoining(false);
     }
   };
@@ -326,6 +337,16 @@ const GroupDetailScreen = () => {
               )}
             </View>
 
+            {members.length > 0 && (
+              <View style={{ marginBottom: 8 }}>
+              <GroupMemberAvatarStack
+                members={members}
+                totalCount={groupData.memberCount}
+                onPress={() => setMembersOpen(true)}
+              />
+              </View>
+            )}
+
             {/* Join/Leave CTA Button */}
             <TouchableOpacity
               onPress={handleJoinToggle}
@@ -387,6 +408,12 @@ const GroupDetailScreen = () => {
 
       {/* floating create post button, only visible when user is a member */}
       {isMember && <CreatePostButton preselectedGroup={groupData} />}
+
+      <GroupMembersSheet
+        visible={membersOpen}
+        onClose={() => setMembersOpen(false)}
+        members={members}
+      />
     </View>
   );
 };
