@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.anonymous.unifyfrontend",
       "googleServicesFile": "./GoogleService_ios.plist",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "NSCameraUsageDescription": "Unify needs camera access to let you take a photo for your post.",
+        "NSPhotoLibraryUsageDescription": "Unify needs access to your photo library to attach an existing photo to your post."
       }
     },
     "android": {
@@ -26,6 +27,11 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE"
+      ],
       "package": "com.anonymous.unifyfrontend",
       "softwareKeyboardLayoutMode": "resize"
     },
@@ -41,7 +47,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to let you share and change your profile picture."
+          "photosPermission": "Unify needs access to your photo library to attach an existing photo to your post.",
+          "cameraPermission": "Unify needs camera access to let you take a photo for your post."
         }
       ],
       "expo-localization",
