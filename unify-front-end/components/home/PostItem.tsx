@@ -954,7 +954,7 @@ export const PostItem = memo(
           </Pressable>
         </Modal>
 
-        {imageUrls.length > 0 && (
+        {imageUrls.length > 0 && !onImageViewerOpen && (
           <ImageViewerModal
             visible={viewerVisible}
             imageUrls={imageUrls}

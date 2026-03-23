@@ -6,10 +6,10 @@ import {
   StatusBar,
   Platform,
   Modal,
-  Dimensions,
   Pressable,
   FlatList,
   ViewToken,
+  useWindowDimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import {
@@ -29,8 +29,8 @@ import { Avatar } from '@/components/Avatar';
 import { Theme } from '@/constants/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SWIPE_DISMISS_THRESHOLD = 120;
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 50 };
 
 interface ImageViewerModalProps {
   visible: boolean;
@@ -43,7 +43,7 @@ interface ImageViewerModalProps {
   };
 }
 
-function ZoomableImage({ uri }: { uri: string }) {
+function ZoomableImage({ uri, screenWidth, screenHeight }: { uri: string; screenWidth: number; screenHeight: number }) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -110,10 +110,10 @@ function ZoomableImage({ uri }: { uri: string }) {
 
   return (
     <GestureDetector gesture={withDoubleTap}>
-      <Animated.View style={[styles.imageWrapper, animatedStyle]}>
+      <Animated.View style={[{ width: screenWidth, height: screenHeight, justifyContent: 'center' as const, alignItems: 'center' as const }, animatedStyle]}>
         <Image
           source={{ uri }}
-          style={styles.fullImage}
+          style={{ width: screenWidth, height: screenHeight * 0.7 }}
           contentFit="contain"
           cachePolicy="memory-disk"
         />
@@ -129,6 +129,7 @@ export default function ImageViewerModal({
   onClose,
   author,
 }: ImageViewerModalProps) {
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
 
@@ -190,13 +191,15 @@ export default function ImageViewerModal({
     dismissOpacity.value = 1;
   }, [initialIndex, dismissY, dismissOpacity]);
 
+  const slideStyle = { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, justifyContent: 'center' as const, alignItems: 'center' as const };
+
   const renderImage = useCallback(
     ({ item }: { item: string }) => (
-      <View style={styles.slide}>
-        <ZoomableImage uri={item} />
+      <View style={slideStyle}>
+        <ZoomableImage uri={item} screenWidth={SCREEN_WIDTH} screenHeight={SCREEN_HEIGHT} />
       </View>
     ),
-    []
+    [SCREEN_WIDTH, SCREEN_HEIGHT]
   );
 
   return (
@@ -230,8 +233,8 @@ export default function ImageViewerModal({
         <GestureDetector gesture={dismissGesture}>
           <Animated.View style={[styles.content, dismissAnimatedStyle]}>
             {imageUrls.length === 1 ? (
-              <View style={styles.slide}>
-                <ZoomableImage uri={imageUrls[0]} />
+              <View style={slideStyle}>
+                <ZoomableImage uri={imageUrls[0]} screenWidth={SCREEN_WIDTH} screenHeight={SCREEN_HEIGHT} />
               </View>
             ) : (
               <FlatList
@@ -248,7 +251,7 @@ export default function ImageViewerModal({
                   index,
                 })}
                 onViewableItemsChanged={onViewableItemsChanged}
-                viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
+                viewabilityConfig={VIEWABILITY_CONFIG}
               />
             )}
           </Animated.View>
@@ -304,22 +307,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  slide: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageWrapper: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fullImage: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT * 0.7,
   },
   header: {
     position: 'absolute',
