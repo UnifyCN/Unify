@@ -28,14 +28,18 @@ export const createPostLikeNotification = async (
 
   const username = actor?.username ?? 'Someone';
 
-  const { error } = await supabase.from('community_notifications').insert({
-    user_id: post.user_id,
-    triggered_by_user_id: user.id,
-    type: 'liked',
-    title: 'New like on your post',
-    body: `${username} liked your post.`,
-    data: { post_id: postId, actor_user_id: user.id },
-  });
+  const { data: inserted, error } = await supabase
+    .from('community_notifications')
+    .insert({
+      user_id: post.user_id,
+      triggered_by_user_id: user.id,
+      type: 'liked',
+      title: 'New like on your post',
+      body: `${username} liked your post.`,
+      data: { post_id: postId, actor_user_id: user.id },
+    })
+    .select('id')
+    .single();
 
   if (error) {
     console.error('Failed to create post-like notification', {
@@ -45,5 +49,16 @@ export const createPostLikeNotification = async (
       actorUsername: username,
       error,
     });
+    return;
+  }
+
+  if (inserted?.id) {
+    const { error: pushError } = await supabase.functions.invoke(
+      'send-social-push',
+      { body: { notification_id: inserted.id } }
+    );
+    if (pushError) {
+      console.error('send-social-push failed (like)', pushError);
+    }
   }
 };

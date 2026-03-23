@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useCurrentUser } from '@/context/UserContext';
 import {
   registerForPushNotifications,
@@ -51,6 +51,14 @@ export function usePushNotifications() {
         router.push(
           `/community-matching/circle/${data.circle_id}/chat` as const
         );
+      } else if (
+        (data?.type === 'liked' || data?.type === 'commented') &&
+        data?.post_id != null
+      ) {
+        router.push({
+          pathname: '/post-details',
+          params: { postId: String(data.post_id) },
+        } as Href);
       }
     });
 
