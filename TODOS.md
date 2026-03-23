@@ -9,4 +9,4 @@
 **Cons:** Significant scope (push infra from scratch). Notification fatigue risk if not carefully tuned.
 **Context:** The crawler's change detection logging (from the RAG automated ingestion pipeline) provides the trigger data. Push token storage and delivery service are the missing pieces.
 **Effort:** XL (human) → L (CC)
-**Depends on:** RAG automated ingestion pipeline (change detection in crawl_logs)
+**Depends on:** RAG automated ingestion pipeline (change detection in crawl_logs), Personalization Engine (provides `onboarding_profiles` with city/province and `personalize` edge function pattern for matching policy changes to user profiles — see `docs/designs/personalization-engine.md`)
