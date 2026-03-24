@@ -68,7 +68,7 @@
         "expo-notifications",
         {
           "color": "#ff9d40",
-          "defaultChannel": "community-circles"
+          "defaultChannel": "social"
         }
       ],
       "@react-native-google-signin/google-signin",

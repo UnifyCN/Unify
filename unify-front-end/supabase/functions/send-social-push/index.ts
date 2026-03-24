@@ -33,7 +33,8 @@ async function sendExpoPushToUsers(
   userIds: string[],
   title: string,
   body: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
+  channelId?: string
 ): Promise<void> {
   if (!userIds.length) return;
 
@@ -54,10 +55,13 @@ async function sendExpoPushToUsers(
     title,
     body,
     data: data ?? {},
+    priority: 'high' as const,
+    ...(channelId ? { channelId } : {}),
   }));
 
   const batchSize = 100;
   const timeoutMs = 5000;
+  const staleTokens: string[] = [];
 
   for (let i = 0; i < messages.length; i += batchSize) {
     const batch = messages.slice(i, i + batchSize);
@@ -66,12 +70,29 @@ async function sendExpoPushToUsers(
     try {
       const res = await fetch(EXPO_PUSH_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
         body: JSON.stringify(batch),
         signal: controller.signal,
       });
       if (!res.ok) {
         console.error('send-social-push: expo batch', i, await res.text());
+      } else {
+        // Parse push tickets to detect stale tokens
+        const result = await res.json();
+        if (result.data) {
+          for (let j = 0; j < result.data.length; j++) {
+            const ticket = result.data[j];
+            if (ticket.status === 'error') {
+              console.error('send-social-push: ticket error', ticket.message, ticket.details);
+              if (ticket.details?.error === 'DeviceNotRegistered') {
+                staleTokens.push(batch[j].to);
+              }
+            }
+          }
+        }
       }
     } catch (e) {
       if (e instanceof Error && e.name === 'AbortError') {
@@ -81,6 +102,19 @@ async function sendExpoPushToUsers(
       }
     } finally {
       clearTimeout(timeout);
+    }
+  }
+
+  // Clean up stale tokens that are no longer registered
+  if (staleTokens.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('push_tokens')
+      .delete()
+      .in('token', staleTokens);
+    if (deleteError) {
+      console.error('send-social-push: failed to delete stale tokens', deleteError);
+    } else {
+      console.log(`send-social-push: cleaned ${staleTokens.length} stale token(s)`);
     }
   }
 }
@@ -162,7 +196,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (notification.type !== 'liked' && notification.type !== 'commented') {
+  if (!['liked', 'commented', 'followed'].includes(notification.type)) {
     return new Response(JSON.stringify({ error: 'Unsupported notification type' }), {
       status: 400,
       headers: JSON_HEADERS,
@@ -172,6 +206,20 @@ Deno.serve(async (req: Request) => {
   if (notification.triggered_by_user_id !== user.id) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  // Check if the recipient has opted into push notifications
+  const { data: profile } = await supabaseService
+    .from('onboarding_profiles')
+    .select('wants_reminders')
+    .eq('user_id', notification.user_id)
+    .maybeSingle();
+
+  if (profile?.wants_reminders === false) {
+    return new Response(JSON.stringify({ ok: true, skipped: 'user_opted_out' }), {
+      status: 200,
       headers: JSON_HEADERS,
     });
   }
@@ -187,6 +235,11 @@ Deno.serve(async (req: Request) => {
     pushData.post_id = Number.isFinite(n) ? n : postId;
   }
 
+  const actorUserId = dataPayload.actor_user_id;
+  if (notification.type === 'followed' && typeof actorUserId === 'string' && actorUserId !== '') {
+    pushData.actor_user_id = actorUserId;
+  }
+
   const commentId = dataPayload.comment_id;
   if (notification.type === 'commented') {
     if (typeof commentId === 'number') pushData.comment_id = commentId;
@@ -196,12 +249,15 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  const channelId = notification.type === 'learn_reminder' ? 'learn' : 'social';
+
   await sendExpoPushToUsers(
     supabaseService,
     [notification.user_id],
     notification.title,
     notification.body,
-    pushData
+    pushData,
+    channelId
   );
 
   return new Response(JSON.stringify({ ok: true }), {

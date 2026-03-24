@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { type Href, useRouter } from 'expo-router';
 import { useCurrentUser } from '@/context/UserContext';
+import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import {
   registerForPushNotifications,
   addNotificationResponseListener,
@@ -19,16 +20,19 @@ const isValidCircleId = (id: unknown): id is string =>
  */
 export function usePushNotifications() {
   const { currentUser } = useCurrentUser();
+  const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const router = useRouter();
   const responseListenerRef = useRef<Subscription>(null);
 
   useEffect(() => {
     if (!currentUser) return;
 
-    // Register for push notifications when user is authenticated
-    registerForPushNotifications().catch(err => {
-      console.error('Push notification registration failed:', err);
-    });
+    // Only register for push if user opted in (or hasn't completed onboarding yet)
+    if (onboardingProfile?.wants_reminders !== false) {
+      registerForPushNotifications().catch(err => {
+        console.error('Push notification registration failed:', err);
+      });
+    }
 
     // Handle notification taps
     responseListenerRef.current = addNotificationResponseListener(response => {
@@ -59,6 +63,29 @@ export function usePushNotifications() {
           pathname: '/post-details',
           params: { postId: String(data.post_id) },
         } as Href);
+      } else if (
+        data?.type === 'followed' &&
+        data?.actor_user_id != null
+      ) {
+        router.push({
+          pathname: '/profile/[userId]',
+          params: { userId: String(data.actor_user_id) },
+        } as Href);
+      } else if (
+        data?.type === 'learn_reminder' &&
+        data?.lesson_id &&
+        data?.submodule_id &&
+        data?.module_id
+      ) {
+        router.push({
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]',
+          params: {
+            moduleId: String(data.module_id),
+            submoduleId: String(data.submodule_id),
+            lessonId: String(data.lesson_id),
+          },
+        } as Href);
       }
     });
 
@@ -67,5 +94,5 @@ export function usePushNotifications() {
         responseListenerRef.current.remove();
       }
     };
-  }, [currentUser, router]);
+  }, [currentUser, onboardingProfile?.wants_reminders, router]);
 }

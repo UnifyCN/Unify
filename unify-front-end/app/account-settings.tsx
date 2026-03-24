@@ -20,6 +20,10 @@ import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload'
 import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
 import { useHapticsPreference } from '@/context/HapticsContext';
+import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
+import { saveOnboardingProfile } from '@/services/onboarding/saveOnboardingProfile';
+import { registerForPushNotifications, unregisterPushToken } from '@/services/push/pushNotifications';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
 
@@ -31,14 +35,25 @@ export default function AccountSettingsPage() {
     useState(false);
   const { trackScreen } = useAnalytics();
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
+  const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
+  const queryClient = useQueryClient();
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
 
   // Track screen view on mount
   useEffect(() => {
     trackScreen('Account Settings');
   }, [trackScreen]);
 
+  // Sync notification toggle with onboarding profile
+  useEffect(() => {
+    if (onboardingProfile?.wants_reminders !== undefined) {
+      setNotificationsEnabled(onboardingProfile.wants_reminders);
+    }
+  }, [onboardingProfile?.wants_reminders]);
+
   const onLogout = async () => {
     try {
+      await unregisterPushToken();
       await supabase.auth.signOut();
       // Let AuthWrapper handle the navigation
     } catch (err) {
@@ -50,8 +65,24 @@ export default function AccountSettingsPage() {
     setHapticsEnabled(!hapticsEnabled);
   };
 
+  const toggleNotifications = async () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    try {
+      await saveOnboardingProfile({ wants_reminders: newValue });
+      queryClient.invalidateQueries({ queryKey: ['onboardingProfile'] });
+      if (newValue) {
+        await registerForPushNotifications();
+      }
+    } catch (err) {
+      console.error('Failed to update notification preference', err);
+      setNotificationsEnabled(!newValue);
+    }
+  };
+
   const deleteAccount = async () => {
     try {
+      await unregisterPushToken();
       const { error } = await supabase.rpc('delete_user');
       if (error) throw error;
       setDeleteAccountModalVisible(false);
@@ -164,6 +195,27 @@ export default function AccountSettingsPage() {
         <View style={styles.rowsContainer}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.settingsCard}>
+            <View style={[styles.row, styles.toggleRow]}>
+              <View style={styles.rowLabelContainer}>
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name='bell' size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>Push Notifications</Text>
+              </View>
+              <Pressable
+                onPress={toggleNotifications}
+                accessibilityRole='switch'
+                accessibilityState={{ checked: notificationsEnabled }}
+                accessibilityLabel='Push Notifications'
+                hitSlop={8}
+                style={[
+                  styles.toggleTrack,
+                  notificationsEnabled ? styles.toggleTrackOn : styles.toggleTrackOff,
+                ]}
+              >
+                <View style={styles.toggleThumb} />
+              </Pressable>
+            </View>
             <View style={[styles.row, styles.toggleRow]}>
               <View style={styles.rowLabelContainer}>
                 <View style={styles.bookmarkIconContainer}>
