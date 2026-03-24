@@ -628,7 +628,7 @@ export default function RichTextRenderer({
             <SelectableText
               blockKey={block._key || `block-${index}`}
               highlights={getBlockHighlights(block, index)}
-              style={listTextStyle}
+              style={baseListStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
               mergedStyles={mergedStyles}

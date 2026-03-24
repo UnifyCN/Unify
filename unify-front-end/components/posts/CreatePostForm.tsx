@@ -218,23 +218,55 @@ export default function CreatePostForm({
     setDestination('4u');
   };
 
-  const handleImagePick = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Please grant access to your photo library.'
-      );
-      return;
+  const handleCameraPress = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status === 'denied') {
+        Alert.alert(
+          'Camera Access Denied',
+          'Unify needs camera access to take a photo for your post. You can enable it in your device settings, or use the gallery instead.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      if (status !== 'granted') return;
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
+      if (!result.canceled) {
+        setImages(prev => [...prev, ...result.assets].slice(0, 10));
+      }
+    } catch (error) {
+      Alert.alert('Camera Error', 'Something went wrong while accessing the camera. Please try again.');
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsMultipleSelection: true,
-      quality: 0.8,
-      selectionLimit: 10 - images.length,
-    });
-    if (!result.canceled) {
-      setImages(prev => [...prev, ...result.assets].slice(0, 10));
+  };
+
+  const handleGalleryPick = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status === 'denied') {
+        Alert.alert(
+          'Photo Library Access Denied',
+          'Unify needs access to your photo library to attach an existing photo. You can enable it in your device settings, or take a new photo using the camera instead.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      if (status !== 'granted') return;
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        selectionLimit: 10 - images.length,
+      });
+      if (!result.canceled) {
+        setImages(prev => [...prev, ...result.assets].slice(0, 10));
+      }
+    } catch (error) {
+      Alert.alert('Gallery Error', 'Something went wrong while accessing your photo library. Please try again.');
     }
   };
 
@@ -328,7 +360,7 @@ export default function CreatePostForm({
             {images.length < 10 && (
               <TouchableOpacity
                 style={styles.addMoreImagesButton}
-                onPress={handleImagePick}
+                onPress={handleCameraPress}
               >
                 <Feather name='plus' size={20} color={Theme.surfaceGray} />
               </TouchableOpacity>
@@ -382,7 +414,12 @@ export default function CreatePostForm({
               icon='📷'
               isActive={images.length > 0}
               isBlocked={images.length >= 10}
-              onPress={handleImagePick}
+              onPress={handleCameraPress}
+            />
+            <ToolbarButton
+              icon='🖼️'
+              isBlocked={images.length >= 10}
+              onPress={handleGalleryPick}
             />
           </ScrollView>
         </View>
