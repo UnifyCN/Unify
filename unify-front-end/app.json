@@ -3,7 +3,7 @@
     "name": "Unify",
     "slug": "unify-front-end",
     "owner": "unifysocial",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -19,7 +19,8 @@
       "googleServicesFile": "./GoogleService_ios.plist",
       "infoPlist": {
         "NSCameraUsageDescription": "Unify needs camera access to let you take a photo for your post.",
-        "NSPhotoLibraryUsageDescription": "Unify needs access to your photo library to attach an existing photo to your post."
+        "NSPhotoLibraryUsageDescription": "Unify needs access to your photo library to attach an existing photo to your post.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
