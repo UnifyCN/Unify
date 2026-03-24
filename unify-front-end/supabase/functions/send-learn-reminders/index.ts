@@ -46,7 +46,12 @@ type ReminderCandidate = {
   reminder_tier: number;
 };
 
-/** Send push notifications via Expo in batches of 100. Returns stale tokens to clean up. */
+type PushDeliveryResult = {
+  staleTokens: string[];
+  failedTokens: string[];
+};
+
+/** Send push notifications via Expo in batches of 100. Returns stale and failed tokens. */
 async function sendExpoPush(
   messages: Array<{
     to: string;
@@ -57,10 +62,11 @@ async function sendExpoPush(
     channelId: string;
     priority: string;
   }>
-): Promise<string[]> {
+): Promise<PushDeliveryResult> {
   const batchSize = 100;
   const timeoutMs = 5000;
   const staleTokens: string[] = [];
+  const failedTokens: string[] = [];
 
   for (let i = 0; i < messages.length; i += batchSize) {
     const batch = messages.slice(i, i + batchSize);
@@ -78,6 +84,9 @@ async function sendExpoPush(
       });
       if (!res.ok) {
         console.error('send-learn-reminders: expo batch', i, await res.text());
+        for (const msg of batch) {
+          failedTokens.push(msg.to);
+        }
       } else {
         const result = await res.json();
         if (result.data) {
@@ -87,6 +96,8 @@ async function sendExpoPush(
               console.error('send-learn-reminders: ticket error', ticket.message, ticket.details);
               if (ticket.details?.error === 'DeviceNotRegistered') {
                 staleTokens.push(batch[j].to);
+              } else {
+                failedTokens.push(batch[j].to);
               }
             }
           }
@@ -98,12 +109,15 @@ async function sendExpoPush(
       } else {
         console.error('send-learn-reminders: expo error', i, e);
       }
+      for (const msg of batch) {
+        failedTokens.push(msg.to);
+      }
     } finally {
       clearTimeout(timeout);
     }
   }
 
-  return staleTokens;
+  return { staleTokens, failedTokens };
 }
 
 Deno.serve(async (req: Request) => {
@@ -212,14 +226,15 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const optedOutUsers = new Set(
+  // Require explicit opt-in: only users with wants_reminders === true get reminders
+  const optedInUsers = new Set(
     (profiles ?? [])
-      .filter((p: { wants_reminders: boolean }) => p.wants_reminders === false)
+      .filter((p: { wants_reminders: boolean }) => p.wants_reminders === true)
       .map((p: { user_id: string }) => p.user_id)
   );
 
   // Get push tokens for opted-in users
-  const eligibleUserIds = userIds.filter(id => !optedOutUsers.has(id));
+  const eligibleUserIds = userIds.filter(id => optedInUsers.has(id));
   if (!eligibleUserIds.length) {
     return new Response(JSON.stringify({ ok: true, sent: 0, skipped: 'all_opted_out' }), {
       status: 200,
@@ -254,7 +269,7 @@ Deno.serve(async (req: Request) => {
   const messageToCandidateIndex: Array<{ id: string; tier: number }> = [];
 
   for (const { candidate, tier } of toSend) {
-    if (optedOutUsers.has(candidate.user_id)) continue;
+    if (!optedInUsers.has(candidate.user_id)) continue;
     const tokens = tokensByUser.get(candidate.user_id);
     if (!tokens?.length) continue;
 
@@ -278,17 +293,17 @@ Deno.serve(async (req: Request) => {
   }
 
   // Send push notifications and determine which candidates succeeded
-  let staleTokens: string[] = [];
+  let deliveryResult: PushDeliveryResult = { staleTokens: [], failedTokens: [] };
   const rowUpdates: Array<{ id: string; tier: number }> = [];
 
   if (messages.length > 0) {
-    staleTokens = await sendExpoPush(messages);
+    deliveryResult = await sendExpoPush(messages);
 
-    // All messages that weren't stale are considered delivered
-    const staleSet = new Set(staleTokens);
+    // Only mark candidates as delivered if none of their tokens failed
+    const failedSet = new Set([...deliveryResult.staleTokens, ...deliveryResult.failedTokens]);
     const succeededCandidateIds = new Set<string>();
     for (let i = 0; i < messages.length; i++) {
-      if (!staleSet.has(messages[i].to)) {
+      if (!failedSet.has(messages[i].to)) {
         succeededCandidateIds.add(messageToCandidateIndex[i].id);
       }
     }
@@ -303,15 +318,15 @@ Deno.serve(async (req: Request) => {
   }
 
   // Clean up stale tokens that are no longer registered
-  if (staleTokens.length > 0) {
+  if (deliveryResult.staleTokens.length > 0) {
     const { error: deleteError } = await supabase
       .from('push_tokens')
       .delete()
-      .in('token', staleTokens);
+      .in('token', deliveryResult.staleTokens);
     if (deleteError) {
       console.error('send-learn-reminders: failed to delete stale tokens', deleteError);
     } else {
-      console.log(`send-learn-reminders: cleaned ${staleTokens.length} stale token(s)`);
+      console.log(`send-learn-reminders: cleaned ${deliveryResult.staleTokens.length} stale token(s)`);
     }
   }
 

@@ -37,7 +37,7 @@ export default function AccountSettingsPage() {
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
   const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const queryClient = useQueryClient();
-  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean | null>(null);
 
   // Track screen view on mount
   useEffect(() => {
@@ -53,7 +53,9 @@ export default function AccountSettingsPage() {
 
   const onLogout = async () => {
     try {
-      await unregisterPushToken();
+      try { await unregisterPushToken(); } catch (e) {
+        console.error('Failed to unregister push token on logout:', e);
+      }
       await supabase.auth.signOut();
       // Let AuthWrapper handle the navigation
     } catch (err) {
@@ -66,7 +68,7 @@ export default function AccountSettingsPage() {
   };
 
   const toggleNotifications = async () => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || notificationsEnabled === null) return;
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
     try {
@@ -83,7 +85,9 @@ export default function AccountSettingsPage() {
 
   const deleteAccount = async () => {
     try {
-      await unregisterPushToken();
+      try { await unregisterPushToken(); } catch (e) {
+        console.error('Failed to unregister push token on delete:', e);
+      }
       const { error } = await supabase.rpc('delete_user');
       if (error) throw error;
       setDeleteAccountModalVisible(false);
@@ -204,14 +208,18 @@ export default function AccountSettingsPage() {
                 <Text style={styles.rowText}>Learning Reminders</Text>
               </View>
               <Pressable
-                onPress={toggleNotifications}
+                onPress={notificationsEnabled !== null ? toggleNotifications : undefined}
                 accessibilityRole='switch'
-                accessibilityState={{ checked: notificationsEnabled }}
+                accessibilityState={{ checked: notificationsEnabled ?? false }}
                 accessibilityLabel='Learning Reminders'
                 hitSlop={8}
+                disabled={notificationsEnabled === null}
                 style={[
                   styles.toggleTrack,
-                  notificationsEnabled ? styles.toggleTrackOn : styles.toggleTrackOff,
+                  notificationsEnabled === null
+                    ? styles.toggleTrackOff
+                    : notificationsEnabled ? styles.toggleTrackOn : styles.toggleTrackOff,
+                  notificationsEnabled === null && { opacity: 0.5 },
                 ]}
               >
                 <View style={styles.toggleThumb} />

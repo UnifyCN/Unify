@@ -38,7 +38,11 @@ export const likeComment = async (
       console.error('Error fetching comment like count:', selectError);
     }
 
-    createCommentLikeNotification(commentId).catch(() => {});
+    try {
+      await createCommentLikeNotification(commentId);
+    } catch (notifError) {
+      console.error('Failed to create comment like notification:', notifError);
+    }
 
     return {
       success: true,

@@ -101,6 +101,7 @@ async function sendExpoPushToUsers(
             const ticket = ticketResult.data[j];
             if (ticket.status === 'error') {
               console.error('send-social-push: ticket error', ticket.message, ticket.details);
+              result.ok = false;
               result.failureCount++;
               result.errors.push({ token: batch[j].to, error: ticket.details?.error ?? ticket.message });
               if (ticket.details?.error === 'DeviceNotRegistered') {
@@ -247,12 +248,13 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Atomic claim: mark as delivered to prevent replay
+  // Atomic claim: set processing flag to prevent concurrent sends
   const { data: claimed, error: claimError } = await supabaseService
     .from('community_notifications')
-    .update({ delivered: true, delivered_at: new Date().toISOString() })
+    .update({ processing: true, processing_at: new Date().toISOString() })
     .eq('id', parsed.notification_id)
     .eq('delivered', false)
+    .eq('processing', false)
     .select('id')
     .maybeSingle();
 
@@ -265,7 +267,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (!claimed) {
-    // Already delivered — idempotent success
+    // Already delivered or being processed — idempotent success
     return new Response(JSON.stringify({ ok: true, already_delivered: true }), {
       status: 200,
       headers: JSON_HEADERS,
@@ -312,6 +314,12 @@ Deno.serve(async (req: Request) => {
   );
 
   if (!pushResult.ok) {
+    // Clear processing flag so the notification can be retried
+    await supabaseService
+      .from('community_notifications')
+      .update({ processing: false, processing_at: null })
+      .eq('id', parsed.notification_id);
+
     return new Response(JSON.stringify({
       ok: false,
       successCount: pushResult.successCount,
@@ -322,6 +330,12 @@ Deno.serve(async (req: Request) => {
       headers: JSON_HEADERS,
     });
   }
+
+  // Mark as delivered on successful send
+  await supabaseService
+    .from('community_notifications')
+    .update({ delivered: true, delivered_at: new Date().toISOString(), processing: false })
+    .eq('id', parsed.notification_id);
 
   return new Response(JSON.stringify({
     ok: true,
