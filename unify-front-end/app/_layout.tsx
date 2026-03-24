@@ -11,13 +11,19 @@ import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
-// import Onboarding from './onboarding';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import PreLoginOnboarding from '@/components/onboarding/PreLoginOnboarding';
 import { UserProvider } from '@/context/UserContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
 import AnimatedSplash from '@/components/AnimatedSplash';
 import { queryClient } from '@/lib/queryClient';
+import {
+  FunnelSans_400Regular,
+  FunnelSans_500Medium,
+  FunnelSans_600SemiBold,
+} from '@expo-google-fonts/funnel-sans';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -25,23 +31,26 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    FunnelSans_400Regular,
+    FunnelSans_500Medium,
+    FunnelSans_600SemiBold,
   });
 
-  // const [onboardingChecked, setOnboardingChecked] = useState(false);
-  // const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
-  const isReady = loaded;
+  const isReady = loaded && onboardingChecked;
 
-  // useEffect(() => {
-  //   const checkOnboarding = async () => {
-  //     const completed = await AsyncStorage.getItem('onboardingCompleted');
-  //     setShowOnboarding(completed !== 'true');
-  //     setOnboardingChecked(true);
-  //   };
-  //   checkOnboarding();
-  // }, []);
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      const completed = await AsyncStorage.getItem('onboardingCompleted');
+      setShowOnboarding(completed !== 'true');
+      setOnboardingChecked(true);
+    };
+    checkOnboarding();
+  }, []);
 
   useEffect(() => {
     if (isReady) {
@@ -54,7 +63,7 @@ export default function RootLayout() {
     setShowAnimatedSplash(false);
   };
 
-  if (!loaded /* || !onboardingChecked */) {
+  if (!loaded || !onboardingChecked) {
     return null; // or a loading spinner
   }
 
@@ -65,29 +74,33 @@ export default function RootLayout() {
           <SafeAreaProvider>
             <ToastProvider>
               <ScrollContextProvider>
-                {/* {showOnboarding ? (
-              <Onboarding onFinish={() => setShowOnboarding(false)} />
-            ) : ( */}
-                <UserProvider>
-                  <HapticsProvider>
-                    <AuthWrapper>
-                      <ThemeProvider value={DefaultTheme}>
-                        <PostHogProvider
-                          apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
-                          options={{
-                            host:
-                              process.env.EXPO_PUBLIC_POSTHOG_HOST ||
-                              'https://us.i.posthog.com',
-                          }}
-                          autocapture={{ captureScreens: false }}
-                        >
-                          <AppContent />
-                        </PostHogProvider>
-                      </ThemeProvider>
-                    </AuthWrapper>
-                  </HapticsProvider>
-                </UserProvider>
-                {/* )} */}
+                {showOnboarding ? (
+                  <PreLoginOnboarding
+                    onFinish={() => setShowOnboarding(false)}
+                  />
+                ) : (
+                  <UserProvider>
+                    <HapticsProvider>
+                      <AuthWrapper>
+                        <ThemeProvider value={DefaultTheme}>
+                          <PostHogProvider
+                            apiKey={
+                              process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''
+                            }
+                            options={{
+                              host:
+                                process.env.EXPO_PUBLIC_POSTHOG_HOST ||
+                                'https://us.i.posthog.com',
+                            }}
+                            autocapture={{ captureScreens: false }}
+                          >
+                            <AppContent />
+                          </PostHogProvider>
+                        </ThemeProvider>
+                      </AuthWrapper>
+                    </HapticsProvider>
+                  </UserProvider>
+                )}
               </ScrollContextProvider>
             </ToastProvider>
           </SafeAreaProvider>
