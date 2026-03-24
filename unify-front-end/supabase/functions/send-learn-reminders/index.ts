@@ -11,25 +11,26 @@ const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const HOUR_MS = 60 * 60 * 1000;
 
 // Reminder tiers: each tier has a time window and message content
+// Windows must be >= 24h (cron interval) and overlap adjacent tiers to avoid gaps
 const REMINDER_TIERS = [
   {
     tier: 1,
     minHours: 22,
-    maxHours: 26,
+    maxHours: 48,
     title: 'Continue your lesson',
     body: 'Pick up where you left off — your progress is saved.',
   },
   {
     tier: 2,
-    minHours: 68,
-    maxHours: 76,
+    minHours: 48,
+    maxHours: 96,
     title: 'Keep learning!',
     body: "You're making progress — don't stop now.",
   },
   {
     tier: 3,
-    minHours: 164,
-    maxHours: 172,
+    minHours: 96,
+    maxHours: 168,
     title: 'We miss you!',
     body: "It's been a week — pick up where you left off.",
   },
@@ -287,19 +288,26 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Update reminder_tier and last_reminder_sent_at for each sent row
+  // Update reminder_tier and last_reminder_sent_at in batches grouped by tier
   const nowIso = new Date(now).toISOString();
+  const idsByTier = new Map<number, string[]>();
   for (const update of rowUpdates) {
+    const ids = idsByTier.get(update.tier) ?? [];
+    ids.push(update.id);
+    idsByTier.set(update.tier, ids);
+  }
+
+  for (const [tier, ids] of idsByTier) {
     const { error: updateError } = await supabase
       .from('user_lesson_progress')
       .update({
-        reminder_tier: update.tier,
+        reminder_tier: tier,
         last_reminder_sent_at: nowIso,
       })
-      .eq('id', update.id);
+      .in('id', ids);
 
     if (updateError) {
-      console.error('send-learn-reminders: update error', update.id, updateError);
+      console.error('send-learn-reminders: batch update error tier', tier, updateError);
     }
   }
 

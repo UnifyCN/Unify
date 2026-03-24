@@ -22,7 +22,7 @@ import { useAnalytics } from '@/utils/analytics';
 import { useHapticsPreference } from '@/context/HapticsContext';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { saveOnboardingProfile } from '@/services/onboarding/saveOnboardingProfile';
-import { registerForPushNotifications, unregisterPushToken } from '@/services/push/pushNotifications';
+import { unregisterPushToken } from '@/services/push/pushNotifications';
 import { useQueryClient } from '@tanstack/react-query';
 
 const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
@@ -66,14 +66,15 @@ export default function AccountSettingsPage() {
   };
 
   const toggleNotifications = async () => {
+    if (!currentUser?.id || !onboardingProfile) return;
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
     try {
-      await saveOnboardingProfile({ wants_reminders: newValue });
+      await saveOnboardingProfile(currentUser.id, {
+        ...onboardingProfile,
+        wants_reminders: newValue,
+      });
       queryClient.invalidateQueries({ queryKey: ['onboardingProfile'] });
-      if (newValue) {
-        await registerForPushNotifications();
-      }
     } catch (err) {
       console.error('Failed to update notification preference', err);
       setNotificationsEnabled(!newValue);
@@ -200,13 +201,13 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name='bell' size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>Push Notifications</Text>
+                <Text style={styles.rowText}>Learning Reminders</Text>
               </View>
               <Pressable
                 onPress={toggleNotifications}
                 accessibilityRole='switch'
                 accessibilityState={{ checked: notificationsEnabled }}
-                accessibilityLabel='Push Notifications'
+                accessibilityLabel='Learning Reminders'
                 hitSlop={8}
                 style={[
                   styles.toggleTrack,

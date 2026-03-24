@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { createCommentLikeNotification } from '@/services/notifications/createCommentLikeNotification';
 
 export interface LikeCommentResponse {
   success: boolean;
@@ -27,6 +28,8 @@ export const likeComment = async (
       .select('like_count')
       .eq('id', commentId)
       .single();
+
+    createCommentLikeNotification(commentId).catch(() => {});
 
     return {
       success: true,

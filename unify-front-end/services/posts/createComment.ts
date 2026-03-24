@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { createCommentNotification } from '@/services/notifications/createCommentNotification';
+import { createCommentReplyNotification } from '@/services/notifications/createCommentReplyNotification';
 
 export const createComment = async (
   postId: number,
@@ -36,6 +37,9 @@ export const createComment = async (
 
   if (data) {
     createCommentNotification(postId, data.id).catch(() => {});
+    if (parentCommentId) {
+      createCommentReplyNotification(postId, data.id, parentCommentId).catch(() => {});
+    }
   }
 
   return data;

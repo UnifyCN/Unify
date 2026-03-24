@@ -180,7 +180,9 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
       STEP_NAMES[currentStep] || `step_${currentStep}`
     );
 
-    if (currentStep === 8 && wantsReminders === true) {
+    // Always request push permission at step 8 — social notifications always send.
+    // The reminders toggle only controls learn reminders (server-side).
+    if (currentStep === 8) {
       registerForPushNotifications().catch(err => {
         console.error('Push registration from onboarding failed:', err);
       });

@@ -196,7 +196,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (!['liked', 'commented', 'followed'].includes(notification.type)) {
+  if (!['liked', 'commented', 'followed', 'comment_liked', 'comment_reply'].includes(notification.type)) {
     return new Response(JSON.stringify({ error: 'Unsupported notification type' }), {
       status: 400,
       headers: JSON_HEADERS,
@@ -210,19 +210,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Check if the recipient has opted into push notifications
-  const { data: profile } = await supabaseService
-    .from('onboarding_profiles')
-    .select('wants_reminders')
-    .eq('user_id', notification.user_id)
-    .maybeSingle();
-
-  if (profile?.wants_reminders === false) {
-    return new Response(JSON.stringify({ ok: true, skipped: 'user_opted_out' }), {
-      status: 200,
-      headers: JSON_HEADERS,
-    });
-  }
+  // Social notifications always send — users control via iOS/Android system settings.
+  // Only learn reminders check the wants_reminders preference (in send-learn-reminders).
 
   const dataPayload = notification.data ?? {};
   const postId = dataPayload.post_id;
@@ -236,12 +225,12 @@ Deno.serve(async (req: Request) => {
   }
 
   const actorUserId = dataPayload.actor_user_id;
-  if (notification.type === 'followed' && typeof actorUserId === 'string' && actorUserId !== '') {
+  if (['followed', 'comment_liked', 'comment_reply'].includes(notification.type) && typeof actorUserId === 'string' && actorUserId !== '') {
     pushData.actor_user_id = actorUserId;
   }
 
   const commentId = dataPayload.comment_id;
-  if (notification.type === 'commented') {
+  if (['commented', 'comment_liked', 'comment_reply'].includes(notification.type)) {
     if (typeof commentId === 'number') pushData.comment_id = commentId;
     else if (typeof commentId === 'string' && commentId !== '') {
       const n = Number(commentId);
@@ -249,7 +238,7 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  const channelId = notification.type === 'learn_reminder' ? 'learn' : 'social';
+  const channelId = 'social';
 
   await sendExpoPushToUsers(
     supabaseService,

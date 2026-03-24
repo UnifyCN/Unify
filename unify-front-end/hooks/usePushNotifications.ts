@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import { type Href, useRouter } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import { useCurrentUser } from '@/context/UserContext';
-import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import {
   registerForPushNotifications,
   addNotificationResponseListener,
@@ -20,19 +21,30 @@ const isValidCircleId = (id: unknown): id is string =>
  */
 export function usePushNotifications() {
   const { currentUser } = useCurrentUser();
-  const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const router = useRouter();
   const responseListenerRef = useRef<Subscription>(null);
+
+  // Clear badge count when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        Notifications.setBadgeCountAsync(0);
+      }
+    });
+    // Also clear on mount
+    Notifications.setBadgeCountAsync(0);
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (!currentUser) return;
 
-    // Only register for push if user opted in (or hasn't completed onboarding yet)
-    if (onboardingProfile?.wants_reminders !== false) {
-      registerForPushNotifications().catch(err => {
-        console.error('Push notification registration failed:', err);
-      });
-    }
+    // Always register for push — social notifications always send.
+    // Users control notification preferences via iOS/Android system settings.
+    // The wants_reminders toggle only controls learn reminders (server-side).
+    registerForPushNotifications().catch(err => {
+      console.error('Push notification registration failed:', err);
+    });
 
     // Handle notification taps
     responseListenerRef.current = addNotificationResponseListener(response => {
@@ -56,7 +68,7 @@ export function usePushNotifications() {
           `/community-matching/circle/${data.circle_id}/chat` as const
         );
       } else if (
-        (data?.type === 'liked' || data?.type === 'commented') &&
+        (data?.type === 'liked' || data?.type === 'commented' || data?.type === 'comment_liked' || data?.type === 'comment_reply') &&
         data?.post_id != null
       ) {
         router.push({
@@ -94,5 +106,5 @@ export function usePushNotifications() {
         responseListenerRef.current.remove();
       }
     };
-  }, [currentUser, onboardingProfile?.wants_reminders, router]);
+  }, [currentUser, router]);
 }
