@@ -6,7 +6,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ScrollContextProvider } from '@/context/ScrollContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -63,6 +63,11 @@ export default function RootLayout() {
     setShowAnimatedSplash(false);
   };
 
+  const handleBackToOnboarding = useCallback(async () => {
+    await AsyncStorage.removeItem('onboardingCompleted');
+    setShowOnboarding(true);
+  }, []);
+
   if (!loaded || !onboardingChecked) {
     return null; // or a loading spinner
   }
@@ -81,7 +86,7 @@ export default function RootLayout() {
                 ) : (
                   <UserProvider>
                     <HapticsProvider>
-                      <AuthWrapper>
+                      <AuthWrapper onBackToOnboarding={handleBackToOnboarding}>
                         <ThemeProvider value={DefaultTheme}>
                           <PostHogProvider
                             apiKey={

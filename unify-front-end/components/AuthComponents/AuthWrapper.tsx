@@ -12,6 +12,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 
 type Props = {
   children: React.ReactNode;
+  onBackToOnboarding?: () => void;
 };
 
 interface UserLegalStatus {
@@ -57,7 +58,7 @@ async function updateUserLegalAcceptance(userId: string): Promise<void> {
   }
 }
 
-export default function AuthWrapper({ children }: Props) {
+export default function AuthWrapper({ children, onBackToOnboarding }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [showSignUp, setShowSignUp] = useState(false);
@@ -172,7 +173,10 @@ export default function AuthWrapper({ children }: Props) {
         onShowOTP={handleShowOTP}
       />
     ) : (
-      <SignIn onSwitchToSignUp={() => setShowSignUp(true)} />
+      <SignIn
+        onSwitchToSignUp={() => setShowSignUp(true)}
+        onBack={onBackToOnboarding}
+      />
     );
   }
 
