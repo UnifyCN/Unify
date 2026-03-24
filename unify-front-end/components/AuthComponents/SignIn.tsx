@@ -503,11 +503,13 @@ const styles = StyleSheet.create({
   fieldLeftIcon: {
     position: 'absolute',
     left: 14 * S,
+    top: 16 * S,
     zIndex: 1,
   },
   fieldRightIcon: {
     position: 'absolute',
     right: 14 * S,
+    top: 16 * S,
     zIndex: 1,
   },
   textField: {

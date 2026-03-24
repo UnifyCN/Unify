@@ -3,6 +3,7 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { SignIn } from './SignIn';
 import { SignUp } from './SignUp';
+import WelcomeScreen from './WelcomeScreen';
 import OTPVerification from './OTPConfirmation';
 import OnboardingQuiz from '../onboarding/OnboardingQuiz';
 import LegalConsentModal from './LegalConsentModal';
@@ -61,6 +62,7 @@ async function updateUserLegalAcceptance(userId: string): Promise<void> {
 export default function AuthWrapper({ children, onBackToOnboarding }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [showSignUp, setShowSignUp] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [otpEmail, setOtpEmail] = useState('');
@@ -167,15 +169,32 @@ export default function AuthWrapper({ children, onBackToOnboarding }: Props) {
       );
     }
 
+    if (showWelcome) {
+      return (
+        <WelcomeScreen
+          onCreateAccount={() => {
+            setShowWelcome(false);
+            setShowSignUp(true);
+          }}
+          onLogIn={() => {
+            setShowWelcome(false);
+            setShowSignUp(false);
+          }}
+          onBack={onBackToOnboarding}
+        />
+      );
+    }
+
     return showSignUp ? (
       <SignUp
         onSwitchToSignIn={() => setShowSignUp(false)}
         onShowOTP={handleShowOTP}
+        onBack={() => setShowWelcome(true)}
       />
     ) : (
       <SignIn
         onSwitchToSignUp={() => setShowSignUp(true)}
-        onBack={onBackToOnboarding}
+        onBack={() => setShowWelcome(true)}
       />
     );
   }
