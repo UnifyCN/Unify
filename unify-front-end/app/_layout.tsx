@@ -45,9 +45,15 @@ export default function RootLayout() {
 
   useEffect(() => {
     const checkOnboarding = async () => {
-      const completed = await AsyncStorage.getItem('onboardingCompleted');
-      setShowOnboarding(completed !== 'true');
-      setOnboardingChecked(true);
+      try {
+        const completed = await AsyncStorage.getItem('onboardingCompleted');
+        setShowOnboarding(completed !== 'true');
+      } catch (e) {
+        console.error('Failed to read onboarding status:', e);
+        setShowOnboarding(false);
+      } finally {
+        setOnboardingChecked(true);
+      }
     };
     checkOnboarding();
   }, []);

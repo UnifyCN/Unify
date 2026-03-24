@@ -9,6 +9,7 @@ import {
   Platform,
   Linking,
   Pressable,
+  StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -406,6 +407,8 @@ export function SignIn({
           <TouchableOpacity
             style={styles.socialIconButton}
             onPress={handleGoogleSignIn}
+            accessibilityLabel="Sign in with Google"
+            accessibilityRole="button"
           >
             <Google width={24 * S} height={24 * S} />
           </TouchableOpacity>
@@ -413,6 +416,8 @@ export function SignIn({
             <TouchableOpacity
               style={styles.socialIconButton}
               onPress={handleAppleSignIn}
+              accessibilityLabel="Sign in with Apple"
+              accessibilityRole="button"
             >
               <Ionicons name="logo-apple" size={26 * S} color="#000" />
             </TouchableOpacity>
@@ -445,9 +450,11 @@ export function SignIn({
   );
 }
 
+// Auth component scaling factor (0.87) — shared convention across all auth screens
+// (SignIn, SignUp, ForgotPassword) to fit content on smaller devices.
 const S = 0.87;
 
-const styles = {
+const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
@@ -460,12 +467,10 @@ const styles = {
     paddingHorizontal: 24 * S,
     paddingBottom: 24 * S,
   },
-  // Back button
   backButton: {
     marginTop: 12 * S,
-    alignSelf: 'flex-start' as 'flex-start',
+    alignSelf: 'flex-start',
   },
-  // Header
   header: {
     fontFamily: 'FunnelSans_600SemiBold',
     fontSize: 32 * S,
@@ -473,8 +478,8 @@ const styles = {
     marginTop: 48 * S,
   },
   subHeaderRow: {
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 6 * S,
     marginBottom: 32 * S,
   },
@@ -488,21 +493,20 @@ const styles = {
     fontSize: 15 * S,
     color: '#000',
   },
-  // Fields
   fieldContainer: {
     marginBottom: 14 * S,
   },
   inputWithIconContainer: {
-    position: 'relative' as 'relative',
-    justifyContent: 'center' as 'center',
+    position: 'relative',
+    justifyContent: 'center',
   },
   fieldLeftIcon: {
-    position: 'absolute' as 'absolute',
+    position: 'absolute',
     left: 14 * S,
     zIndex: 1,
   },
   fieldRightIcon: {
-    position: 'absolute' as 'absolute',
+    position: 'absolute',
     right: 14 * S,
     zIndex: 1,
   },
@@ -526,11 +530,10 @@ const styles = {
   textFieldError: {
     borderColor: '#f00',
   },
-  // Forgot password row
   forgotRow: {
-    flexDirection: 'row' as 'row',
-    justifyContent: 'space-between' as 'space-between',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 24 * S,
   },
   errorMessage: {
@@ -545,24 +548,22 @@ const styles = {
     fontSize: 14 * S,
     fontFamily: 'FunnelSans_400Regular',
   },
-  // Login button
   loginButton: {
     backgroundColor: '#000',
     borderRadius: 40 * S,
     height: 52 * S,
-    justifyContent: 'center' as 'center',
-    alignItems: 'center' as 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loginButtonText: {
     color: '#fff',
-    textAlign: 'center' as 'center',
+    textAlign: 'center',
     fontSize: 18 * S,
     fontFamily: 'FunnelSans_600SemiBold',
   },
-  // Divider
   divider: {
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     marginVertical: 24 * S,
   },
   dividerLine: {
@@ -576,10 +577,9 @@ const styles = {
     fontSize: 14 * S,
     marginHorizontal: 16 * S,
   },
-  // Social buttons
   socialRow: {
-    flexDirection: 'row' as 'row',
-    justifyContent: 'center' as 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 16 * S,
   },
   socialIconButton: {
@@ -589,25 +589,23 @@ const styles = {
     borderWidth: 1 * S,
     borderColor: '#E0E0E0',
     backgroundColor: '#fff',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  // Spacer
   spacer: {
     flex: 1,
     minHeight: 40 * S,
   },
-  // Legal
   legalText: {
     fontFamily: 'FunnelSans_400Regular',
     fontSize: 12.5 * S,
     color: '#999',
-    textAlign: 'center' as 'center',
+    textAlign: 'center',
     lineHeight: 18 * S,
     paddingHorizontal: 16 * S,
   },
   legalLink: {
-    textDecorationLine: 'underline' as 'underline',
+    textDecorationLine: 'underline',
     color: '#666',
   },
-};
+});

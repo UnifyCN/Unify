@@ -39,18 +39,17 @@ export default function ChecklistScreen() {
 
         {/* Modal card — overlaps right side */}
         <View style={[styles.cardPosition, { left: 93 * S, top: 180 * S, zIndex: 2 }]}>
-          <Image
-            source={require('@/assets/images/checklist-modal-card.png')}
-            style={[
-              styles.modalCardImage,
-              {
+          <View style={[styles.modalCardShadow, { borderRadius: 25 * S }]}>
+            <Image
+              source={require('@/assets/images/checklist-modal-card.png')}
+              style={{
                 width: 236 * S,
                 height: 226 * S,
                 borderRadius: 25 * S,
-              },
-            ]}
-            contentFit="contain"
-          />
+              }}
+              contentFit="contain"
+            />
+          </View>
         </View>
       </View>
 
@@ -78,11 +77,13 @@ const styles = StyleSheet.create({
   cardPosition: {
     position: 'absolute',
   },
-  modalCardImage: {
+  modalCardShadow: {
+    backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
+    elevation: 5,
   },
   textContainer: {
     alignItems: 'center',

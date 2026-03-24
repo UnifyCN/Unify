@@ -53,8 +53,8 @@ function SubjectCard({ color, iconName, title, sections, width, height, borderRa
 
       {/* Title + sections — bottom left */}
       <View style={[styles.cardTextContainer, { left: 14 * S, bottom: 10 * S }]}>
-        <Text style={[styles.cardTitle, { fontSize: 18 * (h / 118) * S }]}>{title}</Text>
-        <Text style={[styles.cardSections, { fontSize: 14 * (h / 118) * S }]}>{sections}</Text>
+        <Text style={[styles.cardTitle, { fontSize: 18 * (h / 118) }]}>{title}</Text>
+        <Text style={[styles.cardSections, { fontSize: 14 * (h / 118) }]}>{sections}</Text>
       </View>
     </View>
   );

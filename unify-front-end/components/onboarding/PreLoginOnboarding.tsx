@@ -32,7 +32,11 @@ export default function PreLoginOnboarding({ onFinish }: PreLoginOnboardingProps
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleFinish = useCallback(async () => {
-    await AsyncStorage.setItem('onboardingCompleted', 'true');
+    try {
+      await AsyncStorage.setItem('onboardingCompleted', 'true');
+    } catch (e) {
+      console.error('Failed to save onboarding status:', e);
+    }
     onFinish();
   }, [onFinish]);
 
@@ -57,7 +61,7 @@ export default function PreLoginOnboarding({ onFinish }: PreLoginOnboardingProps
   const handleScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      const step = Math.round(offsetX / SCREEN_WIDTH);
+      const step = Math.max(0, Math.min(Math.round(offsetX / SCREEN_WIDTH), TOTAL_STEPS - 1));
       setCurrentStep(step);
     },
     []

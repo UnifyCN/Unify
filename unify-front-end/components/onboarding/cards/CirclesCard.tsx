@@ -61,7 +61,7 @@ export default function CirclesCard({ scale = 1 }: CirclesCardProps) {
           <Text
             style={[
               styles.title,
-              { fontSize: 10 * s, lineHeight: 13 * s },
+              { fontSize: Math.max(10 * s, 12), lineHeight: Math.max(13 * s, 15) },
             ]}
           >
             Unify Circles
@@ -69,7 +69,7 @@ export default function CirclesCard({ scale = 1 }: CirclesCardProps) {
           <Text
             style={[
               styles.description,
-              { fontSize: 7.7 * s, lineHeight: 10 * s },
+              { fontSize: Math.max(7.7 * s, 10), lineHeight: Math.max(10 * s, 12) },
             ]}
           >
             Get matched with 3 newcomers on a similar path to you for a 2-week
@@ -89,7 +89,7 @@ export default function CirclesCard({ scale = 1 }: CirclesCardProps) {
             },
           ]}
         >
-          <Text style={[styles.ctaText, { fontSize: 7.7 * s }]}>
+          <Text style={[styles.ctaText, { fontSize: Math.max(7.7 * s, 10) }]}>
             Join your Circle
           </Text>
           <Ionicons

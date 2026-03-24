@@ -11,10 +11,16 @@ export default function OnboardingPagination({
   currentStep,
 }: OnboardingPaginationProps) {
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessibilityLabel={`Step ${currentStep + 1} of ${totalSteps}`}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 1, max: totalSteps, now: currentStep + 1 }}
+    >
       {Array.from({ length: totalSteps }).map((_, index) => (
         <View
           key={index}
+          accessible={false}
           style={[
             styles.dot,
             index === currentStep ? styles.activeDot : styles.inactiveDot,
