@@ -1164,10 +1164,13 @@ async function sendPushNotifications(
     title,
     body,
     data: data || {},
+    channelId: 'circles',
+    priority: 'high',
   }));
 
   const batchSize = 100;
   const timeoutMs = 5000;
+  const staleTokens: string[] = [];
 
   for (let index = 0; index < messages.length; index += batchSize) {
     const batch = messages.slice(index, index + batchSize);
@@ -1179,6 +1182,7 @@ async function sendPushNotifications(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(batch),
         signal: controller.signal,
@@ -1190,6 +1194,20 @@ async function sendPushNotifications(
           index,
           await response.text()
         );
+      } else {
+        // Parse push tickets to detect stale tokens
+        const result = await response.json();
+        if (result.data) {
+          for (let j = 0; j < result.data.length; j++) {
+            const ticket = result.data[j];
+            if (ticket.status === 'error') {
+              console.error('matchmake-circles: ticket error', ticket.message, ticket.details);
+              if (ticket.details?.error === 'DeviceNotRegistered') {
+                staleTokens.push(batch[j].to);
+              }
+            }
+          }
+        }
       }
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
@@ -1199,6 +1217,19 @@ async function sendPushNotifications(
       }
     } finally {
       clearTimeout(timeout);
+    }
+  }
+
+  // Clean up stale tokens that are no longer registered
+  if (staleTokens.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('push_tokens')
+      .delete()
+      .in('token', staleTokens);
+    if (deleteError) {
+      console.error('matchmake-circles: failed to delete stale tokens', deleteError);
+    } else {
+      console.log(`matchmake-circles: cleaned ${staleTokens.length} stale token(s)`);
     }
   }
 }

@@ -30,6 +30,7 @@ import {
   Hobby,
 } from '@/types/onboardingProfile';
 import { useAnalytics } from '@/utils/analytics';
+import { registerForPushNotifications } from '@/services/push/pushNotifications';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
@@ -178,6 +179,14 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
       currentStep,
       STEP_NAMES[currentStep] || `step_${currentStep}`
     );
+
+    // Always request push permission at step 8 — social notifications always send.
+    // The reminders toggle only controls learn reminders (server-side).
+    if (currentStep === 8) {
+      registerForPushNotifications().catch(err => {
+        console.error('Push registration from onboarding failed:', err);
+      });
+    }
 
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
@@ -501,8 +510,9 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
               Want gentle reminders so you don't miss important steps?
             </Text>
             <Text style={styles.subtitle}>
-              We can nudge you about key deadlines and new lessons—only when
-              it's useful.
+              You'll always get notified about likes, comments, and follows.
+              This controls learning reminders — nudges about lessons you
+              started but haven't finished.
             </Text>
             {errors[8] && <Text style={styles.errorText}>{errors[8]}</Text>}
             <View style={styles.optionsContainer}>
