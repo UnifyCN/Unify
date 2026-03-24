@@ -66,12 +66,12 @@ export default function AccountSettingsPage() {
   };
 
   const toggleNotifications = async () => {
-    if (!currentUser?.id || !onboardingProfile) return;
+    if (!currentUser?.id) return;
     const newValue = !notificationsEnabled;
     setNotificationsEnabled(newValue);
     try {
       await saveOnboardingProfile(currentUser.id, {
-        ...onboardingProfile,
+        ...(onboardingProfile || {}),
         wants_reminders: newValue,
       });
       queryClient.invalidateQueries({ queryKey: ['onboardingProfile'] });

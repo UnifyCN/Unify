@@ -17,17 +17,26 @@ export const likeComment = async (
     if (!user) throw new Error('User not authenticated');
 
     // Like the comment (add the like)
-    await supabase.from('comment_likes').insert({
+    const { error: insertError } = await supabase.from('comment_likes').insert({
       comment_id: commentId,
       user_id: user.id,
     });
 
+    if (insertError) {
+      console.error('Error inserting comment like:', insertError);
+      return { success: false, liked: false, likesCount: 0 };
+    }
+
     // Get updated like count from post_comments table (trigger will have updated it)
-    const { data: commentData } = await supabase
+    const { data: commentData, error: selectError } = await supabase
       .from('post_comments')
       .select('like_count')
       .eq('id', commentId)
       .single();
+
+    if (selectError) {
+      console.error('Error fetching comment like count:', selectError);
+    }
 
     createCommentLikeNotification(commentId).catch(() => {});
 

@@ -510,8 +510,9 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
               Want gentle reminders so you don't miss important steps?
             </Text>
             <Text style={styles.subtitle}>
-              We'll nudge you about key deadlines, new lessons, and activity on
-              your posts — only when it's useful.
+              You'll always get notified about likes, comments, and follows.
+              This controls learning reminders — nudges about lessons you
+              started but haven't finished.
             </Text>
             {errors[8] && <Text style={styles.errorText}>{errors[8]}</Text>}
             <View style={styles.optionsContainer}>

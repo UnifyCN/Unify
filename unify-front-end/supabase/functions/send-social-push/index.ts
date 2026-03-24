@@ -27,6 +27,13 @@ function isUuid(id: unknown): id is string {
   );
 }
 
+type PushResult = {
+  ok: boolean;
+  successCount: number;
+  failureCount: number;
+  errors: Array<{ token: string; error: string }>;
+};
+
 /** Same batching pattern as matchmake-circles `sendPushNotifications`. */
 async function sendExpoPushToUsers(
   supabase: SupabaseClient,
@@ -35,8 +42,9 @@ async function sendExpoPushToUsers(
   body: string,
   data?: Record<string, unknown>,
   channelId?: string
-): Promise<void> {
-  if (!userIds.length) return;
+): Promise<PushResult> {
+  const result: PushResult = { ok: true, successCount: 0, failureCount: 0, errors: [] };
+  if (!userIds.length) return result;
 
   const { data: tokens, error } = await supabase
     .from('push_tokens')
@@ -45,9 +53,9 @@ async function sendExpoPushToUsers(
 
   if (error) {
     console.error('send-social-push: push_tokens', error);
-    return;
+    return { ok: false, successCount: 0, failureCount: 0, errors: [{ token: '', error: error.message }] };
   }
-  if (!tokens?.length) return;
+  if (!tokens?.length) return result;
 
   const messages = tokens.map(({ token }: { token: string }) => ({
     to: token,
@@ -78,27 +86,45 @@ async function sendExpoPushToUsers(
         signal: controller.signal,
       });
       if (!res.ok) {
-        console.error('send-social-push: expo batch', i, await res.text());
+        const text = await res.text();
+        console.error('send-social-push: expo batch', i, text);
+        result.ok = false;
+        result.failureCount += batch.length;
+        for (const msg of batch) {
+          result.errors.push({ token: msg.to, error: `HTTP ${res.status}` });
+        }
       } else {
         // Parse push tickets to detect stale tokens
-        const result = await res.json();
-        if (result.data) {
-          for (let j = 0; j < result.data.length; j++) {
-            const ticket = result.data[j];
+        const ticketResult = await res.json();
+        if (ticketResult.data) {
+          for (let j = 0; j < ticketResult.data.length; j++) {
+            const ticket = ticketResult.data[j];
             if (ticket.status === 'error') {
               console.error('send-social-push: ticket error', ticket.message, ticket.details);
+              result.failureCount++;
+              result.errors.push({ token: batch[j].to, error: ticket.details?.error ?? ticket.message });
               if (ticket.details?.error === 'DeviceNotRegistered') {
                 staleTokens.push(batch[j].to);
               }
+            } else {
+              result.successCount++;
             }
           }
         }
       }
     } catch (e) {
+      result.ok = false;
+      result.failureCount += batch.length;
       if (e instanceof Error && e.name === 'AbortError') {
         console.error('send-social-push: expo timeout', i);
+        for (const msg of batch) {
+          result.errors.push({ token: msg.to, error: 'timeout' });
+        }
       } else {
         console.error('send-social-push: expo error', i, e);
+        for (const msg of batch) {
+          result.errors.push({ token: msg.to, error: String(e) });
+        }
       }
     } finally {
       clearTimeout(timeout);
@@ -117,6 +143,8 @@ async function sendExpoPushToUsers(
       console.log(`send-social-push: cleaned ${staleTokens.length} stale token(s)`);
     }
   }
+
+  return result;
 }
 
 Deno.serve(async (req: Request) => {
@@ -157,7 +185,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  let body: { notification_id?: string };
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
@@ -167,7 +195,16 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (!isUuid(body.notification_id)) {
+  if (typeof body !== 'object' || body === null || !('notification_id' in body)) {
+    return new Response(JSON.stringify({ error: 'Invalid request body' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  const parsed = body as { notification_id?: string };
+
+  if (!isUuid(parsed.notification_id)) {
     return new Response(JSON.stringify({ error: 'Invalid notification_id' }), {
       status: 400,
       headers: JSON_HEADERS,
@@ -177,7 +214,7 @@ Deno.serve(async (req: Request) => {
   const { data: row, error: rowError } = await supabaseService
     .from('community_notifications')
     .select('id, user_id, triggered_by_user_id, type, title, body, data')
-    .eq('id', body.notification_id)
+    .eq('id', parsed.notification_id)
     .maybeSingle();
 
   if (rowError) {
@@ -206,6 +243,31 @@ Deno.serve(async (req: Request) => {
   if (notification.triggered_by_user_id !== user.id) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), {
       status: 403,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  // Atomic claim: mark as delivered to prevent replay
+  const { data: claimed, error: claimError } = await supabaseService
+    .from('community_notifications')
+    .update({ delivered: true, delivered_at: new Date().toISOString() })
+    .eq('id', parsed.notification_id)
+    .eq('delivered', false)
+    .select('id')
+    .maybeSingle();
+
+  if (claimError) {
+    console.error('send-social-push: claim error', claimError);
+    return new Response(JSON.stringify({ error: 'Failed to claim notification' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  if (!claimed) {
+    // Already delivered — idempotent success
+    return new Response(JSON.stringify({ ok: true, already_delivered: true }), {
+      status: 200,
       headers: JSON_HEADERS,
     });
   }
@@ -240,7 +302,7 @@ Deno.serve(async (req: Request) => {
 
   const channelId = 'social';
 
-  await sendExpoPushToUsers(
+  const pushResult = await sendExpoPushToUsers(
     supabaseService,
     [notification.user_id],
     notification.title,
@@ -249,7 +311,22 @@ Deno.serve(async (req: Request) => {
     channelId
   );
 
-  return new Response(JSON.stringify({ ok: true }), {
+  if (!pushResult.ok) {
+    return new Response(JSON.stringify({
+      ok: false,
+      successCount: pushResult.successCount,
+      failureCount: pushResult.failureCount,
+      errors: pushResult.errors,
+    }), {
+      status: 502,
+      headers: JSON_HEADERS,
+    });
+  }
+
+  return new Response(JSON.stringify({
+    ok: true,
+    successCount: pushResult.successCount,
+  }), {
     status: 200,
     headers: JSON_HEADERS,
   });

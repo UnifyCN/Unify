@@ -199,10 +199,18 @@ Deno.serve(async (req: Request) => {
   const userIds = [...new Set(toSend.map(s => s.candidate.user_id))];
 
   // Check which users have opted into notifications
-  const { data: profiles } = await supabase
-    .from('onboarding_profiles')
+  const { data: profiles, error: profilesError } = await supabase
+    .from('user_onboarding_profiles')
     .select('user_id, wants_reminders')
     .in('user_id', userIds);
+
+  if (profilesError) {
+    console.error('send-learn-reminders: profiles query error', profilesError);
+    return new Response(JSON.stringify({ error: 'Profiles query failed' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
+  }
 
   const optedOutUsers = new Set(
     (profiles ?? [])
@@ -231,7 +239,7 @@ Deno.serve(async (req: Request) => {
     tokensByUser.set(row.user_id, existing);
   }
 
-  // Build push messages and track which rows to update
+  // Build push messages, tracking which tokens map to which candidates
   const messages: Array<{
     to: string;
     sound: string;
@@ -242,7 +250,8 @@ Deno.serve(async (req: Request) => {
     priority: string;
   }> = [];
 
-  const rowUpdates: Array<{ id: string; tier: number }> = [];
+  // Map each message index to the candidate it belongs to
+  const messageToCandidateIndex: Array<{ id: string; tier: number }> = [];
 
   for (const { candidate, tier } of toSend) {
     if (optedOutUsers.has(candidate.user_id)) continue;
@@ -264,15 +273,33 @@ Deno.serve(async (req: Request) => {
         channelId: 'learn',
         priority: 'default',
       });
+      messageToCandidateIndex.push({ id: candidate.id, tier: tier.tier });
     }
-
-    rowUpdates.push({ id: candidate.id, tier: tier.tier });
   }
 
-  // Send push notifications and collect stale tokens
+  // Send push notifications and determine which candidates succeeded
   let staleTokens: string[] = [];
+  const rowUpdates: Array<{ id: string; tier: number }> = [];
+
   if (messages.length > 0) {
     staleTokens = await sendExpoPush(messages);
+
+    // All messages that weren't stale are considered delivered
+    const staleSet = new Set(staleTokens);
+    const succeededCandidateIds = new Set<string>();
+    for (let i = 0; i < messages.length; i++) {
+      if (!staleSet.has(messages[i].to)) {
+        succeededCandidateIds.add(messageToCandidateIndex[i].id);
+      }
+    }
+    for (const entry of messageToCandidateIndex) {
+      if (succeededCandidateIds.has(entry.id)) {
+        // Deduplicate: only add each candidate once
+        if (!rowUpdates.some(r => r.id === entry.id)) {
+          rowUpdates.push(entry);
+        }
+      }
+    }
   }
 
   // Clean up stale tokens that are no longer registered
