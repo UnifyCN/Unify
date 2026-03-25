@@ -89,6 +89,10 @@ export const AnalyticsEvents = {
 
   // AI Companion (extended)
   COMPANION_RESPONSE_RECEIVED: 'companion_response_received',
+
+  // Daily Tips
+  TIP_VIEWED: 'tip_viewed',
+  TIP_TAPPED: 'tip_tapped',
 } as const;
 
 export type AnalyticsEventName =
@@ -174,6 +178,14 @@ export interface CompanionResponseProperties {
   total_tokens?: number;
   estimated_cost_usd?: number;
   response_time_ms?: number;
+}
+
+export interface TipViewedProperties {
+  tip_id: string;
+  category: string;
+  persona: string;
+  stage: string;
+  date: string;
 }
 
 // Hook for analytics tracking
@@ -517,6 +529,17 @@ export function useAnalytics() {
           AnalyticsEvents.COMPANION_RESPONSE_RECEIVED,
           { ...properties }
         );
+      },
+
+      // Daily Tips
+      trackTipViewed: (properties: TipViewedProperties) => {
+        posthog?.capture(AnalyticsEvents.TIP_VIEWED, { ...properties });
+      },
+      trackTipTapped: (tipId: string, category: string) => {
+        posthog?.capture(AnalyticsEvents.TIP_TAPPED, {
+          tip_id: tipId,
+          category,
+        });
       },
 
       // Generic event capture

@@ -154,6 +154,8 @@ function AppContent() {
       <Stack.Screen name='see-more-users' options={{ headerShown: false }} />
       <Stack.Screen name='news-detail' options={{ headerShown: false }} />
       <Stack.Screen name='news-tips' options={{ headerShown: false }} />
+      <Stack.Screen name='past-tips' options={{ headerShown: false }} />
+      <Stack.Screen name='tip-detail' options={{ headerShown: false }} />
       <Stack.Screen name='event-detail' options={{ headerShown: false }} />
       <Stack.Screen name='events' options={{ headerShown: false }} />
       <Stack.Screen name='create-post' options={{ headerShown: false }} />
