@@ -20,13 +20,34 @@ const formatDate = (dateString: string): string => {
   }
 };
 
+function isDailyTip(value: unknown): value is DailyTip {
+  if (!value || typeof value !== 'object') return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === 'string' &&
+    typeof v.persona === 'string' &&
+    typeof v.stage === 'string' &&
+    typeof v.date === 'string' &&
+    typeof v.category === 'string' &&
+    typeof v.title === 'string' &&
+    typeof v.description === 'string' &&
+    typeof v.tipText === 'string' &&
+    (v.sourceRefs === null || Array.isArray(v.sourceRefs))
+  );
+}
+
 const TipDetailScreen = () => {
   const { tip } = useLocalSearchParams<{ tip: string }>();
   const router = useRouter();
 
   let tipData: DailyTip | null = null;
   try {
-    tipData = tip ? JSON.parse(tip) : null;
+    const parsed = tip ? JSON.parse(tip) : null;
+    if (isDailyTip(parsed)) {
+      tipData = parsed;
+    } else if (parsed) {
+      console.error('Tip data failed validation:', Object.keys(parsed));
+    }
   } catch (error) {
     console.error('Error parsing tip data:', error);
   }

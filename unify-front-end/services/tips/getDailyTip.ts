@@ -1,18 +1,20 @@
 import { supabase } from '@/lib/supabase';
 import { DailyTip } from '@/types/dailyTip';
 
-const HARDCODED_WELCOME_TIP: DailyTip = {
-  id: 'welcome-tip',
-  persona: 'other',
-  stage: '0',
-  date: new Date().toISOString().split('T')[0],
-  category: 'general',
-  title: 'Welcome to Canada!',
-  description: 'Start your journey with Unify',
-  tipText:
-    'Check back daily for personalized tips based on where you are in your newcomer journey. Complete your profile to get tips tailored to you!',
-  sourceRefs: null,
-};
+function buildWelcomeTip(persona: string, stage: string): DailyTip {
+  return {
+    id: `welcome-${persona}-${stage}`,
+    persona,
+    stage,
+    date: new Date().toISOString().split('T')[0],
+    category: 'general',
+    title: 'Welcome to Canada!',
+    description: 'Start your journey with Unify',
+    tipText:
+      'Check back daily for personalized tips based on where you are in your newcomer journey. Complete your profile to get tips tailored to you!',
+    sourceRefs: null,
+  };
+}
 
 export const getDailyTip = async (
   persona: string,
@@ -33,11 +35,11 @@ export const getDailyTip = async (
 
   if (error) {
     console.error('Error fetching daily tip:', error);
-    return HARDCODED_WELCOME_TIP;
+    return buildWelcomeTip(persona, stage);
   }
 
   if (!data) {
-    return HARDCODED_WELCOME_TIP;
+    return buildWelcomeTip(persona, stage);
   }
 
   return {

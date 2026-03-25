@@ -41,7 +41,7 @@ begin
       'Authorization', 'Bearer ' || _service_key
     )::jsonb,
     body := '{}'::jsonb,
-    timeout_milliseconds := 120000
+    timeout_milliseconds := 300000
   );
 end;
 $$;

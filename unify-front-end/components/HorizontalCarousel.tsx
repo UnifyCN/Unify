@@ -85,7 +85,7 @@ export function HorizontalCarousel<T>({
         {!isLoading && dataArray.length === 0 && (
           <View style={styles.emptyContainer}>{renderEmptyState()}</View>
         )}
-        {!isLoading && renderPrefix && <>{renderPrefix()}</>}
+        {renderPrefix && <>{renderPrefix()}</>}
         {!isLoading && dataArray.length > 0 && (
           <>
             {displayItems.map((item, index) => {

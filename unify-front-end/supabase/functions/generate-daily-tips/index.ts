@@ -154,10 +154,20 @@ async function generateEmbedding(
   }
 }
 
+interface SourceRef {
+  document_title: string;
+  url: string;
+}
+
+interface KBSearchResult {
+  context: string;
+  sourceRefs: SourceRef[] | null;
+}
+
 async function searchKnowledgeBase(
   supabase: ReturnType<typeof createClient>,
   embedding: number[]
-): Promise<string> {
+): Promise<KBSearchResult> {
   try {
     const { data: chunks, error } = await supabase.rpc('match_chunks', {
       query_embedding: embedding,
@@ -166,16 +176,34 @@ async function searchKnowledgeBase(
     });
 
     if (error || !chunks || chunks.length === 0) {
-      return '';
+      return { context: '', sourceRefs: null };
     }
 
-    return chunks
-      .map((chunk: any) => chunk.content)
+    const context = chunks
+      .map((chunk: any) => chunk.chunk_text)
       .join('\n\n')
       .slice(0, 3000); // Cap context size
+
+    // Extract unique source references from chunk metadata
+    const seenUrls = new Set<string>();
+    const sourceRefs: SourceRef[] = [];
+    for (const chunk of chunks) {
+      const doc = chunk.knowledge_documents || {};
+      const title = doc.title;
+      const url = doc.source_url;
+      if (title && url && !seenUrls.has(url)) {
+        seenUrls.add(url);
+        sourceRefs.push({ document_title: title, url });
+      }
+    }
+
+    return {
+      context,
+      sourceRefs: sourceRefs.length > 0 ? sourceRefs : null,
+    };
   } catch (error) {
     console.error('KB search failed:', error);
-    return '';
+    return { context: '', sourceRefs: null };
   }
 }
 
@@ -236,11 +264,14 @@ async function generateTipForCohort(
 
   // Step 1: Build topic query and get KB context
   let kbContext = '';
+  let sourceRefs: SourceRef[] | null = null;
   if (openaiApiKey) {
     const topicQuery = buildTopicQuery(persona, stage);
     const embedding = await generateEmbedding(topicQuery, openaiApiKey);
     if (embedding) {
-      kbContext = await searchKnowledgeBase(supabase, embedding);
+      const kbResult = await searchKnowledgeBase(supabase, embedding);
+      kbContext = kbResult.context;
+      sourceRefs = kbResult.sourceRefs;
     }
   }
 
@@ -282,7 +313,7 @@ async function generateTipForCohort(
         title: tip.title,
         description: tip.description,
         tip_text: tip.tip_text,
-        source_refs: kbContext ? [{ source: 'knowledge_base' }] : null,
+        source_refs: sourceRefs,
       },
       { onConflict: 'persona,stage,date' }
     );

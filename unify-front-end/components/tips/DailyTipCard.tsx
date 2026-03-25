@@ -27,12 +27,12 @@ interface DailyTipCardProps {
 
 export function DailyTipCard({ tip, maxWidth, onPress }: DailyTipCardProps) {
   const { trackTipViewed, trackTipTapped } = useAnalytics();
-  const hasTrackedView = useRef(false);
+  const lastTrackedTipId = useRef<string | null>(null);
 
   const config = CATEGORY_CONFIG[tip.category] || CATEGORY_CONFIG.general;
 
   useEffect(() => {
-    if (!hasTrackedView.current) {
+    if (lastTrackedTipId.current !== tip.id) {
       trackTipViewed({
         tip_id: tip.id,
         category: tip.category,
@@ -40,7 +40,7 @@ export function DailyTipCard({ tip, maxWidth, onPress }: DailyTipCardProps) {
         stage: tip.stage,
         date: tip.date,
       });
-      hasTrackedView.current = true;
+      lastTrackedTipId.current = tip.id;
     }
   }, [tip.id]);
 
