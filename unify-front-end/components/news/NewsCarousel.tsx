@@ -10,10 +10,22 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { Theme } from '@/constants/Theme';
 import { HorizontalCarousel } from '@/components/HorizontalCarousel';
 import { NewsCardSkeletonLoader } from '@/components/news/NewsCardSkeletonLoader';
+import { DailyTipCard } from '@/components/tips/DailyTipCard';
+import { DailyTipCardSkeletonLoader } from '@/components/tips/DailyTipCardSkeletonLoader';
+import { useDailyTip } from '@/hooks/tips/useDailyTip';
+import { useCurrentUser } from '@/context/UserContext';
+import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 
 export const NewsCarousel = () => {
   const router = useRouter();
   const { data: news, isLoading } = useNews();
+
+  const { currentUser } = useCurrentUser();
+  const { data: profile } = useOnboardingProfile(currentUser?.id);
+  const { data: dailyTip, isLoading: isTipLoading } = useDailyTip(
+    profile?.persona ?? undefined,
+    profile?.stage ?? undefined
+  );
 
   const handleViewMore = () => {
     router.push('/news-tips' as any);
@@ -44,6 +56,22 @@ export const NewsCarousel = () => {
             onPress={() => handleNewsPress(item)}
           />
         )}
+        renderPrefix={() => {
+          if (isTipLoading) return <DailyTipCardSkeletonLoader />;
+          if (!dailyTip) return null;
+          return (
+            <DailyTipCard
+              tip={dailyTip}
+              maxWidth={332}
+              onPress={() =>
+                router.push({
+                  pathname: '/tip-detail' as any,
+                  params: { tip: JSON.stringify(dailyTip) },
+                })
+              }
+            />
+          );
+        }}
         renderLoadingSkeleton={() => <NewsCardSkeletonLoader />}
         renderEmptyState={() => (
           <EmptyFeedMessage

@@ -20,6 +20,7 @@ interface HorizontalCarouselProps<T> {
   renderLoadingSkeleton: () => React.ReactNode;
   renderEmptyState: () => React.ReactNode;
   renderViewMore?: () => React.ReactNode;
+  renderPrefix?: () => React.ReactNode;
   onViewMore?: () => void;
   showViewMore?: boolean;
   style?: any;
@@ -38,6 +39,7 @@ export function HorizontalCarousel<T>({
   renderLoadingSkeleton,
   renderEmptyState,
   renderViewMore,
+  renderPrefix,
   onViewMore,
   showViewMore = true,
   style,
@@ -83,6 +85,7 @@ export function HorizontalCarousel<T>({
         {!isLoading && dataArray.length === 0 && (
           <View style={styles.emptyContainer}>{renderEmptyState()}</View>
         )}
+        {!isLoading && renderPrefix && <>{renderPrefix()}</>}
         {!isLoading && dataArray.length > 0 && (
           <>
             {displayItems.map((item, index) => {

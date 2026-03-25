@@ -1,0 +1,244 @@
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
+import BackHeader from '@/components/BackHeader';
+import { CATEGORY_CONFIG } from '@/components/tips/DailyTipCard';
+import { DailyTip } from '@/types/dailyTip';
+import { Theme } from '@/constants/Theme';
+
+const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  } catch {
+    return dateString;
+  }
+};
+
+const TipDetailScreen = () => {
+  const { tip } = useLocalSearchParams<{ tip: string }>();
+  const router = useRouter();
+
+  let tipData: DailyTip | null = null;
+  try {
+    tipData = tip ? JSON.parse(tip) : null;
+  } catch (error) {
+    console.error('Error parsing tip data:', error);
+  }
+
+  if (!tipData) {
+    return (
+      <View style={styles.container}>
+        <BackHeader title='' />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Tip not found</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const config = CATEGORY_CONFIG[tipData.category] || CATEGORY_CONFIG.general;
+
+  return (
+    <View style={styles.container}>
+      <BackHeader />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Category Header */}
+        <LinearGradient
+          colors={config.gradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.categoryHeader}
+        >
+          <View style={[styles.iconCircle, { backgroundColor: config.accent + '18' }]}>
+            <Feather name={config.icon as any} size={24} color={config.accent} />
+          </View>
+          <View style={[styles.categoryBadge, { backgroundColor: config.accent + '14' }]}>
+            <Text style={[styles.categoryText, { color: config.accent }]}>
+              {tipData.category.charAt(0).toUpperCase() + tipData.category.slice(1)}
+            </Text>
+          </View>
+        </LinearGradient>
+
+        {/* Date */}
+        <Text style={styles.date}>{formatDate(tipData.date)}</Text>
+
+        {/* Title */}
+        <Text style={styles.title}>{tipData.title}</Text>
+
+        {/* Description */}
+        {tipData.description && (
+          <Text style={styles.description}>{tipData.description}</Text>
+        )}
+
+        <View style={styles.divider} />
+
+        {/* Full Tip Text */}
+        <Text style={styles.tipText}>{tipData.tipText}</Text>
+
+        {/* Source References */}
+        {tipData.sourceRefs && tipData.sourceRefs.length > 0 && (
+          <View style={styles.sourcesSection}>
+            <Text style={styles.sourcesTitle}>Sources</Text>
+            {tipData.sourceRefs.map((ref, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  if (ref.url) {
+                    Linking.openURL(ref.url).catch(err =>
+                      console.error('Failed to open URL:', err)
+                    );
+                  }
+                }}
+                style={styles.sourceItem}
+              >
+                <Feather name='external-link' size={14} color={Theme.surfaceBlue} />
+                <Text style={styles.sourceText}>{ref.document_title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* See Past Tips */}
+        <TouchableOpacity
+          style={styles.pastTipsButton}
+          onPress={() => router.push('/past-tips' as any)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.pastTipsText}>See past tips</Text>
+          <Feather name='chevron-right' size={16} color={Theme.surfaceBlue} />
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Theme.white,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 40,
+  },
+  categoryHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  categoryBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  categoryText: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  date: {
+    fontSize: 14,
+    color: Theme.textInput,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Theme.black,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+    lineHeight: 34,
+  },
+  description: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Theme.textAlternateGray,
+    paddingHorizontal: 20,
+    lineHeight: 22,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Theme.surfaceGray,
+    marginHorizontal: 20,
+    marginVertical: 20,
+  },
+  tipText: {
+    fontSize: 18,
+    color: Theme.black,
+    paddingHorizontal: 20,
+    lineHeight: 28,
+  },
+  sourcesSection: {
+    paddingHorizontal: 20,
+    marginTop: 28,
+  },
+  sourcesTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Theme.textInput,
+    marginBottom: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  sourceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  sourceText: {
+    fontSize: 15,
+    color: Theme.surfaceBlue,
+    flex: 1,
+  },
+  pastTipsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 32,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: Theme.surfaceGray,
+  },
+  pastTipsText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Theme.surfaceBlue,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+  },
+});
+
+export default TipDetailScreen;
