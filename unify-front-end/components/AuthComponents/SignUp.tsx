@@ -1,7 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Platform, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+  Modal,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckBox } from 'react-native-elements';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
 import isExpoGo from '../../utils/isExpoGo';
 import {
@@ -13,23 +23,22 @@ import { getUserInfo } from '@/services/users/getUserInfo';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Google from '../../assets/images/Google.svg';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
-import {
-  SubmitButton,
-  SimpleTextField,
-  ViewHeader,
-  ViewContainer,
-  ViewSection,
-} from './Components';
+import { SubmitButton, SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
 import LegalWebView from '@/components/LegalWebView';
 import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
 
+// Auth component scaling factor (0.87) — shared convention across all auth screens
+const S = 0.87;
+
 export function SignUp({
   onSwitchToSignIn,
   onShowOTP,
+  onBack,
 }: {
   onSwitchToSignIn?: () => void;
   onShowOTP?: (email: string, password: string, acceptedAt: string) => void;
+  onBack?: () => void;
 }): React.JSX.Element {
   const queryClient = useQueryClient();
   const {
@@ -39,7 +48,6 @@ export function SignUp({
     trackGoogleSignInUsed,
     trackAppleSignInUsed,
   } = useAnalytics();
-  // State vars
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
@@ -52,15 +60,13 @@ export function SignUp({
   const [isChecked, setIsChecked] = React.useState(false);
   const [webViewDoc, setWebViewDoc] = useState<LegalDocumentType | null>(null);
 
-  // Track sign up started on mount
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   useEffect(() => {
     trackSignUpStarted();
   }, [trackSignUpStarted]);
 
   const validateEmail = (emailInput: string) => {
-    // Simple email validation regex
-    // Trim before testing to match handleSignUp behavior
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setIsEmailValid(emailRegex.test(emailInput.trim()));
   };
 
@@ -89,17 +95,14 @@ export function SignUp({
     setErrorMessage(null);
 
     try {
-      // Normalize email: trim whitespace and lowercase for consistency
       const normalizedEmail = email.trim().toLowerCase();
 
-      // Check if email exists in the users table
       const { data: existingUser, error: checkError } = await supabase
         .from('users')
         .select('email')
         .eq('email', normalizedEmail)
         .single();
 
-      // Handle real database errors (not the expected "not found" error)
       if (checkError && checkError.code !== 'PGRST116') {
         setErrorMessage('Failed to verify email availability');
         trackSignUpFailed('email_check_failed');
@@ -107,8 +110,6 @@ export function SignUp({
         return;
       }
 
-      // PGRST116 means no user found (email is available), which is expected
-      // If existingUser exists, email is already taken
       if (existingUser) {
         setErrorMessage('An account with this email already exists');
         trackSignUpFailed('email_already_exists');
@@ -116,7 +117,6 @@ export function SignUp({
         return;
       }
 
-      // If we get here, the email doesn't exist, so proceed with signup
       const { data, error } = await supabase.auth.signUp({
         email: normalizedEmail,
         password: password,
@@ -129,11 +129,9 @@ export function SignUp({
         return;
       }
 
-      // If successful, show OTP verification screen with acceptance timestamp
       trackSignUpCompleted();
       const acceptedAt = new Date().toISOString();
       onShowOTP?.(normalizedEmail, password, acceptedAt);
-      // Early return to avoid calling setLoading(false) after component may have unmounted
       return;
     } catch (error) {
       setErrorMessage('An error occurred during sign up.');
@@ -142,7 +140,6 @@ export function SignUp({
     }
   };
 
-  // Configure Google Sign-In once on mount
   React.useEffect(() => {
     GoogleSignin.configure({
       iosClientId:
@@ -155,9 +152,8 @@ export function SignUp({
     });
   }, []);
 
-  // Google sign-in logic
   const handleGoogleSignIn = async () => {
-    if (isExpoGo) return; // Not supported in Expo Go
+    if (isExpoGo) return;
 
     setLoading(true);
     setErrorMessage(null);
@@ -180,7 +176,6 @@ export function SignUp({
           return;
         }
 
-        // Create user record if it doesn't exist (for Google sign-up users)
         if (data?.user?.id && data?.user?.email) {
           try {
             await createUserIfNotExists(data.user.id, data.user.email);
@@ -193,7 +188,6 @@ export function SignUp({
             return;
           }
 
-          // Prefetch user info immediately after successful Google signup/login
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
@@ -213,7 +207,7 @@ export function SignUp({
     } catch (error: any) {
       if (error?.code === statusCodes.IN_PROGRESS) {
         setLoading(false);
-        return; // already in progress
+        return;
       }
       if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         setErrorMessage('Google Play Services not available');
@@ -290,128 +284,235 @@ export function SignUp({
     setLoading(false);
   };
 
+  const isFormValid = isEmailValid && !!password && !!confirmPassword && isChecked;
+
   return (
-    <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Create account</ViewHeader>
-      <ViewSection style={{ marginTop: 30 }}>
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Email</Text>
-          <SimpleTextField
-            value={email}
-            onChangeText={text => {
-              setEmail(text);
-              validateEmail(text);
-            }}
-            placeholder='Your email'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            autoCapitalize='none'
-          />
-          {isEmailValid && (
-            <MaterialIcons
-              name='check-circle'
-              size={24}
-              color='black'
-              style={styles.tickIcon}
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Back button */}
+        {onBack && (
+          <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24 * S} color="#000" />
+          </Pressable>
+        )}
+
+        {/* Header */}
+        <Text style={styles.header}>Create account</Text>
+        <View style={styles.subHeaderRow}>
+          <Text style={styles.subHeaderText}>Already have an account? </Text>
+          <Text style={styles.subHeaderLink} onPress={onSwitchToSignIn}>
+            Log In
+          </Text>
+        </View>
+
+        {/* Email field */}
+        <View style={styles.fieldContainer}>
+          <View style={styles.inputWithIconContainer}>
+            <Ionicons
+              name="mail-outline"
+              size={20 * S}
+              color="#999"
+              style={styles.fieldLeftIcon}
             />
-          )}
+            <SimpleTextField
+              value={email}
+              onChangeText={text => {
+                setEmail(text);
+                validateEmail(text);
+              }}
+              placeholder="Email Address"
+              placeholderTextColor="#999"
+              style={[
+                styles.textField,
+                styles.textFieldWithLeftIcon,
+                errorMessage && styles.textFieldError,
+              ]}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            {isEmailValid && (
+              <MaterialIcons
+                name="check-circle"
+                size={20 * S}
+                color="#333"
+                style={styles.fieldRightIcon}
+              />
+            )}
+          </View>
         </View>
 
         {/* Password field */}
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Password</Text>
-          <SimpleTextField
-            value={password}
-            onChangeText={setPassword}
-            placeholder='Your password'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            secureTextEntry={!passwordVisible}
-            autoCapitalize='none'
-          />
-          <TouchableOpacity
-            onPress={() => setPasswordVisible(!passwordVisible)}
-            style={styles.eyeIcon}
-          >
-            <MaterialIcons
-              name={passwordVisible ? 'visibility' : 'visibility-off'}
-              size={24}
-              color='#333'
+        <View style={styles.fieldContainer}>
+          <View style={styles.inputWithIconContainer}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={20 * S}
+              color="#999"
+              style={styles.fieldLeftIcon}
             />
-          </TouchableOpacity>
+            <SimpleTextField
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              placeholderTextColor="#999"
+              style={[
+                styles.textField,
+                styles.textFieldWithLeftIcon,
+                styles.textFieldWithRightIcon,
+                errorMessage && styles.textFieldError,
+              ]}
+              secureTextEntry={!passwordVisible}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)}
+              style={styles.fieldRightIcon}
+            >
+              <MaterialIcons
+                name={passwordVisible ? 'visibility' : 'visibility-off'}
+                size={20 * S}
+                color="#999"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Confirm Password */}
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Confirm Password</Text>
-          <SimpleTextField
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            placeholder='Confirm Password'
-            style={[styles.textField, errorMessage && { borderColor: '#f00' }]}
-            secureTextEntry={!confirmPasswordVisible}
-            autoCapitalize='none'
-          />
-          <TouchableOpacity
-            onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-            style={styles.eyeIcon}
-          >
-            <MaterialIcons
-              name={confirmPasswordVisible ? 'visibility' : 'visibility-off'}
-              size={24}
-              color='#333'
+        {/* Confirm Password field */}
+        <View style={styles.fieldContainer}>
+          <View style={styles.inputWithIconContainer}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={20 * S}
+              color="#999"
+              style={styles.fieldLeftIcon}
             />
-          </TouchableOpacity>
+            <SimpleTextField
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm Password"
+              placeholderTextColor="#999"
+              style={[
+                styles.textField,
+                styles.textFieldWithLeftIcon,
+                styles.textFieldWithRightIcon,
+                errorMessage && styles.textFieldError,
+              ]}
+              secureTextEntry={!confirmPasswordVisible}
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+              style={styles.fieldRightIcon}
+            >
+              <MaterialIcons
+                name={confirmPasswordVisible ? 'visibility' : 'visibility-off'}
+                size={20 * S}
+                color="#999"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Error message */}
         {errorMessage && (
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         )}
-      </ViewSection>
 
-      {/* Privacy Policy and Community Guidelines checkbox */}
-      <View style={styles.checkboxRow}>
-        <CheckBox
-          checked={isChecked}
-          onPress={() => setIsChecked(!isChecked)}
-          containerStyle={styles.checkboxContainer}
-          iconType='material-community'
-          checkedIcon='checkbox-marked'
-          uncheckedIcon='checkbox-blank-outline'
-          checkedColor='black'
-          uncheckedColor='black'
-          wrapperStyle={styles.checkboxWrapper}
-        />
-        <Text style={styles.checkboxText}>
-          I agree to the{' '}
-          <Text
-            style={styles.checkboxLinkText}
-            onPress={() => setWebViewDoc('termsOfService')}
-            accessibilityRole="link"
-            accessibilityLabel="Open Terms of Service"
-          >
-            Terms of Service
+        {/* Legal checkbox */}
+        <View style={styles.checkboxRow}>
+          <CheckBox
+            checked={isChecked}
+            onPress={() => setIsChecked(!isChecked)}
+            containerStyle={styles.checkboxContainer}
+            iconType="material-community"
+            checkedIcon="checkbox-marked"
+            uncheckedIcon="checkbox-blank-outline"
+            checkedColor="black"
+            uncheckedColor="black"
+            wrapperStyle={styles.checkboxWrapper}
+          />
+          <Text style={styles.checkboxText}>
+            I agree to the{' '}
+            <Text
+              style={styles.checkboxLinkText}
+              onPress={() => setWebViewDoc('termsOfService')}
+              accessibilityRole="link"
+              accessibilityLabel="Open Terms of Service"
+            >
+              Terms of Service
+            </Text>
+            ,{' '}
+            <Text
+              style={styles.checkboxLinkText}
+              onPress={() => setWebViewDoc('privacyPolicy')}
+              accessibilityRole="link"
+              accessibilityLabel="Open Privacy Policy"
+            >
+              Privacy Policy
+            </Text>
+            {' & '}
+            <Text
+              style={styles.checkboxLinkText}
+              onPress={() => setWebViewDoc('communityGuidelines')}
+              accessibilityRole="link"
+              accessibilityLabel="Open Community Guidelines"
+            >
+              Community Guidelines
+            </Text>
           </Text>
-          ,{' '}
-          <Text
-            style={styles.checkboxLinkText}
-            onPress={() => setWebViewDoc('privacyPolicy')}
-            accessibilityRole="link"
-            accessibilityLabel="Open Privacy Policy"
+        </View>
+
+        {/* Sign Up button */}
+        <SubmitButton
+          disabled={!isFormValid}
+          loading={loading}
+          onPress={handleSignUp}
+          style={[
+            styles.signUpButton,
+            !isFormValid && styles.signUpButtonDisabled,
+          ]}
+          labelStyle={styles.signUpButtonText}
+        >
+          Sign Up
+        </SubmitButton>
+
+        {/* Or divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Social icon buttons */}
+        <View style={styles.socialRow}>
+          <TouchableOpacity
+            style={styles.socialIconButton}
+            onPress={handleGoogleSignIn}
+            accessibilityLabel="Sign up with Google"
+            accessibilityRole="button"
           >
-            Privacy Policy
-          </Text>
-          {' & '}
-          <Text
-            style={styles.checkboxLinkText}
-            onPress={() => setWebViewDoc('communityGuidelines')}
-            accessibilityRole="link"
-            accessibilityLabel="Open Community Guidelines"
-          >
-            Community Guidelines
-          </Text>
-        </Text>
-      </View>
+            <Google width={24 * S} height={24 * S} />
+          </TouchableOpacity>
+          {Platform.OS === 'ios' && !isExpoGo && (
+            <TouchableOpacity
+              style={styles.socialIconButton}
+              onPress={handleAppleSignIn}
+              accessibilityLabel="Sign up with Apple"
+              accessibilityRole="button"
+            >
+              <Ionicons name="logo-apple" size={26 * S} color="#000" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </ScrollView>
 
       {/* Legal Document WebView Modal */}
-      <Modal visible={webViewDoc !== null} animationType='slide'>
+      <Modal visible={webViewDoc !== null} animationType="slide">
         {webViewDoc && (
           <LegalWebView
             url={LEGAL_URLS[webViewDoc]}
@@ -420,227 +521,168 @@ export function SignUp({
           />
         )}
       </Modal>
-
-      <SubmitButton
-        disabled={!isEmailValid || !password || !confirmPassword || !isChecked}
-        loading={loading}
-        onPress={handleSignUp}
-        style={[
-          styles.button,
-          (!isEmailValid || !password || !confirmPassword || !isChecked) &&
-            styles.buttonDisabled,
-        ]}
-        labelStyle={[styles.buttonText]}
-      >
-        Sign Up
-      </SubmitButton>
-
-      <View style={styles.orSignUp}>
-        <View style={styles.lineView}></View>
-        <Text style={styles.orText}>Or Sign up with</Text>
-        <View style={styles.lineView}></View>
-      </View>
-      <View style={styles.buttonBucket}>
-        <TouchableOpacity
-          style={styles.buttonWithIcon}
-          onPress={handleGoogleSignIn}
-        >
-          <Google width={20} height={20} />
-          <Text style={styles.oauthButtonText}>Sign up with Google</Text>
-        </TouchableOpacity>
-        {Platform.OS === 'ios' && !isExpoGo && (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={10 * 0.87}
-            style={styles.appleButton}
-            onPress={handleAppleSignIn}
-          />
-        )}
-      </View>
-
-      <View style={styles.footer}>
-        <Text
-          style={{
-            fontSize: 14,
-            lineHeight: 18,
-            color: 'rgba(0, 0, 0, 0.7)',
-            textAlign: 'left',
-          }}
-        >
-          Already have an account?
-        </Text>
-        <Text
-          style={{
-            fontSize: 14,
-            lineHeight: 18,
-            textDecorationLine: 'underline',
-            fontWeight: '600',
-            textAlign: 'left',
-            color: '#000',
-          }}
-          onPress={onSwitchToSignIn}
-        >
-          Log In
-        </Text>
-      </View>
-    </ViewContainer>
+    </SafeAreaView>
   );
 }
 
-const styles = {
-  container: {
+const styles = StyleSheet.create({
+  safeArea: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16 * 0.87,
-    paddingLeft: 24 * 0.87,
-    paddingRight: 24 * 0.87,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24 * S,
+    paddingBottom: 24 * S,
+  },
+  backButton: {
+    marginTop: 12 * S,
+    alignSelf: 'flex-start',
   },
   header: {
-    fontSize: 34 * 0.87,
-    fontWeight: '700' as '700',
+    fontFamily: 'FunnelSans_600SemiBold',
+    fontSize: 32 * S,
     color: '#000',
-    marginBottom: 7 * 0.87,
-    marginTop: 110 * 0.87,
+    marginTop: 48 * S,
   },
-  button: {
-    backgroundColor: '#343434',
-    borderRadius: 40 * 0.87,
-    marginTop: 37 * 0.87,
-    width: 110 * 0.87,
-    height: 42 * 0.87,
-    alignSelf: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    alignItems: 'center' as 'center',
+  subHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6 * S,
+    marginBottom: 32 * S,
   },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center' as 'center',
-    fontSize: 16 * 0.87,
+  subHeaderText: {
+    fontFamily: 'FunnelSans_400Regular',
+    fontSize: 15 * S,
+    color: '#666',
+  },
+  subHeaderLink: {
+    fontFamily: 'FunnelSans_600SemiBold',
+    fontSize: 15 * S,
+    color: '#000',
+  },
+  fieldContainer: {
+    marginBottom: 14 * S,
+  },
+  inputWithIconContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  fieldLeftIcon: {
+    position: 'absolute',
+    left: 14 * S,
+    top: 16 * S,
+    zIndex: 1,
+  },
+  fieldRightIcon: {
+    position: 'absolute',
+    right: 14 * S,
+    top: 16 * S,
+    zIndex: 1,
   },
   textField: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
     color: '#000',
-    borderColor: '#ccc',
-    borderWidth: 1 * 0.87,
-    borderRadius: 12 * 0.87,
-    padding: 8 * 0.87,
-    height: 57,
+    borderColor: '#E8E8E8',
+    borderWidth: 1 * S,
+    borderRadius: 12 * S,
+    padding: 14 * S,
+    height: 52 * S,
+    fontSize: 15 * S,
+    fontFamily: 'FunnelSans_400Regular',
+  },
+  textFieldWithLeftIcon: {
+    paddingLeft: 44 * S,
+  },
+  textFieldWithRightIcon: {
+    paddingRight: 44 * S,
+  },
+  textFieldError: {
+    borderColor: '#f00',
   },
   errorMessage: {
     color: '#f00',
-    fontSize: 14 * 0.87,
+    fontSize: 13 * S,
+    fontFamily: 'FunnelSans_400Regular',
+    marginBottom: 8 * S,
   },
-  link: {
-    color: '#5182C7',
-    textDecorationLine: 'underline' as 'underline',
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8 * S,
   },
-  linkText: {
-    color: '#5182C7',
-    fontSize: 15 * 0.87,
-    fontWeight: '400' as '400',
-  },
-  label: {
-    fontSize: 16 * 0.87,
-    fontWeight: '400' as '400',
-    color: '#000',
-    marginBottom: 8 * 0.87,
-    marginTop: 13 * 0.87,
-  },
-  eyeIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 62 * 0.87,
-  },
-  tickIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * 0.87,
-    top: 60 * 0.87,
-  },
-  footer: {
-    marginTop: 50 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    gap: 5 * 0.87,
-  },
-  // Terms and conditions checkbox style
   checkboxContainer: {
-    backgroundColor: 'transparent' as 'transparent',
+    backgroundColor: 'transparent',
     borderWidth: 0,
     padding: 0,
     margin: 0,
-    marginVertical: 10 * 0.87,
-    alignSelf: 'flex-start' as 'flex-start',
-  },
-  checkboxText: {
-    fontSize: 16 * 0.87,
-    color: '#000',
-    marginLeft: 0 * 0.87,
-    flex: 1,
-  },
-  checkboxRow: {
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    alignSelf: 'flex-start' as 'flex-start',
-    marginVertical: 10 * 0.87,
-    marginLeft: 0,
-    paddingLeft: 0,
-  },
-  checkboxLinkText: {
-    fontSize: 16 * 0.87,
-    color: '#5182C7', // Style the link text
-    textDecorationLine: 'underline' as 'underline',
+    alignSelf: 'flex-start',
   },
   checkboxWrapper: {
-    margin: 0, // Remove wrapper margin
-    padding: 0, // Remove wrapper padding
+    margin: 0,
+    padding: 0,
   },
-  buttonDisabled: {
+  checkboxText: {
+    fontFamily: 'FunnelSans_400Regular',
+    fontSize: 14 * S,
+    color: '#000',
+    flex: 1,
+  },
+  checkboxLinkText: {
+    fontFamily: 'FunnelSans_400Regular',
+    fontSize: 14 * S,
+    color: '#5182C7',
+    textDecorationLine: 'underline',
+  },
+  signUpButton: {
+    backgroundColor: '#000',
+    borderRadius: 40 * S,
+    height: 52 * S,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8 * S,
+  },
+  signUpButtonDisabled: {
     backgroundColor: '#E7E7E9',
   },
-  orSignUp: {
-    marginTop: 22 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
+  signUpButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 18 * S,
+    fontFamily: 'FunnelSans_600SemiBold',
   },
-  lineView: {
-    borderStyle: 'solid' as 'solid',
-    borderColor: '#d8dadc',
-    borderTopWidth: 1 * 0.87,
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24 * S,
+  },
+  dividerLine: {
     flex: 1,
-    width: '100%' as '100%',
-    height: 1 * 0.87,
+    height: 1 * S,
+    backgroundColor: '#E0E0E0',
   },
-  orText: {
-    color: 'rgba(0, 0, 0, 0.7)',
-    fontSize: 14 * 0.87,
-    lineHeight: 18 * 0.87,
-    marginHorizontal: 10 * 0.87,
+  dividerText: {
+    fontFamily: 'FunnelSans_400Regular',
+    color: '#999',
+    fontSize: 14 * S,
+    marginHorizontal: 16 * S,
   },
-  buttonBucket: {
-    marginTop: 22 * 0.87,
-    flexDirection: 'column' as 'column',
-    gap: 12 * 0.87,
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16 * S,
   },
-  buttonWithIcon: {
-    borderRadius: 10 * 0.87,
+  socialIconButton: {
+    width: 60 * S,
+    height: 52 * S,
+    borderRadius: 12 * S,
+    borderWidth: 1 * S,
+    borderColor: '#E0E0E0',
     backgroundColor: '#fff',
-    borderStyle: 'solid' as 'solid',
-    borderColor: '#d8dadc',
-    borderWidth: 1 * 0.87,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    height: 50 * 0.87,
-    gap: 10 * 0.87,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  oauthButtonText: {
-    fontSize: 16 * 0.87,
-    fontWeight: '500' as '500',
-    color: '#000',
-  },
-  appleButton: {
-    height: 50 * 0.87,
-  },
-};
+});

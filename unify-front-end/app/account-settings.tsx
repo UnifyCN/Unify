@@ -20,6 +20,10 @@ import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload'
 import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
 import { useHapticsPreference } from '@/context/HapticsContext';
+import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
+import { saveOnboardingProfile } from '@/services/onboarding/saveOnboardingProfile';
+import { unregisterPushToken } from '@/services/push/pushNotifications';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
 
@@ -31,14 +35,27 @@ export default function AccountSettingsPage() {
     useState(false);
   const { trackScreen } = useAnalytics();
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
+  const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
+  const queryClient = useQueryClient();
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean | null>(null);
 
   // Track screen view on mount
   useEffect(() => {
     trackScreen('Account Settings');
   }, [trackScreen]);
 
+  // Sync notification toggle with onboarding profile
+  useEffect(() => {
+    if (onboardingProfile?.wants_reminders !== undefined) {
+      setNotificationsEnabled(onboardingProfile.wants_reminders);
+    }
+  }, [onboardingProfile?.wants_reminders]);
+
   const onLogout = async () => {
     try {
+      try { await unregisterPushToken(); } catch (e) {
+        console.error('Failed to unregister push token on logout:', e);
+      }
       await supabase.auth.signOut();
       // Let AuthWrapper handle the navigation
     } catch (err) {
@@ -50,8 +67,27 @@ export default function AccountSettingsPage() {
     setHapticsEnabled(!hapticsEnabled);
   };
 
+  const toggleNotifications = async () => {
+    if (!currentUser?.id || notificationsEnabled === null) return;
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    try {
+      await saveOnboardingProfile(currentUser.id, {
+        ...(onboardingProfile || {}),
+        wants_reminders: newValue,
+      });
+      queryClient.invalidateQueries({ queryKey: ['onboardingProfile'] });
+    } catch (err) {
+      console.error('Failed to update notification preference', err);
+      setNotificationsEnabled(!newValue);
+    }
+  };
+
   const deleteAccount = async () => {
     try {
+      try { await unregisterPushToken(); } catch (e) {
+        console.error('Failed to unregister push token on delete:', e);
+      }
       const { error } = await supabase.rpc('delete_user');
       if (error) throw error;
       setDeleteAccountModalVisible(false);
@@ -164,6 +200,31 @@ export default function AccountSettingsPage() {
         <View style={styles.rowsContainer}>
           <Text style={styles.sectionTitle}>Preferences</Text>
           <View style={styles.settingsCard}>
+            <View style={[styles.row, styles.toggleRow]}>
+              <View style={styles.rowLabelContainer}>
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name='bell' size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>Learning Reminders</Text>
+              </View>
+              <Pressable
+                onPress={notificationsEnabled !== null ? toggleNotifications : undefined}
+                accessibilityRole='switch'
+                accessibilityState={{ checked: notificationsEnabled ?? false }}
+                accessibilityLabel='Learning Reminders'
+                hitSlop={8}
+                disabled={notificationsEnabled === null}
+                style={[
+                  styles.toggleTrack,
+                  notificationsEnabled === null
+                    ? styles.toggleTrackOff
+                    : notificationsEnabled ? styles.toggleTrackOn : styles.toggleTrackOff,
+                  notificationsEnabled === null && { opacity: 0.5 },
+                ]}
+              >
+                <View style={styles.toggleThumb} />
+              </Pressable>
+            </View>
             <View style={[styles.row, styles.toggleRow]}>
               <View style={styles.rowLabelContainer}>
                 <View style={styles.bookmarkIconContainer}>

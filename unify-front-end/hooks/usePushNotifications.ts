@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { useRouter } from 'expo-router';
+import { AppState } from 'react-native';
+import { type Href, useRouter } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import { useCurrentUser } from '@/context/UserContext';
 import {
   registerForPushNotifications,
@@ -22,10 +24,24 @@ export function usePushNotifications() {
   const router = useRouter();
   const responseListenerRef = useRef<Subscription>(null);
 
+  // Clear badge count when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextState => {
+      if (nextState === 'active') {
+        Notifications.setBadgeCountAsync(0);
+      }
+    });
+    // Also clear on mount
+    Notifications.setBadgeCountAsync(0);
+    return () => subscription.remove();
+  }, []);
+
   useEffect(() => {
     if (!currentUser) return;
 
-    // Register for push notifications when user is authenticated
+    // Always register for push — social notifications always send.
+    // Users control notification preferences via iOS/Android system settings.
+    // The wants_reminders toggle only controls learn reminders (server-side).
     registerForPushNotifications().catch(err => {
       console.error('Push notification registration failed:', err);
     });
@@ -51,6 +67,37 @@ export function usePushNotifications() {
         router.push(
           `/community-matching/circle/${data.circle_id}/chat` as const
         );
+      } else if (
+        (data?.type === 'liked' || data?.type === 'commented' || data?.type === 'comment_liked' || data?.type === 'comment_reply') &&
+        data?.post_id != null
+      ) {
+        router.push({
+          pathname: '/post-details',
+          params: { postId: String(data.post_id) },
+        } as Href);
+      } else if (
+        data?.type === 'followed' &&
+        data?.actor_user_id != null
+      ) {
+        router.push({
+          pathname: '/profile/[userId]',
+          params: { userId: String(data.actor_user_id) },
+        } as Href);
+      } else if (
+        data?.type === 'learn_reminder' &&
+        data?.lesson_id &&
+        data?.submodule_id &&
+        data?.module_id
+      ) {
+        router.push({
+          pathname:
+            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]',
+          params: {
+            moduleId: String(data.module_id),
+            submoduleId: String(data.submodule_id),
+            lessonId: String(data.lesson_id),
+          },
+        } as Href);
       }
     });
 

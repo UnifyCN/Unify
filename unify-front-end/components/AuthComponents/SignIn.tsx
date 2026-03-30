@@ -1,32 +1,39 @@
 import React, { useState } from 'react';
 import isExpoGo from '../../utils/isExpoGo';
 import ForgotPassword from './ForgotPassword';
-import { View, Text, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+  Linking,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
-import { Platform } from 'react-native';
 import {
   GoogleSignin,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Google from '../../assets/images/Google.svg';
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
-import {
-  SubmitButton,
-  ViewHeader,
-  ViewContainer,
-  SimpleTextField,
-} from './Components';
+import { SubmitButton, SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
 import OTPPasswordReset from './OTPPasswordReset';
+import { LEGAL_URLS } from '@/utils/legalUrls';
 
 export function SignIn({
   onSwitchToSignUp,
+  onBack,
 }: {
   onSwitchToSignUp?: () => void;
+  onBack?: () => void;
 }): React.JSX.Element {
   const queryClient = useQueryClient();
   const {
@@ -35,7 +42,6 @@ export function SignIn({
     trackGoogleSignInUsed,
     trackAppleSignInUsed,
   } = useAnalytics();
-  // State for email tick and password eye icon toggle
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [passwordVisible, setPasswordVisible] = React.useState(false);
@@ -46,42 +52,32 @@ export function SignIn({
   const [showOTPReset, setShowOTPReset] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
 
-  // Simple email validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Method to validate if email is in valid format for the tick icon to appear
-  // Trim before testing to match handleSignIn behavior
   const validateEmail = (emailInput: string) => {
     setIsEmailValid(emailRegex.test(emailInput.trim()));
   };
 
-  // Supabase sign in
   const handleSignIn = async () => {
     setErrorMessage(null);
-
-    // Normalize email: trim whitespace and lowercase for consistency
-    // Do NOT trim password - it may legitimately contain leading/trailing spaces
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check for empty fields - show generic error
     if (!normalizedEmail || !password) {
       setErrorMessage('Invalid login credentials');
       trackSignInFailed('empty_fields');
       return;
     }
 
-    // Check for invalid email format - show same generic error
     if (!emailRegex.test(normalizedEmail)) {
       setErrorMessage('Invalid login credentials');
       trackSignInFailed('invalid_email');
       return;
     }
 
-    // Only attempt authentication if both fields are valid
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
       email: normalizedEmail,
-      password: password, // Use password as-is to match signup behavior
+      password: password,
     });
     if (error) {
       setErrorMessage('Invalid login credentials');
@@ -90,7 +86,6 @@ export function SignIn({
       return;
     }
 
-    // Prefetch user info immediately after successful login and wait for it
     if (data?.user?.id) {
       await queryClient.ensureQueryData({
         queryKey: ['userInfo', data.user.id],
@@ -102,12 +97,10 @@ export function SignIn({
     setLoading(false);
   };
 
-  // Configure Google Sign-In once on mount (must happen BEFORE calling signIn)
   React.useEffect(() => {
     GoogleSignin.configure({
       iosClientId:
         '718278262223-rfq8s91jg7o9lmif54gcuibf4732ce7l.apps.googleusercontent.com',
-
       webClientId:
         '718278262223-f9pif0vn68o30v4ppskpllo6ka0hjvj2.apps.googleusercontent.com',
       scopes: ['email', 'profile', 'openid'],
@@ -116,7 +109,6 @@ export function SignIn({
     });
   }, []);
 
-  // Move Google sign-in logic to a separate function
   const handleGoogleSignIn = async () => {
     if (isExpoGo) {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -147,7 +139,6 @@ export function SignIn({
           return;
         }
 
-        // Create user record if it doesn't exist (for Google sign-in users)
         if (data?.user?.id && data?.user?.email) {
           try {
             await createUserIfNotExists(data.user.id, data.user.email);
@@ -160,7 +151,6 @@ export function SignIn({
             return;
           }
 
-          // Prefetch user info immediately after successful Google login
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
@@ -180,7 +170,7 @@ export function SignIn({
     } catch (error: any) {
       if (error?.code === statusCodes.IN_PROGRESS) {
         setLoading(false);
-        return; // already in progress
+        return;
       }
       if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         setErrorMessage('Google Play Services not available');
@@ -292,265 +282,332 @@ export function SignIn({
   }
 
   return (
-    <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Log In</ViewHeader>
-
-      {/* OAuth buttons first — fastest path for most users */}
-      <View style={styles.oauthSection}>
-        <TouchableOpacity
-          style={styles.buttonWithIcon}
-          onPress={handleGoogleSignIn}
-        >
-          <Google width={20} height={20} />
-          <Text style={styles.oauthButtonText}>Sign in with Google</Text>
-        </TouchableOpacity>
-        {Platform.OS === 'ios' && !isExpoGo && (
-          <AppleAuthentication.AppleAuthenticationButton
-            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={10 * S}
-            style={styles.appleButton}
-            onPress={handleAppleSignIn}
-          />
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Back button */}
+        {onBack && (
+          <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24 * S} color="#000" />
+          </Pressable>
         )}
-      </View>
 
-      <View style={styles.divider}>
-        <View style={styles.lineView} />
-        <Text style={styles.orText}>Or continue with email</Text>
-        <View style={styles.lineView} />
-      </View>
-
-      {/* Email / password section */}
-      <View>
-        <View style={{ position: 'relative' }}>
-          <Text style={styles.label}>Email Address</Text>
-          <SimpleTextField
-            value={email}
-            onChangeText={text => {
-              setEmail(text);
-              validateEmail(text);
-            }}
-            placeholder='Email address'
-            style={[styles.textField, errorMessage && styles.textFieldError]}
-            autoCapitalize='none'
-          />
-          {isEmailValid && (
-            <MaterialIcons
-              name='check-circle'
-              size={24}
-              color='#333'
-              style={styles.tickIcon}
-            />
-          )}
+        {/* Header */}
+        <Text style={styles.header}>Sign in</Text>
+        <View style={styles.subHeaderRow}>
+          <Text style={styles.subHeaderText}>New user? </Text>
+          <Text style={styles.subHeaderLink} onPress={onSwitchToSignUp}>
+            Create an account
+          </Text>
         </View>
-        <View>
-          <Text style={styles.label}>Password</Text>
+
+        {/* Email field */}
+        <View style={styles.fieldContainer}>
           <View style={styles.inputWithIconContainer}>
+            <Ionicons
+              name="mail-outline"
+              size={20 * S}
+              color="#999"
+              style={styles.fieldLeftIcon}
+            />
+            <SimpleTextField
+              value={email}
+              onChangeText={text => {
+                setEmail(text);
+                validateEmail(text);
+              }}
+              placeholder="Email Address"
+              placeholderTextColor="#999"
+              style={[styles.textField, styles.textFieldWithLeftIcon, errorMessage && styles.textFieldError]}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+            {isEmailValid && (
+              <MaterialIcons
+                name="check-circle"
+                size={20 * S}
+                color="#333"
+                style={styles.fieldRightIcon}
+              />
+            )}
+          </View>
+        </View>
+
+        {/* Password field */}
+        <View style={styles.fieldContainer}>
+          <View style={styles.inputWithIconContainer}>
+            <Ionicons
+              name="lock-closed-outline"
+              size={20 * S}
+              color="#999"
+              style={styles.fieldLeftIcon}
+            />
             <SimpleTextField
               value={password}
               onChangeText={setPassword}
-              placeholder='Password'
+              placeholder="Password"
+              placeholderTextColor="#999"
               style={[
                 styles.textField,
-                styles.textFieldWithIcon,
+                styles.textFieldWithLeftIcon,
+                styles.textFieldWithRightIcon,
                 errorMessage && styles.textFieldError,
               ]}
               secureTextEntry={!passwordVisible}
-              autoCapitalize='none'
+              autoCapitalize="none"
             />
             <TouchableOpacity
               onPress={() => setPasswordVisible(!passwordVisible)}
-              style={styles.eyeIcon}
+              style={styles.fieldRightIcon}
             >
               <MaterialIcons
                 name={passwordVisible ? 'visibility' : 'visibility-off'}
-                size={24}
-                color='#333'
+                size={20 * S}
+                color="#999"
               />
             </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.passwordRow}>
+        {/* Forgot password + error */}
+        <View style={styles.forgotRow}>
           {errorMessage ? (
             <Text style={styles.errorMessage}>{errorMessage}</Text>
           ) : (
             <View />
           )}
           <TouchableOpacity onPress={() => setShowForgotPassword(true)}>
-            <Text style={styles.forgotText}>Forgot Password?</Text>
+            <Text style={styles.forgotText}>Forgot password?</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      <SubmitButton
-        loading={loading}
-        onPress={handleSignIn}
-        style={[styles.button]}
-        labelStyle={[styles.buttonText]}
-      >
-        Log in
-      </SubmitButton>
+        {/* Login button */}
+        <SubmitButton
+          loading={loading}
+          onPress={handleSignIn}
+          style={[styles.loginButton]}
+          labelStyle={[styles.loginButtonText]}
+        >
+          Login
+        </SubmitButton>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account?</Text>
-        <Text style={styles.footerLink} onPress={onSwitchToSignUp}>
-          Sign up
+        {/* Or divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Social icon buttons */}
+        <View style={styles.socialRow}>
+          <TouchableOpacity
+            style={styles.socialIconButton}
+            onPress={handleGoogleSignIn}
+            accessibilityLabel="Sign in with Google"
+            accessibilityRole="button"
+          >
+            <Google width={24 * S} height={24 * S} />
+          </TouchableOpacity>
+          {Platform.OS === 'ios' && !isExpoGo && (
+            <TouchableOpacity
+              style={styles.socialIconButton}
+              onPress={handleAppleSignIn}
+              accessibilityLabel="Sign in with Apple"
+              accessibilityRole="button"
+            >
+              <Ionicons name="logo-apple" size={26 * S} color="#000" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Spacer to push legal text down */}
+        <View style={styles.spacer} />
+
+        {/* Legal text */}
+        <Text style={styles.legalText}>
+          By signing in with an account, you agree to Unify's{' '}
+          <Text
+            style={styles.legalLink}
+            onPress={() => Linking.openURL(LEGAL_URLS.termsOfService)}
+          >
+            Terms of Service
+          </Text>
+          {' '}and{' '}
+          <Text
+            style={styles.legalLink}
+            onPress={() => Linking.openURL(LEGAL_URLS.privacyPolicy)}
+          >
+            Privacy Policy
+          </Text>
+          .
         </Text>
-      </View>
-    </ViewContainer>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
+// Auth component scaling factor (0.87) — shared convention across all auth screens
+// (SignIn, SignUp, ForgotPassword) to fit content on smaller devices.
 const S = 0.87;
 
-const styles = {
-  container: {
+const styles = StyleSheet.create({
+  safeArea: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 16 * S,
-    paddingLeft: 24 * S,
-    paddingRight: 24 * S,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24 * S,
+    paddingBottom: 24 * S,
+  },
+  backButton: {
+    marginTop: 12 * S,
+    alignSelf: 'flex-start',
   },
   header: {
-    fontSize: 34 * S,
-    fontWeight: '700' as '700',
+    fontFamily: 'FunnelSans_600SemiBold',
+    fontSize: 32 * S,
     color: '#000',
-    marginBottom: 20 * S,
-    marginTop: 90 * S,
+    marginTop: 48 * S,
   },
-  // OAuth section — appears first
-  oauthSection: {
-    gap: 12 * S,
-    marginBottom: 20 * S,
+  subHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6 * S,
+    marginBottom: 32 * S,
   },
-  buttonWithIcon: {
-    borderRadius: 10 * S,
-    backgroundColor: '#fff',
-    borderStyle: 'solid' as 'solid',
-    borderColor: '#d8dadc',
-    borderWidth: 1 * S,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    height: 50 * S,
-    gap: 10 * S,
-  },
-  oauthButtonText: {
-    fontSize: 16 * S,
-    fontWeight: '500' as '500',
-    color: '#000',
-  },
-  appleButton: {
-    height: 50 * S,
-  },
-  // Divider
-  divider: {
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    marginBottom: 8 * S,
-  },
-  lineView: {
-    borderColor: '#d8dadc',
-    borderTopWidth: 1 * S,
-    flex: 1,
-    height: 1 * S,
-  },
-  orText: {
-    color: 'rgba(0, 0, 0, 0.5)',
-    fontSize: 13 * S,
-    lineHeight: 18 * S,
-    marginHorizontal: 12 * S,
-  },
-  // Form fields
-  label: {
+  subHeaderText: {
+    fontFamily: 'FunnelSans_400Regular',
     fontSize: 15 * S,
-    fontWeight: '500' as '500',
+    color: '#666',
+  },
+  subHeaderLink: {
+    fontFamily: 'FunnelSans_600SemiBold',
+    fontSize: 15 * S,
     color: '#000',
-    marginBottom: 6 * S,
-    marginTop: 10 * S,
+  },
+  fieldContainer: {
+    marginBottom: 14 * S,
+  },
+  inputWithIconContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  fieldLeftIcon: {
+    position: 'absolute',
+    left: 14 * S,
+    top: 16 * S,
+    zIndex: 1,
+  },
+  fieldRightIcon: {
+    position: 'absolute',
+    right: 14 * S,
+    top: 16 * S,
+    zIndex: 1,
   },
   textField: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
     color: '#000',
-    borderColor: '#ccc',
+    borderColor: '#E8E8E8',
     borderWidth: 1 * S,
     borderRadius: 12 * S,
-    padding: 8 * S,
-    height: 50 * S,
+    padding: 14 * S,
+    height: 52 * S,
+    fontSize: 15 * S,
+    fontFamily: 'FunnelSans_400Regular',
+  },
+  textFieldWithLeftIcon: {
+    paddingLeft: 44 * S,
+  },
+  textFieldWithRightIcon: {
+    paddingRight: 44 * S,
   },
   textFieldError: {
     borderColor: '#f00',
   },
-  inputWithIconContainer: {
-    position: 'relative' as 'relative',
-  },
-  textFieldWithIcon: {
-    paddingRight: 48 * S,
-  },
-  eyeIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * S,
-    top: '30%' as '30%',
-    transform: [{ translateY: -12 * S }],
-  },
-  tickIcon: {
-    position: 'absolute' as 'absolute',
-    right: 16 * S,
-    top: 54 * S,
-  },
-  // Password row: error left, forgot right
-  passwordRow: {
-    flexDirection: 'row' as 'row',
-    justifyContent: 'space-between' as 'space-between',
-    alignItems: 'center' as 'center',
-    marginTop: 2 * S,
+  forgotRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24 * S,
   },
   errorMessage: {
     color: '#f00',
     fontSize: 13 * S,
+    fontFamily: 'FunnelSans_400Regular',
     flex: 1,
     marginRight: 8 * S,
   },
   forgotText: {
     color: '#5182C7',
     fontSize: 14 * S,
-    fontWeight: '400' as '400',
+    fontFamily: 'FunnelSans_400Regular',
   },
-  // CTA
-  button: {
-    backgroundColor: '#343434',
+  loginButton: {
+    backgroundColor: '#000',
     borderRadius: 40 * S,
-    marginTop: 24 * S,
-    height: 48 * S,
-    justifyContent: 'center' as 'center',
-    alignItems: 'center' as 'center',
+    height: 52 * S,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center' as 'center',
-    fontSize: 16 * S,
-    fontWeight: '600' as '600',
+  loginButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 18 * S,
+    fontFamily: 'FunnelSans_600SemiBold',
   },
-  // Footer
-  footer: {
-    marginTop: 32 * S,
-    flexDirection: 'row' as 'row',
-    alignItems: 'center' as 'center',
-    justifyContent: 'center' as 'center',
-    gap: 5 * S,
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24 * S,
   },
-  footerText: {
+  dividerLine: {
+    flex: 1,
+    height: 1 * S,
+    backgroundColor: '#E0E0E0',
+  },
+  dividerText: {
+    fontFamily: 'FunnelSans_400Regular',
+    color: '#999',
     fontSize: 14 * S,
-    lineHeight: 18 * S,
-    color: 'rgba(0, 0, 0, 0.7)',
+    marginHorizontal: 16 * S,
   },
-  footerLink: {
-    fontSize: 14 * S,
-    lineHeight: 18 * S,
-    textDecorationLine: 'underline' as 'underline',
-    fontWeight: '600' as '600',
-    color: '#000',
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16 * S,
   },
-};
+  socialIconButton: {
+    width: 60 * S,
+    height: 52 * S,
+    borderRadius: 12 * S,
+    borderWidth: 1 * S,
+    borderColor: '#E0E0E0',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spacer: {
+    flex: 1,
+    minHeight: 40 * S,
+  },
+  legalText: {
+    fontFamily: 'FunnelSans_400Regular',
+    fontSize: 12.5 * S,
+    color: '#999',
+    textAlign: 'center',
+    lineHeight: 18 * S,
+    paddingHorizontal: 16 * S,
+  },
+  legalLink: {
+    textDecorationLine: 'underline',
+    color: '#666',
+  },
+});

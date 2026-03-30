@@ -6,7 +6,6 @@ import { supabase } from '@/lib/supabase';
 // Configure how notifications are handled when app is in foreground
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
     shouldShowBanner: true,
@@ -40,6 +39,25 @@ export async function registerForPushNotifications(): Promise<string | null> {
     return null;
   }
 
+  // Create Android notification channels
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('social', {
+      name: 'Social Activity',
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: 'default',
+    });
+    await Notifications.setNotificationChannelAsync('circles', {
+      name: 'Community Circles',
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: 'default',
+    });
+    await Notifications.setNotificationChannelAsync('learn', {
+      name: 'Learning Reminders',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      sound: 'default',
+    });
+  }
+
   try {
     // Get Expo push token
     const tokenData = await Notifications.getExpoPushTokenAsync({
@@ -61,7 +79,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
           updated_at: new Date().toISOString(),
         },
         {
-          onConflict: 'user_id,token',
+          onConflict: 'token',
         }
       );
 
