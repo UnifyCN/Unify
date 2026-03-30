@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { UserTaskWithDetails } from '@/types/checklist';
 import { getChecklistWithUserProgress } from '@/services/checklist/getChecklistWithUserProgress';
+import { getChecklistTaskOrders } from '@/services/checklist/checklistTaskOrder';
+import { applySavedOrderToTasks } from '@/utils/checklistOrder';
 import {
   stageNumberToStageSlug,
   normalizePersonaSlug,
@@ -57,7 +59,13 @@ export const useChecklistTasks = ({
           { stageChanged }
         );
 
-        setTasks(merged);
+        try {
+          const orders = await getChecklistTaskOrders(user.id);
+          setTasks(applySavedOrderToTasks(merged, orders));
+        } catch (orderErr) {
+          console.error('Error loading checklist order:', orderErr);
+          setTasks(merged);
+        }
       } catch (err) {
         console.error('Error fetching/creating checklist tasks:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
