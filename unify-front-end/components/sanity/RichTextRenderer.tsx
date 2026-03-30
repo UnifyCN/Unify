@@ -622,17 +622,20 @@ export default function RichTextRenderer({
 
         return (
           <View key={block._key || index} style={containerStyle}>
-            <Text style={listTextStyle}>
-              {displayBullet}{' '}
-            </Text>
-            <SelectableText
-              blockKey={block._key || `block-${index}`}
-              highlights={getBlockHighlights(block, index)}
-              style={listTextStyle}
-              spans={block.children}
-              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
-              mergedStyles={mergedStyles}
-            />
+            {/* Row keeps bullet + body on one line; body Text wraps inside remaining width */}
+            <View style={styles.listItemRow}>
+              <Text style={[listTextStyle, styles.listItemBullet]}>
+                {displayBullet}{' '}
+              </Text>
+              <SelectableText
+                blockKey={block._key || `block-${index}`}
+                highlights={getBlockHighlights(block, index)}
+                style={[listTextStyle, styles.listItemBody]}
+                spans={block.children}
+                allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+                mergedStyles={mergedStyles}
+              />
+            </View>
           </View>
         );
       }
@@ -1579,6 +1582,18 @@ export default function RichTextRenderer({
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 4 }, // Add top padding to prevent text clipping
   listItemContainer: { marginBottom: 0 }, // Row spacing set on list row View (matches paragraph rhythm)
+  /** Without this, bullet Text + SelectableText stack vertically (default column flex). */
+  listItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  listItemBullet: {
+    flexShrink: 0,
+  },
+  listItemBody: {
+    flex: 1,
+    flexShrink: 1,
+  },
   skipLineSpacer: { height: 25, marginBottom: 0 }, // Figma content column gap
   inputFieldContainer: {
     marginVertical: 12,
