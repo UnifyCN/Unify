@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   View,
@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { NestableScrollContainer } from 'react-native-draggable-flatlist';
 import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
@@ -23,6 +22,8 @@ import { upsertChecklistTaskOrder } from '@/services/checklist/checklistTaskOrde
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
+import { queryClient } from '@/lib/queryClient';
+import { invalidateChecklistTasksQueries } from '@/hooks/checklist/checklistQueryKeys';
 import {
   ChecklistLinkTabSlug,
   Priority,
@@ -117,26 +118,15 @@ export default function ChecklistScreen() {
     fetchPersona();
   }, []);
 
-  const {
-    tasks,
-    isLoading: tasksLoading,
-    refetch,
-    setTasks,
-  } = useChecklistTasks({
+  const { tasks, isLoading: tasksLoading, setTasks } = useChecklistTasks({
     currentStage,
     stageChanged,
     persona,
   });
 
-  // Refetch when Checklist tab is focused so new/updated Sanity tasks show up
-  useFocusEffect(
-    useCallback(() => {
-      trackScreen('Checklist');
-      if (currentStage !== null && persona) {
-        refetch();
-      }
-    }, [currentStage, persona, refetch, trackScreen])
-  );
+  useEffect(() => {
+    trackScreen('Checklist');
+  }, [trackScreen]);
 
   // Compute progress
   const totalTasks = tasks.length;
@@ -244,9 +234,11 @@ export default function ChecklistScreen() {
           newCompletedStatus
         );
       }
+
+      await invalidateChecklistTasksQueries(queryClient);
     } catch (error) {
       console.error('Error updating task completion:', error);
-      refetch();
+      await invalidateChecklistTasksQueries(queryClient);
     }
   };
 
@@ -300,10 +292,11 @@ export default function ChecklistScreen() {
               userId: user.id,
               customTaskId,
             });
+            await invalidateChecklistTasksQueries(queryClient);
           } catch (error) {
             console.error('Error deleting custom checklist task:', error);
             setTasks(prevTasks);
-            refetch();
+            await invalidateChecklistTasksQueries(queryClient);
           }
         },
       },
