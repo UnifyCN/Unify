@@ -617,8 +617,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#424242',
     marginBottom: 10,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 18,
+    lineHeight: 27,
   },
 
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },

@@ -129,7 +129,7 @@ export default function RichTextRenderer({
   const textMetricsTight =
     Platform.OS === 'android' ? ({ includeFontPadding: false } as const) : {};
 
-  // Lesson body typography — matches Figma "Section 3 - Lesson" (Inter, Grey/800 body)
+  // Body copy: same font size & line height as news article content (news-detail contentText)
   const defaultStyles = {
     // Headings (in-content; page title uses screen styles)
     h1: {
@@ -158,7 +158,7 @@ export default function RichTextRenderer({
     },
     h4: {
       fontSize: 18,
-      lineHeight: 24,
+      lineHeight: 27,
       fontWeight: '600',
       color: '#000',
       marginBottom: 10,
@@ -170,21 +170,21 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       marginBottom: 10,
       ...textMetricsTight,
     },
 
-    // Lists — 14/20; vertical gap comes from list row View, not Text (avoids double spacing)
+    // Lists — vertical gap on list row View; line metrics match body
     bullet: {
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       marginBottom: 0,
@@ -195,8 +195,8 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       marginBottom: 0,
@@ -208,13 +208,13 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '700',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       ...textMetricsTight,
     },
-    // Quote / callout strip (Figma: border-l 5 #3F3F3F, 14/20, not italic)
+    // Quote / callout strip (border-l 5 #3F3F3F)
     blockquote: {
       marginBottom: 0,
       marginTop: 0,
@@ -224,8 +224,8 @@ export default function RichTextRenderer({
     },
     blockquoteText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       color: '#424242',
       fontStyle: 'normal',
     },
@@ -279,9 +279,9 @@ export default function RichTextRenderer({
     },
     exampleBoxTitle: {
       fontFamily: 'Inter',
-      fontSize: 14,
+      fontSize: 16,
       fontWeight: '600',
-      lineHeight: 20,
+      lineHeight: 22,
       color: '#424242',
       marginBottom: 0,
       textTransform: 'uppercase',
@@ -290,8 +290,8 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
     },
@@ -308,21 +308,21 @@ export default function RichTextRenderer({
       alignSelf: 'center',
       width: 353,
       maxWidth: '100%',
-      minHeight: 30, // 5px top + 20px (one line) + 5px bottom = 30px minimum
+      minHeight: 37, // 5 + 27 (one line) + 5
       marginTop: 0,
       marginBottom: 30,
     },
     tipTitleText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       fontWeight: '600',
       color: '#424242',
     },
     tipBodyText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       fontWeight: '400',
       color: '#424242',
       marginBottom: 0,
@@ -343,8 +343,8 @@ export default function RichTextRenderer({
     },
     noteBoxText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       fontWeight: '400',
       color: '#424242',
       marginTop: 0,
@@ -628,7 +628,7 @@ export default function RichTextRenderer({
             <SelectableText
               blockKey={block._key || `block-${index}`}
               highlights={getBlockHighlights(block, index)}
-              style={listStyle}
+              style={listTextStyle}
               spans={block.children}
               allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
               mergedStyles={mergedStyles}
@@ -903,7 +903,6 @@ export default function RichTextRenderer({
           <RichTextRenderer
             blocks={block.content || []}
             markDefs={markDefs}
-<<<<<<< HEAD
             compactContainer
             styles={{
               normal: mergedStyles.noteBoxText,
@@ -915,10 +914,7 @@ export default function RichTextRenderer({
               },
               link: mergedStyles.link,
             }}
-=======
-            styles={{ normal: mergedStyles.noteBoxText }}
             highlights={highlights}
->>>>>>> 3f1c252f4b757c06f6c368eed1cf1757193a8244
           />
         </View>
       );
@@ -1717,9 +1713,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   questionOptionText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#374151',
-    lineHeight: 20,
+    lineHeight: 27,
     fontWeight: '400',
   },
   explanationContainer: {
@@ -1729,9 +1725,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
   },
   explanationText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#6B7280',
-    lineHeight: 20,
+    lineHeight: 27,
     fontStyle: 'italic',
   },
   matchingPairsContainer: {
@@ -1746,9 +1742,9 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   matchingPairText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#374151',
-    lineHeight: 20,
+    lineHeight: 27,
   },
   // Matching question styles (same as quiz)
   matchingContainer: {
@@ -1788,8 +1784,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2',
   },
   matchingItemText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#374151',
+    lineHeight: 27,
     textAlign: 'center',
     fontWeight: '500',
   },
