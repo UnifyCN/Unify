@@ -1,16 +1,20 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { ThemedText } from '@/components/ThemedText';
 import { UserTaskWithDetails } from '@/types/checklist';
 
 interface ChecklistItemProps {
   task: UserTaskWithDetails;
   onPress?: () => void;
+  /** Long-press to reorder (e.g. checklist drag); keeps tap for details. */
+  onLongPress?: () => void;
 }
 
 export const ChecklistItem: React.FC<ChecklistItemProps> = ({
   task,
   onPress,
+  onLongPress,
 }) => {
   const isCompleted = task.completed;
   const taskName = task.task.task_name?.trim() ?? '';
@@ -20,6 +24,8 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
     <TouchableOpacity
       style={styles.container}
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={onLongPress ? 220 : undefined}
       activeOpacity={0.7}
     >
       <ThemedText

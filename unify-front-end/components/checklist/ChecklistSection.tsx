@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import {
   NestableDraggableFlatList,
   RenderItemParams,
@@ -83,22 +83,12 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         </TouchableOpacity>
       </View>
 
-      <Pressable
-        onLongPress={drag}
-        delayLongPress={200}
-        style={({ pressed }) => [
-          styles.dragHandle,
-          pressed && styles.dragHandlePressed,
-        ]}
-        accessibilityRole='button'
-        accessibilityLabel='Reorder task'
-        hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-      >
-        <MaterialIcons name='menu' size={22} color='#8E8E93' />
-      </Pressable>
-
       <View style={styles.rightColumn}>
-        <ChecklistItem task={task} onPress={() => onTaskPress?.(task)} />
+        <ChecklistItem
+          task={task}
+          onPress={() => onTaskPress?.(task)}
+          onLongPress={drag}
+        />
       </View>
     </View>
   );
@@ -133,7 +123,6 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
           keyExtractor={item => getChecklistTaskOrderKey(item)}
           renderItem={renderItem}
           scrollEnabled={false}
-          activationDistance={1000}
           onDragEnd={({ data }) => onReorder(priority, data)}
           containerStyle={styles.draggableList}
         />
@@ -189,7 +178,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 14,
     alignItems: 'center',
     marginBottom: 12,
   },
@@ -201,16 +190,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-  },
-  dragHandle: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-    marginRight: 2,
-  },
-  dragHandlePressed: {
-    opacity: 0.6,
   },
   rightColumn: {
     flex: 1,
