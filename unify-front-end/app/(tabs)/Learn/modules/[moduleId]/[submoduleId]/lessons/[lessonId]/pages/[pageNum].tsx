@@ -69,7 +69,7 @@ export default function LessonPageScreen() {
   );
 
   // Progress tracking
-  const { saveLessonCompletion } = useLessonProgress();
+  const { saveLessonCompletion, saveCurrentPage } = useLessonProgress();
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
@@ -169,6 +169,15 @@ export default function LessonPageScreen() {
 
   const handleNext = async () => {
     if (currentPage < totalPages) {
+      // Persist current position before navigating (fire-and-forget)
+      saveCurrentPage(
+        lessonId || '',
+        submoduleId || '',
+        moduleId || '',
+        'lesson',
+        currentPage,
+        totalPages
+      );
       // Go to next page
       router.push({
         pathname:

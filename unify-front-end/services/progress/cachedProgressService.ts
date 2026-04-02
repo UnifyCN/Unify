@@ -16,7 +16,7 @@ interface CachedProgressData {
 class CachedProgressService {
   private cache: CachedProgressData = {};
   private lastFetch: number = 0;
-  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly CACHE_DURATION = 30 * 1000; // 30 seconds — fast enough for screen transitions
 
   async getProgressData(forceRefresh = false): Promise<CachedProgressData> {
     const now = Date.now();
@@ -127,17 +127,29 @@ class CachedProgressService {
         module.submodules.forEach((submodule: any) => {
           if (!submodule?._id) return;
           const totalLessons = submodule.lessons?.length || 0;
-          const completedLessons =
-            lessonProgresses?.filter(
-              (lesson: any) =>
-                lesson.sanity_submodule_id === submodule._id &&
-                lesson.is_completed
-            ).length || 0;
+
+          const submoduleLessonRows: any[] = (lessonProgresses || []).filter(
+            (lp: any) => lp.sanity_submodule_id === submodule._id
+          );
+
+          const completedLessons = submoduleLessonRows.filter(
+            (lp: any) => lp.is_completed
+          ).length;
+
+          // Sum per-lesson progress_percent (0-100) so in-progress pages
+          // contribute to the bar, not just fully-completed lessons.
+          const sumPercent = (submodule.lessons || []).reduce(
+            (acc: number, sanityLesson: any) => {
+              const row = submoduleLessonRows.find(
+                (lp: any) => lp.sanity_lesson_id === sanityLesson._id
+              );
+              return acc + (row?.progress_percent ?? 0);
+            },
+            0
+          );
 
           const progressPercent =
-            totalLessons > 0
-              ? Math.round((completedLessons / totalLessons) * 100)
-              : 0;
+            totalLessons > 0 ? Math.round(sumPercent / totalLessons) : 0;
           const isCompleted =
             completedLessons === totalLessons && totalLessons > 0;
 
@@ -197,6 +209,11 @@ class CachedProgressService {
 
   async refreshProgress() {
     return this.getProgressData(true);
+  }
+
+  /** Immediately mark the cache as stale so the next read triggers a fresh fetch. */
+  invalidate() {
+    this.lastFetch = 0;
   }
 
   // Call this when a lesson is completed to update the cache
