@@ -83,7 +83,6 @@ type SectionUIState = 'completed' | 'active' | 'unlocked' | 'locked';
 interface SectionViewModel {
   id: string;
   title: string;
-  lessonCount: number;
   uiState: SectionUIState;
   ctaLabel: 'Review' | 'Continue' | 'Start' | null;
   progressPercent: number;
@@ -591,7 +590,6 @@ export default function ModuleIndex() {
       return {
         id: s._id,
         title: s.title,
-        lessonCount: s.lessons?.length || 0,
         uiState,
         ctaLabel,
         progressPercent,
@@ -705,15 +703,6 @@ export default function ModuleIndex() {
             ]}
           >
             {section.title}
-          </Text>
-          <Text
-            style={[
-              styles.lessonCount,
-              isOpened && styles.lessonCountOpened,
-              isLocked && styles.textLocked,
-            ]}
-          >
-            {section.lessonCount} Lesson{section.lessonCount !== 1 ? 's' : ''}
           </Text>
 
           {/* CTA Button - only show on opened card */}
@@ -1035,14 +1024,6 @@ const styles = StyleSheet.create({
   },
   cardTitleOpened: {
     color: '#FFFFFF',
-  },
-  lessonCount: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#888888',
-  },
-  lessonCountOpened: {
-    color: 'rgba(255,255,255,0.85)',
   },
   textLocked: {
     color: '#AAAAAA',
