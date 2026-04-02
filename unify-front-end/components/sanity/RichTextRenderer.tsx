@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,10 @@ import {
   TouchableOpacity,
   Linking,
   TextInput,
-  Modal,
-  Dimensions,
-  ScrollView,
-  SafeAreaView,
   Platform,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import {
-  PinchGestureHandler,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import ImageViewerModal from '@/components/sanity/ImageViewerModal';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
@@ -52,14 +45,6 @@ export default function RichTextRenderer({
 }: RichTextRendererProps) {
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageZoom, setImageZoom] = useState(1);
-  const [imageDimensions, setImageDimensions] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
-  const baseZoomRef = useRef(1); // Track base zoom for pinch gestures
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
 
   // Matching question state - track per question using block _key (right by index so duplicate values select only one)
   const [matchingQuestionState, setMatchingQuestionState] = useState<{
@@ -864,7 +849,6 @@ export default function RichTextRenderer({
             <TouchableOpacity
               onPress={() => {
                 setSelectedImage(imageUrl);
-                setImageZoom(1);
               }}
               activeOpacity={0.9}
             >
@@ -1466,41 +1450,8 @@ export default function RichTextRenderer({
     );
   };
 
-  const handleZoomIn = () => {
-    const newZoom = Math.min(imageZoom + 0.5, 5); // Max 5x zoom
-    setImageZoom(newZoom);
-    baseZoomRef.current = newZoom; // Update base zoom for pinch
-  };
-
-  const handleZoomOut = () => {
-    const newZoom = Math.max(imageZoom - 0.5, 0.5); // Min 0.5x zoom
-    setImageZoom(newZoom);
-    baseZoomRef.current = newZoom; // Update base zoom for pinch
-  };
-
-  const handlePinchGesture = (event: any) => {
-    const { scale } = event.nativeEvent;
-    const newZoom = Math.max(0.5, Math.min(5, baseZoomRef.current * scale));
-    setImageZoom(newZoom);
-  };
-
-  const handlePinchGestureStateChange = (event: any) => {
-    const { state } = event.nativeEvent;
-    // State 2 is BEGAN - capture current zoom as base when gesture starts
-    if (state === 2) {
-      baseZoomRef.current = imageZoom;
-    }
-    // State 5 is END - finalize zoom when gesture ends
-    if (state === 5) {
-      baseZoomRef.current = imageZoom;
-    }
-  };
-
   const handleCloseImageModal = () => {
     setSelectedImage(null);
-    setImageZoom(1);
-    baseZoomRef.current = 1;
-    setImageDimensions(null);
   };
 
   return (
@@ -1531,97 +1482,10 @@ export default function RichTextRenderer({
         .filter(Boolean)}
 
       {/* Image Viewer Modal */}
-      <Modal
-        visible={selectedImage !== null}
-        transparent={true}
-        animationType='fade'
-        onRequestClose={handleCloseImageModal}
-      >
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <SafeAreaView style={styles.imageModalOverlay}>
-            {/* Top bar with close button and zoom controls */}
-            <View style={styles.imageModalHeader}>
-              <TouchableOpacity
-                onPress={handleCloseImageModal}
-                style={styles.imageModalCloseButton}
-              >
-                <Feather name='x' size={20} color='#878787' />
-              </TouchableOpacity>
-              <View style={styles.imageModalZoomControls}>
-                <TouchableOpacity
-                  onPress={handleZoomOut}
-                  style={styles.imageModalZoomButton}
-                  disabled={imageZoom <= 0.5}
-                >
-                  <Feather
-                    name='zoom-out'
-                    size={20}
-                    color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleZoomIn}
-                  style={styles.imageModalZoomButton}
-                  disabled={imageZoom >= 5}
-                >
-                  <Feather
-                    name='zoom-in'
-                    size={20}
-                    color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Scrollable image container with pinch gesture */}
-            <PinchGestureHandler
-              onGestureEvent={handlePinchGesture}
-              onHandlerStateChange={handlePinchGestureStateChange}
-            >
-              <ScrollView
-                contentContainerStyle={styles.imageModalScrollContent}
-                showsVerticalScrollIndicator={false}
-                showsHorizontalScrollIndicator={false}
-                bounces={true}
-                scrollEnabled={imageZoom > 1}
-              >
-                {selectedImage && (
-                  <View
-                    style={{
-                      transform: [{ scale: imageZoom }],
-                    }}
-                  >
-                    <ExpoImage
-                      source={selectedImage}
-                      style={[
-                        styles.imageModalImage,
-                        imageDimensions
-                          ? {
-                              width: imageDimensions.width,
-                              height: imageDimensions.height,
-                            }
-                          : {
-                              width: screenWidth,
-                              height: screenHeight * 0.7,
-                            },
-                      ]}
-                      contentFit='contain'
-                      cachePolicy='memory-disk'
-                      onLoad={e => {
-                        const { width, height } = e.source;
-                        if (width && height) {
-                          // Use full original image dimensions (no size limits)
-                          setImageDimensions({ width, height });
-                        }
-                      }}
-                    />
-                  </View>
-                )}
-              </ScrollView>
-            </PinchGestureHandler>
-          </SafeAreaView>
-        </GestureHandlerRootView>
-      </Modal>
+      <ImageViewerModal
+        imageUri={selectedImage}
+        onClose={handleCloseImageModal}
+      />
     </View>
   );
 }
@@ -1954,41 +1818,4 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // Image viewer modal styles
-  imageModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-  },
-  imageModalHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    zIndex: 10,
-  },
-  imageModalCloseButton: {
-    padding: 4,
-  },
-  imageModalZoomControls: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  imageModalZoomButton: {
-    padding: 4,
-  },
-  imageModalScrollContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: Dimensions.get('window').height,
-  },
-  imageModalImage: {
-    // Width and height set dynamically based on zoom
-  },
 });
