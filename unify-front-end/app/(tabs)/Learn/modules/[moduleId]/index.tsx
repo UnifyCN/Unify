@@ -1003,8 +1003,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 10, // Slightly reduced padding
-    marginLeft: 16, // Explicit gap from timeline
+    padding: 10,
+    marginLeft: 16,
     borderWidth: 1,
     borderColor: '#E5E5E5',
     shadowColor: '#000',
@@ -1012,15 +1012,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
+    justifyContent: 'center',
   },
   cardLocked: {
     opacity: 0.5,
   },
   cardTitle: {
-    fontSize: 16, // Reduced font size
+    fontSize: 16,
     fontWeight: '600',
     color: '#1A1A1A',
-    marginBottom: 2,
   },
   cardTitleOpened: {
     color: '#FFFFFF',
