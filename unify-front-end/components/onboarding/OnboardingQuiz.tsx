@@ -16,12 +16,12 @@ import OnboardingProgress from './OnboardingProgress';
 import WelcomeStep from './WelcomeStep';
 import SingleSelectQuestion from './SingleSelectQuestion';
 import MultiSelectQuestion from './MultiSelectQuestion';
-import FloatingTagSelect from './FloatingTagSelect';
 import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
 import { supabase } from '@/lib/supabase';
 import MonthPicker from './MonthPicker';
+import LocationStep from './LocationStep';
 import {
   Persona,
   ReferralSource,
@@ -29,33 +29,15 @@ import {
   LearningInterest,
   Hobby,
 } from '@/types/onboardingProfile';
-import { useAnalytics } from '@/utils/analytics';
-import { registerForPushNotifications } from '@/services/push/pushNotifications';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
-  isRedo?: boolean;
 }
 
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 11;
 
-const STEP_NAMES: Record<number, string> = {
-  1: 'welcome',
-  2: 'persona',
-  3: 'referral_source',
-  4: 'arrival_date',
-  5: 'goals',
-  6: 'learning_interests',
-  7: 'hobbies',
-  8: 'reminders',
-  9: 'outcomes',
-  10: 'thank_you',
-};
-
-export default function OnboardingQuiz({ onComplete, isRedo = false }: OnboardingQuizProps) {
+export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
-  const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
-    useAnalytics();
   const insets = useSafeAreaInsets();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -81,6 +63,8 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
   >(null);
   const [hobbies, setHobbies] = useState<Hobby[]>([]);
   const [wantsReminders, setWantsReminders] = useState<boolean | null>(null);
+  const [city, setCity] = useState<string | null>(null);
+  const [province, setProvince] = useState<string | null>(null);
 
   // Validation errors
   const [errors, setErrors] = useState<Record<number, string>>({});
@@ -164,6 +148,18 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
           return false;
         }
         break;
+      case 11: // Location
+        if (!city) {
+          newErrors[11] = 'Please select a city';
+          setErrors(newErrors);
+          return false;
+        }
+        if (!province) {
+          newErrors[11] = 'Please select a province';
+          setErrors(newErrors);
+          return false;
+        }
+        break;
     }
 
     setErrors({});
@@ -173,19 +169,6 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
   const handleNext = () => {
     if (!validateStep(currentStep)) {
       return;
-    }
-
-    trackOnboardingStepCompleted(
-      currentStep,
-      STEP_NAMES[currentStep] || `step_${currentStep}`
-    );
-
-    // Always request push permission at step 8 — social notifications always send.
-    // The reminders toggle only controls learn reminders (server-side).
-    if (currentStep === 8) {
-      registerForPushNotifications().catch(err => {
-        console.error('Push registration from onboarding failed:', err);
-      });
     }
 
     if (currentStep < TOTAL_STEPS) {
@@ -233,6 +216,8 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
           referral_source: referralSource,
           referral_source_other: referralSourceOther,
           arrival_date: arrivalDate,
+          city,
+          province,
           goals,
           goals_other: goalsOther,
           learning_interests: learningInterests,
@@ -243,7 +228,6 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         },
       });
 
-      trackOnboardingCompleted(persona);
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
@@ -284,7 +268,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <WelcomeStep onNext={handleNext} isRedo={isRedo} />;
+        return <WelcomeStep onNext={handleNext} />;
       case 2:
         return (
           <SingleSelectQuestion
@@ -352,7 +336,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         );
       case 5:
         return (
-          <FloatingTagSelect
+          <MultiSelectQuestion
             question='What do you want to accomplish? (Select all that apply)'
             options={[
               {
@@ -362,12 +346,12 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
               },
               {
                 value: 'build_community',
-                label: 'Build community & friends',
+                label: 'Build a community & make friends',
                 icon: 'users',
               },
               {
                 value: 'quick_answers',
-                label: 'Quick answers',
+                label: 'Quick, trustworthy answers to my questions',
                 icon: 'zap',
               },
               {
@@ -387,8 +371,8 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         );
       case 6:
         return (
-          <FloatingTagSelect
-            question='Which topics interest you? (Select all that apply)'
+          <MultiSelectQuestion
+            question='Which topic would you like to explore? (Select all that apply)'
             options={[
               {
                 value: 'documents',
@@ -441,8 +425,8 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         );
       case 7:
         return (
-          <FloatingTagSelect
-            question='What are your hobbies? (Select all that apply)'
+          <MultiSelectQuestion
+            question='What are your hobbies and interests? (Select all that apply)'
             options={[
               {
                 value: 'career_growth',
@@ -499,7 +483,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
             selectedValues={hobbies}
             otherValue={null}
             onToggle={value => toggleHobby(value as Hobby)}
-            onOtherChange={() => {}}
+            onOtherChange={() => {}} // No "other" option for this question
             required={false}
           />
         );
@@ -510,9 +494,8 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
               Want gentle reminders so you don't miss important steps?
             </Text>
             <Text style={styles.subtitle}>
-              You'll always get notified about likes, comments, and follows.
-              This controls learning reminders — nudges about lessons you
-              started but haven't finished.
+              We can nudge you about key deadlines and new lessons—only when
+              it's useful.
             </Text>
             {errors[8] && <Text style={styles.errorText}>{errors[8]}</Text>}
             <View style={styles.optionsContainer}>
@@ -578,7 +561,17 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
       case 9:
         return <OutcomesStep />;
       case 10:
-        return <ThankYouStep isRedo={isRedo} />;
+        return <ThankYouStep />;
+      case 11:
+        return (
+          <LocationStep
+            selectedCity={city}
+            selectedProvince={province}
+            onCityChange={setCity}
+            onProvinceChange={setProvince}
+            error={errors[11]}
+          />
+        );
       default:
         return null;
     }
@@ -588,7 +581,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
 
   return (
     <View style={styles.root}>
-      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} skipSafeArea={isRedo} />
+      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -600,7 +593,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
       <View
         style={[styles.navContainer, { paddingBottom: 20 + insets.bottom }]}
       >
-        {currentStep > 1 && currentStep < 10 && (
+        {currentStep > 1 && currentStep < 11 && (
           <TouchableOpacity
             style={styles.navButton}
             onPress={handleBack}
@@ -650,6 +643,28 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
         )}
         {currentStep === 10 && (
           <TouchableOpacity
+            style={[
+              styles.nextButton,
+              styles.finalStepButton,
+              isLoading && styles.nextButtonDisabled,
+            ]}
+            onPress={handleNext}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={Theme.white} />
+            ) : (
+              <>
+                <Text style={[styles.nextButtonText, styles.finalStepText]}>
+                  Continue
+                </Text>
+                <Feather name='chevron-right' size={24} color={Theme.white} />
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+        {currentStep === 11 && (
+          <TouchableOpacity
             style={[styles.nextButton, isLoading && styles.nextButtonDisabled]}
             onPress={handleSubmit}
             disabled={isLoading}
@@ -658,7 +673,7 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>{isRedo ? 'Save Changes' : 'Explore Unify'}</Text>
+                <Text style={styles.nextButtonText}>Explore Unify</Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
