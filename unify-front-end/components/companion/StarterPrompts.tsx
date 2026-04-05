@@ -11,6 +11,7 @@ import { Theme } from '@/constants/Theme';
 
 interface StarterPromptsProps {
   onPromptSelect: (prompt: string, mode?: string) => void;
+  personalizedStarters?: string[];
 }
 
 interface StarterCard {
@@ -177,6 +178,7 @@ const selectRandomStarters = (): StarterCard[] => {
 
 export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   onPromptSelect,
+  personalizedStarters,
 }) => {
   // Select random topic starters once on mount
   const topicStarters = useMemo(() => selectRandomStarters(), []);
@@ -189,6 +191,28 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
 
   return (
     <View style={styles.container}>
+      {personalizedStarters && personalizedStarters.length > 0 && (
+        <View style={styles.personalizedContainer}>
+          {personalizedStarters.map((starter, index) => (
+            <TouchableOpacity
+              key={`personalized-${index}`}
+              style={styles.personalizedCard}
+              onPress={() => onPromptSelect(starter)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.personalizedText} numberOfLines={2}>
+                {starter}
+              </Text>
+              <Feather
+                name='arrow-up-right'
+                size={14}
+                color={Theme.surfaceBlue}
+              />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -270,5 +294,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Theme.textInput,
     lineHeight: 16,
+  },
+  personalizedContainer: {
+    paddingHorizontal: 20,
+    gap: 8,
+    marginBottom: 8,
+  },
+  personalizedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#4F7BCB40',
+    backgroundColor: '#4F7BCB08',
+    gap: 8,
+  },
+  personalizedText: {
+    flex: 1,
+    fontSize: 14,
+    color: Theme.black,
+    lineHeight: 19,
   },
 });
