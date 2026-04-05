@@ -24,8 +24,7 @@ const updatePostList = (
   posts: PostData[],
   postId: number,
   updater: (post: PostData) => PostData
-) =>
-  posts.map(post => (post.id === postId ? updater(post) : post));
+) => posts.map(post => (post.id === postId ? updater(post) : post));
 
 export const updatePostAcrossCaches = (
   queryClient: QueryClient,

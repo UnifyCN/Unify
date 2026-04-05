@@ -72,7 +72,8 @@ export default function TabLayout() {
     <>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme === 'light' ? 'light' : 'dark'].tint,
+          tabBarActiveTintColor:
+            Colors[colorScheme === 'light' ? 'light' : 'dark'].tint,
           tabBarShowLabel: false,
           headerShown: false,
           tabBarStyle: HIDDEN_TAB_BAR_ROUTES.some(route =>

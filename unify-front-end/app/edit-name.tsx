@@ -73,7 +73,7 @@ export default function EditNamePage() {
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
       >
         <Text style={styles.label}>Name</Text>
         <View style={styles.inputContainer}>

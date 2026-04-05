@@ -28,14 +28,14 @@ const MenuRow = ({ icon, label, onPress, isLast = false }: MenuRowProps) => (
       !isLast && styles.menuRowBorder,
       pressed && styles.menuRowPressed,
     ]}
-    accessibilityRole="button"
+    accessibilityRole='button'
     accessibilityLabel={label}
   >
     <View style={styles.menuRowLeft}>
-      <Feather name={icon} size={20} color="#333" />
+      <Feather name={icon} size={20} color='#333' />
       <Text style={styles.menuRowLabel}>{label}</Text>
     </View>
-    <Feather name="chevron-right" size={20} color="#999" />
+    <Feather name='chevron-right' size={20} color='#999' />
   </Pressable>
 );
 
@@ -76,34 +76,35 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
         />
         <Text style={styles.username}>@{currentUser.username}</Text>
         <Text style={styles.counts}>
-          {followerCount} followers{'  '}·{'  '}{followingCount} following
+          {followerCount} followers{'  '}·{'  '}
+          {followingCount} following
         </Text>
       </View>
 
       <View style={styles.menuSection}>
         <MenuRow
-          icon="user"
-          label="Profile"
+          icon='user'
+          label='Profile'
           onPress={() => navigate(`/profile?userId=${currentUser.id}`)}
         />
         <MenuRow
-          icon="bookmark"
-          label="Saved"
+          icon='bookmark'
+          label='Saved'
           onPress={() => navigate('/saved')}
         />
         <MenuRow
-          icon="book"
-          label="Saved from Learn"
+          icon='book'
+          label='Saved from Learn'
           onPress={() => navigate('/saved-lessons')}
         />
         <MenuRow
-          icon="message-circle"
-          label="Give Feedback"
+          icon='message-circle'
+          label='Give Feedback'
           onPress={handleFeedback}
         />
         <MenuRow
-          icon="settings"
-          label="Settings"
+          icon='settings'
+          label='Settings'
           onPress={() => navigate('/account-settings')}
           isLast
         />

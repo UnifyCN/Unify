@@ -33,7 +33,8 @@ export async function fetchWithRetry(
       } else if (init.signal.aborted) {
         controller.abort(init.signal.reason);
       } else {
-        const abortWithCallerReason = () => controller.abort(init.signal?.reason);
+        const abortWithCallerReason = () =>
+          controller.abort(init.signal?.reason);
         init.signal.addEventListener('abort', abortWithCallerReason, {
           once: true,
         });
@@ -60,7 +61,10 @@ export async function fetchWithRetry(
       lastError = error;
 
       // If the caller's signal triggered the abort, rethrow immediately — don't retry.
-      if (init?.signal?.aborted || (error instanceof DOMException && error.name === 'AbortError')) {
+      if (
+        init?.signal?.aborted ||
+        (error instanceof DOMException && error.name === 'AbortError')
+      ) {
         throw error;
       }
 

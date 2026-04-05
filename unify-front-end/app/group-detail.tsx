@@ -39,7 +39,6 @@ import GroupMembersSheet from '@/components/groups/GroupMembersSheet';
 const DESTRUCTIVE_RED = '#DC3545';
 
 const GroupDetailScreen = () => {
-  
   const isFocused = useIsFocused();
   const { group, groupName } = useLocalSearchParams();
   const [groupData, setGroupData] = useState<Group | null>(
@@ -54,10 +53,11 @@ const GroupDetailScreen = () => {
   const queryClient = useQueryClient();
   const { trackGroupViewed, trackGroupJoined, trackGroupLeft } = useAnalytics();
 
-
   const [membersOpen, setMembersOpen] = useState(false);
-  const { data: members = [], refetch: refetchMembers } = useGroupMembers(groupData?.id);
-  
+  const { data: members = [], refetch: refetchMembers } = useGroupMembers(
+    groupData?.id
+  );
+
   // Update groupData when group param changes
   useEffect(() => {
     if (group) {
@@ -128,7 +128,7 @@ const GroupDetailScreen = () => {
     return () => {
       mounted = false;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupName, groupData]);
 
   // posts for this group
@@ -212,7 +212,9 @@ const GroupDetailScreen = () => {
     } finally {
       queryClient.resetQueries({ queryKey: ['feed', 'groups'] });
       queryClient.invalidateQueries({ queryKey: ['available-groups'] });
-      queryClient.invalidateQueries({ queryKey: ['group-members', groupData.id] });
+      queryClient.invalidateQueries({
+        queryKey: ['group-members', groupData.id],
+      });
       setJoining(false);
     }
   };
@@ -339,11 +341,11 @@ const GroupDetailScreen = () => {
 
             {members.length > 0 && (
               <View style={{ marginBottom: 8 }}>
-              <GroupMemberAvatarStack
-                members={members}
-                totalCount={groupData.memberCount}
-                onPress={() => setMembersOpen(true)}
-              />
+                <GroupMemberAvatarStack
+                  members={members}
+                  totalCount={groupData.memberCount}
+                  onPress={() => setMembersOpen(true)}
+                />
               </View>
             )}
 

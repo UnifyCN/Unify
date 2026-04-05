@@ -62,7 +62,9 @@ export default function LegalConsentModal({
     onCancel();
   };
 
-  const openDocument = (doc: 'privacyPolicy' | 'communityGuidelines' | 'termsOfService') => {
+  const openDocument = (
+    doc: 'privacyPolicy' | 'communityGuidelines' | 'termsOfService'
+  ) => {
     setWebViewDoc(doc);
   };
 

@@ -41,11 +41,7 @@ export default function LessonPageSkeletonLoader() {
     style?: object;
   }) => (
     <Animated.View
-      style={[
-        styles.skeleton,
-        { width, height, borderRadius, opacity },
-        style,
-      ]}
+      style={[styles.skeleton, { width, height, borderRadius, opacity }, style]}
     />
   );
 
@@ -56,7 +52,12 @@ export default function LessonPageSkeletonLoader() {
       </View>
 
       <View style={styles.content}>
-        <Skeleton width='68%' height={34} borderRadius={10} style={styles.title} />
+        <Skeleton
+          width='68%'
+          height={34}
+          borderRadius={10}
+          style={styles.title}
+        />
 
         <View style={styles.paragraphBlock}>
           <Skeleton width='100%' height={18} />

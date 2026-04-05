@@ -12,7 +12,10 @@ const targetPath = path.join(
 );
 
 const replacements = [
-  ['public class ${className}: ModulesProvider {', 'class ${className}: ModulesProvider {'],
+  [
+    'public class ${className}: ModulesProvider {',
+    'class ${className}: ModulesProvider {',
+  ],
   [
     '  public override func getModuleClasses() -> [AnyModule.Type] {',
     '  override func getModuleClasses() -> [AnyModule.Type] {',
@@ -31,11 +34,12 @@ const replacements = [
   ],
 ];
 
-const escapeRegExp = value =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 if (!fs.existsSync(targetPath)) {
-  console.warn(`Skipping Expo autolinking patch, file not found: ${targetPath}`);
+  console.warn(
+    `Skipping Expo autolinking patch, file not found: ${targetPath}`
+  );
   process.exit(0);
 }
 

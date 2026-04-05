@@ -52,7 +52,10 @@ const STEP_NAMES: Record<number, string> = {
   10: 'thank_you',
 };
 
-export default function OnboardingQuiz({ onComplete, isRedo = false }: OnboardingQuizProps) {
+export default function OnboardingQuiz({
+  onComplete,
+  isRedo = false,
+}: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
   const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
     useAnalytics();
@@ -588,7 +591,11 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
 
   return (
     <View style={styles.root}>
-      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} skipSafeArea={isRedo} />
+      <OnboardingProgress
+        currentStep={currentStep}
+        totalSteps={TOTAL_STEPS}
+        skipSafeArea={isRedo}
+      />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -658,7 +665,9 @@ export default function OnboardingQuiz({ onComplete, isRedo = false }: Onboardin
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>{isRedo ? 'Save Changes' : 'Explore Unify'}</Text>
+                <Text style={styles.nextButtonText}>
+                  {isRedo ? 'Save Changes' : 'Explore Unify'}
+                </Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}

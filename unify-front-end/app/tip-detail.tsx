@@ -1,4 +1,11 @@
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
@@ -80,12 +87,27 @@ const TipDetailScreen = () => {
           end={{ x: 1, y: 1 }}
           style={styles.categoryHeader}
         >
-          <View style={[styles.iconCircle, { backgroundColor: config.accent + '18' }]}>
-            <Feather name={config.icon as any} size={24} color={config.accent} />
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: config.accent + '18' },
+            ]}
+          >
+            <Feather
+              name={config.icon as any}
+              size={24}
+              color={config.accent}
+            />
           </View>
-          <View style={[styles.categoryBadge, { backgroundColor: config.accent + '14' }]}>
+          <View
+            style={[
+              styles.categoryBadge,
+              { backgroundColor: config.accent + '14' },
+            ]}
+          >
             <Text style={[styles.categoryText, { color: config.accent }]}>
-              {tipData.category.charAt(0).toUpperCase() + tipData.category.slice(1)}
+              {tipData.category.charAt(0).toUpperCase() +
+                tipData.category.slice(1)}
             </Text>
           </View>
         </LinearGradient>
@@ -122,7 +144,11 @@ const TipDetailScreen = () => {
                 }}
                 style={styles.sourceItem}
               >
-                <Feather name='external-link' size={14} color={Theme.surfaceBlue} />
+                <Feather
+                  name='external-link'
+                  size={14}
+                  color={Theme.surfaceBlue}
+                />
                 <Text style={styles.sourceText}>{ref.document_title}</Text>
               </TouchableOpacity>
             ))}

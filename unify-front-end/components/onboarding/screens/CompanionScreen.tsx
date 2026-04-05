@@ -23,12 +23,22 @@ const CONTAINER_H = 415 * S;
 
 function UserBubble() {
   return (
-    <View style={[styles.userBubble, {
-      maxWidth: 225 * S,
-      borderRadius: 14 * S,
-      padding: 12 * S,
-    }]}>
-      <Text style={[styles.userBubbleText, { fontSize: 12.5 * S, lineHeight: 17 * S }]}>
+    <View
+      style={[
+        styles.userBubble,
+        {
+          maxWidth: 225 * S,
+          borderRadius: 14 * S,
+          padding: 12 * S,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          styles.userBubbleText,
+          { fontSize: 12.5 * S, lineHeight: 17 * S },
+        ]}
+      >
         I'm an international student who just arrived to Canada. Can you explain
         the BC transit system to me?
       </Text>
@@ -38,13 +48,20 @@ function UserBubble() {
 
 function AIResponse() {
   return (
-    <View style={[styles.aiResponse, {
-      width: 263 * S,
-      height: 260 * S,
-      borderRadius: 16 * S,
-      padding: 16 * S,
-    }]}>
-      <Text style={[styles.aiHeading, { fontSize: 14 * S, marginBottom: 8 * S }]}>
+    <View
+      style={[
+        styles.aiResponse,
+        {
+          width: 263 * S,
+          height: 260 * S,
+          borderRadius: 16 * S,
+          padding: 16 * S,
+        },
+      ]}
+    >
+      <Text
+        style={[styles.aiHeading, { fontSize: 14 * S, marginBottom: 8 * S }]}
+      >
         At a Glance
       </Text>
       <Text style={[styles.aiBody, { fontSize: 11.5 * S, lineHeight: 16 * S }]}>
@@ -52,12 +69,20 @@ function AIResponse() {
         Express, primarily managed by TransLink in Metro Vancouver; it's
         important for getting around, especially if you don't have a car.
       </Text>
-      <Text style={[styles.aiHeading, { fontSize: 14 * S, marginTop: 14 * S, marginBottom: 6 * S }]}>
+      <Text
+        style={[
+          styles.aiHeading,
+          { fontSize: 14 * S, marginTop: 14 * S, marginBottom: 6 * S },
+        ]}
+      >
         What You Need to Know
       </Text>
-      <Text style={[styles.aiBody, { fontSize: 11.5 * S, lineHeight: 16 * S }]} numberOfLines={2}>
-        <Text style={styles.aiBold}>TransLink:</Text> Operates most public transit
-        in Metro Vancouver including buses, SkyTrain, and SeaBus...
+      <Text
+        style={[styles.aiBody, { fontSize: 11.5 * S, lineHeight: 16 * S }]}
+        numberOfLines={2}
+      >
+        <Text style={styles.aiBold}>TransLink:</Text> Operates most public
+        transit in Metro Vancouver including buses, SkyTrain, and SeaBus...
       </Text>
     </View>
   );
@@ -75,34 +100,56 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <View style={[styles.featureCard, {
-      width: 159 * S,
-      height: 89 * S,
-      borderRadius: 12 * S,
-      paddingHorizontal: 10 * S,
-      paddingVertical: 8 * S,
-      gap: 10 * S,
-    }]}>
-      <View style={[styles.featureCardHeader, { height: 29 * S, borderRadius: 4 * S }]}>
-        <View style={[styles.featureIcon, {
-          width: 29 * S,
-          height: 29 * S,
-          borderRadius: 4 * S,
-          backgroundColor: iconBg,
-        }]}>
-          <Ionicons name={iconName} size={14.5 * S} color="#fff" />
+    <View
+      style={[
+        styles.featureCard,
+        {
+          width: 159 * S,
+          height: 89 * S,
+          borderRadius: 12 * S,
+          paddingHorizontal: 10 * S,
+          paddingVertical: 8 * S,
+          gap: 10 * S,
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.featureCardHeader,
+          { height: 29 * S, borderRadius: 4 * S },
+        ]}
+      >
+        <View
+          style={[
+            styles.featureIcon,
+            {
+              width: 29 * S,
+              height: 29 * S,
+              borderRadius: 4 * S,
+              backgroundColor: iconBg,
+            },
+          ]}
+        >
+          <Ionicons name={iconName} size={14.5 * S} color='#fff' />
         </View>
-        <Text style={[styles.featureTitle, { fontSize: 12 * S, marginLeft: 8 * S }]}>
+        <Text
+          style={[styles.featureTitle, { fontSize: 12 * S, marginLeft: 8 * S }]}
+        >
           {title}
         </Text>
         <Ionicons
-          name="chevron-forward"
+          name='chevron-forward'
           size={8 * S}
-          color="#000"
+          color='#000'
           style={{ marginLeft: 'auto' }}
         />
       </View>
-      <Text style={[styles.featureDescription, { fontSize: 12 * S, lineHeight: 14.5 * S }]}>
+      <Text
+        style={[
+          styles.featureDescription,
+          { fontSize: 12 * S, lineHeight: 14.5 * S },
+        ]}
+      >
         {description}
       </Text>
     </View>
@@ -112,50 +159,75 @@ function FeatureCard({
 export default function CompanionScreen() {
   return (
     <View style={styles.container}>
-      <View style={[styles.cardsContainer, { width: CONTAINER_W, height: CONTAINER_H }]}>
+      <View
+        style={[
+          styles.cardsContainer,
+          { width: CONTAINER_W, height: CONTAINER_H },
+        ]}
+      >
         {/* User message bubble — right aligned */}
-        <View style={[styles.cardPosition, {
-          right: 0,
-          top: 0,
-          zIndex: 1,
-        }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            {
+              right: 0,
+              top: 0,
+              zIndex: 1,
+            },
+          ]}
+        >
           <UserBubble />
         </View>
 
         {/* AI response card */}
-        <View style={[styles.cardPosition, {
-          left: 0,
-          top: 88 * S,
-          zIndex: 1,
-        }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            {
+              left: 0,
+              top: 88 * S,
+              zIndex: 1,
+            },
+          ]}
+        >
           <AIResponse />
         </View>
 
         {/* Ask Anything card */}
-        <View style={[styles.cardPosition, {
-          left: 0,
-          top: 319 * S,
-          zIndex: 2,
-        }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            {
+              left: 0,
+              top: 319 * S,
+              zIndex: 2,
+            },
+          ]}
+        >
           <FeatureCard
-            iconName="chatbubble"
-            iconBg="#F4B9DF"
-            title="Ask Anything"
-            description="Get answers to any immigration question"
+            iconName='chatbubble'
+            iconBg='#F4B9DF'
+            title='Ask Anything'
+            description='Get answers to any immigration question'
           />
         </View>
 
         {/* Form Help card */}
-        <View style={[styles.cardPosition, {
-          left: 173 * S,
-          top: 319 * S,
-          zIndex: 2,
-        }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            {
+              left: 173 * S,
+              top: 319 * S,
+              zIndex: 2,
+            },
+          ]}
+        >
           <FeatureCard
-            iconName="document-text"
-            iconBg="#F6A94C"
-            title="Form Help"
-            description="Receive step-by-step guidance on any form"
+            iconName='document-text'
+            iconBg='#F6A94C'
+            title='Form Help'
+            description='Receive step-by-step guidance on any form'
           />
         </View>
       </View>

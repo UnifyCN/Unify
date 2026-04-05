@@ -1,19 +1,22 @@
 // @ts-nocheck We do not need the actual Deno import since it's used by supabase serverless functions so ignore
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { captureAiGeneration, computeGeminiCost } from "../_shared/posthogCapture.ts";
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  captureAiGeneration,
+  computeGeminiCost,
+} from '../_shared/posthogCapture.ts';
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-const GEMINI_MODEL = Deno.env.get("GEMINI_MODEL") || "gemini-2.0-flash";
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Content-Type": "application/json",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, apikey, content-type',
+  'Content-Type': 'application/json',
 };
 
 function jsonResponse(body: Record<string, unknown>, status = 200) {
@@ -32,33 +35,33 @@ Your audience has recently arrived in Canada and may not be familiar with Canadi
 
 Respond ONLY with the explanation text — no formatting, no headers, no bullet points.`;
 
-Deno.serve(async (req) => {
+Deno.serve(async req => {
   // CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
   }
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return jsonResponse({ error: "Missing Supabase env vars" }, 500);
+    return jsonResponse({ error: 'Missing Supabase env vars' }, 500);
   }
 
   if (!GEMINI_API_KEY) {
-    return jsonResponse({ error: "Missing GEMINI_API_KEY" }, 500);
+    return jsonResponse({ error: 'Missing GEMINI_API_KEY' }, 500);
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
     // Validate auth
-    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!token) {
-      return jsonResponse({ error: "Unauthorized" }, 401);
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     const { data: authData, error: userError } =
       await supabase.auth.getUser(token);
     if (userError || !authData?.user) {
-      return jsonResponse({ error: "Invalid user" }, 401);
+      return jsonResponse({ error: 'Invalid user' }, 401);
     }
 
     // Parse request body
@@ -66,20 +69,20 @@ Deno.serve(async (req) => {
     const { term } = body;
     let { lessonContext } = body;
 
-    if (!term || typeof term !== "string" || term.trim().length === 0) {
-      return jsonResponse({ error: "Missing or empty term" }, 400);
+    if (!term || typeof term !== 'string' || term.trim().length === 0) {
+      return jsonResponse({ error: 'Missing or empty term' }, 400);
     }
 
     if (term.length > 500) {
-      return jsonResponse({ error: "Term too long (max 500 chars)" }, 400);
+      return jsonResponse({ error: 'Term too long (max 500 chars)' }, 400);
     }
 
     // Validate and bound lessonContext
     if (lessonContext != null) {
-      if (typeof lessonContext !== "string") {
+      if (typeof lessonContext !== 'string') {
         lessonContext = undefined;
       } else {
-        lessonContext = lessonContext.trim().replace(/\s+/g, " ");
+        lessonContext = lessonContext.trim().replace(/\s+/g, ' ');
         if (lessonContext.length === 0) {
           lessonContext = undefined;
         } else if (lessonContext.length > 500) {
@@ -100,13 +103,13 @@ Deno.serve(async (req) => {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
       {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
           contents: [
             {
-              role: "user",
+              role: 'user',
               parts: [{ text: userPrompt }],
             },
           ],
@@ -125,15 +128,15 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       console.error(`Gemini API error: ${response.status}`);
-      return jsonResponse({ error: "AI service unavailable" }, 502);
+      return jsonResponse({ error: 'AI service unavailable' }, 502);
     }
 
     const data = await response.json();
     const explanation =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
     if (!explanation) {
-      return jsonResponse({ error: "No explanation generated" }, 502);
+      return jsonResponse({ error: 'No explanation generated' }, 502);
     }
 
     // Send $ai_generation event to PostHog LLM analytics
@@ -145,7 +148,7 @@ Deno.serve(async (req) => {
 
       captureAiGeneration(authData.user.id, {
         $ai_model: GEMINI_MODEL,
-        $ai_provider: "google",
+        $ai_provider: 'google',
         $ai_input_tokens: inputTokens,
         $ai_output_tokens: outputTokens,
         $ai_total_tokens: usageMetadata.totalTokenCount || 0,
@@ -153,17 +156,17 @@ Deno.serve(async (req) => {
         $ai_output_cost_usd: cost.outputCost,
         $ai_total_cost_usd: cost.totalCost,
         // Custom properties for filtering
-        feature: "ask_ai_learn",
+        feature: 'ask_ai_learn',
         term_length: term.length,
       });
     }
 
     return jsonResponse({ explanation });
   } catch (error) {
-    if (error.name === "AbortError") {
-      return jsonResponse({ error: "Request timed out" }, 504);
+    if (error.name === 'AbortError') {
+      return jsonResponse({ error: 'Request timed out' }, 504);
     }
-    console.error("explain-term error:", error);
-    return jsonResponse({ error: "Internal server error" }, 500);
+    console.error('explain-term error:', error);
+    return jsonResponse({ error: 'Internal server error' }, 500);
   }
 });

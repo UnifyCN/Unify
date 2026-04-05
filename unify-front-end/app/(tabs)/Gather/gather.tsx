@@ -284,7 +284,7 @@ export default function GatherScreen() {
 
   return (
     <View style={styles.root}>
-      <TabHeader variant="minimal" title="Community" />
+      <TabHeader variant='minimal' title='Community' />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView

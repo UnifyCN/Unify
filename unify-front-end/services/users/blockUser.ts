@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase';
 
-export const blockUser = async (blockedUserId: string): Promise<{ success: boolean }> => {
+export const blockUser = async (
+  blockedUserId: string
+): Promise<{ success: boolean }> => {
   const {
     data: { session },
     error: authError,

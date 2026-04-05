@@ -436,7 +436,10 @@ export async function getModuleProgress(
         authError?.name === 'AuthSessionMissingError' ||
         authError?.message?.includes('Auth session missing');
       if (!isSessionMissing) {
-        console.error('Exception getting user in getModuleProgress:', authError);
+        console.error(
+          'Exception getting user in getModuleProgress:',
+          authError
+        );
       }
       return null;
     }

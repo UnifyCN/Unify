@@ -622,9 +622,7 @@ export default function RichTextRenderer({
 
         return (
           <View key={block._key || index} style={containerStyle}>
-            <Text style={listTextStyle}>
-              {displayBullet}{' '}
-            </Text>
+            <Text style={listTextStyle}>{displayBullet} </Text>
             <SelectableText
               blockKey={block._key || `block-${index}`}
               highlights={getBlockHighlights(block, index)}
@@ -1455,10 +1453,7 @@ export default function RichTextRenderer({
 
   return (
     <View
-      style={[
-        styles.container,
-        compactContainer && { flex: 0, paddingTop: 0 },
-      ]}
+      style={[styles.container, compactContainer && { flex: 0, paddingTop: 0 }]}
     >
       {blocks
         .map((block, index) => {

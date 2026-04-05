@@ -43,7 +43,15 @@ interface ImageViewerModalProps {
   };
 }
 
-function ZoomableImage({ uri, screenWidth, screenHeight }: { uri: string; screenWidth: number; screenHeight: number }) {
+function ZoomableImage({
+  uri,
+  screenWidth,
+  screenHeight,
+}: {
+  uri: string;
+  screenWidth: number;
+  screenHeight: number;
+}) {
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
@@ -110,12 +118,22 @@ function ZoomableImage({ uri, screenWidth, screenHeight }: { uri: string; screen
 
   return (
     <GestureDetector gesture={withDoubleTap}>
-      <Animated.View style={[{ width: screenWidth, height: screenHeight, justifyContent: 'center' as const, alignItems: 'center' as const }, animatedStyle]}>
+      <Animated.View
+        style={[
+          {
+            width: screenWidth,
+            height: screenHeight,
+            justifyContent: 'center' as const,
+            alignItems: 'center' as const,
+          },
+          animatedStyle,
+        ]}
+      >
         <Image
           source={{ uri }}
           style={{ width: screenWidth, height: screenHeight * 0.7 }}
-          contentFit="contain"
-          cachePolicy="memory-disk"
+          contentFit='contain'
+          cachePolicy='memory-disk'
         />
       </Animated.View>
     </GestureDetector>
@@ -191,12 +209,21 @@ export default function ImageViewerModal({
     dismissOpacity.value = 1;
   }, [initialIndex, dismissY, dismissOpacity]);
 
-  const slideStyle = { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, justifyContent: 'center' as const, alignItems: 'center' as const };
+  const slideStyle = {
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+  };
 
   const renderImage = useCallback(
     ({ item }: { item: string }) => (
       <View style={slideStyle}>
-        <ZoomableImage uri={item} screenWidth={SCREEN_WIDTH} screenHeight={SCREEN_HEIGHT} />
+        <ZoomableImage
+          uri={item}
+          screenWidth={SCREEN_WIDTH}
+          screenHeight={SCREEN_HEIGHT}
+        />
       </View>
     ),
     [SCREEN_WIDTH, SCREEN_HEIGHT]
@@ -206,35 +233,35 @@ export default function ImageViewerModal({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType='fade'
       statusBarTranslucent
       onRequestClose={onClose}
       onShow={handleShow}
-      presentationStyle={
-        Platform.OS === 'ios' ? 'overFullScreen' : undefined
-      }
+      presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
     >
       <GestureHandlerRootView style={styles.container}>
         {visible && (
           <StatusBar
-            barStyle="light-content"
-            backgroundColor="transparent"
+            barStyle='light-content'
+            backgroundColor='transparent'
             translucent
             hidden={Platform.OS === 'ios'}
           />
         )}
 
         {/* Dark backdrop */}
-        <Animated.View
-          style={[styles.backdrop, backdropAnimatedStyle]}
-        />
+        <Animated.View style={[styles.backdrop, backdropAnimatedStyle]} />
 
         {/* Dismissible image area */}
         <GestureDetector gesture={dismissGesture}>
           <Animated.View style={[styles.content, dismissAnimatedStyle]}>
             {imageUrls.length === 1 ? (
               <View style={slideStyle}>
-                <ZoomableImage uri={imageUrls[0]} screenWidth={SCREEN_WIDTH} screenHeight={SCREEN_HEIGHT} />
+                <ZoomableImage
+                  uri={imageUrls[0]}
+                  screenWidth={SCREEN_WIDTH}
+                  screenHeight={SCREEN_HEIGHT}
+                />
               </View>
             ) : (
               <FlatList
@@ -260,7 +287,7 @@ export default function ImageViewerModal({
         {/* Header overlay */}
         <View
           style={[styles.header, { paddingTop: insets.top + 8 }]}
-          pointerEvents="box-none"
+          pointerEvents='box-none'
         >
           <View style={styles.headerLeft}>
             {author && (
@@ -288,7 +315,7 @@ export default function ImageViewerModal({
               hitSlop={12}
               style={styles.closeButton}
             >
-              <Feather name="x" size={22} color={Theme.white} />
+              <Feather name='x' size={22} color={Theme.white} />
             </Pressable>
           </View>
         </View>

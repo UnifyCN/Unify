@@ -2,13 +2,21 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
-import { captureAiGeneration, computeGeminiCost } from '../_shared/posthogCapture.ts';
+import {
+  captureAiGeneration,
+  computeGeminiCost,
+} from '../_shared/posthogCapture.ts';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const PERSONAS = ['international_student', 'skilled_worker', 'refugee', 'other'] as const;
+const PERSONAS = [
+  'international_student',
+  'skilled_worker',
+  'refugee',
+  'other',
+] as const;
 const STAGES = ['0', '1', '2', '3', '4'] as const;
 const BATCH_SIZE = 5;
 
@@ -42,8 +50,14 @@ interface GeneratedTip {
 }
 
 const VALID_CATEGORIES = [
-  'documents', 'finance', 'housing', 'employment',
-  'healthcare', 'immigration', 'settlement', 'general',
+  'documents',
+  'finance',
+  'housing',
+  'employment',
+  'healthcare',
+  'immigration',
+  'settlement',
+  'general',
 ];
 
 function buildTopicQuery(persona: string, stage: string): string {
@@ -98,7 +112,12 @@ function parseGeminiTipResponse(rawText: string): GeneratedTip | null {
 
     const parsed = JSON.parse(cleaned);
 
-    if (!parsed.category || !parsed.title || !parsed.description || !parsed.tip_text) {
+    if (
+      !parsed.category ||
+      !parsed.title ||
+      !parsed.description ||
+      !parsed.tip_text
+    ) {
       console.error('Missing required fields in tip response');
       return null;
     }
@@ -115,7 +134,12 @@ function parseGeminiTipResponse(rawText: string): GeneratedTip | null {
       tip_text: String(parsed.tip_text).slice(0, 200),
     };
   } catch (error) {
-    console.error('Failed to parse tip JSON:', error, 'Raw:', rawText.slice(0, 300));
+    console.error(
+      'Failed to parse tip JSON:',
+      error,
+      'Raw:',
+      rawText.slice(0, 300)
+    );
     return null;
   }
 }
@@ -302,21 +326,19 @@ async function generateTipForCohort(
   }
 
   // Step 4: Upsert into daily_tips
-  const { error: upsertError } = await supabase
-    .from('daily_tips')
-    .upsert(
-      {
-        persona,
-        stage,
-        date,
-        category: tip.category,
-        title: tip.title,
-        description: tip.description,
-        tip_text: tip.tip_text,
-        source_refs: sourceRefs,
-      },
-      { onConflict: 'persona,stage,date' }
-    );
+  const { error: upsertError } = await supabase.from('daily_tips').upsert(
+    {
+      persona,
+      stage,
+      date,
+      category: tip.category,
+      title: tip.title,
+      description: tip.description,
+      tip_text: tip.tip_text,
+      source_refs: sourceRefs,
+    },
+    { onConflict: 'persona,stage,date' }
+  );
 
   if (upsertError) {
     console.error(`[${cohortKey}] DB upsert error:`, upsertError);
@@ -374,15 +396,20 @@ Deno.serve(async (req: Request) => {
 
     const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiApiKey) {
-      return new Response(JSON.stringify({ error: 'GEMINI_API_KEY not configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: 'GEMINI_API_KEY not configured' }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY') || null;
     if (!openaiApiKey) {
-      console.warn('OPENAI_API_KEY not set — generating tips without RAG grounding');
+      console.warn(
+        'OPENAI_API_KEY not set — generating tips without RAG grounding'
+      );
     }
 
     const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
@@ -445,7 +472,9 @@ Deno.serve(async (req: Request) => {
   } catch (error) {
     console.error('Fatal error in generate-daily-tips:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

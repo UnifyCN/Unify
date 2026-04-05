@@ -21,13 +21,20 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const TOTAL_STEPS = 4;
 
-const SCREENS = [BelongingScreen, ChecklistScreen, CompanionScreen, LearnScreen];
+const SCREENS = [
+  BelongingScreen,
+  ChecklistScreen,
+  CompanionScreen,
+  LearnScreen,
+];
 
 interface PreLoginOnboardingProps {
   onFinish: () => void;
 }
 
-export default function PreLoginOnboarding({ onFinish }: PreLoginOnboardingProps) {
+export default function PreLoginOnboarding({
+  onFinish,
+}: PreLoginOnboardingProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -43,7 +50,10 @@ export default function PreLoginOnboarding({ onFinish }: PreLoginOnboardingProps
   const handleBack = useCallback(() => {
     if (currentStep > 0) {
       const prevStep = currentStep - 1;
-      scrollViewRef.current?.scrollTo({ x: prevStep * SCREEN_WIDTH, animated: true });
+      scrollViewRef.current?.scrollTo({
+        x: prevStep * SCREEN_WIDTH,
+        animated: true,
+      });
       setCurrentStep(prevStep);
     }
   }, [currentStep]);
@@ -53,7 +63,10 @@ export default function PreLoginOnboarding({ onFinish }: PreLoginOnboardingProps
       handleFinish();
     } else {
       const nextStep = currentStep + 1;
-      scrollViewRef.current?.scrollTo({ x: nextStep * SCREEN_WIDTH, animated: true });
+      scrollViewRef.current?.scrollTo({
+        x: nextStep * SCREEN_WIDTH,
+        animated: true,
+      });
       setCurrentStep(nextStep);
     }
   }, [currentStep, handleFinish]);
@@ -61,7 +74,10 @@ export default function PreLoginOnboarding({ onFinish }: PreLoginOnboardingProps
   const handleScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      const step = Math.max(0, Math.min(Math.round(offsetX / SCREEN_WIDTH), TOTAL_STEPS - 1));
+      const step = Math.max(
+        0,
+        Math.min(Math.round(offsetX / SCREEN_WIDTH), TOTAL_STEPS - 1)
+      );
       setCurrentStep(step);
     },
     []
@@ -116,7 +132,10 @@ export default function PreLoginOnboarding({ onFinish }: PreLoginOnboardingProps
 
         {/* Pagination dots */}
         <View style={styles.paginationWrapper}>
-          <OnboardingPagination totalSteps={TOTAL_STEPS} currentStep={currentStep} />
+          <OnboardingPagination
+            totalSteps={TOTAL_STEPS}
+            currentStep={currentStep}
+          />
         </View>
       </View>
     </SafeAreaView>

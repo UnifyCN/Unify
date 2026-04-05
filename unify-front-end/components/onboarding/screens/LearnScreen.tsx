@@ -27,34 +27,60 @@ interface SubjectCardProps {
   borderRadius: number;
 }
 
-function SubjectCard({ color, iconName, title, sections, width, height, borderRadius }: SubjectCardProps) {
+function SubjectCard({
+  color,
+  iconName,
+  title,
+  sections,
+  width,
+  height,
+  borderRadius,
+}: SubjectCardProps) {
   const w = width * S;
   const h = height * S;
   const r = borderRadius * S;
 
   return (
-    <View style={[styles.subjectCard, { width: w, height: h, borderRadius: r, backgroundColor: color }]}>
+    <View
+      style={[
+        styles.subjectCard,
+        { width: w, height: h, borderRadius: r, backgroundColor: color },
+      ]}
+    >
       {/* Decorative blob approximation */}
       <View
-        style={[styles.blob, {
-          width: w * 0.7,
-          height: w * 0.7,
-          borderRadius: w * 0.35,
-          backgroundColor: 'rgba(255,255,255,0.12)',
-          top: -w * 0.25,
-          left: -w * 0.15,
-        }]}
+        style={[
+          styles.blob,
+          {
+            width: w * 0.7,
+            height: w * 0.7,
+            borderRadius: w * 0.35,
+            backgroundColor: 'rgba(255,255,255,0.12)',
+            top: -w * 0.25,
+            left: -w * 0.15,
+          },
+        ]}
       />
 
       {/* Icon — top right */}
       <View style={[styles.iconContainer, { top: 10 * S, right: 14 * S }]}>
-        <Ionicons name={iconName} size={28 * S} color="rgba(255,255,255,0.85)" />
+        <Ionicons
+          name={iconName}
+          size={28 * S}
+          color='rgba(255,255,255,0.85)'
+        />
       </View>
 
       {/* Title + sections — bottom left */}
-      <View style={[styles.cardTextContainer, { left: 14 * S, bottom: 10 * S }]}>
-        <Text style={[styles.cardTitle, { fontSize: 18 * (h / 118) }]}>{title}</Text>
-        <Text style={[styles.cardSections, { fontSize: 14 * (h / 118) }]}>{sections}</Text>
+      <View
+        style={[styles.cardTextContainer, { left: 14 * S, bottom: 10 * S }]}
+      >
+        <Text style={[styles.cardTitle, { fontSize: 18 * (h / 118) }]}>
+          {title}
+        </Text>
+        <Text style={[styles.cardSections, { fontSize: 14 * (h / 118) }]}>
+          {sections}
+        </Text>
       </View>
     </View>
   );
@@ -63,14 +89,19 @@ function SubjectCard({ color, iconName, title, sections, width, height, borderRa
 export default function LearnScreen() {
   return (
     <View style={styles.container}>
-      <View style={[styles.cardsContainer, { width: CONTAINER_W, height: CONTAINER_H }]}>
+      <View
+        style={[
+          styles.cardsContainer,
+          { width: CONTAINER_W, height: CONTAINER_H },
+        ]}
+      >
         {/* Finance — top left */}
         <View style={[styles.cardPosition, { left: 0, top: 0, zIndex: 1 }]}>
           <SubjectCard
-            color="#2FA43C"
-            iconName="business-outline"
-            title="Finance"
-            sections="8 Sections"
+            color='#2FA43C'
+            iconName='business-outline'
+            title='Finance'
+            sections='8 Sections'
             width={172}
             height={118}
             borderRadius={20}
@@ -78,12 +109,17 @@ export default function LearnScreen() {
         </View>
 
         {/* Employment — middle right */}
-        <View style={[styles.cardPosition, { left: 205 * S, top: 68 * S, zIndex: 1 }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            { left: 205 * S, top: 68 * S, zIndex: 1 },
+          ]}
+        >
           <SubjectCard
-            color="#985DBB"
-            iconName="person-outline"
-            title="Employment"
-            sections="5 Sections"
+            color='#985DBB'
+            iconName='person-outline'
+            title='Employment'
+            sections='5 Sections'
             width={169}
             height={116}
             borderRadius={20}
@@ -91,12 +127,17 @@ export default function LearnScreen() {
         </View>
 
         {/* Housing — lower left */}
-        <View style={[styles.cardPosition, { left: 18 * S, top: 195 * S, zIndex: 1 }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            { left: 18 * S, top: 195 * S, zIndex: 1 },
+          ]}
+        >
           <SubjectCard
-            color="#E78D42"
-            iconName="home-outline"
-            title="Housing"
-            sections="3 Sections"
+            color='#E78D42'
+            iconName='home-outline'
+            title='Housing'
+            sections='3 Sections'
             width={149}
             height={102}
             borderRadius={17}
@@ -104,12 +145,17 @@ export default function LearnScreen() {
         </View>
 
         {/* Documentation — bottom right */}
-        <View style={[styles.cardPosition, { left: 225 * S, top: 235 * S, zIndex: 1 }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            { left: 225 * S, top: 235 * S, zIndex: 1 },
+          ]}
+        >
           <SubjectCard
-            color="#2C7ACD"
-            iconName="document-text-outline"
-            title="Documentation"
-            sections="5 Sections"
+            color='#2C7ACD'
+            iconName='document-text-outline'
+            title='Documentation'
+            sections='5 Sections'
             width={203}
             height={139}
             borderRadius={24}

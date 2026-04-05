@@ -18,8 +18,7 @@ export default function ThankYouStep({ isRedo = false }: ThankYouStepProps) {
         <Text style={styles.headline}>
           {isRedo ? (
             <>
-              Profile{' '}
-              <Text style={styles.headlineItalic}>updated</Text>
+              Profile <Text style={styles.headlineItalic}>updated</Text>
             </>
           ) : (
             <>
@@ -30,7 +29,7 @@ export default function ThankYouStep({ isRedo = false }: ThankYouStepProps) {
         </Text>
         <Text style={styles.body}>
           {isRedo
-            ? "Your preferences have been updated. Your Checklist and Companion responses will now reflect your latest answers."
+            ? 'Your preferences have been updated. Your Checklist and Companion responses will now reflect your latest answers.'
             : "You're all set to start exploring Unify. We'll keep working to make your journey easier!"}
         </Text>
       </View>

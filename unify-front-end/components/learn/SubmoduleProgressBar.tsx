@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Save from '@/assets/images/Save.svg';
@@ -64,7 +70,10 @@ export default function SubmoduleProgressBar({
               {bookmarkLoading ? (
                 <ActivityIndicator size='small' color='#878787' />
               ) : isBookmarked ? (
-                <Save_Fill width={BOOKMARK_ICON_SIZE} height={BOOKMARK_ICON_SIZE} />
+                <Save_Fill
+                  width={BOOKMARK_ICON_SIZE}
+                  height={BOOKMARK_ICON_SIZE}
+                />
               ) : (
                 <Save width={BOOKMARK_ICON_SIZE} height={BOOKMARK_ICON_SIZE} />
               )}

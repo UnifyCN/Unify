@@ -77,7 +77,7 @@ async function sendExpoPush(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(batch),
         signal: controller.signal,
@@ -93,7 +93,11 @@ async function sendExpoPush(
           for (let j = 0; j < result.data.length; j++) {
             const ticket = result.data[j];
             if (ticket.status === 'error') {
-              console.error('send-learn-reminders: ticket error', ticket.message, ticket.details);
+              console.error(
+                'send-learn-reminders: ticket error',
+                ticket.message,
+                ticket.details
+              );
               if (ticket.details?.error === 'DeviceNotRegistered') {
                 staleTokens.push(batch[j].to);
               } else {
@@ -152,7 +156,8 @@ Deno.serve(async (req: Request) => {
   // and notification preferences
   const { data: candidates, error: queryError } = await supabase
     .from('user_lesson_progress')
-    .select(`
+    .select(
+      `
       id,
       user_id,
       sanity_lesson_id,
@@ -160,7 +165,8 @@ Deno.serve(async (req: Request) => {
       sanity_module_id,
       last_accessed_at,
       reminder_tier
-    `)
+    `
+    )
     .eq('is_in_progress', true)
     .eq('is_completed', false)
     .lt('reminder_tier', 3);
@@ -236,10 +242,13 @@ Deno.serve(async (req: Request) => {
   // Get push tokens for opted-in users
   const eligibleUserIds = userIds.filter(id => optedInUsers.has(id));
   if (!eligibleUserIds.length) {
-    return new Response(JSON.stringify({ ok: true, sent: 0, skipped: 'all_opted_out' }), {
-      status: 200,
-      headers: JSON_HEADERS,
-    });
+    return new Response(
+      JSON.stringify({ ok: true, sent: 0, skipped: 'all_opted_out' }),
+      {
+        status: 200,
+        headers: JSON_HEADERS,
+      }
+    );
   }
 
   const { data: tokenRows } = await supabase
@@ -293,14 +302,20 @@ Deno.serve(async (req: Request) => {
   }
 
   // Send push notifications and determine which candidates succeeded
-  let deliveryResult: PushDeliveryResult = { staleTokens: [], failedTokens: [] };
+  let deliveryResult: PushDeliveryResult = {
+    staleTokens: [],
+    failedTokens: [],
+  };
   const rowUpdates: Array<{ id: string; tier: number }> = [];
 
   if (messages.length > 0) {
     deliveryResult = await sendExpoPush(messages);
 
     // Only mark candidates as delivered if none of their tokens failed
-    const failedSet = new Set([...deliveryResult.staleTokens, ...deliveryResult.failedTokens]);
+    const failedSet = new Set([
+      ...deliveryResult.staleTokens,
+      ...deliveryResult.failedTokens,
+    ]);
     const succeededCandidateIds = new Set<string>();
     for (let i = 0; i < messages.length; i++) {
       if (!failedSet.has(messages[i].to)) {
@@ -324,9 +339,14 @@ Deno.serve(async (req: Request) => {
       .delete()
       .in('token', deliveryResult.staleTokens);
     if (deleteError) {
-      console.error('send-learn-reminders: failed to delete stale tokens', deleteError);
+      console.error(
+        'send-learn-reminders: failed to delete stale tokens',
+        deleteError
+      );
     } else {
-      console.log(`send-learn-reminders: cleaned ${deliveryResult.staleTokens.length} stale token(s)`);
+      console.log(
+        `send-learn-reminders: cleaned ${deliveryResult.staleTokens.length} stale token(s)`
+      );
     }
   }
 
@@ -349,7 +369,11 @@ Deno.serve(async (req: Request) => {
       .in('id', ids);
 
     if (updateError) {
-      console.error('send-learn-reminders: batch update error tier', tier, updateError);
+      console.error(
+        'send-learn-reminders: batch update error tier',
+        tier,
+        updateError
+      );
     }
   }
 
@@ -358,7 +382,11 @@ Deno.serve(async (req: Request) => {
   );
 
   return new Response(
-    JSON.stringify({ ok: true, sent: messages.length, lessons: rowUpdates.length }),
+    JSON.stringify({
+      ok: true,
+      sent: messages.length,
+      lessons: rowUpdates.length,
+    }),
     { status: 200, headers: JSON_HEADERS }
   );
 });

@@ -22,7 +22,11 @@ import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 import { SelectionProvider, useSelection } from '@/context/SelectionContext';
-import { usePageHighlights, useSaveHighlight, useDeleteHighlight } from '@/hooks/highlights/useHighlights';
+import {
+  usePageHighlights,
+  useSaveHighlight,
+  useDeleteHighlight,
+} from '@/hooks/highlights/useHighlights';
 import SelectionActionBubble from '@/components/learn/SelectionActionBubble';
 import ExplainTermModal from '@/components/learn/ExplainTermModal';
 
@@ -41,7 +45,12 @@ export default function LessonPageScreen() {
     lessonId: string;
     pageNum: string;
   }>();
-  const { trackScreen, trackLessonPageViewed, trackLessonHighlightCreated, trackLessonHighlightRemoved } = useAnalytics();
+  const {
+    trackScreen,
+    trackLessonPageViewed,
+    trackLessonHighlightCreated,
+    trackLessonHighlightRemoved,
+  } = useAnalytics();
   const { showToast } = useToast();
   const [showExitModal, setShowExitModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -76,9 +85,18 @@ export default function LessonPageScreen() {
 
   // Highlights
   const currentPageKey = currentPageData?._key || `page-${currentPage}`;
-  const { data: highlights } = usePageHighlights(lessonId || '', currentPageKey);
-  const saveHighlightMutation = useSaveHighlight(lessonId || '', currentPageKey);
-  const deleteHighlightMutation = useDeleteHighlight(lessonId || '', currentPageKey);
+  const { data: highlights } = usePageHighlights(
+    lessonId || '',
+    currentPageKey
+  );
+  const saveHighlightMutation = useSaveHighlight(
+    lessonId || '',
+    currentPageKey
+  );
+  const deleteHighlightMutation = useDeleteHighlight(
+    lessonId || '',
+    currentPageKey
+  );
 
   // Calculate progress for the progress bar - keep it static/offline
   const progress = calculateLessonProgress(
@@ -445,7 +463,9 @@ export default function LessonPageScreen() {
                 style={styles.modalSecondaryBtn}
                 onPress={handleContinue}
               >
-                <Text style={styles.modalSecondaryBtnText}>Continue Lesson</Text>
+                <Text style={styles.modalSecondaryBtnText}>
+                  Continue Lesson
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -486,15 +506,26 @@ function LessonPageContent({
   setAskAIVisible: (v: boolean) => void;
   askAITerm: string;
   setAskAITerm: (t: string) => void;
-  navContext: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number };
+  navContext: {
+    moduleId: string;
+    submoduleId: string;
+    submoduleTitle: string;
+    pageNum: number;
+  };
 }) {
   const { selection, clearSelection } = useSelection();
 
   const handleHighlight = useCallback(() => {
     if (!selection.startWord || !selection.endWord) return;
 
-    const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
-    const end = Math.max(selection.startWord.wordIndex, selection.endWord.wordIndex);
+    const start = Math.min(
+      selection.startWord.wordIndex,
+      selection.endWord.wordIndex
+    );
+    const end = Math.max(
+      selection.startWord.wordIndex,
+      selection.endWord.wordIndex
+    );
     const selectedText = selection.selectedText;
 
     saveHighlightMutation.mutate(
@@ -516,7 +547,14 @@ function LessonPageContent({
         },
       }
     );
-  }, [selection, saveHighlightMutation, lessonId, trackLessonHighlightCreated, clearSelection, navContext]);
+  }, [
+    selection,
+    saveHighlightMutation,
+    lessonId,
+    trackLessonHighlightCreated,
+    clearSelection,
+    navContext,
+  ]);
 
   const handleRemoveHighlight = useCallback(() => {
     if (!selection.existingHighlight) return;
@@ -530,7 +568,13 @@ function LessonPageContent({
         Alert.alert('Error', 'Failed to remove highlight. Please try again.');
       },
     });
-  }, [selection, deleteHighlightMutation, lessonId, trackLessonHighlightRemoved, clearSelection]);
+  }, [
+    selection,
+    deleteHighlightMutation,
+    lessonId,
+    trackLessonHighlightRemoved,
+    clearSelection,
+  ]);
 
   const handleAskAI = useCallback(() => {
     setAskAITerm(selection.selectedText);
