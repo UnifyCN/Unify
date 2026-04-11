@@ -54,7 +54,8 @@ create table if not exists public.learn_progress (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
   module_id text not null,
-  status text not null default 'not_started',
+  status text not null default 'not_started'
+    check (status in ('not_started', 'in_progress', 'completed')),
   completed_at timestamptz,
   unique (user_id, module_id)
 );
@@ -96,6 +97,7 @@ select
   count(distinct cc.user_id) as user_count
 from public.checklist_completions cc
 join public.user_onboarding_profiles p on p.id = cc.user_id
+where p.persona is not null and p.province is not null
 group by p.persona, p.province, cc.checklist_item_id
 having count(distinct cc.user_id) >= 5;
 
@@ -108,8 +110,14 @@ create index if not exists idx_learn_progress_user
 create index if not exists idx_checklist_completions_user
   on public.checklist_completions (user_id);
 
+create index if not exists idx_checklist_completions_item
+  on public.checklist_completions (checklist_item_id);
+
 create index if not exists idx_recommendation_events_user_date
   on public.recommendation_events (user_id, created_at);
+
+create index if not exists idx_recommendation_events_created_at
+  on public.recommendation_events (created_at);
 
 create unique index if not exists idx_social_proof_unique
   on public.social_proof_counts (persona, province, surface, item_id);
