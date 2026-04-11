@@ -5,12 +5,12 @@ export const getDailyTip = async (): Promise<DailyTip | null> => {
   const { data, error } = await supabase.functions.invoke('get-daily-tip');
 
   if (error) {
-    console.error('Error fetching daily tip:', error);
-    return null;
+    throw new Error(`Failed to fetch daily tip: ${error.message}`);
   }
 
   const tip = data?.tip;
   if (!tip) {
+    // No tip available (e.g. generation failed server-side) — not retryable
     return null;
   }
 
