@@ -300,12 +300,13 @@ Deno.serve(async (req: Request) => {
     const stage: string = profile?.stage || '0';
     const today = new Date().toISOString().split('T')[0];
 
-    // 3. Check if today's tip already exists
+    const userId = authData.user.id;
+
+    // 3. Check if today's tip already exists for this user
     const { data: existingTip, error: fetchError } = await supabase
       .from('daily_tips')
       .select('*')
-      .eq('persona', persona)
-      .eq('stage', stage)
+      .eq('user_id', userId)
       .eq('date', today)
       .maybeSingle();
 
@@ -357,11 +358,12 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'Failed to generate tip' }, 502);
     }
 
-    // 5. Upsert into daily_tips
+    // 5. Upsert into daily_tips (per-user, per-day)
     const { data: inserted, error: upsertError } = await supabase
       .from('daily_tips')
       .upsert(
         {
+          user_id: userId,
           persona,
           stage,
           date: today,
@@ -371,7 +373,7 @@ Deno.serve(async (req: Request) => {
           tip_text: tip.tip_text,
           source_refs: null,
         },
-        { onConflict: 'persona,stage,date' }
+        { onConflict: 'user_id,date' }
       )
       .select()
       .single();
@@ -381,7 +383,7 @@ Deno.serve(async (req: Request) => {
       // Return the generated tip even if storage fails
       return jsonResponse({
         tip: {
-          id: `generated-${persona}-${stage}-${today}`,
+          id: `generated-${userId}-${today}`,
           persona,
           stage,
           date: today,

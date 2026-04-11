@@ -7,21 +7,11 @@ export const getPastTips = async (): Promise<DailyTip[]> => {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-  // Get user's persona to fetch their cohort's past tips
-  const { data: profile } = await supabase
-    .from('user_onboarding_profiles')
-    .select('persona, stage')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  const persona = profile?.persona || 'other';
-
-  // Fetch tips for this persona across all stages so history persists
-  // even if the user's stage advances
+  // Fetch this user's own past tips (per-user storage)
   const { data, error } = await supabase
     .from('daily_tips')
     .select('*')
-    .eq('persona', persona)
+    .eq('user_id', user.id)
     .order('date', { ascending: false })
     .limit(30);
 
