@@ -1,4 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// @ts-ignore JSR import
+import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,7 +9,6 @@ const corsHeaders = {
 
 interface OnboardingProfile {
   persona: string | null;
-  persona_other: string | null;
   city: string | null;
   province: string | null;
   arrival_date: string | null;
@@ -136,7 +136,7 @@ Deno.serve(async (req: Request) => {
     const { data: profileData, error: profileError } = await supabaseClient
       .from('user_onboarding_profiles')
       .select(
-        'persona, persona_other, city, province, arrival_date, goals, learning_interests'
+        'persona, city, province, arrival_date, goals, learning_interests'
       )
       .eq('id', user.id)
       .maybeSingle();
@@ -150,7 +150,6 @@ Deno.serve(async (req: Request) => {
 
     const profile: OnboardingProfile = {
       persona: profileData.persona ?? null,
-      persona_other: profileData.persona_other ?? null,
       city: profileData.city ?? null,
       province: profileData.province ?? null,
       arrival_date: profileData.arrival_date ?? null,

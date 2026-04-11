@@ -43,7 +43,6 @@ import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarters';
-import { supabase } from '@/lib/supabase';
 
 const MESSAGE_LIMIT = 3;
 const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;

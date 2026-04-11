@@ -35,6 +35,6 @@ export const usePersonalizedStarters = () => {
   return useQuery<CompanionPersonalization | null, Error>({
     queryKey: ['personalizedStarters'],
     queryFn: fetchPersonalizedStarters,
-    enabled: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes — starters don't change often
   });
 };
