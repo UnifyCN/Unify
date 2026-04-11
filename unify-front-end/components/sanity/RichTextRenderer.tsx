@@ -12,6 +12,7 @@ import {
 import { Image as ExpoImage } from 'expo-image';
 import ImageViewerModal from '@/components/sanity/ImageViewerModal';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
+import ChecklistCheckboxBlock from '@/components/sanity/ChecklistCheckboxBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
 import SelectableText from '@/components/learn/SelectableText';
@@ -951,6 +952,17 @@ export default function RichTextRenderer({
             highlights={highlights}
           />
         </View>
+      );
+    }
+
+    if (block._type === 'checklist_checkbox') {
+      if (!block.label) return null;
+      return (
+        <ChecklistCheckboxBlock
+          key={block._key || index}
+          label={block.label}
+          defaultChecked={block.defaultChecked ?? false}
+        />
       );
     }
 
