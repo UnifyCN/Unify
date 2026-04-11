@@ -5,19 +5,12 @@ import { DailyTipCard } from '@/components/tips/DailyTipCard';
 import { DailyTip } from '@/types/dailyTip';
 import { Theme } from '@/constants/Theme';
 import { usePastTips } from '@/hooks/tips/usePastTips';
-import { useCurrentUser } from '@/context/UserContext';
-import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { Feather } from '@expo/vector-icons';
 
 const PastTipsScreen = () => {
   const router = useRouter();
-  const { currentUser } = useCurrentUser();
-  const { data: profile } = useOnboardingProfile(currentUser?.id);
-  const { data: tips, isLoading } = usePastTips(
-    profile?.persona ?? undefined,
-    profile?.stage ?? undefined
-  );
+  const { data: tips, isLoading } = usePastTips();
 
   const renderTipCard = ({ item }: { item: DailyTip }) => (
     <View style={styles.tipCardContainer}>
