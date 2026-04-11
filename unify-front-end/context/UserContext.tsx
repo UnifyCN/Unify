@@ -13,6 +13,8 @@ interface CurrentUser {
   profilePictureUrl?: string;
   isPremium: boolean;
   arrivalDate: string | null;
+  city: string | null;
+  province: string | null;
   stage: StageNumber;
   persona: Persona | null;
   personaOther: string | null;
@@ -86,6 +88,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           profilePictureUrl: effectiveUserInfo.profilePictureUrl,
           isPremium: effectiveUserInfo.isPremium,
           arrivalDate: effectiveUserInfo.arrivalDate,
+          city: effectiveUserInfo.city,
+          province: effectiveUserInfo.province,
           stage: effectiveUserInfo.stage,
           persona: effectiveUserInfo.persona,
           personaOther: effectiveUserInfo.personaOther,

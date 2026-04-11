@@ -15,6 +15,8 @@ export interface UserInfo {
   isPremium: boolean;
   permissions: string;
   arrivalDate: string | null;
+  city: string | null;
+  province: string | null;
   stage: StageNumber;
   persona: Persona | null;
   personaOther: string | null;
@@ -66,7 +68,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
         .single(),
       supabase
         .from('user_onboarding_profiles')
-        .select('arrival_date, stage, persona, persona_other')
+        .select('arrival_date, stage, persona, persona_other, city, province')
         .eq('id', targetUserId)
         .maybeSingle(),
       supabase
@@ -105,11 +107,15 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       arrival_date: string | null;
       persona: Persona | null;
       persona_other: string | null;
+      city: string | null;
+      province: string | null;
       stage: StageNumber | null;
     } = {
       arrival_date: onboardingData?.arrival_date ?? null,
       persona: onboardingData?.persona ?? null,
       persona_other: onboardingData?.persona_other ?? null,
+      city: onboardingData?.city ?? null,
+      province: onboardingData?.province ?? null,
       stage:
         onboardingData?.stage !== undefined && onboardingData?.stage !== null
           ? onboardingData.stage
@@ -169,6 +175,8 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       isPremium: userData.is_premium ?? false,
       permissions: userData.permissions ?? Permissions.USER,
       arrivalDate,
+      city: resolvedOnboarding?.city ?? null,
+      province: resolvedOnboarding?.province ?? null,
       stage: computedStage,
       persona: resolvedOnboarding?.persona ?? null,
       personaOther: resolvedOnboarding?.persona_other ?? null,
