@@ -18,7 +18,12 @@ export default function OnboardingProgress({
   const progress = (currentStep / totalSteps) * 100;
 
   return (
-    <View style={[styles.container, { paddingTop: skipSafeArea ? 10 : 25 + insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: skipSafeArea ? 10 : 25 + insets.top },
+      ]}
+    >
       <View style={styles.progressBarContainer}>
         <View style={[styles.progressBar, { width: `${progress}%` }]} />
       </View>

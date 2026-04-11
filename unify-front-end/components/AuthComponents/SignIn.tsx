@@ -286,13 +286,13 @@ export function SignIn({
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
         {/* Back button */}
         {onBack && (
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
-            <Ionicons name="chevron-back" size={24 * S} color="#000" />
+            <Ionicons name='chevron-back' size={24 * S} color='#000' />
           </Pressable>
         )}
 
@@ -309,9 +309,9 @@ export function SignIn({
         <View style={styles.fieldContainer}>
           <View style={styles.inputWithIconContainer}>
             <Ionicons
-              name="mail-outline"
+              name='mail-outline'
               size={20 * S}
-              color="#999"
+              color='#999'
               style={styles.fieldLeftIcon}
             />
             <SimpleTextField
@@ -320,17 +320,21 @@ export function SignIn({
                 setEmail(text);
                 validateEmail(text);
               }}
-              placeholder="Email Address"
-              placeholderTextColor="#999"
-              style={[styles.textField, styles.textFieldWithLeftIcon, errorMessage && styles.textFieldError]}
-              autoCapitalize="none"
-              keyboardType="email-address"
+              placeholder='Email Address'
+              placeholderTextColor='#999'
+              style={[
+                styles.textField,
+                styles.textFieldWithLeftIcon,
+                errorMessage && styles.textFieldError,
+              ]}
+              autoCapitalize='none'
+              keyboardType='email-address'
             />
             {isEmailValid && (
               <MaterialIcons
-                name="check-circle"
+                name='check-circle'
                 size={20 * S}
-                color="#333"
+                color='#333'
                 style={styles.fieldRightIcon}
               />
             )}
@@ -341,16 +345,16 @@ export function SignIn({
         <View style={styles.fieldContainer}>
           <View style={styles.inputWithIconContainer}>
             <Ionicons
-              name="lock-closed-outline"
+              name='lock-closed-outline'
               size={20 * S}
-              color="#999"
+              color='#999'
               style={styles.fieldLeftIcon}
             />
             <SimpleTextField
               value={password}
               onChangeText={setPassword}
-              placeholder="Password"
-              placeholderTextColor="#999"
+              placeholder='Password'
+              placeholderTextColor='#999'
               style={[
                 styles.textField,
                 styles.textFieldWithLeftIcon,
@@ -358,7 +362,7 @@ export function SignIn({
                 errorMessage && styles.textFieldError,
               ]}
               secureTextEntry={!passwordVisible}
-              autoCapitalize="none"
+              autoCapitalize='none'
             />
             <TouchableOpacity
               onPress={() => setPasswordVisible(!passwordVisible)}
@@ -367,7 +371,7 @@ export function SignIn({
               <MaterialIcons
                 name={passwordVisible ? 'visibility' : 'visibility-off'}
                 size={20 * S}
-                color="#999"
+                color='#999'
               />
             </TouchableOpacity>
           </View>
@@ -407,8 +411,8 @@ export function SignIn({
           <TouchableOpacity
             style={styles.socialIconButton}
             onPress={handleGoogleSignIn}
-            accessibilityLabel="Sign in with Google"
-            accessibilityRole="button"
+            accessibilityLabel='Sign in with Google'
+            accessibilityRole='button'
           >
             <Google width={24 * S} height={24 * S} />
           </TouchableOpacity>
@@ -416,10 +420,10 @@ export function SignIn({
             <TouchableOpacity
               style={styles.socialIconButton}
               onPress={handleAppleSignIn}
-              accessibilityLabel="Sign in with Apple"
-              accessibilityRole="button"
+              accessibilityLabel='Sign in with Apple'
+              accessibilityRole='button'
             >
-              <Ionicons name="logo-apple" size={26 * S} color="#000" />
+              <Ionicons name='logo-apple' size={26 * S} color='#000' />
             </TouchableOpacity>
           )}
         </View>
@@ -435,8 +439,8 @@ export function SignIn({
             onPress={() => Linking.openURL(LEGAL_URLS.termsOfService)}
           >
             Terms of Service
-          </Text>
-          {' '}and{' '}
+          </Text>{' '}
+          and{' '}
           <Text
             style={styles.legalLink}
             onPress={() => Linking.openURL(LEGAL_URLS.privacyPolicy)}

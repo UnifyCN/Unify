@@ -48,7 +48,7 @@ export default function GroupMembersSheet({
           >
             {section.key === 'mutuals' && (
               <Feather
-                name="users"
+                name='users'
                 size={14}
                 color={Theme.primaryGatherRed}
                 style={styles.sectionIcon}
@@ -65,10 +65,7 @@ export default function GroupMembersSheet({
           </View>
         )}
         renderItem={({ item, section }) => (
-          <GroupMemberRow
-            member={item}
-            highlight={section.key === 'mutuals'}
-          />
+          <GroupMemberRow member={item} highlight={section.key === 'mutuals'} />
         )}
         renderSectionFooter={({ section }) =>
           section.key === 'mutuals' ? (

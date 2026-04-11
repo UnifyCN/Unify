@@ -176,7 +176,8 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
                   editable={!submitting}
                   onFocus={() =>
                     setTimeout(
-                      () => scrollViewRef.current?.scrollToEnd({ animated: true }),
+                      () =>
+                        scrollViewRef.current?.scrollToEnd({ animated: true }),
                       300
                     )
                   }

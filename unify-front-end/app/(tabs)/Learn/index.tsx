@@ -215,10 +215,10 @@ export default function Learn() {
         </ScrollView>
       </View>
       <AnnouncementModal
-        storageKey="announcement.learnHighlights.v1"
-        title="New: Highlight & Ask AI"
+        storageKey='announcement.learnHighlights.v1'
+        title='New: Highlight & Ask AI'
         body="Long press any word or phrase in a lesson to highlight it or ask AI to explain it. Your highlights are saved under 'Saved from Learn' in your profile."
-        buttonLabel="Got it"
+        buttonLabel='Got it'
       />
     </View>
   );

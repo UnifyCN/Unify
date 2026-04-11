@@ -14,7 +14,12 @@ interface LikePostContext {
 export const useMutateLikePost = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<unknown, Error, { postId: number; isLiked: boolean }, LikePostContext>({
+  return useMutation<
+    unknown,
+    Error,
+    { postId: number; isLiked: boolean },
+    LikePostContext
+  >({
     mutationFn: async ({ postId, isLiked }) => {
       if (isLiked) {
         return await unlikePost(postId);

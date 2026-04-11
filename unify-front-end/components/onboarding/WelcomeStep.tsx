@@ -8,7 +8,10 @@ interface WelcomeStepProps {
   isRedo?: boolean;
 }
 
-export default function WelcomeStep({ onNext, isRedo = false }: WelcomeStepProps) {
+export default function WelcomeStep({
+  onNext,
+  isRedo = false,
+}: WelcomeStepProps) {
   return (
     <View style={styles.container}>
       <View style={styles.content}>

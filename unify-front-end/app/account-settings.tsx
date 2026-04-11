@@ -37,7 +37,9 @@ export default function AccountSettingsPage() {
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
   const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const queryClient = useQueryClient();
-  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean | null>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState<
+    boolean | null
+  >(null);
 
   // Track screen view on mount
   useEffect(() => {
@@ -53,7 +55,9 @@ export default function AccountSettingsPage() {
 
   const onLogout = async () => {
     try {
-      try { await unregisterPushToken(); } catch (e) {
+      try {
+        await unregisterPushToken();
+      } catch (e) {
         console.error('Failed to unregister push token on logout:', e);
       }
       await supabase.auth.signOut();
@@ -85,7 +89,9 @@ export default function AccountSettingsPage() {
 
   const deleteAccount = async () => {
     try {
-      try { await unregisterPushToken(); } catch (e) {
+      try {
+        await unregisterPushToken();
+      } catch (e) {
         console.error('Failed to unregister push token on delete:', e);
       }
       const { error } = await supabase.rpc('delete_user');
@@ -155,7 +161,10 @@ export default function AccountSettingsPage() {
   return (
     <View style={styles.container}>
       <BackHeader title='Settings' onBack={() => router.back()} />
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+      >
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <TouchableOpacity
@@ -208,7 +217,11 @@ export default function AccountSettingsPage() {
                 <Text style={styles.rowText}>Learning Reminders</Text>
               </View>
               <Pressable
-                onPress={notificationsEnabled !== null ? toggleNotifications : undefined}
+                onPress={
+                  notificationsEnabled !== null
+                    ? toggleNotifications
+                    : undefined
+                }
                 accessibilityRole='switch'
                 accessibilityState={{ checked: notificationsEnabled ?? false }}
                 accessibilityLabel='Learning Reminders'
@@ -218,7 +231,9 @@ export default function AccountSettingsPage() {
                   styles.toggleTrack,
                   notificationsEnabled === null
                     ? styles.toggleTrackOff
-                    : notificationsEnabled ? styles.toggleTrackOn : styles.toggleTrackOff,
+                    : notificationsEnabled
+                      ? styles.toggleTrackOn
+                      : styles.toggleTrackOff,
                   notificationsEnabled === null && { opacity: 0.5 },
                 ]}
               >

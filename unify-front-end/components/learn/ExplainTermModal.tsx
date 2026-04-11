@@ -75,7 +75,7 @@ export default function ExplainTermModal({
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType='fade'
       onRequestClose={onClose}
     >
       <TouchableOpacity
@@ -90,11 +90,11 @@ export default function ExplainTermModal({
         >
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <Feather name="help-circle" size={18} color="#6B7280" />
+              <Feather name='help-circle' size={18} color='#6B7280' />
               <Text style={styles.headerTitle}>What does this mean?</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={8}>
-              <Feather name="x" size={20} color="#9CA3AF" />
+              <Feather name='x' size={20} color='#9CA3AF' />
             </TouchableOpacity>
           </View>
 
@@ -105,7 +105,7 @@ export default function ExplainTermModal({
           <View style={styles.content}>
             {loading && (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color="#6B7280" />
+                <ActivityIndicator size='small' color='#6B7280' />
                 <Text style={styles.loadingText}>Getting explanation...</Text>
               </View>
             )}
@@ -117,8 +117,11 @@ export default function ExplainTermModal({
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-                  <Feather name="refresh-cw" size={14} color="#fff" />
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={handleRetry}
+                >
+                  <Feather name='refresh-cw' size={14} color='#fff' />
                   <Text style={styles.retryButtonText}>Try Again</Text>
                 </TouchableOpacity>
               </View>

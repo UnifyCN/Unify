@@ -1468,10 +1468,7 @@ export default function RichTextRenderer({
 
   return (
     <View
-      style={[
-        styles.container,
-        compactContainer && { flex: 0, paddingTop: 0 },
-      ]}
+      style={[styles.container, compactContainer && { flex: 0, paddingTop: 0 }]}
     >
       {blocks
         .map((block, index) => {

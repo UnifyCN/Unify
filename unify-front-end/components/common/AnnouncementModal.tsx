@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface AnnouncementModalProps {
@@ -60,12 +54,7 @@ export default function AnnouncementModal({
   if (visible !== true) return null;
 
   return (
-    <Modal
-      visible
-      transparent
-      animationType="fade"
-      onRequestClose={dismiss}
-    >
+    <Modal visible transparent animationType='fade' onRequestClose={dismiss}>
       <View style={styles.overlay}>
         <View style={styles.card}>
           <View style={styles.content}>

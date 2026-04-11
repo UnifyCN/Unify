@@ -77,7 +77,12 @@ export default function CreateCustomItemScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + Layout.header.topInsetOffset }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top + Layout.header.topInsetOffset },
+      ]}
+    >
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}

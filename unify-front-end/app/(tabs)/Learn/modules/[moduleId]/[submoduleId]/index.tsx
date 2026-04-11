@@ -495,7 +495,10 @@ export default function SubmoduleIndex() {
       <View
         style={[
           styles.header,
-          { backgroundColor: '#FFFFFF', paddingTop: insets.top + Layout.header.topInsetOffset },
+          {
+            backgroundColor: '#FFFFFF',
+            paddingTop: insets.top + Layout.header.topInsetOffset,
+          },
         ]}
       >
         <View style={styles.headerTopRow}>

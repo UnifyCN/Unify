@@ -284,20 +284,21 @@ export function SignUp({
     setLoading(false);
   };
 
-  const isFormValid = isEmailValid && !!password && !!confirmPassword && isChecked;
+  const isFormValid =
+    isEmailValid && !!password && !!confirmPassword && isChecked;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+        keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
         {/* Back button */}
         {onBack && (
           <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
-            <Ionicons name="chevron-back" size={24 * S} color="#000" />
+            <Ionicons name='chevron-back' size={24 * S} color='#000' />
           </Pressable>
         )}
 
@@ -314,9 +315,9 @@ export function SignUp({
         <View style={styles.fieldContainer}>
           <View style={styles.inputWithIconContainer}>
             <Ionicons
-              name="mail-outline"
+              name='mail-outline'
               size={20 * S}
-              color="#999"
+              color='#999'
               style={styles.fieldLeftIcon}
             />
             <SimpleTextField
@@ -325,21 +326,21 @@ export function SignUp({
                 setEmail(text);
                 validateEmail(text);
               }}
-              placeholder="Email Address"
-              placeholderTextColor="#999"
+              placeholder='Email Address'
+              placeholderTextColor='#999'
               style={[
                 styles.textField,
                 styles.textFieldWithLeftIcon,
                 errorMessage && styles.textFieldError,
               ]}
-              autoCapitalize="none"
-              keyboardType="email-address"
+              autoCapitalize='none'
+              keyboardType='email-address'
             />
             {isEmailValid && (
               <MaterialIcons
-                name="check-circle"
+                name='check-circle'
                 size={20 * S}
-                color="#333"
+                color='#333'
                 style={styles.fieldRightIcon}
               />
             )}
@@ -350,16 +351,16 @@ export function SignUp({
         <View style={styles.fieldContainer}>
           <View style={styles.inputWithIconContainer}>
             <Ionicons
-              name="lock-closed-outline"
+              name='lock-closed-outline'
               size={20 * S}
-              color="#999"
+              color='#999'
               style={styles.fieldLeftIcon}
             />
             <SimpleTextField
               value={password}
               onChangeText={setPassword}
-              placeholder="Password"
-              placeholderTextColor="#999"
+              placeholder='Password'
+              placeholderTextColor='#999'
               style={[
                 styles.textField,
                 styles.textFieldWithLeftIcon,
@@ -367,7 +368,7 @@ export function SignUp({
                 errorMessage && styles.textFieldError,
               ]}
               secureTextEntry={!passwordVisible}
-              autoCapitalize="none"
+              autoCapitalize='none'
             />
             <TouchableOpacity
               onPress={() => setPasswordVisible(!passwordVisible)}
@@ -376,7 +377,7 @@ export function SignUp({
               <MaterialIcons
                 name={passwordVisible ? 'visibility' : 'visibility-off'}
                 size={20 * S}
-                color="#999"
+                color='#999'
               />
             </TouchableOpacity>
           </View>
@@ -386,16 +387,16 @@ export function SignUp({
         <View style={styles.fieldContainer}>
           <View style={styles.inputWithIconContainer}>
             <Ionicons
-              name="lock-closed-outline"
+              name='lock-closed-outline'
               size={20 * S}
-              color="#999"
+              color='#999'
               style={styles.fieldLeftIcon}
             />
             <SimpleTextField
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder="Confirm Password"
-              placeholderTextColor="#999"
+              placeholder='Confirm Password'
+              placeholderTextColor='#999'
               style={[
                 styles.textField,
                 styles.textFieldWithLeftIcon,
@@ -403,7 +404,7 @@ export function SignUp({
                 errorMessage && styles.textFieldError,
               ]}
               secureTextEntry={!confirmPasswordVisible}
-              autoCapitalize="none"
+              autoCapitalize='none'
             />
             <TouchableOpacity
               onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
@@ -412,7 +413,7 @@ export function SignUp({
               <MaterialIcons
                 name={confirmPasswordVisible ? 'visibility' : 'visibility-off'}
                 size={20 * S}
-                color="#999"
+                color='#999'
               />
             </TouchableOpacity>
           </View>
@@ -429,11 +430,11 @@ export function SignUp({
             checked={isChecked}
             onPress={() => setIsChecked(!isChecked)}
             containerStyle={styles.checkboxContainer}
-            iconType="material-community"
-            checkedIcon="checkbox-marked"
-            uncheckedIcon="checkbox-blank-outline"
-            checkedColor="black"
-            uncheckedColor="black"
+            iconType='material-community'
+            checkedIcon='checkbox-marked'
+            uncheckedIcon='checkbox-blank-outline'
+            checkedColor='black'
+            uncheckedColor='black'
             wrapperStyle={styles.checkboxWrapper}
           />
           <Text style={styles.checkboxText}>
@@ -441,8 +442,8 @@ export function SignUp({
             <Text
               style={styles.checkboxLinkText}
               onPress={() => setWebViewDoc('termsOfService')}
-              accessibilityRole="link"
-              accessibilityLabel="Open Terms of Service"
+              accessibilityRole='link'
+              accessibilityLabel='Open Terms of Service'
             >
               Terms of Service
             </Text>
@@ -450,8 +451,8 @@ export function SignUp({
             <Text
               style={styles.checkboxLinkText}
               onPress={() => setWebViewDoc('privacyPolicy')}
-              accessibilityRole="link"
-              accessibilityLabel="Open Privacy Policy"
+              accessibilityRole='link'
+              accessibilityLabel='Open Privacy Policy'
             >
               Privacy Policy
             </Text>
@@ -459,8 +460,8 @@ export function SignUp({
             <Text
               style={styles.checkboxLinkText}
               onPress={() => setWebViewDoc('communityGuidelines')}
-              accessibilityRole="link"
-              accessibilityLabel="Open Community Guidelines"
+              accessibilityRole='link'
+              accessibilityLabel='Open Community Guidelines'
             >
               Community Guidelines
             </Text>
@@ -493,8 +494,8 @@ export function SignUp({
           <TouchableOpacity
             style={styles.socialIconButton}
             onPress={handleGoogleSignIn}
-            accessibilityLabel="Sign up with Google"
-            accessibilityRole="button"
+            accessibilityLabel='Sign up with Google'
+            accessibilityRole='button'
           >
             <Google width={24 * S} height={24 * S} />
           </TouchableOpacity>
@@ -502,17 +503,17 @@ export function SignUp({
             <TouchableOpacity
               style={styles.socialIconButton}
               onPress={handleAppleSignIn}
-              accessibilityLabel="Sign up with Apple"
-              accessibilityRole="button"
+              accessibilityLabel='Sign up with Apple'
+              accessibilityRole='button'
             >
-              <Ionicons name="logo-apple" size={26 * S} color="#000" />
+              <Ionicons name='logo-apple' size={26 * S} color='#000' />
             </TouchableOpacity>
           )}
         </View>
       </ScrollView>
 
       {/* Legal Document WebView Modal */}
-      <Modal visible={webViewDoc !== null} animationType="slide">
+      <Modal visible={webViewDoc !== null} animationType='slide'>
         {webViewDoc && (
           <LegalWebView
             url={LEGAL_URLS[webViewDoc]}

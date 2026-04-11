@@ -119,14 +119,11 @@ const PostDetails = () => {
   const [viewerUrls, setViewerUrls] = useState<string[]>([]);
   const [viewerIndex, setViewerIndex] = useState(0);
 
-  const handleImageViewerOpen = useCallback(
-    (urls: string[], index: number) => {
-      setViewerUrls(urls);
-      setViewerIndex(index);
-      setViewerVisible(true);
-    },
-    []
-  );
+  const handleImageViewerOpen = useCallback((urls: string[], index: number) => {
+    setViewerUrls(urls);
+    setViewerIndex(index);
+    setViewerVisible(true);
+  }, []);
 
   // Call all hooks unconditionally (before any early return) to avoid "Rendered more hooks than during the previous render"
   const [commentTextBox, setCommentTextBox] = useState('');

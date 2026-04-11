@@ -113,7 +113,14 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         ]
       );
     }
-  }, [blockStatusResolved, isBlockedUser, userId, blockMutation, unblockMutation, showToast]);
+  }, [
+    blockStatusResolved,
+    isBlockedUser,
+    userId,
+    blockMutation,
+    unblockMutation,
+    showToast,
+  ]);
 
   const reportButton = useMemo(() => {
     if (isCurrentUser) return null;
@@ -148,13 +155,26 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
       <TouchableOpacity
         style={styles.blockButton}
         onPress={handleBlockToggle}
-        disabled={!blockStatusResolved || blockMutation.isPending || unblockMutation.isPending}
+        disabled={
+          !blockStatusResolved ||
+          blockMutation.isPending ||
+          unblockMutation.isPending
+        }
         hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}
         accessibilityLabel={isBlockedUser ? 'Unblock user' : 'Block user'}
-        accessibilityRole="button"
-        accessibilityHint={isBlockedUser ? 'Unblocks this user so their posts appear in your feed' : 'Blocks this user and hides their posts from your feed'}
-        accessibilityState={{ disabled: !blockStatusResolved || blockMutation.isPending || unblockMutation.isPending }}
-        testID="block-user-button"
+        accessibilityRole='button'
+        accessibilityHint={
+          isBlockedUser
+            ? 'Unblocks this user so their posts appear in your feed'
+            : 'Blocks this user and hides their posts from your feed'
+        }
+        accessibilityState={{
+          disabled:
+            !blockStatusResolved ||
+            blockMutation.isPending ||
+            unblockMutation.isPending,
+        }}
+        testID='block-user-button'
       >
         <MaterialCommunityIcons
           name={isBlockedUser ? 'cancel' : 'block-helper'}
@@ -163,7 +183,14 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         />
       </TouchableOpacity>
     );
-  }, [isCurrentUser, isBlockedUser, blockStatusResolved, handleBlockToggle, blockMutation.isPending, unblockMutation.isPending]);
+  }, [
+    isCurrentUser,
+    isBlockedUser,
+    blockStatusResolved,
+    handleBlockToggle,
+    blockMutation.isPending,
+    unblockMutation.isPending,
+  ]);
 
   const renderTabContent = useMemo(() => {
     if (activeTab === 'Comments') {

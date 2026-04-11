@@ -1,5 +1,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {
+  createClient,
+  type SupabaseClient,
+} from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -43,7 +46,12 @@ async function sendExpoPushToUsers(
   data?: Record<string, unknown>,
   channelId?: string
 ): Promise<PushResult> {
-  const result: PushResult = { ok: true, successCount: 0, failureCount: 0, errors: [] };
+  const result: PushResult = {
+    ok: true,
+    successCount: 0,
+    failureCount: 0,
+    errors: [],
+  };
   if (!userIds.length) return result;
 
   const { data: tokens, error } = await supabase
@@ -53,7 +61,12 @@ async function sendExpoPushToUsers(
 
   if (error) {
     console.error('send-social-push: push_tokens', error);
-    return { ok: false, successCount: 0, failureCount: 0, errors: [{ token: '', error: error.message }] };
+    return {
+      ok: false,
+      successCount: 0,
+      failureCount: 0,
+      errors: [{ token: '', error: error.message }],
+    };
   }
   if (!tokens?.length) return result;
 
@@ -80,7 +93,7 @@ async function sendExpoPushToUsers(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(batch),
         signal: controller.signal,
@@ -100,10 +113,17 @@ async function sendExpoPushToUsers(
           for (let j = 0; j < ticketResult.data.length; j++) {
             const ticket = ticketResult.data[j];
             if (ticket.status === 'error') {
-              console.error('send-social-push: ticket error', ticket.message, ticket.details);
+              console.error(
+                'send-social-push: ticket error',
+                ticket.message,
+                ticket.details
+              );
               result.ok = false;
               result.failureCount++;
-              result.errors.push({ token: batch[j].to, error: ticket.details?.error ?? ticket.message });
+              result.errors.push({
+                token: batch[j].to,
+                error: ticket.details?.error ?? ticket.message,
+              });
               if (ticket.details?.error === 'DeviceNotRegistered') {
                 staleTokens.push(batch[j].to);
               }
@@ -139,9 +159,14 @@ async function sendExpoPushToUsers(
       .delete()
       .in('token', staleTokens);
     if (deleteError) {
-      console.error('send-social-push: failed to delete stale tokens', deleteError);
+      console.error(
+        'send-social-push: failed to delete stale tokens',
+        deleteError
+      );
     } else {
-      console.log(`send-social-push: cleaned ${staleTokens.length} stale token(s)`);
+      console.log(
+        `send-social-push: cleaned ${staleTokens.length} stale token(s)`
+      );
     }
   }
 
@@ -164,7 +189,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const jwt = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') ?? '';
+  const jwt =
+    req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') ?? '';
   if (!jwt) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
@@ -196,7 +222,11 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (typeof body !== 'object' || body === null || !('notification_id' in body)) {
+  if (
+    typeof body !== 'object' ||
+    body === null ||
+    !('notification_id' in body)
+  ) {
     return new Response(JSON.stringify({ error: 'Invalid request body' }), {
       status: 400,
       headers: JSON_HEADERS,
@@ -220,10 +250,13 @@ Deno.serve(async (req: Request) => {
 
   if (rowError) {
     console.error('send-social-push: load notification', rowError);
-    return new Response(JSON.stringify({ error: 'Failed to load notification' }), {
-      status: 500,
-      headers: JSON_HEADERS,
-    });
+    return new Response(
+      JSON.stringify({ error: 'Failed to load notification' }),
+      {
+        status: 500,
+        headers: JSON_HEADERS,
+      }
+    );
   }
 
   const notification = row as NotificationRow | null;
@@ -234,11 +267,22 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (!['liked', 'commented', 'followed', 'comment_liked', 'comment_reply'].includes(notification.type)) {
-    return new Response(JSON.stringify({ error: 'Unsupported notification type' }), {
-      status: 400,
-      headers: JSON_HEADERS,
-    });
+  if (
+    ![
+      'liked',
+      'commented',
+      'followed',
+      'comment_liked',
+      'comment_reply',
+    ].includes(notification.type)
+  ) {
+    return new Response(
+      JSON.stringify({ error: 'Unsupported notification type' }),
+      {
+        status: 400,
+        headers: JSON_HEADERS,
+      }
+    );
   }
 
   if (notification.triggered_by_user_id !== user.id) {
@@ -260,10 +304,13 @@ Deno.serve(async (req: Request) => {
 
   if (claimError) {
     console.error('send-social-push: claim error', claimError);
-    return new Response(JSON.stringify({ error: 'Failed to claim notification' }), {
-      status: 500,
-      headers: JSON_HEADERS,
-    });
+    return new Response(
+      JSON.stringify({ error: 'Failed to claim notification' }),
+      {
+        status: 500,
+        headers: JSON_HEADERS,
+      }
+    );
   }
 
   if (!claimed) {
@@ -289,12 +336,20 @@ Deno.serve(async (req: Request) => {
   }
 
   const actorUserId = dataPayload.actor_user_id;
-  if (['followed', 'comment_liked', 'comment_reply'].includes(notification.type) && typeof actorUserId === 'string' && actorUserId !== '') {
+  if (
+    ['followed', 'comment_liked', 'comment_reply'].includes(
+      notification.type
+    ) &&
+    typeof actorUserId === 'string' &&
+    actorUserId !== ''
+  ) {
     pushData.actor_user_id = actorUserId;
   }
 
   const commentId = dataPayload.comment_id;
-  if (['commented', 'comment_liked', 'comment_reply'].includes(notification.type)) {
+  if (
+    ['commented', 'comment_liked', 'comment_reply'].includes(notification.type)
+  ) {
     if (typeof commentId === 'number') pushData.comment_id = commentId;
     else if (typeof commentId === 'string' && commentId !== '') {
       const n = Number(commentId);
@@ -320,28 +375,38 @@ Deno.serve(async (req: Request) => {
       .update({ processing: false, processing_at: null })
       .eq('id', parsed.notification_id);
 
-    return new Response(JSON.stringify({
-      ok: false,
-      successCount: pushResult.successCount,
-      failureCount: pushResult.failureCount,
-      errors: pushResult.errors,
-    }), {
-      status: 502,
-      headers: JSON_HEADERS,
-    });
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        successCount: pushResult.successCount,
+        failureCount: pushResult.failureCount,
+        errors: pushResult.errors,
+      }),
+      {
+        status: 502,
+        headers: JSON_HEADERS,
+      }
+    );
   }
 
   // Mark as delivered on successful send
   await supabaseService
     .from('community_notifications')
-    .update({ delivered: true, delivered_at: new Date().toISOString(), processing: false })
+    .update({
+      delivered: true,
+      delivered_at: new Date().toISOString(),
+      processing: false,
+    })
     .eq('id', parsed.notification_id);
 
-  return new Response(JSON.stringify({
-    ok: true,
-    successCount: pushResult.successCount,
-  }), {
-    status: 200,
-    headers: JSON_HEADERS,
-  });
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      successCount: pushResult.successCount,
+    }),
+    {
+      status: 200,
+      headers: JSON_HEADERS,
+    }
+  );
 });

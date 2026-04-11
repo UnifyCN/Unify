@@ -59,7 +59,10 @@ function htmlToCleanText(html: string): string {
   text = text.replace(/<!--[\s\S]*?-->/g, '');
 
   // Convert common block elements to newlines for structure
-  text = text.replace(/<\/?(p|div|br|h[1-6]|li|tr|td|th|blockquote|section|article)[^>]*>/gi, '\n');
+  text = text.replace(
+    /<\/?(p|div|br|h[1-6]|li|tr|td|th|blockquote|section|article)[^>]*>/gi,
+    '\n'
+  );
 
   // Remove all remaining HTML tags
   text = text.replace(/<[^>]+>/g, '');
@@ -244,7 +247,9 @@ Deno.serve(async (req: Request) => {
 
       if (sourceErr || !sourceRow) {
         return new Response(
-          JSON.stringify({ error: `crawl_source_id ${capturedCrawlSourceId} not found` }),
+          JSON.stringify({
+            error: `crawl_source_id ${capturedCrawlSourceId} not found`,
+          }),
           { status: 400, headers: { 'Content-Type': 'application/json' } }
         );
       }
@@ -253,10 +258,13 @@ Deno.serve(async (req: Request) => {
       // Fallback for manual/ad-hoc calls — still validate against allowlist
       const bodyUrl = typeof body?.url === 'string' ? body.url : '';
       if (!bodyUrl) {
-        return new Response(JSON.stringify({ error: 'crawl_source_id or url is required' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        return new Response(
+          JSON.stringify({ error: 'crawl_source_id or url is required' }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
       }
       const { data: allowedSource } = await supabase
         .from('crawl_sources')
@@ -295,7 +303,9 @@ Deno.serve(async (req: Request) => {
       );
 
       if (!fetchResponse.ok) {
-        throw new Error(`HTTP ${fetchResponse.status}: ${fetchResponse.statusText}`);
+        throw new Error(
+          `HTTP ${fetchResponse.status}: ${fetchResponse.statusText}`
+        );
       }
 
       html = await fetchResponse.text();
@@ -510,7 +520,9 @@ Deno.serve(async (req: Request) => {
       .eq('id', documentId);
 
     if (hashError) {
-      console.error(`Warning: content_hash update failed: ${hashError.message}`);
+      console.error(
+        `Warning: content_hash update failed: ${hashError.message}`
+      );
     }
 
     // Delete old chunks only AFTER new ones are successfully written

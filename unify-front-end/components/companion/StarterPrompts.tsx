@@ -11,6 +11,7 @@ import { Theme } from '@/constants/Theme';
 
 interface StarterPromptsProps {
   onPromptSelect: (prompt: string, mode?: string) => void;
+  personalizedStarters?: string[];
 }
 
 interface StarterCard {
@@ -23,7 +24,7 @@ interface StarterCard {
   description: string;
 }
 
-// Original mode-based cards (Ask Anything, Fact Check, Form Help)
+// Mode-based cards (Fact Check, Form Help)
 const MODE_CARDS: StarterCard[] = [
   {
     id: 'fact_check',
@@ -47,7 +48,6 @@ const MODE_CARDS: StarterCard[] = [
 
 // Topic-based starter prompts organized by immigration category
 const TOPIC_STARTERS: StarterCard[] = [
-  // Express Entry
   {
     id: 'ee_eligibility',
     label: 'Express Entry',
@@ -72,7 +72,6 @@ const TOPIC_STARTERS: StarterCard[] = [
     iconBackground: '#5C6BC0',
     description: 'Latest invitation round details.',
   },
-  // Study Permits
   {
     id: 'sp_apply',
     label: 'Study Permit',
@@ -89,7 +88,6 @@ const TOPIC_STARTERS: StarterCard[] = [
     iconBackground: '#26A69A',
     description: 'PGWP eligibility and process.',
   },
-  // Work Permits
   {
     id: 'wp_types',
     label: 'Work Permits',
@@ -106,7 +104,6 @@ const TOPIC_STARTERS: StarterCard[] = [
     iconBackground: '#EF5350',
     description: 'Labour market impact assessment.',
   },
-  // Citizenship
   {
     id: 'cit_eligibility',
     label: 'Citizenship',
@@ -123,7 +120,6 @@ const TOPIC_STARTERS: StarterCard[] = [
     iconBackground: '#E3A0C9',
     description: 'Test prep and study guide.',
   },
-  // Settlement
   {
     id: 'settle_health',
     label: 'Healthcare',
@@ -147,7 +143,6 @@ const TOPIC_STARTERS: StarterCard[] = [
  * Returns 3 topic cards from different icon backgrounds (categories).
  */
 const selectRandomStarters = (): StarterCard[] => {
-  // Group by category (using iconBackground as proxy)
   const categories = new Map<string, StarterCard[]>();
   TOPIC_STARTERS.forEach(card => {
     const existing = categories.get(card.iconBackground) || [];
@@ -175,17 +170,32 @@ const selectRandomStarters = (): StarterCard[] => {
   return selected;
 };
 
+/**
+ * Convert personalized starter strings into StarterCard format so they
+ * render identically to the other cards in a single horizontal scroll.
+ */
+const PERSONALIZED_ICON_BG = '#7C5CBF';
+
+const toPersonalizedCard = (prompt: string, index: number): StarterCard => ({
+  id: `personalized-${index}`,
+  label: 'For You',
+  prompt,
+  iconName: 'user',
+  iconBackground: PERSONALIZED_ICON_BG,
+  description: prompt,
+});
+
 export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   onPromptSelect,
+  personalizedStarters,
 }) => {
-  // Select random topic starters once on mount
   const topicStarters = useMemo(() => selectRandomStarters(), []);
 
-  // Combine: mode cards first, then topic starters
-  const allCards = useMemo(
-    () => [...MODE_CARDS, ...topicStarters],
-    [topicStarters]
-  );
+  // Unified card list: personalized first → mode cards → topic starters
+  const allCards = useMemo(() => {
+    const personalized = (personalizedStarters ?? []).map(toPersonalizedCard);
+    return [...personalized, ...MODE_CARDS, ...topicStarters];
+  }, [personalizedStarters, topicStarters]);
 
   return (
     <View style={styles.container}>
@@ -194,34 +204,40 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {allCards.map(card => (
-          <TouchableOpacity
-            key={card.id}
-            style={styles.card}
-            onPress={() => onPromptSelect(card.prompt, card.mode)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardHeader}>
-              <View
-                style={[
-                  styles.iconBadge,
-                  { backgroundColor: card.iconBackground },
-                ]}
-              >
-                <Feather name={card.iconName} size={16} color={Theme.white} />
+        {allCards.map(card => {
+          const isPersonalized = card.id.startsWith('personalized-');
+          return (
+            <TouchableOpacity
+              key={card.id}
+              style={[styles.card, isPersonalized && styles.cardPersonalized]}
+              onPress={() => onPromptSelect(card.prompt, card.mode)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardHeader}>
+                <View
+                  style={[
+                    styles.iconBadge,
+                    { backgroundColor: card.iconBackground },
+                  ]}
+                >
+                  <Feather name={card.iconName} size={16} color={Theme.white} />
+                </View>
+                <Text style={styles.cardLabel}>{card.label}</Text>
+                <Feather
+                  name='chevron-right'
+                  size={16}
+                  color={Theme.textInactiveTab}
+                />
               </View>
-              <Text style={styles.cardLabel}>{card.label}</Text>
-              <Feather
-                name='chevron-right'
-                size={16}
-                color={Theme.textInactiveTab}
-              />
-            </View>
-            <Text style={styles.cardDescription} numberOfLines={2}>
-              {card.description}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={styles.cardDescription}
+                numberOfLines={isPersonalized ? 3 : 2}
+              >
+                {card.description}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -246,6 +262,9 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
     padding: 12,
     marginRight: 12,
+  },
+  cardPersonalized: {
+    width: 210,
   },
   cardHeader: {
     flexDirection: 'row',

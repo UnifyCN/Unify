@@ -6,25 +6,37 @@ interface ChecklistModalCardProps {
   scale?: number;
 }
 
-export default function ChecklistModalCard({ scale = 1 }: ChecklistModalCardProps) {
+export default function ChecklistModalCard({
+  scale = 1,
+}: ChecklistModalCardProps) {
   const s = scale;
 
   return (
-    <View style={[styles.container, {
-      width: 236 * s,
-      borderRadius: 25 * s,
-      paddingHorizontal: 19 * s,
-      paddingTop: 30 * s,
-      paddingBottom: 20 * s,
-    }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          width: 236 * s,
+          borderRadius: 25 * s,
+          paddingHorizontal: 19 * s,
+          paddingTop: 30 * s,
+          paddingBottom: 20 * s,
+        },
+      ]}
+    >
       {/* Icon */}
-      <View style={[styles.icon, {
-        width: 29 * s,
-        height: 29 * s,
-        borderRadius: 6 * s,
-        marginBottom: 8 * s,
-      }]}>
-        <Ionicons name="clipboard-outline" size={18 * s} color="#E03B3B" />
+      <View
+        style={[
+          styles.icon,
+          {
+            width: 29 * s,
+            height: 29 * s,
+            borderRadius: 6 * s,
+            marginBottom: 8 * s,
+          },
+        ]}
+      >
+        <Ionicons name='clipboard-outline' size={18 * s} color='#E03B3B' />
       </View>
 
       {/* Title */}
@@ -33,35 +45,51 @@ export default function ChecklistModalCard({ scale = 1 }: ChecklistModalCardProp
       </Text>
 
       {/* Description */}
-      <Text style={[styles.description, { fontSize: 9.6 * s, lineHeight: 13 * s, marginBottom: 14 * s }]}>
-        Your SIN is required for employment, taxes, government benefits, and other essential processes.
+      <Text
+        style={[
+          styles.description,
+          { fontSize: 9.6 * s, lineHeight: 13 * s, marginBottom: 14 * s },
+        ]}
+      >
+        Your SIN is required for employment, taxes, government benefits, and
+        other essential processes.
       </Text>
 
       {/* Learn how button */}
-      <View style={[styles.learnButton, {
-        borderRadius: 7 * s,
-        paddingVertical: 6 * s,
-        paddingHorizontal: 24 * s,
-        gap: 7 * s,
-        marginBottom: 8 * s,
-      }]}>
+      <View
+        style={[
+          styles.learnButton,
+          {
+            borderRadius: 7 * s,
+            paddingVertical: 6 * s,
+            paddingHorizontal: 24 * s,
+            gap: 7 * s,
+            marginBottom: 8 * s,
+          },
+        ]}
+      >
         <Text style={[styles.learnButtonText, { fontSize: 9.6 * s }]}>
           Learn how
         </Text>
-        <Ionicons name="arrow-forward" size={14 * s} color="#fff" />
+        <Ionicons name='arrow-forward' size={14 * s} color='#fff' />
       </View>
 
       {/* Mark as complete button */}
-      <View style={[styles.completeButton, {
-        borderRadius: 7 * s,
-        paddingVertical: 6 * s,
-        paddingHorizontal: 24 * s,
-        gap: 7 * s,
-      }]}>
+      <View
+        style={[
+          styles.completeButton,
+          {
+            borderRadius: 7 * s,
+            paddingVertical: 6 * s,
+            paddingHorizontal: 24 * s,
+            gap: 7 * s,
+          },
+        ]}
+      >
         <Text style={[styles.completeButtonText, { fontSize: 9.6 * s }]}>
           Mark as complete
         </Text>
-        <Ionicons name="checkmark" size={14 * s} color="#4E7E4C" />
+        <Ionicons name='checkmark' size={14 * s} color='#4E7E4C' />
       </View>
     </View>
   );

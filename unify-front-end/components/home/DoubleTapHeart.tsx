@@ -65,7 +65,7 @@ function HeartAnimation({
 
   return (
     <Animated.View
-      pointerEvents="none"
+      pointerEvents='none'
       style={[
         styles.heartContainer,
         { left: x - HEART_SIZE / 2, top: y - HEART_SIZE / 2 },
@@ -106,7 +106,7 @@ export function DoubleTapHeart({
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
     .maxDuration(300)
-    .onEnd((event) => {
+    .onEnd(event => {
       if (enabled) {
         runOnJS(handleDoubleTap)(event.x, event.y);
       }

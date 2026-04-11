@@ -187,9 +187,7 @@ export const getForYouFeed = async (
       }
 
       const transformedPosts: PostData[] = await enrichPostsWithMetadata(
-        transformPostDtos(
-          data as unknown as PostDto[]
-        )
+        transformPostDtos(data as unknown as PostDto[])
       );
 
       // Use created_at of last post as next cursor

@@ -31,7 +31,7 @@ export default function EventCard({ scale = 1 }: EventCardProps) {
             borderTopRightRadius: 16 * s,
           },
         ]}
-        contentFit="cover"
+        contentFit='cover'
       />
 
       {/* Date badge */}
@@ -48,18 +48,12 @@ export default function EventCard({ scale = 1 }: EventCardProps) {
         ]}
       >
         <Text
-          style={[
-            styles.dateDay,
-            { fontSize: 18 * s, lineHeight: 22 * s },
-          ]}
+          style={[styles.dateDay, { fontSize: 18 * s, lineHeight: 22 * s }]}
         >
           15
         </Text>
         <Text
-          style={[
-            styles.dateMonth,
-            { fontSize: 18 * s, lineHeight: 22 * s },
-          ]}
+          style={[styles.dateMonth, { fontSize: 18 * s, lineHeight: 22 * s }]}
         >
           Jun
         </Text>
@@ -81,34 +75,18 @@ export default function EventCard({ scale = 1 }: EventCardProps) {
       </Text>
 
       {/* Time row */}
-      <View
-        style={[
-          styles.infoRow,
-          { left: 15 * s, top: 140 * s },
-        ]}
-      >
-        <Ionicons
-          name="calendar-outline"
-          size={16 * s}
-          color="#9B9797"
-        />
-        <Text style={[styles.infoText, { fontSize: 14 * s, marginLeft: 6 * s }]}>
+      <View style={[styles.infoRow, { left: 15 * s, top: 140 * s }]}>
+        <Ionicons name='calendar-outline' size={16 * s} color='#9B9797' />
+        <Text
+          style={[styles.infoText, { fontSize: 14 * s, marginLeft: 6 * s }]}
+        >
           4:30-6:30 pm
         </Text>
       </View>
 
       {/* Location row */}
-      <View
-        style={[
-          styles.infoRow,
-          { left: 15 * s, top: 161 * s },
-        ]}
-      >
-        <Ionicons
-          name="location-outline"
-          size={16 * s}
-          color="#9B9797"
-        />
+      <View style={[styles.infoRow, { left: 15 * s, top: 161 * s }]}>
+        <Ionicons name='location-outline' size={16 * s} color='#9B9797' />
         <Text
           style={[styles.infoText, { fontSize: 14 * s, marginLeft: 6 * s }]}
           numberOfLines={1}

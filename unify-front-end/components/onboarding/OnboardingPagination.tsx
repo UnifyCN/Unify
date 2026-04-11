@@ -14,7 +14,7 @@ export default function OnboardingPagination({
     <View
       style={styles.container}
       accessibilityLabel={`Step ${currentStep + 1} of ${totalSteps}`}
-      accessibilityRole="progressbar"
+      accessibilityRole='progressbar'
       accessibilityValue={{ min: 1, max: totalSteps, now: currentStep + 1 }}
     >
       {Array.from({ length: totalSteps }).map((_, index) => (

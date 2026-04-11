@@ -525,10 +525,9 @@ export function useAnalytics() {
       trackCompanionResponseReceived: (
         properties: CompanionResponseProperties
       ) => {
-        posthog?.capture(
-          AnalyticsEvents.COMPANION_RESPONSE_RECEIVED,
-          { ...properties }
-        );
+        posthog?.capture(AnalyticsEvents.COMPANION_RESPONSE_RECEIVED, {
+          ...properties,
+        });
       },
 
       // Daily Tips

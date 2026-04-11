@@ -31,6 +31,6 @@ export const Theme = {
   destructive: '#FF3B30',
 
   // Learn tab highlight colors
-  highlightYellow: '#FEF3C7',        // Light amber background for highlighted text
-  highlightYellowActive: '#FDE68A',  // Slightly stronger amber for active selection
+  highlightYellow: '#FEF3C7', // Light amber background for highlighted text
+  highlightYellowActive: '#FDE68A', // Slightly stronger amber for active selection
 } as const;

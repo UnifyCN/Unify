@@ -164,5 +164,11 @@ export const useSendMessage = ({
     }
   };
 
-  return { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps, lastVerified };
+  return {
+    sendMessage,
+    isLoading,
+    isWaitingForBot,
+    lastSuggestedNextSteps,
+    lastVerified,
+  };
 };

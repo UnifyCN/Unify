@@ -68,17 +68,17 @@ export function usePushNotifications() {
           `/community-matching/circle/${data.circle_id}/chat` as const
         );
       } else if (
-        (data?.type === 'liked' || data?.type === 'commented' || data?.type === 'comment_liked' || data?.type === 'comment_reply') &&
+        (data?.type === 'liked' ||
+          data?.type === 'commented' ||
+          data?.type === 'comment_liked' ||
+          data?.type === 'comment_reply') &&
         data?.post_id != null
       ) {
         router.push({
           pathname: '/post-details',
           params: { postId: String(data.post_id) },
         } as Href);
-      } else if (
-        data?.type === 'followed' &&
-        data?.actor_user_id != null
-      ) {
+      } else if (data?.type === 'followed' && data?.actor_user_id != null) {
         router.push({
           pathname: '/profile/[userId]',
           params: { userId: String(data.actor_user_id) },

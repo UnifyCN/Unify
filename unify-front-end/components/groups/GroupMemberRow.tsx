@@ -12,11 +12,12 @@ export default function GroupMemberRow({
   member: GroupMember;
   highlight?: boolean;
 }) {
-  const relationshipLabel = member.isFollowing && member.followsYou
-    ? 'Mutuals'
-    : member.followsYou
-      ? 'Follows you'
-      : null;
+  const relationshipLabel =
+    member.isFollowing && member.followsYou
+      ? 'Mutuals'
+      : member.followsYou
+        ? 'Follows you'
+        : null;
 
   return (
     <View style={[styles.row, highlight && styles.highlightRow]}>
@@ -42,9 +43,7 @@ export default function GroupMemberRow({
         </View>
       </TouchableOpacity>
 
-      {!member.isFollowing && (
-        <FollowButton targetUserId={member.id} compact />
-      )}
+      {!member.isFollowing && <FollowButton targetUserId={member.id} compact />}
     </View>
   );
 }

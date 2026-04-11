@@ -42,7 +42,7 @@ export default function AnimatedSplash({
       withTiming(
         0,
         { duration: 300, easing: Easing.out(Easing.ease) },
-        (finished) => {
+        finished => {
           if (finished) {
             runOnJS(onAnimationComplete)();
           }
@@ -65,7 +65,7 @@ export default function AnimatedSplash({
         <Image
           source={require('@/assets/images/splash-icon-light.png')}
           style={styles.logo}
-          resizeMode="contain"
+          resizeMode='contain'
         />
       </Animated.View>
     </Animated.View>

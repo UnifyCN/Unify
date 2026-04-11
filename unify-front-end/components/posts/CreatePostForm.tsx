@@ -239,13 +239,17 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert('Camera Error', 'Something went wrong while accessing the camera. Please try again.');
+      Alert.alert(
+        'Camera Error',
+        'Something went wrong while accessing the camera. Please try again.'
+      );
     }
   };
 
   const handleGalleryPick = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status === 'denied') {
         Alert.alert(
           'Photo Library Access Denied',
@@ -266,7 +270,10 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert('Gallery Error', 'Something went wrong while accessing your photo library. Please try again.');
+      Alert.alert(
+        'Gallery Error',
+        'Something went wrong while accessing your photo library. Please try again.'
+      );
     }
   };
 

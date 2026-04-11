@@ -42,6 +42,7 @@ import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
+import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarters';
 
 const MESSAGE_LIMIT = 3;
 const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
@@ -71,6 +72,7 @@ const isSendButtonDisabled = (
 };
 
 export default function CompanionScreen() {
+  const { data: personalization } = usePersonalizedStarters();
   const { conversationId } = useLocalSearchParams<{
     conversationId?: string;
   }>();
@@ -136,26 +138,24 @@ export default function CompanionScreen() {
     () =>
       optimisticMessages.filter(
         optimisticMessage =>
-          !dbMessagesFormatted.some(
-            persistedMessage => {
-              if (
-                persistedMessage.clientId &&
-                optimisticMessage.clientId &&
-                persistedMessage.clientId === optimisticMessage.clientId
-              ) {
-                return true;
-              }
-
-              return (
-                persistedMessage.isUser === optimisticMessage.isUser &&
-                persistedMessage.text === optimisticMessage.text &&
-                Math.abs(
-                  persistedMessage.timestamp.getTime() -
-                    optimisticMessage.timestamp.getTime()
-                ) <= OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS
-              );
+          !dbMessagesFormatted.some(persistedMessage => {
+            if (
+              persistedMessage.clientId &&
+              optimisticMessage.clientId &&
+              persistedMessage.clientId === optimisticMessage.clientId
+            ) {
+              return true;
             }
-          )
+
+            return (
+              persistedMessage.isUser === optimisticMessage.isUser &&
+              persistedMessage.text === optimisticMessage.text &&
+              Math.abs(
+                persistedMessage.timestamp.getTime() -
+                  optimisticMessage.timestamp.getTime()
+              ) <= OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS
+            );
+          })
       ),
     [dbMessagesFormatted, optimisticMessages]
   );
@@ -164,7 +164,11 @@ export default function CompanionScreen() {
   const messages: Message[] = useMemo(
     () =>
       (greetingMessage
-        ? [greetingMessage, ...dbMessagesFormatted, ...visibleOptimisticMessages]
+        ? [
+            greetingMessage,
+            ...dbMessagesFormatted,
+            ...visibleOptimisticMessages,
+          ]
         : [...dbMessagesFormatted, ...visibleOptimisticMessages]
       ).sort(
         (left, right) => left.timestamp.getTime() - right.timestamp.getTime()
@@ -187,13 +191,18 @@ export default function CompanionScreen() {
   const { data: usage } = useChatbotUsage();
   const { currentUser } = useCurrentUser();
   const isPremium = currentUser?.isPremium ?? false;
-  const { sendMessage, isLoading, isWaitingForBot, lastSuggestedNextSteps, lastVerified } =
-    useSendMessage({
-      messages,
-      currentConversationId,
-      setCurrentConversationId,
-      isPremium,
-    });
+  const {
+    sendMessage,
+    isLoading,
+    isWaitingForBot,
+    lastSuggestedNextSteps,
+    lastVerified,
+  } = useSendMessage({
+    messages,
+    currentConversationId,
+    setCurrentConversationId,
+    isPremium,
+  });
 
   const messageCount = usage?.message_count ?? 0;
   const messagesLeft = getMessagesLeft(messageCount, MESSAGE_LIMIT);
@@ -352,9 +361,7 @@ export default function CompanionScreen() {
 
       // Attach lastVerified to the last bot message for real-time display
       const displayItem =
-        isLastBotMessage && lastVerified
-          ? { ...item, lastVerified }
-          : item;
+        isLastBotMessage && lastVerified ? { ...item, lastVerified } : item;
 
       return (
         <MessageWithSources
@@ -366,7 +373,12 @@ export default function CompanionScreen() {
         />
       );
     },
-    [messages.length, lastSuggestedNextSteps, lastVerified, handleSuggestionClick]
+    [
+      messages.length,
+      lastSuggestedNextSteps,
+      lastVerified,
+      handleSuggestionClick,
+    ]
   );
 
   const renderLoadingIndicator = useCallback(() => {
@@ -480,7 +492,10 @@ export default function CompanionScreen() {
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
           {showEmptyState && (
-            <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
+            <StarterPrompts
+              onPromptSelect={handleStarterPromptSelect}
+              personalizedStarters={personalization?.starters}
+            />
           )}
 
           {/* Input */}

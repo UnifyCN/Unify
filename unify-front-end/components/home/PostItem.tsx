@@ -202,14 +202,17 @@ export const PostItem = memo(
     const [viewerVisible, setViewerVisible] = useState(false);
     const [viewerInitialIndex, setViewerInitialIndex] = useState(0);
 
-    const handleImagePress = useCallback((index: number) => {
-      if (onImageViewerOpen) {
-        onImageViewerOpen(imageUrls, index);
-      } else {
-        setViewerInitialIndex(index);
-        setViewerVisible(true);
-      }
-    }, [onImageViewerOpen, imageUrls]);
+    const handleImagePress = useCallback(
+      (index: number) => {
+        if (onImageViewerOpen) {
+          onImageViewerOpen(imageUrls, index);
+        } else {
+          setViewerInitialIndex(index);
+          setViewerVisible(true);
+        }
+      },
+      [onImageViewerOpen, imageUrls]
+    );
     const {
       trackPostLike,
       trackPostUnlike,
@@ -494,7 +497,8 @@ export const PostItem = memo(
       post.isSaved !== undefined;
 
     // Show loading state for metadata if it's still loading
-    const showMetadataLoading = !!metadataLoading && !metadata && !hasInlineMetadata;
+    const showMetadataLoading =
+      !!metadataLoading && !metadata && !hasInlineMetadata;
 
     // Double-tap to like: only likes (never unlikes), consistent with Instagram
     const handleDoubleTapLike = useCallback(() => {
@@ -605,53 +609,50 @@ export const PostItem = memo(
 
     // 'react-native-render-HTML' HTML rendering config
     // Warning text for when links are being opened
-    const handleLinkPress = useCallback(
-      (_: any, href: string) => {
-        let parsedUrl: URL;
-        try {
-          parsedUrl = new URL(href);
-        } catch {
-          Alert.alert(LINK_WARNING_TITLE, 'This link is invalid or unsupported.');
-          return;
-        }
+    const handleLinkPress = useCallback((_: any, href: string) => {
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(href);
+      } catch {
+        Alert.alert(LINK_WARNING_TITLE, 'This link is invalid or unsupported.');
+        return;
+      }
 
-        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-          Alert.alert(
-            LINK_WARNING_TITLE,
-            'Only secure web links can be opened from Unify.'
-          );
-          return;
-        }
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        Alert.alert(
+          LINK_WARNING_TITLE,
+          'Only secure web links can be opened from Unify.'
+        );
+        return;
+      }
 
-        Alert.alert(LINK_WARNING_TITLE, `${LINK_WARNING_BODY} ${href}?`, [
-          { text: 'Go back', style: 'cancel' },
-          {
-            text: 'Open link',
-            onPress: () => {
-              void Linking.canOpenURL(href)
-                .then(canOpen => {
-                  if (!canOpen) {
-                    Alert.alert(
-                      'Unable to open link',
-                      'This link is not supported on your device.'
-                    );
-                    return;
-                  }
-
-                  return Linking.openURL(href);
-                })
-                .catch(() => {
+      Alert.alert(LINK_WARNING_TITLE, `${LINK_WARNING_BODY} ${href}?`, [
+        { text: 'Go back', style: 'cancel' },
+        {
+          text: 'Open link',
+          onPress: () => {
+            void Linking.canOpenURL(href)
+              .then(canOpen => {
+                if (!canOpen) {
                   Alert.alert(
                     'Unable to open link',
-                    'Something went wrong while opening this link.'
+                    'This link is not supported on your device.'
                   );
-                });
-            },
+                  return;
+                }
+
+                return Linking.openURL(href);
+              })
+              .catch(() => {
+                Alert.alert(
+                  'Unable to open link',
+                  'Something went wrong while opening this link.'
+                );
+              });
           },
-        ]);
-      },
-      []
-    );
+        },
+      ]);
+    }, []);
 
     const renderersProps = useMemo(
       () => ({
