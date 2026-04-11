@@ -10,8 +10,7 @@ export const getDailyTip = async (): Promise<DailyTip | null> => {
 
   const tip = data?.tip;
   if (!tip) {
-    // No tip available (e.g. generation failed server-side) — not retryable
-    return null;
+    throw new Error('Unexpected response from get-daily-tip: missing tip');
   }
 
   return {
