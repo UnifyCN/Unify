@@ -80,4 +80,10 @@ amplifyconfiguration*
 *.tsbuildinfo
 
 # Jest
-.jest/ 
+.jest/
+
+# Local documentation and planning (not tracked)
+DOCS/
+docs/
+tickets/
+__tests__/
