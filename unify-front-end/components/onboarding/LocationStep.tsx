@@ -37,32 +37,29 @@ export default function LocationStep({
   const [citySearchQuery, setCitySearchQuery] = useState('');
   const [provinceSearchQuery, setProvinceSearchQuery] = useState('');
   const [customCity, setCustomCity] = useState<string | null>(null);
-
-  const isOtherCity = selectedCity && !CANADIAN_CITIES.includes(selectedCity);
+  const [isOtherSelected, setIsOtherSelected] = useState(false);
 
   // Get province for selected city if it's a pre-defined city
-  const autoFilledProvince = selectedCity
+  const autoFilledProvince = selectedCity && !isOtherSelected
     ? getProvinceForCity(selectedCity)
     : null;
   const displayProvince = autoFilledProvince || selectedProvince;
 
-  const filteredCities = selectedCity === 'other'
-    ? ['other', ...CANADIAN_CITIES.filter(city =>
-        city.toLowerCase().includes(citySearchQuery.toLowerCase())
-      )]
-    : CANADIAN_CITIES.filter(city =>
-        city.toLowerCase().includes(citySearchQuery.toLowerCase())
-      );
+  const filteredCities = [...CANADIAN_CITIES, 'Other (specify)'].filter(city =>
+    city.toLowerCase().includes(citySearchQuery.toLowerCase())
+  );
 
   const filteredProvinces = CANADIAN_PROVINCES.filter(province =>
     province.toLowerCase().includes(provinceSearchQuery.toLowerCase())
   );
 
   const handleCitySelect = (city: string) => {
-    if (city === 'other') {
-      onCityChange('other');
+    if (city === 'Other (specify)') {
+      setIsOtherSelected(true);
       setCustomCity('');
+      // Don't call onCityChange yet — wait for user to type a custom city
     } else {
+      setIsOtherSelected(false);
       onCityChange(city);
       setCustomCity(null);
       // Auto-fill province if available
@@ -101,11 +98,11 @@ export default function LocationStep({
           <Text
             style={[
               styles.dropdownText,
-              !selectedCity && styles.placeholderText,
+              !selectedCity && !isOtherSelected && styles.placeholderText,
             ]}
           >
-            {selectedCity === 'other'
-              ? 'Other (specify below)'
+            {isOtherSelected
+              ? (customCity?.trim() || 'Other (specify below)')
               : selectedCity || 'Select a city'}
           </Text>
           <Feather name='chevron-down' size={20} color={Theme.textInput} />
@@ -113,7 +110,7 @@ export default function LocationStep({
       </View>
 
       {/* Custom City Input (when "Other" is selected) */}
-      {selectedCity === 'other' && (
+      {isOtherSelected && (
         <View style={styles.fieldWrapper}>
           <TextInput
             style={styles.customInput}
@@ -197,7 +194,7 @@ export default function LocationStep({
                       selectedCity === item && styles.modalOptionTextSelected,
                     ]}
                   >
-                    {item === 'other' ? 'Other (specify)' : item}
+                    {item}
                   </Text>
                 </TouchableOpacity>
               )}

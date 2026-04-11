@@ -15,13 +15,13 @@ import { Theme } from '@/constants/Theme';
 import OnboardingProgress from './OnboardingProgress';
 import WelcomeStep from './WelcomeStep';
 import SingleSelectQuestion from './SingleSelectQuestion';
-import MultiSelectQuestion from './MultiSelectQuestion';
+import FloatingTagSelect from './FloatingTagSelect';
 import OutcomesStep from './OutcomesStep';
 import ThankYouStep from './ThankYouStep';
+import LocationStep from './LocationStep';
 import { useSaveOnboardingProfile } from '@/hooks/onboarding/useSaveOnboardingProfile';
 import { supabase } from '@/lib/supabase';
 import MonthPicker from './MonthPicker';
-import LocationStep from './LocationStep';
 import {
   Persona,
   ReferralSource,
@@ -29,15 +29,34 @@ import {
   LearningInterest,
   Hobby,
 } from '@/types/onboardingProfile';
+import { useAnalytics } from '@/utils/analytics';
+import { registerForPushNotifications } from '@/services/push/pushNotifications';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
+  isRedo?: boolean;
 }
 
 const TOTAL_STEPS = 11;
 
-export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
+const STEP_NAMES: Record<number, string> = {
+  1: 'welcome',
+  2: 'persona',
+  3: 'referral_source',
+  4: 'arrival_date',
+  5: 'location',
+  6: 'goals',
+  7: 'learning_interests',
+  8: 'hobbies',
+  9: 'reminders',
+  10: 'outcomes',
+  11: 'thank_you',
+};
+
+export default function OnboardingQuiz({ onComplete, isRedo = false }: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
+  const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
+    useAnalytics();
   const insets = useSafeAreaInsets();
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -111,22 +130,33 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           return false;
         }
         break;
-
-      case 5: // Goals
-        if (goals.length === 0) {
-          newErrors[5] = 'Please select at least one option';
+      case 5: // Location
+        if (!city) {
+          newErrors[5] = 'Please select a city';
           setErrors(newErrors);
           return false;
         }
-        if (goals.includes('something_else') && !goalsOther?.trim()) {
-          newErrors[5] = 'Please specify your goal';
+        if (!province) {
+          newErrors[5] = 'Please select a province';
           setErrors(newErrors);
           return false;
         }
         break;
-      case 6: // Learning Interests
-        if (learningInterests.length === 0) {
+      case 6: // Goals
+        if (goals.length === 0) {
           newErrors[6] = 'Please select at least one option';
+          setErrors(newErrors);
+          return false;
+        }
+        if (goals.includes('something_else') && !goalsOther?.trim()) {
+          newErrors[6] = 'Please specify your goal';
+          setErrors(newErrors);
+          return false;
+        }
+        break;
+      case 7: // Learning Interests
+        if (learningInterests.length === 0) {
+          newErrors[7] = 'Please select at least one option';
           setErrors(newErrors);
           return false;
         }
@@ -134,28 +164,16 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
           learningInterests.includes('other') &&
           !learningInterestsOther?.trim()
         ) {
-          newErrors[6] = 'Please specify your interest';
+          newErrors[7] = 'Please specify your interest';
           setErrors(newErrors);
           return false;
         }
         break;
-      case 7: // Hobbies (optional, no validation)
+      case 8: // Hobbies (optional, no validation)
         break;
-      case 8: // Reminders
+      case 9: // Reminders
         if (wantsReminders === null) {
-          newErrors[8] = 'Please select an option';
-          setErrors(newErrors);
-          return false;
-        }
-        break;
-      case 11: // Location
-        if (!city) {
-          newErrors[11] = 'Please select a city';
-          setErrors(newErrors);
-          return false;
-        }
-        if (!province) {
-          newErrors[11] = 'Please select a province';
+          newErrors[9] = 'Please select an option';
           setErrors(newErrors);
           return false;
         }
@@ -169,6 +187,19 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const handleNext = () => {
     if (!validateStep(currentStep)) {
       return;
+    }
+
+    trackOnboardingStepCompleted(
+      currentStep,
+      STEP_NAMES[currentStep] || `step_${currentStep}`
+    );
+
+    // Always request push permission at step 9 (reminders) — social notifications always send.
+    // The reminders toggle only controls learn reminders (server-side).
+    if (currentStep === 9) {
+      registerForPushNotifications().catch(err => {
+        console.error('Push registration from onboarding failed:', err);
+      });
     }
 
     if (currentStep < TOTAL_STEPS) {
@@ -209,7 +240,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
     try {
       await saveMutation.mutateAsync({
-        userId: user.id, // Use user.id from Supabase auth directly
+        userId: user.id,
         data: {
           persona,
           persona_other: personaOther,
@@ -228,6 +259,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         },
       });
 
+      trackOnboardingCompleted(persona);
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
@@ -268,7 +300,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <WelcomeStep onNext={handleNext} />;
+        return <WelcomeStep onNext={handleNext} isRedo={isRedo} />;
       case 2:
         return (
           <SingleSelectQuestion
@@ -336,7 +368,17 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
         );
       case 5:
         return (
-          <MultiSelectQuestion
+          <LocationStep
+            selectedCity={city}
+            selectedProvince={province}
+            onCityChange={setCity}
+            onProvinceChange={setProvince}
+            error={errors[5]}
+          />
+        );
+      case 6:
+        return (
+          <FloatingTagSelect
             question='What do you want to accomplish? (Select all that apply)'
             options={[
               {
@@ -346,12 +388,12 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
               },
               {
                 value: 'build_community',
-                label: 'Build a community & make friends',
+                label: 'Build community & friends',
                 icon: 'users',
               },
               {
                 value: 'quick_answers',
-                label: 'Quick, trustworthy answers to my questions',
+                label: 'Quick answers',
                 icon: 'zap',
               },
               {
@@ -366,13 +408,13 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             onToggle={value => toggleGoal(value as Goal)}
             onOtherChange={setGoalsOther}
             required
-            error={errors[5]}
+            error={errors[6]}
           />
         );
-      case 6:
+      case 7:
         return (
-          <MultiSelectQuestion
-            question='Which topic would you like to explore? (Select all that apply)'
+          <FloatingTagSelect
+            question='Which topics interest you? (Select all that apply)'
             options={[
               {
                 value: 'documents',
@@ -420,13 +462,13 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             }
             onOtherChange={setLearningInterestsOther}
             required
-            error={errors[6]}
+            error={errors[7]}
           />
         );
-      case 7:
+      case 8:
         return (
-          <MultiSelectQuestion
-            question='What are your hobbies and interests? (Select all that apply)'
+          <FloatingTagSelect
+            question='What are your hobbies? (Select all that apply)'
             options={[
               {
                 value: 'career_growth',
@@ -483,21 +525,22 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             selectedValues={hobbies}
             otherValue={null}
             onToggle={value => toggleHobby(value as Hobby)}
-            onOtherChange={() => {}} // No "other" option for this question
+            onOtherChange={() => {}}
             required={false}
           />
         );
-      case 8:
+      case 9:
         return (
           <View style={styles.container}>
             <Text style={styles.question}>
               Want gentle reminders so you don't miss important steps?
             </Text>
             <Text style={styles.subtitle}>
-              We can nudge you about key deadlines and new lessons—only when
-              it's useful.
+              You'll always get notified about likes, comments, and follows.
+              This controls learning reminders — nudges about lessons you
+              started but haven't finished.
             </Text>
-            {errors[8] && <Text style={styles.errorText}>{errors[8]}</Text>}
+            {errors[9] && <Text style={styles.errorText}>{errors[9]}</Text>}
             <View style={styles.optionsContainer}>
               <TouchableOpacity
                 style={[
@@ -558,20 +601,10 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             </View>
           </View>
         );
-      case 9:
-        return <OutcomesStep />;
       case 10:
-        return <ThankYouStep />;
+        return <OutcomesStep />;
       case 11:
-        return (
-          <LocationStep
-            selectedCity={city}
-            selectedProvince={province}
-            onCityChange={setCity}
-            onProvinceChange={setProvince}
-            error={errors[11]}
-          />
-        );
+        return <ThankYouStep isRedo={isRedo} />;
       default:
         return null;
     }
@@ -581,7 +614,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
 
   return (
     <View style={styles.root}>
-      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} skipSafeArea={isRedo} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -603,7 +636,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             <Text style={styles.navButtonText}>Back</Text>
           </TouchableOpacity>
         )}
-        {currentStep < 9 && (
+        {currentStep < 10 && (
           <TouchableOpacity
             style={[styles.nextButton, isLoading && styles.nextButtonDisabled]}
             onPress={handleNext}
@@ -614,28 +647,6 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
             ) : (
               <>
                 <Text style={styles.nextButtonText}>Next</Text>
-                <Feather name='chevron-right' size={24} color={Theme.white} />
-              </>
-            )}
-          </TouchableOpacity>
-        )}
-        {currentStep === 9 && (
-          <TouchableOpacity
-            style={[
-              styles.nextButton,
-              styles.finalStepButton,
-              isLoading && styles.nextButtonDisabled,
-            ]}
-            onPress={handleNext}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={Theme.white} />
-            ) : (
-              <>
-                <Text style={[styles.nextButtonText, styles.finalStepText]}>
-                  Continue
-                </Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
@@ -673,7 +684,7 @@ export default function OnboardingQuiz({ onComplete }: OnboardingQuizProps) {
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>Explore Unify</Text>
+                <Text style={styles.nextButtonText}>{isRedo ? 'Save Changes' : 'Explore Unify'}</Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
