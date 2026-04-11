@@ -13,19 +13,12 @@ import { NewsCardSkeletonLoader } from '@/components/news/NewsCardSkeletonLoader
 import { DailyTipCard } from '@/components/tips/DailyTipCard';
 import { DailyTipCardSkeletonLoader } from '@/components/tips/DailyTipCardSkeletonLoader';
 import { useDailyTip } from '@/hooks/tips/useDailyTip';
-import { useCurrentUser } from '@/context/UserContext';
-import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 
 export const NewsCarousel = () => {
   const router = useRouter();
   const { data: news, isLoading } = useNews();
 
-  const { currentUser } = useCurrentUser();
-  const { data: profile } = useOnboardingProfile(currentUser?.id);
-  const { data: dailyTip, isLoading: isTipLoading } = useDailyTip(
-    profile?.persona ?? undefined,
-    profile?.stage ?? undefined
-  );
+  const { data: dailyTip, isLoading: isTipLoading } = useDailyTip();
 
   const handleViewMore = () => {
     router.push('/news-tips' as any);
