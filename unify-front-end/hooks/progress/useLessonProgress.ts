@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressEventEmitter } from '@/utils/progressEventEmitter';
+import { updateLessonProgress } from '@/services/progress/progressService';
 
 export function useLessonProgress() {
   // Save lesson completion to database
@@ -68,7 +69,41 @@ export function useLessonProgress() {
     []
   );
 
+  /**
+   * Persists the user's current page position so they can resume exactly where
+   * they left off. Call this fire-and-forget on every Next press.
+   */
+  const saveCurrentPage = useCallback(
+    (
+      lessonId: string,
+      submoduleId: string,
+      moduleId: string,
+      pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
+      pageNumber: number,
+      totalPages: number,
+      quizId?: string,
+      questionNumber?: number
+    ) => {
+      if (!lessonId || !submoduleId || !moduleId) return;
+      updateLessonProgress(
+        lessonId,
+        submoduleId,
+        moduleId,
+        pageType,
+        pageNumber,
+        totalPages,
+        quizId,
+        questionNumber
+      ).then(() => {
+        // Invalidate the cached progress so the submodule index gets fresh data
+        cachedProgressService.invalidate();
+      });
+    },
+    []
+  );
+
   return {
     saveLessonCompletion,
+    saveCurrentPage,
   };
 }

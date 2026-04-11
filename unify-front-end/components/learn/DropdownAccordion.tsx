@@ -57,6 +57,7 @@ export default function DropdownAccordion({
                 name={open ? 'chevron-up' : 'chevron-down'}
                 size={18}
                 color='#111827'
+                style={{ alignSelf: 'center' }}
               />
             </TouchableOpacity>
             {open && (
@@ -90,9 +91,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerText: {
+    flex: 1,
     fontSize: 16,
     fontWeight: '500',
     color: '#111827',
+    marginRight: 12,
   },
   body: {
     backgroundColor: '#E6E6E6',

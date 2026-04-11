@@ -18,6 +18,7 @@ import { SubmoduleIntroSection } from '@/types/learn';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { calculateIntroProgress } from '@/utils/submoduleProgress';
+import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 
 const getSanityImageUrl = (assetRef: string | undefined): string | null => {
   if (!assetRef) return null;
@@ -35,6 +36,7 @@ export default function SubmoduleIntroScreen() {
     pageNum: string;
   }>();
   const [showExitModal, setShowExitModal] = useState(false);
+  const { saveCurrentPage } = useLessonProgress();
 
   const currentPage = parseInt(pageNum || '1');
   const { data: submoduleData, isLoading: loadingIntro } =
@@ -78,7 +80,22 @@ export default function SubmoduleIntroScreen() {
   };
 
   const handleNext = () => {
+    const firstLesson = submoduleData?.lessons?.[0];
+
     if (currentPage < (totalPages || 1)) {
+      // Save current intro page position against the first lesson so
+      // getLearnHref can resume here with current_page_type: 'intro'.
+      if (firstLesson?._id && moduleId && submoduleId) {
+        saveCurrentPage(
+          firstLesson._id,
+          submoduleId,
+          moduleId,
+          'intro',
+          currentPage,
+          totalPages || 1
+        );
+      }
+
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/intro/[pageNum]' as any,
@@ -89,8 +106,7 @@ export default function SubmoduleIntroScreen() {
         },
       });
     } else {
-      // Navigate to first lesson
-      const firstLesson = submoduleData?.lessons?.[0];
+      // Last intro page done — advance to the first lesson page
       if (firstLesson) {
         router.push({
           pathname:

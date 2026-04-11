@@ -52,6 +52,8 @@ export interface UserOnboardingProfile {
   referral_source: ReferralSource | null;
   referral_source_other: string | null;
   arrival_date: string | null;
+  city: string | null;
+  province: string | null;
   stage: string | null; // Stage enum: "0" | "1" | "2" | "3" | "4"
 
   // Multi-select fields
@@ -78,6 +80,8 @@ export interface OnboardingProfileInput {
   referral_source?: ReferralSource | null;
   referral_source_other?: string | null;
   arrival_date?: string | null;
+  city?: string | null;
+  province?: string | null;
   stage?: string | null; // Stage enum: "0" | "1" | "2" | "3" | "4"
   goals?: Goal[];
   goals_other?: string | null;

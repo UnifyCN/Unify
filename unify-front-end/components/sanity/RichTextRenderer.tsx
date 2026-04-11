@@ -1,5 +1,5 @@
 // RichTextRenderer.tsx
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,18 +7,12 @@ import {
   TouchableOpacity,
   Linking,
   TextInput,
-  Modal,
-  Dimensions,
-  ScrollView,
-  SafeAreaView,
   Platform,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-import {
-  PinchGestureHandler,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+import ImageViewerModal from '@/components/sanity/ImageViewerModal';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
+import ChecklistCheckboxBlock from '@/components/sanity/ChecklistCheckboxBlock';
 import { AlignJustify, AlignVerticalJustifyCenter } from 'lucide-react-native';
 import { Feather } from '@expo/vector-icons';
 import SelectableText from '@/components/learn/SelectableText';
@@ -52,14 +46,6 @@ export default function RichTextRenderer({
 }: RichTextRendererProps) {
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageZoom, setImageZoom] = useState(1);
-  const [imageDimensions, setImageDimensions] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
-  const baseZoomRef = useRef(1); // Track base zoom for pinch gestures
-  const screenWidth = Dimensions.get('window').width;
-  const screenHeight = Dimensions.get('window').height;
 
   // Matching question state - track per question using block _key (right by index so duplicate values select only one)
   const [matchingQuestionState, setMatchingQuestionState] = useState<{
@@ -129,7 +115,7 @@ export default function RichTextRenderer({
   const textMetricsTight =
     Platform.OS === 'android' ? ({ includeFontPadding: false } as const) : {};
 
-  // Lesson body typography — matches Figma "Section 3 - Lesson" (Inter, Grey/800 body)
+  // Body copy: same font size & line height as news article content (`app/news-detail` contentText)
   const defaultStyles = {
     // Headings (in-content; page title uses screen styles)
     h1: {
@@ -158,7 +144,7 @@ export default function RichTextRenderer({
     },
     h4: {
       fontSize: 18,
-      lineHeight: 24,
+      lineHeight: 27,
       fontWeight: '600',
       color: '#000',
       marginBottom: 10,
@@ -170,21 +156,21 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       marginBottom: 10,
       ...textMetricsTight,
     },
 
-    // Lists — 14/20; vertical gap comes from list row View, not Text (avoids double spacing)
+    // Lists — same metrics as body; vertical gap comes from list row View, not Text
     bullet: {
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       marginBottom: 0,
@@ -195,8 +181,8 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       marginBottom: 0,
@@ -208,13 +194,13 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '700',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
       ...textMetricsTight,
     },
-    // Quote / callout strip (Figma: border-l 5 #3F3F3F, 14/20, not italic)
+    // Quote / callout strip (border-l 5 #3F3F3F); text matches body
     blockquote: {
       marginBottom: 0,
       marginTop: 0,
@@ -224,8 +210,8 @@ export default function RichTextRenderer({
     },
     blockquoteText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       color: '#424242',
       fontStyle: 'normal',
     },
@@ -279,9 +265,9 @@ export default function RichTextRenderer({
     },
     exampleBoxTitle: {
       fontFamily: 'Inter',
-      fontSize: 14,
+      fontSize: 18,
       fontWeight: '600',
-      lineHeight: 20,
+      lineHeight: 27,
       color: '#424242',
       marginBottom: 0,
       textTransform: 'uppercase',
@@ -290,8 +276,8 @@ export default function RichTextRenderer({
       fontFamily: 'Inter',
       fontWeight: '400',
       fontStyle: 'normal',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       letterSpacing: 0,
       color: '#424242',
     },
@@ -308,21 +294,21 @@ export default function RichTextRenderer({
       alignSelf: 'center',
       width: 353,
       maxWidth: '100%',
-      minHeight: 30, // 5px top + 20px (one line) + 5px bottom = 30px minimum
+      minHeight: 37, // 5 + 27 (one line) + 5
       marginTop: 0,
       marginBottom: 30,
     },
     tipTitleText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       fontWeight: '600',
       color: '#424242',
     },
     tipBodyText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       fontWeight: '400',
       color: '#424242',
       marginBottom: 0,
@@ -343,8 +329,8 @@ export default function RichTextRenderer({
     },
     noteBoxText: {
       fontFamily: 'Inter',
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 18,
+      lineHeight: 27,
       fontWeight: '400',
       color: '#424242',
       marginTop: 0,
@@ -363,7 +349,7 @@ export default function RichTextRenderer({
   // Merge styles, ensuring header styles are always preserved
   // If custom styles are provided, merge them but always ensure headers exist
   // For nested renders (like question text), we need to ensure headers are always available
-  const mergedStyles = {
+  const mergedStyles: Record<string, any> = {
     ...defaultStyles,
     // Only spread customStyles if it exists and is an object
     ...(customStyles && typeof customStyles === 'object' ? customStyles : {}),
@@ -386,6 +372,53 @@ export default function RichTextRenderer({
         ? { ...defaultStyles.h4, ...customStyles.h4 }
         : defaultStyles.h4,
   };
+
+  // If only `normal` is customized (e.g. lesson body = news article 18/27), keep lists/blockquote in sync.
+  const normalOverride = customStyles?.normal;
+  if (normalOverride && typeof normalOverride === 'object') {
+    const typo: Record<string, string | number> = {};
+    for (const k of [
+      'fontSize',
+      'lineHeight',
+      'letterSpacing',
+      'fontFamily',
+      'color',
+    ] as const) {
+      const v = (normalOverride as any)[k];
+      if (v !== undefined && v !== null) typo[k] = v;
+    }
+    if (Object.keys(typo).length > 0) {
+      if (!customStyles?.bullet) {
+        mergedStyles.bullet = {
+          ...mergedStyles.bullet,
+          ...typo,
+          marginBottom: 0,
+          marginTop: 0,
+        };
+      }
+      if (!customStyles?.number) {
+        mergedStyles.number = {
+          ...mergedStyles.number,
+          ...typo,
+          marginBottom: 0,
+          marginTop: 0,
+        };
+      }
+      if (!customStyles?.strong) {
+        mergedStyles.strong = {
+          ...mergedStyles.strong,
+          ...typo,
+          fontWeight: '700',
+        };
+      }
+      if (!customStyles?.blockquoteText) {
+        mergedStyles.blockquoteText = {
+          ...mergedStyles.blockquoteText,
+          ...typo,
+        };
+      }
+    }
+  }
 
   // Keep prev nesting-level calc
   const calculateNestingLevels = (blocks: any[]) => {
@@ -622,15 +655,20 @@ export default function RichTextRenderer({
 
         return (
           <View key={block._key || index} style={containerStyle}>
-            <Text style={listTextStyle}>{displayBullet} </Text>
-            <SelectableText
-              blockKey={block._key || `block-${index}`}
-              highlights={getBlockHighlights(block, index)}
-              style={baseListStyle}
-              spans={block.children}
-              allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
-              mergedStyles={mergedStyles}
-            />
+            {/* Row keeps bullet + body on one line; body Text wraps inside remaining width */}
+            <View style={styles.listItemRow}>
+              <Text style={[listTextStyle, styles.listItemBullet]}>
+                {displayBullet}{' '}
+              </Text>
+              <SelectableText
+                blockKey={block._key || `block-${index}`}
+                highlights={getBlockHighlights(block, index)}
+                style={[listTextStyle, styles.listItemBody]}
+                spans={block.children}
+                allMarkDefs={[...(markDefs || []), ...(block.markDefs || [])]}
+                mergedStyles={mergedStyles}
+              />
+            </View>
           </View>
         );
       }
@@ -812,7 +850,6 @@ export default function RichTextRenderer({
             <TouchableOpacity
               onPress={() => {
                 setSelectedImage(imageUrl);
-                setImageZoom(1);
               }}
               activeOpacity={0.9}
             >
@@ -915,6 +952,17 @@ export default function RichTextRenderer({
             highlights={highlights}
           />
         </View>
+      );
+    }
+
+    if (block._type === 'checklist_checkbox') {
+      if (!block.label) return null;
+      return (
+        <ChecklistCheckboxBlock
+          key={block._key || index}
+          label={block.label}
+          defaultChecked={block.defaultChecked ?? false}
+        />
       );
     }
 
@@ -1414,41 +1462,8 @@ export default function RichTextRenderer({
     );
   };
 
-  const handleZoomIn = () => {
-    const newZoom = Math.min(imageZoom + 0.5, 5); // Max 5x zoom
-    setImageZoom(newZoom);
-    baseZoomRef.current = newZoom; // Update base zoom for pinch
-  };
-
-  const handleZoomOut = () => {
-    const newZoom = Math.max(imageZoom - 0.5, 0.5); // Min 0.5x zoom
-    setImageZoom(newZoom);
-    baseZoomRef.current = newZoom; // Update base zoom for pinch
-  };
-
-  const handlePinchGesture = (event: any) => {
-    const { scale } = event.nativeEvent;
-    const newZoom = Math.max(0.5, Math.min(5, baseZoomRef.current * scale));
-    setImageZoom(newZoom);
-  };
-
-  const handlePinchGestureStateChange = (event: any) => {
-    const { state } = event.nativeEvent;
-    // State 2 is BEGAN - capture current zoom as base when gesture starts
-    if (state === 2) {
-      baseZoomRef.current = imageZoom;
-    }
-    // State 5 is END - finalize zoom when gesture ends
-    if (state === 5) {
-      baseZoomRef.current = imageZoom;
-    }
-  };
-
   const handleCloseImageModal = () => {
     setSelectedImage(null);
-    setImageZoom(1);
-    baseZoomRef.current = 1;
-    setImageDimensions(null);
   };
 
   return (
@@ -1476,97 +1491,10 @@ export default function RichTextRenderer({
         .filter(Boolean)}
 
       {/* Image Viewer Modal */}
-      <Modal
-        visible={selectedImage !== null}
-        transparent={true}
-        animationType='fade'
-        onRequestClose={handleCloseImageModal}
-      >
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <SafeAreaView style={styles.imageModalOverlay}>
-            {/* Top bar with close button and zoom controls */}
-            <View style={styles.imageModalHeader}>
-              <TouchableOpacity
-                onPress={handleCloseImageModal}
-                style={styles.imageModalCloseButton}
-              >
-                <Feather name='x' size={20} color='#878787' />
-              </TouchableOpacity>
-              <View style={styles.imageModalZoomControls}>
-                <TouchableOpacity
-                  onPress={handleZoomOut}
-                  style={styles.imageModalZoomButton}
-                  disabled={imageZoom <= 0.5}
-                >
-                  <Feather
-                    name='zoom-out'
-                    size={20}
-                    color={imageZoom <= 0.5 ? '#CCCCCC' : '#878787'}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleZoomIn}
-                  style={styles.imageModalZoomButton}
-                  disabled={imageZoom >= 5}
-                >
-                  <Feather
-                    name='zoom-in'
-                    size={20}
-                    color={imageZoom >= 5 ? '#CCCCCC' : '#878787'}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Scrollable image container with pinch gesture */}
-            <PinchGestureHandler
-              onGestureEvent={handlePinchGesture}
-              onHandlerStateChange={handlePinchGestureStateChange}
-            >
-              <ScrollView
-                contentContainerStyle={styles.imageModalScrollContent}
-                showsVerticalScrollIndicator={false}
-                showsHorizontalScrollIndicator={false}
-                bounces={true}
-                scrollEnabled={imageZoom > 1}
-              >
-                {selectedImage && (
-                  <View
-                    style={{
-                      transform: [{ scale: imageZoom }],
-                    }}
-                  >
-                    <ExpoImage
-                      source={selectedImage}
-                      style={[
-                        styles.imageModalImage,
-                        imageDimensions
-                          ? {
-                              width: imageDimensions.width,
-                              height: imageDimensions.height,
-                            }
-                          : {
-                              width: screenWidth,
-                              height: screenHeight * 0.7,
-                            },
-                      ]}
-                      contentFit='contain'
-                      cachePolicy='memory-disk'
-                      onLoad={e => {
-                        const { width, height } = e.source;
-                        if (width && height) {
-                          // Use full original image dimensions (no size limits)
-                          setImageDimensions({ width, height });
-                        }
-                      }}
-                    />
-                  </View>
-                )}
-              </ScrollView>
-            </PinchGestureHandler>
-          </SafeAreaView>
-        </GestureHandlerRootView>
-      </Modal>
+      <ImageViewerModal
+        imageUri={selectedImage}
+        onClose={handleCloseImageModal}
+      />
     </View>
   );
 }
@@ -1574,6 +1502,18 @@ export default function RichTextRenderer({
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 4 }, // Add top padding to prevent text clipping
   listItemContainer: { marginBottom: 0 }, // Row spacing set on list row View (matches paragraph rhythm)
+  /** Without this, bullet Text + SelectableText stack vertically (default column flex). */
+  listItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  listItemBullet: {
+    flexShrink: 0,
+  },
+  listItemBody: {
+    flex: 1,
+    flexShrink: 1,
+  },
   skipLineSpacer: { height: 25, marginBottom: 0 }, // Figma content column gap
   inputFieldContainer: {
     marginVertical: 12,
@@ -1708,9 +1648,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   questionOptionText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#374151',
-    lineHeight: 20,
+    lineHeight: 27,
     fontWeight: '400',
   },
   explanationContainer: {
@@ -1720,9 +1660,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#E5E7EB',
   },
   explanationText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#6B7280',
-    lineHeight: 20,
+    lineHeight: 27,
     fontStyle: 'italic',
   },
   matchingPairsContainer: {
@@ -1737,9 +1677,9 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   matchingPairText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#374151',
-    lineHeight: 20,
+    lineHeight: 27,
   },
   // Matching question styles (same as quiz)
   matchingContainer: {
@@ -1779,8 +1719,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2',
   },
   matchingItemText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#374151',
+    lineHeight: 27,
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -1886,41 +1827,4 @@ const styles = StyleSheet.create({
     width: '100%',
   },
 
-  // Image viewer modal styles
-  imageModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-  },
-  imageModalHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    zIndex: 10,
-  },
-  imageModalCloseButton: {
-    padding: 4,
-  },
-  imageModalZoomControls: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  imageModalZoomButton: {
-    padding: 4,
-  },
-  imageModalScrollContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: Dimensions.get('window').height,
-  },
-  imageModalImage: {
-    // Width and height set dynamically based on zoom
-  },
 });

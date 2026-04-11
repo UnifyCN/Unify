@@ -565,9 +565,9 @@ export default function QuizQuestionPage() {
                 markDefs={currentQuestion.questionMarkDefs}
                 styles={{
                   normal: {
-                    fontSize: 17,
+                    fontSize: 18,
                     color: '#000',
-                    lineHeight: 30,
+                    lineHeight: 27,
                     textAlign: 'center',
                   },
                 }}
@@ -741,29 +741,29 @@ export default function QuizQuestionPage() {
                   markDefs={currentQuestion.answer_box.markDefs}
                   styles={{
                     normal: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '400',
                       color: '#3F3F3F',
                       marginBottom: 0,
                     },
                     bullet: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '400',
                       color: '#3F3F3F',
                       marginBottom: 0,
                     },
                     number: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '400',
                       color: '#3F3F3F',
                       marginBottom: 0,
                     },
                     strong: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '600',
                       color: '#3F3F3F',
                     },
@@ -1064,9 +1064,9 @@ const styles = StyleSheet.create({
     minHeight: 20,
   },
   optionText: {
-    fontSize: 14,
+    fontSize: 18,
     color: '#374151',
-    lineHeight: 20,
+    lineHeight: 27,
     fontWeight: '700',
   },
   footer: {
