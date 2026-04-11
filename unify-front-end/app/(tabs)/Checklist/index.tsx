@@ -7,7 +7,6 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { NestableScrollContainer } from 'react-native-draggable-flatlist';
 import { useRouter } from 'expo-router';
 import { useAnalytics } from '@/utils/analytics';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
@@ -404,7 +403,7 @@ export default function ChecklistScreen() {
             </Text>
           </View>
         )}
-      </NestableScrollContainer>
+      </ScrollView>
 
       <TaskDetailModal
         visible={modalVisible}
