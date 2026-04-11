@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Alert,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
@@ -17,12 +18,9 @@ import {
   deleteCustomChecklistTask,
   setCustomChecklistTaskCompletion,
 } from '@/services/checklist/customChecklistTasks';
-import { upsertChecklistTaskOrder } from '@/services/checklist/checklistTaskOrder';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
-import { queryClient } from '@/lib/queryClient';
-import { invalidateChecklistTasksQueries } from '@/hooks/checklist/checklistQueryKeys';
 import {
   ChecklistLinkTabSlug,
   Priority,
@@ -31,12 +29,6 @@ import {
 import TabHeader from '@/components/home/HomeHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import {
-  CHECKLIST_PRIORITY_ORDER,
-  getChecklistTaskOrderKey,
-  normalizeChecklistPriority,
-  replacePriorityBucket,
-} from '@/utils/checklistOrder';
 
 /**
  * Map checklist tab slug to (tabs) route for "Learn how" navigation.
@@ -117,15 +109,26 @@ export default function ChecklistScreen() {
     fetchPersona();
   }, []);
 
-  const { tasks, isLoading: tasksLoading, setTasks } = useChecklistTasks({
+  const {
+    tasks,
+    isLoading: tasksLoading,
+    refetch,
+    setTasks,
+  } = useChecklistTasks({
     currentStage,
     stageChanged,
     persona,
   });
 
-  useEffect(() => {
-    trackScreen('Checklist');
-  }, [trackScreen]);
+  // Refetch when Checklist tab is focused so new/updated Sanity tasks show up
+  useFocusEffect(
+    useCallback(() => {
+      trackScreen('Checklist');
+      if (currentStage !== null && persona) {
+        refetch();
+      }
+    }, [currentStage, persona, refetch, trackScreen])
+  );
 
   // Compute progress
   const totalTasks = tasks.length;
@@ -134,10 +137,14 @@ export default function ChecklistScreen() {
 
   const isLoading = stageLoading || isLoadingProfile || tasksLoading;
 
-  // Group tasks by priority (order within bucket comes from `tasks` / persisted order)
+  // Normalize so "Explore & connect" and "Explore and connect" are one section
+  const normalizePriority = (p: Priority): Priority =>
+    p === 'Explore & connect' ? 'Explore and connect' : p;
+
+  // Group tasks by priority
   const tasksByPriority = tasks.reduce(
     (acc, task) => {
-      const priority = normalizeChecklistPriority(task.task.priority);
+      const priority = normalizePriority(task.task.priority);
       if (!acc[priority]) {
         acc[priority] = [];
       }
@@ -146,6 +153,13 @@ export default function ChecklistScreen() {
     },
     {} as Record<Priority, typeof tasks>
   );
+
+  const priorities: Priority[] = [
+    'Do now',
+    'Do soon',
+    'Explore and connect',
+    'Optional / later',
+  ];
 
   const handleTaskPress = (task: UserTaskWithDetails) => {
     setSelectedTask(task);
@@ -234,34 +248,11 @@ export default function ChecklistScreen() {
         );
       }
 
-      await invalidateChecklistTasksQueries(queryClient);
     } catch (error) {
       console.error('Error updating task completion:', error);
-      await invalidateChecklistTasksQueries(queryClient);
+      refetch();
     }
   };
-
-  const handleReorder = useCallback(
-    async (priority: Priority, reordered: UserTaskWithDetails[]) => {
-      setTasks(prev => replacePriorityBucket(prev, priority, reordered));
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          return;
-        }
-        await upsertChecklistTaskOrder(
-          user.id,
-          priority,
-          reordered.map(getChecklistTaskOrderKey)
-        );
-      } catch (e) {
-        console.error('Failed to persist checklist order:', e);
-      }
-    },
-    [setTasks]
-  );
 
   const handleDeleteCustomTask = () => {
     if (!selectedTask || selectedTask.source !== 'custom') return;
@@ -291,11 +282,10 @@ export default function ChecklistScreen() {
               userId: user.id,
               customTaskId,
             });
-            await invalidateChecklistTasksQueries(queryClient);
           } catch (error) {
             console.error('Error deleting custom checklist task:', error);
             setTasks(prevTasks);
-            await invalidateChecklistTasksQueries(queryClient);
+            refetch();
           }
         },
       },
@@ -371,7 +361,7 @@ export default function ChecklistScreen() {
           </View>
         </View>
 
-        {CHECKLIST_PRIORITY_ORDER.map(priority => {
+        {priorities.map(priority => {
           const priorityTasks = tasksByPriority[priority] || [];
 
           return (
@@ -380,7 +370,6 @@ export default function ChecklistScreen() {
               priority={priority}
               tasks={priorityTasks}
               onTaskPress={handleTaskPress}
-              onReorder={handleReorder}
             />
           );
         })}
