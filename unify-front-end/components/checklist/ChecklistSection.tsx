@@ -1,20 +1,14 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import {
-  NestableDraggableFlatList,
-  RenderItemParams,
-} from 'react-native-draggable-flatlist';
 import { ThemedText } from '@/components/ThemedText';
 import { UserTaskWithDetails, Priority } from '@/types/checklist';
 import { ChecklistItem } from './ChecklistItem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { getChecklistTaskOrderKey } from '@/utils/checklistOrder';
 
 interface ChecklistSectionProps {
   priority: Priority;
   tasks: UserTaskWithDetails[];
   onTaskPress?: (task: UserTaskWithDetails) => void;
-  onReorder: (priority: Priority, data: UserTaskWithDetails[]) => void;
 }
 
 const priorityConfig = {
@@ -49,49 +43,10 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
   priority,
   tasks,
   onTaskPress,
-  onReorder,
 }) => {
   const config = priorityConfig[priority];
   const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
-
-  const renderItem = ({
-    item: task,
-    drag,
-    isActive,
-  }: RenderItemParams<UserTaskWithDetails>) => (
-    <View
-      style={[styles.row, isActive && styles.rowActive]}
-      collapsable={false}
-    >
-      <View style={styles.leftColumn}>
-        <TouchableOpacity
-          onPress={() => onTaskPress?.(task)}
-          style={[
-            styles.checkboxCircle,
-            { backgroundColor: '#FFF', borderColor: config.color },
-            task.completed && {
-              backgroundColor: config.color,
-              borderColor: config.color,
-            },
-          ]}
-          activeOpacity={0.7}
-        >
-          {task.completed && (
-            <MaterialIcons name='check' size={20} color='#FFF' />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.rightColumn}>
-        <ChecklistItem
-          task={task}
-          onPress={() => onTaskPress?.(task)}
-          onLongPress={drag}
-        />
-      </View>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -118,14 +73,40 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
             { backgroundColor: config.backgroundColor },
           ]}
         />
-        <NestableDraggableFlatList
-          data={tasks}
-          keyExtractor={item => getChecklistTaskOrderKey(item)}
-          renderItem={renderItem}
-          scrollEnabled={false}
-          onDragEnd={({ data }) => onReorder(priority, data)}
-          containerStyle={styles.draggableList}
-        />
+        {tasks.map((task, index) => (
+          <View
+            key={
+              task.sanity_checklist_id ||
+              task.custom_task_id ||
+              task.user_task_id ||
+              index
+            }
+            style={styles.row}
+          >
+            <View style={styles.leftColumn}>
+              <TouchableOpacity
+                onPress={() => onTaskPress?.(task)}
+                style={[
+                  styles.checkboxCircle,
+                  { backgroundColor: '#FFF', borderColor: config.color },
+                  task.completed && {
+                    backgroundColor: config.color,
+                    borderColor: config.color,
+                  },
+                ]}
+                activeOpacity={0.7}
+              >
+                {task.completed && (
+                  <MaterialIcons name='check' size={20} color='#FFF' />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.rightColumn}>
+              <ChecklistItem task={task} onPress={() => onTaskPress?.(task)} />
+            </View>
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -173,17 +154,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2E8F0',
     zIndex: 0,
   },
-  draggableList: {
-    flexGrow: 0,
-  },
   row: {
     flexDirection: 'row',
     gap: 14,
     alignItems: 'center',
     marginBottom: 12,
-  },
-  rowActive: {
-    opacity: 0.92,
   },
   leftColumn: {
     width: 36,
