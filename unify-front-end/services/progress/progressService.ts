@@ -112,10 +112,13 @@ async function startLesson(
   }
 }
 
-async function updateLessonProgress(
+export async function updateLessonProgress(
   lessonId: string,
+  submoduleId: string,
+  moduleId: string,
   pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
   pageNumber: number,
+  totalPages: number,
   quizId?: string,
   questionNumber?: number
 ): Promise<void> {
@@ -125,25 +128,35 @@ async function updateLessonProgress(
     } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const updateData: any = {
+    // Page N clicked → pages 1..N are now done
+    const completedPages = Math.min(pageNumber, totalPages);
+    const progressPercent =
+      totalPages > 0 ? Math.round((completedPages / totalPages) * 100) : 0;
+
+    const upsertData: any = {
+      user_id: user.id,
+      sanity_lesson_id: lessonId,
+      sanity_submodule_id: submoduleId,
+      sanity_module_id: moduleId,
+      is_in_progress: true,
       current_page_type: pageType,
       current_page_number: pageNumber,
+      total_pages: totalPages,
+      completed_pages: completedPages,
+      progress_percent: progressPercent,
       last_accessed_at: new Date().toISOString(),
     };
 
-    if (quizId) updateData.current_quiz_id = quizId;
-    if (questionNumber) updateData.current_question_number = questionNumber;
+    if (quizId) upsertData.current_quiz_id = quizId;
+    if (questionNumber) upsertData.current_question_number = questionNumber;
 
     const { error } = await progressClient
       .from('user_lesson_progress')
-      .update(updateData)
-      .eq('user_id', user.id)
-      .eq('sanity_lesson_id', lessonId);
+      .upsert(upsertData, { onConflict: 'user_id,sanity_lesson_id' });
 
     if (error) {
       console.error('Error updating lesson progress:', error);
     } else {
-      // Emit progress update event
       progressEventEmitter.emit();
     }
   } catch (error) {

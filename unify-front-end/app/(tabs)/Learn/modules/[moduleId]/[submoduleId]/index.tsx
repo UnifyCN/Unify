@@ -142,8 +142,10 @@ export default function SubmoduleIndex() {
     useCallback(() => {
       if (!moduleId || !submoduleId) return;
       let cancelled = false;
+      // Always force-refresh so the progress bar reflects page-level saves
       cachedProgressService
-        .getSubmoduleProgress(moduleId, submoduleId)
+        .refreshProgress()
+        .then(() => cachedProgressService.getSubmoduleProgress(moduleId, submoduleId))
         .then(progress => {
           if (!cancelled && progress?.progress_percent != null) {
             const p = Number(progress.progress_percent);
@@ -204,6 +206,26 @@ export default function SubmoduleIndex() {
   const handleLearnPress = async () => {
     if (!moduleId || !submoduleId || !submoduleData) return;
     setIsResolvingLearnHref(true);
+
+    const base = `/(tabs)/Learn/modules/${moduleId}/${submoduleId}`;
+
+    // When reviewing a completed Learn section, always restart from the intro
+    // (or the first lesson page if there are no intro pages).
+    if (learnProgressPercent >= 100) {
+      const hasIntro =
+        Array.isArray(submoduleData.intro_pages) &&
+        submoduleData.intro_pages.length > 0;
+      const firstLessonId = submoduleData.lessons?.[0]?._id;
+      const href = hasIntro
+        ? `${base}/intro/1`
+        : firstLessonId
+          ? `${base}/lessons/${firstLessonId}/pages/1`
+          : null;
+      setIsResolvingLearnHref(false);
+      if (href) router.push(href as any);
+      return;
+    }
+
     try {
       let user = null;
       try {
