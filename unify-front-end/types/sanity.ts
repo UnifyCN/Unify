@@ -64,7 +64,7 @@ export interface SanityIntroPage {
   _key: string;
   title: string;
   order: number;
-  content: (SanityBlock | SanityImage)[];
+  content: (SanityBlock | SanityImage | SanityChecklistCheckbox)[];
   markDefs?: any[];
 }
 
@@ -102,6 +102,7 @@ export interface SanityLessonPage {
     | SanityExampleBox
     | SanityTipBox
     | SanityNoteBox
+    | SanityChecklistCheckbox
   )[];
   markDefs?: any[];
 }
@@ -131,6 +132,13 @@ export interface SanityNoteBox {
   content: SanityBlock[];
 }
 
+export interface SanityChecklistCheckbox {
+  _type: 'checklist_checkbox';
+  _key: string;
+  label: string;
+  defaultChecked?: boolean;
+}
+
 export interface SanityActivityPage {
   _key: string;
   title: string;
@@ -144,6 +152,7 @@ export interface SanityActivityPage {
     | SanityMultipleChoiceMultiple
     | SanityTwoOptionsQuestion
     | SanityMatchingQuestion
+    | SanityChecklistCheckbox
   )[];
   instructionsMarkDefs?: any[];
   answer_box?: SanityAnswerBox;
@@ -160,6 +169,7 @@ export interface SanityEndingPage {
     | SanityExampleBox
     | SanityTipBox
     | SanityNoteBox
+    | SanityChecklistCheckbox
   )[];
   markDefs?: any[];
 }
@@ -227,7 +237,7 @@ export interface SanityActivityOption {
 
 export interface SanityAnswerBox {
   title?: string;
-  content: SanityBlock[];
+  content: (SanityBlock | SanityChecklistCheckbox)[];
   markDefs?: any[];
   showAfterSubmit: boolean;
 }
@@ -325,6 +335,7 @@ export interface SanityPracticeActivityPage {
     | SanityMultipleChoiceMultiple
     | SanityTwoOptionsQuestion
     | SanityMatchingQuestion
+    | SanityChecklistCheckbox
   )[];
   answer_box?: SanityAnswerBox;
 }
@@ -342,6 +353,7 @@ export interface SanityTask extends SanityDocument {
     | SanityExampleBox
     | SanityTipBox
     | SanityNoteBox
+    | SanityChecklistCheckbox
   )[];
   markDefs?: any[];
 }
