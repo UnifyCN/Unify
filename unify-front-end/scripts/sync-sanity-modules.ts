@@ -11,10 +11,10 @@
  *   npm run sync-sanity-modules
  *
  * Required env vars (from .env or shell):
- *   SANITY_PROJECT_ID
- *   SANITY_DATASET          (default: production)
- *   SANITY_API_TOKEN        (read token)
- *   SUPABASE_URL
+ *   SANITY_PROJECT_ID or EXPO_PUBLIC_SANITY_PROJECT_ID
+ *   SANITY_DATASET or EXPO_PUBLIC_SANITY_DATASET (default: production)
+ *   SANITY_API_TOKEN or EXPO_PUBLIC_SANITY_TOKEN (read token)
+ *   SUPABASE_URL or EXPO_PUBLIC_SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY
  */
 
@@ -23,18 +23,26 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
 
-// Load .env from project root
+// Load .env from project root (same pattern as sanity-custom.ts)
 const envPath = path.resolve(__dirname, '..', '.env');
 if (fs.existsSync(envPath)) dotenv.config({ path: envPath });
 
-const SANITY_PROJECT_ID = process.env.SANITY_PROJECT_ID;
-const SANITY_DATASET = process.env.SANITY_DATASET || 'production';
-const SANITY_API_TOKEN = process.env.SANITY_API_TOKEN;
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL;
+const SANITY_PROJECT_ID =
+  process.env.SANITY_PROJECT_ID || process.env.EXPO_PUBLIC_SANITY_PROJECT_ID;
+const SANITY_DATASET =
+  process.env.SANITY_DATASET ||
+  process.env.EXPO_PUBLIC_SANITY_DATASET ||
+  'production';
+const SANITY_API_TOKEN =
+  process.env.SANITY_API_TOKEN || process.env.EXPO_PUBLIC_SANITY_TOKEN;
+const SUPABASE_URL =
+  process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SANITY_PROJECT_ID || !SANITY_API_TOKEN) {
-  console.error('[sync] Missing SANITY_PROJECT_ID or SANITY_API_TOKEN');
+  console.error(
+    '[sync] Missing Sanity credentials. Set SANITY_PROJECT_ID + SANITY_API_TOKEN, or EXPO_PUBLIC_SANITY_PROJECT_ID + EXPO_PUBLIC_SANITY_TOKEN in .env'
+  );
   process.exit(1);
 }
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
