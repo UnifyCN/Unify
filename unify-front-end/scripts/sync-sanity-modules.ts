@@ -8,7 +8,7 @@
  *   - Deletes orphaned rows (modules removed from Sanity)
  *
  * Usage:
- *   npx ts-node scripts/sync-sanity-modules.ts
+ *   npm run sync-sanity-modules
  *
  * Required env vars (from .env or shell):
  *   SANITY_PROJECT_ID

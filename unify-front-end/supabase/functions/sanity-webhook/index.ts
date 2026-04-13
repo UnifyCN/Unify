@@ -4,7 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 /**
  * Sanity Webhook → learn_modules sync
  *
- * Configure in Sanity: Settings → API → Webhooks
+ * Configure in Sanity: https://sanity.io/manage → Project → API → GROQ-powered webhooks
  *   URL:     <SUPABASE_URL>/functions/v1/sanity-webhook
  *   Dataset: production
  *   Filter:  _type == "module"
@@ -31,6 +31,36 @@ interface SanityModulePayload {
   goals?: string[];
   province?: string;
   difficulty?: string;
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+/** Accept raw document or common wrapper shapes from Sanity / proxies */
+function normalizeModulePayload(raw: unknown): SanityModulePayload | null {
+  if (!isRecord(raw)) return null;
+  let doc: Record<string, unknown> = raw;
+  if (isRecord(raw.result)) doc = raw.result as Record<string, unknown>;
+  else if (isRecord(raw.document)) doc = raw.document as Record<string, unknown>;
+
+  const _id = doc._id;
+  const _type = doc._type;
+  if (typeof _id !== 'string' || typeof _type !== 'string') return null;
+
+  return {
+    _id,
+    _type,
+    title: typeof doc.title === 'string' ? doc.title : undefined,
+    personas: Array.isArray(doc.personas) ? (doc.personas as string[]) : undefined,
+    interests: Array.isArray(doc.interests)
+      ? (doc.interests as string[])
+      : undefined,
+    goals: Array.isArray(doc.goals) ? (doc.goals as string[]) : undefined,
+    province: typeof doc.province === 'string' ? doc.province : undefined,
+    difficulty:
+      typeof doc.difficulty === 'string' ? doc.difficulty : undefined,
+  };
 }
 
 Deno.serve(async (req: Request) => {
@@ -66,11 +96,20 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  let payload: SanityModulePayload;
+  let raw: unknown;
   try {
-    payload = await req.json();
+    raw = await req.json();
   } catch {
     return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // GROQ webhooks usually POST the projected document; some tools wrap it
+  const payload = normalizeModulePayload(raw);
+  if (!payload) {
+    return new Response(JSON.stringify({ error: 'Unrecognized payload shape' }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
