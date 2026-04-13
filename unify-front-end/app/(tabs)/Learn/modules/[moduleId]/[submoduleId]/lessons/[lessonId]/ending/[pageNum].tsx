@@ -491,8 +491,8 @@ const styles = StyleSheet.create({
   },
   contentText: {
     fontFamily: 'Inter',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 18,
+    lineHeight: 27,
     fontWeight: '400',
     color: '#424242',
     marginBottom: 10,

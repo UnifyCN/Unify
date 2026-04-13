@@ -563,29 +563,29 @@ export default function PracticeQuizQuestionPage() {
                   markDefs={currentQuestion.answer_box.markDefs}
                   styles={{
                     normal: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '400',
                       color: '#3F3F3F',
                       marginBottom: 0,
                     },
                     bullet: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '400',
                       color: '#3F3F3F',
                       marginBottom: 0,
                     },
                     number: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '400',
                       color: '#3F3F3F',
                       marginBottom: 0,
                     },
                     strong: {
-                      fontSize: 14,
-                      lineHeight: 20,
+                      fontSize: 18,
+                      lineHeight: 27,
                       fontWeight: '600',
                       color: '#3F3F3F',
                     },

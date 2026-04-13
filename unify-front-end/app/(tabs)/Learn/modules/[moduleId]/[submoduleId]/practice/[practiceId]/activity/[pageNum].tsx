@@ -313,9 +313,9 @@ export default function PracticeActivityPageScreen() {
                                   markDefs={option.textMarkDefs}
                                   styles={{
                                     normal: {
-                                      fontSize: 14,
+                                      fontSize: 18,
                                       color: '#374151',
-                                      lineHeight: 20,
+                                      lineHeight: 27,
                                       fontWeight: '400',
                                       marginBottom: 0,
                                       marginTop: 0,
@@ -335,9 +335,9 @@ export default function PracticeActivityPageScreen() {
                                     markDefs={option.explanationMarkDefs}
                                     styles={{
                                       normal: {
-                                        fontSize: 14,
+                                        fontSize: 18,
                                         color: '#6B7280',
-                                        lineHeight: 20,
+                                        lineHeight: 27,
                                         fontStyle: 'italic',
                                         marginTop: 12,
                                         paddingTop: 12,
@@ -383,29 +383,29 @@ export default function PracticeActivityPageScreen() {
               markDefs={currentPageData.answer_box.markDefs}
               styles={{
                 normal: {
-                  fontSize: 14,
-                  lineHeight: 20,
+                  fontSize: 18,
+                  lineHeight: 27,
                   fontWeight: '400',
                   color: '#3F3F3F',
                   marginBottom: 0,
                 },
                 bullet: {
-                  fontSize: 14,
-                  lineHeight: 20,
+                  fontSize: 18,
+                  lineHeight: 27,
                   fontWeight: '400',
                   color: '#3F3F3F',
                   marginBottom: 0,
                 },
                 number: {
-                  fontSize: 14,
-                  lineHeight: 20,
+                  fontSize: 18,
+                  lineHeight: 27,
                   fontWeight: '400',
                   color: '#3F3F3F',
                   marginBottom: 0,
                 },
                 strong: {
-                  fontSize: 14,
-                  lineHeight: 20,
+                  fontSize: 18,
+                  lineHeight: 27,
                   fontWeight: '600',
                   color: '#3F3F3F',
                 },

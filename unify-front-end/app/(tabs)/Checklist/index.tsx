@@ -247,6 +247,7 @@ export default function ChecklistScreen() {
           newCompletedStatus
         );
       }
+
     } catch (error) {
       console.error('Error updating task completion:', error);
       refetch();

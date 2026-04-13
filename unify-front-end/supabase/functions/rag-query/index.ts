@@ -93,31 +93,54 @@ function sanitizeSuggestedNextSteps(suggestions: string[]): string[] {
 }
 
 function buildUserProfileContext(profile: Record<string, unknown>): string {
-  const {
-    id,
-    created_at,
-    updated_at,
-    onboarding_completed,
-    onboarding_completed_at,
-    ...relevantProfile
-  } = profile;
+  const persona = profile.persona as string | null;
+  const city = profile.city as string | null;
+  const province = profile.province as string | null;
+  const arrivalDate = profile.arrival_date as string | null;
+  const goals = (profile.goals as string[] | null) ?? [];
+  const learningInterests =
+    (profile.learning_interests as string[] | null) ?? [];
 
-  const cleanedProfile: Record<string, unknown> = {};
-  Object.entries(relevantProfile).forEach(([key, value]) => {
-    if (value === null || value === undefined) return;
-    if (Array.isArray(value) && value.length === 0) return;
-    if (typeof value === 'string' && value.trim() === '') return;
-    cleanedProfile[key] = value;
-  });
+  // Build prompt parts, omitting null/empty fields gracefully
+  const parts: string[] = [];
 
-  if (Object.keys(cleanedProfile).length === 0) {
-    return '';
+  if (persona && city && province) {
+    parts.push(
+      `You are speaking with a ${persona.replace(/_/g, ' ')} who arrived in ${city}, ${province}${arrivalDate ? ` on ${arrivalDate.split('T')[0]}` : ''}.`
+    );
+  } else if (persona && province) {
+    parts.push(
+      `You are speaking with a ${persona.replace(/_/g, ' ')} in ${province}${arrivalDate ? `, who arrived on ${arrivalDate.split('T')[0]}` : ''}.`
+    );
+  } else if (persona) {
+    parts.push(
+      `You are speaking with a ${persona.replace(/_/g, ' ')} in Canada${arrivalDate ? `, who arrived on ${arrivalDate.split('T')[0]}` : ''}.`
+    );
   }
 
-  return `\nUSER PROFILE CONTEXT:
-${JSON.stringify(cleanedProfile, null, 2)}
+  if (goals.length > 0) {
+    parts.push(
+      `Their goals: ${goals.map(g => g.replace(/_/g, ' ')).join(', ')}.`
+    );
+  }
 
-Use this profile context to personalize your response when it is relevant to the user's question.`;
+  if (learningInterests.length > 0) {
+    parts.push(
+      `Their interests: ${learningInterests.map(i => i.replace(/_/g, ' ')).join(', ')}.`
+    );
+  }
+
+  if (parts.length === 0) return '';
+
+  parts.push(
+    `Tailor your responses to their specific situation, location, and goals.`
+  );
+
+  if (city) {
+    parts.push(`Refer to local resources in ${city} when relevant.`);
+  }
+
+  return `\nUSER PROFILE CONTEXT:\n${parts.join(' ')}`;
 }
 
 async function fetchUserProfileContext(

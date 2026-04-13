@@ -63,6 +63,7 @@
     "react-native": "0.79.6",
     "react-native-circular-progress-indicator": "^4.4.2",
     "react-native-confetti-cannon": "^1.5.2",
+    "react-native-draggable-flatlist": "^4.0.3",
     "react-native-elements": "^3.4.3",
     "react-native-enriched": "^0.3.0",
     "react-native-gesture-handler": "~2.24.0",
@@ -78,7 +79,8 @@
     "react-native-url-polyfill": "^2.0.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "supabase": "^2.84.10"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

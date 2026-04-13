@@ -1,15 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import { DailyTip } from '@/types/dailyTip';
 
-export const getPastTips = async (
-  persona: string,
-  stage: string
-): Promise<DailyTip[]> => {
+export const getPastTips = async (): Promise<DailyTip[]> => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Fetch this user's own past tips (per-user storage)
   const { data, error } = await supabase
     .from('daily_tips')
     .select('*')
-    .eq('persona', persona)
-    .eq('stage', stage)
+    .eq('user_id', user.id)
     .order('date', { ascending: false })
     .limit(30);
 

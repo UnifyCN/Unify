@@ -13,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Layout } from '@/constants/Layout';
 import { supabase } from '@/lib/supabase';
 import { createCustomChecklistTask } from '@/services/checklist/customChecklistTasks';
+import { queryClient } from '@/lib/queryClient';
+import { invalidateChecklistTasksQueries } from '@/hooks/checklist/checklistQueryKeys';
 import { CustomPriority } from '@/types/checklist';
 
 const PRIORITY_OPTIONS: CustomPriority[] = [
@@ -64,6 +66,7 @@ export default function CreateCustomItemScreen() {
         description,
       });
 
+      await invalidateChecklistTasksQueries(queryClient);
       router.back();
     } catch (error) {
       Alert.alert('Error', 'Unable to create checklist item right now.');

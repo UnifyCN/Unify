@@ -42,6 +42,7 @@ import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
+import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarters';
 
 const MESSAGE_LIMIT = 3;
 const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
@@ -71,6 +72,7 @@ const isSendButtonDisabled = (
 };
 
 export default function CompanionScreen() {
+  const { data: personalization } = usePersonalizedStarters();
   const { conversationId } = useLocalSearchParams<{
     conversationId?: string;
   }>();
@@ -490,7 +492,10 @@ export default function CompanionScreen() {
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
           {showEmptyState && (
-            <StarterPrompts onPromptSelect={handleStarterPromptSelect} />
+            <StarterPrompts
+              onPromptSelect={handleStarterPromptSelect}
+              personalizedStarters={personalization?.starters}
+            />
           )}
 
           {/* Input */}

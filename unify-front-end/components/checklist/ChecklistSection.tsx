@@ -67,7 +67,6 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         </View>
       </View>
       <View style={styles.timeline}>
-        {/* Line going through checkbox circles */}
         <View
           style={[
             styles.timelineLine,
@@ -84,7 +83,6 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
             }
             style={styles.row}
           >
-            {/* LEFT COLUMN (Checkbox) */}
             <View style={styles.leftColumn}>
               <TouchableOpacity
                 onPress={() => onTaskPress?.(task)}
@@ -104,7 +102,6 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* RIGHT COLUMN (Task card) */}
             <View style={styles.rightColumn}>
               <ChecklistItem task={task} onPress={() => onTaskPress?.(task)} />
             </View>

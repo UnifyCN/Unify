@@ -1,56 +1,27 @@
 import { supabase } from '@/lib/supabase';
 import { DailyTip } from '@/types/dailyTip';
 
-function buildWelcomeTip(persona: string, stage: string): DailyTip {
-  return {
-    id: `welcome-${persona}-${stage}`,
-    persona,
-    stage,
-    date: new Date().toISOString().split('T')[0],
-    category: 'general',
-    title: 'Welcome to Canada!',
-    description: 'Start your journey with Unify',
-    tipText:
-      'Check back daily for personalized tips based on where you are in your newcomer journey. Complete your profile to get tips tailored to you!',
-    sourceRefs: null,
-  };
-}
-
-export const getDailyTip = async (
-  persona: string,
-  stage: string
-): Promise<DailyTip> => {
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-  const { data, error } = await supabase
-    .from('daily_tips')
-    .select('*')
-    .eq('persona', persona)
-    .eq('stage', stage)
-    .gte('date', yesterday)
-    .order('date', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+export const getDailyTip = async (): Promise<DailyTip | null> => {
+  const { data, error } = await supabase.functions.invoke('get-daily-tip');
 
   if (error) {
-    console.error('Error fetching daily tip:', error);
-    return buildWelcomeTip(persona, stage);
+    throw new Error(`Failed to fetch daily tip: ${error.message}`);
   }
 
-  if (!data) {
-    return buildWelcomeTip(persona, stage);
+  const tip = data?.tip;
+  if (!tip) {
+    throw new Error('Unexpected response from get-daily-tip: missing tip');
   }
 
   return {
-    id: data.id,
-    persona: data.persona,
-    stage: data.stage,
-    date: data.date,
-    category: data.category,
-    title: data.title,
-    description: data.description,
-    tipText: data.tip_text,
-    sourceRefs: data.source_refs,
+    id: tip.id,
+    persona: tip.persona,
+    stage: tip.stage,
+    date: tip.date,
+    category: tip.category,
+    title: tip.title,
+    description: tip.description,
+    tipText: tip.tip_text,
+    sourceRefs: tip.source_refs,
   };
 };
