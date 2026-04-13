@@ -14,7 +14,12 @@ interface SavePostContext {
 export const useMutateSavePost = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<unknown, Error, { postId: number; isSaved: boolean }, SavePostContext>({
+  return useMutation<
+    unknown,
+    Error,
+    { postId: number; isSaved: boolean },
+    SavePostContext
+  >({
     mutationFn: async ({ postId, isSaved }) => {
       if (isSaved) {
         return await unsavePost(postId);

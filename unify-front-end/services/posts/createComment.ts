@@ -38,7 +38,9 @@ export const createComment = async (
   if (data) {
     createCommentNotification(postId, data.id).catch(() => {});
     if (parentCommentId) {
-      createCommentReplyNotification(postId, data.id, parentCommentId).catch(() => {});
+      createCommentReplyNotification(postId, data.id, parentCommentId).catch(
+        () => {}
+      );
     }
   }
 

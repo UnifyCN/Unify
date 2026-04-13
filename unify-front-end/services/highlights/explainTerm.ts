@@ -16,7 +16,9 @@ export async function explainTerm(
     data = result.data;
     error = result.error;
   } catch (err: any) {
-    throw new Error(`Failed to reach explanation service: ${err.message || err}`);
+    throw new Error(
+      `Failed to reach explanation service: ${err.message || err}`
+    );
   }
 
   if (error) {

@@ -62,8 +62,8 @@ const Feed = ({
     const firstViewportAvatarUrls = firstViewportPosts.map(
       (post: PostData) => post.user.profilePictureUrl
     );
-    const firstViewportImageKeys = firstViewportPosts.flatMap((post: PostData) =>
-      post.post_image_urls ?? []
+    const firstViewportImageKeys = firstViewportPosts.flatMap(
+      (post: PostData) => post.post_image_urls ?? []
     );
     const nextAvatarUrls = firstViewportAvatarUrls.filter(
       (url: string | null | undefined): url is string =>

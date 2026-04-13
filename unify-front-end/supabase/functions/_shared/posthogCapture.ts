@@ -58,7 +58,7 @@ export function captureAiGeneration(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body,
-  }).catch((err) => {
+  }).catch(err => {
     console.error('PostHog capture failed:', err);
   });
 }
@@ -85,11 +85,11 @@ export function computeGeminiCost(
   if (model.includes('2.5')) {
     // Gemini 2.5 Flash
     inputRate = 0.15 / 1_000_000;
-    outputRate = 0.60 / 1_000_000;
+    outputRate = 0.6 / 1_000_000;
   } else {
     // Gemini 2.0 Flash (default)
-    inputRate = 0.10 / 1_000_000;
-    outputRate = 0.40 / 1_000_000;
+    inputRate = 0.1 / 1_000_000;
+    outputRate = 0.4 / 1_000_000;
   }
 
   const inputCost = inputTokens * inputRate;

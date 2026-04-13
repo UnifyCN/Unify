@@ -18,6 +18,7 @@ import { Theme } from '@/constants/Theme';
 import { Avatar } from '@/components/Avatar';
 import BottomSheet from '@/components/common/BottomSheet';
 import { Group } from '@/types/groups';
+import { useGroups } from '@/hooks/groups/useGroups';
 
 interface GroupSelectionSheetProps {
   visible: boolean;
@@ -45,12 +46,7 @@ export default function GroupSelectionSheet({
   });
 
   // Fetch available groups (groups user hasn't joined)
-  const { data: availableGroups, isLoading: availableLoading } = useQuery({
-    queryKey: ['available-groups'],
-    queryFn: getAvailableGroups,
-    enabled: visible,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const { data: availableGroups, isLoading: availableLoading } = useGroups();
 
   // Join group mutation
   const joinMutation = useMutation({
@@ -58,6 +54,7 @@ export default function GroupSelectionSheet({
     onSuccess: () => {
       // Invalidate queries to refresh the lists
       queryClient.invalidateQueries({ queryKey: ['joined-groups', 'self'] });
+      queryClient.invalidateQueries({ queryKey: ['personalize', 'groups'] });
       queryClient.invalidateQueries({ queryKey: ['available-groups'] });
     },
   });

@@ -31,15 +31,12 @@ export default function GroupCard({ scale = 1 }: GroupCardProps) {
             borderRadius: 9 * s,
           },
         ]}
-        contentFit="cover"
+        contentFit='cover'
       />
 
       {/* Group info */}
       <View style={[styles.info, { marginTop: 9 * s }]}>
-        <Text
-          style={[styles.name, { fontSize: 16 * s }]}
-          numberOfLines={1}
-        >
+        <Text style={[styles.name, { fontSize: 16 * s }]} numberOfLines={1}>
           SFU International Stu...
         </Text>
         <Text

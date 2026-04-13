@@ -53,12 +53,19 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
       endWordIndex: number;
       selectedText: string;
       allWordsInBlock: string[];
-      navContext?: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number };
+      navContext?: {
+        moduleId: string;
+        submoduleId: string;
+        submoduleTitle: string;
+        pageNum: number;
+      };
       _snapshotHighlights?: Highlight[];
     }) => {
       // Use the pre-mutation snapshot captured in onMutate (falls back to current cache)
-      const existingHighlights = _snapshotHighlights ??
-        queryClient.getQueryData<Highlight[]>(queryKey) ?? [];
+      const existingHighlights =
+        _snapshotHighlights ??
+        queryClient.getQueryData<Highlight[]>(queryKey) ??
+        [];
       return saveHighlight(
         lessonId,
         pageKey,
@@ -71,8 +78,9 @@ export function useSaveHighlight(lessonId: string, pageKey: string) {
         navContext
       );
     },
-    onMutate: async (variables) => {
-      const { blockKey, startWordIndex, endWordIndex, selectedText } = variables;
+    onMutate: async variables => {
+      const { blockKey, startWordIndex, endWordIndex, selectedText } =
+        variables;
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<Highlight[]>(queryKey);
 
@@ -126,7 +134,7 @@ export function useDeleteHighlight(lessonId: string, pageKey: string) {
 
   return useMutation({
     mutationFn: (highlightId: string) => deleteHighlight(highlightId),
-    onMutate: async (highlightId) => {
+    onMutate: async highlightId => {
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<Highlight[]>(queryKey);
 

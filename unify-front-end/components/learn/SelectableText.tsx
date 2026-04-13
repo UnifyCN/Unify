@@ -87,7 +87,9 @@ export function flattenSpansToWords(
           }
           const markKey = mark._key;
           if (markKey && !linkHref) {
-            const markDef = allMarkDefs.find((def: any) => def._key === markKey);
+            const markDef = allMarkDefs.find(
+              (def: any) => def._key === markKey
+            );
             if (markDef && markDef._type === 'link') {
               linkHref = markDef.href;
             }
@@ -171,7 +173,9 @@ function PlainStyledText({
           <Text
             key={`${blockKey}-w-${index}`}
             style={wordStyle.length > 0 ? wordStyle : undefined}
-            onPress={sw.linkHref ? () => Linking.openURL(sw.linkHref!) : undefined}
+            onPress={
+              sw.linkHref ? () => Linking.openURL(sw.linkHref!) : undefined
+            }
           >
             {sw.word}
           </Text>
@@ -193,7 +197,9 @@ function InteractiveSelectableText({
   style,
   mergedStyles,
   selectionCtx,
-}: SelectableTextProps & { selectionCtx: NonNullable<ReturnType<typeof useSelectionOptional>> }) {
+}: SelectableTextProps & {
+  selectionCtx: NonNullable<ReturnType<typeof useSelectionOptional>>;
+}) {
   const { selection, onWordLongPress, onWordTap } = selectionCtx;
 
   const styledWords = useMemo(
@@ -210,10 +216,21 @@ function InteractiveSelectableText({
   const isWordInSelection = useCallback(
     (wordIndex: number | undefined): boolean => {
       if (wordIndex == null) return false;
-      if (selection.mode !== 'selected' || !selection.startWord || !selection.endWord) return false;
+      if (
+        selection.mode !== 'selected' ||
+        !selection.startWord ||
+        !selection.endWord
+      )
+        return false;
       if (selection.startWord.blockKey !== blockKey) return false;
-      const start = Math.min(selection.startWord.wordIndex, selection.endWord.wordIndex);
-      const end = Math.max(selection.startWord.wordIndex, selection.endWord.wordIndex);
+      const start = Math.min(
+        selection.startWord.wordIndex,
+        selection.endWord.wordIndex
+      );
+      const end = Math.max(
+        selection.startWord.wordIndex,
+        selection.endWord.wordIndex
+      );
       return wordIndex >= start && wordIndex <= end;
     },
     [selection, blockKey]
@@ -263,24 +280,35 @@ function InteractiveSelectableText({
           let prevWordIndex: number | undefined;
           let nextWordIndex: number | undefined;
           for (let i = index - 1; i >= 0; i--) {
-            if (styledWords[i].wordIndex != null) { prevWordIndex = styledWords[i].wordIndex; break; }
+            if (styledWords[i].wordIndex != null) {
+              prevWordIndex = styledWords[i].wordIndex;
+              break;
+            }
           }
           for (let i = index + 1; i < styledWords.length; i++) {
-            if (styledWords[i].wordIndex != null) { nextWordIndex = styledWords[i].wordIndex; break; }
+            if (styledWords[i].wordIndex != null) {
+              nextWordIndex = styledWords[i].wordIndex;
+              break;
+            }
           }
           if (prevWordIndex != null && nextWordIndex != null) {
             inHighlightRange =
               findHighlightForWord(prevWordIndex, highlights) != null &&
               findHighlightForWord(nextWordIndex, highlights) != null;
             inSelectionRange =
-              isWordInSelection(prevWordIndex) && isWordInSelection(nextWordIndex);
+              isWordInSelection(prevWordIndex) &&
+              isWordInSelection(nextWordIndex);
           }
         }
 
         const wordStyle = [
           ...sw.styles,
-          (highlight || inHighlightRange) ? componentStyles.highlighted : undefined,
-          (isSelected || inSelectionRange) ? componentStyles.activeSelection : undefined,
+          highlight || inHighlightRange
+            ? componentStyles.highlighted
+            : undefined,
+          isSelected || inSelectionRange
+            ? componentStyles.activeSelection
+            : undefined,
           sw.linkHref ? componentStyles.link : undefined,
         ].filter(Boolean);
 
@@ -300,8 +328,8 @@ function InteractiveSelectableText({
           <Text
             key={`${blockKey}-w-${index}`}
             style={wordStyle.length > 0 ? wordStyle : undefined}
-            onLongPress={(e) => handleLongPress(sw.wordIndex!, sw.word, e)}
-            onPress={(e) => {
+            onLongPress={e => handleLongPress(sw.wordIndex!, sw.word, e)}
+            onPress={e => {
               if (sw.linkHref && selection.mode !== 'selected') {
                 Linking.openURL(sw.linkHref);
               } else {

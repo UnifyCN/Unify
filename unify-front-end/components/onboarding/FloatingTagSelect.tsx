@@ -87,10 +87,22 @@ const FloatingTag = React.memo(function FloatingTag({
   const bounce = useSharedValue(0);
 
   // Unique floating parameters per tag — more pronounced movement
-  const floatAmpX = useMemo(() => 3 + seededRandom(index * 17 + 11) * 4, [index]);
-  const floatAmpY = useMemo(() => 4 + seededRandom(index * 23 + 5) * 5, [index]);
-  const floatSpeedX = useMemo(() => 2000 + seededRandom(index * 31 + 19) * 2000, [index]);
-  const floatSpeedY = useMemo(() => 2500 + seededRandom(index * 37 + 29) * 2500, [index]);
+  const floatAmpX = useMemo(
+    () => 3 + seededRandom(index * 17 + 11) * 4,
+    [index]
+  );
+  const floatAmpY = useMemo(
+    () => 4 + seededRandom(index * 23 + 5) * 5,
+    [index]
+  );
+  const floatSpeedX = useMemo(
+    () => 2000 + seededRandom(index * 31 + 19) * 2000,
+    [index]
+  );
+  const floatSpeedY = useMemo(
+    () => 2500 + seededRandom(index * 37 + 29) * 2500,
+    [index]
+  );
 
   // Continuous floating
   const floatX = useSharedValue(0);
@@ -188,14 +200,16 @@ const FloatingTag = React.memo(function FloatingTag({
     <Animated.View style={animatedStyle}>
       <Pressable
         onPress={handlePress}
-        accessibilityRole="checkbox"
+        accessibilityRole='checkbox'
         accessibilityState={{ checked: isSelected }}
         accessibilityLabel={option.label}
         style={[
           styles.tag,
           {
             backgroundColor: selectedBg,
-            borderColor: isSelected ? Theme.primaryGatherRed : 'rgba(0,0,0,0.04)',
+            borderColor: isSelected
+              ? Theme.primaryGatherRed
+              : 'rgba(0,0,0,0.04)',
             shadowColor: isSelected ? Theme.primaryGatherRed : '#000',
             shadowOpacity: isSelected ? 0.3 : 0.08,
             shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
@@ -205,11 +219,7 @@ const FloatingTag = React.memo(function FloatingTag({
         ]}
       >
         {option.icon && (
-          <Feather
-            name={option.icon}
-            size={15}
-            color={iconColor}
-          />
+          <Feather name={option.icon} size={15} color={iconColor} />
         )}
         <Text
           style={[
@@ -223,7 +233,7 @@ const FloatingTag = React.memo(function FloatingTag({
         </Text>
         {isSelected && (
           <View style={styles.tagCheck}>
-            <Feather name="check" size={11} color={Theme.primaryGatherRed} />
+            <Feather name='check' size={11} color={Theme.primaryGatherRed} />
           </View>
         )}
       </Pressable>
@@ -297,7 +307,7 @@ export default function FloatingTagSelect({
         <Animated.View style={[styles.otherInputContainer, otherInputStyle]}>
           <TextInput
             style={styles.otherInput}
-            placeholder="Please specify..."
+            placeholder='Please specify...'
             value={otherValue || ''}
             onChangeText={onOtherChange}
             placeholderTextColor={Theme.textInput}

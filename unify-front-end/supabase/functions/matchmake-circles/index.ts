@@ -282,7 +282,10 @@ Deno.serve(async (req: Request) => {
 
   if (!supabaseUrl || !serviceKey) {
     return new Response(
-      JSON.stringify({ ok: false, error: 'Missing Supabase environment configuration' }),
+      JSON.stringify({
+        ok: false,
+        error: 'Missing Supabase environment configuration',
+      }),
       {
         status: 500,
         headers: responseHeaders,
@@ -340,8 +343,7 @@ Deno.serve(async (req: Request) => {
           forcedPlacement: group.forcedPlacement,
         });
       } catch (error) {
-        const reason =
-          error instanceof Error ? error.message : 'Unknown error';
+        const reason = error instanceof Error ? error.message : 'Unknown error';
         summary.failures.push({
           memberIds: group.entries.map(entry => entry.user_id),
           reason,
@@ -367,7 +369,9 @@ Deno.serve(async (req: Request) => {
   }
 });
 
-async function startMatchingRun(supabase: SupabaseClient): Promise<string | null> {
+async function startMatchingRun(
+  supabase: SupabaseClient
+): Promise<string | null> {
   const { data, error } = await supabase
     .from('community_matching_runs')
     .insert({ status: 'running' })
@@ -574,7 +578,8 @@ function buildGroup(
   const picked = new Set<string>([anchor.user_id]);
   const tiers = [
     (candidate: WaitlistRow) =>
-      sameTimeInCanada(anchor, candidate) && sameRecognizedPersona(anchor, candidate),
+      sameTimeInCanada(anchor, candidate) &&
+      sameRecognizedPersona(anchor, candidate),
     (candidate: WaitlistRow) => sameTimeInCanada(anchor, candidate),
     (candidate: WaitlistRow) =>
       sameGoal(anchor, candidate) || sharedTopicCount(anchor, candidate) > 0,
@@ -925,7 +930,10 @@ async function closeExpiredCircles(supabase: SupabaseClient) {
       );
 
     if (notificationError) {
-      console.error('Failed to insert circle ended notifications', notificationError);
+      console.error(
+        'Failed to insert circle ended notifications',
+        notificationError
+      );
     }
   }
 
@@ -1182,7 +1190,7 @@ async function sendPushNotifications(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(batch),
         signal: controller.signal,
@@ -1201,7 +1209,11 @@ async function sendPushNotifications(
           for (let j = 0; j < result.data.length; j++) {
             const ticket = result.data[j];
             if (ticket.status === 'error') {
-              console.error('matchmake-circles: ticket error', ticket.message, ticket.details);
+              console.error(
+                'matchmake-circles: ticket error',
+                ticket.message,
+                ticket.details
+              );
               if (ticket.details?.error === 'DeviceNotRegistered') {
                 staleTokens.push(batch[j].to);
               }
@@ -1227,9 +1239,14 @@ async function sendPushNotifications(
       .delete()
       .in('token', staleTokens);
     if (deleteError) {
-      console.error('matchmake-circles: failed to delete stale tokens', deleteError);
+      console.error(
+        'matchmake-circles: failed to delete stale tokens',
+        deleteError
+      );
     } else {
-      console.log(`matchmake-circles: cleaned ${staleTokens.length} stale token(s)`);
+      console.log(
+        `matchmake-circles: cleaned ${staleTokens.length} stale token(s)`
+      );
     }
   }
 }

@@ -22,7 +22,11 @@ export interface SelectionState {
 
 interface SelectionContextType {
   selection: SelectionState;
-  onWordLongPress: (word: WordPosition, existingHighlight: Highlight | null, allWords: string[]) => void;
+  onWordLongPress: (
+    word: WordPosition,
+    existingHighlight: Highlight | null,
+    allWords: string[]
+  ) => void;
   onWordTap: (word: WordPosition) => void;
   clearSelection: () => void;
   setSelectedText: (text: string) => void;
@@ -37,13 +41,19 @@ const initialState: SelectionState = {
   existingHighlight: null,
 };
 
-const SelectionContext = createContext<SelectionContextType | undefined>(undefined);
+const SelectionContext = createContext<SelectionContextType | undefined>(
+  undefined
+);
 
 export function SelectionProvider({ children }: { children: React.ReactNode }) {
   const [selection, setSelection] = useState<SelectionState>(initialState);
 
   const onWordLongPress = useCallback(
-    (word: WordPosition, existingHighlight: Highlight | null, allWords: string[]) => {
+    (
+      word: WordPosition,
+      existingHighlight: Highlight | null,
+      allWords: string[]
+    ) => {
       setSelection({
         mode: 'selected',
         startWord: word,
@@ -56,41 +66,40 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  const onWordTap = useCallback(
-    (word: WordPosition) => {
-      setSelection(prev => {
-        if (prev.mode !== 'selected' || !prev.startWord) return prev;
-        if (word.blockKey !== prev.startWord.blockKey) return prev;
+  const onWordTap = useCallback((word: WordPosition) => {
+    setSelection(prev => {
+      if (prev.mode !== 'selected' || !prev.startWord) return prev;
+      if (word.blockKey !== prev.startWord.blockKey) return prev;
 
-        const newStart = Math.min(prev.startWord.wordIndex, word.wordIndex);
-        const newEnd = Math.max(
-          prev.endWord?.wordIndex ?? prev.startWord.wordIndex,
-          word.wordIndex
-        );
+      const newStart = Math.min(prev.startWord.wordIndex, word.wordIndex);
+      const newEnd = Math.max(
+        prev.endWord?.wordIndex ?? prev.startWord.wordIndex,
+        word.wordIndex
+      );
 
-        // Recompute selected text from allWords
-        const selectedWords = prev.allWords.slice(newStart, newEnd + 1);
+      // Recompute selected text from allWords
+      const selectedWords = prev.allWords.slice(newStart, newEnd + 1);
 
-        // Clear existingHighlight if the range no longer matches it
-        const existingH = prev.existingHighlight;
-        const highlightStillMatches = existingH &&
-          prev.startWord.blockKey === word.blockKey &&
-          newStart === existingH.start_word_index &&
-          newEnd === existingH.end_word_index;
+      // Clear existingHighlight if the range no longer matches it
+      const existingH = prev.existingHighlight;
+      const highlightStillMatches =
+        existingH &&
+        prev.startWord.blockKey === word.blockKey &&
+        newStart === existingH.start_word_index &&
+        newEnd === existingH.end_word_index;
 
-        return {
-          ...prev,
-          startWord: newStart === prev.startWord.wordIndex
+      return {
+        ...prev,
+        startWord:
+          newStart === prev.startWord.wordIndex
             ? prev.startWord
             : { ...word, wordIndex: newStart },
-          endWord: { ...word, wordIndex: newEnd },
-          selectedText: selectedWords.join(' '),
-          existingHighlight: highlightStillMatches ? existingH : null,
-        };
-      });
-    },
-    []
-  );
+        endWord: { ...word, wordIndex: newEnd },
+        selectedText: selectedWords.join(' '),
+        existingHighlight: highlightStillMatches ? existingH : null,
+      };
+    });
+  }, []);
 
   const clearSelection = useCallback(() => {
     setSelection(initialState);
@@ -102,7 +111,13 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SelectionContext.Provider
-      value={{ selection, onWordLongPress, onWordTap, clearSelection, setSelectedText }}
+      value={{
+        selection,
+        onWordLongPress,
+        onWordTap,
+        clearSelection,
+        setSelectedText,
+      }}
     >
       {children}
     </SelectionContext.Provider>

@@ -20,7 +20,7 @@ export default function WelcomeScreen({
       {/* Back button */}
       {onBack && (
         <Pressable onPress={onBack} style={styles.backButton} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name='chevron-back' size={24} color='#000' />
         </Pressable>
       )}
 
@@ -30,13 +30,11 @@ export default function WelcomeScreen({
         <Image
           source={require('@/assets/images/splash-icon-light.png')}
           style={styles.logo}
-          contentFit="contain"
+          contentFit='contain'
         />
 
         {/* Text */}
-        <Text style={styles.title}>
-          Start Building Your Life in Canada
-        </Text>
+        <Text style={styles.title}>Start Building Your Life in Canada</Text>
         <Text style={styles.description}>
           Get personalized support, trusted guidance, and a community that
           understands your journey

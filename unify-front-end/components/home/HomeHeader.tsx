@@ -47,10 +47,10 @@ const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
                 pressed && styles.searchBarPressed,
               ]}
               onPress={() => router.push('/search' as any)}
-              accessibilityRole="button"
-              accessibilityLabel="Open search"
+              accessibilityRole='button'
+              accessibilityLabel='Open search'
             >
-              <Search color="#999" size={18} strokeWidth={2.5} />
+              <Search color='#999' size={18} strokeWidth={2.5} />
               <Text style={styles.searchPlaceholder}>Search</Text>
             </Pressable>
 
@@ -60,12 +60,12 @@ const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
                 pressed && styles.actionButtonPressed,
               ]}
               onPress={() => router.push('/notifications' as Href)}
-              accessibilityRole="button"
-              accessibilityLabel="Open notifications"
+              accessibilityRole='button'
+              accessibilityLabel='Open notifications'
             >
               <View style={styles.bellWrap}>
                 <Bell
-                  color="#000"
+                  color='#000'
                   size={TAB_HEADER_METRICS.iconSize}
                   strokeWidth={TAB_HEADER_METRICS.iconStrokeWidth}
                   absoluteStrokeWidth
@@ -94,8 +94,8 @@ const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
             variant === 'full' && styles.avatarButton,
             pressed && styles.actionButtonPressed,
           ]}
-          accessibilityRole="button"
-          accessibilityLabel="Open profile menu"
+          accessibilityRole='button'
+          accessibilityLabel='Open profile menu'
         >
           <Avatar
             profilePictureUrl={currentUser?.profilePictureUrl}

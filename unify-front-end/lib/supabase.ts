@@ -20,7 +20,10 @@ const supabaseAnonKey =
 
 if (__DEV__) {
   console.log('hasSupabaseUrl:', !!process.env.EXPO_PUBLIC_SUPABASE_URL);
-  console.log('hasSupabaseAnonKey:', !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY);
+  console.log(
+    'hasSupabaseAnonKey:',
+    !!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+  );
   console.log('expoConfigExtraPresent:', !!Constants.expoConfig?.extra);
 }
 

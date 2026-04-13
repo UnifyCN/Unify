@@ -69,11 +69,17 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
     setTimeout(() => {
       const yearIndex = years.indexOf(selectedYear);
       if (yearIndex >= 0 && yearScrollRef.current) {
-        const offset = Math.max(0, yearIndex * ITEM_HEIGHT - SCROLL_LIST_HEIGHT / 2 + ITEM_HEIGHT / 2);
+        const offset = Math.max(
+          0,
+          yearIndex * ITEM_HEIGHT - SCROLL_LIST_HEIGHT / 2 + ITEM_HEIGHT / 2
+        );
         yearScrollRef.current.scrollTo({ y: offset, animated: false });
       }
       if (monthScrollRef.current) {
-        const monthOffset = Math.max(0, selectedMonth * ITEM_HEIGHT - SCROLL_LIST_HEIGHT / 2 + ITEM_HEIGHT / 2);
+        const monthOffset = Math.max(
+          0,
+          selectedMonth * ITEM_HEIGHT - SCROLL_LIST_HEIGHT / 2 + ITEM_HEIGHT / 2
+        );
         monthScrollRef.current.scrollTo({ y: monthOffset, animated: false });
       }
     }, 100);
@@ -91,10 +97,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
 
   return (
     <>
-      <TouchableOpacity
-        style={styles.dateInput}
-        onPress={handleOpenPicker}
-      >
+      <TouchableOpacity style={styles.dateInput} onPress={handleOpenPicker}>
         <Text style={{ color: value ? Theme.black : Theme.textInput }}>
           {value
             ? value.toLocaleDateString(undefined, {

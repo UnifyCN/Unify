@@ -26,14 +26,24 @@ const CONTAINER_H = 406 * S;
 export default function ChecklistScreen() {
   return (
     <View style={styles.container}>
-      <View style={[styles.cardsContainer, { width: CONTAINER_W, height: CONTAINER_H }]}>
+      <View
+        style={[
+          styles.cardsContainer,
+          { width: CONTAINER_W, height: CONTAINER_H },
+        ]}
+      >
         {/* Checklist card — left side */}
         <View style={[styles.cardPosition, { left: 0, top: 0, zIndex: 1 }]}>
           <ChecklistCard scale={CARD_S} />
         </View>
 
         {/* Modal card — overlaps right side */}
-        <View style={[styles.cardPosition, { left: 93 * S, top: 180 * S, zIndex: 2 }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            { left: 93 * S, top: 180 * S, zIndex: 2 },
+          ]}
+        >
           <ChecklistModalCard scale={CARD_S} />
         </View>
       </View>

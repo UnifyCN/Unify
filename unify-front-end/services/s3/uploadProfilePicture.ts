@@ -3,9 +3,7 @@ import { supabase } from '@/lib/supabase';
 function requireSupabaseUrl(): string {
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   if (!url) {
-    throw new Error(
-      'Missing EXPO_PUBLIC_SUPABASE_URL — check your .env file'
-    );
+    throw new Error('Missing EXPO_PUBLIC_SUPABASE_URL — check your .env file');
   }
   return url;
 }
@@ -80,14 +78,17 @@ export async function uploadProfilePicture(
 export async function getProfilePictureUrl(key: string): Promise<string> {
   const token = await getAccessToken();
 
-  const resp = await fetch(`${requireSupabaseUrl()}/functions/v1/profile-picture-get`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ key }),
-  });
+  const resp = await fetch(
+    `${requireSupabaseUrl()}/functions/v1/profile-picture-get`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ key }),
+    }
+  );
 
   const json = await resp.json().catch(() => ({}));
   if (!resp.ok)

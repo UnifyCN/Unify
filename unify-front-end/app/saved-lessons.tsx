@@ -75,8 +75,7 @@ const SavedLessonCard = React.memo(function SavedLessonCard({
   moduleTitle,
   onPress,
 }: SavedLessonCardProps) {
-  const pageTitle =
-    item.pageTitleSnapshot?.trim() || `Page ${item.pageNumber}`;
+  const pageTitle = item.pageTitleSnapshot?.trim() || `Page ${item.pageNumber}`;
   const lessonTitle = item.lessonTitleSnapshot?.trim() || 'Lesson';
   const timeAgo = formatRelativeTime(item.createdAt);
 
@@ -84,7 +83,7 @@ const SavedLessonCard = React.memo(function SavedLessonCard({
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       onPress={onPress}
-      accessibilityRole="button"
+      accessibilityRole='button'
       accessibilityLabel={`${pageTitle} from ${lessonTitle}`}
     >
       {/* Colored accent bar */}
@@ -93,10 +92,7 @@ const SavedLessonCard = React.memo(function SavedLessonCard({
       <View style={styles.cardContent}>
         {/* Icon */}
         <View
-          style={[
-            styles.iconCircle,
-            { backgroundColor: accentColor + '18' },
-          ]}
+          style={[styles.iconCircle, { backgroundColor: accentColor + '18' }]}
         >
           <MaterialCommunityIcons
             name={iconName as any}
@@ -124,7 +120,7 @@ const SavedLessonCard = React.memo(function SavedLessonCard({
 
         {/* Chevron */}
         <Feather
-          name="chevron-right"
+          name='chevron-right'
           size={18}
           color={Theme.textInactiveTab}
           style={styles.chevron}
@@ -160,9 +156,9 @@ const HighlightItem = React.memo(function HighlightItem({
       </Text>
       {canNavigate && (
         <Feather
-          name="chevron-right"
+          name='chevron-right'
           size={16}
-          color="#9CA3AF"
+          color='#9CA3AF'
           style={styles.highlightChevron}
         />
       )}
@@ -192,10 +188,8 @@ export default function SavedLessonsPage() {
 
   // Build lookups: moduleId → { color, icon, title } and submoduleId → submodule title
   const { moduleMap, submoduleTitleMap } = useMemo(() => {
-    const mMap: Record<
-      string,
-      { color: string; icon: string; title: string }
-    > = {};
+    const mMap: Record<string, { color: string; icon: string; title: string }> =
+      {};
     const sMap: Record<string, string> = {};
     if (modules) {
       for (const m of modules) {
@@ -234,7 +228,8 @@ export default function SavedLessonsPage() {
 
   const navigateToHighlight = useCallback(
     (h: Highlight) => {
-      if (h.module_id == null || h.submodule_id == null || h.page_num == null) return;
+      if (h.module_id == null || h.submodule_id == null || h.page_num == null)
+        return;
       router.push({
         pathname:
           '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/pages/[pageNum]' as any,
@@ -298,7 +293,7 @@ export default function SavedLessonsPage() {
     }
 
     return Object.values(sectionMap)
-      .map((section) => ({
+      .map(section => ({
         ...section,
         pages: [...section.pages].sort((a, b) =>
           b.createdAt.localeCompare(a.createdAt)
@@ -346,7 +341,9 @@ export default function SavedLessonsPage() {
       return (
         <View style={styles.sectionCard}>
           {/* Accent top border */}
-          <View style={[styles.sectionAccentBar, { backgroundColor: accentColor }]} />
+          <View
+            style={[styles.sectionAccentBar, { backgroundColor: accentColor }]}
+          />
 
           {/* Section header */}
           <View style={styles.sectionHeader}>
@@ -365,7 +362,12 @@ export default function SavedLessonsPage() {
             <Text style={styles.sectionTitle} numberOfLines={2}>
               {displayTitle}
             </Text>
-            <View style={[styles.sectionCountBadge, { backgroundColor: accentColor + '18' }]}>
+            <View
+              style={[
+                styles.sectionCountBadge,
+                { backgroundColor: accentColor + '18' },
+              ]}
+            >
               <Text style={[styles.sectionCount, { color: accentColor }]}>
                 {itemCount}
               </Text>
@@ -375,10 +377,8 @@ export default function SavedLessonsPage() {
           {/* Pages */}
           {section.pages.length > 0 && (
             <>
-              {hasBoth && (
-                <Text style={styles.subHeader}>SAVED PAGES</Text>
-              )}
-              {section.pages.map((page) => (
+              {hasBoth && <Text style={styles.subHeader}>SAVED PAGES</Text>}
+              {section.pages.map(page => (
                 <SavedLessonCard
                   key={page.id}
                   item={page}
@@ -394,10 +394,8 @@ export default function SavedLessonsPage() {
           {/* Highlights */}
           {section.highlights.length > 0 && (
             <>
-              {hasBoth && (
-                <Text style={styles.subHeader}>HIGHLIGHTS</Text>
-              )}
-              {section.highlights.map((h) => (
+              {hasBoth && <Text style={styles.subHeader}>HIGHLIGHTS</Text>}
+              {section.highlights.map(h => (
                 <HighlightItem
                   key={h.id}
                   highlight={h}
@@ -412,17 +410,14 @@ export default function SavedLessonsPage() {
     [moduleMap, submoduleTitleMap, openLessonPage, navigateToHighlight]
   );
 
-  const keyExtractor = useCallback(
-    (item: UnifiedSection) => item.key,
-    []
-  );
+  const keyExtractor = useCallback((item: UnifiedSection) => item.key, []);
 
   if (isLoadingAll) {
     return (
       <View style={styles.container}>
-        <BackHeader title="Saved from Learn" />
+        <BackHeader title='Saved from Learn' />
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={Theme.black} />
+          <ActivityIndicator size='large' color={Theme.black} />
         </View>
       </View>
     );
@@ -431,7 +426,7 @@ export default function SavedLessonsPage() {
   if (pagesError && !pagesData && !highlightsData) {
     return (
       <View style={styles.container}>
-        <BackHeader title="Saved from Learn" />
+        <BackHeader title='Saved from Learn' />
         <View style={styles.centered}>
           <Text style={styles.errorText}>Could not load saved content.</Text>
         </View>
@@ -441,7 +436,7 @@ export default function SavedLessonsPage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title="Saved from Learn" />
+      <BackHeader title='Saved from Learn' />
       {totalItems > 0 && (
         <Text style={styles.countLabel}>
           {totalItems} saved {totalItems === 1 ? 'item' : 'items'}
@@ -462,8 +457,10 @@ export default function SavedLessonsPage() {
         }
         ListEmptyComponent={
           <EmptyFeedMessage
-            icon={<Feather name="book-open" size={27} color={Theme.textInput} />}
-            message="Nothing saved from Learn yet"
+            icon={
+              <Feather name='book-open' size={27} color={Theme.textInput} />
+            }
+            message='Nothing saved from Learn yet'
             submessage={
               <Text style={styles.emptyMessageSubtext}>
                 Bookmark lesson pages or highlight text to save them here

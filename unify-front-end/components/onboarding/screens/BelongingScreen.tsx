@@ -30,19 +30,36 @@ const CONTAINER_H = 350 * S;
 export default function BelongingScreen() {
   return (
     <View style={styles.container}>
-      <View style={[styles.cardsContainer, { width: CONTAINER_W, height: CONTAINER_H }]}>
+      <View
+        style={[
+          styles.cardsContainer,
+          { width: CONTAINER_W, height: CONTAINER_H },
+        ]}
+      >
         {/* Events card — left side, main card */}
-        <View style={[styles.cardPosition, { left: 0, top: 67 * CARD_S, zIndex: 1 }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            { left: 0, top: 67 * CARD_S, zIndex: 1 },
+          ]}
+        >
           <EventCard scale={CARD_S} />
         </View>
 
         {/* Circles card — overlaps top-right of events card */}
-        <View style={[styles.cardPosition, { left: 110 * S, top: 0, zIndex: 2 }]}>
+        <View
+          style={[styles.cardPosition, { left: 110 * S, top: 0, zIndex: 2 }]}
+        >
           <CirclesCard scale={CARD_S} />
         </View>
 
         {/* Groups card — bottom-right */}
-        <View style={[styles.cardPosition, { left: 120 * S, top: 210 * CARD_S, zIndex: 2 }]}>
+        <View
+          style={[
+            styles.cardPosition,
+            { left: 120 * S, top: 210 * CARD_S, zIndex: 2 },
+          ]}
+        >
           <GroupCard scale={CARD_S} />
         </View>
       </View>

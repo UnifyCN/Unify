@@ -2,7 +2,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
-import { captureAiGeneration, computeGeminiCost } from '../_shared/posthogCapture.ts';
+import {
+  captureAiGeneration,
+  computeGeminiCost,
+} from '../_shared/posthogCapture.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -702,7 +705,10 @@ Deno.serve(async (req: Request) => {
 
             // Track most recent document update for lastVerified
             const docUpdatedAt = doc.updated_at;
-            if (docUpdatedAt && (!mostRecentUpdate || docUpdatedAt > mostRecentUpdate)) {
+            if (
+              docUpdatedAt &&
+              (!mostRecentUpdate || docUpdatedAt > mostRecentUpdate)
+            ) {
               mostRecentUpdate = docUpdatedAt;
             }
 

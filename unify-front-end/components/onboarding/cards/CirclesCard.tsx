@@ -53,7 +53,7 @@ export default function CirclesCard({ scale = 1 }: CirclesCardProps) {
         <Image
           source={require('@/assets/images/unify-circles-icon.png')}
           style={[styles.logo, { width: 20 * s, height: 20 * s }]}
-          contentFit="contain"
+          contentFit='contain'
         />
 
         {/* Text block */}
@@ -61,7 +61,10 @@ export default function CirclesCard({ scale = 1 }: CirclesCardProps) {
           <Text
             style={[
               styles.title,
-              { fontSize: Math.max(10 * s, 12), lineHeight: Math.max(13 * s, 15) },
+              {
+                fontSize: Math.max(10 * s, 12),
+                lineHeight: Math.max(13 * s, 15),
+              },
             ]}
           >
             Unify Circles
@@ -69,7 +72,10 @@ export default function CirclesCard({ scale = 1 }: CirclesCardProps) {
           <Text
             style={[
               styles.description,
-              { fontSize: Math.max(7.7 * s, 10), lineHeight: Math.max(10 * s, 12) },
+              {
+                fontSize: Math.max(7.7 * s, 10),
+                lineHeight: Math.max(10 * s, 12),
+              },
             ]}
           >
             Get matched with 3 newcomers on a similar path to you for a 2-week
@@ -92,11 +98,7 @@ export default function CirclesCard({ scale = 1 }: CirclesCardProps) {
           <Text style={[styles.ctaText, { fontSize: Math.max(7.7 * s, 10) }]}>
             Join your Circle
           </Text>
-          <Ionicons
-            name="arrow-forward"
-            size={13 * s}
-            color="#fff"
-          />
+          <Ionicons name='arrow-forward' size={13 * s} color='#fff' />
         </View>
       </View>
     </View>

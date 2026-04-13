@@ -9,14 +9,46 @@ export const CATEGORY_CONFIG: Record<
   string,
   { gradient: [string, string]; icon: string; accent: string }
 > = {
-  documents: { gradient: ['#F0F4F8', '#E2E8F0'], icon: 'file-text', accent: '#64748B' },
-  finance: { gradient: ['#EFF6F0', '#E0EDE2'], icon: 'dollar-sign', accent: '#5B8A65' },
-  housing: { gradient: ['#F5F0EC', '#EBE3DA'], icon: 'home', accent: '#8B7355' },
-  employment: { gradient: ['#F2F0F5', '#E5E1ED'], icon: 'briefcase', accent: '#7B6B8A' },
-  healthcare: { gradient: ['#F5EFF2', '#EDE3E8'], icon: 'heart', accent: '#8A6575' },
-  immigration: { gradient: ['#EEF4F4', '#E0EAEB'], icon: 'globe', accent: '#5B7D82' },
-  settlement: { gradient: ['#F4F2EC', '#EAE6DA'], icon: 'users', accent: '#7D7455' },
-  general: { gradient: ['#F2F2F2', '#E8E8E8'], icon: 'star', accent: '#6B6B6B' },
+  documents: {
+    gradient: ['#F0F4F8', '#E2E8F0'],
+    icon: 'file-text',
+    accent: '#64748B',
+  },
+  finance: {
+    gradient: ['#EFF6F0', '#E0EDE2'],
+    icon: 'dollar-sign',
+    accent: '#5B8A65',
+  },
+  housing: {
+    gradient: ['#F5F0EC', '#EBE3DA'],
+    icon: 'home',
+    accent: '#8B7355',
+  },
+  employment: {
+    gradient: ['#F2F0F5', '#E5E1ED'],
+    icon: 'briefcase',
+    accent: '#7B6B8A',
+  },
+  healthcare: {
+    gradient: ['#F5EFF2', '#EDE3E8'],
+    icon: 'heart',
+    accent: '#8A6575',
+  },
+  immigration: {
+    gradient: ['#EEF4F4', '#E0EAEB'],
+    icon: 'globe',
+    accent: '#5B7D82',
+  },
+  settlement: {
+    gradient: ['#F4F2EC', '#EAE6DA'],
+    icon: 'users',
+    accent: '#7D7455',
+  },
+  general: {
+    gradient: ['#F2F2F2', '#E8E8E8'],
+    icon: 'star',
+    accent: '#6B6B6B',
+  },
 };
 
 interface DailyTipCardProps {
@@ -51,7 +83,10 @@ export function DailyTipCard({ tip, maxWidth, onPress }: DailyTipCardProps) {
 
   return (
     <TouchableOpacity
-      style={[styles.card, maxWidth !== undefined ? { width: maxWidth } : { width: '100%' }]}
+      style={[
+        styles.card,
+        maxWidth !== undefined ? { width: maxWidth } : { width: '100%' },
+      ]}
       onPress={handlePress}
       activeOpacity={0.7}
     >
@@ -62,10 +97,19 @@ export function DailyTipCard({ tip, maxWidth, onPress }: DailyTipCardProps) {
         style={styles.gradient}
       >
         <View style={styles.header}>
-          <View style={[styles.badge, { backgroundColor: config.accent + '14' }]}>
-            <Text style={[styles.badgeText, { color: config.accent }]}>Daily Tip</Text>
+          <View
+            style={[styles.badge, { backgroundColor: config.accent + '14' }]}
+          >
+            <Text style={[styles.badgeText, { color: config.accent }]}>
+              Daily Tip
+            </Text>
           </View>
-          <View style={[styles.iconContainer, { backgroundColor: config.accent + '10' }]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: config.accent + '10' },
+            ]}
+          >
             <Feather
               name={config.icon as any}
               size={18}

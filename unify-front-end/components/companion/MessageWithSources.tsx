@@ -27,10 +27,7 @@ interface MessageWithSourcesProps {
 const parseDomain = (url: string | undefined): string | null => {
   if (!url || url.length === 0) return null;
   // Skip the generic IRCC fallback URL — it's not a specific source
-  if (
-    url ===
-    'https://www.canada.ca/en/immigration-refugees-citizenship.html'
-  )
+  if (url === 'https://www.canada.ca/en/immigration-refugees-citizenship.html')
     return null;
   try {
     return new URL(url).hostname;

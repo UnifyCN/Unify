@@ -36,16 +36,17 @@ export default function SelectionActionBubble({
 
   const maxBubbleWidth = 200;
   let bubbleLeft = Math.max(SCREEN_PADDING, anchorX - maxBubbleWidth / 2);
-  bubbleLeft = Math.min(screenWidth - maxBubbleWidth - SCREEN_PADDING, bubbleLeft);
+  bubbleLeft = Math.min(
+    screenWidth - maxBubbleWidth - SCREEN_PADDING,
+    bubbleLeft
+  );
 
   const computedTop = anchorY - BUBBLE_HEIGHT - ARROW_SIZE - 12;
   const showBelow = computedTop < 0;
-  const bubbleTop = showBelow
-    ? anchorY + ARROW_SIZE + 12
-    : computedTop;
+  const bubbleTop = showBelow ? anchorY + ARROW_SIZE + 12 : computedTop;
 
   return (
-    <View style={styles.fullScreen} pointerEvents="box-none">
+    <View style={styles.fullScreen} pointerEvents='box-none'>
       <View style={[styles.container, { top: bubbleTop, left: bubbleLeft }]}>
         {showBelow && <View style={styles.arrowUp} />}
 
@@ -57,7 +58,7 @@ export default function SelectionActionBubble({
             <Feather
               name={isHighlighted ? 'x' : 'edit-3'}
               size={16}
-              color="#fff"
+              color='#fff'
             />
             <Text style={styles.buttonText}>
               {isHighlighted ? 'Remove' : 'Highlight'}
@@ -66,11 +67,8 @@ export default function SelectionActionBubble({
 
           <View style={styles.divider} />
 
-          <Pressable
-            style={styles.button}
-            onPress={onAskAI}
-          >
-            <Feather name="help-circle" size={16} color="#fff" />
+          <Pressable style={styles.button} onPress={onAskAI}>
+            <Feather name='help-circle' size={16} color='#fff' />
             <Text style={styles.buttonText}>Ask AI</Text>
           </Pressable>
         </View>

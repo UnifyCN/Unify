@@ -63,10 +63,17 @@ export async function saveHighlight(
   selectedText: string,
   existingHighlights: Highlight[],
   allWordsInBlock: string[],
-  navContext?: { moduleId: string; submoduleId: string; submoduleTitle: string; pageNum: number }
+  navContext?: {
+    moduleId: string;
+    submoduleId: string;
+    submoduleTitle: string;
+    pageNum: number;
+  }
 ): Promise<Highlight> {
   // Filter out optimistic (non-UUID) entries before checking overlaps
-  const realHighlights = existingHighlights.filter(h => !h.id.startsWith('optimistic-'));
+  const realHighlights = existingHighlights.filter(
+    h => !h.id.startsWith('optimistic-')
+  );
 
   // Check for overlapping highlights in the same block
   const overlapping = realHighlights.filter(
@@ -78,15 +85,29 @@ export async function saveHighlight(
 
   if (overlapping.length > 0) {
     // Merge: find the combined range
-    const mergedStart = Math.min(startWordIndex, ...overlapping.map(h => h.start_word_index));
-    const mergedEnd = Math.max(endWordIndex, ...overlapping.map(h => h.end_word_index));
+    const mergedStart = Math.min(
+      startWordIndex,
+      ...overlapping.map(h => h.start_word_index)
+    );
+    const mergedEnd = Math.max(
+      endWordIndex,
+      ...overlapping.map(h => h.end_word_index)
+    );
 
     // Validate bounds before slicing
-    const clampedStart = Math.max(0, Math.min(mergedStart, allWordsInBlock.length - 1));
-    const clampedEnd = Math.max(clampedStart, Math.min(mergedEnd, allWordsInBlock.length - 1));
+    const clampedStart = Math.max(
+      0,
+      Math.min(mergedStart, allWordsInBlock.length - 1)
+    );
+    const clampedEnd = Math.max(
+      clampedStart,
+      Math.min(mergedEnd, allWordsInBlock.length - 1)
+    );
 
     // Reconstruct the full merged text from the word list
-    const mergedText = allWordsInBlock.slice(clampedStart, clampedEnd + 1).join(' ');
+    const mergedText = allWordsInBlock
+      .slice(clampedStart, clampedEnd + 1)
+      .join(' ');
 
     // Atomic delete + insert via RPC (single transaction)
     const idsToDelete = overlapping.map(h => h.id);

@@ -9,7 +9,9 @@ export type GroupMember = {
   isMutual: boolean;
 };
 
-export const getGroupMembers = async (groupId: number): Promise<GroupMember[]> => {
+export const getGroupMembers = async (
+  groupId: number
+): Promise<GroupMember[]> => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -21,25 +23,28 @@ export const getGroupMembers = async (groupId: number): Promise<GroupMember[]> =
   // 1. Get group members + users
   const { data, error } = await supabase
     .from('group_members')
-    .select(`
+    .select(
+      `
       user_id,
       users:user_id (
         id,
         username,
         profile_picture_url
       )
-    `)
+    `
+    )
     .eq('group_id', groupId);
 
   if (error) throw error;
 
-  const members = data
-    ?.map((row: any) => ({
-      id: row.users?.id,
-      username: row.users?.username ?? 'Unknown',
-      profilePictureUrl: row.users?.profile_picture_url ?? null,
-    }))
-    .filter(m => m.id !== currentUserId) ?? [];
+  const members =
+    data
+      ?.map((row: any) => ({
+        id: row.users?.id,
+        username: row.users?.username ?? 'Unknown',
+        profilePictureUrl: row.users?.profile_picture_url ?? null,
+      }))
+      .filter(m => m.id !== currentUserId) ?? [];
 
   if (members.length === 0) return [];
 
