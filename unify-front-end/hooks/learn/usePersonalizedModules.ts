@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { getAllModulesWithSubmodules } from '@/services/sanity/modules';
 import { FEATURE_FLAGS } from '@/constants/featureFlags';
@@ -71,6 +71,9 @@ function mergePersonalizedWithSanity(
     result.push({ ...remaining, progress: 'not_started', score: 0 });
   }
 
+  // Guarantee score-descending order even if the API response drifts
+  result.sort((a, b) => b.score - a.score);
+
   return result;
 }
 
@@ -90,6 +93,8 @@ interface UsePersonalizedModulesResult {
 }
 
 export function usePersonalizedModules(): UsePersonalizedModulesResult {
+  const flagOn = FEATURE_FLAGS.personalization_enabled;
+
   // Always fetch Sanity modules for content (they contain colorTheme, icon, submodules)
   const {
     data: sanityModules,
@@ -99,8 +104,9 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
   } = useQuery({
     queryKey: ['sanity', 'modules'],
     queryFn: getAllModulesWithSubmodules,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 
   // Fetch personalized ranking — only when feature flag is on
@@ -111,17 +117,17 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
   } = useQuery({
     queryKey: ['personalize', 'learn'],
     queryFn: fetchPersonalizedLearn,
-    enabled: FEATURE_FLAGS.PERSONALIZED_LEARN,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    enabled: flagOn,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    placeholderData: keepPreviousData,
     retry: 1,
   });
 
-  const isLoading =
-    sanityLoading || (FEATURE_FLAGS.PERSONALIZED_LEARN && personalizeLoading);
+  const isLoading = sanityLoading || (flagOn && personalizeLoading);
 
   const isPersonalized =
-    FEATURE_FLAGS.PERSONALIZED_LEARN &&
+    flagOn &&
     !!personalizedData?.modules?.length &&
     !!sanityModules?.length;
 
@@ -145,7 +151,7 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
 
   const refetch = () => {
     refetchSanity();
-    if (FEATURE_FLAGS.PERSONALIZED_LEARN) refetchPersonalized();
+    if (flagOn) refetchPersonalized();
   };
 
   return {

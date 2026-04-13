@@ -7,5 +7,5 @@
  */
 export const FEATURE_FLAGS = {
   /** Rank Learn modules by personalization score from the personalize edge function. */
-  PERSONALIZED_LEARN: true,
+  personalization_enabled: true,
 } as const;
