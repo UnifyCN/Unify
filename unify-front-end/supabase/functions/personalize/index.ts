@@ -16,6 +16,8 @@ interface OnboardingProfile {
   learning_interests: string[];
 }
 
+// ─── Companion surface ────────────────────────────────────────────────────────
+
 function buildCompanionStarters(profile: OnboardingProfile): string[] {
   const { persona, city, province, goals, learning_interests } = profile;
 
@@ -25,7 +27,6 @@ function buildCompanionStarters(profile: OnboardingProfile): string[] {
     return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
-  // Persona + location starter
   if (persona && city) {
     const personaLabel =
       persona === 'international_student'
@@ -39,7 +40,6 @@ function buildCompanionStarters(profile: OnboardingProfile): string[] {
     );
   }
 
-  // Goal-based starter
   if (goals.length > 0) {
     const topGoal = goals[0];
     const location = city ?? province ?? 'Canada';
@@ -63,7 +63,6 @@ function buildCompanionStarters(profile: OnboardingProfile): string[] {
     }
   }
 
-  // Interest-based starter
   if (learning_interests.length > 0) {
     const topInterest = learning_interests[0];
     starters.push(
@@ -71,7 +70,6 @@ function buildCompanionStarters(profile: OnboardingProfile): string[] {
     );
   }
 
-  // Fill remaining slots with sensible fallbacks if we have fewer than 3
   const fallbacks = [
     'What are the most important steps after arriving in Canada?',
     'How does the Canadian healthcare system work?',
@@ -86,23 +84,173 @@ function buildCompanionStarters(profile: OnboardingProfile): string[] {
   return starters.slice(0, 3);
 }
 
+// ─── Learn surface ────────────────────────────────────────────────────────────
+
+interface LearnModule {
+  sanity_id: string;
+  title: string;
+  personas: string[];
+  interests: string[];
+  goals: string[];
+  province: string | null;
+  difficulty: string | null;
+}
+
+interface LearnProgressRow {
+  module_id: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  completed_at: string | null;
+}
+
+interface ScoredModule {
+  sanity_id: string;
+  title: string;
+  score: number;
+  progress: 'not_started' | 'in_progress' | 'completed';
+  completed_at: string | null;
+  why_tag: string;
+}
+
+/**
+ * Score a module against the user's profile.
+ * Returns a value in [0, 1].
+ *
+ * Scoring breakdown (weights sum to 1.0):
+ *   persona match   0.35
+ *   interest match  0.30
+ *   goal match      0.25
+ *   province match  0.10
+ */
+function scoreModule(module: LearnModule, profile: OnboardingProfile): { score: number; why_tag: string } {
+  let score = 0;
+  let why_tag = '';
+
+  // Persona match (0.35)
+  if (profile.persona && module.personas.length > 0) {
+    if (module.personas.includes(profile.persona)) {
+      score += 0.35;
+    }
+  }
+
+  // Interest match (0.30)
+  const interestMatches = profile.learning_interests.filter(i =>
+    module.interests.some(
+      mi => mi.toLowerCase() === i.toLowerCase() || i.toLowerCase().includes(mi.toLowerCase())
+    )
+  );
+  if (interestMatches.length > 0 && module.interests.length > 0) {
+    score += 0.30 * Math.min(interestMatches.length / module.interests.length, 1);
+  }
+
+  // Goal match (0.25)
+  const goalMatches = profile.goals.filter(g =>
+    module.goals.some(
+      mg => mg.toLowerCase() === g.toLowerCase() || g.toLowerCase().includes(mg.toLowerCase())
+    )
+  );
+  if (goalMatches.length > 0 && module.goals.length > 0) {
+    score += 0.25 * Math.min(goalMatches.length / module.goals.length, 1);
+  }
+
+  // Province match (0.10)
+  if (profile.province && module.province) {
+    if (module.province.toLowerCase() === profile.province.toLowerCase()) {
+      score += 0.10;
+    }
+  } else if (!module.province) {
+    // Province-agnostic modules get a small universal boost
+    score += 0.05;
+  }
+
+  // Build why_tag from the strongest signal
+  if (interestMatches.length > 0) {
+    const interest = interestMatches[0].replace(/_/g, ' ');
+    why_tag = `Matches your interest in ${interest}`;
+  } else if (goalMatches.length > 0) {
+    const goal = goalMatches[0].replace(/_/g, ' ');
+    why_tag = `Supports your goal: ${goal}`;
+  } else if (profile.persona && module.personas.includes(profile.persona ?? '')) {
+    const p = (profile.persona ?? '').replace(/_/g, ' ');
+    why_tag = `Recommended for ${p}`;
+  } else if (profile.province && module.province === profile.province) {
+    why_tag = `Recommended for newcomers in ${profile.province}`;
+  } else {
+    why_tag = 'Recommended for newcomers';
+  }
+
+  return { score: Math.min(score, 1), why_tag };
+}
+
+async function buildLearnSurface(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  profile: OnboardingProfile
+): Promise<{ modules: ScoredModule[] }> {
+  // Fetch all modules metadata
+  const { data: modules, error: modulesErr } = await supabase
+    .from('learn_modules')
+    .select('sanity_id, title, personas, interests, goals, province, difficulty');
+
+  if (modulesErr) {
+    console.error('personalize/learn: modules fetch error', modulesErr);
+    return { modules: [] };
+  }
+
+  // Fetch user's progress for all modules
+  const { data: progressRows } = await supabase
+    .from('learn_progress')
+    .select('module_id, status, completed_at')
+    .eq('user_id', userId);
+
+  const progressByModule = new Map<string, LearnProgressRow>();
+  for (const row of (progressRows as LearnProgressRow[]) ?? []) {
+    progressByModule.set(row.module_id, row);
+  }
+
+  // Score and sort
+  const scored: ScoredModule[] = ((modules as LearnModule[]) ?? []).map(m => {
+    const { score, why_tag } = scoreModule(m, profile);
+    const progress = progressByModule.get(m.sanity_id);
+    return {
+      sanity_id: m.sanity_id,
+      title: m.title,
+      score: Math.round(score * 100) / 100,
+      progress: progress?.status ?? 'not_started',
+      completed_at: progress?.completed_at ?? null,
+      why_tag,
+    };
+  });
+
+  // Completed modules sink to the bottom; within each group, sort by score desc
+  scored.sort((a, b) => {
+    const aCompleted = a.progress === 'completed' ? 1 : 0;
+    const bCompleted = b.progress === 'completed' ? 1 : 0;
+    if (aCompleted !== bCompleted) return aCompleted - bCompleted;
+    return b.score - a.score;
+  });
+
+  return { modules: scored };
+}
+
+// ─── Handler ──────────────────────────────────────────────────────────────────
+
 Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Only serve companion surface for now
     const url = new URL(req.url);
     const surfaces = url.searchParams.get('surfaces') ?? '';
-    if (!surfaces.includes('companion')) {
-      return new Response(JSON.stringify({ companion: null }), {
+    const wantsCompanion = surfaces.includes('companion');
+    const wantsLearn = surfaces.includes('learn');
+
+    if (!wantsCompanion && !wantsLearn) {
+      return new Response(JSON.stringify({ companion: null, learn: null }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Authenticate the request using the JWT from the Authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -120,11 +268,11 @@ Deno.serve(async (req: Request) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Get authenticated user from the JWT — profile data is never sent from client
     const {
       data: { user },
       error: userError,
     } = await supabaseClient.auth.getUser();
+
     if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
@@ -132,7 +280,6 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Read onboarding profile from DB
     const { data: profileData, error: profileError } = await supabaseClient
       .from('user_onboarding_profiles')
       .select(
@@ -141,11 +288,12 @@ Deno.serve(async (req: Request) => {
       .eq('id', user.id)
       .maybeSingle();
 
-    // If no profile exists or fetch fails, return generic starters gracefully
     if (profileError || !profileData) {
-      return new Response(JSON.stringify({ companion: null }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // No profile — return null surfaces so the app falls back gracefully
+      return new Response(
+        JSON.stringify({ companion: null, learn: null }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const profile: OnboardingProfile = {
@@ -157,10 +305,10 @@ Deno.serve(async (req: Request) => {
       learning_interests: profileData.learning_interests ?? [],
     };
 
-    const starters = buildCompanionStarters(profile);
+    const responseBody: Record<string, unknown> = {};
 
-    const responseBody = {
-      companion: {
+    if (wantsCompanion) {
+      responseBody.companion = {
         context: {
           persona: profile.persona,
           city: profile.city,
@@ -169,18 +317,26 @@ Deno.serve(async (req: Request) => {
           goals: profile.goals,
           interests: profile.learning_interests,
         },
-        starters,
-      },
-    };
+        starters: buildCompanionStarters(profile),
+      };
+    }
+
+    if (wantsLearn) {
+      responseBody.learn = await buildLearnSurface(
+        supabaseClient,
+        user.id,
+        profile
+      );
+    }
 
     return new Response(JSON.stringify(responseBody), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('personalize edge function error:', error);
-    // Never crash the client — return null so fallback kicks in
-    return new Response(JSON.stringify({ companion: null }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ companion: null, learn: null }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 });
