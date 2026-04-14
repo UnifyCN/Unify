@@ -75,16 +75,21 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Verify webhook secret
+  // Verify webhook secret — required, not optional
   const webhookSecret = Deno.env.get('SANITY_WEBHOOK_SECRET');
-  if (webhookSecret) {
-    const incomingSecret = req.headers.get('x-sanity-webhook-secret');
-    if (incomingSecret !== webhookSecret) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+  if (!webhookSecret) {
+    console.error('sanity-webhook: SANITY_WEBHOOK_SECRET not configured');
+    return new Response(
+      JSON.stringify({ error: 'Server misconfigured' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+  const incomingSecret = req.headers.get('x-sanity-webhook-secret');
+  if (incomingSecret !== webhookSecret) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL');

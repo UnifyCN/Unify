@@ -76,7 +76,14 @@ Deno.serve(async (req: Request) => {
   }
 
   const apiKey = Deno.env.get('SYNC_LEARN_MODULES_API_KEY');
-  if (apiKey && req.headers.get('x-api-key') !== apiKey) {
+  if (!apiKey) {
+    console.error('sync-learn-modules: SYNC_LEARN_MODULES_API_KEY not configured');
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), {
+      status: 500,
+      headers: JSON_HEADERS,
+    });
+  }
+  if (req.headers.get('x-api-key') !== apiKey) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: JSON_HEADERS,
