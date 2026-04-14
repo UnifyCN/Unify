@@ -52,6 +52,7 @@
     "expo-secure-store": "~14.2.4",
     "expo-splash-screen": "~0.30.10",
     "expo-status-bar": "~2.2.3",
+    "expo-store-review": "~8.1.5",
     "expo-system-ui": "~5.0.11",
     "expo-updates": "~0.28.18",
     "generate-random-username": "^2.0.1",

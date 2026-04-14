@@ -31,6 +31,7 @@ import {
 } from '@/types/onboardingProfile';
 import { useAnalytics } from '@/utils/analytics';
 import { registerForPushNotifications } from '@/services/push/pushNotifications';
+import { requestStoreReview } from '@/utils/storeReview';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
@@ -203,6 +204,11 @@ export default function OnboardingQuiz({
       registerForPushNotifications().catch(err => {
         console.error('Push registration from onboarding failed:', err);
       });
+    }
+
+    // Request iOS App Store review after Outcomes step (peak positive sentiment)
+    if (currentStep === 10 && !isRedo) {
+      requestStoreReview();
     }
 
     if (currentStep < TOTAL_STEPS) {
