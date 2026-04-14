@@ -1,94 +1,90 @@
 ---
 name: autofix-pr
-description: Monitors a GitHub pull request for CI failures and review comments (including CodeRabbit AI reviews), investigates each issue, and makes fixes when appropriate. Use this skill when the user asks to "autofix PR", "monitor PR", "watch PR", "fix PR issues", or "check PR comments". Also use when the user mentions CodeRabbit, code review comments, or CI failures on a PR.
+description: Monitor and autofix a GitHub PR by subscribing to its activity, handling CI failures, and triaging AI code review comments (especially CodeRabbit). Use this skill when the user says "autofix PR", "monitor PR", "watch PR", "fix PR comments", "handle review comments", or references fixing issues on a pull request. Also trigger when the user wants to respond to CodeRabbit, code review bots, or CI failures on a PR.
 ---
 
-Monitor and fix issues on a GitHub pull request. This skill subscribes to PR activity, triages CI failures and review comments (with special handling for CodeRabbit AI reviews), and applies fixes when appropriate.
+Monitor a GitHub pull request for CI failures and review comments, then triage and fix legitimate issues while skipping false positives.
 
 ## Workflow
 
-### 1. Identify the PR
+### 1. Subscribe to PR Activity
 
-- Determine the PR number from the user's message, current branch, or conversation context.
-- Use `mcp__github__pull_request_read` with method `get` to fetch PR details.
+Use `subscribe_pr_activity` to start receiving CI failure and review comment events for the PR. If a PR number is not provided, check the current branch for an open PR.
 
-### 2. Subscribe to PR activity
+### 2. Check Current State
 
-- Use `mcp__github__subscribe_pr_activity` to subscribe to the PR.
-- This delivers CI failures and review comments as `<github-webhook-activity>` events.
+On initial subscription, immediately check:
+- **CI status**: Use `pull_request_read` with `get_check_runs` to see current CI state
+- **Review comments**: Use `pull_request_read` with `get_review_comments` to get all review threads
+- **PR comments**: Use `pull_request_read` with `get_comments` for general comments
 
-### 3. Check current state
+### 3. Triage CodeRabbit Comments
 
-Run these checks in parallel:
-- **CI status**: `mcp__github__pull_request_read` with method `get_check_runs`
-- **Review comments**: `mcp__github__pull_request_read` with method `get_review_comments`
-- **PR comments**: `mcp__github__pull_request_read` with method `get_comments`
+CodeRabbit (`coderabbitai[bot]`) is an AI code reviewer. Its comments require careful triage because many are false positives. For each unresolved CodeRabbit comment:
 
-### 4. Triage each issue
+#### Read the actual code first
+Never accept a CodeRabbit suggestion at face value. Always read the referenced file and lines to verify the finding against the current code.
 
-For every CI failure or review comment, investigate before acting:
+#### Classify each comment
 
-#### CI Failures
-1. Read the check run details and logs.
-2. Identify the root cause (build error, lint error, test failure, etc.).
-3. If the fix is clear and small, make it.
-4. If the fix is ambiguous or architecturally significant, ask the user first.
+**LEGITIMATE issues (fix these):**
+- Security vulnerabilities (exposed secrets, missing auth, open endpoints)
+- Data loss bugs (cascading deletes on empty results, overwriting valid data with defaults)
+- Logic errors that produce incorrect behavior in normal usage
+- Missing null/error checks at system boundaries
 
-#### CodeRabbit Review Comments
-CodeRabbit is an AI code reviewer. Its comments follow a specific format and require careful triage because **not all findings are valid**. Many are false positives.
+**FALSE POSITIVES (skip these):**
+- Race conditions that require impossible timing in a single-user mobile app
+- Suggestions to add database columns/RPCs for theoretical edge cases
+- "Redundant check" nitpicks on defensive code that is harmless
+- Re-sorting/ordering concerns when a deterministic tiebreaker already exists (e.g., `localeCompare`)
+- Suggestions to fail loudly in migrations/seeds that intentionally tolerate absent data
+- Comments marked as `is_outdated: true` where the code has already been fixed in subsequent commits
+- Over-engineering suggestions (adding Postgres RPC functions, persisted position columns, etc.) for problems that don't occur in practice
 
-**How to identify CodeRabbit comments:**
-- Author is `coderabbitai` or `coderabbitai[bot]`
-- Comments contain severity markers: `_Critical_`, `_Major_`, `_Minor_`
-- Comments contain `<!-- This is an auto-generated comment by CodeRabbit -->`
+**NITPICKS (skip unless trivial):**
+- Redundant guards that are harmless
+- Style preferences
+- "Could be simplified" suggestions that don't affect correctness
 
-**Triage process for each CodeRabbit comment:**
-1. **Check if already resolved**: If `is_resolved: true`, skip it.
-2. **Check if outdated**: If `is_outdated: true`, the code has changed since the comment — verify if the issue still exists in the current code before acting.
-3. **Read the actual code** referenced in the comment. Never trust the review comment blindly.
-4. **Verify the finding** against the current code:
-   - Does the described problem actually exist in the current code?
-   - Has it already been fixed in a subsequent commit?
-   - Is the suggested fix correct and appropriate?
-5. **Classify the finding**:
-   - **Legitimate issue**: The problem exists and the fix is clear. Apply the fix.
-   - **False positive**: The described problem doesn't exist, or the current code already handles it correctly. Skip it and inform the user.
-   - **Ambiguous**: The issue might be real but the fix has trade-offs or architectural implications. Ask the user.
+#### Key indicators of false positives:
+- The comment references line numbers from an older diff (`is_outdated: true`)
+- The suggested fix requires schema changes for a minor edge case
+- The comment describes a race condition in single-user/single-device context
+- The comment is marked as a "Duplicate" of an already-resolved thread
+- The fix would add significant complexity for minimal real-world benefit
 
-**Common CodeRabbit false positive patterns:**
-- Commenting on code that was already fixed in a later commit (check `is_outdated`)
-- Suggesting changes that conflict with project conventions or architecture
-- Flagging patterns that are intentional design decisions
-- Recommending over-engineering (e.g., adding database columns for minor sort stability)
-- Suggesting changes to edge function code that would break Deno compatibility
+### 4. Handle CI Failures
 
-#### Human Review Comments
-- Read the comment carefully and understand the request.
-- Check if it's actionable (question vs. change request).
-- If it's a change request, evaluate and implement if appropriate.
-- If it's a question, respond on the PR.
+When CI fails:
+1. Read the check run details to understand the failure
+2. Check if it's a flaky test or a real failure
+3. For real failures: read the relevant code, fix the issue, commit and push
+4. For flaky tests: note it and ask the user before retrying
 
-### 5. Apply fixes
+### 5. Make Fixes
 
-When applying fixes:
-1. Make the change on the current branch.
-2. Stage only relevant files.
-3. Commit with a clear message referencing the issue.
-4. Push to the branch.
-5. Inform the user of what was fixed and what was skipped (with reasons).
+For legitimate issues:
+1. Read the file and surrounding context
+2. Make the minimal fix needed
+3. Commit with a clear message explaining what was fixed and why
+4. Push to the PR branch
 
-### 6. Report summary
+### 6. Report to User
 
-After processing all issues, provide a summary:
-- **Fixed**: List of issues that were fixed with brief descriptions.
-- **Skipped (false positive)**: List of issues that were investigated and determined to not be real problems, with brief explanation.
-- **Needs input**: List of issues that require user decision.
-- **CI status**: Current state of CI checks.
+After triaging all comments, provide a summary table:
 
-## Important Guidelines
+| # | File | Issue | Verdict |
+|---|------|-------|---------|
+| 1 | path/to/file.ts | Description | **Fixed** / **False positive** / **Skip** |
 
-- **Always verify before fixing.** Read the actual code before making changes based on review comments.
-- **Don't blindly apply AI reviewer suggestions.** CodeRabbit and similar tools can be wrong. Your job is to be the intelligent filter.
-- **Preserve existing architecture.** Don't make sweeping changes to satisfy a review comment that misunderstands the design.
-- **Keep fixes minimal.** Fix only what's actually broken. Don't refactor surrounding code.
-- **Ask when uncertain.** If a fix could go multiple ways or has broader implications, ask the user.
+Explain briefly why each false positive was skipped so the user can override if needed.
+
+## Important Rules
+
+- **Never blindly apply all CodeRabbit suggestions.** Many are wrong or over-engineered.
+- **Always read the actual code** before deciding if a comment is valid.
+- **Prefer minimal fixes** over architectural changes suggested by the bot.
+- **Don't add complexity** (new DB functions, schema changes, extra queries) unless the bug is real and impacts users.
+- **Check `is_outdated` and `is_resolved` flags** on review threads -- outdated/resolved threads are already handled.
+- **Commit only relevant files** per the project's CLAUDE.md instructions.
