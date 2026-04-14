@@ -33,15 +33,14 @@ const SANITY_DATASET =
   process.env.SANITY_DATASET ||
   process.env.EXPO_PUBLIC_SANITY_DATASET ||
   'production';
-const SANITY_API_TOKEN =
-  process.env.SANITY_API_TOKEN || process.env.EXPO_PUBLIC_SANITY_TOKEN;
+const SANITY_API_TOKEN = process.env.SANITY_API_TOKEN;
 const SUPABASE_URL =
   process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SANITY_PROJECT_ID || !SANITY_API_TOKEN) {
   console.error(
-    '[sync] Missing Sanity credentials. Set SANITY_PROJECT_ID + SANITY_API_TOKEN, or EXPO_PUBLIC_SANITY_PROJECT_ID + EXPO_PUBLIC_SANITY_TOKEN in .env'
+    '[sync] Missing Sanity credentials. Set SANITY_PROJECT_ID (or EXPO_PUBLIC_SANITY_PROJECT_ID) + SANITY_API_TOKEN in .env'
   );
   process.exit(1);
 }
@@ -104,6 +103,11 @@ async function main() {
   const sanityModules = await fetchAllModulesFromSanity();
   console.log(`[sync] Got ${sanityModules.length} modules from Sanity`);
 
+  if (sanityModules.length === 0) {
+    console.error('[sync] Sanity returned 0 modules — aborting to prevent mass deletion');
+    process.exit(1);
+  }
+
   const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
   // Fetch existing IDs from Supabase
@@ -142,6 +146,7 @@ async function main() {
 
     if (deleteErr) {
       console.error('[sync] Delete orphans failed:', deleteErr.message);
+      process.exit(1);
     } else {
       console.log(`[sync] Deleted ${orphanedIds.length} orphaned row(s):`, orphanedIds);
     }

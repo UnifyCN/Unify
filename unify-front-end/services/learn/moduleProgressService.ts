@@ -15,14 +15,22 @@ export async function upsertModuleProgress(
     } = await progressClient.auth.getUser();
     if (!user) return;
 
+    // Don't downgrade a completed module
+    const { data: existing } = await progressClient
+      .from('learn_progress')
+      .select('status')
+      .eq('user_id', user.id)
+      .eq('module_id', moduleId)
+      .maybeSingle();
+
+    if (existing?.status === 'completed' && status !== 'completed') return;
+
     const patch: Record<string, unknown> = {
       user_id: user.id,
       module_id: moduleId,
       status,
+      completed_at: status === 'completed' ? new Date().toISOString() : null,
     };
-    if (status === 'completed') {
-      patch.completed_at = new Date().toISOString();
-    }
 
     const { error } = await progressClient
       .from('learn_progress')

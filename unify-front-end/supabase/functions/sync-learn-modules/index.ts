@@ -112,6 +112,14 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  if (sanityModules.length === 0) {
+    console.error('sync-learn-modules: Sanity returned 0 modules — aborting to prevent mass deletion');
+    return new Response(
+      JSON.stringify({ error: 'Sanity returned 0 modules, aborting' }),
+      { status: 500, headers: JSON_HEADERS }
+    );
+  }
+
   const { data: existing, error: fetchErr } = await supabase
     .from('learn_modules')
     .select('sanity_id');
@@ -153,6 +161,10 @@ Deno.serve(async (req: Request) => {
       .in('sanity_id', orphanedIds);
     if (deleteErr) {
       console.error('sync-learn-modules: delete orphans error', deleteErr);
+      return new Response(JSON.stringify({ error: deleteErr.message }), {
+        status: 500,
+        headers: JSON_HEADERS,
+      });
     } else {
       deleted = orphanedIds.length;
       console.log(

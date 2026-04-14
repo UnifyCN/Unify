@@ -26,7 +26,7 @@ import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
-import { upsertModuleProgress } from '@/services/learn/moduleProgressService';
+import { upsertModuleProgress, getModuleProgressStatus } from '@/services/learn/moduleProgressService';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ModuleIndexSkeletonLoader } from '@/components/learn/module-index-skeleton-loader';
@@ -489,15 +489,20 @@ export default function ModuleIndex() {
   const queryClient = useQueryClient();
 
   // ── learn_progress: write in_progress when module first loads ───────────────
+  // Guard: don't downgrade a completed module back to in_progress
   const hasWrittenInProgressRef = useRef(false);
   useEffect(() => {
     if (!moduleId || hasWrittenInProgressRef.current) return;
     if (isLoading || progressLoading) return;
 
     hasWrittenInProgressRef.current = true;
-    // Fire-and-forget — don't block UI
-    upsertModuleProgress(moduleId, 'in_progress').then(() => {
-      queryClient.invalidateQueries({ queryKey: ['personalize', 'learn'] });
+
+    // Check current status before writing — don't downgrade completed
+    getModuleProgressStatus(moduleId).then(currentStatus => {
+      if (currentStatus === 'completed') return;
+      upsertModuleProgress(moduleId, 'in_progress').then(() => {
+        queryClient.invalidateQueries({ queryKey: ['personalize', 'learn'] });
+      });
     });
   }, [moduleId, isLoading, progressLoading, queryClient]);
 
