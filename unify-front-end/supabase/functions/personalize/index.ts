@@ -91,9 +91,6 @@ interface LearnModule {
   title: string;
   personas: string[];
   interests: string[];
-  goals: string[];
-  province: string | null;
-  difficulty: string | null;
 }
 
 interface LearnProgressRow {
@@ -111,74 +108,59 @@ interface ScoredModule {
   why_tag: string;
 }
 
-/**
- * Score a module against the user's profile.
- * Returns a value in [0, 1].
- *
- * Scoring breakdown (weights sum to 1.0):
- *   persona match   0.35
- *   interest match  0.30
- *   goal match      0.25
- *   province match  0.10
- */
-function scoreModule(module: LearnModule, profile: OnboardingProfile): { score: number; why_tag: string } {
-  let score = 0;
+const PERSONA_LABELS: Record<string, string> = {
+  international_student: 'international students',
+  skilled_worker: 'skilled workers & immigrants',
+  refugee: 'refugees & protected persons',
+};
+
+const INTEREST_LABELS: Record<string, string> = {
+  documents: 'documents & IDs',
+  employment: 'jobs & career',
+  finance: 'money & banking',
+  housing: 'housing',
+  pr_immigration: 'PR & immigration',
+  healthcare: 'healthcare',
+  family_kids: 'family & kids',
+  transit: 'transit',
+};
+
+function scoreModule(
+  module: LearnModule,
+  profile: OnboardingProfile
+): { score: number; why_tag: string } {
+  const hasInterestMatch =
+    module.interests.length > 0 &&
+    profile.learning_interests.some(i => module.interests.includes(i));
+
+  const hasPersonaMatch =
+    module.personas.length > 0 &&
+    !!profile.persona &&
+    module.personas.includes(profile.persona);
+
+  const score = (hasInterestMatch ? 0.7 : 0) + (hasPersonaMatch ? 0.3 : 0);
+
+  // Build why_tag from matched signals
   let why_tag = '';
+  const matchedInterest = hasInterestMatch
+    ? profile.learning_interests.find(i => module.interests.includes(i))
+    : null;
+  const interestLabel = matchedInterest
+    ? INTEREST_LABELS[matchedInterest] ?? matchedInterest.replace(/_/g, ' ')
+    : '';
+  const personaLabel = hasPersonaMatch && profile.persona
+    ? PERSONA_LABELS[profile.persona] ?? profile.persona.replace(/_/g, ' ')
+    : '';
 
-  // Persona match (0.35)
-  if (profile.persona && module.personas.length > 0) {
-    if (module.personas.includes(profile.persona)) {
-      score += 0.35;
-    }
+  if (hasInterestMatch && hasPersonaMatch) {
+    why_tag = `Recommended for ${personaLabel} interested in ${interestLabel}`;
+  } else if (hasInterestMatch) {
+    why_tag = `Based on your interest in ${interestLabel}`;
+  } else if (hasPersonaMatch) {
+    why_tag = `Recommended for ${personaLabel}`;
   }
 
-  // Interest match (0.30)
-  const interestMatches = profile.learning_interests.filter(i =>
-    module.interests.some(
-      mi => mi.toLowerCase() === i.toLowerCase() || i.toLowerCase().includes(mi.toLowerCase())
-    )
-  );
-  if (interestMatches.length > 0 && module.interests.length > 0) {
-    score += 0.30 * Math.min(interestMatches.length / module.interests.length, 1);
-  }
-
-  // Goal match (0.25)
-  const goalMatches = profile.goals.filter(g =>
-    module.goals.some(
-      mg => mg.toLowerCase() === g.toLowerCase() || g.toLowerCase().includes(mg.toLowerCase())
-    )
-  );
-  if (goalMatches.length > 0 && module.goals.length > 0) {
-    score += 0.25 * Math.min(goalMatches.length / module.goals.length, 1);
-  }
-
-  // Province match (0.10)
-  if (profile.province && module.province) {
-    if (module.province.toLowerCase() === profile.province.toLowerCase()) {
-      score += 0.10;
-    }
-  } else if (!module.province) {
-    // Province-agnostic modules get a small universal boost
-    score += 0.05;
-  }
-
-  // Build why_tag from the strongest signal
-  if (interestMatches.length > 0) {
-    const interest = interestMatches[0].replace(/_/g, ' ');
-    why_tag = `Matches your interest in ${interest}`;
-  } else if (goalMatches.length > 0) {
-    const goal = goalMatches[0].replace(/_/g, ' ');
-    why_tag = `Supports your goal: ${goal}`;
-  } else if (profile.persona && module.personas.includes(profile.persona ?? '')) {
-    const p = (profile.persona ?? '').replace(/_/g, ' ');
-    why_tag = `Recommended for ${p}`;
-  } else if (profile.province && module.province === profile.province) {
-    why_tag = `Recommended for newcomers in ${profile.province}`;
-  } else {
-    why_tag = 'Recommended for newcomers';
-  }
-
-  return { score: Math.min(score, 1), why_tag };
+  return { score, why_tag };
 }
 
 async function buildLearnSurface(
@@ -186,47 +168,53 @@ async function buildLearnSurface(
   userId: string,
   profile: OnboardingProfile
 ): Promise<{ modules: ScoredModule[] }> {
-  // Fetch all modules metadata
-  const { data: modules, error: modulesErr } = await supabase
-    .from('learn_modules')
-    .select('sanity_id, title, personas, interests, goals, province, difficulty');
+  // Parallel fetch: module metadata + user progress
+  const [modulesResult, progressResult] = await Promise.all([
+    supabase
+      .from('learn_modules')
+      .select('sanity_id, title, personas, interests'),
+    supabase
+      .from('learn_progress')
+      .select('module_id, status, completed_at')
+      .eq('user_id', userId),
+  ]);
 
-  if (modulesErr) {
-    console.error('personalize/learn: modules fetch error', modulesErr);
+  if (modulesResult.error) {
+    console.error('personalize/learn: modules fetch error', modulesResult.error);
     return { modules: [] };
   }
 
-  // Fetch user's progress for all modules
-  const { data: progressRows } = await supabase
-    .from('learn_progress')
-    .select('module_id, status, completed_at')
-    .eq('user_id', userId);
-
   const progressByModule = new Map<string, LearnProgressRow>();
-  for (const row of (progressRows as LearnProgressRow[]) ?? []) {
+  for (const row of (progressResult.data as LearnProgressRow[]) ?? []) {
     progressByModule.set(row.module_id, row);
   }
 
-  // Score and sort
-  const scored: ScoredModule[] = ((modules as LearnModule[]) ?? []).map(m => {
+  // Score each module
+  const scored: ScoredModule[] = ((modulesResult.data as LearnModule[]) ?? []).map(m => {
     const { score, why_tag } = scoreModule(m, profile);
     const progress = progressByModule.get(m.sanity_id);
     return {
       sanity_id: m.sanity_id,
       title: m.title,
-      score: Math.round(score * 100) / 100,
+      score,
       progress: progress?.status ?? 'not_started',
       completed_at: progress?.completed_at ?? null,
       why_tag,
     };
   });
 
-  // Completed modules sink to the bottom; within each group, sort by score desc
+  // Sort: in_progress first → then by score desc → ties by title asc → completed last
   scored.sort((a, b) => {
+    const aInProgress = a.progress === 'in_progress' ? 0 : 1;
+    const bInProgress = b.progress === 'in_progress' ? 0 : 1;
+    if (aInProgress !== bInProgress) return aInProgress - bInProgress;
+
     const aCompleted = a.progress === 'completed' ? 1 : 0;
     const bCompleted = b.progress === 'completed' ? 1 : 0;
     if (aCompleted !== bCompleted) return aCompleted - bCompleted;
-    return b.score - a.score;
+
+    if (b.score !== a.score) return b.score - a.score;
+    return a.title.localeCompare(b.title);
   });
 
   return { modules: scored };
