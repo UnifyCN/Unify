@@ -857,6 +857,15 @@ export default function ModuleIndex() {
             </Text>
           </View>
         )}
+        {/* Why this? personalization context — inside header area */}
+        {decodedWhyTag ? (
+          <View style={styles.whyBanner}>
+            <Feather name='info' size={12} color='#FFFFFF' style={{ opacity: 0.85 }} />
+            <Text style={styles.whyBannerText}>
+              {decodedWhyTag}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       {/* Sections list with timeline */}
@@ -865,15 +874,6 @@ export default function ModuleIndex() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Why this? personalization context */}
-        {decodedWhyTag ? (
-          <View style={styles.whyBanner}>
-            <Feather name='info' size={14} color={subjectColor} />
-            <Text style={[styles.whyBannerText, { color: subjectColor }]}>
-              {decodedWhyTag}
-            </Text>
-          </View>
-        ) : null}
         {sections.map((section, index) => renderSectionCard(section, index))}
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -1189,18 +1189,20 @@ const styles = StyleSheet.create({
   whyBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     marginHorizontal: 20,
-    marginTop: 16,
+    marginTop: 12,
     marginBottom: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    backgroundColor: '#f8f9fa',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   whyBannerText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
+    color: '#FFFFFF',
+    opacity: 0.9,
     flex: 1,
   },
 });
