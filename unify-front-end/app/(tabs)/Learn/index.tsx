@@ -6,19 +6,17 @@ import {
   ScrollView,
   SafeAreaView,
   useWindowDimensions,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
-import SearchBar from '../../../components/learn/SearchBar';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
 import CarouselDots from '../../../components/learn/CarouselDots';
 import SectionHeader from '../../../components/learn/SectionHeader';
 import PathwayCard from '../../../components/learn/PathwayCard';
-import { useSanityModules } from '../../../hooks/sanity/useSanityModules';
+import { usePersonalizedModules } from '../../../hooks/learn/usePersonalizedModules';
 import { useInProgressLessons } from '../../../hooks/progress/useInProgressLessons';
 import {
   CurrentLessonSkeletonLoader,
@@ -38,19 +36,18 @@ export default function Learn() {
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
 
-  // Fetch all modules with their submodules to get accurate counts
-  const { data: modules, isLoading, error } = useSanityModules();
+  const { modules, isLoading, error, refetch } =
+    usePersonalizedModules();
 
-  // Fetch in-progress lessons for the carousel
   const {
     lessons: inProgressLessons,
     isLoading: lessonsLoading,
     error: lessonsError,
     refresh: refreshLessons,
   } = useInProgressLessons();
+
   const lastTrackedRef = React.useRef<number>(0);
 
-  // Track screen view when Learn screen is focused - with debounce
   useFocusEffect(
     React.useCallback(() => {
       const now = Date.now();
@@ -77,11 +74,19 @@ export default function Learn() {
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
-      await refreshLessons();
+      await Promise.all([refreshLessons(), refetch()]);
     } finally {
       setRefreshing(false);
     }
-  }, [refreshLessons]);
+  }, [refreshLessons, refetch]);
+
+  // Split modules into four sections
+  const inProgressModules = modules?.filter(m => m.progress === 'in_progress') ?? [];
+  const recommendedModules = modules?.filter(m => m.progress === 'not_started' && m.score > 0) ?? [];
+  const exploreModules = modules?.filter(m => m.progress === 'not_started' && m.score === 0) ?? [];
+  const completedModules = modules?.filter(m => m.progress === 'completed') ?? [];
+  const hasPersonalizedResults = recommendedModules.length > 0;
+
   return (
     <View style={styles.root}>
       <TabHeader variant='minimal' />
@@ -102,8 +107,7 @@ export default function Learn() {
             culture and how to settle in as a newcomer.
           </Text>
 
-          {/* <SearchBar placeholder='Search for a lesson' /> */}
-
+          {/* In-progress lesson carousel */}
           {lessonsLoading ? (
             <>
               <View style={[styles.heroWrapper, { width }]}>
@@ -181,7 +185,38 @@ export default function Learn() {
             </View>
           )}
 
-          <SectionHeader title='Subjects' style={{ marginTop: 15 }} />
+          {/* Continue Learning — in-progress modules */}
+          {inProgressModules.length > 0 && (
+            <>
+              <SectionHeader title='Continue Learning' style={{ marginTop: 15 }} />
+              <View style={styles.pathwaysGrid}>
+                {inProgressModules.map((module, index) => {
+                  const blobIndex = index % 5;
+                  return (
+                    <PathwayCard
+                      key={module._id}
+                      title={module.title}
+                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      href={
+                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                      }
+                      colorTheme={module.colorTheme?.hex}
+                      icon={module.icon}
+                      index={index}
+                      moduleId={module._id}
+                      progress={module.progress}
+                    />
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Recommended for You — scored modules */}
+          <SectionHeader
+            title={hasPersonalizedResults ? 'Recommended for You' : 'Subjects'}
+            style={{ marginTop: 15 }}
+          />
           <View style={styles.pathwaysGrid}>
             {isLoading ? (
               <>
@@ -190,21 +225,23 @@ export default function Learn() {
               </>
             ) : error ? (
               <Text style={styles.errorText}>Error loading modules</Text>
-            ) : modules && modules.length > 0 ? (
-              modules.map((module, index) => {
-                const blobIndex = index % 5;
+            ) : (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).length > 0 ? (
+              (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).map((module, index) => {
+                const offset = inProgressModules.length;
+                const blobIndex = (offset + index) % 5;
                 return (
                   <PathwayCard
                     key={module._id}
                     title={module.title}
                     modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
                     href={
-                      `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                      `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}&whyTag=${encodeURIComponent(module.why_tag || '')}` as any
                     }
                     colorTheme={module.colorTheme?.hex}
                     icon={module.icon}
-                    index={index}
+                    index={offset + index}
                     moduleId={module._id}
+                    progress={module.progress}
                   />
                 );
               })
@@ -212,6 +249,62 @@ export default function Learn() {
               <Text style={styles.errorText}>No modules available</Text>
             )}
           </View>
+
+          {/* Explore More — unscored + completed */}
+          {hasPersonalizedResults && exploreModules.length > 0 && (
+            <>
+              <SectionHeader title='Explore More' style={{ marginTop: 24 }} />
+              <View style={styles.pathwaysGrid}>
+                {exploreModules.map((module, index) => {
+                  const offset = inProgressModules.length + recommendedModules.length;
+                  const blobIndex = (offset + index) % 5;
+                  return (
+                    <PathwayCard
+                      key={module._id}
+                      title={module.title}
+                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      href={
+                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                      }
+                      colorTheme={module.colorTheme?.hex}
+                      icon={module.icon}
+                      index={offset + index}
+                      moduleId={module._id}
+                      progress={module.progress}
+                    />
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Completed modules */}
+          {completedModules.length > 0 && (
+            <>
+              <SectionHeader title='Completed' style={{ marginTop: 24 }} />
+              <View style={styles.pathwaysGrid}>
+                {completedModules.map((module, index) => {
+                  const offset = inProgressModules.length + recommendedModules.length + exploreModules.length;
+                  const blobIndex = (offset + index) % 5;
+                  return (
+                    <PathwayCard
+                      key={module._id}
+                      title={module.title}
+                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      href={
+                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                      }
+                      colorTheme={module.colorTheme?.hex}
+                      icon={module.icon}
+                      index={offset + index}
+                      moduleId={module._id}
+                      progress={module.progress}
+                    />
+                  );
+                })}
+              </View>
+            </>
+          )}
         </ScrollView>
       </View>
       <AnnouncementModal
@@ -252,15 +345,6 @@ const styles = StyleSheet.create({
     color: '#FF3B30',
     textAlign: 'center',
     marginTop: 20,
-  },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  loadingText: {
-    color: '#575757',
-    fontSize: 16,
-    marginTop: 12,
   },
   errorContainer: {
     alignItems: 'center',

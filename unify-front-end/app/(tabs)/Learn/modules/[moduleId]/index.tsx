@@ -21,10 +21,12 @@ import {
   Link,
   useFocusEffect,
 } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
+import { upsertModuleProgress, getModuleProgressStatus } from '@/services/learn/moduleProgressService';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ModuleIndexSkeletonLoader } from '@/components/learn/module-index-skeleton-loader';
@@ -163,10 +165,13 @@ export default function ModuleIndex() {
   const router = useRouter();
   const { trackScreen, trackModuleViewed } = useAnalytics();
   const insets = useSafeAreaInsets();
-  const { moduleId, blobIndex } = useLocalSearchParams<{
+  const { moduleId, blobIndex, whyTag } = useLocalSearchParams<{
     moduleId: string;
     blobIndex?: string;
+    whyTag?: string;
   }>();
+
+  const decodedWhyTag = whyTag ? decodeURIComponent(whyTag) : '';
   const {
     data: moduleData,
     isLoading,
@@ -480,6 +485,47 @@ export default function ModuleIndex() {
       };
     }, [moduleId, moduleData?.submodules, refreshProgress])
   );
+
+  const queryClient = useQueryClient();
+
+  // ── learn_progress: write in_progress when module first loads ───────────────
+  // Guard: don't downgrade a completed module back to in_progress
+  const hasWrittenInProgressRef = useRef(false);
+  useEffect(() => {
+    if (!moduleId || hasWrittenInProgressRef.current) return;
+    if (isLoading || progressLoading) return;
+
+    hasWrittenInProgressRef.current = true;
+
+    // Check current status before writing — don't downgrade completed
+    getModuleProgressStatus(moduleId).then(currentStatus => {
+      if (currentStatus === 'completed') return;
+      upsertModuleProgress(moduleId, 'in_progress').then(() => {
+        queryClient.invalidateQueries({ queryKey: ['personalize', 'learn'] });
+      });
+    });
+  }, [moduleId, isLoading, progressLoading, queryClient]);
+
+  // ── learn_progress: write completed when all submodules are finished ─────────
+  const hasWrittenCompletedRef = useRef(false);
+  useEffect(() => {
+    if (hasWrittenCompletedRef.current) return;
+    if (!moduleId || !moduleData?.submodules?.length) return;
+    if (Object.keys(submoduleProgresses).length === 0) return;
+
+    const allDone =
+      moduleData.submodules.length > 0 &&
+      moduleData.submodules.every(
+        s => submoduleProgresses[s._id]?.is_completed === true
+      );
+
+    if (allDone) {
+      hasWrittenCompletedRef.current = true;
+      upsertModuleProgress(moduleId, 'completed').then(() => {
+        queryClient.invalidateQueries({ queryKey: ['personalize', 'learn'] });
+      });
+    }
+  }, [moduleId, moduleData?.submodules, submoduleProgresses, queryClient]);
 
   // Track module view
   const moduleTitle = moduleData?.title;
@@ -811,6 +857,15 @@ export default function ModuleIndex() {
             </Text>
           </View>
         )}
+        {/* Why this? personalization context — inside header area */}
+        {decodedWhyTag ? (
+          <View style={styles.whyBanner}>
+            <Feather name='info' size={12} color='#FFFFFF' style={{ opacity: 0.85 }} />
+            <Text style={styles.whyBannerText}>
+              {decodedWhyTag}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       {/* Sections list with timeline */}
@@ -1128,5 +1183,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+
+  // Why-this personalization banner
+  whyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+  },
+  whyBannerText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    opacity: 0.9,
+    flex: 1,
   },
 });

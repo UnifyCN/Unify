@@ -2,13 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { LinkProps } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import Blob3 from '../../assets/images/Blob3.svg';
 import Blob8 from '../../assets/images/Blob8.svg';
 import Blob10 from '../../assets/images/Blob10.svg';
 import Blob11 from '../../assets/images/Blob11.svg';
 import Blob12 from '../../assets/images/Blob12.svg';
 import { useAnalytics } from '@/utils/analytics';
+import type { ModuleProgressStatus } from '@/types/learn';
 
 type Props = {
   title: string;
@@ -18,6 +19,7 @@ type Props = {
   icon?: string;
   index?: number;
   moduleId?: string;
+  progress?: ModuleProgressStatus;
 };
 
 // Map Sanity icon values (snake_case) to MaterialCommunityIcons outline variants
@@ -62,6 +64,7 @@ export default function PathwayCard({
   icon,
   index = 0,
   moduleId,
+  progress = 'not_started',
 }: Props) {
   const router = useRouter();
   const { trackModuleCardClicked } = useAnalytics();
@@ -80,6 +83,9 @@ export default function PathwayCard({
           : blobIndex === 3
             ? Blob11
             : Blob12;
+
+  const isInProgress = progress === 'in_progress';
+  const isCompleted = progress === 'completed';
 
   const CardInner = (
     <>
@@ -112,6 +118,21 @@ export default function PathwayCard({
             color='#FFFFFF'
           />
         </View>
+
+        {/* Progress badge — top-left */}
+        {isInProgress && (
+          <View style={styles.progressBadge}>
+            <View style={styles.progressDot} />
+            <Text style={styles.progressBadgeText}>Continue</Text>
+          </View>
+        )}
+        {isCompleted && (
+          <View style={[styles.progressBadge, styles.completedBadge]}>
+            <Feather name='check' size={10} color='#FFFFFF' />
+            <Text style={styles.progressBadgeText}>Done</Text>
+          </View>
+        )}
+
         <View style={styles.contentContainer}>
           <Text style={styles.title} numberOfLines={2}>
             {title}
@@ -224,6 +245,33 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  progressBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.22)',
+    borderRadius: 20,
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+  },
+  completedBadge: {
+    backgroundColor: 'rgba(0,0,0,0.30)',
+  },
+  progressDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+  },
+  progressBadgeText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
   },
   contentContainer: {
     marginTop: 'auto',
