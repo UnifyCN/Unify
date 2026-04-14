@@ -2,6 +2,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { getAllModulesWithSubmodules } from '@/services/sanity/modules';
 import type {
+  ModuleProgressStatus,
   PersonalizeLearnResponse,
   PersonalizedModule,
 } from '@/types/learn';
@@ -41,6 +42,33 @@ async function fetchPersonalizedLearn(): Promise<PersonalizeLearnResponse | null
   } finally {
     clearTimeout(timeout);
   }
+}
+
+// ─── Independent progress fetch (used in fallback path) ─────────────────────
+
+async function fetchAllModuleProgress(): Promise<Map<string, ModuleProgressStatus>> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return new Map();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return new Map();
+
+  const { data, error } = await supabase
+    .from('learn_progress')
+    .select('module_id, status')
+    .eq('user_id', user.id);
+
+  if (error || !data) return new Map();
+
+  const map = new Map<string, ModuleProgressStatus>();
+  for (const row of data) {
+    map.set(row.module_id, row.status as ModuleProgressStatus);
+  }
+  return map;
 }
 
 // ─── Merge helper ─────────────────────────────────────────────────────────────
@@ -123,6 +151,15 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
     retry: 1,
   });
 
+  // Independent progress fetch — keeps badges visible even when personalization
+  // is disabled or the edge function fails/times out.
+  const { data: progressMap, refetch: refetchProgress } = useQuery({
+    queryKey: ['learn', 'progress'],
+    queryFn: fetchAllModuleProgress,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
   const isLoading = sanityLoading || personalizeLoading;
 
   const isPersonalized =
@@ -137,10 +174,10 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
         sanityModules
       );
     } else {
-      // Fallback: Sanity order, unscored
+      // Fallback: Sanity order, unscored — but still show real progress badges
       modules = sanityModules.map(m => ({
         ...m,
-        progress: 'not_started' as const,
+        progress: progressMap?.get(m._id) ?? ('not_started' as const),
         score: 0,
         why_tag: '',
       }));
@@ -150,6 +187,7 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
   const refetch = () => {
     refetchSanity();
     refetchPersonalized();
+    refetchProgress();
   };
 
   return {
