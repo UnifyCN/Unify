@@ -36,7 +36,7 @@ export default function Learn() {
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
 
-  const { modules, isLoading, error, isPersonalized, refetch } =
+  const { modules, isLoading, error, refetch } =
     usePersonalizedModules();
 
   const {
@@ -80,9 +80,13 @@ export default function Learn() {
     }
   }, [refreshLessons, refetch]);
 
-  // Split modules into active and completed sections
-  const activeModules = modules?.filter(m => m.progress !== 'completed') ?? [];
-  const completedModules = modules?.filter(m => m.progress === 'completed') ?? [];
+  // Split modules into three sections
+  const inProgressModules = modules?.filter(m => m.progress === 'in_progress') ?? [];
+  const recommendedModules = modules?.filter(m => m.progress === 'not_started' && m.score > 0) ?? [];
+  const exploreModules = modules?.filter(m =>
+    (m.progress === 'not_started' && m.score === 0) || m.progress === 'completed'
+  ) ?? [];
+  const hasPersonalizedResults = recommendedModules.length > 0;
 
   return (
     <View style={styles.root}>
@@ -182,50 +186,13 @@ export default function Learn() {
             </View>
           )}
 
-          {/* Active modules (not_started + in_progress), ranked by score */}
-          <SectionHeader
-            title={isPersonalized ? 'For You' : 'Subjects'}
-            style={{ marginTop: 15 }}
-          />
-          <View style={styles.pathwaysGrid}>
-            {isLoading ? (
-              <>
-                <PathwayCardSkeletonLoader />
-                <PathwayCardSkeletonLoader />
-              </>
-            ) : error ? (
-              <Text style={styles.errorText}>Error loading modules</Text>
-            ) : activeModules.length > 0 ? (
-              activeModules.map((module, index) => {
-                const blobIndex = index % 5;
-                return (
-                  <PathwayCard
-                    key={module._id}
-                    title={module.title}
-                    modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
-                    href={
-                      `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
-                    }
-                    colorTheme={module.colorTheme?.hex}
-                    icon={module.icon}
-                    index={index}
-                    moduleId={module._id}
-                    progress={module.progress}
-                  />
-                );
-              })
-            ) : (
-              <Text style={styles.errorText}>No modules available</Text>
-            )}
-          </View>
-
-          {/* Completed modules section */}
-          {completedModules.length > 0 && (
+          {/* Continue Learning — in-progress modules */}
+          {inProgressModules.length > 0 && (
             <>
-              <SectionHeader title='Completed' style={{ marginTop: 24 }} />
+              <SectionHeader title='Continue Learning' style={{ marginTop: 15 }} />
               <View style={styles.pathwaysGrid}>
-                {completedModules.map((module, index) => {
-                  const blobIndex = (activeModules.length + index) % 5;
+                {inProgressModules.map((module, index) => {
+                  const blobIndex = index % 5;
                   return (
                     <PathwayCard
                       key={module._id}
@@ -236,7 +203,73 @@ export default function Learn() {
                       }
                       colorTheme={module.colorTheme?.hex}
                       icon={module.icon}
-                      index={activeModules.length + index}
+                      index={index}
+                      moduleId={module._id}
+                      progress={module.progress}
+                    />
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Recommended for You — scored modules */}
+          <SectionHeader
+            title={hasPersonalizedResults ? 'Recommended for You' : 'Subjects'}
+            style={{ marginTop: 15 }}
+          />
+          <View style={styles.pathwaysGrid}>
+            {isLoading ? (
+              <>
+                <PathwayCardSkeletonLoader />
+                <PathwayCardSkeletonLoader />
+              </>
+            ) : error ? (
+              <Text style={styles.errorText}>Error loading modules</Text>
+            ) : (hasPersonalizedResults ? recommendedModules : modules ?? []).length > 0 ? (
+              (hasPersonalizedResults ? recommendedModules : modules ?? []).map((module, index) => {
+                const offset = inProgressModules.length;
+                const blobIndex = (offset + index) % 5;
+                return (
+                  <PathwayCard
+                    key={module._id}
+                    title={module.title}
+                    modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                    href={
+                      `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}&whyTag=${encodeURIComponent(module.why_tag || '')}` as any
+                    }
+                    colorTheme={module.colorTheme?.hex}
+                    icon={module.icon}
+                    index={offset + index}
+                    moduleId={module._id}
+                    progress={module.progress}
+                  />
+                );
+              })
+            ) : (
+              <Text style={styles.errorText}>No modules available</Text>
+            )}
+          </View>
+
+          {/* Explore More — unscored + completed */}
+          {hasPersonalizedResults && exploreModules.length > 0 && (
+            <>
+              <SectionHeader title='Explore More' style={{ marginTop: 24 }} />
+              <View style={styles.pathwaysGrid}>
+                {exploreModules.map((module, index) => {
+                  const offset = inProgressModules.length + recommendedModules.length;
+                  const blobIndex = (offset + index) % 5;
+                  return (
+                    <PathwayCard
+                      key={module._id}
+                      title={module.title}
+                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      href={
+                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                      }
+                      colorTheme={module.colorTheme?.hex}
+                      icon={module.icon}
+                      index={offset + index}
                       moduleId={module._id}
                       progress={module.progress}
                     />
