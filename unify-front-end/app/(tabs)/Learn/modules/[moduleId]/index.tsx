@@ -165,10 +165,13 @@ export default function ModuleIndex() {
   const router = useRouter();
   const { trackScreen, trackModuleViewed } = useAnalytics();
   const insets = useSafeAreaInsets();
-  const { moduleId, blobIndex } = useLocalSearchParams<{
+  const { moduleId, blobIndex, whyTag } = useLocalSearchParams<{
     moduleId: string;
     blobIndex?: string;
+    whyTag?: string;
   }>();
+
+  const decodedWhyTag = whyTag ? decodeURIComponent(whyTag) : '';
   const {
     data: moduleData,
     isLoading,
@@ -857,6 +860,15 @@ export default function ModuleIndex() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Why this? personalization context */}
+        {decodedWhyTag ? (
+          <View style={styles.whyBanner}>
+            <Feather name='info' size={14} color={subjectColor} />
+            <Text style={[styles.whyBannerText, { color: subjectColor }]}>
+              {decodedWhyTag}
+            </Text>
+          </View>
+        ) : null}
         {sections.map((section, index) => renderSectionCard(section, index))}
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -1166,5 +1178,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+
+  // Why-this personalization banner
+  whyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: '#f8f9fa',
+  },
+  whyBannerText: {
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
   },
 });
