@@ -95,7 +95,7 @@ const GroupDiscoveryCard = memo(
             <Text style={styles.discoveryCardTitle} numberOfLines={1}>
               {group.name}
             </Text>
-            {group.why_tag ? (
+            {group.why_tag? (
               <>
                 <Text style={styles.whySeparator}>|</Text>
                 <Text style={styles.discoveryCardWhy} numberOfLines={1}>
@@ -138,15 +138,8 @@ const GroupsForYouSection = () => {
   const { data: groups, isLoading } = useQuery<Group[], Error>({
     queryKey: ['personalize', 'groups'],
     queryFn: async () => {
-      /*
-      if (!personalizationEnabled) {
-        // Feature off → use creation-date ordering fallback
-        return getAvailableGroups();
-      }
-      */
       try {
         const personalized = await getPersonalizedGroups();
-
         // Extra safety: exclude already-joined groups client-side
         let joined: Group[] = [];
         try {
@@ -171,7 +164,6 @@ const GroupsForYouSection = () => {
       }
     },
     staleTime: 1000 * 60 * 15, // 15 minutes
-    //keepPreviousData: true,
     refetchOnWindowFocus: false,
   });
 
