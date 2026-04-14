@@ -89,7 +89,7 @@ export default function PathwayCard({
 
   const CardInner = (
     <>
-      <View style={[styles.banner, { backgroundColor: isCompleted ? `${backgroundColor}A6` : backgroundColor }]}>
+      <View style={[styles.banner, { backgroundColor }]}>
         {/* Blob background overlay - cycles through Blob3, Blob8, Blob10, Blob11, Blob12 */}
         <View
           style={

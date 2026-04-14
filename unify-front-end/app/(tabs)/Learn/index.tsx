@@ -80,12 +80,11 @@ export default function Learn() {
     }
   }, [refreshLessons, refetch]);
 
-  // Split modules into three sections
+  // Split modules into four sections
   const inProgressModules = modules?.filter(m => m.progress === 'in_progress') ?? [];
   const recommendedModules = modules?.filter(m => m.progress === 'not_started' && m.score > 0) ?? [];
-  const exploreModules = modules?.filter(m =>
-    (m.progress === 'not_started' && m.score === 0) || m.progress === 'completed'
-  ) ?? [];
+  const exploreModules = modules?.filter(m => m.progress === 'not_started' && m.score === 0) ?? [];
+  const completedModules = modules?.filter(m => m.progress === 'completed') ?? [];
   const hasPersonalizedResults = recommendedModules.length > 0;
 
   return (
@@ -226,8 +225,8 @@ export default function Learn() {
               </>
             ) : error ? (
               <Text style={styles.errorText}>Error loading modules</Text>
-            ) : (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress')).length > 0 ? (
-              (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress')).map((module, index) => {
+            ) : (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).length > 0 ? (
+              (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).map((module, index) => {
                 const offset = inProgressModules.length;
                 const blobIndex = (offset + index) % 5;
                 return (
@@ -258,6 +257,34 @@ export default function Learn() {
               <View style={styles.pathwaysGrid}>
                 {exploreModules.map((module, index) => {
                   const offset = inProgressModules.length + recommendedModules.length;
+                  const blobIndex = (offset + index) % 5;
+                  return (
+                    <PathwayCard
+                      key={module._id}
+                      title={module.title}
+                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      href={
+                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                      }
+                      colorTheme={module.colorTheme?.hex}
+                      icon={module.icon}
+                      index={offset + index}
+                      moduleId={module._id}
+                      progress={module.progress}
+                    />
+                  );
+                })}
+              </View>
+            </>
+          )}
+
+          {/* Completed modules */}
+          {completedModules.length > 0 && (
+            <>
+              <SectionHeader title='Completed' style={{ marginTop: 24 }} />
+              <View style={styles.pathwaysGrid}>
+                {completedModules.map((module, index) => {
+                  const offset = inProgressModules.length + recommendedModules.length + exploreModules.length;
                   const blobIndex = (offset + index) % 5;
                   return (
                     <PathwayCard
