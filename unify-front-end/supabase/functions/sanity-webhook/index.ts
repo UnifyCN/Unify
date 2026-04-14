@@ -139,19 +139,22 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-  const { error } = await supabase.from('learn_modules').upsert(
-    {
-      sanity_id: payload._id,
-      title: payload.title,
-      personas: payload.personas ?? [],
-      interests: payload.interests ?? [],
-      goals: payload.goals ?? [],
-      province: payload.province ?? null,
-      difficulty: payload.difficulty ?? null,
-      synced_at: new Date().toISOString(),
-    },
-    { onConflict: 'sanity_id' }
-  );
+  // Only include tag fields when Sanity actually sends them — omitting them
+  // preserves any manually seeded values from the metadata migration.
+  const row: Record<string, unknown> = {
+    sanity_id: payload._id,
+    title: payload.title,
+    province: payload.province ?? null,
+    difficulty: payload.difficulty ?? null,
+    synced_at: new Date().toISOString(),
+  };
+  if (payload.personas !== undefined) row.personas = payload.personas;
+  if (payload.interests !== undefined) row.interests = payload.interests;
+  if (payload.goals !== undefined) row.goals = payload.goals;
+
+  const { error } = await supabase
+    .from('learn_modules')
+    .upsert(row, { onConflict: 'sanity_id' });
 
   if (error) {
     console.error('sanity-webhook: upsert error', error);
