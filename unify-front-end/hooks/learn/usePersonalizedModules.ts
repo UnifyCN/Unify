@@ -1,7 +1,6 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { getAllModulesWithSubmodules } from '@/services/sanity/modules';
-import { FEATURE_FLAGS } from '@/constants/featureFlags';
 import type {
   PersonalizeLearnResponse,
   PersonalizedModule,
@@ -20,7 +19,7 @@ async function fetchPersonalizedLearn(): Promise<PersonalizeLearnResponse | null
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 3000);
 
   try {
     const res = await fetch(
@@ -44,35 +43,37 @@ async function fetchPersonalizedLearn(): Promise<PersonalizeLearnResponse | null
   }
 }
 
-// ─── Merge helpers ────────────────────────────────────────────────────────────
+// ─── Merge helper ─────────────────────────────────────────────────────────────
 
 /**
- * Merge the personalized ranking with full Sanity module data.
- * Returns modules in personalized order, enriched with colorTheme, icon, submodules.
- * Sanity modules that have no corresponding `learn_modules` row are appended at the end.
+ * Merge personalized ranking with full Sanity module data.
+ * Preserves the edge function's order (do NOT re-sort).
+ * Sanity modules with no learn_modules row are appended at the end with score 0.
  */
 function mergePersonalizedWithSanity(
   personalized: PersonalizedModule[],
   sanityModules: SanityModuleWithSubmodules[]
-): Array<SanityModuleWithSubmodules & { progress: PersonalizedModule['progress']; score: number }> {
+): PersonalizedSanityModule[] {
   const sanityById = new Map(sanityModules.map(m => [m._id, m]));
-  const result: Array<SanityModuleWithSubmodules & { progress: PersonalizedModule['progress']; score: number }> = [];
+  const result: PersonalizedSanityModule[] = [];
 
   for (const pm of personalized) {
     const sanity = sanityById.get(pm.sanity_id);
     if (sanity) {
-      result.push({ ...sanity, progress: pm.progress, score: pm.score });
+      result.push({
+        ...sanity,
+        progress: pm.progress,
+        score: pm.score,
+        why_tag: pm.why_tag,
+      });
       sanityById.delete(pm.sanity_id);
     }
   }
 
-  // Append any Sanity modules not returned by the personalize endpoint (new or unscored)
+  // Append unscored Sanity modules at the end
   for (const remaining of sanityById.values()) {
-    result.push({ ...remaining, progress: 'not_started', score: 0 });
+    result.push({ ...remaining, progress: 'not_started', score: 0, why_tag: '' });
   }
-
-  // Guarantee score-descending order even if the API response drifts
-  result.sort((a, b) => b.score - a.score);
 
   return result;
 }
@@ -82,6 +83,7 @@ function mergePersonalizedWithSanity(
 export type PersonalizedSanityModule = SanityModuleWithSubmodules & {
   progress: PersonalizedModule['progress'];
   score: number;
+  why_tag: string;
 };
 
 interface UsePersonalizedModulesResult {
@@ -93,9 +95,7 @@ interface UsePersonalizedModulesResult {
 }
 
 export function usePersonalizedModules(): UsePersonalizedModulesResult {
-  const flagOn = FEATURE_FLAGS.personalization_enabled;
-
-  // Always fetch Sanity modules for content (they contain colorTheme, icon, submodules)
+  // Always fetch Sanity modules (they own colorTheme, icon, submodules)
   const {
     data: sanityModules,
     isLoading: sanityLoading,
@@ -109,7 +109,7 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
     placeholderData: keepPreviousData,
   });
 
-  // Fetch personalized ranking — only when feature flag is on
+  // Always fetch personalized ranking
   const {
     data: personalizedData,
     isLoading: personalizeLoading,
@@ -117,19 +117,16 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
   } = useQuery({
     queryKey: ['personalize', 'learn'],
     queryFn: fetchPersonalizedLearn,
-    enabled: flagOn,
     staleTime: 15 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     placeholderData: keepPreviousData,
     retry: 1,
   });
 
-  const isLoading = sanityLoading || (flagOn && personalizeLoading);
+  const isLoading = sanityLoading || personalizeLoading;
 
   const isPersonalized =
-    flagOn &&
-    !!personalizedData?.modules?.length &&
-    !!sanityModules?.length;
+    !!personalizedData?.modules?.length && !!sanityModules?.length;
 
   let modules: PersonalizedSanityModule[] | undefined;
 
@@ -140,18 +137,19 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
         sanityModules
       );
     } else {
-      // Fallback: Sanity order, all modules marked not_started
+      // Fallback: Sanity order, unscored
       modules = sanityModules.map(m => ({
         ...m,
         progress: 'not_started' as const,
         score: 0,
+        why_tag: '',
       }));
     }
   }
 
   const refetch = () => {
     refetchSanity();
-    if (flagOn) refetchPersonalized();
+    refetchPersonalized();
   };
 
   return {
