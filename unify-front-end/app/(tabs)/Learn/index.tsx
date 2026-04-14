@@ -226,8 +226,8 @@ export default function Learn() {
               </>
             ) : error ? (
               <Text style={styles.errorText}>Error loading modules</Text>
-            ) : (hasPersonalizedResults ? recommendedModules : modules ?? []).length > 0 ? (
-              (hasPersonalizedResults ? recommendedModules : modules ?? []).map((module, index) => {
+            ) : (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress')).length > 0 ? (
+              (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress')).map((module, index) => {
                 const offset = inProgressModules.length;
                 const blobIndex = (offset + index) % 5;
                 return (
