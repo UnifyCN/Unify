@@ -78,6 +78,7 @@ Deno.serve(async (req: Request) => {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+  const authenticatedEmail = user.email?.trim().toLowerCase();
 
   let body: Payload;
   try {
@@ -101,6 +102,14 @@ Deno.serve(async (req: Request) => {
   // Validate email format
   if (!isValidEmail(requesterEmail.trim())) {
     return badRequest('Invalid requesterEmail format.');
+  }
+
+  // Bind to authenticated user's email — prevent impersonation via body
+  if (
+    !authenticatedEmail ||
+    requesterEmail.trim().toLowerCase() !== authenticatedEmail
+  ) {
+    return badRequest('requesterEmail must match the authenticated user.');
   }
 
   // Sanitize groupName for use in email subject
@@ -132,7 +141,7 @@ Deno.serve(async (req: Request) => {
       to: RESEND_TO,
       subject: `Group Request: ${sanitizedGroupName}`,
       html,
-      reply_to: requesterEmail,
+      reply_to: authenticatedEmail,
     }),
   });
 
