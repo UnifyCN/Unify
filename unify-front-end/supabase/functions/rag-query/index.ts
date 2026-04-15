@@ -596,7 +596,43 @@ Deno.serve(async (req: Request) => {
     );
 
     const authenticatedUserId = await authPromise;
-    const effectiveUserId = authenticatedUserId || null;
+
+    // Require authentication — reject unauthenticated requests to prevent
+    // abuse and uncontrolled API credit consumption.
+    if (!authenticatedUserId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const effectiveUserId = authenticatedUserId;
+
+    // Server-side daily rate limit — prevent bypassing the client-side limit
+    const DAILY_MESSAGE_LIMIT = 30; // generous server-side cap
+    const { data: usageRow } = await supabase
+      .from('chatbot_usage')
+      .select('message_count, last_message_at')
+      .eq('user_id', effectiveUserId)
+      .maybeSingle();
+
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = usageRow?.last_message_at?.split('T')[0];
+    const todayCount = lastDate === today ? (usageRow?.message_count ?? 0) : 0;
+
+    // Check premium status server-side (not from client request)
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_premium')
+      .eq('id', effectiveUserId)
+      .single();
+
+    if (!userData?.is_premium && todayCount >= DAILY_MESSAGE_LIMIT) {
+      return new Response(
+        JSON.stringify({ error: 'Daily message limit reached. Try again tomorrow.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (
       requestUserId &&

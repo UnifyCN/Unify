@@ -13,7 +13,7 @@
  * Required env vars (from .env or shell):
  *   SANITY_PROJECT_ID or EXPO_PUBLIC_SANITY_PROJECT_ID
  *   SANITY_DATASET or EXPO_PUBLIC_SANITY_DATASET (default: production)
- *   SANITY_API_TOKEN or EXPO_PUBLIC_SANITY_TOKEN (read token)
+ *   SANITY_API_TOKEN or SANITY_TOKEN (read token)
  *   SUPABASE_URL or EXPO_PUBLIC_SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY
  */
@@ -33,7 +33,7 @@ const SANITY_DATASET =
   process.env.SANITY_DATASET ||
   process.env.EXPO_PUBLIC_SANITY_DATASET ||
   'production';
-const SANITY_API_TOKEN = process.env.SANITY_API_TOKEN;
+const SANITY_API_TOKEN = process.env.SANITY_API_TOKEN || process.env.SANITY_TOKEN;
 const SUPABASE_URL =
   process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

@@ -1,3 +1,6 @@
+import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
+import { createClient } from 'jsr:@supabase/supabase-js@2';
+
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const RESEND_FROM = Deno.env.get('RESEND_FROM'); // e.g. "Unify <noreply@unifysocial.ca>"
 const RESEND_TO = Deno.env.get('RESEND_TO'); // "contact@unifysocial.ca"
@@ -33,6 +36,9 @@ function sanitizeForSubject(str: string): string {
     .slice(0, 100); // Limit length
 }
 
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
+
 Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
@@ -41,6 +47,34 @@ Deno.serve(async (req: Request) => {
   if (!RESEND_API_KEY || !RESEND_FROM || !RESEND_TO) {
     return new Response(JSON.stringify({ error: 'Missing Resend env vars.' }), {
       status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Require authentication to prevent anonymous spam
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return new Response(JSON.stringify({ error: 'Missing Supabase env vars.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false },
+  });
+  const { data: { user }, error: authError } = await authClient.auth.getUser();
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: 'Invalid session' }), {
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }
