@@ -56,6 +56,12 @@ export const getActiveCircleMembership =
     const row = data as any;
     const circle = row.community_circles;
 
+    // Client-side guard: treat circles past their ends_at as inactive even
+    // if the backend hasn't flipped the status yet (cron runs every 3 min).
+    if (new Date(circle.ends_at) <= new Date()) {
+      return null;
+    }
+
     return {
       id: row.id,
       circle_id: row.circle_id,

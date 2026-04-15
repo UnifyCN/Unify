@@ -134,6 +134,10 @@ export default function CircleChatScreen() {
     enabled: !!circleId,
   });
 
+  const circleExpired =
+    circle?.status === 'ended' ||
+    (circle != null && new Date(circle.ends_at) <= new Date());
+
   const memberLookup = useMemo(() => {
     const map: Record<string, CommunityCircleMemberProfile> = {};
     members?.forEach(member => {
@@ -355,7 +359,7 @@ export default function CircleChatScreen() {
 
   const handleSend = async () => {
     const trimmed = text.trim();
-    if (!trimmed || !circleId || circle?.status === 'ended') {
+    if (!trimmed || !circleId || circleExpired) {
       return;
     }
 
@@ -545,8 +549,7 @@ export default function CircleChatScreen() {
     return items;
   }, [currentUser?.id, messages]);
 
-  const inputDisabled =
-    circle?.status === 'ended' || membership?.left_at !== null;
+  const inputDisabled = circleExpired || membership?.left_at !== null;
 
   return (
     <View style={styles.root}>
@@ -595,7 +598,7 @@ export default function CircleChatScreen() {
           </View>
         )}
 
-        {circle?.status === 'ended' && (
+        {circleExpired && (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>
               This circle has ended. Chat is read-only.
