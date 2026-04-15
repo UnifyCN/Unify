@@ -596,7 +596,32 @@ Deno.serve(async (req: Request) => {
     );
 
     const authenticatedUserId = await authPromise;
-    const effectiveUserId = authenticatedUserId || null;
+
+    // Require authentication — reject unauthenticated requests to prevent
+    // abuse and uncontrolled API credit consumption.
+    if (!authenticatedUserId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const effectiveUserId = authenticatedUserId;
+
+    // Atomic rate limit: check + increment in one RPC (fail-closed).
+    // Returns false if over the daily cap or on any DB error.
+    const DAILY_MESSAGE_LIMIT = 30;
+    const { data: allowed, error: quotaError } = await supabase.rpc(
+      'check_and_increment_chatbot_usage',
+      { p_user_id: effectiveUserId, p_daily_limit: DAILY_MESSAGE_LIMIT }
+    );
+
+    if (quotaError || allowed === false) {
+      return new Response(
+        JSON.stringify({ error: 'Daily message limit reached. Try again tomorrow.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (
       requestUserId &&

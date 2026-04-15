@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { callGeminiAPI } from '@/utils/gemini';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
-import { useUpdateChatbotUsage } from '@/hooks/companion/useUpdateChatbotUsage';
 import { useCreateConversation } from '@/hooks/companion/useCreateConversation';
 import { useSaveMessage } from '@/hooks/companion/useSaveMessage';
 import {
@@ -36,8 +36,8 @@ export const useSendMessage = ({
   const [lastVerified, setLastVerified] = useState<string | undefined>(
     undefined
   );
+  const queryClient = useQueryClient();
   const { data: usage } = useChatbotUsage();
-  const updateUsage = useUpdateChatbotUsage();
   const createConversation = useCreateConversation();
   const saveMessage = useSaveMessage();
   const { trackCompanionResponseReceived } = useAnalytics();
@@ -97,11 +97,9 @@ export const useSendMessage = ({
       );
       const responseTimeMs = Date.now() - apiStartTime;
 
-      // Update usage count only for non-premium users
-      if (!isPremium) {
-        const newMessageCount = (usage?.message_count ?? 0) + 1;
-        updateUsage.mutate(newMessageCount);
-      }
+      // Server incremented usage atomically during rag-query.
+      // Invalidate the cache so the UI picks up the new count.
+      queryClient.invalidateQueries({ queryKey: ['chatbot-usage'] });
 
       // Parse the response (includes queryType, disclaimer, suggestedNextSteps, and tokenUsage)
       const {

@@ -5,7 +5,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
  * Weekly / manual full sync: Sanity → learn_modules (upsert + delete orphans).
  *
  * Secrets (Supabase Dashboard → Edge Functions):
- *   SANITY_PROJECT_ID, SANITY_DATASET (optional), SANITY_API_TOKEN
+ *   SANITY_PROJECT_ID, SANITY_DATASET (optional), SANITY_API_TOKEN or SANITY_TOKEN
  *   SYNC_LEARN_MODULES_API_KEY — required; callers send x-api-key header
  *
  * Cron: pg_cron → trigger_sync_learn_modules() (see migration).
@@ -27,10 +27,10 @@ interface SanityModuleRow {
 async function fetchAllModulesFromSanity(): Promise<SanityModuleRow[]> {
   const projectId = Deno.env.get('SANITY_PROJECT_ID');
   const dataset = Deno.env.get('SANITY_DATASET') || 'production';
-  const token = Deno.env.get('SANITY_API_TOKEN');
+  const token = Deno.env.get('SANITY_API_TOKEN') || Deno.env.get('SANITY_TOKEN');
 
   if (!projectId || !token) {
-    throw new Error('Missing SANITY_PROJECT_ID or SANITY_API_TOKEN');
+    throw new Error('Missing SANITY_PROJECT_ID or SANITY_API_TOKEN/SANITY_TOKEN');
   }
 
   const query = encodeURIComponent(
