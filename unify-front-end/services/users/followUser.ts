@@ -28,7 +28,9 @@ export const followUser = async ({
         throw new Error(`Failed to follow user: ${error.message}`);
       }
 
-      createFollowNotification(targetUserId).catch(() => {});
+      createFollowNotification(targetUserId).catch(err =>
+        console.error('[Notification] follow failed:', err)
+      );
     } else {
       // Unfollow the user
       const { error } = await supabase

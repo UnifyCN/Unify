@@ -36,10 +36,12 @@ export const createComment = async (
   }
 
   if (data) {
-    createCommentNotification(postId, data.id).catch(() => {});
+    createCommentNotification(postId, data.id).catch(err =>
+      console.error('[Notification] comment failed:', err)
+    );
     if (parentCommentId) {
       createCommentReplyNotification(postId, data.id, parentCommentId).catch(
-        () => {}
+        err => console.error('[Notification] comment reply failed:', err)
       );
     }
   }
