@@ -20,7 +20,7 @@ Notifications.setNotificationHandler({
 export async function registerForPushNotifications(): Promise<string | null> {
   // Push notifications only work on physical devices
   if (!Device.isDevice) {
-    console.log('Push notifications require a physical device');
+    console.warn('[Push] Skipped: not a physical device');
     return null;
   }
 
@@ -35,7 +35,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   if (finalStatus !== 'granted') {
-    console.log('Push notification permission not granted');
+    console.warn('[Push] Skipped: permission not granted, status:', finalStatus);
     return null;
   }
 
@@ -65,34 +65,70 @@ export async function registerForPushNotifications(): Promise<string | null> {
     });
 
     const token = tokenData.data;
+    console.log('[Push] Token obtained:', token);
 
     // Store token in Supabase
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (user && token) {
-      const { error } = await supabase.from('push_tokens').upsert(
-        {
-          user_id: user.id,
-          token,
-          platform: Platform.OS,
-          updated_at: new Date().toISOString(),
-        },
-        {
-          onConflict: 'token',
-        }
-      );
 
+    if (!user) {
+      console.warn('[Push] No authenticated user, skipping token storage');
+      return token;
+    }
+
+    if (!token) {
+      console.warn('[Push] Token is empty, skipping storage');
+      return null;
+    }
+
+    // First try to update existing token for this user on this platform
+    const { data: existing } = await supabase
+      .from('push_tokens')
+      .select('id, token')
+      .eq('user_id', user.id)
+      .eq('platform', Platform.OS)
+      .maybeSingle();
+
+    if (existing && existing.token === token) {
+      // Token unchanged, just update timestamp
+      await supabase
+        .from('push_tokens')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+      console.log('[Push] Token unchanged, updated timestamp');
+    } else if (existing) {
+      // Token changed — delete old and insert new
+      await supabase.from('push_tokens').delete().eq('id', existing.id);
+      const { error } = await supabase.from('push_tokens').insert({
+        user_id: user.id,
+        token,
+        platform: Platform.OS,
+        updated_at: new Date().toISOString(),
+      });
       if (error) {
-        console.error('Failed to store push token', error);
+        console.error('[Push] Failed to store updated token:', error.message, error.code, error.details);
       } else {
-        console.log('Push token registered successfully');
+        console.log('[Push] Token updated successfully');
+      }
+    } else {
+      // No existing token — insert new
+      const { error } = await supabase.from('push_tokens').insert({
+        user_id: user.id,
+        token,
+        platform: Platform.OS,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) {
+        console.error('[Push] Failed to store new token:', error.message, error.code, error.details);
+      } else {
+        console.log('[Push] Token registered successfully');
       }
     }
 
     return token;
   } catch (error) {
-    console.error('Failed to get push token', error);
+    console.error('[Push] Registration failed:', error);
     return null;
   }
 }

@@ -21,7 +21,9 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
     });
 
     // Notify post author (fire-and-forget)
-    createPostLikeNotification(postId).catch(() => {});
+    createPostLikeNotification(postId).catch(err =>
+      console.error('[Notification] like failed:', err)
+    );
 
     // Get updated like count from posts table (trigger will have updated it)
     const { data: postData } = await supabase

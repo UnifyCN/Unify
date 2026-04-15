@@ -1186,12 +1186,17 @@ async function sendPushNotifications(
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
+      const pushHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      };
+      const expoToken = Deno.env.get('EXPO_ACCESS_TOKEN');
+      if (expoToken) {
+        pushHeaders['Authorization'] = `Bearer ${expoToken}`;
+      }
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
+        headers: pushHeaders,
         body: JSON.stringify(batch),
         signal: controller.signal,
       });

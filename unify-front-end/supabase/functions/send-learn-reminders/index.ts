@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const LEARN_REMINDERS_API_KEY = Deno.env.get('LEARN_REMINDERS_API_KEY');
+const EXPO_ACCESS_TOKEN = Deno.env.get('EXPO_ACCESS_TOKEN');
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
@@ -73,12 +74,16 @@ async function sendExpoPush(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      };
+      if (EXPO_ACCESS_TOKEN) {
+        headers['Authorization'] = `Bearer ${EXPO_ACCESS_TOKEN}`;
+      }
       const res = await fetch(EXPO_PUSH_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
+        headers,
         body: JSON.stringify(batch),
         signal: controller.signal,
       });
