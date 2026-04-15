@@ -68,7 +68,8 @@ export default function CircleDetailsScreen() {
     enabled: !!circleId,
   });
 
-  const isActive = circle?.status === 'active';
+  const isActive =
+    circle?.status === 'active' && new Date(circle.ends_at) > new Date();
   const hasJoinedChat = !!membership?.joined_at && !membership.left_at;
   const hasLeftCircle = !!membership?.left_at;
 
