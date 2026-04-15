@@ -11,6 +11,7 @@ import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { Theme } from '@/constants/Theme';
 import { getPersonalizedGroups } from '@/services/groups/getPersonalizedGroups';
+import { useGroups } from '@/hooks/groups/useGroups';
 
 type GroupsTab = 'discover' | 'joined';
 const TAB_LABELS: Record<GroupsTab, string> = {
@@ -22,25 +23,7 @@ export default function MoreGroupsScreen() {
   const [activeTab, setActiveTab] = useState<GroupsTab>('discover');
   const router = useRouter();
 
-  const { data: discoverGroups, isLoading: discoverLoading } = useQuery<
-    Group[],
-    Error
-  >({
-    queryKey: ['personalize', 'groups'],
-    queryFn: async () => {
-      try {
-        return await getPersonalizedGroups();
-      } catch (err) {
-        console.warn(
-          'Personalize failed — falling back to available groups',
-          err
-        );
-        return getAvailableGroups();
-      }
-    },
-    staleTime: 1000 * 60 * 15, // 15 minutes
-    refetchOnWindowFocus: false,
-  });
+  const { data: discoverGroups, isLoading: discoverLoading } = useGroups();
 
   const { data: joinedGroups, isLoading: joinedLoading } = useQuery({
     queryKey: ['joined-groups', 'self'],

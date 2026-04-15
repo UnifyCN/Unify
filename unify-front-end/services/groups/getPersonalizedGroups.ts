@@ -47,9 +47,7 @@ export const getPersonalizedGroups = async (): Promise<Group[]> => {
         }
       }
     }
-  } catch (err) {
-    console.warn('personalize: invoke threw', err);
-  }
+  } catch (err) {}
 
   // Fallback to directly fetching the function endpoint
   if (!json) {
@@ -72,7 +70,6 @@ export const getPersonalizedGroups = async (): Promise<Group[]> => {
       });
 
       const text = await resp.text().catch(() => '');
-      console.log('personalize: fetch status', resp.status, text);
 
       if (!resp.ok) {
         console.warn('personalize: fetch failed', resp.status, text);
