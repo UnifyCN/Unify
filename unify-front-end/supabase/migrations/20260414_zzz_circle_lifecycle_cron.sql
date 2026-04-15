@@ -47,7 +47,7 @@ begin
   from unnest(_circle_ids) as cid
   on conflict (circle_id, dedupe_key) do nothing;
 
-  -- Notify active members that their circle ended
+  -- Notify active members that their circle ended (skip duplicates)
   insert into community_notifications
     (user_id, type, title, body, data)
   select
@@ -58,7 +58,13 @@ begin
     jsonb_build_object('circle_id', m.circle_id)
   from community_circle_members m
   where m.circle_id = any(_circle_ids)
-    and m.left_at is null;
+    and m.left_at is null
+    and not exists (
+      select 1 from community_notifications n
+      where n.user_id = m.user_id
+        and n.type = 'circle_ended'
+        and n.data->>'circle_id' = m.circle_id::text
+    );
 
   return jsonb_build_object('closed', _closed_count);
 end;
