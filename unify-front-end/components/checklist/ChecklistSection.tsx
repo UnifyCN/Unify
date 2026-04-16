@@ -89,6 +89,9 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
 
             <TouchableOpacity
               style={styles.dragHandle}
+              accessibilityRole="button"
+              accessibilityLabel={`Reorder ${item.task.task_name}`}
+              accessibilityHint="Long press and drag to change this item's order within the section"
               onLongPress={() => {
                 onDragStart?.();
                 drag();

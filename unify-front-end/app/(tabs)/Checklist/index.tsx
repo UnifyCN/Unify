@@ -179,25 +179,22 @@ export default function ChecklistScreen() {
 
   const handleReorder = useCallback(
     async (priority: Priority, reorderedBucket: UserTaskWithDetails[]) => {
-      // Capture for rollback on persist failure
-      const prevTasks = tasks;
-
       // Optimistic UI update
       setTasks(prev => replacePriorityBucket(prev, priority, reorderedBucket));
 
       // Persist to Supabase in background
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) throw new Error('Missing authenticated user');
 
         const orderedKeys = reorderedBucket.map(t => getChecklistTaskOrderKey(t));
         await upsertChecklistTaskOrder(user.id, priority, orderedKeys);
       } catch (err) {
         console.error('Failed to persist checklist order:', err);
-        setTasks(prevTasks);
+        refetch();
       }
     },
-    [setTasks, tasks]
+    [refetch, setTasks]
   );
 
   const handleLearnHow = () => {
