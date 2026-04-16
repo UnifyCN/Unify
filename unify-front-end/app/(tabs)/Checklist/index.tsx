@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import { useAnalytics } from '@/utils/analytics';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
@@ -18,6 +19,7 @@ import {
   deleteCustomChecklistTask,
   setCustomChecklistTaskCompletion,
 } from '@/services/checklist/customChecklistTasks';
+import { upsertChecklistTaskOrder } from '@/services/checklist/checklistTaskOrder';
 import { ChecklistSection } from '@/components/checklist/ChecklistSection';
 import { TaskDetailModal } from '@/components/checklist/TaskDetailModal';
 import { supabase } from '@/lib/supabase';
@@ -26,6 +28,13 @@ import {
   Priority,
   UserTaskWithDetails,
 } from '@/types/checklist';
+import {
+  CHECKLIST_PRIORITY_ORDER,
+  normalizeChecklistPriority,
+  getChecklistTaskOrderKey,
+  replacePriorityBucket,
+} from '@/utils/checklistOrder';
+import { useHapticsPreference } from '@/context/HapticsContext';
 import TabHeader from '@/components/home/HomeHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -137,14 +146,12 @@ export default function ChecklistScreen() {
 
   const isLoading = stageLoading || isLoadingProfile || tasksLoading;
 
-  // Normalize so "Explore & connect" and "Explore and connect" are one section
-  const normalizePriority = (p: Priority): Priority =>
-    p === 'Explore & connect' ? 'Explore and connect' : p;
+  const { hapticsEnabled } = useHapticsPreference();
 
   // Group tasks by priority
   const tasksByPriority = tasks.reduce(
     (acc, task) => {
-      const priority = normalizePriority(task.task.priority);
+      const priority = normalizeChecklistPriority(task.task.priority);
       if (!acc[priority]) {
         acc[priority] = [];
       }
@@ -153,13 +160,6 @@ export default function ChecklistScreen() {
     },
     {} as Record<Priority, typeof tasks>
   );
-
-  const priorities: Priority[] = [
-    'Do now',
-    'Do soon',
-    'Explore and connect',
-    'Optional / later',
-  ];
 
   const handleTaskPress = (task: UserTaskWithDetails) => {
     setSelectedTask(task);
@@ -170,6 +170,32 @@ export default function ChecklistScreen() {
     setModalVisible(false);
     setSelectedTask(null);
   };
+
+  const handleDragStart = useCallback(() => {
+    if (hapticsEnabled) {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+  }, [hapticsEnabled]);
+
+  const handleReorder = useCallback(
+    async (priority: Priority, reorderedBucket: UserTaskWithDetails[]) => {
+      // Optimistic UI update
+      setTasks(prev => replacePriorityBucket(prev, priority, reorderedBucket));
+
+      // Persist to Supabase in background
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Missing authenticated user');
+
+        const orderedKeys = reorderedBucket.map(t => getChecklistTaskOrderKey(t));
+        await upsertChecklistTaskOrder(user.id, priority, orderedKeys);
+      } catch (err) {
+        console.error('Failed to persist checklist order:', err);
+        refetch();
+      }
+    },
+    [refetch, setTasks]
+  );
 
   const handleLearnHow = () => {
     if (!selectedTask?.task) {
@@ -361,7 +387,7 @@ export default function ChecklistScreen() {
           </View>
         </View>
 
-        {priorities.map(priority => {
+        {CHECKLIST_PRIORITY_ORDER.map(priority => {
           const priorityTasks = tasksByPriority[priority] || [];
 
           return (
@@ -370,6 +396,8 @@ export default function ChecklistScreen() {
               priority={priority}
               tasks={priorityTasks}
               onTaskPress={handleTaskPress}
+              onReorder={(reordered) => handleReorder(priority, reordered)}
+              onDragStart={handleDragStart}
             />
           );
         })}

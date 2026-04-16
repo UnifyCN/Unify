@@ -1,9 +1,11 @@
 import {
   CustomChecklistTask,
+  Priority,
   SanityChecklistItem,
   UserTaskWithDetails,
   sanityChecklistItemToTaskDetails,
 } from '@/types/checklist';
+import { CHECKLIST_PRIORITY_ORDER, normalizeChecklistPriority } from '@/utils/checklistOrder';
 import { getChecklistByPersonaAndStage } from '@/services/sanity/checklist';
 import { getUserTasks } from './getUserTasks';
 import { deleteUserTasks } from './deleteUserTasks';
@@ -81,5 +83,16 @@ export async function getChecklistWithUserProgress(
   const customRows = await getCustomChecklistTasks(userId);
   const customTasks = mapCustomTasksToChecklistRows(customRows);
 
-  return [...sanityTasks, ...customTasks];
+  // Interleave custom tasks into correct priority positions
+  const allTasks = [...sanityTasks, ...customTasks];
+  const priorityIndex = new Map(
+    CHECKLIST_PRIORITY_ORDER.map((p, i) => [p, i])
+  );
+  allTasks.sort((a, b) => {
+    const aIdx = priorityIndex.get(normalizeChecklistPriority(a.task.priority)) ?? 99;
+    const bIdx = priorityIndex.get(normalizeChecklistPriority(b.task.priority)) ?? 99;
+    return aIdx - bIdx;
+  });
+
+  return allTasks;
 }

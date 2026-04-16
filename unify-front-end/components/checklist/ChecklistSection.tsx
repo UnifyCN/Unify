@@ -1,14 +1,22 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useCallback } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { ThemedText } from '@/components/ThemedText';
 import { UserTaskWithDetails, Priority } from '@/types/checklist';
+import { getChecklistTaskOrderKey } from '@/utils/checklistOrder';
 import { ChecklistItem } from './ChecklistItem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 
 interface ChecklistSectionProps {
   priority: Priority;
   tasks: UserTaskWithDetails[];
   onTaskPress?: (task: UserTaskWithDetails) => void;
+  onReorder?: (reorderedTasks: UserTaskWithDetails[]) => void;
+  onDragStart?: () => void;
 }
 
 const priorityConfig = {
@@ -43,10 +51,62 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
   priority,
   tasks,
   onTaskPress,
+  onReorder,
+  onDragStart,
 }) => {
   const config = priorityConfig[priority];
   const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
+
+  const renderItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<UserTaskWithDetails>) => {
+      return (
+        <ScaleDecorator activeScale={1.03}>
+          <View style={[styles.row, isActive && styles.rowActive]}>
+            <View style={styles.leftColumn}>
+              <TouchableOpacity
+                onPress={() => !isActive && onTaskPress?.(item)}
+                disabled={isActive}
+                style={[
+                  styles.checkboxCircle,
+                  { backgroundColor: '#FFF', borderColor: config.color },
+                  item.completed && {
+                    backgroundColor: config.color,
+                    borderColor: config.color,
+                  },
+                ]}
+                activeOpacity={0.7}
+              >
+                {item.completed && (
+                  <MaterialIcons name='check' size={20} color='#FFF' />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.centerColumn}>
+              <ChecklistItem task={item} onPress={() => onTaskPress?.(item)} />
+            </View>
+
+            <TouchableOpacity
+              style={styles.dragHandle}
+              accessibilityRole="button"
+              accessibilityLabel={`Reorder ${item.task.task_name}`}
+              accessibilityHint="Long press and drag to change this item's order within the section"
+              onLongPress={() => {
+                onDragStart?.();
+                drag();
+              }}
+              delayLongPress={150}
+              activeOpacity={0.6}
+            >
+              <MaterialIcons name='drag-indicator' size={24} color='#BDBDBD' />
+            </TouchableOpacity>
+          </View>
+        </ScaleDecorator>
+      );
+    },
+    [config.color, onDragStart, onTaskPress],
+  );
 
   return (
     <View style={styles.container}>
@@ -73,40 +133,14 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
             { backgroundColor: config.backgroundColor },
           ]}
         />
-        {tasks.map((task, index) => (
-          <View
-            key={
-              task.sanity_checklist_id ||
-              task.custom_task_id ||
-              task.user_task_id ||
-              index
-            }
-            style={styles.row}
-          >
-            <View style={styles.leftColumn}>
-              <TouchableOpacity
-                onPress={() => onTaskPress?.(task)}
-                style={[
-                  styles.checkboxCircle,
-                  { backgroundColor: '#FFF', borderColor: config.color },
-                  task.completed && {
-                    backgroundColor: config.color,
-                    borderColor: config.color,
-                  },
-                ]}
-                activeOpacity={0.7}
-              >
-                {task.completed && (
-                  <MaterialIcons name='check' size={20} color='#FFF' />
-                )}
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.rightColumn}>
-              <ChecklistItem task={task} onPress={() => onTaskPress?.(task)} />
-            </View>
-          </View>
-        ))}
+        <DraggableFlatList
+          data={tasks}
+          keyExtractor={getChecklistTaskOrderKey}
+          renderItem={renderItem}
+          onDragEnd={({ data }) => onReorder?.(data)}
+          scrollEnabled={false}
+          containerStyle={styles.listContainer}
+        />
       </View>
     </View>
   );
@@ -156,9 +190,19 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    gap: 14,
+    gap: 10,
     alignItems: 'center',
     marginBottom: 12,
+  },
+  rowActive: {
+    opacity: 0.95,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 4,
+    backgroundColor: '#fff',
+    borderRadius: 12,
   },
   leftColumn: {
     width: 36,
@@ -166,8 +210,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
-  rightColumn: {
+  centerColumn: {
     flex: 1,
+  },
+  dragHandle: {
+    width: 36,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   checkboxCircle: {
     width: 26,
@@ -178,5 +228,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
+  },
+  listContainer: {
+    overflow: 'visible',
   },
 });
