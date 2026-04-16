@@ -179,6 +179,9 @@ export default function ChecklistScreen() {
 
   const handleReorder = useCallback(
     async (priority: Priority, reorderedBucket: UserTaskWithDetails[]) => {
+      // Capture for rollback on persist failure
+      const prevTasks = tasks;
+
       // Optimistic UI update
       setTasks(prev => replacePriorityBucket(prev, priority, reorderedBucket));
 
@@ -191,9 +194,10 @@ export default function ChecklistScreen() {
         await upsertChecklistTaskOrder(user.id, priority, orderedKeys);
       } catch (err) {
         console.error('Failed to persist checklist order:', err);
+        setTasks(prevTasks);
       }
     },
-    [setTasks]
+    [setTasks, tasks]
   );
 
   const handleLearnHow = () => {

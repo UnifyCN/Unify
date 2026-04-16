@@ -1,7 +1,9 @@
 import React, { useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { ThemedText } from '@/components/ThemedText';
 import { UserTaskWithDetails, Priority } from '@/types/checklist';
+import { getChecklistTaskOrderKey } from '@/utils/checklistOrder';
 import { ChecklistItem } from './ChecklistItem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import DraggableFlatList, {
@@ -44,16 +46,6 @@ const priorityConfig = {
     backgroundColor: '#CDE9D2',
   },
 };
-
-function getTaskKey(task: UserTaskWithDetails): string {
-  if (task.source === 'custom' && task.custom_task_id != null) {
-    return `custom:${task.custom_task_id}`;
-  }
-  if (task.sanity_checklist_id) {
-    return `sanity:${task.sanity_checklist_id}`;
-  }
-  return `user_task:${task.user_task_id}`;
-}
 
 export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
   priority,
@@ -140,7 +132,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         />
         <DraggableFlatList
           data={tasks}
-          keyExtractor={getTaskKey}
+          keyExtractor={getChecklistTaskOrderKey}
           renderItem={renderItem}
           onDragEnd={({ data }) => onReorder?.(data)}
           scrollEnabled={false}
