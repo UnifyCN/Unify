@@ -762,7 +762,7 @@ describe('checklistOrder', () => {
 
 Run: `cd unify-front-end && npx jest __tests__/checklist/checklistOrder.test.ts --verbose`
 
-Expected: All 7 tests pass.
+Expected: All 9 tests pass.
 
 - [ ] **Step 3: Commit**
 

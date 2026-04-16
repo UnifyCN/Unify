@@ -28,7 +28,7 @@ The ticket specified `react-native-reanimated-dnd` v2.0.0, which requires RN >= 
 
 ## Data Flow
 
-```
+```text
 User drags item → DraggableFlatList onDragEnd
   → optimistic React Query cache update (instant UI)
   → upsertChecklistTaskOrder() to Supabase (background, fire-and-forget)
@@ -68,7 +68,7 @@ Custom tasks are concatenated after sanity tasks (`[...sanityTasks, ...customTas
 
 ## UI Layout Per Row
 
-```
+```text
 ┌──────────────────────────────────────────────┐
 │  ○  │  Task Name                     │  ☰   │
 │     │  Task description              │      │
