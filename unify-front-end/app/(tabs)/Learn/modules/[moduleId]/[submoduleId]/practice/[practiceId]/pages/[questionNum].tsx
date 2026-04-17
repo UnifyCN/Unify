@@ -386,6 +386,7 @@ export default function PracticeQuizQuestionPage() {
         submoduleTitle={quizTitle || submoduleData?.title || 'Practice'}
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
+        colorHex={moduleData?.colorTheme?.hex}
       />
       <ScrollView
         style={styles.scrollView}

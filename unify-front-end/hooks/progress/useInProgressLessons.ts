@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { sanityClient } from '@/sanity-custom';
 import { progressEventEmitter } from '@/utils/progressEventEmitter';
+import { getLessonTotalPages } from '@/utils/submoduleProgress';
 
 interface ContinueLesson {
   id: string;
@@ -28,32 +29,6 @@ interface LessonProgressRow {
   current_page_number: number;
   last_accessed_at: string;
 }
-
-const getLessonTotalPages = (lesson: any): number => {
-  const lessonPages =
-    typeof lesson?.lesson_page_count === 'number'
-      ? lesson.lesson_page_count
-      : lesson?.pages?.length || 0;
-  const activityPages =
-    typeof lesson?.activity_page_count === 'number'
-      ? lesson.activity_page_count
-      : lesson?.activity_pages?.length || 0;
-  const endingPages =
-    typeof lesson?.ending_page_count === 'number'
-      ? lesson.ending_page_count
-      : lesson?.ending_pages?.length || 0;
-  const quizPages =
-    lesson?.quizzes?.reduce(
-      (acc: number, quiz: any) =>
-        acc +
-        (typeof quiz?.question_count === 'number'
-          ? quiz.question_count
-          : quiz?.questions?.length || 0),
-      0
-    ) || 0;
-
-  return lessonPages + activityPages + quizPages + endingPages;
-};
 
 export function useInProgressLessons() {
   const [lessons, setLessons] = useState<ContinueLesson[]>([]);

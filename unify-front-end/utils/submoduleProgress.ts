@@ -66,6 +66,54 @@ const getLessonPageBreakdown = (lesson: SanityLessonWithQuizzes) => {
 };
 
 /**
+ * Canonical denominator for `user_lesson_progress.total_pages`. Sums lesson
+ * pages + activity pages + quiz questions + ending pages. Every call site that
+ * writes `total_pages` (saveLessonCompletion, saveCurrentPage) must use this —
+ * otherwise the same lesson ends up with different totals depending on which
+ * screen last wrote it, and `completed_pages / total_pages` breaks across the
+ * Home carousel, submodule progress bars, and module completion checks.
+ *
+ * Quizzes aren't always embedded on the lesson (useSanityLesson strips them).
+ * Pass them separately via the second arg when available (from
+ * useSanityLessonQuizzes); otherwise the helper falls back to lesson.quizzes.
+ */
+export function getLessonTotalPages(
+  lesson:
+    | (Partial<SanityLessonWithQuizzes> & { pages?: unknown[] })
+    | null
+    | undefined,
+  quizzes?: SanityQuiz[] | null
+): number {
+  if (!lesson) return 0;
+
+  const lessonPages = resolvePageCount(
+    lesson.pages as unknown[] | undefined,
+    (lesson as Partial<SanityLessonWithQuizzes>).lesson_page_count
+  );
+  const activityPages = resolvePageCount(
+    lesson.activity_pages,
+    lesson.activity_page_count
+  );
+  const endingPages = resolvePageCount(
+    lesson.ending_pages,
+    lesson.ending_page_count
+  );
+
+  const quizSource = quizzes ?? lesson.quizzes ?? [];
+  const quizPages = quizSource.reduce((acc: number, quiz: SanityQuiz) => {
+    if (
+      typeof quiz?.question_count === 'number' &&
+      Number.isFinite(quiz.question_count)
+    ) {
+      return acc + quiz.question_count;
+    }
+    return acc + (quiz?.questions?.length || 0);
+  }, 0);
+
+  return lessonPages + activityPages + quizPages + endingPages;
+}
+
+/**
  * Calculate the total number of pages in a submodule
  */
 function calculateSubmodulePageCounts(

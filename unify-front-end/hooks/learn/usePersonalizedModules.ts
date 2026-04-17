@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { getAllModulesWithSubmodules } from '@/services/sanity/modules';
+import { progressEventEmitter } from '@/utils/progressEventEmitter';
 import type {
   ModuleProgressStatus,
   PersonalizeLearnResponse,
@@ -189,6 +191,33 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
     refetchPersonalized();
     refetchProgress();
   };
+
+  // U6: When a lesson completes (or the module auto-flips to 'completed'), the
+  // lesson-save path emits a progress event. Refetch so the Learn home carousel
+  // and module list reflect the new state without pull-to-refresh. Only the
+  // progress-backed queries need to rerun — Sanity content is immutable here.
+  //
+  // A fast learner can complete several lessons inside a minute, and every
+  // `saveLessonCompletion` + auto-complete flip emits. The progress query is
+  // a cheap Supabase select so we run it eagerly, but `refetchPersonalized`
+  // hits a rate-limited edge function (3 s timeout, cost-sensitive) whose
+  // ranking barely shifts per-lesson — debounce it so a burst of completions
+  // coalesces into a single invocation.
+  useEffect(() => {
+    let personalizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const unsubscribe = progressEventEmitter.subscribe(() => {
+      refetchProgress();
+      if (personalizeTimer) clearTimeout(personalizeTimer);
+      personalizeTimer = setTimeout(() => {
+        refetchPersonalized();
+        personalizeTimer = null;
+      }, 1500);
+    });
+    return () => {
+      if (personalizeTimer) clearTimeout(personalizeTimer);
+      unsubscribe();
+    };
+  }, [refetchPersonalized, refetchProgress]);
 
   return {
     modules,

@@ -16,7 +16,10 @@ import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import { calculateActivityProgress } from '@/utils/submoduleProgress';
+import {
+  calculateActivityProgress,
+  getLessonTotalPages,
+} from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
@@ -63,6 +66,8 @@ export default function ActivityPageScreen() {
   const { saveLessonCompletion } = useLessonProgress();
   const currentPageData = lesson?.activity_pages?.[currentPage - 1];
   const totalPages = lesson?.activity_pages?.length || 0;
+  // Canonical denominator for user_lesson_progress.total_pages.
+  const lessonTotalPages = getLessonTotalPages(lesson, quizzes);
 
   // Calculate progress for the progress bar - keep it static/offline
   const progress = calculateActivityProgress(
@@ -194,7 +199,7 @@ export default function ActivityPageScreen() {
             lessonId || '',
             submoduleId || '',
             moduleId || '',
-            totalPages
+            lessonTotalPages
           ).finally(() => {
             setIsSaving(false);
           });
@@ -311,6 +316,7 @@ export default function ActivityPageScreen() {
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
+        colorHex={moduleData?.colorTheme?.hex}
       />
 
       <ScrollView

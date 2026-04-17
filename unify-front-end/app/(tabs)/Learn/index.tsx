@@ -212,11 +212,17 @@ export default function Learn() {
             </>
           )}
 
-          {/* Recommended for You — scored modules */}
-          <SectionHeader
-            title={hasPersonalizedResults ? 'Recommended for You' : 'Subjects'}
-            style={{ marginTop: 15 }}
-          />
+          {/* Recommended for You — scored modules.
+              U1: The title used to flash "Subjects" during load and flip to
+              "Recommended for You" once the personalize query resolved. Hide
+              the header entirely while loading so users don't see the flip;
+              the skeleton cards below already signal that content is coming. */}
+          {!isLoading && (
+            <SectionHeader
+              title={hasPersonalizedResults ? 'Recommended for You' : 'Subjects'}
+              style={{ marginTop: 15 }}
+            />
+          )}
           <View style={styles.pathwaysGrid}>
             {isLoading ? (
               <>

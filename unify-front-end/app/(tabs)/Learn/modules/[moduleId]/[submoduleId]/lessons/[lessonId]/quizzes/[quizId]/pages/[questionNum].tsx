@@ -22,7 +22,10 @@ import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import { calculateQuizProgress } from '@/utils/submoduleProgress';
+import {
+  calculateQuizProgress,
+  getLessonTotalPages,
+} from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
@@ -198,23 +201,9 @@ export default function QuizQuestionPage() {
     return submoduleData.lessons[currentIndex - 1] || null;
   };
 
-  // Helper function to calculate total pages for a lesson
-  const calculateTotalLessonPages = () => {
-    const totalLessonPages = lesson?.pages?.length || 0;
-    const totalActivityPages = lesson?.activity_pages?.length || 0;
-    // Calculate total quiz questions from all quizzes
-    const totalQuizPages =
-      quizzes?.reduce((acc, quiz) => {
-        // Note: quizzes from useSanityLessonQuizzes might not have questions embedded
-        // We approximate by using the current quiz's question count * number of quizzes
-        // This is an approximation, a better solution would fetch full quiz data
-        return acc + (quiz.questions?.length || 0);
-      }, 0) || 0;
-    const totalEndingPages = lesson?.ending_pages?.length || 0;
-    return (
-      totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages
-    );
-  };
+  // Canonical total-page count for user_lesson_progress. Uses the shared
+  // helper so the denominator stays consistent with every other save site.
+  const calculateTotalLessonPages = () => getLessonTotalPages(lesson, quizzes);
 
   if (!currentQuestion) {
     return (
@@ -545,6 +534,7 @@ export default function QuizQuestionPage() {
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
+        colorHex={moduleData?.colorTheme?.hex}
       />
 
       <ScrollView

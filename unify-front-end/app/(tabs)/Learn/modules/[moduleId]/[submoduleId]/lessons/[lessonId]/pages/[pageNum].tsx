@@ -31,7 +31,10 @@ import SelectionActionBubble from '@/components/learn/SelectionActionBubble';
 import ExplainTermModal from '@/components/learn/ExplainTermModal';
 
 // Progress related imports
-import { calculateLessonProgress } from '@/utils/submoduleProgress'; // static
+import {
+  calculateLessonProgress,
+  getLessonTotalPages,
+} from '@/utils/submoduleProgress'; // static
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useToast } from '@/context/ToastContext';
 import { useLessonPageSaved } from '@/hooks/learn/useLessonPageSaved';
@@ -82,6 +85,9 @@ export default function LessonPageScreen() {
 
   const currentPageData = lesson?.pages?.[currentPage - 1];
   const totalPages = lesson?.pages?.length || 0;
+  // Canonical denominator for user_lesson_progress.total_pages — includes
+  // activity + quiz + ending pages so progress bars agree across screens.
+  const lessonTotalPages = getLessonTotalPages(lesson, quizzes);
 
   // Highlights
   const currentPageKey = currentPageData?._key || `page-${currentPage}`;
@@ -194,7 +200,7 @@ export default function LessonPageScreen() {
         moduleId || '',
         'lesson',
         currentPage,
-        totalPages
+        lessonTotalPages
       );
       // Go to next page
       router.push({
@@ -249,7 +255,7 @@ export default function LessonPageScreen() {
               lessonId || '',
               submoduleId || '',
               moduleId || '',
-              totalPages
+              lessonTotalPages
             ).finally(() => {
               setIsSaving(false);
             });
@@ -399,6 +405,7 @@ export default function LessonPageScreen() {
           onBookmarkPress={handleBookmarkPress}
           isBookmarked={!!isLessonPageBookmarked}
           bookmarkLoading={saveLessonPageMutation.isPending}
+          colorHex={moduleData?.colorTheme?.hex}
         />
 
         <LessonPageContent

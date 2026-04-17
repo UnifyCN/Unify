@@ -23,7 +23,6 @@ import {
 } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
-import { useModuleProgress } from '@/hooks/progress/useModuleProgress';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressClient } from '@/services/progress/progressClient';
 import { upsertModuleProgress, getModuleProgressStatus } from '@/services/learn/moduleProgressService';
@@ -171,7 +170,21 @@ export default function ModuleIndex() {
     whyTag?: string;
   }>();
 
-  const decodedWhyTag = whyTag ? decodeURIComponent(whyTag) : '';
+  // U2: Strip whitespace and require non-empty content before we render the
+  // "Why this?" banner — otherwise an empty or whitespace-only personalization
+  // tag rendered an empty pill.
+  // `decodeURIComponent` throws URIError on malformed percent-sequences
+  // (e.g. a lone `%`), and `whyTag` arrives from URL params / deep links we
+  // don't fully control. Guard it so a bad value yields an empty banner
+  // instead of crashing the module screen on render.
+  const decodedWhyTag = useMemo(() => {
+    if (!whyTag) return '';
+    try {
+      return decodeURIComponent(whyTag).trim();
+    } catch {
+      return '';
+    }
+  }, [whyTag]);
   const {
     data: moduleData,
     isLoading,
@@ -179,11 +192,6 @@ export default function ModuleIndex() {
   } = useSanityModuleWithSubmodules(moduleId || '');
 
   // Progress tracking
-  const {
-    moduleProgress,
-    isLoading: progressLoading,
-    refreshProgress,
-  } = useModuleProgress(moduleId || '');
   const [submoduleProgresses, setSubmoduleProgresses] = useState<{
     [key: string]: any;
   }>({});
@@ -211,13 +219,14 @@ export default function ModuleIndex() {
             ? Blob11
             : Blob12;
 
-  // Check if disclaimer should be shown (first time opening this module with 0% progress)
+  // Check if disclaimer should be shown (first time opening this module — no progress yet)
   useEffect(() => {
     const checkDisclaimer = async () => {
       if (!moduleId || !moduleData?.title) return;
 
-      const overallPercent = moduleProgress?.progress_percent ?? 0;
-      if (overallPercent > 0) return;
+      // Skip disclaimer if this user has already started or finished the module
+      const status = await getModuleProgressStatus(moduleId);
+      if (status !== 'not_started') return;
 
       try {
         const storageKey = `disclaimerSeen_${moduleId}`;
@@ -230,10 +239,10 @@ export default function ModuleIndex() {
       }
     };
 
-    if (moduleData && !isLoading && !error && !progressLoading) {
+    if (moduleData && !isLoading && !error) {
       checkDisclaimer();
     }
-  }, [moduleId, moduleData, isLoading, error, progressLoading, moduleProgress]);
+  }, [moduleId, moduleData, isLoading, error]);
 
   const handleDisclaimerContinue = async () => {
     if (!moduleId) return;
@@ -424,8 +433,6 @@ export default function ModuleIndex() {
         if (!cancelled) setIsRefreshing(true);
 
         try {
-          if (!cancelled) await refreshProgress();
-
           if (!moduleData?.submodules) {
             if (!cancelled) setIsRefreshing(false);
             return;
@@ -483,7 +490,7 @@ export default function ModuleIndex() {
         cancelled = true;
         setIsRefreshing(false);
       };
-    }, [moduleId, moduleData?.submodules, refreshProgress])
+    }, [moduleId, moduleData?.submodules])
   );
 
   const queryClient = useQueryClient();
@@ -493,7 +500,7 @@ export default function ModuleIndex() {
   const hasWrittenInProgressRef = useRef(false);
   useEffect(() => {
     if (!moduleId || hasWrittenInProgressRef.current) return;
-    if (isLoading || progressLoading) return;
+    if (isLoading) return;
 
     hasWrittenInProgressRef.current = true;
 
@@ -504,7 +511,7 @@ export default function ModuleIndex() {
         queryClient.invalidateQueries({ queryKey: ['personalize', 'learn'] });
       });
     });
-  }, [moduleId, isLoading, progressLoading, queryClient]);
+  }, [moduleId, isLoading, queryClient]);
 
   // ── learn_progress: write completed when all submodules are finished ─────────
   const hasWrittenCompletedRef = useRef(false);
@@ -585,19 +592,13 @@ export default function ModuleIndex() {
     if (
       highlightedSectionId &&
       !isLoading &&
-      !progressLoading &&
       moduleData?.submodules
     ) {
       // Always update to the highlighted section when opening the module
       // This ensures the correct section is highlighted even if user navigated away and came back
       setOpenedCardId(highlightedSectionId);
     }
-  }, [
-    highlightedSectionId,
-    isLoading,
-    progressLoading,
-    moduleData?.submodules,
-  ]);
+  }, [highlightedSectionId, isLoading, moduleData?.submodules]);
 
   // Build section view models with explicit UI states
   const sections: SectionViewModel[] = useMemo(() => {
@@ -772,7 +773,7 @@ export default function ModuleIndex() {
   // ─────────────────────────────────────────────────────────────────────────────
   // Loading / Error states
   // ─────────────────────────────────────────────────────────────────────────────
-  if (isLoading || progressLoading || isRefreshing) {
+  if (isLoading || isRefreshing) {
     return <ModuleIndexSkeletonLoader />;
   }
 
