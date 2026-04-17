@@ -173,7 +173,18 @@ export default function ModuleIndex() {
   // U2: Strip whitespace and require non-empty content before we render the
   // "Why this?" banner — otherwise an empty or whitespace-only personalization
   // tag rendered an empty pill.
-  const decodedWhyTag = whyTag ? decodeURIComponent(whyTag).trim() : '';
+  // `decodeURIComponent` throws URIError on malformed percent-sequences
+  // (e.g. a lone `%`), and `whyTag` arrives from URL params / deep links we
+  // don't fully control. Guard it so a bad value yields an empty banner
+  // instead of crashing the module screen on render.
+  const decodedWhyTag = useMemo(() => {
+    if (!whyTag) return '';
+    try {
+      return decodeURIComponent(whyTag).trim();
+    } catch {
+      return '';
+    }
+  }, [whyTag]);
   const {
     data: moduleData,
     isLoading,
