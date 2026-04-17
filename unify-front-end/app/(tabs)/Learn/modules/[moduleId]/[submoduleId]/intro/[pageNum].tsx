@@ -298,6 +298,7 @@ export default function SubmoduleIntroScreen() {
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
+        colorHex={moduleData?.colorTheme?.hex}
       />
 
       <ScrollView
@@ -323,7 +324,13 @@ export default function SubmoduleIntroScreen() {
             <Text style={styles.backBtnText}>Back</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
+        <TouchableOpacity
+          style={[
+            styles.nextBtn,
+            { backgroundColor: moduleData?.colorTheme?.hex || '#1A1919' },
+          ]}
+          onPress={handleNext}
+        >
           <Text style={styles.nextBtnText}>Next</Text>
         </TouchableOpacity>
       </View>

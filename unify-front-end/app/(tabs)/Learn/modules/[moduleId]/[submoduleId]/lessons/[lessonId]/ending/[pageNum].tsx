@@ -303,6 +303,7 @@ export default function EndingPageScreen() {
         submoduleTitle={submoduleData?.title || 'Submodule'}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
+        colorHex={moduleData?.colorTheme?.hex}
       />
 
       <ScrollView

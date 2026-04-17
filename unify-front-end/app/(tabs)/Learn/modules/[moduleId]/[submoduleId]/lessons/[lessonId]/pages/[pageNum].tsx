@@ -405,6 +405,7 @@ export default function LessonPageScreen() {
           onBookmarkPress={handleBookmarkPress}
           isBookmarked={!!isLessonPageBookmarked}
           bookmarkLoading={saveLessonPageMutation.isPending}
+          colorHex={moduleData?.colorTheme?.hex}
         />
 
         <LessonPageContent

@@ -223,6 +223,7 @@ export default function PracticeActivityPageScreen() {
         submoduleTitle={practice.title || submoduleData?.title || 'Practice'}
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
+        colorHex={moduleData?.colorTheme?.hex}
       />
 
       <ScrollView
