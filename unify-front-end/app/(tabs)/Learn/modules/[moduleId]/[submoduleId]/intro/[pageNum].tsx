@@ -17,7 +17,10 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { SubmoduleIntroSection } from '@/types/learn';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
-import { calculateIntroProgress } from '@/utils/submoduleProgress';
+import {
+  calculateIntroProgress,
+  getLessonTotalPages,
+} from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 
 const getSanityImageUrl = (assetRef: string | undefined): string | null => {
@@ -85,14 +88,19 @@ export default function SubmoduleIntroScreen() {
     if (currentPage < (totalPages || 1)) {
       // Save current intro page position against the first lesson so
       // getLearnHref can resume here with current_page_type: 'intro'.
+      // total_pages must be the first lesson's full denominator (lesson +
+      // activity + quiz + ending pages), not the intro page count — otherwise
+      // the home carousel's progress bar for this lesson will divide by the
+      // wrong total.
       if (firstLesson?._id && moduleId && submoduleId) {
+        const lessonTotal = getLessonTotalPages(firstLesson) || 1;
         saveCurrentPage(
           firstLesson._id,
           submoduleId,
           moduleId,
           'intro',
           currentPage,
-          totalPages || 1
+          lessonTotal
         );
       }
 

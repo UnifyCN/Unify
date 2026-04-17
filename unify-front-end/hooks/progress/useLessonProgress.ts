@@ -3,6 +3,7 @@ import { progressClient } from '@/services/progress/progressClient';
 import { cachedProgressService } from '@/services/progress/cachedProgressService';
 import { progressEventEmitter } from '@/utils/progressEventEmitter';
 import { updateLessonProgress } from '@/services/progress/progressService';
+import { maybeMarkModuleCompleted } from '@/services/learn/moduleProgressService';
 
 export function useLessonProgress() {
   // Save lesson completion to database
@@ -51,14 +52,25 @@ export function useLessonProgress() {
           return false;
         }
 
-        // Update the progress cache
-        await cachedProgressService.updateProgressOnLessonCompletion(
-          moduleId,
-          submoduleId
-        );
+        // DO NOT await the full cache refresh here — it fetches every
+        // user_lesson_progress row AND runs a huge GROQ for all modules /
+        // submodules / lessons (~several seconds on slow networks). Awaiting
+        // it blocks lesson-end navigation and makes the whole Learn tab feel
+        // laggy. Just mark the cache stale; consumers that need fresh data
+        // (submodule index's useFocusEffect) already call `refreshProgress()`
+        // themselves on the next render.
+        cachedProgressService.invalidate();
 
         // Emit progress update event to trigger refetch in learn index
         progressEventEmitter.emit();
+
+        // Fire-and-forget: if this was the last lesson in the module, flip
+        // `learn_progress.status` to 'completed'. Never block the UI on this.
+        maybeMarkModuleCompleted(moduleId)
+          .then(() => progressEventEmitter.emit())
+          .catch(() => {
+            /* swallowed in the helper too, but belt & suspenders */
+          });
 
         return true;
       } catch (error) {

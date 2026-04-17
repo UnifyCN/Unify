@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { getAllModulesWithSubmodules } from '@/services/sanity/modules';
+import { progressEventEmitter } from '@/utils/progressEventEmitter';
 import type {
   ModuleProgressStatus,
   PersonalizeLearnResponse,
@@ -189,6 +191,18 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
     refetchPersonalized();
     refetchProgress();
   };
+
+  // U6: When a lesson completes (or the module auto-flips to 'completed'), the
+  // lesson-save path emits a progress event. Refetch so the Learn home carousel
+  // and module list reflect the new state without pull-to-refresh. Only the
+  // progress-backed queries need to rerun — Sanity content is immutable here.
+  useEffect(() => {
+    const unsubscribe = progressEventEmitter.subscribe(() => {
+      refetchPersonalized();
+      refetchProgress();
+    });
+    return unsubscribe;
+  }, [refetchPersonalized, refetchProgress]);
 
   return {
     modules,

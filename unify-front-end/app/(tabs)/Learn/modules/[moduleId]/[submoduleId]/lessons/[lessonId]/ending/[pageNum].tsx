@@ -26,7 +26,10 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 
 // Progress related imports
-import { calculateEndingProgress } from '@/utils/submoduleProgress';
+import {
+  calculateEndingProgress,
+  getLessonTotalPages,
+} from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
@@ -130,28 +133,27 @@ export default function EndingPageScreen() {
   };
 
   // ---- core "finish this lesson" logic, reused by review modal ----
-  const completeLessonAndNavigate = () => {
-    const totalLessonPages = lesson?.pages?.length || 0;
-    const totalActivityPages = lesson?.activity_pages?.length || 0;
-    const totalQuizPages =
-      quizzes?.reduce(
-        (acc: number, quiz: any) => acc + (quiz.questions?.length || 0),
-        0
-      ) || 0;
-    const totalEndingPages = endingPages.length;
-    const totalAllPages =
-      totalLessonPages + totalActivityPages + totalQuizPages + totalEndingPages;
+  // Must be async + awaited: if we navigate before the upsert lands, the
+  // submodule index's focus effect reads stale `user_lesson_progress` and shows
+  // e.g. 83% instead of Completed. The cached-progress refresh inside
+  // saveLessonCompletion also needs to finish before we leave, so the next
+  // focus picks up the fresh cache.
+  const completeLessonAndNavigate = async () => {
+    // Canonical total-page count for user_lesson_progress — must match every
+    // other save site so completed_pages / total_pages is stable.
+    const totalAllPages = getLessonTotalPages(lesson, quizzes);
 
-    // Mark lesson completed (background)
     setIsSaving(true);
-    saveLessonCompletion(
-      lessonId || '',
-      submoduleId || '',
-      moduleId || '',
-      totalAllPages
-    ).finally(() => {
+    try {
+      await saveLessonCompletion(
+        lessonId || '',
+        submoduleId || '',
+        moduleId || '',
+        totalAllPages
+      );
+    } finally {
       setIsSaving(false);
-    });
+    }
 
     // Navigate: either back to submodule index (last lesson) or to next lesson
     if (isLastLesson()) {
@@ -262,12 +264,14 @@ export default function EndingPageScreen() {
   const handleSubmitReview = () => {
     // TODO: here you could POST {rating, comment}
     setShowReviewModal(false);
-    completeLessonAndNavigate();
+    // Fire the async completion — we don't need to block this handler, the
+    // helper itself awaits the upsert before navigating.
+    void completeLessonAndNavigate();
   };
 
   const handleSkipReview = () => {
     setShowReviewModal(false);
-    completeLessonAndNavigate();
+    void completeLessonAndNavigate();
   };
 
   if (loadingLesson) {
