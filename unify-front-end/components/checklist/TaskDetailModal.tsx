@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Dimensions,
+  Easing,
   View,
   Text,
   Modal,
@@ -10,6 +13,10 @@ import {
 import { UserTaskWithDetails } from '@/types/checklist';
 import { Theme } from '@/constants/Theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const ANIM_IN_MS = 260;
+const ANIM_OUT_MS = 220;
 
 interface TaskDetailModalProps {
   visible: boolean;
@@ -30,22 +37,74 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   isCustomTask = false,
   onDeleteCustomTask,
 }) => {
-  if (!task) return null;
+  const [rendered, setRendered] = useState(visible);
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  useEffect(() => {
+    if (visible) {
+      setRendered(true);
+      Animated.parallel([
+        Animated.timing(backdropOpacity, {
+          toValue: 1,
+          duration: ANIM_IN_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetTranslateY, {
+          toValue: 0,
+          duration: ANIM_IN_MS,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (rendered) {
+      Animated.parallel([
+        Animated.timing(backdropOpacity, {
+          toValue: 0,
+          duration: ANIM_OUT_MS,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(sheetTranslateY, {
+          toValue: SCREEN_HEIGHT,
+          duration: ANIM_OUT_MS,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start(({ finished }) => {
+        if (finished) setRendered(false);
+      });
+    }
+  }, [visible, rendered, backdropOpacity, sheetTranslateY]);
+
+  if (!task || !rendered) return null;
 
   const isCompleted = task.completed;
 
   return (
     <Modal
-      visible={visible}
+      visible={rendered}
       transparent
-      animationType='slide'
+      animationType='none'
       onRequestClose={onClose}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable
-          style={styles.modalContainer}
-          onPress={e => e.stopPropagation()}
+      <View style={StyleSheet.absoluteFill}>
+        <Animated.View
+          style={[styles.backdrop, { opacity: backdropOpacity }]}
         >
+          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        </Animated.View>
+        <Animated.View
+          style={[
+            styles.sheetWrapper,
+            { transform: [{ translateY: sheetTranslateY }] },
+          ]}
+        >
+          <Pressable
+            style={styles.modalContainer}
+            onPress={e => e.stopPropagation()}
+          >
           <View style={styles.content}>
             {/* Icon */}
             <View style={styles.iconContainer}>
@@ -110,17 +169,23 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               </TouchableOpacity>
             )}
           </View>
-        </Pressable>
-      </Pressable>
+          </Pressable>
+        </Animated.View>
+      </View>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
+  },
+  sheetWrapper: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   modalContainer: {
     backgroundColor: '#fff',
