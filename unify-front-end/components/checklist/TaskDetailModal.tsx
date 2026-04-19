@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -78,8 +78,10 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropProgress = useSharedValue(0);
   const insets = useSafeAreaInsets();
+  const latestVisibleRef = useRef(visible);
 
   useEffect(() => {
+    latestVisibleRef.current = visible;
     if (visible) {
       setRendered(true);
       translateY.value = withTiming(0, {
@@ -90,7 +92,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         duration: ANIM_IN_MS,
         easing: Easing.out(Easing.cubic),
       });
-    } else if (rendered) {
+    } else {
       translateY.value = withTiming(SCREEN_HEIGHT, {
         duration: ANIM_OUT_MS,
         easing: Easing.in(Easing.cubic),
@@ -99,11 +101,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         0,
         { duration: ANIM_OUT_MS, easing: Easing.in(Easing.cubic) },
         finished => {
-          if (finished) runOnJS(setRendered)(false);
+          if (finished && !latestVisibleRef.current) {
+            runOnJS(setRendered)(false);
+          }
         }
       );
     }
-  }, [visible, rendered, translateY, backdropProgress]);
+  }, [visible, translateY, backdropProgress]);
 
   const panGesture = Gesture.Pan()
     .onUpdate(event => {
@@ -230,7 +234,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   <MaterialIcons
                     name='check-circle'
                     size={16}
-                    color='#16A34A'
+                    color='#059669'
                   />
                   <Text style={styles.completedBannerText}>
                     Completed {completedLabel}
@@ -251,7 +255,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 <MaterialIcons
                   name={isCompleted ? 'replay' : 'check'}
                   size={20}
-                  color={isCompleted ? '#16A34A' : '#fff'}
+                  color={isCompleted ? '#059669' : '#fff'}
                 />
                 <Text
                   style={[
@@ -383,7 +387,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#16A34A',
+    backgroundColor: '#059669',
     paddingVertical: 14,
     borderRadius: 14,
     width: '100%',
@@ -392,7 +396,7 @@ const styles = StyleSheet.create({
   primaryButtonCompleted: {
     backgroundColor: '#fff',
     borderWidth: 1.5,
-    borderColor: '#16A34A',
+    borderColor: '#059669',
   },
   primaryButtonText: {
     fontSize: 16,
@@ -400,7 +404,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   primaryButtonTextCompleted: {
-    color: '#16A34A',
+    color: '#059669',
   },
   secondaryButton: {
     flexDirection: 'row',
