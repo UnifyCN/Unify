@@ -1,22 +1,42 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Animated,
-  Dimensions,
-  Easing,
   View,
   Text,
   Modal,
   StyleSheet,
   TouchableOpacity,
-  Pressable,
+  Dimensions,
+  Platform,
 } from 'react-native';
-import { UserTaskWithDetails } from '@/types/checklist';
-import { Theme } from '@/constants/Theme';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+  interpolate,
+  Extrapolate,
+} from 'react-native-reanimated';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
+import { UserTaskWithDetails } from '@/types/checklist';
+import {
+  PRIORITY_CONFIG,
+  type PriorityConfig,
+} from '@/constants/ChecklistPriority';
+import { normalizeChecklistPriority } from '@/utils/checklistOrder';
+
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const ANIM_IN_MS = 260;
+const ANIM_IN_MS = 280;
 const ANIM_OUT_MS = 220;
+const CLOSE_TRANSLATE_THRESHOLD = 120;
+const CLOSE_VELOCITY_THRESHOLD = 800;
 
 interface TaskDetailModalProps {
   visible: boolean;
@@ -26,6 +46,23 @@ interface TaskDetailModalProps {
   onMarkComplete: () => void;
   isCustomTask?: boolean;
   onDeleteCustomTask?: () => void;
+}
+
+function formatRelativeTime(iso: string): string {
+  const now = Date.now();
+  const then = new Date(iso).getTime();
+  const diffSec = Math.max(0, Math.floor((now - then) / 1000));
+  if (diffSec < 60) return 'just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 30) return `${diffDay}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
@@ -38,236 +75,345 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onDeleteCustomTask,
 }) => {
   const [rendered, setRendered] = useState(visible);
-  const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const sheetTranslateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const backdropProgress = useSharedValue(0);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) {
       setRendered(true);
-      Animated.parallel([
-        Animated.timing(backdropOpacity, {
-          toValue: 1,
-          duration: ANIM_IN_MS,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(sheetTranslateY, {
-          toValue: 0,
-          duration: ANIM_IN_MS,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else if (rendered) {
-      Animated.parallel([
-        Animated.timing(backdropOpacity, {
-          toValue: 0,
-          duration: ANIM_OUT_MS,
-          easing: Easing.in(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(sheetTranslateY, {
-          toValue: SCREEN_HEIGHT,
-          duration: ANIM_OUT_MS,
-          easing: Easing.in(Easing.cubic),
-          useNativeDriver: true,
-        }),
-      ]).start(({ finished }) => {
-        if (finished) setRendered(false);
+      translateY.value = withTiming(0, {
+        duration: ANIM_IN_MS,
+        easing: Easing.out(Easing.cubic),
       });
+      backdropProgress.value = withTiming(1, {
+        duration: ANIM_IN_MS,
+        easing: Easing.out(Easing.cubic),
+      });
+    } else if (rendered) {
+      translateY.value = withTiming(SCREEN_HEIGHT, {
+        duration: ANIM_OUT_MS,
+        easing: Easing.in(Easing.cubic),
+      });
+      backdropProgress.value = withTiming(
+        0,
+        { duration: ANIM_OUT_MS, easing: Easing.in(Easing.cubic) },
+        finished => {
+          if (finished) runOnJS(setRendered)(false);
+        }
+      );
     }
-  }, [visible, rendered, backdropOpacity, sheetTranslateY]);
+  }, [visible, rendered, translateY, backdropProgress]);
+
+  const panGesture = Gesture.Pan()
+    .onUpdate(event => {
+      if (event.translationY > 0) {
+        translateY.value = event.translationY;
+        backdropProgress.value = interpolate(
+          event.translationY,
+          [0, SCREEN_HEIGHT * 0.6],
+          [1, 0],
+          Extrapolate.CLAMP
+        );
+      }
+    })
+    .onEnd(event => {
+      const shouldClose =
+        event.translationY > CLOSE_TRANSLATE_THRESHOLD ||
+        event.velocityY > CLOSE_VELOCITY_THRESHOLD;
+      if (shouldClose) {
+        runOnJS(onClose)();
+      } else {
+        translateY.value = withTiming(0, {
+          duration: 200,
+          easing: Easing.out(Easing.cubic),
+        });
+        backdropProgress.value = withTiming(1, { duration: 200 });
+      }
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropProgress.value,
+  }));
 
   if (!task || !rendered) return null;
 
+  const priority: PriorityConfig =
+    PRIORITY_CONFIG[normalizeChecklistPriority(task.task.priority)] ??
+    PRIORITY_CONFIG['Do now'];
   const isCompleted = task.completed;
+  const completedLabel =
+    isCompleted && task.completed_at
+      ? formatRelativeTime(task.completed_at)
+      : null;
+  const canShowLearnHow = !isCustomTask;
 
   return (
     <Modal
       visible={rendered}
       transparent
       animationType='none'
+      statusBarTranslucent
       onRequestClose={onClose}
+      presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
     >
-      <View style={StyleSheet.absoluteFill}>
-        <Animated.View
-          style={[styles.backdrop, { opacity: backdropOpacity }]}
-        >
-          <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      <GestureHandlerRootView style={styles.root}>
+        <Animated.View style={[styles.backdrop, backdropStyle]}>
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={onClose}
+          />
         </Animated.View>
-        <Animated.View
-          style={[
-            styles.sheetWrapper,
-            { transform: [{ translateY: sheetTranslateY }] },
-          ]}
-        >
-          <Pressable
-            style={styles.modalContainer}
-            onPress={e => e.stopPropagation()}
-          >
-          <View style={styles.content}>
-            {/* Icon */}
-            <View style={styles.iconContainer}>
-              <MaterialIcons
-                name='assignment'
-                size={28}
-                color={Theme.primaryGatherRed}
-              />
-            </View>
 
-            {/* Task Name */}
-            <Text style={styles.taskName}>{task.task.task_name}</Text>
+        <GestureDetector gesture={panGesture}>
+          <Animated.View style={[styles.sheet, sheetStyle]}>
+            <View style={styles.grabHandle} />
 
-            {/* Task Description (longer when available, else short) */}
-            <Text style={styles.taskDescription}>
-              {task.task.longer_description?.trim() ||
-                task.task.task_description}
-            </Text>
-
-            {/* Buttons */}
-            {!isCustomTask && (
-              <TouchableOpacity
-                style={styles.learnButton}
-                onPress={onLearnHow}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.learnButtonText}>Learn how</Text>
-                <MaterialIcons name='arrow-right-alt' size={20} color='#fff' />
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
+            <View
               style={[
-                styles.completeButton,
-                isCompleted && styles.completeButtonCompleted,
+                styles.content,
+                { paddingBottom: 24 + Math.max(insets.bottom, 8) },
               ]}
-              onPress={onMarkComplete}
-              activeOpacity={0.8}
             >
-              <Text
-                style={[
-                  styles.completeButtonText,
-                  isCompleted && styles.completeButtonTextCompleted,
-                ]}
-              >
-                {isCompleted ? 'Completed' : 'Mark as complete'}
-              </Text>
-              <MaterialIcons
-                name='check'
-                size={20}
-                color={isCompleted ? '#48BB78' : '#48BB78'}
-              />
-            </TouchableOpacity>
+              {/* Header row: priority pill + trash (custom only) */}
+              <View style={styles.headerRow}>
+                <View
+                  style={[
+                    styles.priorityPill,
+                    { backgroundColor: priority.backgroundColor },
+                  ]}
+                >
+                  <MaterialIcons
+                    name={priority.icon}
+                    size={16}
+                    color={priority.color}
+                  />
+                  <Text style={[styles.priorityLabel, { color: priority.color }]}>
+                    {priority.label}
+                  </Text>
+                </View>
 
-            {isCustomTask && onDeleteCustomTask && (
+                {isCustomTask && onDeleteCustomTask && (
+                  <TouchableOpacity
+                    onPress={onDeleteCustomTask}
+                    style={styles.trashButton}
+                    accessibilityRole='button'
+                    accessibilityLabel='Delete task'
+                    hitSlop={10}
+                  >
+                    <MaterialIcons
+                      name='delete-outline'
+                      size={22}
+                      color='#64748B'
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Title */}
+              <Text style={styles.taskName}>{task.task.task_name}</Text>
+
+              {/* Description */}
+              <Text style={styles.taskDescription}>
+                {task.task.longer_description?.trim() ||
+                  task.task.task_description}
+              </Text>
+
+              {/* Completion timestamp */}
+              {completedLabel && (
+                <View style={styles.completedBanner}>
+                  <MaterialIcons
+                    name='check-circle'
+                    size={16}
+                    color='#16A34A'
+                  />
+                  <Text style={styles.completedBannerText}>
+                    Completed {completedLabel}
+                  </Text>
+                </View>
+              )}
+
+              {/* Primary CTA */}
               <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={onDeleteCustomTask}
-                activeOpacity={0.8}
+                style={[
+                  styles.primaryButton,
+                  isCompleted && styles.primaryButtonCompleted,
+                ]}
+                onPress={onMarkComplete}
+                activeOpacity={0.85}
+                accessibilityRole='button'
               >
-                <Text style={styles.deleteButtonText}>Delete</Text>
+                <MaterialIcons
+                  name={isCompleted ? 'replay' : 'check'}
+                  size={20}
+                  color={isCompleted ? '#16A34A' : '#fff'}
+                />
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    isCompleted && styles.primaryButtonTextCompleted,
+                  ]}
+                >
+                  {isCompleted ? 'Undo completion' : 'Mark as complete'}
+                </Text>
               </TouchableOpacity>
-            )}
-          </View>
-          </Pressable>
-        </Animated.View>
-      </View>
+
+              {/* Secondary: Learn how (sanity tasks only) */}
+              {canShowLearnHow && (
+                <TouchableOpacity
+                  style={styles.secondaryButton}
+                  onPress={onLearnHow}
+                  activeOpacity={0.8}
+                  accessibilityRole='button'
+                >
+                  <Text style={styles.secondaryButtonText}>Learn how</Text>
+                  <MaterialIcons
+                    name='arrow-forward'
+                    size={18}
+                    color='#E03B3B'
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
+          </Animated.View>
+        </GestureDetector>
+      </GestureHandlerRootView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
   },
-  sheetWrapper: {
+  sheet: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-  },
-  modalContainer: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 42,
-    borderTopRightRadius: 42,
-    width: '100%',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  grabHandle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E2E8F0',
+    marginTop: 10,
+    marginBottom: 4,
   },
   content: {
-    padding: 32,
-    alignItems: 'flex-start',
+    paddingHorizontal: 24,
+    paddingTop: 12,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    backgroundColor: '#FBCFCF',
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  priorityPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  priorityLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  trashButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    backgroundColor: '#F1F5F9',
   },
   taskName: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 14,
-    alignSelf: 'flex-start',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 8,
+    lineHeight: 28,
   },
   taskDescription: {
-    fontSize: 16,
-    color: '#000000',
-    textAlign: 'left',
-    lineHeight: 24,
-    marginBottom: 24,
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 20,
   },
-  learnButton: {
+  completedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#DCFCE7',
+    marginBottom: 16,
+  },
+  completedBannerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#166534',
+  },
+  primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E03B3B',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 12,
-    width: '100%',
-    marginBottom: 12,
     gap: 8,
+    backgroundColor: '#16A34A',
+    paddingVertical: 14,
+    borderRadius: 14,
+    width: '100%',
+    marginBottom: 10,
   },
-  learnButtonText: {
+  primaryButtonCompleted: {
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#16A34A',
+  },
+  primaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
   },
-  completeButton: {
+  primaryButtonTextCompleted: {
+    color: '#16A34A',
+  },
+  secondaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E6F7ED',
-    paddingVertical: 10,
-    paddingHorizontal: 40,
-    borderRadius: 12,
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 14,
     width: '100%',
-    marginBottom: 12,
-    gap: 8,
   },
-  completeButtonCompleted: {
-    backgroundColor: '#E2F6E2',
-  },
-  completeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#4E7E4C',
-  },
-  completeButtonTextCompleted: {
-    color: '#22543D',
-  },
-  deleteButton: {
-    alignSelf: 'center',
-    paddingVertical: 8,
-    marginTop: 2,
-  },
-  deleteButtonText: {
+  secondaryButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#B42318',
+    color: '#E03B3B',
   },
 });

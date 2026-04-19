@@ -10,6 +10,7 @@ import DraggableFlatList, {
   RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
+import { PRIORITY_CONFIG } from '@/constants/ChecklistPriority';
 
 interface ChecklistSectionProps {
   priority: Priority;
@@ -19,34 +20,6 @@ interface ChecklistSectionProps {
   onDragStart?: () => void;
 }
 
-const priorityConfig = {
-  'Do now': {
-    icon: 'error-outline' as const,
-    color: '#E03B3B',
-    backgroundColor: '#FBCFCF',
-  },
-  'Do soon': {
-    icon: 'schedule' as const,
-    color: '#F47734',
-    backgroundColor: '#FBE4CF',
-  },
-  'Explore and connect': {
-    icon: 'people' as const,
-    color: '#F49E34',
-    backgroundColor: '#FFEDBD',
-  },
-  'Explore & connect': {
-    icon: 'people' as const,
-    color: '#F49E34',
-    backgroundColor: '#FFEDBD',
-  },
-  'Optional / later': {
-    icon: 'pending' as const,
-    color: '#5E8651',
-    backgroundColor: '#CDE9D2',
-  },
-};
-
 export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
   priority,
   tasks,
@@ -54,7 +27,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
   onReorder,
   onDragStart,
 }) => {
-  const config = priorityConfig[priority];
+  const config = PRIORITY_CONFIG[priority];
   const completedCount = tasks.filter(t => t.completed).length;
   const totalCount = tasks.length;
 

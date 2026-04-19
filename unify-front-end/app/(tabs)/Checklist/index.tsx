@@ -268,6 +268,7 @@ export default function ChecklistScreen() {
       const taskSource = selectedTask.source === 'custom' ? 'custom' : 'sanity';
       if (newCompletedStatus) {
         trackChecklistTaskCompleted(taskTitle, taskPriority, taskSource);
+        handleCloseModal();
         if (confettiTimeoutRef.current) {
           clearTimeout(confettiTimeoutRef.current);
         }
