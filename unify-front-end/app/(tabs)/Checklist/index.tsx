@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Alert,
+  Dimensions,
   View,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
+import ConfettiCannon from 'react-native-confetti-cannon';
 import { useAnalytics } from '@/utils/analytics';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
@@ -96,6 +98,16 @@ export default function ChecklistScreen() {
     null
   );
   const [modalVisible, setModalVisible] = useState(false);
+  const [confettiKey, setConfettiKey] = useState<number | null>(null);
+  const confettiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (confettiTimeoutRef.current) {
+        clearTimeout(confettiTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchPersona = async () => {
@@ -256,6 +268,14 @@ export default function ChecklistScreen() {
       const taskSource = selectedTask.source === 'custom' ? 'custom' : 'sanity';
       if (newCompletedStatus) {
         trackChecklistTaskCompleted(taskTitle, taskPriority, taskSource);
+        if (confettiTimeoutRef.current) {
+          clearTimeout(confettiTimeoutRef.current);
+        }
+        setConfettiKey(Date.now());
+        confettiTimeoutRef.current = setTimeout(() => {
+          setConfettiKey(null);
+          confettiTimeoutRef.current = null;
+        }, 1800);
       } else {
         trackChecklistTaskUncompleted(taskTitle, taskPriority, taskSource);
       }
@@ -431,6 +451,20 @@ export default function ChecklistScreen() {
         isCustomTask={selectedTask?.source === 'custom'}
         onDeleteCustomTask={handleDeleteCustomTask}
       />
+
+      {confettiKey !== null && (
+        <View pointerEvents='none' style={StyleSheet.absoluteFill}>
+          <ConfettiCannon
+            key={confettiKey}
+            count={120}
+            origin={{ x: Dimensions.get('window').width / 2, y: -20 }}
+            fadeOut
+            autoStart
+            explosionSpeed={350}
+            fallSpeed={1500}
+          />
+        </View>
+      )}
     </View>
   );
 }
