@@ -20,7 +20,6 @@
   "expo": {
     "install": {
       "exclude": [
-        "@react-native-async-storage/async-storage",
         "react-native-get-random-values"
       ]
     },
@@ -41,7 +40,7 @@
     "@expo-google-fonts/funnel-sans": "^0.4.2",
     "@expo/vector-icons": "^15.1.1",
     "@legendapp/list": "^2.0.19",
-    "@react-native-async-storage/async-storage": "~3.0.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "@react-navigation/native": "^7.0.0",
     "@supabase/supabase-js": "^2.50.4",
