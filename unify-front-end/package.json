@@ -17,6 +17,22 @@
   "jest": {
     "preset": "jest-expo"
   },
+  "expo": {
+    "install": {
+      "exclude": [
+        "@react-native-async-storage/async-storage",
+        "react-native-get-random-values"
+      ]
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-month-year-picker"
+        ],
+        "listUnknownPackages": false
+      }
+    }
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.908.0",
     "@aws-sdk/credential-provider-cognito-identity": "^3.956.0",
@@ -67,21 +83,20 @@
     "react-native-draggable-flatlist": "^4.0.3",
     "react-native-elements": "^3.4.3",
     "react-native-enriched": "^0.6.1",
-    "react-native-gesture-handler": "~2.31.1",
+    "react-native-gesture-handler": "~2.30.0",
     "react-native-get-random-values": "~2.0.0",
-    "react-native-keyboard-controller": "^1.21.6",
+    "react-native-keyboard-controller": "1.20.7",
     "react-native-month-year-picker": "^1.9.0",
     "react-native-paper": "^5.15.1",
-    "react-native-reanimated": "~4.3.0",
-    "react-native-worklets": "~0.8.1",
+    "react-native-reanimated": "4.2.1",
+    "react-native-worklets": "0.7.2",
     "react-native-render-html": "^6.3.4",
-    "react-native-safe-area-context": "5.7.0",
-    "react-native-screens": "~4.24.0",
-    "react-native-svg": "15.15.4",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "react-native-svg": "15.15.3",
     "react-native-url-polyfill": "^3.0.0",
-    "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.21.2",
-    "react-native-webview": "13.16.1",
+    "react-native-webview": "13.16.0",
     "supabase": "^2.84.10"
   },
   "devDependencies": {
