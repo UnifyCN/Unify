@@ -10,6 +10,7 @@ import {
   Linking,
   Pressable,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
@@ -23,7 +24,7 @@ import Google from '../../assets/images/Google.svg';
 import { useQueryClient } from '@tanstack/react-query';
 import { getUserInfo } from '@/services/users/getUserInfo';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
-import { SubmitButton, SimpleTextField } from './Components';
+import { SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
 import OTPPasswordReset from './OTPPasswordReset';
 import { LEGAL_URLS } from '@/utils/legalUrls';
@@ -390,14 +391,21 @@ export function SignIn({
         </View>
 
         {/* Login button */}
-        <SubmitButton
-          loading={loading}
+        <TouchableOpacity
           onPress={handleSignIn}
-          style={[styles.loginButton]}
-          labelStyle={[styles.loginButtonText]}
+          disabled={loading}
+          activeOpacity={0.8}
+          style={styles.loginButton}
+          accessibilityRole='button'
+          accessibilityLabel='Login'
+          accessibilityState={{ disabled: loading }}
         >
-          Login
-        </SubmitButton>
+          {loading ? (
+            <ActivityIndicator color='#fff' />
+          ) : (
+            <Text style={styles.loginButtonText}>Login</Text>
+          )}
+        </TouchableOpacity>
 
         {/* Or divider */}
         <View style={styles.divider}>

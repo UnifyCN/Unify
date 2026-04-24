@@ -8,6 +8,7 @@ import {
   Modal,
   Pressable,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckBox } from 'react-native-elements';
@@ -23,7 +24,7 @@ import { getUserInfo } from '@/services/users/getUserInfo';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Google from '../../assets/images/Google.svg';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
-import { SubmitButton, SimpleTextField } from './Components';
+import { SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
 import LegalWebView from '@/components/LegalWebView';
 import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
@@ -469,18 +470,24 @@ export function SignUp({
         </View>
 
         {/* Sign Up button */}
-        <SubmitButton
-          disabled={!isFormValid}
-          loading={loading}
+        <TouchableOpacity
           onPress={handleSignUp}
+          disabled={!isFormValid || loading}
+          activeOpacity={0.8}
           style={[
             styles.signUpButton,
             !isFormValid && styles.signUpButtonDisabled,
           ]}
-          labelStyle={styles.signUpButtonText}
+          accessibilityRole='button'
+          accessibilityLabel='Sign Up'
+          accessibilityState={{ disabled: !isFormValid || loading }}
         >
-          Sign Up
-        </SubmitButton>
+          {loading ? (
+            <ActivityIndicator color='#fff' />
+          ) : (
+            <Text style={styles.signUpButtonText}>Sign Up</Text>
+          )}
+        </TouchableOpacity>
 
         {/* Or divider */}
         <View style={styles.divider}>
