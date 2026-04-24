@@ -46,27 +46,30 @@ export function useCommunityNotifications() {
 
   // Set up realtime subscription for new notifications
   useEffect(() => {
-    if (!currentUser) {
+    const userId = currentUser?.id;
+    if (!userId) {
       return;
     }
 
     const channel = supabase
-      .channel(`community-notifications-${currentUser.id}`)
+      .channel(
+        `community-notifications-${userId}-${Math.random().toString(36).slice(2, 10)}`
+      )
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'community_notifications',
-          filter: `user_id=eq.${currentUser.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           // Refetch notifications when a new one arrives
           queryClient.invalidateQueries({
-            queryKey: notificationsQueryKey(currentUser.id),
+            queryKey: notificationsQueryKey(userId),
           });
           queryClient.invalidateQueries({
-            queryKey: unreadCountQueryKey(currentUser.id),
+            queryKey: unreadCountQueryKey(userId),
           });
         }
       )
@@ -75,7 +78,7 @@ export function useCommunityNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, queryClient]);
+  }, [currentUser?.id, queryClient]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
@@ -142,23 +145,26 @@ export function useUnreadNotificationCount() {
 
   // Set up realtime subscription for new notifications
   useEffect(() => {
-    if (!currentUser) {
+    const userId = currentUser?.id;
+    if (!userId) {
       return;
     }
 
     const channel = supabase
-      .channel(`community-notifications-count-${currentUser.id}`)
+      .channel(
+        `community-notifications-count-${userId}-${Math.random().toString(36).slice(2, 10)}`
+      )
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'community_notifications',
-          filter: `user_id=eq.${currentUser.id}`,
+          filter: `user_id=eq.${userId}`,
         },
         () => {
           queryClient.invalidateQueries({
-            queryKey: unreadCountQueryKey(currentUser.id),
+            queryKey: unreadCountQueryKey(userId),
           });
         }
       )
@@ -167,7 +173,7 @@ export function useUnreadNotificationCount() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, queryClient]);
+  }, [currentUser?.id, queryClient]);
 
   return unreadCount;
 }
