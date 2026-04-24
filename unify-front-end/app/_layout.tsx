@@ -80,43 +80,42 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GestureHandlerRootView>
-        <KeyboardProvider>
-          <SafeAreaProvider>
-            <ToastProvider>
-              <ScrollContextProvider>
-                {showOnboarding ? (
-                  <PreLoginOnboarding
-                    onFinish={() => setShowOnboarding(false)}
-                  />
-                ) : (
-                  <UserProvider>
-                    <HapticsProvider>
-                      <AuthWrapper onBackToOnboarding={handleBackToOnboarding}>
-                        <ThemeProvider value={DefaultTheme}>
-                          <PostHogProvider
-                            apiKey={
-                              process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''
-                            }
-                            options={{
-                              host:
-                                process.env.EXPO_PUBLIC_POSTHOG_HOST ||
-                                'https://us.i.posthog.com',
-                            }}
-                            autocapture={{ captureScreens: false }}
-                          >
+      <PostHogProvider
+        apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY || ''}
+        options={{
+          host:
+            process.env.EXPO_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
+        }}
+        autocapture={{ captureScreens: false }}
+      >
+        <GestureHandlerRootView>
+          <KeyboardProvider>
+            <SafeAreaProvider>
+              <ToastProvider>
+                <ScrollContextProvider>
+                  {showOnboarding ? (
+                    <PreLoginOnboarding
+                      onFinish={() => setShowOnboarding(false)}
+                    />
+                  ) : (
+                    <UserProvider>
+                      <HapticsProvider>
+                        <AuthWrapper
+                          onBackToOnboarding={handleBackToOnboarding}
+                        >
+                          <ThemeProvider value={DefaultTheme}>
                             <AppContent />
-                          </PostHogProvider>
-                        </ThemeProvider>
-                      </AuthWrapper>
-                    </HapticsProvider>
-                  </UserProvider>
-                )}
-              </ScrollContextProvider>
-            </ToastProvider>
-          </SafeAreaProvider>
-        </KeyboardProvider>
-      </GestureHandlerRootView>
+                          </ThemeProvider>
+                        </AuthWrapper>
+                      </HapticsProvider>
+                    </UserProvider>
+                  )}
+                </ScrollContextProvider>
+              </ToastProvider>
+            </SafeAreaProvider>
+          </KeyboardProvider>
+        </GestureHandlerRootView>
+      </PostHogProvider>
       {showAnimatedSplash && (
         <AnimatedSplash onAnimationComplete={handleSplashAnimationComplete} />
       )}
