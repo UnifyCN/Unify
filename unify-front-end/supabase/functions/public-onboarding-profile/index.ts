@@ -49,30 +49,14 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const userId = body?.userId;
-
-    if (!userId || typeof userId !== 'string') {
-      return new Response(JSON.stringify({ error: 'Missing userId' }), {
-        status: 400,
-        headers: responseHeaders,
-      });
-    }
-
-    // Validate UUID format to prevent injection
-    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!UUID_RE.test(userId)) {
-      return new Response(JSON.stringify({ error: 'Invalid userId format' }), {
-        status: 400,
-        headers: responseHeaders,
-      });
-    }
-
+    // Always scope to the authenticated caller. Previously this trusted
+    // body.userId, which let any authenticated user read another user's
+    // persona / arrival_date via the service-role client (horizontal IDOR).
     const adminClient = createClient(supabaseUrl, serviceKey);
     const { data, error } = await adminClient
       .from('user_onboarding_profiles')
       .select('persona, persona_other, arrival_date')
-      .eq('id', userId)
+      .eq('id', user.id)
       .maybeSingle();
 
     if (error) {

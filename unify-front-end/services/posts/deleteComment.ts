@@ -60,8 +60,9 @@ export const deleteComment = async (
           'Partners can only delete their own comments or comments on their posts'
         );
       }
+    } else if (ownsComment) {
+      // Regular users can delete their own comments
     } else {
-      // Regular users cannot delete comments
       throw new Error('You do not have permission to delete comments');
     }
 

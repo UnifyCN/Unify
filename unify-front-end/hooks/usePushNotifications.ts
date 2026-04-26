@@ -80,7 +80,7 @@ export function usePushNotifications() {
         } as Href);
       } else if (data?.type === 'followed' && data?.actor_user_id != null) {
         router.push({
-          pathname: '/profile/[userId]',
+          pathname: '/profile',
           params: { userId: String(data.actor_user_id) },
         } as Href);
       } else if (

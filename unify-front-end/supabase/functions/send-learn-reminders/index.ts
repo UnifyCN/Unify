@@ -223,11 +223,12 @@ Deno.serve(async (req: Request) => {
   // Collect unique user IDs and check preferences + tokens in bulk
   const userIds = [...new Set(toSend.map(s => s.candidate.user_id))];
 
-  // Check which users have opted into notifications
+  // Check which users have opted into notifications.
+  // user_onboarding_profiles is keyed on `id` (= auth.users.id), there is no `user_id` column.
   const { data: profiles, error: profilesError } = await supabase
     .from('user_onboarding_profiles')
-    .select('user_id, wants_reminders')
-    .in('user_id', userIds);
+    .select('id, wants_reminders')
+    .in('id', userIds);
 
   if (profilesError) {
     console.error('send-learn-reminders: profiles query error', profilesError);
@@ -241,7 +242,7 @@ Deno.serve(async (req: Request) => {
   const optedInUsers = new Set(
     (profiles ?? [])
       .filter((p: { wants_reminders: boolean }) => p.wants_reminders === true)
-      .map((p: { user_id: string }) => p.user_id)
+      .map((p: { id: string }) => p.id)
   );
 
   // Get push tokens for opted-in users
