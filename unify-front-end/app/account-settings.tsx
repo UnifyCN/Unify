@@ -324,11 +324,15 @@ export default function AccountSettingsPage() {
         animationType='fade'
         transparent
         visible={deleteAccountModalVisible}
-        onRequestClose={() => setDeleteAccountModalVisible(false)}
+        onRequestClose={() => {
+          if (!isDeletingAccount) setDeleteAccountModalVisible(false);
+        }}
       >
         <Pressable
           style={styles.deleteModalOverlay}
-          onPress={() => setDeleteAccountModalVisible(false)}
+          onPress={() => {
+            if (!isDeletingAccount) setDeleteAccountModalVisible(false);
+          }}
         >
           <View style={styles.deleteModalCard}>
             <Pressable onPress={e => e.stopPropagation()}>

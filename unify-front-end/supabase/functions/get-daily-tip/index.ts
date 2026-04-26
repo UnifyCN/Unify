@@ -308,7 +308,12 @@ Deno.serve(async (req: Request) => {
     // by inserting a `__pending__` placeholder before calling Gemini; the
     // unique index on (user_id, date) makes that an atomic claim.
     const PENDING = '__pending__';
-    const STALE_PENDING_MS = 60_000; // a crashed run leaves a stale placeholder; treat as abandoned after this
+    // Gemini calls can take 20-30s in the worst case. The poll budget needs to
+    // outlive that, and the staleness threshold needs to be longer than the
+    // poll budget so we don't delete in-flight claims.
+    const POLL_INTERVAL_MS = 1000;
+    const POLL_ATTEMPTS = 45; // ~45s ceiling
+    const STALE_PENDING_MS = 180_000; // 3 min — definitely abandoned by then
 
     const respondWithTip = (row: {
       id: string;
@@ -336,8 +341,8 @@ Deno.serve(async (req: Request) => {
       });
 
     const pollForCompletion = async () => {
-      for (let attempt = 0; attempt < 20; attempt++) {
-        await new Promise(r => setTimeout(r, 250));
+      for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt++) {
+        await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
         const { data: row } = await supabase
           .from('daily_tips')
           .select('*')
@@ -348,9 +353,12 @@ Deno.serve(async (req: Request) => {
           return respondWithTip(row);
         }
       }
-      return jsonResponse(
-        { error: 'Tip generation in progress, retry shortly' },
-        503
+      return new Response(
+        JSON.stringify({ error: 'Tip generation in progress, retry shortly' }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, 'Retry-After': '5' },
+        }
       );
     };
 

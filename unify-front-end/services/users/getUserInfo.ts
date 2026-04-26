@@ -135,19 +135,20 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     const receivedStage = resolvedOnboarding.stage;
     const computedStage = computeStage(arrivalDate);
 
-    // Only update stage for the currently-authenticated user. Otherwise every
-    // cross-user profile view fires a guaranteed-RLS-denied UPDATE round-trip.
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
-
-    if (
-      authUser?.id === targetUserId &&
-      receivedStage !== null &&
-      receivedStage !== computedStage
-    ) {
+    if (receivedStage !== null && receivedStage !== computedStage) {
+      // Best-effort persistence inside a fire-and-forget IIFE — must not block
+      // the outer profile fetch on auth lookup or DB write. The auth check
+      // ensures we only update the row for the currently-authenticated user
+      // (cross-user profile views would otherwise fire a guaranteed
+      // RLS-denied UPDATE round-trip).
       void (async () => {
         try {
+          const {
+            data: { user: authUser },
+          } = await supabase.auth.getUser();
+
+          if (authUser?.id !== targetUserId) return;
+
           const { error } = await supabase
             .from('user_onboarding_profiles')
             .update({ stage: computedStage })

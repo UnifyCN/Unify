@@ -12,12 +12,14 @@ export const savePost = async (postId: number): Promise<SavePostResponse> => {
     } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // Save the post
+    // Save the post. With the unique index on (user_id, post_id), a duplicate
+    // is a 23505 — treat as idempotent success since the user's intent
+    // (post is saved) is already satisfied.
     const { error: insertError } = await supabase.from('post_saves').insert({
       post_id: postId,
       user_id: user.id,
     });
-    if (insertError) {
+    if (insertError && (insertError as { code?: string }).code !== '23505') {
       throw insertError;
     }
 
@@ -27,7 +29,7 @@ export const savePost = async (postId: number): Promise<SavePostResponse> => {
     };
   } catch (error) {
     console.error('Error saving post:', error);
-    throw new Error('Failed to save post');
+    throw new Error('Failed to save post', { cause: error });
   }
 };
 
@@ -54,6 +56,6 @@ export const unsavePost = async (postId: number): Promise<SavePostResponse> => {
     };
   } catch (error) {
     console.error('Error unsaving post:', error);
-    throw new Error('Failed to unsave post');
+    throw new Error('Failed to unsave post', { cause: error });
   }
 };

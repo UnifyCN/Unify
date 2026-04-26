@@ -14,12 +14,15 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
     } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // Like the post (add the like)
+    // Like the post (add the like). post_likes PK is (user_id, post_id), so a
+    // duplicate is a 23505 unique violation — treat as idempotent success
+    // since the user's intent (be liked) is already satisfied; rolling back
+    // optimistic UI for a stale double-tap is just confusing.
     const { error: insertError } = await supabase.from('post_likes').insert({
       post_id: postId,
       user_id: user.id,
     });
-    if (insertError) {
+    if (insertError && (insertError as { code?: string }).code !== '23505') {
       throw insertError;
     }
 
@@ -42,7 +45,7 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
     };
   } catch (error) {
     console.error('Error liking post:', error);
-    throw new Error('Failed to like post');
+    throw new Error('Failed to like post', { cause: error });
   }
 };
 
@@ -77,6 +80,6 @@ export const unlikePost = async (postId: number): Promise<LikePostResponse> => {
     };
   } catch (error) {
     console.error('Error unliking post:', error);
-    throw new Error('Failed to unlike post');
+    throw new Error('Failed to unlike post', { cause: error });
   }
 };

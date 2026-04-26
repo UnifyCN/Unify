@@ -47,6 +47,15 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
     []
   );
 
+  const handleDismiss = () => {
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+      autoCloseTimerRef.current = null;
+    }
+    reset();
+    onClose();
+  };
+
   const canSubmit = useMemo(() => {
     return (
       groupName.trim().length >= 1 &&
@@ -103,7 +112,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
       visible={visible}
       animationType='slide'
       transparent
-      onRequestClose={onClose}
+      onRequestClose={handleDismiss}
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
@@ -113,17 +122,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
               <Text style={styles.title}>
                 {showSuccess ? 'Request Sent!' : 'Request a Group'}
               </Text>
-              <Pressable
-                onPress={() => {
-                  if (autoCloseTimerRef.current) {
-                    clearTimeout(autoCloseTimerRef.current);
-                    autoCloseTimerRef.current = null;
-                  }
-                  reset();
-                  onClose();
-                }}
-                style={styles.closeBtn}
-              >
+              <Pressable onPress={handleDismiss} style={styles.closeBtn}>
                 <Text style={styles.closeText}>✕</Text>
               </Pressable>
             </View>
