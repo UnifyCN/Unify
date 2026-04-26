@@ -15,10 +15,13 @@ export const likePost = async (postId: number): Promise<LikePostResponse> => {
     if (!user) throw new Error('User not authenticated');
 
     // Like the post (add the like)
-    await supabase.from('post_likes').insert({
+    const { error: insertError } = await supabase.from('post_likes').insert({
       post_id: postId,
       user_id: user.id,
     });
+    if (insertError) {
+      throw insertError;
+    }
 
     // Notify post author (fire-and-forget)
     createPostLikeNotification(postId).catch(err =>
@@ -51,11 +54,14 @@ export const unlikePost = async (postId: number): Promise<LikePostResponse> => {
     if (!user) throw new Error('User not authenticated');
 
     // Remove the like
-    await supabase
+    const { error: deleteError } = await supabase
       .from('post_likes')
       .delete()
       .eq('post_id', postId)
       .eq('user_id', user.id);
+    if (deleteError) {
+      throw deleteError;
+    }
 
     // Get updated like count from posts table (trigger will have updated it)
     const { data: postData } = await supabase

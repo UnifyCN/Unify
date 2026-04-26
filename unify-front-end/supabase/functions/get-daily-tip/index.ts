@@ -331,7 +331,69 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // 4. Generate a new tip via Gemini
+    // 4. Atomic claim before calling Gemini. Race protection: two concurrent
+    // requests (e.g. pull-to-refresh + tab focus) would otherwise BOTH call
+    // Gemini and burn tokens, even though the upsert eventually collapses to
+    // one row. We insert a placeholder first; the loser polls for the
+    // winner's result instead of running Gemini again.
+    const PENDING = '__pending__';
+    const { data: claim, error: claimError } = await supabase
+      .from('daily_tips')
+      .insert({
+        user_id: userId,
+        persona,
+        stage,
+        date: today,
+        category: PENDING,
+        title: PENDING,
+        description: PENDING,
+        tip_text: PENDING,
+        source_refs: null,
+      })
+      .select('id')
+      .maybeSingle();
+
+    const lostClaim =
+      !claim || (claimError && (claimError as { code?: string }).code === '23505');
+
+    if (claimError && !lostClaim) {
+      console.error('Daily tip claim failed:', claimError);
+      return jsonResponse({ error: 'Failed to claim tip slot' }, 500);
+    }
+
+    if (lostClaim) {
+      // Another concurrent request is generating. Poll up to ~5s for completion.
+      for (let attempt = 0; attempt < 20; attempt++) {
+        await new Promise(r => setTimeout(r, 250));
+        const { data: row } = await supabase
+          .from('daily_tips')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('date', today)
+          .maybeSingle();
+        if (row && row.title !== PENDING) {
+          return jsonResponse({
+            tip: {
+              id: row.id,
+              persona: row.persona,
+              stage: row.stage,
+              date: row.date,
+              category: row.category,
+              title: row.title,
+              description: row.description,
+              tip_text: row.tip_text,
+              source_refs: row.source_refs,
+            },
+          });
+        }
+      }
+      return jsonResponse(
+        { error: 'Tip generation in progress, retry shortly' },
+        503
+      );
+    }
+
+    // We won the claim — generate via Gemini.
     const userProfile: UserProfile = {
       persona,
       stage,
@@ -355,35 +417,31 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!tip) {
+      // Roll back the claim so a future request can retry.
+      await supabase.from('daily_tips').delete().eq('id', claim!.id);
       return jsonResponse({ error: 'Failed to generate tip' }, 502);
     }
 
-    // 5. Upsert into daily_tips (per-user, per-day)
-    const { data: inserted, error: upsertError } = await supabase
+    // 5. Replace placeholder with the real content.
+    const { data: inserted, error: updateError } = await supabase
       .from('daily_tips')
-      .upsert(
-        {
-          user_id: userId,
-          persona,
-          stage,
-          date: today,
-          category: tip.category,
-          title: tip.title,
-          description: tip.description,
-          tip_text: tip.tip_text,
-          source_refs: null,
-        },
-        { onConflict: 'user_id,date' }
-      )
+      .update({
+        category: tip.category,
+        title: tip.title,
+        description: tip.description,
+        tip_text: tip.tip_text,
+        source_refs: null,
+      })
+      .eq('id', claim!.id)
       .select()
       .single();
 
-    if (upsertError) {
-      console.error('DB upsert error:', upsertError);
-      // Return the generated tip even if storage fails
+    if (updateError) {
+      console.error('DB update error:', updateError);
+      // Return the generated tip even if storage update failed.
       return jsonResponse({
         tip: {
-          id: `generated-${userId}-${today}`,
+          id: claim!.id,
           persona,
           stage,
           date: today,

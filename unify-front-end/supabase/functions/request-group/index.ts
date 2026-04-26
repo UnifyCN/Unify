@@ -143,6 +143,8 @@ Deno.serve(async (req: Request) => {
       html,
       reply_to: authenticatedEmail,
     }),
+    // Don't tie up an edge-runtime slot if Resend stalls.
+    signal: AbortSignal.timeout(5000),
   });
 
   const data = await resendRes.json().catch(() => ({}));

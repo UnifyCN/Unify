@@ -135,8 +135,17 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     const receivedStage = resolvedOnboarding.stage;
     const computedStage = computeStage(arrivalDate);
 
-    // Only update stage when we could read it directly (avoid RLS failures)
-    if (receivedStage !== null && receivedStage !== computedStage) {
+    // Only update stage for the currently-authenticated user. Otherwise every
+    // cross-user profile view fires a guaranteed-RLS-denied UPDATE round-trip.
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    if (
+      authUser?.id === targetUserId &&
+      receivedStage !== null &&
+      receivedStage !== computedStage
+    ) {
       void (async () => {
         try {
           const { error } = await supabase

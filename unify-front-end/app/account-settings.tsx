@@ -33,6 +33,7 @@ export default function AccountSettingsPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
     useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const { trackScreen } = useAnalytics();
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
   const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
@@ -88,6 +89,8 @@ export default function AccountSettingsPage() {
   };
 
   const deleteAccount = async () => {
+    if (isDeletingAccount) return;
+    setIsDeletingAccount(true);
     try {
       try {
         await unregisterPushToken();
@@ -110,6 +113,8 @@ export default function AccountSettingsPage() {
           ? err.message
           : 'Something went wrong. Please try again.'
       );
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -338,14 +343,21 @@ export default function AccountSettingsPage() {
                 <TouchableOpacity
                   style={styles.deleteModalCancel}
                   onPress={() => setDeleteAccountModalVisible(false)}
+                  disabled={isDeletingAccount}
                 >
                   <Text style={styles.deleteModalCancelText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.deleteModalConfirm}
+                  style={[
+                    styles.deleteModalConfirm,
+                    isDeletingAccount && { opacity: 0.5 },
+                  ]}
                   onPress={deleteAccount}
+                  disabled={isDeletingAccount}
                 >
-                  <Text style={styles.deleteModalConfirmText}>Delete</Text>
+                  <Text style={styles.deleteModalConfirmText}>
+                    {isDeletingAccount ? 'Deleting…' : 'Delete'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </Pressable>
