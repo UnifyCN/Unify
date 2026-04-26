@@ -26,6 +26,10 @@ import {
 import TabHeader from '@/components/home/HomeHeader';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import AnnouncementModal from '@/components/common/AnnouncementModal';
+import SegmentedControl from '@/components/learn/Resources/SegmentedControl';
+import ResourcesView from '@/components/learn/Resources/ResourcesView';
+
+type LearnView = 'articles' | 'resources';
 
 export default function Learn() {
   useProgressCache();
@@ -33,6 +37,7 @@ export default function Learn() {
   const isFocused = useIsFocused();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [view, setView] = React.useState<LearnView>('articles');
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
 
@@ -92,6 +97,17 @@ export default function Learn() {
       <TabHeader variant='minimal' />
       <View style={styles.container}>
         <StatusBar style='dark' />
+        <SegmentedControl<LearnView>
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'articles', label: 'Articles' },
+            { value: 'resources', label: 'Resources' },
+          ]}
+        />
+        {view === 'resources' ? (
+          <ResourcesView />
+        ) : (
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           refreshControl={
@@ -312,6 +328,7 @@ export default function Learn() {
             </>
           )}
         </ScrollView>
+        )}
       </View>
       <AnnouncementModal
         storageKey='announcement.learnHighlights.v1'

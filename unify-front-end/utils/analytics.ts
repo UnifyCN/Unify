@@ -93,6 +93,14 @@ export const AnalyticsEvents = {
   // Daily Tips
   TIP_VIEWED: 'tip_viewed',
   TIP_TAPPED: 'tip_tapped',
+
+  // Resources (referral / monetization)
+  RESOURCES_VIEWED: 'resources_viewed',
+  RESOURCES_CATEGORY_OPENED: 'resources_category_opened',
+  RESOURCES_PARTNER_CARD_VIEWED: 'resources_partner_card_viewed',
+  RESOURCES_PARTNER_PROMO_COPIED: 'resources_partner_promo_copied',
+  RESOURCES_PARTNER_CTA_TAPPED: 'resources_partner_cta_tapped',
+  RESOURCES_PARTNER_CTA_FAILED: 'resources_partner_cta_failed',
 } as const;
 
 export type AnalyticsEventName =
@@ -538,6 +546,54 @@ export function useAnalytics() {
         posthog?.capture(AnalyticsEvents.TIP_TAPPED, {
           tip_id: tipId,
           category,
+        });
+      },
+
+      // Resources (referral / monetization)
+      trackResourcesViewed: (source: string) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_VIEWED, { source });
+      },
+      trackResourcesCategoryOpened: (
+        category: string,
+        partnerCount: number
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_CATEGORY_OPENED, {
+          category,
+          partner_count: partnerCount,
+        });
+      },
+      trackResourcesPartnerCardViewed: (
+        partnerSlug: string,
+        category: string,
+        position: number
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_CARD_VIEWED, {
+          partner_slug: partnerSlug,
+          category,
+          position,
+        });
+      },
+      trackResourcesPartnerPromoCopied: (partnerSlug: string) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_PROMO_COPIED, {
+          partner_slug: partnerSlug,
+        });
+      },
+      trackResourcesPartnerCtaTapped: (
+        partnerSlug: string,
+        category: string
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_CTA_TAPPED, {
+          partner_slug: partnerSlug,
+          category,
+        });
+      },
+      trackResourcesPartnerCtaFailed: (
+        partnerSlug: string,
+        errorType: string
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_CTA_FAILED, {
+          partner_slug: partnerSlug,
+          error_type: errorType,
         });
       },
 
