@@ -1234,7 +1234,7 @@ async function sendPushNotifications(
       } else {
         // Parse push tickets per-message to track per-user delivery
         const result = await response.json();
-        if (result.data) {
+        if (Array.isArray(result?.data)) {
           for (let j = 0; j < result.data.length; j++) {
             const ticket = result.data[j];
             if (ticket.status === 'error') {
@@ -1251,10 +1251,13 @@ async function sendPushNotifications(
             }
           }
         } else {
-          // No per-ticket data — assume the whole batch went through
-          for (const msg of batch) {
-            deliveredUserIds.add(msg.user_id);
-          }
+          // Anomalous Expo response — 200 OK but no ticket array. Don't mark
+          // anyone delivered (we can't prove the push reached APN/FCM); log
+          // the raw payload so we can diagnose if this becomes recurring.
+          console.warn(
+            'matchmake-circles: Expo response missing data array',
+            JSON.stringify(result).slice(0, 500)
+          );
         }
       }
     } catch (error) {
