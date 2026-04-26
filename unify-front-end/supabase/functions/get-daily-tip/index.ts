@@ -302,7 +302,58 @@ Deno.serve(async (req: Request) => {
 
     const userId = authData.user.id;
 
-    // 3. Check if today's tip already exists for this user
+    // 3. Check if today's tip already exists for this user.
+    // Race protection: two concurrent requests (e.g. pull-to-refresh + tab
+    // focus) would otherwise BOTH call Gemini and burn tokens. We solve this
+    // by inserting a `__pending__` placeholder before calling Gemini; the
+    // unique index on (user_id, date) makes that an atomic claim.
+    const PENDING = '__pending__';
+    const STALE_PENDING_MS = 60_000; // a crashed run leaves a stale placeholder; treat as abandoned after this
+
+    const respondWithTip = (row: {
+      id: string;
+      persona: string;
+      stage: string;
+      date: string;
+      category: string;
+      title: string;
+      description: string;
+      tip_text: string;
+      source_refs: unknown;
+    }) =>
+      jsonResponse({
+        tip: {
+          id: row.id,
+          persona: row.persona,
+          stage: row.stage,
+          date: row.date,
+          category: row.category,
+          title: row.title,
+          description: row.description,
+          tip_text: row.tip_text,
+          source_refs: row.source_refs,
+        },
+      });
+
+    const pollForCompletion = async () => {
+      for (let attempt = 0; attempt < 20; attempt++) {
+        await new Promise(r => setTimeout(r, 250));
+        const { data: row } = await supabase
+          .from('daily_tips')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('date', today)
+          .maybeSingle();
+        if (row && row.title !== PENDING) {
+          return respondWithTip(row);
+        }
+      }
+      return jsonResponse(
+        { error: 'Tip generation in progress, retry shortly' },
+        503
+      );
+    };
+
     const { data: existingTip, error: fetchError } = await supabase
       .from('daily_tips')
       .select('*')
@@ -315,28 +366,23 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'Failed to fetch tip' }, 500);
     }
 
-    if (existingTip) {
-      return jsonResponse({
-        tip: {
-          id: existingTip.id,
-          persona: existingTip.persona,
-          stage: existingTip.stage,
-          date: existingTip.date,
-          category: existingTip.category,
-          title: existingTip.title,
-          description: existingTip.description,
-          tip_text: existingTip.tip_text,
-          source_refs: existingTip.source_refs,
-        },
-      });
+    if (existingTip && existingTip.title !== PENDING) {
+      return respondWithTip(existingTip);
     }
 
-    // 4. Atomic claim before calling Gemini. Race protection: two concurrent
-    // requests (e.g. pull-to-refresh + tab focus) would otherwise BOTH call
-    // Gemini and burn tokens, even though the upsert eventually collapses to
-    // one row. We insert a placeholder first; the loser polls for the
-    // winner's result instead of running Gemini again.
-    const PENDING = '__pending__';
+    if (existingTip && existingTip.title === PENDING) {
+      const ageMs =
+        Date.now() - new Date(existingTip.created_at).getTime();
+      if (ageMs > STALE_PENDING_MS) {
+        // Crashed previous run left a stale placeholder — clear it and re-claim.
+        await supabase.from('daily_tips').delete().eq('id', existingTip.id);
+      } else {
+        // Fresh placeholder from another in-flight request — poll for completion.
+        return await pollForCompletion();
+      }
+    }
+
+    // 4. Insert claim. ON CONFLICT (user_id, date) returns 23505.
     const { data: claim, error: claimError } = await supabase
       .from('daily_tips')
       .insert({
@@ -353,44 +399,17 @@ Deno.serve(async (req: Request) => {
       .select('id')
       .maybeSingle();
 
-    const lostClaim =
-      !claim || (claimError && (claimError as { code?: string }).code === '23505');
+    const claimErrorCode = (claimError as { code?: string } | null)?.code;
+    const isUniqueConflict = claimErrorCode === '23505';
 
-    if (claimError && !lostClaim) {
+    if (claimError && !isUniqueConflict) {
       console.error('Daily tip claim failed:', claimError);
       return jsonResponse({ error: 'Failed to claim tip slot' }, 500);
     }
 
-    if (lostClaim) {
-      // Another concurrent request is generating. Poll up to ~5s for completion.
-      for (let attempt = 0; attempt < 20; attempt++) {
-        await new Promise(r => setTimeout(r, 250));
-        const { data: row } = await supabase
-          .from('daily_tips')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('date', today)
-          .maybeSingle();
-        if (row && row.title !== PENDING) {
-          return jsonResponse({
-            tip: {
-              id: row.id,
-              persona: row.persona,
-              stage: row.stage,
-              date: row.date,
-              category: row.category,
-              title: row.title,
-              description: row.description,
-              tip_text: row.tip_text,
-              source_refs: row.source_refs,
-            },
-          });
-        }
-      }
-      return jsonResponse(
-        { error: 'Tip generation in progress, retry shortly' },
-        503
-      );
+    if (isUniqueConflict || !claim) {
+      // Lost the claim race to another concurrent request. Poll for its result.
+      return await pollForCompletion();
     }
 
     // We won the claim — generate via Gemini.
