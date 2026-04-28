@@ -1,15 +1,11 @@
 // @ts-nocheck We do not need the actual Deno import since it's used by supabase serverless functions so ignore
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import {
-  captureAiGeneration,
-  computeGeminiCost,
-} from '../_shared/posthogCapture.ts';
+import { callOpenRouter } from '../_shared/openrouter.ts';
+import { captureAiGeneration } from '../_shared/posthogCapture.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,8 +41,8 @@ Deno.serve(async req => {
     return jsonResponse({ error: 'Missing Supabase env vars' }, 500);
   }
 
-  if (!GEMINI_API_KEY) {
-    return jsonResponse({ error: 'Missing GEMINI_API_KEY' }, 500);
+  if (!Deno.env.get('OPENROUTER_API_KEY')) {
+    return jsonResponse({ error: 'Missing OPENROUTER_API_KEY' }, 500);
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -96,70 +92,48 @@ Deno.serve(async req => {
       ? `The user is reading a lesson about "${lessonContext}" and wants to understand this term or phrase: "${term.trim()}"`
       : `Explain this term or phrase to a newcomer to Canada: "${term.trim()}"`;
 
-    // Call Gemini API
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    // Call OpenRouter
+    const llmResult = await callOpenRouter({
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt },
+      ],
+      maxTokens: 256,
+      temperature: 0.3,
+      timeoutMs: 15000,
+      retries: 1,
+      retryDelayMs: 400,
+      appName: 'Unify — explain-term',
+    });
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: userPrompt }],
-            },
-          ],
-          systemInstruction: {
-            parts: [{ text: SYSTEM_PROMPT }],
-          },
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 256,
-          },
-        }),
-      }
-    );
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.error(`Gemini API error: ${response.status}`);
-      return jsonResponse({ error: 'AI service unavailable' }, 502);
+    if (!llmResult.ok) {
+      console.error('explain-term OpenRouter call failed:', llmResult.message);
+      // Preserve upstream timeouts (504); surface rate-limit / capacity
+      // failures as 503 so callers can distinguish "busy" from a hard
+      // failure; everything else falls back to the existing 502 contract.
+      let status = 502;
+      if (llmResult.status === 504) status = 504;
+      else if (llmResult.retryable) status = 503;
+      return jsonResponse({ error: 'AI service unavailable' }, status);
     }
 
-    const data = await response.json();
-    const explanation =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
+    const explanation = llmResult.content;
     if (!explanation) {
       return jsonResponse({ error: 'No explanation generated' }, 502);
     }
 
     // Send $ai_generation event to PostHog LLM analytics
-    const usageMetadata = data.usageMetadata;
-    if (usageMetadata) {
-      const inputTokens = usageMetadata.promptTokenCount || 0;
-      const outputTokens = usageMetadata.candidatesTokenCount || 0;
-      const cost = computeGeminiCost(inputTokens, outputTokens, GEMINI_MODEL);
-
-      captureAiGeneration(authData.user.id, {
-        $ai_model: GEMINI_MODEL,
-        $ai_provider: 'google',
-        $ai_input_tokens: inputTokens,
-        $ai_output_tokens: outputTokens,
-        $ai_total_tokens: usageMetadata.totalTokenCount || 0,
-        $ai_input_cost_usd: cost.inputCost,
-        $ai_output_cost_usd: cost.outputCost,
-        $ai_total_cost_usd: cost.totalCost,
-        // Custom properties for filtering
-        feature: 'ask_ai_learn',
-        term_length: term.length,
-      });
-    }
+    captureAiGeneration(authData.user.id, {
+      $ai_model: llmResult.model,
+      $ai_provider: llmResult.provider,
+      $ai_input_tokens: llmResult.usage.promptTokens,
+      $ai_output_tokens: llmResult.usage.completionTokens,
+      $ai_total_tokens: llmResult.usage.totalTokens,
+      $ai_total_cost_usd: llmResult.usage.costUsd,
+      // Custom properties for filtering
+      feature: 'ask_ai_learn',
+      term_length: term.length,
+    });
 
     return jsonResponse({ explanation });
   } catch (error) {

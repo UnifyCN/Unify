@@ -1,6 +1,6 @@
 import React, {
   createContext,
-  useContext,
+  use,
   useState,
   useCallback,
   useRef,
@@ -111,7 +111,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext value={{ showToast }}>
       {children}
       {isVisible && message && (
         <Animated.View
@@ -143,12 +143,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           </TouchableOpacity>
         </Animated.View>
       )}
-    </ToastContext.Provider>
+    </ToastContext>
   );
 }
 
 export function useToast() {
-  const context = useContext(ToastContext);
+  const context = use(ToastContext);
   if (context === undefined) {
     throw new Error('useToast must be used within a ToastProvider');
   }
