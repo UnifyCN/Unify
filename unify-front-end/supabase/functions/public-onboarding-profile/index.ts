@@ -68,6 +68,10 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // Intentionally serves persona / persona_other / arrival_date cross-user:
+    // these are rendered as public badges on every profile (ProfileHeader.tsx).
+    // Limit fields to the public-facing set above; the auth gate ensures only
+    // logged-in users can call.
     const adminClient = createClient(supabaseUrl, serviceKey);
     const { data, error } = await adminClient
       .from('user_onboarding_profiles')

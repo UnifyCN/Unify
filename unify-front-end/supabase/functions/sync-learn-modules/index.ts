@@ -46,7 +46,11 @@ async function fetchAllModulesFromSanity(): Promise<SanityModuleRow[]> {
   );
 
   const url = `https://${projectId}.api.sanity.io/v2023-08-01/data/query/${dataset}?query=${query}`;
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    // Don't hang the cron if Sanity stalls.
+    signal: AbortSignal.timeout(15000),
+  });
 
   if (!res.ok) {
     throw new Error(`Sanity fetch failed: ${res.status} ${await res.text()}`);

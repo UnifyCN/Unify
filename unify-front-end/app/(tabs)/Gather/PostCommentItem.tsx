@@ -51,7 +51,8 @@ const PostCommentItem = memo(
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
     const ownsPost = postAuthorId && currentUser?.id === postAuthorId;
-    const canDelete = isAdmin || (isPartner && ownsPost);
+    const ownsComment = currentUser?.id === comment.user_id;
+    const canDelete = isAdmin || (isPartner && ownsPost) || ownsComment;
 
     const toggleLike = useCallback(
       (commentId: number, isLiked: boolean) => {

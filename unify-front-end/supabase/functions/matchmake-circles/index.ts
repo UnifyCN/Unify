@@ -844,13 +844,31 @@ async function createCircleForGroup(
 
   const circleId = data as string;
 
-  await sendPushNotifications(
+  const deliveredUserIds = await sendPushNotifications(
     supabase,
     memberIds,
     "You've been matched!",
     notificationBody,
     { type: 'circle_matched', circle_id: circleId }
   );
+
+  if (deliveredUserIds.size > 0) {
+    const nowIso = new Date().toISOString();
+    const { error: deliveredError } = await supabase
+      .from('community_notifications')
+      .update({ delivered: true, delivered_at: nowIso })
+      .in('user_id', [...deliveredUserIds])
+      .eq('type', 'circle_matched')
+      .filter('data->>circle_id', 'eq', circleId)
+      .eq('delivered', false);
+
+    if (deliveredError) {
+      console.error(
+        'matchmake-circles: failed to mark notifications delivered',
+        deliveredError
+      );
+    }
+  }
 
   return circleId;
 }
@@ -1149,32 +1167,36 @@ async function sendPushNotifications(
   title: string,
   body: string,
   data?: Record<string, unknown>
-): Promise<void> {
-  if (!userIds.length) return;
+): Promise<Set<string>> {
+  const deliveredUserIds = new Set<string>();
+  if (!userIds.length) return deliveredUserIds;
 
-  const { data: tokens, error } = await supabase
+  const { data: tokenRows, error } = await supabase
     .from('push_tokens')
-    .select('token')
+    .select('token, user_id')
     .in('user_id', userIds);
 
   if (error) {
     console.error('Failed to fetch push tokens', error);
-    return;
+    return deliveredUserIds;
   }
 
-  if (!tokens?.length) {
-    return;
+  if (!tokenRows?.length) {
+    return deliveredUserIds;
   }
 
-  const messages = tokens.map(({ token }: { token: string }) => ({
-    to: token,
-    sound: 'default',
-    title,
-    body,
-    data: data || {},
-    channelId: 'circles',
-    priority: 'high',
-  }));
+  const messages = (tokenRows as Array<{ token: string; user_id: string }>).map(
+    ({ token, user_id }) => ({
+      to: token,
+      user_id,
+      sound: 'default',
+      title,
+      body,
+      data: data || {},
+      channelId: 'circles',
+      priority: 'high',
+    })
+  );
 
   const batchSize = 100;
   const timeoutMs = 5000;
@@ -1182,6 +1204,8 @@ async function sendPushNotifications(
 
   for (let index = 0; index < messages.length; index += batchSize) {
     const batch = messages.slice(index, index + batchSize);
+    // Strip user_id from the wire payload — Expo only accepts known fields
+    const expoBatch = batch.map(({ user_id: _omit, ...msg }) => msg);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -1197,7 +1221,7 @@ async function sendPushNotifications(
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: pushHeaders,
-        body: JSON.stringify(batch),
+        body: JSON.stringify(expoBatch),
         signal: controller.signal,
       });
 
@@ -1208,9 +1232,9 @@ async function sendPushNotifications(
           await response.text()
         );
       } else {
-        // Parse push tickets to detect stale tokens
+        // Parse push tickets per-message to track per-user delivery
         const result = await response.json();
-        if (result.data) {
+        if (Array.isArray(result?.data)) {
           for (let j = 0; j < result.data.length; j++) {
             const ticket = result.data[j];
             if (ticket.status === 'error') {
@@ -1222,8 +1246,18 @@ async function sendPushNotifications(
               if (ticket.details?.error === 'DeviceNotRegistered') {
                 staleTokens.push(batch[j].to);
               }
+            } else {
+              deliveredUserIds.add(batch[j].user_id);
             }
           }
+        } else {
+          // Anomalous Expo response — 200 OK but no ticket array. Don't mark
+          // anyone delivered (we can't prove the push reached APN/FCM); log
+          // the raw payload so we can diagnose if this becomes recurring.
+          console.warn(
+            'matchmake-circles: Expo response missing data array',
+            JSON.stringify(result).slice(0, 500)
+          );
         }
       }
     } catch (error) {
@@ -1254,4 +1288,6 @@ async function sendPushNotifications(
       );
     }
   }
+
+  return deliveredUserIds;
 }

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -35,6 +35,26 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const autoCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (autoCloseTimerRef.current) {
+        clearTimeout(autoCloseTimerRef.current);
+        autoCloseTimerRef.current = null;
+      }
+    },
+    []
+  );
+
+  const handleDismiss = () => {
+    if (autoCloseTimerRef.current) {
+      clearTimeout(autoCloseTimerRef.current);
+      autoCloseTimerRef.current = null;
+    }
+    reset();
+    onClose();
+  };
 
   const canSubmit = useMemo(() => {
     return (
@@ -73,8 +93,10 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
       // Show success confirmation
       setShowSuccess(true);
 
-      // Auto-close after 2 seconds
-      setTimeout(() => {
+      // Auto-close after 2 seconds. Stored in a ref so the user-initiated
+      // close (X / backdrop) can cancel it, and so unmounting clears it.
+      autoCloseTimerRef.current = setTimeout(() => {
+        autoCloseTimerRef.current = null;
         reset();
         onClose();
       }, 2000);
@@ -90,7 +112,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
       visible={visible}
       animationType='slide'
       transparent
-      onRequestClose={onClose}
+      onRequestClose={handleDismiss}
     >
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={Keyboard.dismiss} />
@@ -100,11 +122,9 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
               <Text style={styles.title}>
                 {showSuccess ? 'Request Sent!' : 'Request a Group'}
               </Text>
-              {!showSuccess && (
-                <Pressable onPress={onClose} style={styles.closeBtn}>
-                  <Text style={styles.closeText}>✕</Text>
-                </Pressable>
-              )}
+              <Pressable onPress={handleDismiss} style={styles.closeBtn}>
+                <Text style={styles.closeText}>✕</Text>
+              </Pressable>
             </View>
 
             {showSuccess ? (

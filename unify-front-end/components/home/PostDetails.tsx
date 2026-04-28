@@ -258,7 +258,9 @@ const PostDetails = () => {
           value={commentTextBox}
           onChangeText={setCommentTextBox}
           onSend={handleCreateComment}
-          disabled={commentTextBox.trim() === ''}
+          disabled={
+            commentTextBox.trim() === '' || createCommentMutation.isPending
+          }
         />
       </Animated.View>
 
