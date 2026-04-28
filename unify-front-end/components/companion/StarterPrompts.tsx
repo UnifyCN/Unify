@@ -200,26 +200,27 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
         contentContainerStyle={styles.scrollContent}
       >
         {displayed.map((starter, index) => (
-          <Animated.View
-            key={starter.id}
-            entering={FadeIn.duration(200)}
-            exiting={FadeOut.duration(150)}
-          >
-            <TouchableOpacity
-              style={[styles.card, styles.cardPersonalized]}
-              onPress={() => handlePersonalizedPress(starter, index)}
-              activeOpacity={0.8}
+          <View key={starter.id}>
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(150)}
             >
-              <View style={styles.cardHeader}>
-                <View style={[styles.iconBadge, { backgroundColor: starter.iconBackground }]}>
-                  <Feather name={starter.iconName as keyof typeof Feather.glyphMap} size={16} color={Theme.white} />
+              <TouchableOpacity
+                style={[styles.card, styles.cardPersonalized]}
+                onPress={() => handlePersonalizedPress(starter, index)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={[styles.iconBadge, { backgroundColor: starter.iconBackground }]}>
+                    <Feather name={starter.iconName as keyof typeof Feather.glyphMap} size={16} color={Theme.white} />
+                  </View>
+                  <Text style={styles.cardLabel} numberOfLines={1}>{starter.category}</Text>
+                  <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
                 </View>
-                <Text style={styles.cardLabel} numberOfLines={1}>{starter.category}</Text>
-                <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
-              </View>
-              <Text style={styles.cardDescription} numberOfLines={3}>{starter.prompt}</Text>
-            </TouchableOpacity>
-          </Animated.View>
+                <Text style={styles.cardDescription} numberOfLines={3}>{starter.prompt}</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
         ))}
 
         {[...MODE_CARDS, ...topicStarters].map(card => (
