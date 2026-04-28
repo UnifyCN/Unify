@@ -179,18 +179,19 @@ const PostCommentItem = memo(
 
             {/* Description */}
             <Text style={styles.description}>
-              {isReply && parentAuthorUsername && (
-                <Text
-                  style={styles.mention}
-                  onPress={() => {
-                    if (parentAuthorUserId) {
-                      router.push(`/profile?userId=${parentAuthorUserId}`);
+              {isReply &&
+                parentAuthorUsername &&
+                parentAuthorUserId &&
+                parentAuthorUserId !== currentUser?.id && (
+                  <Text
+                    style={styles.mention}
+                    onPress={() =>
+                      router.push(`/profile?userId=${parentAuthorUserId}`)
                     }
-                  }}
-                >
-                  @{parentAuthorUsername}{' '}
-                </Text>
-              )}
+                  >
+                    @{parentAuthorUsername}{' '}
+                  </Text>
+                )}
               {comment.content}
             </Text>
 
@@ -217,7 +218,7 @@ const PostCommentItem = memo(
                   <Text style={styles.footerText}>{likeCount}</Text>
                 )}
               </View>
-              {onReply && (
+              {!isReply && onReply && (
                 <TouchableOpacity
                   onPress={() => onReply(comment)}
                   style={styles.replyButton}
