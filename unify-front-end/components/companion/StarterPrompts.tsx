@@ -165,35 +165,50 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   }, [pool]);
 
   const handlePersonalizedPress = useCallback(
-    async (starter: PersonalizedStarter, slotIndex: number) => {
+    (starter: PersonalizedStarter, slotIndex: number) => {
       onPromptSelect(starter.prompt);
 
-      // Persist; fire-and-forget.
+      // Persist; fire-and-forget. Concurrent calls are safe — markStarterSeen
+      // serializes its own read-modify-write internally.
       void markStarterSeen(starter.id);
       seenIdsRef.current.add(starter.id);
 
-      const displayedIds = new Set(displayed.map(s => s.id));
-      let next = pickReplacement(pool, displayedIds, seenIdsRef.current, starter.id);
-
-      // If pool is exhausted relative to seen, clear and try once more.
-      if (!next) {
-        const fallback = pool.find(s => !displayedIds.has(s.id) && s.id !== starter.id);
-        if (fallback) {
-          await clearSeenStarterIds();
-          seenIdsRef.current = new Set();
-          next = fallback;
-        }
-      }
-
-      if (!next) return; // pool too small to swap; leave the chip in place.
-
+      // Compute the replacement against the COMMITTED current displayed state
+      // inside the updater. Reading `displayed` from a stale closure here would
+      // race when the user taps two chips in rapid succession — both handlers
+      // would see the same pre-tap state and could pick the same replacement,
+      // leaving the same chip in two slots after both updates land.
       setDisplayed(current => {
+        const displayedIds = new Set(current.map(s => s.id));
+        let next = pickReplacement(
+          pool,
+          displayedIds,
+          seenIdsRef.current,
+          starter.id
+        );
+
+        if (!next) {
+          const fallback = pool.find(
+            s => !displayedIds.has(s.id) && s.id !== starter.id
+          );
+          if (fallback) {
+            // Pool exhausted relative to seen — reset history. Both side
+            // effects are idempotent so they remain safe under React strict-
+            // mode double invocation of the updater.
+            seenIdsRef.current = new Set();
+            void clearSeenStarterIds();
+            next = fallback;
+          }
+        }
+
+        if (!next) return current; // pool too small to swap; leave chip in place.
+
         const copy = [...current];
-        copy[slotIndex] = next!;
+        copy[slotIndex] = next;
         return copy;
       });
     },
-    [displayed, pool, onPromptSelect]
+    [pool, onPromptSelect]
   );
 
   return (
