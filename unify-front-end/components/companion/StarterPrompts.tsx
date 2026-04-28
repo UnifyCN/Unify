@@ -1,3 +1,4 @@
+// components/companion/StarterPrompts.tsx
 import React, { useMemo } from 'react';
 import {
   View,
@@ -8,13 +9,14 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
+import type { PersonalizedStarter } from '@/hooks/companion/usePersonalizedStarters';
 
 interface StarterPromptsProps {
   onPromptSelect: (prompt: string, mode?: string) => void;
-  personalizedStarters?: string[];
+  personalizedStarters?: PersonalizedStarter[];
 }
 
-interface StarterCard {
+interface StaticCard {
   id: string;
   label: string;
   prompt: string;
@@ -24,178 +26,68 @@ interface StarterCard {
   description: string;
 }
 
-// Mode-based cards (Fact Check, Form Help)
-const MODE_CARDS: StarterCard[] = [
-  {
-    id: 'fact_check',
-    label: 'Fact Check',
-    prompt: 'I heard that ',
-    mode: 'fact_check',
-    iconName: 'search',
-    iconBackground: '#4F7BCB',
-    description: "Verify info you've heard or read.",
-  },
-  {
-    id: 'form_help',
-    label: 'Form Help',
-    prompt: '',
-    mode: 'form_help',
-    iconName: 'file-text',
-    iconBackground: '#F0A04B',
-    description: 'Step-by-step guidance on any form.',
-  },
+const MODE_CARDS: StaticCard[] = [
+  { id: 'fact_check', label: 'Fact Check', prompt: 'I heard that ', mode: 'fact_check',
+    iconName: 'search', iconBackground: '#4F7BCB',
+    description: "Verify info you've heard or read." },
+  { id: 'form_help', label: 'Form Help', prompt: '', mode: 'form_help',
+    iconName: 'file-text', iconBackground: '#F0A04B',
+    description: 'Step-by-step guidance on any form.' },
 ];
 
-// Topic-based starter prompts organized by immigration category
-const TOPIC_STARTERS: StarterCard[] = [
-  {
-    id: 'ee_eligibility',
-    label: 'Express Entry',
-    prompt: 'Am I eligible for Express Entry? What are the requirements?',
-    iconName: 'award',
-    iconBackground: '#5C6BC0',
-    description: 'Check Express Entry eligibility.',
-  },
-  {
-    id: 'ee_crs',
-    label: 'CRS Score',
-    prompt: 'How is the CRS score calculated for Express Entry?',
-    iconName: 'bar-chart-2',
-    iconBackground: '#5C6BC0',
-    description: 'Understand CRS point breakdown.',
-  },
-  {
-    id: 'ee_rounds',
-    label: 'Recent Draws',
-    prompt: 'What were the most recent Express Entry draw scores?',
-    iconName: 'trending-up',
-    iconBackground: '#5C6BC0',
-    description: 'Latest invitation round details.',
-  },
-  {
-    id: 'sp_apply',
-    label: 'Study Permit',
-    prompt: 'How do I apply for a Canadian study permit?',
-    iconName: 'book-open',
-    iconBackground: '#26A69A',
-    description: 'Study permit application steps.',
-  },
-  {
-    id: 'sp_pgwp',
-    label: 'After Graduation',
-    prompt: 'How do I get a post-graduation work permit (PGWP)?',
-    iconName: 'briefcase',
-    iconBackground: '#26A69A',
-    description: 'PGWP eligibility and process.',
-  },
-  {
-    id: 'wp_types',
-    label: 'Work Permits',
-    prompt: 'What types of work permits are available in Canada?',
-    iconName: 'tool',
-    iconBackground: '#EF5350',
-    description: 'Compare open vs employer-specific.',
-  },
-  {
-    id: 'wp_lmia',
-    label: 'LMIA Process',
-    prompt: 'What is an LMIA and when do I need one?',
-    iconName: 'clipboard',
-    iconBackground: '#EF5350',
-    description: 'Labour market impact assessment.',
-  },
-  {
-    id: 'cit_eligibility',
-    label: 'Citizenship',
-    prompt: 'What are the requirements to become a Canadian citizen?',
-    iconName: 'flag',
-    iconBackground: '#E3A0C9',
-    description: 'Citizenship eligibility check.',
-  },
-  {
-    id: 'cit_test',
-    label: 'Citizenship Test',
-    prompt: 'What should I study for the Canadian citizenship test?',
-    iconName: 'edit-3',
-    iconBackground: '#E3A0C9',
-    description: 'Test prep and study guide.',
-  },
-  {
-    id: 'settle_health',
-    label: 'Healthcare',
-    prompt: 'How does healthcare work for newcomers to Canada?',
-    iconName: 'heart',
-    iconBackground: '#66BB6A',
-    description: 'Provincial health coverage info.',
-  },
-  {
-    id: 'settle_services',
-    label: 'Newcomer Help',
-    prompt: 'What free settlement services are available for newcomers?',
-    iconName: 'users',
-    iconBackground: '#66BB6A',
-    description: 'Free support for new arrivals.',
-  },
+const TOPIC_STARTERS: StaticCard[] = [
+  { id: 'ee_eligibility', label: 'Express Entry', prompt: 'Am I eligible for Express Entry? What are the requirements?',
+    iconName: 'award', iconBackground: '#5C6BC0', description: 'Check Express Entry eligibility.' },
+  { id: 'ee_crs', label: 'CRS Score', prompt: 'How is the CRS score calculated for Express Entry?',
+    iconName: 'bar-chart-2', iconBackground: '#5C6BC0', description: 'Understand CRS point breakdown.' },
+  { id: 'ee_rounds', label: 'Recent Draws', prompt: 'What were the most recent Express Entry draw scores?',
+    iconName: 'trending-up', iconBackground: '#5C6BC0', description: 'Latest invitation round details.' },
+  { id: 'sp_apply', label: 'Study Permit', prompt: 'How do I apply for a Canadian study permit?',
+    iconName: 'book-open', iconBackground: '#26A69A', description: 'Study permit application steps.' },
+  { id: 'sp_pgwp', label: 'After Graduation', prompt: 'How do I get a post-graduation work permit (PGWP)?',
+    iconName: 'briefcase', iconBackground: '#26A69A', description: 'PGWP eligibility and process.' },
+  { id: 'wp_types', label: 'Work Permits', prompt: 'What types of work permits are available in Canada?',
+    iconName: 'tool', iconBackground: '#EF5350', description: 'Compare open vs employer-specific.' },
+  { id: 'wp_lmia', label: 'LMIA Process', prompt: 'What is an LMIA and when do I need one?',
+    iconName: 'clipboard', iconBackground: '#EF5350', description: 'Labour market impact assessment.' },
+  { id: 'cit_eligibility', label: 'Citizenship', prompt: 'What are the requirements to become a Canadian citizen?',
+    iconName: 'flag', iconBackground: '#E3A0C9', description: 'Citizenship eligibility check.' },
+  { id: 'cit_test', label: 'Citizenship Test', prompt: 'What should I study for the Canadian citizenship test?',
+    iconName: 'edit-3', iconBackground: '#E3A0C9', description: 'Test prep and study guide.' },
+  { id: 'settle_health', label: 'Healthcare', prompt: 'How does healthcare work for newcomers to Canada?',
+    iconName: 'heart', iconBackground: '#66BB6A', description: 'Provincial health coverage info.' },
+  { id: 'settle_services', label: 'Newcomer Help', prompt: 'What free settlement services are available for newcomers?',
+    iconName: 'users', iconBackground: '#66BB6A', description: 'Free support for new arrivals.' },
 ];
 
-/**
- * Selects a random subset of topic starters, ensuring variety across categories.
- * Returns 3 topic cards from different icon backgrounds (categories).
- */
-const selectRandomStarters = (): StarterCard[] => {
-  const categories = new Map<string, StarterCard[]>();
+const selectRandomTopicStarters = (): StaticCard[] => {
+  const categories = new Map<string, StaticCard[]>();
   TOPIC_STARTERS.forEach(card => {
     const existing = categories.get(card.iconBackground) || [];
     existing.push(card);
     categories.set(card.iconBackground, existing);
   });
 
-  const selected: StarterCard[] = [];
+  const selected: StaticCard[] = [];
   const categoryKeys = Array.from(categories.keys());
-
-  // Shuffle categories
   for (let i = categoryKeys.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [categoryKeys[i], categoryKeys[j]] = [categoryKeys[j], categoryKeys[i]];
   }
-
-  // Pick one random card from each category until we have 3
   for (const key of categoryKeys) {
     if (selected.length >= 3) break;
     const cards = categories.get(key)!;
-    const randomCard = cards[Math.floor(Math.random() * cards.length)];
-    selected.push(randomCard);
+    selected.push(cards[Math.floor(Math.random() * cards.length)]);
   }
-
   return selected;
 };
-
-/**
- * Convert personalized starter strings into StarterCard format so they
- * render identically to the other cards in a single horizontal scroll.
- */
-const PERSONALIZED_ICON_BG = '#7C5CBF';
-
-const toPersonalizedCard = (prompt: string, index: number): StarterCard => ({
-  id: `personalized-${index}`,
-  label: 'For You',
-  prompt,
-  iconName: 'user',
-  iconBackground: PERSONALIZED_ICON_BG,
-  description: prompt,
-});
 
 export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   onPromptSelect,
   personalizedStarters,
 }) => {
-  const topicStarters = useMemo(() => selectRandomStarters(), []);
-
-  // Unified card list: personalized first → mode cards → topic starters
-  const allCards = useMemo(() => {
-    const personalized = (personalizedStarters ?? []).map(toPersonalizedCard);
-    return [...personalized, ...MODE_CARDS, ...topicStarters];
-  }, [personalizedStarters, topicStarters]);
+  const topicStarters = useMemo(() => selectRandomTopicStarters(), []);
+  const personalized = personalizedStarters ?? [];
 
   return (
     <View style={styles.container}>
@@ -204,90 +96,60 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {allCards.map(card => {
-          const isPersonalized = card.id.startsWith('personalized-');
-          return (
-            <TouchableOpacity
-              key={card.id}
-              style={[styles.card, isPersonalized && styles.cardPersonalized]}
-              onPress={() => onPromptSelect(card.prompt, card.mode)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.cardHeader}>
-                <View
-                  style={[
-                    styles.iconBadge,
-                    { backgroundColor: card.iconBackground },
-                  ]}
-                >
-                  <Feather name={card.iconName} size={16} color={Theme.white} />
-                </View>
-                <Text style={styles.cardLabel}>{card.label}</Text>
-                <Feather
-                  name='chevron-right'
-                  size={16}
-                  color={Theme.textInactiveTab}
-                />
+        {personalized.map(starter => (
+          <TouchableOpacity
+            key={starter.id}
+            style={[styles.card, styles.cardPersonalized]}
+            onPress={() => onPromptSelect(starter.prompt)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardHeader}>
+              <View style={[styles.iconBadge, { backgroundColor: starter.iconBackground }]}>
+                <Feather name={starter.iconName as keyof typeof Feather.glyphMap} size={16} color={Theme.white} />
               </View>
-              <Text
-                style={styles.cardDescription}
-                numberOfLines={isPersonalized ? 3 : 2}
-              >
-                {card.description}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+              <Text style={styles.cardLabel} numberOfLines={1}>{starter.category}</Text>
+              <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
+            </View>
+            <Text style={styles.cardDescription} numberOfLines={3}>{starter.prompt}</Text>
+          </TouchableOpacity>
+        ))}
+
+        {[...MODE_CARDS, ...topicStarters].map(card => (
+          <TouchableOpacity
+            key={card.id}
+            style={styles.card}
+            onPress={() => onPromptSelect(card.prompt, card.mode)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.cardHeader}>
+              <View style={[styles.iconBadge, { backgroundColor: card.iconBackground }]}>
+                <Feather name={card.iconName} size={16} color={Theme.white} />
+              </View>
+              <Text style={styles.cardLabel}>{card.label}</Text>
+              <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
+            </View>
+            <Text style={styles.cardDescription} numberOfLines={2}>{card.description}</Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingTop: 10,
-    paddingBottom: 12,
-    backgroundColor: Theme.white,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingRight: 32,
-  },
+  container: { paddingTop: 10, paddingBottom: 12, backgroundColor: Theme.white },
+  scrollContent: { paddingHorizontal: 20, paddingRight: 32 },
   card: {
-    width: 170,
-    minHeight: 108,
-    backgroundColor: Theme.white,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    padding: 12,
-    marginRight: 12,
+    width: 170, minHeight: 108, backgroundColor: Theme.white,
+    borderRadius: 16, borderWidth: 1, borderColor: '#e0e0e0',
+    padding: 12, marginRight: 12,
   },
-  cardPersonalized: {
-    width: 210,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  cardPersonalized: { width: 210 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center' },
   iconBadge: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
+    width: 26, height: 26, borderRadius: 8,
+    justifyContent: 'center', alignItems: 'center', marginRight: 8,
   },
-  cardLabel: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: Theme.black,
-  },
-  cardDescription: {
-    marginTop: 10,
-    fontSize: 12,
-    color: Theme.textInput,
-    lineHeight: 16,
-  },
+  cardLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: Theme.black },
+  cardDescription: { marginTop: 10, fontSize: 12, color: Theme.textInput, lineHeight: 16 },
 });
