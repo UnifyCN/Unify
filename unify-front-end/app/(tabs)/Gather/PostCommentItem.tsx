@@ -413,9 +413,12 @@ const styles = StyleSheet.create({
   connectorLine: {
     position: 'absolute',
     left: 0,
-    top: -8,
-    bottom: 12,
+    // Anchor near the parent's footer area and hook into the first reply's
+    // avatar with a short L-shape. Don't span the full reply group — that
+    // pushes the curve to the bottom (wrong place) and looks orphaned.
+    top: -20,
     width: 16,
+    height: 40,
     borderLeftWidth: 1,
     borderLeftColor: Theme.textInactiveTab,
     borderBottomWidth: 1,
