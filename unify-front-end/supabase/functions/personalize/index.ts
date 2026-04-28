@@ -1,5 +1,9 @@
 // @ts-ignore JSR import
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import {
+  buildPool,
+  type OnboardingProfile as CompanionProfile,
+} from '../_shared/companionTemplates.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,76 +16,10 @@ interface OnboardingProfile {
   city: string | null;
   province: string | null;
   arrival_date: string | null;
+  stage: string | null;
   goals: string[];
   learning_interests: string[];
-}
-
-// ─── Companion surface ────────────────────────────────────────────────────────
-
-function buildCompanionStarters(profile: OnboardingProfile): string[] {
-  const { persona, city, province, goals, learning_interests } = profile;
-
-  const starters: string[] = [];
-
-  function humanize(str: string): string {
-    return str.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-  }
-
-  if (persona && city) {
-    const personaLabel =
-      persona === 'international_student'
-        ? 'international student'
-        : persona.replace(/_/g, ' ');
-    starters.push(`What do I need to know as a ${personaLabel} in ${city}?`);
-  } else if (persona) {
-    const personaLabel = persona.replace(/_/g, ' ');
-    starters.push(
-      `What resources are available for a ${personaLabel} in Canada?`
-    );
-  }
-
-  if (goals.length > 0) {
-    const topGoal = goals[0];
-    const location = city ?? province ?? 'Canada';
-
-    if (
-      topGoal.toLowerCase().includes('work') ||
-      topGoal.toLowerCase().includes('job')
-    ) {
-      starters.push(`Help me find job opportunities in ${location}`);
-    } else if (
-      topGoal.toLowerCase().includes('english') ||
-      topGoal.toLowerCase().includes('language')
-    ) {
-      starters.push(`What language programs are available in ${location}?`);
-    } else if (topGoal.toLowerCase().includes('housing')) {
-      starters.push(`How do I find housing as a newcomer in ${location}?`);
-    } else {
-      starters.push(
-        `How do I achieve my goal to ${humanize(topGoal)} in ${location}?`
-      );
-    }
-  }
-
-  if (learning_interests.length > 0) {
-    const topInterest = learning_interests[0];
-    starters.push(
-      `What ${topInterest} opportunities are available for newcomers?`
-    );
-  }
-
-  const fallbacks = [
-    'What are the most important steps after arriving in Canada?',
-    'How does the Canadian healthcare system work?',
-    'What free settlement services are available to me?',
-  ];
-
-  for (const fallback of fallbacks) {
-    if (starters.length >= 3) break;
-    starters.push(fallback);
-  }
-
-  return starters.slice(0, 3);
+  hobbies: string[];
 }
 
 // ─── Learn surface ────────────────────────────────────────────────────────────
@@ -271,7 +209,7 @@ Deno.serve(async (req: Request) => {
     const { data: profileData, error: profileError } = await supabaseClient
       .from('user_onboarding_profiles')
       .select(
-        'persona, city, province, arrival_date, goals, learning_interests'
+        'persona, city, province, arrival_date, stage, goals, learning_interests, hobbies'
       )
       .eq('id', user.id)
       .maybeSingle();
@@ -289,8 +227,10 @@ Deno.serve(async (req: Request) => {
       city: profileData.city ?? null,
       province: profileData.province ?? null,
       arrival_date: profileData.arrival_date ?? null,
+      stage: profileData.stage ?? null,
       goals: profileData.goals ?? [],
       learning_interests: profileData.learning_interests ?? [],
+      hobbies: profileData.hobbies ?? [],
     };
 
     const responseBody: Record<string, unknown> = {};
@@ -302,10 +242,12 @@ Deno.serve(async (req: Request) => {
           city: profile.city,
           province: profile.province,
           arrival_date: profile.arrival_date,
+          stage: profile.stage,
           goals: profile.goals,
           interests: profile.learning_interests,
+          hobbies: profile.hobbies,
         },
-        starters: buildCompanionStarters(profile),
+        starters: buildPool(profile as CompanionProfile),
       };
     }
 
