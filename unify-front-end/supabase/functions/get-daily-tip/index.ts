@@ -1,11 +1,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { callOpenRouter } from '../_shared/openrouter.ts';
 
 // ============================================================================
 // CONFIG
 // ============================================================================
-
-const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
 
 const STAGE_DESCRIPTIONS: Record<string, string> = {
   '0': 'pre-arrival or just arrived (0-1 months)',
@@ -208,41 +207,24 @@ function parseGeminiTipResponse(rawText: string): GeneratedTip | null {
   }
 }
 
-async function callGemini(
-  prompt: string,
-  geminiApiKey: string
-): Promise<string | null> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+async function callTipModel(prompt: string): Promise<string | null> {
+  const result = await callOpenRouter({
+    messages: [{ role: 'user', content: prompt }],
+    maxTokens: 300,
+    temperature: 0.8,
+    jsonMode: true,
+    timeoutMs: 20000,
+    retries: 1,
+    retryDelayMs: 500,
+    appName: 'Unify — get-daily-tip',
+  });
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 300, temperature: 0.8 },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      return null;
-    }
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
-  } catch (error) {
-    console.error('Gemini call failed:', error);
+  if (!result.ok) {
+    console.error('OpenRouter call failed:', result.message);
     return null;
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  return result.content;
 }
 
 // ============================================================================
@@ -262,9 +244,8 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: 'Missing Supabase env vars' }, 500);
   }
 
-  const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-  if (!geminiApiKey) {
-    return jsonResponse({ error: 'Missing GEMINI_API_KEY' }, 500);
+  if (!Deno.env.get('OPENROUTER_API_KEY')) {
+    return jsonResponse({ error: 'Missing OPENROUTER_API_KEY' }, 500);
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
@@ -342,7 +323,7 @@ Deno.serve(async (req: Request) => {
       arrival_date: profile?.arrival_date || null,
     };
     const prompt = buildGeminiPrompt(userProfile, today);
-    let rawText = await callGemini(prompt, geminiApiKey);
+    let rawText = await callTipModel(prompt);
     let tip = rawText ? parseGeminiTipResponse(rawText) : null;
 
     // Retry once on failure
@@ -350,7 +331,7 @@ Deno.serve(async (req: Request) => {
       console.warn(
         `[${persona}/${stage}] First attempt failed, retrying once`
       );
-      rawText = await callGemini(prompt, geminiApiKey);
+      rawText = await callTipModel(prompt);
       tip = rawText ? parseGeminiTipResponse(rawText) : null;
     }
 

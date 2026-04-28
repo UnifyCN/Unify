@@ -2,10 +2,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
-import {
-  captureAiGeneration,
-  computeGeminiCost,
-} from '../_shared/posthogCapture.ts';
+import { callOpenRouter } from '../_shared/openrouter.ts';
+import { captureAiGeneration } from '../_shared/posthogCapture.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -245,11 +243,7 @@ async function resolveAuthenticatedUserId(
  * Classifies the user query to determine routing.
  * Runs BEFORE embeddings/RAG to avoid unnecessary vector searches for general queries.
  */
-async function classifyQuery(
-  prompt: string,
-  apiKey: string,
-  model: string
-): Promise<QueryType> {
+async function classifyQuery(prompt: string): Promise<QueryType> {
   const classifierSystemMessage = `You are a classifier. Given a user question, respond with exactly one label: immigration, newcomer_settlement, general, fact_check, or form_help. Do not explain, do not add text.
 
 Labels:
@@ -261,7 +255,7 @@ Labels:
 
 Examples:
 - "How do I apply for a work permit?" → immigration
-- "Where can I find ESL classes in Toronto?" → newcomer_settlement  
+- "Where can I find ESL classes in Toronto?" → newcomer_settlement
 - "What's the weather like today?" → general
 - "Am I eligible for PR?" → immigration
 - "How do I open a bank account in Canada?" → newcomer_settlement
@@ -279,53 +273,33 @@ Examples:
 - "I need help with my study permit application form" → form_help
 - "Tell me a joke" → general`;
 
-  try {
-    const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: `${classifierSystemMessage}\n\nUser question: ${prompt}`,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 15,
-            temperature: 0,
-          },
-        }),
-      },
-      { timeoutMs: 12000, retries: 1, retryDelayMs: 300 }
-    );
+  const result = await callOpenRouter({
+    messages: [
+      { role: 'system', content: classifierSystemMessage },
+      { role: 'user', content: prompt },
+    ],
+    maxTokens: 15,
+    temperature: 0,
+    timeoutMs: 12000,
+    retries: 1,
+    retryDelayMs: 300,
+    appName: 'Unify — rag-query classifier',
+  });
 
-    if (!response.ok) {
-      console.error('Classifier API error:', response.statusText);
-      return 'general'; // Fallback to general on error (safer)
-    }
-
-    const data = await response.json();
-    const result = data.candidates?.[0]?.content?.parts?.[0]?.text
-      ?.trim()
-      .toLowerCase();
-
-    console.log('Classifier result:', result);
-
-    if (result === 'immigration') return 'immigration';
-    if (result === 'newcomer_settlement') return 'newcomer_settlement';
-    if (result === 'fact_check') return 'fact_check';
-    if (result === 'form_help') return 'form_help';
+  if (!result.ok) {
+    // Fallback to general on error — safer than blocking the request entirely.
+    console.error('Classifier OpenRouter call failed:', result.message);
     return 'general';
-  } catch (error) {
-    console.error('Classifier error:', error);
-    return 'general'; // Fallback to general on error (safer)
   }
+
+  const label = result.content.trim().toLowerCase();
+  console.log('Classifier result:', label);
+
+  if (label === 'immigration') return 'immigration';
+  if (label === 'newcomer_settlement') return 'newcomer_settlement';
+  if (label === 'fact_check') return 'fact_check';
+  if (label === 'form_help') return 'form_help';
+  return 'general';
 }
 
 // ============================================================================
@@ -563,13 +537,11 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
-    if (!apiKey) {
-      throw new Error('Missing GEMINI_API_KEY');
+    if (!Deno.env.get('OPENROUTER_API_KEY')) {
+      throw new Error('Missing OPENROUTER_API_KEY');
     }
 
     // Initialize Supabase client
@@ -586,14 +558,12 @@ Deno.serve(async (req: Request) => {
       return userId;
     });
     const classifyStartedAt = performance.now();
-    const classifyPromise = classifyQuery(prompt.trim(), apiKey!, model).then(
-      queryType => {
-        stageTimings.classify_ms = Math.round(
-          performance.now() - classifyStartedAt
-        );
-        return queryType;
-      }
-    );
+    const classifyPromise = classifyQuery(prompt.trim()).then(queryType => {
+      stageTimings.classify_ms = Math.round(
+        performance.now() - classifyStartedAt
+      );
+      return queryType;
+    });
 
     const authenticatedUserId = await authPromise;
 
@@ -809,8 +779,8 @@ Deno.serve(async (req: Request) => {
 
     const conversationHistory = recentMessages.map(
       (msg: { message: string; role: 'user' | 'assistant' }) => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.message }],
+        role: msg.role === 'user' ? ('user' as const) : ('assistant' as const),
+        content: msg.message,
       })
     );
 
@@ -848,98 +818,81 @@ Deno.serve(async (req: Request) => {
     }
 
     // ========================================================================
-    // STEP 5: BUILD REQUEST AND CALL GEMINI
+    // STEP 5: BUILD REQUEST AND CALL OPENROUTER
     // ========================================================================
-    const contents = [...conversationHistory];
-    contents.push({
-      role: 'user',
-      parts: [{ text: prompt }],
-    });
+    const messagesForLlm = [
+      { role: 'system' as const, content: fullSystemInstruction },
+      ...conversationHistory,
+      { role: 'user' as const, content: prompt },
+    ];
 
-    const requestBody = {
-      systemInstruction: {
-        parts: [{ text: fullSystemInstruction }],
-      },
-      contents: contents,
-      generationConfig: {
-        maxOutputTokens: 1200,
-      },
-    };
-
-    console.log('Gemini API Request Details:');
-    console.log('- Model:', model);
+    console.log('OpenRouter Request Details:');
     console.log('- Query type:', queryType);
     console.log('- Has good KB hits:', hasGoodKBHits);
 
     const generationStartedAt = performance.now();
-    const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      },
-      { timeoutMs: 20000, retries: 2, retryDelayMs: 500 }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.statusText}`);
-    }
-
-    const geminiData = await response.json();
+    const llmResult = await callOpenRouter({
+      messages: messagesForLlm,
+      maxTokens: 1200,
+      timeoutMs: 25000,
+      retries: 1,
+      retryDelayMs: 500,
+      appName: 'Unify — AI Companion',
+    });
     stageTimings.generation_ms = Math.round(
       performance.now() - generationStartedAt
     );
 
-    // Extract answer from Gemini response
-    let rawAnswer = 'Sorry, I could not generate a response.';
-    if (geminiData.candidates?.[0]?.content?.parts?.[0]) {
-      rawAnswer = geminiData.candidates[0].content.parts[0].text.trim();
+    if (!llmResult.ok) {
+      // Surface upstream rate-limit / capacity issues as a 503 with a
+      // user-friendly message instead of a generic 500. The client
+      // detects 503 from this function and shows a "busy, try again"
+      // toast rather than an opaque error.
+      if (llmResult.retryable) {
+        logStageTimings('error');
+        return new Response(
+          JSON.stringify({
+            error:
+              'AI Companion is busy right now. Please try again in a minute.',
+            code: 'ai_companion_busy',
+          }),
+          {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      console.error('OpenRouter call failed:', llmResult.message);
+      throw new Error(llmResult.message);
     }
 
-    // Extract token usage from Gemini response
-    const usageMetadata = geminiData.usageMetadata;
-    const tokenUsage = usageMetadata
-      ? {
-          prompt_tokens: usageMetadata.promptTokenCount || 0,
-          completion_tokens: usageMetadata.candidatesTokenCount || 0,
-          total_tokens: usageMetadata.totalTokenCount || 0,
-        }
-      : undefined;
+    const rawAnswer = llmResult.content || 'Sorry, I could not generate a response.';
 
-    // Calculate estimated cost using shared pricing helper
-    let estimatedCostUsd: number | undefined;
-    if (tokenUsage) {
-      const cost = computeGeminiCost(
-        tokenUsage.prompt_tokens,
-        tokenUsage.completion_tokens,
-        model
-      );
-      estimatedCostUsd = cost.totalCost;
+    const tokenUsage = {
+      prompt_tokens: llmResult.usage.promptTokens,
+      completion_tokens: llmResult.usage.completionTokens,
+      total_tokens: llmResult.usage.totalTokens,
+    };
+    const estimatedCostUsd = llmResult.usage.costUsd;
 
-      // Send $ai_generation event to PostHog LLM analytics
-      captureAiGeneration(effectiveUserId || 'anonymous', {
-        $ai_model: model,
-        $ai_provider: 'google',
-        $ai_input_tokens: tokenUsage.prompt_tokens,
-        $ai_output_tokens: tokenUsage.completion_tokens,
-        $ai_total_tokens: tokenUsage.total_tokens,
-        $ai_input_cost_usd: cost.inputCost,
-        $ai_output_cost_usd: cost.outputCost,
-        $ai_total_cost_usd: cost.totalCost,
-        $ai_trace_id: conversationIdentifier || undefined,
-        // Custom properties for filtering
-        feature: 'ai_companion',
-        query_type: queryType,
-        has_sources: sources.length > 0,
-        response_time_ms: stageTimings.generation_ms,
-      });
-    }
+    // Send $ai_generation event to PostHog LLM analytics
+    captureAiGeneration(effectiveUserId || 'anonymous', {
+      $ai_model: llmResult.model,
+      $ai_provider: llmResult.provider,
+      $ai_input_tokens: tokenUsage.prompt_tokens,
+      $ai_output_tokens: tokenUsage.completion_tokens,
+      $ai_total_tokens: tokenUsage.total_tokens,
+      $ai_total_cost_usd: estimatedCostUsd,
+      $ai_trace_id: conversationIdentifier || undefined,
+      // Custom properties for filtering
+      feature: 'ai_companion',
+      query_type: queryType,
+      has_sources: sources.length > 0,
+      response_time_ms: stageTimings.generation_ms,
+    });
 
     // Store token usage outside the response critical path.
-    if (effectiveUserId && tokenUsage) {
+    if (effectiveUserId && tokenUsage.total_tokens > 0) {
       scheduleBackgroundTask(
         persistChatbotUsage(
           supabase,

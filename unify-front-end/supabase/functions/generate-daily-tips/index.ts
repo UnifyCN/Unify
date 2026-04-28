@@ -2,10 +2,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
-import {
-  captureAiGeneration,
-  computeGeminiCost,
-} from '../_shared/posthogCapture.ts';
+import { callOpenRouter } from '../_shared/openrouter.ts';
+import { captureAiGeneration } from '../_shared/posthogCapture.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -231,48 +229,41 @@ async function searchKnowledgeBase(
   }
 }
 
-async function callGemini(
-  prompt: string,
-  geminiApiKey: string,
-  model: string
-): Promise<{ text: string; usage: any } | null> {
-  try {
-    const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 300,
-            temperature: 0.8,
-          },
-        }),
-      },
-      { timeoutMs: 20000, retries: 2, retryDelayMs: 500 }
-    );
+interface LlmCallResult {
+  text: string;
+  model: string;
+  provider: string;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    costUsd?: number;
+  };
+}
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      return null;
-    }
+async function callTipModel(prompt: string): Promise<LlmCallResult | null> {
+  const result = await callOpenRouter({
+    messages: [{ role: 'user', content: prompt }],
+    maxTokens: 300,
+    temperature: 0.8,
+    jsonMode: true,
+    timeoutMs: 20000,
+    retries: 2,
+    retryDelayMs: 500,
+    appName: 'Unify — generate-daily-tips',
+  });
 
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (!text) return null;
-
-    return { text, usage: data.usageMetadata };
-  } catch (error) {
-    console.error('Gemini call failed:', error);
+  if (!result.ok) {
+    console.error('OpenRouter call failed:', result.message);
     return null;
   }
+
+  return {
+    text: result.content,
+    model: result.model,
+    provider: result.provider,
+    usage: result.usage,
+  };
 }
 
 async function generateTipForCohort(
@@ -280,9 +271,7 @@ async function generateTipForCohort(
   persona: string,
   stage: string,
   date: string,
-  openaiApiKey: string | null,
-  geminiApiKey: string,
-  model: string
+  openaiApiKey: string | null
 ): Promise<{ success: boolean; persona: string; stage: string }> {
   const cohortKey = `${persona}/${stage}`;
 
@@ -299,22 +288,22 @@ async function generateTipForCohort(
     }
   }
 
-  // Step 2: Generate tip via Gemini
+  // Step 2: Generate tip via OpenRouter
   const prompt = buildGeminiPrompt(persona, stage, date, kbContext);
-  const geminiResult = await callGemini(prompt, geminiApiKey, model);
+  const llmResult = await callTipModel(prompt);
 
-  if (!geminiResult) {
-    console.error(`[${cohortKey}] Gemini call failed`);
+  if (!llmResult) {
+    console.error(`[${cohortKey}] LLM call failed`);
     return { success: false, persona, stage };
   }
 
   // Step 3: Parse response
-  let tip = parseGeminiTipResponse(geminiResult.text);
+  let tip = parseGeminiTipResponse(llmResult.text);
 
   // Retry once on parse failure
   if (!tip) {
     console.warn(`[${cohortKey}] Parse failed, retrying once`);
-    const retryResult = await callGemini(prompt, geminiApiKey, model);
+    const retryResult = await callTipModel(prompt);
     if (retryResult) {
       tip = parseGeminiTipResponse(retryResult.text);
     }
@@ -346,27 +335,18 @@ async function generateTipForCohort(
   }
 
   // Step 5: PostHog tracking
-  if (geminiResult.usage) {
-    const cost = computeGeminiCost(
-      geminiResult.usage.promptTokenCount || 0,
-      geminiResult.usage.candidatesTokenCount || 0,
-      model
-    );
-    captureAiGeneration(`system:daily-tips:${cohortKey}`, {
-      $ai_model: model,
-      $ai_provider: 'google',
-      $ai_input_tokens: geminiResult.usage.promptTokenCount || 0,
-      $ai_output_tokens: geminiResult.usage.candidatesTokenCount || 0,
-      $ai_total_tokens: geminiResult.usage.totalTokenCount || 0,
-      $ai_input_cost_usd: cost.inputCost,
-      $ai_output_cost_usd: cost.outputCost,
-      $ai_total_cost_usd: cost.totalCost,
-      feature: 'daily_tips',
-      persona,
-      stage,
-      category: tip.category,
-    });
-  }
+  captureAiGeneration(`system:daily-tips:${cohortKey}`, {
+    $ai_model: llmResult.model,
+    $ai_provider: llmResult.provider,
+    $ai_input_tokens: llmResult.usage.promptTokens,
+    $ai_output_tokens: llmResult.usage.completionTokens,
+    $ai_total_tokens: llmResult.usage.totalTokens,
+    $ai_total_cost_usd: llmResult.usage.costUsd,
+    feature: 'daily_tips',
+    persona,
+    stage,
+    category: tip.category,
+  });
 
   console.log(`[${cohortKey}] Generated tip: "${tip.title}" (${tip.category})`);
   return { success: true, persona, stage };
@@ -394,10 +374,9 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
+    if (!Deno.env.get('OPENROUTER_API_KEY')) {
       return new Response(
-        JSON.stringify({ error: 'GEMINI_API_KEY not configured' }),
+        JSON.stringify({ error: 'OPENROUTER_API_KEY not configured' }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json' },
@@ -412,7 +391,6 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
     const today = new Date().toISOString().split('T')[0]; // UTC date
 
     // Build cohort matrix
@@ -433,15 +411,7 @@ Deno.serve(async (req: Request) => {
       const batch = cohorts.slice(i, i + BATCH_SIZE);
       const results = await Promise.all(
         batch.map(({ persona, stage }) =>
-          generateTipForCohort(
-            supabase,
-            persona,
-            stage,
-            today,
-            openaiApiKey,
-            geminiApiKey,
-            model
-          )
+          generateTipForCohort(supabase, persona, stage, today, openaiApiKey)
         )
       );
 
