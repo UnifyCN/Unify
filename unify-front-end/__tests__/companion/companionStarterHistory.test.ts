@@ -50,4 +50,26 @@ describe('companionStarterHistory', () => {
     const ids = await getSeenStarterIds();
     expect(ids.size).toBe(0);
   });
+
+  it('serializes concurrent marks so no updates are lost', async () => {
+    await Promise.all([
+      markStarterSeen('a'),
+      markStarterSeen('b'),
+      markStarterSeen('c'),
+      markStarterSeen('d'),
+      markStarterSeen('e'),
+    ]);
+    const ids = await getSeenStarterIds();
+    expect(Array.from(ids).sort()).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
+  it('orders a clear after preceding concurrent marks', async () => {
+    await Promise.all([
+      markStarterSeen('a'),
+      markStarterSeen('b'),
+      clearSeenStarterIds(),
+    ]);
+    const ids = await getSeenStarterIds();
+    expect(ids.size).toBe(0);
+  });
 });
