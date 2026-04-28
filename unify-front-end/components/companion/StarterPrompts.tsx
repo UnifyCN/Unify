@@ -1,5 +1,5 @@
 // components/companion/StarterPrompts.tsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,15 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import type { PersonalizedStarter } from '@/hooks/companion/usePersonalizedStarters';
+import {
+  getSeenStarterIds,
+  markStarterSeen,
+  clearSeenStarterIds,
+} from '@/utils/companionStarterHistory';
 
 interface StarterPromptsProps {
   onPromptSelect: (prompt: string, mode?: string) => void;
@@ -82,12 +88,109 @@ const selectRandomTopicStarters = (): StaticCard[] => {
   return selected;
 };
 
+const EMPTY_POOL: PersonalizedStarter[] = [];
+const VISIBLE_SLOTS = 3;
+
+function pickInitial(
+  pool: PersonalizedStarter[],
+  seen: Set<string>
+): PersonalizedStarter[] {
+  if (pool.length === 0) return [];
+  const unseen = pool.filter(s => !seen.has(s.id));
+  if (unseen.length >= VISIBLE_SLOTS) return unseen.slice(0, VISIBLE_SLOTS);
+  // Pool smaller than VISIBLE_SLOTS — render whatever is available.
+  // (When pool >= VISIBLE_SLOTS but unseen < VISIBLE_SLOTS, the caller
+  // clears seen storage before invoking this, so we never land here in that case.)
+  return pool.slice(0, Math.min(pool.length, VISIBLE_SLOTS));
+}
+
+function pickReplacement(
+  pool: PersonalizedStarter[],
+  displayedIds: Set<string>,
+  seen: Set<string>,
+  tappedId: string
+): PersonalizedStarter | null {
+  if (pool.length === 0) return null;
+  const isCandidate = (s: PersonalizedStarter) =>
+    !displayedIds.has(s.id) && !seen.has(s.id) && s.id !== tappedId;
+
+  let next = pool.find(isCandidate);
+  if (next) return next;
+
+  // Exhausted relative to seen — caller should clear seen storage; here pick from pool excluding displayed + tapped.
+  next = pool.find(s => !displayedIds.has(s.id) && s.id !== tappedId);
+  return next ?? null;
+}
+
 export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   onPromptSelect,
   personalizedStarters,
 }) => {
   const topicStarters = useMemo(() => selectRandomTopicStarters(), []);
-  const personalized = personalizedStarters ?? [];
+  // Stable pool ref: same array reference unless the input genuinely changed.
+  // personalizedStarters from React Query is referentially stable across renders
+  // when data hasn't changed, so this useMemo only re-fires on real updates.
+  const pool = useMemo(
+    () => personalizedStarters ?? EMPTY_POOL,
+    [personalizedStarters]
+  );
+  const [displayed, setDisplayed] = useState<PersonalizedStarter[]>([]);
+  const seenIdsRef = useRef<Set<string>>(new Set());
+
+  // Hydrate seenIds + initial 3 whenever the pool changes (mount, profile edit, etc.).
+  useEffect(() => {
+    if (pool.length === 0) {
+      setDisplayed([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      let seen = await getSeenStarterIds();
+      const unseen = pool.filter(s => !seen.has(s.id));
+      if (unseen.length < VISIBLE_SLOTS && pool.length >= VISIBLE_SLOTS) {
+        await clearSeenStarterIds();
+        seen = new Set();
+      }
+      if (cancelled) return;
+      seenIdsRef.current = seen;
+      setDisplayed(pickInitial(pool, seen));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pool]);
+
+  const handlePersonalizedPress = useCallback(
+    async (starter: PersonalizedStarter, slotIndex: number) => {
+      onPromptSelect(starter.prompt);
+
+      // Persist; fire-and-forget.
+      void markStarterSeen(starter.id);
+      seenIdsRef.current.add(starter.id);
+
+      const displayedIds = new Set(displayed.map(s => s.id));
+      let next = pickReplacement(pool, displayedIds, seenIdsRef.current, starter.id);
+
+      // If pool is exhausted relative to seen, clear and try once more.
+      if (!next) {
+        const fallback = pool.find(s => !displayedIds.has(s.id) && s.id !== starter.id);
+        if (fallback) {
+          await clearSeenStarterIds();
+          seenIdsRef.current = new Set();
+          next = fallback;
+        }
+      }
+
+      if (!next) return; // pool too small to swap; leave the chip in place.
+
+      setDisplayed(current => {
+        const copy = [...current];
+        copy[slotIndex] = next!;
+        return copy;
+      });
+    },
+    [displayed, pool, onPromptSelect]
+  );
 
   return (
     <View style={styles.container}>
@@ -96,22 +199,27 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {personalized.map(starter => (
-          <TouchableOpacity
+        {displayed.map((starter, index) => (
+          <Animated.View
             key={starter.id}
-            style={[styles.card, styles.cardPersonalized]}
-            onPress={() => onPromptSelect(starter.prompt)}
-            activeOpacity={0.8}
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(150)}
           >
-            <View style={styles.cardHeader}>
-              <View style={[styles.iconBadge, { backgroundColor: starter.iconBackground }]}>
-                <Feather name={starter.iconName as keyof typeof Feather.glyphMap} size={16} color={Theme.white} />
+            <TouchableOpacity
+              style={[styles.card, styles.cardPersonalized]}
+              onPress={() => handlePersonalizedPress(starter, index)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardHeader}>
+                <View style={[styles.iconBadge, { backgroundColor: starter.iconBackground }]}>
+                  <Feather name={starter.iconName as keyof typeof Feather.glyphMap} size={16} color={Theme.white} />
+                </View>
+                <Text style={styles.cardLabel} numberOfLines={1}>{starter.category}</Text>
+                <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
               </View>
-              <Text style={styles.cardLabel} numberOfLines={1}>{starter.category}</Text>
-              <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
-            </View>
-            <Text style={styles.cardDescription} numberOfLines={3}>{starter.prompt}</Text>
-          </TouchableOpacity>
+              <Text style={styles.cardDescription} numberOfLines={3}>{starter.prompt}</Text>
+            </TouchableOpacity>
+          </Animated.View>
         ))}
 
         {[...MODE_CARDS, ...topicStarters].map(card => (
