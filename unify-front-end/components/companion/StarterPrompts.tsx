@@ -96,12 +96,12 @@ function pickInitial(
   seen: Set<string>
 ): PersonalizedStarter[] {
   if (pool.length === 0) return [];
-  const unseen = pool.filter(s => !seen.has(s.id));
-  if (unseen.length >= VISIBLE_SLOTS) return unseen.slice(0, VISIBLE_SLOTS);
-  // Pool smaller than VISIBLE_SLOTS — render whatever is available.
-  // (When pool >= VISIBLE_SLOTS but unseen < VISIBLE_SLOTS, the caller
-  // clears seen storage before invoking this, so we never land here in that case.)
-  return pool.slice(0, Math.min(pool.length, VISIBLE_SLOTS));
+  // Render up to VISIBLE_SLOTS unseen chips. When fewer unseen remain than
+  // slots, the personalized section shrinks gracefully — the user sees a 1-
+  // or 2-chip section signalling they've explored most of their personalized
+  // prompts. The mount-time effect resets `seen` only when zero unseen remain,
+  // so we never need to fall back to seen entries here.
+  return pool.filter(s => !seen.has(s.id)).slice(0, VISIBLE_SLOTS);
 }
 
 function pickReplacement(
@@ -146,8 +146,12 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
     let cancelled = false;
     (async () => {
       let seen = await getSeenStarterIds();
-      const unseen = pool.filter(s => !seen.has(s.id));
-      if (unseen.length < VISIBLE_SLOTS && pool.length >= VISIBLE_SLOTS) {
+      // Reset seen history only when the user has tapped through the entire
+      // pool — otherwise a partial reset would resurface chips they tapped
+      // recently. When unseen is between 1 and VISIBLE_SLOTS-1 we render
+      // fewer chips rather than padding the slots with already-tapped ones.
+      const hasUnseen = pool.some(s => !seen.has(s.id));
+      if (!hasUnseen) {
         await clearSeenStarterIds();
         seen = new Set();
       }
