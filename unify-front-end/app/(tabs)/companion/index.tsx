@@ -43,6 +43,8 @@ import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarters';
+import { AICompanionBusyError } from '@/utils/gemini';
+import { useToast } from '@/context/ToastContext';
 
 const MESSAGE_LIMIT = 3;
 const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
@@ -79,6 +81,7 @@ export default function CompanionScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const { showToast } = useToast();
   const { height: kbHeight, progress: kbProgress } =
     useReanimatedKeyboardAnimation();
   const bottomAnimatedStyle = useAnimatedStyle(() => {
@@ -285,6 +288,9 @@ export default function CompanionScreen() {
         ) {
           setInputText(textToSend);
         }
+        if (error instanceof AICompanionBusyError) {
+          showToast(error.message);
+        }
       }
     },
     [
@@ -295,6 +301,7 @@ export default function CompanionScreen() {
       trackCompanionMessageSent,
       currentConversationId,
       setOptimisticMessages,
+      showToast,
     ]
   );
 
