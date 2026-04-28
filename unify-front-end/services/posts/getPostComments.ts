@@ -21,6 +21,7 @@ export const getPostComments = async (
         `
       )
       .eq('post_id', Number(postId))
+      .order('parent_comment_id', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: false });
 
     if (error) throw error;
