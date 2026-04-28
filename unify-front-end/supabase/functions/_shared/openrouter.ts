@@ -116,8 +116,11 @@ export async function callOpenRouter(
     'Content-Type': 'application/json',
     Authorization: `Bearer ${apiKey}`,
   };
-  if (options.appUrl) headers['HTTP-Referer'] = options.appUrl;
-  if (options.appName) headers['X-Title'] = options.appName;
+  // HTTP header values must be valid ByteString (≤ U+00FF). Replace any
+  // higher code points (em-dash, smart quotes, emoji, etc.) with '-' so
+  // a caller passing a stylized appName doesn't crash request construction.
+  if (options.appUrl) headers['HTTP-Referer'] = toByteString(options.appUrl);
+  if (options.appName) headers['X-Title'] = toByteString(options.appName);
 
   try {
     const response = await fetchWithRetry(
@@ -206,4 +209,10 @@ export async function callOpenRouter(
 function extractProviderFromModel(model: string): string {
   const slash = model.indexOf('/');
   return slash > 0 ? model.slice(0, slash) : 'openrouter';
+}
+
+/** Replace any code point > U+00FF with '-' so the string is a valid HTTP header value. */
+function toByteString(value: string): string {
+  // eslint-disable-next-line no-control-regex
+  return value.replace(/[^\x00-\xff]/g, '-');
 }
