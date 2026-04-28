@@ -376,7 +376,7 @@ export default function ChecklistScreen() {
 
   return (
     <View style={styles.container}>
-      <TabHeader variant="minimal" />
+      <TabHeader variant='minimal' />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

@@ -68,7 +68,6 @@ const GroupDetailScreen = () => {
         setIsMember(null);
         hasTrackedView.current = false;
       } catch (error) {
-        console.error('Failed to parse group data:', error);
       }
     } else {
       // Clear stale data when group param is removed so init effect can fetch by groupName
@@ -331,6 +330,17 @@ const GroupDetailScreen = () => {
                 {groupData.memberCount}{' '}
                 {groupData.memberCount === 1 ? 'member' : 'members'}
               </Text>
+
+              <View style={styles.metadataGap} />
+
+              {groupData.social_proof?.label ?? groupData.social_proof?.count ? (
+                <View style={styles.socialProofBadge}>
+                  <Text style={styles.socialProofBadgeText}>
+                    {groupData.social_proof?.label ?? `+${groupData.social_proof?.count}`}
+                  </Text>
+                </View>
+              ) : null}
+
               {isMember && (
                 <View style={styles.memberBadge}>
                   <Feather name='check-circle' size={14} color='#4CAF50' />
@@ -528,6 +538,24 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginTop: 40,
+  },
+  socialProofBadge: {
+    marginLeft: 12,
+    backgroundColor: Theme.primaryGatherRed,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    minWidth: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  socialProofBadgeText: {
+    color: Theme.white,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  metadataGap: {
+    flex: 1, 
   },
 });
 

@@ -10,6 +10,7 @@ export const getAvailableGroups = async (): Promise<Group[]> => {
       throw new Error('User not authenticated');
     }
 
+    console.log('calling getAvailableGroups');
     // First, get all the group IDs the user is already a member of
     const { data: membershipData, error: membershipError } = await supabase
       .from('group_members')

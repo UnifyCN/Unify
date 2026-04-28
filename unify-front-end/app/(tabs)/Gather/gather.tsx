@@ -24,6 +24,8 @@ import { useAnalytics } from '@/utils/analytics';
 import RequestGroupModal from '@/components/groups/RequestGroupModal';
 import { getProfilePictureUrl } from '@/services/s3/uploadProfilePicture';
 import { Theme } from '@/constants/Theme';
+import { getPersonalizedGroups } from '@/services/groups/getPersonalizedGroups';
+import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 
 const GROUP_CARD_GAP = 12;
 const SECTION_HORIZONTAL_PADDING = 20;
@@ -89,9 +91,20 @@ const GroupDiscoveryCard = memo(
           <GroupCoverImage group={group} />
         </View>
         <View style={styles.discoveryTextWrap}>
-          <Text style={styles.discoveryCardTitle} numberOfLines={2}>
-            {group.name}
-          </Text>
+          <View style={styles.discoveryTopRow}>
+            <Text style={styles.discoveryCardTitle} numberOfLines={1}>
+              {group.name}
+            </Text>
+            {group.why_tag? (
+              <>
+                <Text style={styles.whySeparator}>|</Text>
+                <Text style={styles.discoveryCardWhy} numberOfLines={1}>
+                  {group.why_tag}
+                </Text>
+              </>
+            ) : null}
+          </View>
+
           <Text style={styles.discoveryCardDescription} numberOfLines={2}>
             {description}
           </Text>
@@ -108,6 +121,7 @@ const GroupDiscoverySkeleton = () => {
       <View style={styles.skeletonThumb} />
       <View style={styles.discoveryTextWrap}>
         <View style={styles.skeletonTitle} />
+        <View style={styles.skeletonWhy} />
         <View style={styles.skeletonSubtitle} />
       </View>
     </View>
@@ -121,10 +135,38 @@ const GroupsForYouSection = () => {
   const contentWidth = screenWidth - SECTION_HORIZONTAL_PADDING * 2;
   const columnWidth = Math.min(contentWidth, 420);
 
-  const { data: groups, isLoading } = useQuery({
-    queryKey: ['available-groups'],
-    queryFn: getAvailableGroups,
+  const { data: groups, isLoading } = useQuery<Group[], Error>({
+    queryKey: ['personalize', 'groups'],
+    queryFn: async () => {
+      try {
+        const personalized = await getPersonalizedGroups();
+        // Extra safety: exclude already-joined groups client-side
+        let joined: Group[] = [];
+        try {
+          joined = await getUserJoinedGroups();
+        } catch (e) {
+          console.warn('Failed to fetch joined groups for filtering', e);
+        }
+        const joinedIds = new Set(joined.map(g => g.id));
+
+        const filtered = (personalized || []).filter(g => !joinedIds.has(g.id));
+
+        // Ensure score-descending order
+        filtered.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+        return filtered;
+      } catch (err) {
+        console.warn(
+          'Personalize failed — falling back to available groups',
+          err
+        );
+        return getAvailableGroups();
+      }
+    },
+    staleTime: 1000 * 60 * 15, // 15 minutes
+    refetchOnWindowFocus: false,
   });
+
   const featuredGroups = (groups ?? []).slice(0, 10);
   const groupedColumns = featuredGroups.reduce<Group[][]>(
     (acc, group, index) => {
@@ -407,11 +449,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   discoveryCardTitle: {
-    fontSize: 14,
+    fontSize: 12,
     lineHeight: 20,
     fontWeight: '600',
     color: Theme.black,
     marginBottom: 2,
+  },
+  discoveryCardWhy: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '400',
+    color: Theme.primaryGatherRed,
   },
   discoveryCardDescription: {
     fontSize: 14,
@@ -459,10 +507,26 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#E9E9E9',
   },
+  skeletonWhy: {
+    marginTop: 8,
+    width: '92%',
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Theme.primaryGatherRed,
+  },
   cardSpacer: {
     height: GROUP_CARD_HEIGHT,
   },
   pressed: {
     opacity: 0.8,
+  },
+  discoveryTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  whySeparator: {
+    fontSize: 12,
+    color: '#6A6A6A',
   },
 });

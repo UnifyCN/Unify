@@ -1,11 +1,23 @@
-import { getAllGroups } from '@/services/groups/getAllGroups';
 import { useQuery } from '@tanstack/react-query';
+import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
+import { getPersonalizedGroups } from '@/services/groups/getPersonalizedGroups';
+import type { Group } from '@/types/groups';
 
 export const useGroups = () => {
-  return useQuery({
-    queryKey: ['groups'],
-    queryFn: () => getAllGroups(),
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    gcTime: 1000 * 60 * 5, // 5 minutes
+  return useQuery<Group[], Error>({
+    queryKey: ['personalize', 'groups'],
+    queryFn: async () => {
+      try {
+        return await getPersonalizedGroups();
+      } catch (err) {
+        console.warn(
+          'Personalize failed — falling back to available groups',
+          err
+        );
+        return getAvailableGroups();
+      }
+    },
+    staleTime: 1000 * 60 * 15,
+    refetchOnWindowFocus: false,
   });
 };

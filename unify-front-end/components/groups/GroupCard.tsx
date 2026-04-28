@@ -10,6 +10,8 @@ interface GroupCardProps {
 }
 
 const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
+  const socialLabel = group.social_proof?.label ?? null;
+  const whyTag = group.why_tag ?? null;
   return (
     <TouchableOpacity style={[styles.groupCard]} onPress={onPress}>
       <View style={styles.imageContainer}>
@@ -26,6 +28,11 @@ const GroupCard = memo(({ group, onPress }: GroupCardProps) => {
         <Text style={styles.groupDetailText} numberOfLines={2}>
           {group.description ?? ''}
         </Text>
+        {socialLabel && (
+          <View style={styles.socialProofPill}>
+            <Text style={styles.socialProofText}>{socialLabel}</Text>
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -71,6 +78,18 @@ const styles = StyleSheet.create({
     marginTop: 2,
     color: Theme.black,
     flex: 1,
+  },
+  socialProofPill: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+    backgroundColor: '#f1f6ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  socialProofText: {
+    fontSize: 12,
+    color: Theme.primaryGatherRed,
   },
 });
 
