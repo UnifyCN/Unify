@@ -287,9 +287,13 @@ Examples:
   });
 
   if (!result.ok) {
-    // Fallback to general on error — safer than blocking the request entirely.
+    // Fall back to 'immigration' on classifier failure — for an immigration-
+    // help app, that's the safest default: it triggers RAG grounding and the
+    // immigration system prompt with disclaimer/guardrails. A 'general'
+    // fallback would skip RAG and the disclaimer for a query that may well
+    // have been about immigration.
     console.error('Classifier OpenRouter call failed:', result.message);
-    return 'general';
+    return 'immigration';
   }
 
   const label = result.content.trim().toLowerCase();

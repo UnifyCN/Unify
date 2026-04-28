@@ -297,15 +297,21 @@ async function generateTipForCohort(
     return { success: false, persona, stage };
   }
 
-  // Step 3: Parse response
+  // Step 3: Parse response — track which call's text actually produced
+  // the tip so analytics reflect the correct model/usage.
   let tip = parseGeminiTipResponse(llmResult.text);
+  let effectiveResult: LlmCallResult = llmResult;
 
   // Retry once on parse failure
   if (!tip) {
     console.warn(`[${cohortKey}] Parse failed, retrying once`);
     const retryResult = await callTipModel(prompt);
     if (retryResult) {
-      tip = parseGeminiTipResponse(retryResult.text);
+      const retryTip = parseGeminiTipResponse(retryResult.text);
+      if (retryTip) {
+        tip = retryTip;
+        effectiveResult = retryResult;
+      }
     }
   }
 
@@ -334,14 +340,14 @@ async function generateTipForCohort(
     return { success: false, persona, stage };
   }
 
-  // Step 5: PostHog tracking
+  // Step 5: PostHog tracking — attribute to the call that produced the tip
   captureAiGeneration(`system:daily-tips:${cohortKey}`, {
-    $ai_model: llmResult.model,
-    $ai_provider: llmResult.provider,
-    $ai_input_tokens: llmResult.usage.promptTokens,
-    $ai_output_tokens: llmResult.usage.completionTokens,
-    $ai_total_tokens: llmResult.usage.totalTokens,
-    $ai_total_cost_usd: llmResult.usage.costUsd,
+    $ai_model: effectiveResult.model,
+    $ai_provider: effectiveResult.provider,
+    $ai_input_tokens: effectiveResult.usage.promptTokens,
+    $ai_output_tokens: effectiveResult.usage.completionTokens,
+    $ai_total_tokens: effectiveResult.usage.totalTokens,
+    $ai_total_cost_usd: effectiveResult.usage.costUsd,
     feature: 'daily_tips',
     persona,
     stage,

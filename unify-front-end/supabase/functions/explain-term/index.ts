@@ -108,10 +108,12 @@ Deno.serve(async req => {
 
     if (!llmResult.ok) {
       console.error('explain-term OpenRouter call failed:', llmResult.message);
-      // Surface upstream rate-limit / capacity errors as 503 so callers can
-      // distinguish "busy" from a hard failure; everything else falls back
-      // to the existing 502 contract.
-      const status = llmResult.retryable ? 503 : 502;
+      // Preserve upstream timeouts (504); surface rate-limit / capacity
+      // failures as 503 so callers can distinguish "busy" from a hard
+      // failure; everything else falls back to the existing 502 contract.
+      let status = 502;
+      if (llmResult.status === 504) status = 504;
+      else if (llmResult.retryable) status = 503;
       return jsonResponse({ error: 'AI service unavailable' }, status);
     }
 
