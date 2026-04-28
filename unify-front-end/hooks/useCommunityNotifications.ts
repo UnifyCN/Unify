@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useId } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useCurrentUser } from '@/context/UserContext';
@@ -22,6 +22,7 @@ const unreadCountQueryKey = (userId: string | undefined) => [
 export function useCommunityNotifications() {
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
+  const instanceId = useId();
 
   const {
     data: notifications = [],
@@ -46,30 +47,27 @@ export function useCommunityNotifications() {
 
   // Set up realtime subscription for new notifications
   useEffect(() => {
-    const userId = currentUser?.id;
-    if (!userId) {
+    if (!currentUser) {
       return;
     }
 
     const channel = supabase
-      .channel(
-        `community-notifications-${userId}-${Math.random().toString(36).slice(2, 10)}`
-      )
+      .channel(`community-notifications-${currentUser.id}-${instanceId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'community_notifications',
-          filter: `user_id=eq.${userId}`,
+          filter: `user_id=eq.${currentUser.id}`,
         },
         () => {
           // Refetch notifications when a new one arrives
           queryClient.invalidateQueries({
-            queryKey: notificationsQueryKey(userId),
+            queryKey: notificationsQueryKey(currentUser.id),
           });
           queryClient.invalidateQueries({
-            queryKey: unreadCountQueryKey(userId),
+            queryKey: unreadCountQueryKey(currentUser.id),
           });
         }
       )
@@ -78,7 +76,7 @@ export function useCommunityNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser?.id, queryClient]);
+  }, [currentUser, queryClient, instanceId]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
@@ -134,6 +132,7 @@ export function useCommunityNotifications() {
 export function useUnreadNotificationCount() {
   const { currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
+  const instanceId = useId();
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: unreadCountQueryKey(currentUser?.id),
@@ -145,26 +144,23 @@ export function useUnreadNotificationCount() {
 
   // Set up realtime subscription for new notifications
   useEffect(() => {
-    const userId = currentUser?.id;
-    if (!userId) {
+    if (!currentUser) {
       return;
     }
 
     const channel = supabase
-      .channel(
-        `community-notifications-count-${userId}-${Math.random().toString(36).slice(2, 10)}`
-      )
+      .channel(`community-notifications-count-${currentUser.id}-${instanceId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'community_notifications',
-          filter: `user_id=eq.${userId}`,
+          filter: `user_id=eq.${currentUser.id}`,
         },
         () => {
           queryClient.invalidateQueries({
-            queryKey: unreadCountQueryKey(userId),
+            queryKey: unreadCountQueryKey(currentUser.id),
           });
         }
       )
@@ -173,7 +169,7 @@ export function useUnreadNotificationCount() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser?.id, queryClient]);
+  }, [currentUser, queryClient, instanceId]);
 
   return unreadCount;
 }
