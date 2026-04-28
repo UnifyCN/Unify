@@ -30,3 +30,6 @@ amplifyconfiguration*
 .env
 .env.local
 .env.*.local
+
+# Un-ignore __tests__ (overrides root .gitignore which ignores it globally)
+!__tests__/
