@@ -6,8 +6,8 @@
  * Meta, DeepSeek, etc.) plus an automatic fallback chain on per-upstream 429s.
  *
  * Models default to env vars so they can be tuned without redeploying:
- *   OPENROUTER_MODEL_PRIMARY    (default: google/gemini-2.5-flash)
- *   OPENROUTER_MODEL_FALLBACKS  (comma-separated; default: one free Gemini)
+ *   OPENROUTER_MODEL_PRIMARY    (default: deepseek/deepseek-v4-flash)
+ *   OPENROUTER_MODEL_FALLBACKS  (comma-separated; default: gemini-2.5-flash)
  *
  * The helper requests inline usage data so we get token counts AND a USD cost
  * straight from OpenRouter — no per-model rate table to maintain.
@@ -17,8 +17,8 @@ import { fetchWithRetry } from './fetchWithRetry.ts';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
-const DEFAULT_PRIMARY_MODEL = 'google/gemini-2.5-flash';
-const DEFAULT_FALLBACK_MODELS = ['google/gemini-2.0-flash-exp:free'];
+const DEFAULT_PRIMARY_MODEL = 'deepseek/deepseek-v4-flash';
+const DEFAULT_FALLBACK_MODELS = ['google/gemini-2.5-flash'];
 
 export type OpenRouterMessageRole = 'system' | 'user' | 'assistant';
 
