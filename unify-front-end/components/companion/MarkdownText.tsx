@@ -335,11 +335,16 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   bulletPoint: {
-    fontSize: 8,
+    // Match the body text's font + line metrics so the bullet sits on the
+    // first-line baseline. The previous fontSize:8 + marginTop:8 pair made
+    // the glyph render as a barely-visible dot floating above the text.
+    fontSize: 16,
     lineHeight: 26,
-    marginRight: 14,
-    marginTop: 8,
+    marginRight: 10,
     color: Theme.surfaceBlue,
+    fontWeight: '700',
+    textAlign: 'center',
+    minWidth: 10,
   },
   bulletText: {
     fontSize: 16,
