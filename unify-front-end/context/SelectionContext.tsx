@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, use, useState, useCallback } from 'react';
 import { Highlight } from '@/services/highlights/highlightService';
 
 export type SelectionMode = 'idle' | 'selecting' | 'selected';
@@ -110,7 +110,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <SelectionContext.Provider
+    <SelectionContext
       value={{
         selection,
         onWordLongPress,
@@ -120,7 +120,7 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </SelectionContext.Provider>
+    </SelectionContext>
   );
 }
 
@@ -129,11 +129,11 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
  * This allows SelectableText to render as plain text outside lesson pages.
  */
 export function useSelectionOptional(): SelectionContextType | null {
-  return useContext(SelectionContext) ?? null;
+  return use(SelectionContext) ?? null;
 }
 
 export function useSelection() {
-  const context = useContext(SelectionContext);
+  const context = use(SelectionContext);
   if (!context) {
     throw new Error('useSelection must be used within a SelectionProvider');
   }

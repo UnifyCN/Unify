@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, use, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import { useQueryClient } from '@tanstack/react-query';
@@ -97,7 +97,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       : null;
 
   return (
-    <UserContext.Provider
+    <UserContext
       value={{
         currentUser,
         isLoading: isLoading || !userId,
@@ -105,12 +105,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </UserContext.Provider>
+    </UserContext>
   );
 }
 
 export function useCurrentUser() {
-  const context = useContext(UserContext);
+  const context = use(UserContext);
   if (context === undefined) {
     throw new Error('useCurrentUser must be used within a UserProvider');
   }

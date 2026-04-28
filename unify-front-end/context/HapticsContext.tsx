@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, use, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HAPTICS_STORAGE_KEY = 'settings.hapticsEnabled';
@@ -42,16 +42,14 @@ export function HapticsProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <HapticsContext.Provider
-      value={{ hapticsEnabled, setHapticsEnabled, isLoaded }}
-    >
+    <HapticsContext value={{ hapticsEnabled, setHapticsEnabled, isLoaded }}>
       {children}
-    </HapticsContext.Provider>
+    </HapticsContext>
   );
 }
 
 export function useHapticsPreference() {
-  const context = useContext(HapticsContext);
+  const context = use(HapticsContext);
   if (context === undefined) {
     throw new Error(
       'useHapticsPreference must be used within a HapticsProvider'
