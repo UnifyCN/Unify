@@ -21,6 +21,8 @@ export const Theme = {
   surfaceBlue: '#5182C7',
   surfaceEventCard: '#F9F9F9',
 
+  mentionBlue: '#007AFF',
+
   backgroundChatbot: '#F3F2F2',
 
   imagePlaceholder: '#D3D3D3',
