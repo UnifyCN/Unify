@@ -2,7 +2,7 @@
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import {
   buildPool,
-  type OnboardingProfile as CompanionProfile,
+  type OnboardingProfile,
 } from '../_shared/companionTemplates.ts';
 
 const corsHeaders = {
@@ -10,17 +10,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type',
 };
-
-interface OnboardingProfile {
-  persona: string | null;
-  city: string | null;
-  province: string | null;
-  arrival_date: string | null;
-  stage: string | null;
-  goals: string[];
-  learning_interests: string[];
-  hobbies: string[];
-}
 
 // ─── Learn surface ────────────────────────────────────────────────────────────
 
@@ -247,7 +236,7 @@ Deno.serve(async (req: Request) => {
           interests: profile.learning_interests,
           hobbies: profile.hobbies,
         },
-        starters: buildPool(profile as CompanionProfile),
+        starters: buildPool(profile),
       };
     }
 
