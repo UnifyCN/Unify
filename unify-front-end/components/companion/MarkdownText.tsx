@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     marginRight: 10,
-    color: Theme.surfaceBlue,
+    color: '#000',
     fontWeight: '700',
     textAlign: 'center',
     minWidth: 10,
