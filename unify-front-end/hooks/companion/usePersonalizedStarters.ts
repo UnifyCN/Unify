@@ -33,7 +33,29 @@ const fetchPersonalizedStarters =
     const starters = data?.companion?.starters;
     if (!Array.isArray(starters) || starters.length === 0) return null;
 
-    return { starters: starters as PersonalizedStarter[] };
+    // Validate shape — if the deployed edge function still returns the
+    // legacy string[] payload, every entry will fail this check and we'll
+    // fall back to no personalized chips rather than rendering broken cards.
+    const valid = starters.filter(
+      (s): s is PersonalizedStarter =>
+        s != null &&
+        typeof s === 'object' &&
+        typeof (s as PersonalizedStarter).id === 'string' &&
+        typeof (s as PersonalizedStarter).category === 'string' &&
+        typeof (s as PersonalizedStarter).prompt === 'string' &&
+        typeof (s as PersonalizedStarter).iconBackground === 'string' &&
+        typeof (s as PersonalizedStarter).iconName === 'string' &&
+        typeof (s as PersonalizedStarter).priority === 'number'
+    );
+    if (valid.length === 0) {
+      console.warn(
+        '[usePersonalizedStarters] edge function returned legacy/invalid shape; ' +
+          'deploy the latest personalize function to enable personalized chips.'
+      );
+      return null;
+    }
+
+    return { starters: valid };
   };
 
 export const PERSONALIZED_STARTERS_QUERY_KEY = ['personalizedStarters', 'v2'] as const;
