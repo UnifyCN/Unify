@@ -1,8 +1,12 @@
+// hooks/companion/usePersonalizedStarters.ts
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import type { PersonalizedStarter } from '@/supabase/functions/_shared/companionTemplates';
 
-interface CompanionPersonalization {
-  starters: string[];
+export type { PersonalizedStarter };
+
+export interface CompanionPersonalization {
+  starters: PersonalizedStarter[];
 }
 
 const fetchPersonalizedStarters =
@@ -26,15 +30,18 @@ const fetchPersonalizedStarters =
     if (!response.ok) return null;
 
     const data = await response.json();
-    if (!data?.companion?.starters?.length) return null;
+    const starters = data?.companion?.starters;
+    if (!Array.isArray(starters) || starters.length === 0) return null;
 
-    return { starters: data.companion.starters };
+    return { starters: starters as PersonalizedStarter[] };
   };
+
+export const PERSONALIZED_STARTERS_QUERY_KEY = ['personalizedStarters', 'v2'] as const;
 
 export const usePersonalizedStarters = () => {
   return useQuery<CompanionPersonalization | null, Error>({
-    queryKey: ['personalizedStarters'],
+    queryKey: PERSONALIZED_STARTERS_QUERY_KEY,
     queryFn: fetchPersonalizedStarters,
-    staleTime: 5 * 60 * 1000, // 5 minutes — starters don't change often
+    staleTime: 5 * 60 * 1000,
   });
 };
