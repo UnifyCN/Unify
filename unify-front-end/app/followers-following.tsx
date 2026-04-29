@@ -58,7 +58,13 @@ const UserListItem = ({ user, currentUserId }: UserListItemProps) => {
         />
         <Text style={styles.username}>{user.username}</Text>
       </View>
-      {!isCurrentUser && <FollowButton targetUserId={user.id} compact={true} />}
+      {!isCurrentUser && (
+        <FollowButton
+          targetUserId={user.id}
+          compact={true}
+          source='followers_list'
+        />
+      )}
     </TouchableOpacity>
   );
 };

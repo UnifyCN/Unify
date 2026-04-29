@@ -219,6 +219,9 @@ export const PostItem = memo(
       trackPostSave,
       trackPostUnsave,
       trackPostCommentOpened,
+      trackPostDeleted,
+      trackPostPinned,
+      trackPostUnpinned,
     } = useAnalytics();
 
     // Use batch-loaded metadata (no individual queries needed)
@@ -368,17 +371,22 @@ export const PostItem = memo(
       : content;
 
     const handlePinPost = () => {
+      const wasPinned = post.isPinned ?? false;
       pinPostMutation.mutate(
-        { postId: post.id, isPinned: post.isPinned ?? false },
+        { postId: post.id, isPinned: wasPinned },
         {
           onSuccess: () => {
+            if (wasPinned) {
+              trackPostUnpinned(String(post.id));
+            } else {
+              trackPostPinned(String(post.id));
+            }
             setDeleteModalVisible(false);
           },
           onError: error => {
             Alert.alert(
               'Error',
-              error.message ||
-                `Failed to ${post.isPinned ? 'unpin' : 'pin'} post`
+              error.message || `Failed to ${wasPinned ? 'unpin' : 'pin'} post`
             );
           },
         }
@@ -470,6 +478,7 @@ export const PostItem = memo(
             onPress: () => {
               deletePostMutation.mutate(post.id, {
                 onSuccess: () => {
+                  trackPostDeleted(String(post.id));
                   setDeleteModalVisible(false);
                 },
                 onError: error => {

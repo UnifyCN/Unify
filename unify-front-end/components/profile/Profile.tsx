@@ -6,7 +6,8 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
-import { useState, memo, useCallback, useMemo } from 'react';
+import { useState, memo, useCallback, useMemo, useEffect } from 'react';
+import { useAnalytics } from '@/utils/analytics';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -74,6 +75,15 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const { blockMutation, unblockMutation } = useMutateBlockUser();
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
   const { showToast } = useToast();
+  const { trackProfileViewed } = useAnalytics();
+
+  useEffect(() => {
+    if (!userId) return;
+    trackProfileViewed({
+      profile_user_id: userId,
+      is_self: isCurrentUser,
+    });
+  }, [userId, isCurrentUser, trackProfileViewed]);
 
   // Create data array with header, tabs, and feed content to be used to do sticky header
   const data = useMemo(
