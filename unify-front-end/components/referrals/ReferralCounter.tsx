@@ -5,37 +5,18 @@ import { useReferralCounter } from '@/hooks/referrals/useReferralCounter';
 
 /**
  * Silent counter for the invite screen. NEVER displays a leaderboard or rank.
- *  - Loading: render placeholder, no spinner (counter is non-blocking)
- *  - Error: render nothing (don't break share)
- *  - Empty (0 invites): "Be the first to invite a friend."
- *  - Some: "You've invited N friends. M have joined."
+ *  - Loading / error / 0 invites: render nothing (counter is opt-in feedback,
+ *    never a CTA-shaped prompt that could confuse the user).
+ *  - >= 1 invite: "You've invited N friends. M have joined."
  */
 export function ReferralCounter() {
   const { data, isLoading, isError } = useReferralCounter();
 
-  if (isError) return null;
-  if (isLoading || !data) {
-    return (
-      <View style={styles.wrap}>
-        <Text style={styles.text} accessibilityLabel='Referral count loading'>
-          {' '}
-        </Text>
-      </View>
-    );
-  }
-
-  if (data.invited === 0) {
-    return (
-      <View style={styles.wrap}>
-        <Text style={styles.text} accessibilityLabel='You have not invited any friends yet'>
-          Be the first to invite a friend.
-        </Text>
-      </View>
-    );
-  }
+  if (isError || isLoading || !data || data.invited === 0) return null;
 
   const friendWord = data.invited === 1 ? 'friend' : 'friends';
   const joinedVerb = data.joined === 1 ? 'has' : 'have';
+
   return (
     <View style={styles.wrap}>
       <Text
