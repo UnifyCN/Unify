@@ -144,10 +144,11 @@ function useAnalyticsIdentitySync() {
   const { currentUser } = useCurrentUser();
   const { identify, reset } = useAnalytics();
   const lastIdRef = useRef<string | null>(null);
+  const lastTraitsRef = useRef<string>('');
 
   useEffect(() => {
-    if (currentUser?.id && currentUser.id !== lastIdRef.current) {
-      identify(currentUser.id, {
+    if (currentUser?.id) {
+      const traits = {
         email: currentUser.email,
         username: currentUser.username,
         persona: currentUser.persona ?? null,
@@ -156,11 +157,21 @@ function useAnalyticsIdentitySync() {
         province: currentUser.province,
         arrival_date: currentUser.arrivalDate,
         stage: currentUser.stage,
-      });
-      lastIdRef.current = currentUser.id;
+      };
+      const traitsKey = JSON.stringify(traits);
+      const idChanged = currentUser.id !== lastIdRef.current;
+      const traitsChanged = traitsKey !== lastTraitsRef.current;
+      // Re-send identify when the user changes OR any tracked trait changes
+      // (persona, city, premium, etc.) so PostHog person properties stay fresh.
+      if (idChanged || traitsChanged) {
+        identify(currentUser.id, traits);
+        lastIdRef.current = currentUser.id;
+        lastTraitsRef.current = traitsKey;
+      }
     } else if (!currentUser?.id && lastIdRef.current) {
       reset();
       lastIdRef.current = null;
+      lastTraitsRef.current = '';
     }
   }, [
     currentUser?.id,

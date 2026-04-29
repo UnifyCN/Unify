@@ -267,6 +267,7 @@ export type FollowSource =
   | 'invite_auto_follow'
   | 'search'
   | 'followers_list'
+  | 'following_list'
   | 'community';
 
 export interface FollowProperties {

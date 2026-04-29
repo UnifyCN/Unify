@@ -58,15 +58,16 @@ export default function AccountSettingsPage() {
 
   const onLogout = async () => {
     try {
-      trackUserSignedOut('manual');
       try {
         await unregisterPushToken();
       } catch (e) {
         console.error('Failed to unregister push token on logout:', e);
       }
       await supabase.auth.signOut();
-      // useAnalyticsIdentitySync calls posthog.reset() on session change.
-      // AuthWrapper handles navigation.
+      // Track only after signOut resolves successfully — otherwise a failed
+      // signOut would record a phantom user_signed_out.
+      // useAnalyticsIdentitySync handles posthog.reset() on session change.
+      trackUserSignedOut('manual');
     } catch (err) {
       console.error('Logout failed', err);
     }
@@ -111,9 +112,16 @@ export default function AccountSettingsPage() {
         [
           {
             text: 'OK',
-            onPress: () => {
-              trackUserSignedOut('account_deleted');
-              supabase.auth.signOut();
+            onPress: async () => {
+              try {
+                await supabase.auth.signOut();
+                trackUserSignedOut('account_deleted');
+              } catch (e) {
+                console.error(
+                  'Sign-out after account delete failed:',
+                  e
+                );
+              }
             },
           },
         ]

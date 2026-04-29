@@ -6,7 +6,7 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
-import { useState, memo, useCallback, useMemo, useEffect } from 'react';
+import { useState, memo, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useAnalytics } from '@/utils/analytics';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
@@ -59,9 +59,10 @@ interface ProfileProps {
 }
 
 export default function Profile({ userId, initialTab }: ProfileProps) {
-  const { currentUser } = useCurrentUser();
+  const { currentUser, isLoading: isLoadingCurrentUser } = useCurrentUser();
+  const currentUserId = currentUser?.id;
   const { data: userInfo } = useUserInfo(userId);
-  const isCurrentUser = currentUser?.id === userId;
+  const isCurrentUser = currentUserId === userId;
   const router = useRouter();
   const usePostsFeedHook = useCallback(useUserPosts.bind(null, userId), [
     userId,
@@ -76,14 +77,20 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
   const [activeTab, setActiveTab] = useState(initialTab || 'Posts');
   const { showToast } = useToast();
   const { trackProfileViewed } = useAnalytics();
+  const trackedProfileRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
+    // Wait for current user to resolve before firing — otherwise is_self can
+    // briefly be false (during load) and then true once currentUser arrives,
+    // producing duplicate/mislabeled profile_viewed events.
+    if (!userId || isLoadingCurrentUser) return;
+    if (trackedProfileRef.current === userId) return;
     trackProfileViewed({
       profile_user_id: userId,
-      is_self: isCurrentUser,
+      is_self: userId === currentUserId,
     });
-  }, [userId, isCurrentUser, trackProfileViewed]);
+    trackedProfileRef.current = userId;
+  }, [userId, currentUserId, isLoadingCurrentUser, trackProfileViewed]);
 
   // Create data array with header, tabs, and feed content to be used to do sticky header
   const data = useMemo(
