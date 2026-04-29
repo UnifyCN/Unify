@@ -88,7 +88,10 @@ export function useInvite(): UseInviteResult {
       });
 
       if (result.action === Share.sharedAction) {
-        capture(AnalyticsEvents.INVITE_SHARE_SHEET_OPENED, { code });
+        // Do NOT include the raw code — it's the inviter's identity credential.
+        // PostHog already has the user's distinct_id; the inviter↔invitee
+        // join lives in the referrals table server-side.
+        capture(AnalyticsEvents.INVITE_SHARE_SHEET_OPENED, { shared: true });
       }
     } catch (err) {
       console.error('useInvite: Share failed', err);

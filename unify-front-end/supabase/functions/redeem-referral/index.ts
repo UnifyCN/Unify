@@ -142,13 +142,26 @@ Deno.serve(async req => {
     return ok200({ success: false, reason: 'self_referral' });
   }
 
+  // [4.5] defense-in-depth: gate redemption behind a completed onboarding
+  // profile. The only legitimate caller is saveOnboardingProfile after a
+  // successful upsert with onboarding_completed=true, but the service-role
+  // edge fn shouldn't blindly trust the caller. One small query keeps the
+  // referrals table clean of any direct-API-call pollution.
+  const { data: inviteeOnb, error: inviteeOnbErr } = await supabase
+    .from('user_onboarding_profiles')
+    .select('onboarding_completed')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (inviteeOnbErr) {
+    console.error('redeem-referral: invitee profile lookup error', inviteeOnbErr);
+    return ok200({ success: false, reason: 'server_error' });
+  }
+  if (!inviteeOnb || inviteeOnb.onboarding_completed !== true) {
+    return ok200({ success: false, reason: 'bad_request' });
+  }
+
   // [5] insert referral row (UNIQUE on invitee_id)
-  // Note: defense-in-depth — the only legitimate caller of this function is
-  // saveOnboardingProfile after a successful upsert with onboarding_completed=true,
-  // so by the time we get here the user's profile state is already correct.
-  // We don't re-check onboarding_completed here because (a) the order is guaranteed
-  // by the client, (b) there are no rewards to forge, and (c) it would add a query
-  // to every legitimate redeem.
   const { error: insertErr } = await supabase.from('referrals').insert({
     inviter_id: inviterRow.id,
     invitee_id: user.id,
@@ -156,16 +169,13 @@ Deno.serve(async req => {
     source,
   });
 
-  // Track whether this is a fresh insert vs a retry of an existing row. Side
-  // effects (auto-follow, notification, push) only fire on fresh inserts.
-  let isFreshRedeem = true;
-
   if (insertErr) {
     // 23505 = unique_violation. There's already a referrals row for this invitee.
-    // If it's the SAME code+inviter as the current request, treat as an idempotent
-    // retry: skip side effects, hydrate the welcome payload, return success.
-    // If it's a DIFFERENT code (user already redeemed someone else's code earlier),
-    // refuse: don't overwrite, don't show a second welcome.
+    // If it's the SAME code+inviter as the current request, treat as an
+    // idempotent retry: re-run the side effects with existence guards (so a
+    // previously-partial commit can finish), then hydrate the welcome payload.
+    // If it's a DIFFERENT code (user already redeemed someone else's code
+    // earlier), refuse: don't overwrite, don't show a second welcome.
     if ((insertErr as { code?: string }).code === '23505') {
       const { data: existing, error: lookupErr } = await supabase
         .from('referrals')
@@ -181,31 +191,46 @@ Deno.serve(async req => {
         // Different code redeemed earlier — refuse silently.
         return ok200({ success: false, reason: 'already_redeemed' });
       }
-      // Same code+inviter: legitimate retry. Fall through to hydration with
-      // side effects skipped.
-      isFreshRedeem = false;
+      // Same code+inviter: legitimate retry. Fall through to side effects with
+      // existence-guarded inserts so a partially-committed first attempt can
+      // finish without double-creating notifications/pushes.
     } else {
       console.error('redeem-referral: insert error', insertErr);
       return ok200({ success: false, reason: 'server_error' });
     }
   }
 
-  if (isFreshRedeem) {
-    // [6] auto-follow inviter — invitee follows inviter. Bypass createFollowNotification
-    // by inserting directly; this avoids a duplicate "started following you" push, since
-    // we're about to send the more meaningful "joined via your invite" push instead.
-    // Conflict (already follows) is fine — no-op.
-    const { error: followErr } = await supabase
-      .from('user_followers')
-      .upsert(
-        { follower_id: user.id, following_id: inviterRow.id },
-        { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
-      );
-    if (followErr) {
-      console.error('redeem-referral: follow insert error (non-fatal)', followErr);
-    }
+  // [6] auto-follow inviter. The upsert is naturally idempotent (ignoreDuplicates
+  // on the (follower_id, following_id) PK), so it's safe to re-run on a retry.
+  // Bypass createFollowNotification by inserting directly; this avoids a duplicate
+  // "started following you" push since we send the more meaningful invite-redeemed
+  // push below.
+  const { error: followErr } = await supabase
+    .from('user_followers')
+    .upsert(
+      { follower_id: user.id, following_id: inviterRow.id },
+      { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
+    );
+  if (followErr) {
+    console.error('redeem-referral: follow insert error (non-fatal)', followErr);
+  }
 
-    // [7+8] inviter notification + push
+  // [7+8] inviter notification + push — guarded by existence check so retries
+  // don't double-notify. We treat the (recipient=inviter, actor=invitee,
+  // type='invite_redeemed') triple as the natural idempotency key.
+  const { data: existingNotif, error: notifLookupErr } = await supabase
+    .from('community_notifications')
+    .select('id')
+    .eq('user_id', inviterRow.id)
+    .eq('triggered_by_user_id', user.id)
+    .eq('type', 'invite_redeemed')
+    .maybeSingle();
+
+  if (notifLookupErr) {
+    console.error('redeem-referral: notification existence check failed', notifLookupErr);
+  }
+
+  if (!existingNotif) {
     const { data: inviteeProfile } = await supabase
       .from('users')
       .select('username')

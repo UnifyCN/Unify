@@ -5,25 +5,31 @@ import { useReferralCounter } from '@/hooks/referrals/useReferralCounter';
 
 /**
  * Silent counter for the invite screen. NEVER displays a leaderboard or rank.
- *  - Loading / error / 0 invites: render nothing (counter is opt-in feedback,
+ *  - Loading / error / 0 joins: render nothing (counter is opt-in feedback,
  *    never a CTA-shaped prompt that could confuse the user).
- *  - >= 1 invite: "You've invited N friends. M have joined."
+ *  - >= 1 join: "N friends have joined Unify thanks to you."
+ *
+ * Why a single metric: a referrals row only exists after a successful redeem,
+ * so the underlying count is "joined" — there's no separate "sent invites"
+ * counter (we don't track outbound share-sheet events in the DB). Showing
+ * invited === joined as two separate numbers was misleading. If we ever add
+ * a sent-invites table, this can grow back to two metrics.
  */
 export function ReferralCounter() {
   const { data, isLoading, isError } = useReferralCounter();
 
-  if (isError || isLoading || !data || data.invited === 0) return null;
+  if (isError || isLoading || !data || data.joined === 0) return null;
 
-  const friendWord = data.invited === 1 ? 'friend' : 'friends';
-  const joinedVerb = data.joined === 1 ? 'has' : 'have';
+  const friendWord = data.joined === 1 ? 'friend' : 'friends';
+  const haveWord = data.joined === 1 ? 'has' : 'have';
 
   return (
     <View style={styles.wrap}>
       <Text
         style={styles.text}
-        accessibilityLabel={`You have invited ${data.invited} ${friendWord}. ${data.joined} ${joinedVerb} joined.`}
+        accessibilityLabel={`${data.joined} ${friendWord} ${haveWord} joined Unify thanks to you.`}
       >
-        You&apos;ve invited {data.invited} {friendWord}. {data.joined} {joinedVerb} joined.
+        {data.joined} {friendWord} {haveWord} joined Unify thanks to you.
       </Text>
     </View>
   );

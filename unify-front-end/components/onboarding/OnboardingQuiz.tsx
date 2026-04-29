@@ -35,6 +35,7 @@ import { registerForPushNotifications } from '@/services/push/pushNotifications'
 import { requestStoreReview } from '@/utils/storeReview';
 import { useInviteCode } from '@/context/InviteCodeContext';
 import { InviteCodeField } from '@/components/referrals/InviteCodeField';
+import { isInviteCode } from '@/utils/inviteLink';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
@@ -268,10 +269,13 @@ export default function OnboardingQuiz({
 
     try {
       // Only attempt to redeem when the user actually selected friends_family AND
-      // typed/confirmed a 6-character code. Anything else: skip redeem entirely.
+      // the typed/auto-filled code passes the canonical validator (alphabet
+      // matches the SQL generator: A-Z minus I/O, digits 2-9). Use the shared
+      // isInviteCode helper rather than an inline regex to keep client + edge
+      // fn + DB in lockstep.
       const trimmedCode = inviteCodeInput.trim().toUpperCase();
       const inviteExtras =
-        referralSource === 'friends_family' && /^[A-Z2-9]{6}$/.test(trimmedCode)
+        referralSource === 'friends_family' && isInviteCode(trimmedCode)
           ? {
               inviteCode: {
                 code: trimmedCode,

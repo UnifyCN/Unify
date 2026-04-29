@@ -109,6 +109,19 @@ describe('inviteLink utils', () => {
       });
       expect(msg).toContain('YQAR67');
     });
+
+    it('embeds the canonical `unify-invite:CODE` form so a clipboard round-trip can be parsed', () => {
+      const msg = formatInviteMessage({
+        username: 'Sarah',
+        city: null,
+        code: 'YQAR67',
+      });
+      // parseInviteCode (PREFIXED_RE) must be able to find the code anywhere in
+      // the message — exactly the case where a recipient copies the share text
+      // and the first-launch clipboard probe fires.
+      const parsed = parseInviteCode(msg);
+      expect(parsed).toBe('YQAR67');
+    });
   });
 
   describe('buildShareUrl', () => {

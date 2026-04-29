@@ -31,14 +31,17 @@ interface InviterContext {
 export function formatInviteMessage(inviter: InviterContext): string {
   const name = inviter.username?.trim() || 'A friend';
   const cityClause = inviter.city ? ` from ${inviter.city}` : '';
-  // Code lives both in the iOS clipboard (auto-attribution on first launch) AND
-  // in the message body (verbal sharing + manual fallback if the clipboard read
-  // fails on the recipient's device).
+  // The canonical `unify-invite:CODE` form is also embedded so that if the
+  // recipient copies the message (or any chunk containing the canonical form)
+  // and the app reads their clipboard on first launch, parseInviteCode finds
+  // it via PREFIXED_RE. The bare-code line is the human-readable fallback for
+  // manual entry in onboarding step 3.
   return (
     `${name}${cityClause} has invited you to join them on Unify, ` +
     `Canada's app for newcomers. ` +
     `Download now to simplify your journey: ${APP_STORE_URL}\n\n` +
-    `If asked for an invite code, use: ${inviter.code}`
+    `Invite code: ${inviter.code}\n` +
+    `${INVITE_CLIPBOARD_PREFIX}${inviter.code}`
   );
 }
 
