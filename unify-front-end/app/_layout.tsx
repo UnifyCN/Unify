@@ -17,6 +17,8 @@ import { UserProvider } from '@/context/UserContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { InviteCodeProvider } from '@/context/InviteCodeContext';
+import { ClipboardListener } from '@/components/referrals/ClipboardListener';
 import AnimatedSplash from '@/components/AnimatedSplash';
 import { queryClient } from '@/lib/queryClient';
 import {
@@ -100,13 +102,16 @@ export default function RootLayout() {
                   ) : (
                     <UserProvider>
                       <HapticsProvider>
-                        <AuthWrapper
-                          onBackToOnboarding={handleBackToOnboarding}
-                        >
-                          <ThemeProvider value={DefaultTheme}>
-                            <AppContent />
-                          </ThemeProvider>
-                        </AuthWrapper>
+                        <InviteCodeProvider>
+                          <ClipboardListener />
+                          <AuthWrapper
+                            onBackToOnboarding={handleBackToOnboarding}
+                          >
+                            <ThemeProvider value={DefaultTheme}>
+                              <AppContent />
+                            </ThemeProvider>
+                          </AuthWrapper>
+                        </InviteCodeProvider>
                       </HapticsProvider>
                     </UserProvider>
                   )}
@@ -162,6 +167,11 @@ function AppContent() {
       <Stack.Screen
         name='followers-following'
         options={{ headerShown: false }}
+      />
+      <Stack.Screen name='refer-a-friend' options={{ headerShown: false }} />
+      <Stack.Screen
+        name='welcome-from-inviter'
+        options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen name='+not-found' />
     </Stack>

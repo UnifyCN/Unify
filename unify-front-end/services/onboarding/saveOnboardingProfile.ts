@@ -4,11 +4,27 @@ import {
   UserOnboardingProfile,
 } from '@/types/onboardingProfile';
 import { calculateUserStage, stageNumberToEnum } from '@/helpers/dateHelpers';
+import { redeemReferral, type RedeemResult } from '@/services/referrals/redeemReferral';
+
+export interface SaveOnboardingResult {
+  profile: UserOnboardingProfile;
+  /**
+   * Result of the redeem-referral call, only present when the caller passed an
+   * invite code. NEVER throws or blocks the save — a failed redeem still returns
+   * a valid `profile` so onboarding can complete.
+   */
+  redeem?: RedeemResult;
+}
+
+export interface SaveOnboardingExtras {
+  inviteCode?: { code: string; source: 'clipboard' | 'manual' } | null;
+}
 
 export const saveOnboardingProfile = async (
   userId: string,
-  data: OnboardingProfileInput
-): Promise<UserOnboardingProfile> => {
+  data: OnboardingProfileInput,
+  extras: SaveOnboardingExtras = {}
+): Promise<SaveOnboardingResult> => {
   try {
     // Calculate stage if arrival_date is provided and onboarding is being completed
     let calculatedStage: string | null = null;
@@ -59,7 +75,7 @@ export const saveOnboardingProfile = async (
       throw new Error(`Failed to save onboarding profile: ${error.message}`);
     }
 
-    return {
+    const profile: UserOnboardingProfile = {
       id: result.id,
       persona: result.persona,
       persona_other: result.persona_other,
@@ -80,6 +96,25 @@ export const saveOnboardingProfile = async (
       created_at: result.created_at,
       updated_at: result.updated_at,
     };
+
+    // Fire the redeem-referral edge function if the caller provided an invite code AND
+    // onboarding is being completed (we don't want stray redeems on partial saves).
+    // Failure NEVER blocks onboarding completion — we surface the result so the
+    // caller can decide to navigate, but the profile save is the source of truth.
+    let redeem: RedeemResult | undefined;
+    if (extras.inviteCode?.code && data.onboarding_completed) {
+      try {
+        redeem = await redeemReferral(
+          extras.inviteCode.code,
+          extras.inviteCode.source
+        );
+      } catch (err) {
+        console.error('saveOnboardingProfile: redeem failed (non-fatal)', err);
+        redeem = { success: false, reason: 'server_error' };
+      }
+    }
+
+    return { profile, redeem };
   } catch (error) {
     console.error('Error saving onboarding profile:', error);
     throw error;

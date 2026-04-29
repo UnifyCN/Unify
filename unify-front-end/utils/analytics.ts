@@ -93,6 +93,15 @@ export const AnalyticsEvents = {
   // Daily Tips
   TIP_VIEWED: 'tip_viewed',
   TIP_TAPPED: 'tip_tapped',
+
+  // Referrals (refer-a-friend)
+  INVITE_CODE_GENERATED: 'invite_code_generated',
+  INVITE_SCREEN_OPENED: 'invite_screen_opened',
+  INVITE_SHARE_SHEET_OPENED: 'invite_share_sheet_opened',
+  INVITE_CODE_DETECTED_FROM_CLIPBOARD: 'invite_code_detected_from_clipboard',
+  INVITE_REDEEMED: 'invite_redeemed',
+  INVITE_REDEEM_FAILED: 'invite_redeem_failed',
+  INVITE_GROUPS_JOINED_AT_SIGNUP: 'invite_groups_joined_at_signup',
 } as const;
 
 export type AnalyticsEventName =

@@ -102,6 +102,8 @@
     "supabase": "^2.84.10"
   },
   "devDependencies": {
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
     "@tsconfig/node18": "^18.2.6",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.10.1",
@@ -114,6 +116,7 @@
     "jest-expo": "~55.0.16",
     "prettier": "^3.6.2",
     "react-native-svg-transformer": "^1.5.1",
+    "react-test-renderer": "^19.2.0",
     "tsx": "^4.21.0",
     "typescript": "~5.9.2"
   },

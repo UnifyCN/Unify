@@ -7,6 +7,7 @@ import {
   Modal,
   Alert,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LegalDocumentType } from '@/utils/legalUrls';
@@ -277,6 +278,27 @@ export default function AccountSettingsPage() {
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
+
+          {/* Community Section — iOS-only (referrals are App Store only for now) */}
+          {Platform.OS === 'ios' ? (
+            <>
+              <Text style={styles.sectionTitle}>Community</Text>
+              <View style={styles.settingsCard}>
+                <TouchableOpacity
+                  style={styles.row}
+                  onPress={() => router.push('/refer-a-friend' as any)}
+                  accessibilityRole='button'
+                  accessibilityLabel='Refer a friend'
+                >
+                  <View style={styles.bookmarkIconContainer}>
+                    <Feather name='gift' size={24} color={Theme.black} />
+                  </View>
+                  <Text style={styles.rowText}>Refer a friend</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null}
 
           {/* Legal Section */}
           <Text style={styles.sectionTitle}>Legal</Text>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   View,
   Text,
@@ -29,9 +30,11 @@ import {
   LearningInterest,
   Hobby,
 } from '@/types/onboardingProfile';
-import { useAnalytics } from '@/utils/analytics';
+import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
 import { registerForPushNotifications } from '@/services/push/pushNotifications';
 import { requestStoreReview } from '@/utils/storeReview';
+import { useInviteCode } from '@/context/InviteCodeContext';
+import { InviteCodeField } from '@/components/referrals/InviteCodeField';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
@@ -59,9 +62,11 @@ export default function OnboardingQuiz({
   isRedo = false,
 }: OnboardingQuizProps) {
   const saveMutation = useSaveOnboardingProfile();
-  const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
+  const { trackOnboardingStepCompleted, trackOnboardingCompleted, capture } =
     useAnalytics();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const inviteCtx = useInviteCode();
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -88,6 +93,20 @@ export default function OnboardingQuiz({
   const [wantsReminders, setWantsReminders] = useState<boolean | null>(null);
   const [city, setCity] = useState<string | null>(null);
   const [province, setProvince] = useState<string | null>(null);
+
+  // Invite code state — pre-fills from clipboard context if present, also editable.
+  const [inviteCodeInput, setInviteCodeInput] = useState<string>('');
+  const [inviteCodeAutoFilled, setInviteCodeAutoFilled] = useState(false);
+
+  // When clipboard context detects a code, surface it in step 3.
+  useEffect(() => {
+    if (inviteCtx.code && inviteCtx.source === 'clipboard') {
+      setInviteCodeInput(inviteCtx.code);
+      setInviteCodeAutoFilled(true);
+      // Suggest the source so the user doesn't have to pick.
+      setReferralSource(prev => prev ?? 'friends_family');
+    }
+  }, [inviteCtx.code, inviteCtx.source]);
 
   // Validation errors
   const [errors, setErrors] = useState<Record<number, string>>({});
@@ -248,7 +267,22 @@ export default function OnboardingQuiz({
     const arrivalDate = buildArrivalDate();
 
     try {
-      await saveMutation.mutateAsync({
+      // Only attempt to redeem when the user actually selected friends_family AND
+      // typed/confirmed a 6-character code. Anything else: skip redeem entirely.
+      const trimmedCode = inviteCodeInput.trim().toUpperCase();
+      const inviteExtras =
+        referralSource === 'friends_family' && /^[A-Z2-9]{6}$/.test(trimmedCode)
+          ? {
+              inviteCode: {
+                code: trimmedCode,
+                source: inviteCodeAutoFilled
+                  ? ('clipboard' as const)
+                  : ('manual' as const),
+              },
+            }
+          : undefined;
+
+      const result = await saveMutation.mutateAsync({
         userId: user.id,
         data: {
           persona,
@@ -266,9 +300,30 @@ export default function OnboardingQuiz({
           wants_reminders: wantsReminders ?? false,
           onboarding_completed: true,
         },
+        extras: inviteExtras,
       });
 
       trackOnboardingCompleted(persona);
+
+      // If redeem succeeded, route the user to the welcome moment instead of home.
+      if (result.redeem?.success) {
+        capture(AnalyticsEvents.INVITE_REDEEMED, {
+          inviter_id: result.redeem.inviter.id,
+          source: inviteExtras?.inviteCode.source ?? 'manual',
+        });
+        // Clear the in-memory clipboard code so it doesn't leak into future flows
+        // (e.g. redo onboarding).
+        inviteCtx.clear();
+        router.replace('/welcome-from-inviter' as any);
+        return; // do NOT call onComplete; welcome screen handles its own dismiss
+      }
+
+      // Redeem failed (or no code at all) — log and proceed to normal completion.
+      if (result.redeem && !result.redeem.success) {
+        capture(AnalyticsEvents.INVITE_REDEEM_FAILED, {
+          reason: result.redeem.reason,
+        });
+      }
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
@@ -339,24 +394,37 @@ export default function OnboardingQuiz({
         );
       case 3:
         return (
-          <SingleSelectQuestion
-            question='How did you hear about Unify?'
-            options={[
-              { value: 'facebook_instagram', label: 'Facebook / Instagram' },
-              { value: 'google_search', label: 'Google Search' },
-              { value: 'app_store', label: 'App Store' },
-              { value: 'friends_family', label: 'Friends / family' },
-              { value: 'news_article', label: 'News / article / blog' },
-              { value: 'tiktok', label: 'TikTok' },
-              { value: 'other', label: 'Other', hasOther: true },
-            ]}
-            selectedValue={referralSource}
-            otherValue={referralSourceOther}
-            onSelect={value => setReferralSource(value as ReferralSource)}
-            onOtherChange={setReferralSourceOther}
-            required
-            error={errors[3]}
-          />
+          <View>
+            <SingleSelectQuestion
+              question='How did you hear about Unify?'
+              options={[
+                { value: 'facebook_instagram', label: 'Facebook / Instagram' },
+                { value: 'google_search', label: 'Google Search' },
+                { value: 'app_store', label: 'App Store' },
+                { value: 'friends_family', label: 'Friends / family' },
+                { value: 'news_article', label: 'News / article / blog' },
+                { value: 'tiktok', label: 'TikTok' },
+                { value: 'other', label: 'Other', hasOther: true },
+              ]}
+              selectedValue={referralSource}
+              otherValue={referralSourceOther}
+              onSelect={value => setReferralSource(value as ReferralSource)}
+              onOtherChange={setReferralSourceOther}
+              required
+              error={errors[3]}
+            />
+            {referralSource === 'friends_family' ? (
+              <InviteCodeField
+                value={inviteCodeInput}
+                onChange={next => {
+                  setInviteCodeInput(next);
+                  // Once the user types, it's no longer "auto-filled."
+                  if (inviteCodeAutoFilled) setInviteCodeAutoFilled(false);
+                }}
+                autoFilled={inviteCodeAutoFilled}
+              />
+            ) : null}
+          </View>
         );
       case 4:
         return (

@@ -279,6 +279,7 @@ Deno.serve(async (req: Request) => {
       'followed',
       'comment_liked',
       'comment_reply',
+      'invite_redeemed',
     ].includes(notification.type)
   ) {
     return new Response(
@@ -342,7 +343,7 @@ Deno.serve(async (req: Request) => {
 
   const actorUserId = dataPayload.actor_user_id;
   if (
-    ['followed', 'comment_liked', 'comment_reply'].includes(
+    ['followed', 'comment_liked', 'comment_reply', 'invite_redeemed'].includes(
       notification.type
     ) &&
     typeof actorUserId === 'string' &&
