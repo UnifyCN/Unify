@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -26,6 +27,10 @@ export function useClipboardOnFirstLaunch(): void {
     if (ranRef.current) return;
     ranRef.current = true;
 
+    // iOS-only: Android doesn't have an App Store presence yet, so don't
+    // probe the Android clipboard for referral attribution at all.
+    if (Platform.OS !== 'ios') return;
+
     let cancelled = false;
 
     (async () => {
@@ -38,7 +43,9 @@ export function useClipboardOnFirstLaunch(): void {
 
         if (!cancelled && code) {
           setCode(code, 'clipboard');
-          capture(AnalyticsEvents.INVITE_CODE_DETECTED_FROM_CLIPBOARD, { code });
+          // Do NOT include the raw code — it's another user's identity. The
+          // inviter↔invitee join lives in the referrals table server-side.
+          capture(AnalyticsEvents.INVITE_CODE_DETECTED_FROM_CLIPBOARD, {});
         }
       } catch (err) {
         // Permission denied / clipboard unavailable: no-op

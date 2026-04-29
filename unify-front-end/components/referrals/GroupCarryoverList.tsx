@@ -38,7 +38,9 @@ export function GroupCarryoverList({
             accessibilityRole='checkbox'
             accessibilityState={{ checked: isSelected }}
             accessibilityLabel={`${g.name}${
-              g.member_count ? `, ${g.member_count} members` : ''
+              g.member_count != null
+                ? `, ${g.member_count} ${g.member_count === 1 ? 'member' : 'members'}`
+                : ''
             }`}
           >
             <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>

@@ -71,22 +71,43 @@ describe('inviteLink utils', () => {
 
   describe('formatInviteMessage', () => {
     it('uses username + city when both present', () => {
-      const msg = formatInviteMessage({ username: 'Sarah', city: 'Toronto' });
+      const msg = formatInviteMessage({
+        username: 'Sarah',
+        city: 'Toronto',
+        code: 'YQAR67',
+      });
       expect(msg).toContain('Sarah from Toronto');
       expect(msg).toContain('Unify');
       expect(msg).toContain(APP_STORE_URL);
     });
 
     it('omits city when null', () => {
-      const msg = formatInviteMessage({ username: 'Sarah', city: null });
+      const msg = formatInviteMessage({
+        username: 'Sarah',
+        city: null,
+        code: 'YQAR67',
+      });
       expect(msg).toContain('Sarah ');
       expect(msg).not.toContain('from null');
       expect(msg).not.toContain('from undefined');
     });
 
     it('falls back to "A friend" when username is empty', () => {
-      const msg = formatInviteMessage({ username: '   ', city: null });
+      const msg = formatInviteMessage({
+        username: '   ',
+        city: null,
+        code: 'YQAR67',
+      });
       expect(msg).toContain('A friend');
+    });
+
+    it('embeds the invite code in the message body so recipients can paste manually', () => {
+      const msg = formatInviteMessage({
+        username: 'Sarah',
+        city: null,
+        code: 'YQAR67',
+      });
+      expect(msg).toContain('YQAR67');
     });
   });
 

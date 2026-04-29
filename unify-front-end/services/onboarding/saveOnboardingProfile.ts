@@ -26,7 +26,10 @@ export const saveOnboardingProfile = async (
   extras: SaveOnboardingExtras = {}
 ): Promise<SaveOnboardingResult> => {
   try {
-    // Calculate stage if arrival_date is provided and onboarding is being completed
+    // Calculate stage if arrival_date is provided AND parses as a valid date AND
+    // onboarding is being completed. (Bug fix: previously stage was recomputed
+    // unconditionally outside the !isNaN guard, producing a bogus stage from an
+    // Invalid Date for malformed arrival_date input.)
     let calculatedStage: string | null = null;
     if (data.arrival_date && data.onboarding_completed) {
       const arrivalDate = new Date(data.arrival_date);
@@ -34,8 +37,6 @@ export const saveOnboardingProfile = async (
         const stageNumber = calculateUserStage(arrivalDate);
         calculatedStage = stageNumberToEnum(stageNumber);
       }
-      const stageNumber = calculateUserStage(arrivalDate);
-      calculatedStage = stageNumberToEnum(stageNumber);
     }
 
     // Prepare the data for Supabase (convert to snake_case)

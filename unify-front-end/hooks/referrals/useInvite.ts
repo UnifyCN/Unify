@@ -79,6 +79,7 @@ export function useInvite(): UseInviteResult {
       const message = formatInviteMessage({
         username: currentUser.username,
         city: profile?.city ?? null,
+        code,
       });
 
       const result = await Share.share({

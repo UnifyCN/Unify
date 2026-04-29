@@ -95,15 +95,21 @@ export default function RootLayout() {
             <SafeAreaProvider>
               <ToastProvider>
                 <ScrollContextProvider>
-                  {showOnboarding ? (
-                    <PreLoginOnboarding
-                      onFinish={() => setShowOnboarding(false)}
-                    />
-                  ) : (
-                    <UserProvider>
-                      <HapticsProvider>
-                        <InviteCodeProvider>
-                          <ClipboardListener />
+                  {/* InviteCodeProvider + ClipboardListener live ABOVE the
+                      pre-login/auth conditional so the first-launch clipboard
+                      probe runs on app cold start regardless of which path
+                      the user is on (pre-login onboarding vs authed app).
+                      Otherwise an invite-code-bearing pasteboard would be
+                      missed for any new user who lands on PreLoginOnboarding. */}
+                  <InviteCodeProvider>
+                    <ClipboardListener />
+                    {showOnboarding ? (
+                      <PreLoginOnboarding
+                        onFinish={() => setShowOnboarding(false)}
+                      />
+                    ) : (
+                      <UserProvider>
+                        <HapticsProvider>
                           <AuthWrapper
                             onBackToOnboarding={handleBackToOnboarding}
                           >
@@ -111,10 +117,10 @@ export default function RootLayout() {
                               <AppContent />
                             </ThemeProvider>
                           </AuthWrapper>
-                        </InviteCodeProvider>
-                      </HapticsProvider>
-                    </UserProvider>
-                  )}
+                        </HapticsProvider>
+                      </UserProvider>
+                    )}
+                  </InviteCodeProvider>
                 </ScrollContextProvider>
               </ToastProvider>
             </SafeAreaProvider>

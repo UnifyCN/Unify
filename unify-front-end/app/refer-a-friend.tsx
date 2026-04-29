@@ -53,11 +53,13 @@ export default function ReferAFriendScreen() {
     if (!code) return;
     try {
       await Clipboard.setStringAsync(code);
-      try {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      } catch {
-        // haptics is best-effort
-      }
+      // Haptics is best-effort — await so a rejected promise can't escape the
+      // outer try/catch unhandled.
+      await Haptics.notificationAsync(
+        Haptics.NotificationFeedbackType.Success
+      ).catch(() => {
+        /* swallow */
+      });
     } catch (err) {
       console.warn('refer-a-friend: copy failed', err);
     }

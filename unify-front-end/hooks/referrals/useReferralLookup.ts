@@ -46,7 +46,10 @@ export function useReferralLookup() {
         return { hasReferral: false, inviter: null };
       }
 
-      const [{ data: user }, { data: profile }] = await Promise.all([
+      const [
+        { data: user, error: userError },
+        { data: profile, error: profileError },
+      ] = await Promise.all([
         supabase
           .from('users')
           .select('id, username, profile_picture_url')
@@ -58,6 +61,18 @@ export function useReferralLookup() {
           .eq('id', row.inviter_id)
           .maybeSingle(),
       ]);
+
+      // Surface inviter lookup failures rather than masking them as "deleted".
+      // The "inviter is null because they deleted their account" path is the
+      // !user case below; a real query failure should bubble up.
+      if (userError) {
+        throw userError;
+      }
+      // Profile failure is non-fatal — city is decorative; render the welcome
+      // moment without a city if the profile query failed.
+      if (profileError) {
+        console.warn('useReferralLookup: profile query failed', profileError);
+      }
 
       if (!user) {
         return { hasReferral: true, inviter: null };

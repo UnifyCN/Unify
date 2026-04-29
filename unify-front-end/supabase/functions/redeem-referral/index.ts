@@ -143,6 +143,12 @@ Deno.serve(async req => {
   }
 
   // [5] insert referral row (UNIQUE on invitee_id)
+  // Note: defense-in-depth — the only legitimate caller of this function is
+  // saveOnboardingProfile after a successful upsert with onboarding_completed=true,
+  // so by the time we get here the user's profile state is already correct.
+  // We don't re-check onboarding_completed here because (a) the order is guaranteed
+  // by the client, (b) there are no rewards to forge, and (c) it would add a query
+  // to every legitimate redeem.
   const { error: insertErr } = await supabase.from('referrals').insert({
     inviter_id: inviterRow.id,
     invitee_id: user.id,
@@ -150,57 +156,84 @@ Deno.serve(async req => {
     source,
   });
 
+  // Track whether this is a fresh insert vs a retry of an existing row. Side
+  // effects (auto-follow, notification, push) only fire on fresh inserts.
+  let isFreshRedeem = true;
+
   if (insertErr) {
-    // 23505 = unique_violation — invitee already redeemed before. Treat as idempotent.
+    // 23505 = unique_violation. There's already a referrals row for this invitee.
+    // If it's the SAME code+inviter as the current request, treat as an idempotent
+    // retry: skip side effects, hydrate the welcome payload, return success.
+    // If it's a DIFFERENT code (user already redeemed someone else's code earlier),
+    // refuse: don't overwrite, don't show a second welcome.
     if ((insertErr as { code?: string }).code === '23505') {
-      return ok200({ success: false, reason: 'already_redeemed' });
+      const { data: existing, error: lookupErr } = await supabase
+        .from('referrals')
+        .select('inviter_id, invite_code')
+        .eq('invitee_id', user.id)
+        .maybeSingle();
+
+      if (lookupErr || !existing) {
+        console.error('redeem-referral: 23505 reload failed', lookupErr);
+        return ok200({ success: false, reason: 'server_error' });
+      }
+      if (existing.inviter_id !== inviterRow.id || existing.invite_code !== code) {
+        // Different code redeemed earlier — refuse silently.
+        return ok200({ success: false, reason: 'already_redeemed' });
+      }
+      // Same code+inviter: legitimate retry. Fall through to hydration with
+      // side effects skipped.
+      isFreshRedeem = false;
+    } else {
+      console.error('redeem-referral: insert error', insertErr);
+      return ok200({ success: false, reason: 'server_error' });
     }
-    console.error('redeem-referral: insert error', insertErr);
-    return ok200({ success: false, reason: 'server_error' });
   }
 
-  // [6] auto-follow inviter — invitee follows inviter. Bypass createFollowNotification
-  // by inserting directly; this avoids a duplicate "started following you" push, since
-  // we're about to send the more meaningful "joined via your invite" push instead.
-  // Conflict (already follows) is fine — no-op.
-  const { error: followErr } = await supabase
-    .from('user_followers')
-    .upsert(
-      { follower_id: user.id, following_id: inviterRow.id },
-      { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
-    );
-  if (followErr) {
-    console.error('redeem-referral: follow insert error (non-fatal)', followErr);
-  }
+  if (isFreshRedeem) {
+    // [6] auto-follow inviter — invitee follows inviter. Bypass createFollowNotification
+    // by inserting directly; this avoids a duplicate "started following you" push, since
+    // we're about to send the more meaningful "joined via your invite" push instead.
+    // Conflict (already follows) is fine — no-op.
+    const { error: followErr } = await supabase
+      .from('user_followers')
+      .upsert(
+        { follower_id: user.id, following_id: inviterRow.id },
+        { onConflict: 'follower_id,following_id', ignoreDuplicates: true }
+      );
+    if (followErr) {
+      console.error('redeem-referral: follow insert error (non-fatal)', followErr);
+    }
 
-  // [7+8] inviter notification + push
-  const { data: inviteeProfile } = await supabase
-    .from('users')
-    .select('username')
-    .eq('id', user.id)
-    .maybeSingle();
+    // [7+8] inviter notification + push
+    const { data: inviteeProfile } = await supabase
+      .from('users')
+      .select('username')
+      .eq('id', user.id)
+      .maybeSingle();
 
-  const inviteeUsername = inviteeProfile?.username ?? 'Someone';
-  const { data: notif, error: notifErr } = await supabase
-    .from('community_notifications')
-    .insert({
-      user_id: inviterRow.id,
-      triggered_by_user_id: user.id,
-      type: 'invite_redeemed',
-      title: 'New friend on Unify',
-      body: `🎉 ${inviteeUsername} just joined Unify thanks to you.`,
-      data: { actor_user_id: user.id, source },
-    })
-    .select('id')
-    .single();
+    const inviteeUsername = inviteeProfile?.username ?? 'Someone';
+    const { data: notif, error: notifErr } = await supabase
+      .from('community_notifications')
+      .insert({
+        user_id: inviterRow.id,
+        triggered_by_user_id: user.id,
+        type: 'invite_redeemed',
+        title: 'New friend on Unify',
+        body: `🎉 ${inviteeUsername} just joined Unify thanks to you.`,
+        data: { actor_user_id: user.id, source },
+      })
+      .select('id')
+      .single();
 
-  if (notifErr) {
-    console.error('redeem-referral: notification insert error (non-fatal)', notifErr);
-  } else if (notif?.id) {
-    // Fire-and-forget push. Failure must not break the redeem.
-    supabase.functions
-      .invoke('send-social-push', { body: { notification_id: notif.id } })
-      .catch(err => console.error('redeem-referral: send-social-push failed', err));
+    if (notifErr) {
+      console.error('redeem-referral: notification insert error (non-fatal)', notifErr);
+    } else if (notif?.id) {
+      // Fire-and-forget push. Failure must not break the redeem.
+      supabase.functions
+        .invoke('send-social-push', { body: { notification_id: notif.id } })
+        .catch(err => console.error('redeem-referral: send-social-push failed', err));
+    }
   }
 
   // [9] hydrate the welcome screen response

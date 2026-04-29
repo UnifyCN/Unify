@@ -305,15 +305,18 @@ export default function OnboardingQuiz({
 
       trackOnboardingCompleted(persona);
 
+      // Always clear the in-memory clipboard code regardless of redeem outcome
+      // so it can't leak into a future flow (e.g. redo-onboarding) and trigger
+      // an unintended re-redeem attempt.
+      inviteCtx.clear();
+
       // If redeem succeeded, route the user to the welcome moment instead of home.
       if (result.redeem?.success) {
+        // Send only non-PII attributes — the inviter↔invitee join lives server-side
+        // (via the referrals row) and shouldn't be re-emitted from the invitee's device.
         capture(AnalyticsEvents.INVITE_REDEEMED, {
-          inviter_id: result.redeem.inviter.id,
           source: inviteExtras?.inviteCode.source ?? 'manual',
         });
-        // Clear the in-memory clipboard code so it doesn't leak into future flows
-        // (e.g. redo onboarding).
-        inviteCtx.clear();
         router.replace('/welcome-from-inviter' as any);
         return; // do NOT call onComplete; welcome screen handles its own dismiss
       }
