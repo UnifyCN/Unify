@@ -879,21 +879,29 @@ Deno.serve(async (req: Request) => {
     };
     const estimatedCostUsd = llmResult.usage.costUsd;
 
-    // Send $ai_generation event to PostHog LLM analytics
-    captureAiGeneration(effectiveUserId || 'anonymous', {
-      $ai_model: llmResult.model,
-      $ai_provider: llmResult.provider,
-      $ai_input_tokens: tokenUsage.prompt_tokens,
-      $ai_output_tokens: tokenUsage.completion_tokens,
-      $ai_total_tokens: tokenUsage.total_tokens,
-      $ai_total_cost_usd: estimatedCostUsd,
-      $ai_trace_id: conversationIdentifier || undefined,
-      // Custom properties for filtering
-      feature: 'ai_companion',
-      query_type: queryType,
-      has_sources: sources.length > 0,
-      response_time_ms: stageTimings.generation_ms,
-    });
+    // Send $ai_generation event to PostHog LLM analytics — only when we have a
+    // real user id, so the LLM cost dashboards aren't polluted with an
+    // 'anonymous' bucket. Without a user we just skip the capture.
+    if (effectiveUserId) {
+      captureAiGeneration(effectiveUserId, {
+        $ai_model: llmResult.model,
+        $ai_provider: llmResult.provider,
+        $ai_input_tokens: tokenUsage.prompt_tokens,
+        $ai_output_tokens: tokenUsage.completion_tokens,
+        $ai_total_tokens: tokenUsage.total_tokens,
+        $ai_total_cost_usd: estimatedCostUsd,
+        $ai_trace_id: conversationIdentifier || undefined,
+        // Custom properties for filtering
+        feature: 'ai_companion',
+        query_type: queryType,
+        has_sources: sources.length > 0,
+        response_time_ms: stageTimings.generation_ms,
+      });
+    } else {
+      console.warn(
+        'rag-query: skipping $ai_generation capture — no effectiveUserId'
+      );
+    }
 
     // Store token usage outside the response critical path.
     if (effectiveUserId && tokenUsage.total_tokens > 0) {

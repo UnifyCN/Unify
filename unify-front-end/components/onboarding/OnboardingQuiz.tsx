@@ -321,6 +321,11 @@ export default function OnboardingQuiz({
         capture(AnalyticsEvents.INVITE_REDEEMED, {
           source: inviteExtras?.inviteCode.source ?? 'manual',
         });
+        // Auto-follow happened server-side as part of redeem; emit a client-side
+        // signal so the referral funnel can include it without a server roundtrip.
+        capture(AnalyticsEvents.REFERRAL_AUTO_FOLLOW_COMPLETED, {
+          referrer_user_id: result.redeem.inviter.id,
+        });
         router.replace('/welcome-from-inviter' as any);
         return; // do NOT call onComplete; welcome screen handles its own dismiss
       }
