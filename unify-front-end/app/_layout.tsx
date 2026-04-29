@@ -6,14 +6,15 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ScrollContextProvider } from '@/context/ScrollContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PreLoginOnboarding from '@/components/onboarding/PreLoginOnboarding';
-import { UserProvider } from '@/context/UserContext';
+import { UserProvider, useCurrentUser } from '@/context/UserContext';
+import { useAnalytics } from '@/utils/analytics';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
@@ -135,11 +136,79 @@ export default function RootLayout() {
 }
 
 /**
+ * Syncs PostHog identity with the current authenticated user.
+ * - identify on sign-in / user-info load
+ * - reset when the user signs out (id transitions to null)
+ */
+function useAnalyticsIdentitySync() {
+  const { currentUser } = useCurrentUser();
+  const { identify, reset } = useAnalytics();
+  const lastIdRef = useRef<string | null>(null);
+  const lastTraitsRef = useRef<string>('');
+  const hasInitializedRef = useRef(false);
+
+  useEffect(() => {
+    // Cold-start: PostHog persists distinct_id to AsyncStorage, so on app
+    // launch the SDK may still hold the prior session's identity. If the
+    // user isn't authenticated when this effect first runs, clear that
+    // stale identity so pre-auth events (auth screens, app_opened) don't
+    // get attributed to whoever was last logged in on this device.
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      if (!currentUser?.id) {
+        reset();
+      }
+    }
+
+    if (currentUser?.id) {
+      const traits = {
+        email: currentUser.email,
+        username: currentUser.username,
+        persona: currentUser.persona ?? null,
+        is_premium: currentUser.isPremium,
+        city: currentUser.city,
+        province: currentUser.province,
+        arrival_date: currentUser.arrivalDate,
+        stage: currentUser.stage,
+      };
+      const traitsKey = JSON.stringify(traits);
+      const idChanged = currentUser.id !== lastIdRef.current;
+      const traitsChanged = traitsKey !== lastTraitsRef.current;
+      // Re-send identify when the user changes OR any tracked trait changes
+      // (persona, city, premium, etc.) so PostHog person properties stay fresh.
+      if (idChanged || traitsChanged) {
+        identify(currentUser.id, traits);
+        lastIdRef.current = currentUser.id;
+        lastTraitsRef.current = traitsKey;
+      }
+    } else if (!currentUser?.id && lastIdRef.current) {
+      reset();
+      lastIdRef.current = null;
+      lastTraitsRef.current = '';
+    }
+  }, [
+    currentUser?.id,
+    currentUser?.email,
+    currentUser?.username,
+    currentUser?.persona,
+    currentUser?.isPremium,
+    currentUser?.city,
+    currentUser?.province,
+    currentUser?.arrivalDate,
+    currentUser?.stage,
+    identify,
+    reset,
+  ]);
+}
+
+/**
  * Inner component that has access to UserContext for push notifications
  */
 function AppContent() {
   // Initialize push notifications (requires UserContext)
   usePushNotifications();
+  // Identify the user with PostHog whenever auth state resolves
+  useAnalyticsIdentitySync();
 
   return (
     <Stack>

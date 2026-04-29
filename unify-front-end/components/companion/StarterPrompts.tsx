@@ -18,7 +18,11 @@ import {
 } from '@/utils/companionStarterHistory';
 
 interface StarterPromptsProps {
-  onPromptSelect: (prompt: string, mode?: string) => void;
+  onPromptSelect: (
+    prompt: string,
+    mode?: string,
+    isPersonalized?: boolean
+  ) => void;
   personalizedStarters?: PersonalizedStarter[];
 }
 
@@ -166,7 +170,7 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
 
   const handlePersonalizedPress = useCallback(
     (starter: PersonalizedStarter, slotIndex: number) => {
-      onPromptSelect(starter.prompt);
+      onPromptSelect(starter.prompt, undefined, true);
 
       // Persist; fire-and-forget. Concurrent calls are safe — markStarterSeen
       // serializes its own read-modify-write internally.
@@ -246,7 +250,7 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
           <TouchableOpacity
             key={card.id}
             style={styles.card}
-            onPress={() => onPromptSelect(card.prompt, card.mode)}
+            onPress={() => onPromptSelect(card.prompt, card.mode, false)}
             activeOpacity={0.8}
           >
             <View style={styles.cardHeader}>

@@ -36,7 +36,7 @@ interface UseInviteResult {
 export function useInvite(): UseInviteResult {
   const { currentUser } = useCurrentUser();
   const { data: profile } = useOnboardingProfile(currentUser?.id);
-  const { capture } = useAnalytics();
+  const { capture, trackInviteShareCompleted } = useAnalytics();
   const [inviting, setInviting] = useState(false);
 
   const userId = currentUser?.id ?? null;
@@ -92,13 +92,26 @@ export function useInvite(): UseInviteResult {
         // PostHog already has the user's distinct_id; the inviter↔invitee
         // join lives in the referrals table server-side.
         capture(AnalyticsEvents.INVITE_SHARE_SHEET_OPENED, { shared: true });
+        trackInviteShareCompleted({
+          result: 'sent',
+          activity_type:
+            'activityType' in result ? (result.activityType ?? null) : null,
+        });
+      } else if (result.action === Share.dismissedAction) {
+        trackInviteShareCompleted({ result: 'dismissed' });
       }
     } catch (err) {
       console.error('useInvite: Share failed', err);
     } finally {
       setInviting(false);
     }
-  }, [codeQuery.data, currentUser?.username, profile?.city, capture]);
+  }, [
+    codeQuery.data,
+    currentUser?.username,
+    profile?.city,
+    capture,
+    trackInviteShareCompleted,
+  ]);
 
   return {
     code: codeQuery.data ?? null,

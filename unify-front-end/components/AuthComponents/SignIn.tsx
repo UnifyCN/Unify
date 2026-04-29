@@ -82,7 +82,7 @@ export function SignIn({
     });
     if (error) {
       setErrorMessage('Invalid login credentials');
-      trackSignInFailed(error.code || 'signin_failed');
+      trackSignInFailed(error.code || 'signin_failed', 'email');
       setLoading(false);
       return;
     }
@@ -94,7 +94,7 @@ export function SignIn({
       });
     }
 
-    trackSignInCompleted();
+    trackSignInCompleted('email');
     setLoading(false);
   };
 
@@ -156,6 +156,7 @@ export function SignIn({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+          trackSignInCompleted('google');
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage('Unable to retrieve email from Google account');
           setLoading(false);
@@ -226,6 +227,7 @@ export function SignIn({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+          trackSignInCompleted('apple');
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage('Unable to retrieve email from Apple account');
           setLoading(false);

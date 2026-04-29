@@ -879,8 +879,9 @@ Deno.serve(async (req: Request) => {
     };
     const estimatedCostUsd = llmResult.usage.costUsd;
 
-    // Send $ai_generation event to PostHog LLM analytics
-    captureAiGeneration(effectiveUserId || 'anonymous', {
+    // Send $ai_generation event to PostHog LLM analytics. effectiveUserId is
+    // guaranteed non-null here — unauthenticated requests already 401'd above.
+    captureAiGeneration(effectiveUserId, {
       $ai_model: llmResult.model,
       $ai_provider: llmResult.provider,
       $ai_input_tokens: tokenUsage.prompt_tokens,

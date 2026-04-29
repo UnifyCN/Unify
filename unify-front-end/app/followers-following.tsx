@@ -16,6 +16,7 @@ import BackHeader from '@/components/BackHeader';
 import { Theme } from '@/constants/Theme';
 import { FollowButton } from '@/components/profile/FollowButton';
 import { useCurrentUser } from '@/context/UserContext';
+import type { FollowSource } from '@/utils/analytics';
 
 export const navigationOptions = {
   headerShown: false,
@@ -30,9 +31,10 @@ interface UserListItemProps {
     profilePictureUrl?: string;
   };
   currentUserId?: string;
+  source: FollowSource;
 }
 
-const UserListItem = ({ user, currentUserId }: UserListItemProps) => {
+const UserListItem = ({ user, currentUserId, source }: UserListItemProps) => {
   const router = useRouter();
   const isCurrentUser = currentUserId === user.id;
 
@@ -58,7 +60,13 @@ const UserListItem = ({ user, currentUserId }: UserListItemProps) => {
         />
         <Text style={styles.username}>{user.username}</Text>
       </View>
-      {!isCurrentUser && <FollowButton targetUserId={user.id} compact={true} />}
+      {!isCurrentUser && (
+        <FollowButton
+          targetUserId={user.id}
+          compact={true}
+          source={source}
+        />
+      )}
     </TouchableOpacity>
   );
 };
@@ -153,7 +161,13 @@ export default function FollowersFollowingScreen() {
         data={data || []}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <UserListItem user={item} currentUserId={currentUser?.id} />
+          <UserListItem
+            user={item}
+            currentUserId={currentUser?.id}
+            source={
+              activeTab === 'followers' ? 'followers_list' : 'following_list'
+            }
+          />
         )}
         ListEmptyComponent={renderEmpty}
         contentContainerStyle={

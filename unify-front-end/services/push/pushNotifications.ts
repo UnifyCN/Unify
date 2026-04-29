@@ -13,30 +13,52 @@ Notifications.setNotificationHandler({
   }),
 });
 
+export interface PushRegistrationResult {
+  token: string | null;
+  /** Permission status BEFORE we asked (used to detect first-prompt). */
+  previousPermission: Notifications.PermissionStatus | 'unsupported';
+  /** Permission status AFTER our request (or existing if no request was made). */
+  permission: Notifications.PermissionStatus | 'unsupported';
+  /** True iff we actually showed the system prompt this call. */
+  prompted: boolean;
+}
+
 /**
  * Register for push notifications and store the token in Supabase.
- * Returns the Expo push token if successful, null otherwise.
+ * Returns a result describing the permission flow + the token (when granted).
  */
-export async function registerForPushNotifications(): Promise<string | null> {
+export async function registerForPushNotifications(): Promise<PushRegistrationResult> {
   // Push notifications only work on physical devices
   if (!Device.isDevice) {
     console.warn('[Push] Skipped: not a physical device');
-    return null;
+    return {
+      token: null,
+      previousPermission: 'unsupported',
+      permission: 'unsupported',
+      prompted: false,
+    };
   }
 
   // Check existing permission status
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
+  let prompted = false;
 
   // Request permission if not already granted
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
+    prompted = true;
   }
 
   if (finalStatus !== 'granted') {
     console.warn('[Push] Skipped: permission not granted, status:', finalStatus);
-    return null;
+    return {
+      token: null,
+      previousPermission: existingStatus,
+      permission: finalStatus,
+      prompted,
+    };
   }
 
   // Create Android notification channels
@@ -74,12 +96,22 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
     if (!user) {
       console.warn('[Push] No authenticated user, skipping token storage');
-      return token;
+      return {
+        token,
+        previousPermission: existingStatus,
+        permission: finalStatus,
+        prompted,
+      };
     }
 
     if (!token) {
       console.warn('[Push] Token is empty, skipping storage');
-      return null;
+      return {
+        token: null,
+        previousPermission: existingStatus,
+        permission: finalStatus,
+        prompted,
+      };
     }
 
     // First try to update existing token for this user on this platform
@@ -126,10 +158,20 @@ export async function registerForPushNotifications(): Promise<string | null> {
       }
     }
 
-    return token;
+    return {
+      token,
+      previousPermission: existingStatus,
+      permission: finalStatus,
+      prompted,
+    };
   } catch (error) {
     console.error('[Push] Registration failed:', error);
-    return null;
+    return {
+      token: null,
+      previousPermission: existingStatus,
+      permission: finalStatus,
+      prompted,
+    };
   }
 }
 

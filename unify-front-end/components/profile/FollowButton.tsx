@@ -3,18 +3,22 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useFollowUser } from '@/hooks/users/useFollowUser';
 import { useFollowStatus } from '@/hooks/users/useFollowStatus';
 import { Theme } from '@/constants/Theme';
+import { useAnalytics, type FollowSource } from '@/utils/analytics';
 
 interface FollowButtonProps {
   targetUserId: string;
   compact?: boolean;
+  source?: FollowSource;
 }
 
 export const FollowButton = ({
   targetUserId,
   compact = false,
+  source = 'profile',
 }: FollowButtonProps) => {
   const { data: isFollowing } = useFollowStatus(targetUserId);
   const followUserMutation = useFollowUser();
+  const { trackUserFollowed, trackUserUnfollowed } = useAnalytics();
 
   // Local state to track follow status for immediate UI updates
   const [localIsFollowing, setLocalIsFollowing] = useState<boolean | null>(
@@ -29,13 +33,25 @@ export const FollowButton = ({
   }, [isFollowing]);
 
   const handleFollowToggle = () => {
+    const willFollow = !localIsFollowing;
     // Immediately update local state for instant UI feedback
-    setLocalIsFollowing(!localIsFollowing);
+    setLocalIsFollowing(willFollow);
 
-    followUserMutation.mutate({
-      targetUserId,
-      isFollowing: !localIsFollowing,
-    });
+    followUserMutation.mutate(
+      {
+        targetUserId,
+        isFollowing: willFollow,
+      },
+      {
+        onSuccess: () => {
+          if (willFollow) {
+            trackUserFollowed({ target_user_id: targetUserId, source });
+          } else {
+            trackUserUnfollowed({ target_user_id: targetUserId, source });
+          }
+        },
+      }
+    );
   };
 
   return (

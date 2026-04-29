@@ -306,9 +306,17 @@ export default function CompanionScreen() {
   );
 
   // Handle starter prompt selection
-  const handleStarterPromptSelect = (prompt: string, mode?: string) => {
+  const handleStarterPromptSelect = (
+    prompt: string,
+    mode?: string,
+    isPersonalized?: boolean
+  ) => {
     // Track the starter prompt usage (empty prompt defaults to 'Ask Anything')
-    trackCompanionStarterPromptUsed(prompt || 'Ask Anything', mode);
+    trackCompanionStarterPromptUsed(
+      prompt || 'Ask Anything',
+      mode,
+      isPersonalized
+    );
 
     // "Ask Anything" - show bot greeting message
     if (prompt === '' && !mode) {

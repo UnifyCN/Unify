@@ -94,7 +94,7 @@ export default function CreatePostForm({
   const insets = useSafeAreaInsets();
 
   const { showToast } = useToast();
-  const { trackPostCreated } = useAnalytics();
+  const { trackPostCreated, trackPostFailed } = useAnalytics();
   const createPostMutation = useMutateCreatePost();
 
   const trimmedTitle = title.trim();
@@ -173,7 +173,7 @@ export default function CreatePostForm({
       },
       {
         onSuccess: (data: any) => {
-          if (data?.id) trackPostCreated(String(data.id));
+          trackPostCreated(data?.id ? String(data.id) : undefined);
           const postedToGroup = destination === 'group' && selectedGroup;
           const toastMessage = postedToGroup
             ? `Posted to ${selectedGroup.name}`
@@ -186,7 +186,13 @@ export default function CreatePostForm({
             group: groupToNavigate,
           });
         },
-        onError: _ => {
+        onError: (err: any) => {
+          trackPostFailed({
+            surface: 'create',
+            reason: err?.message,
+            ...(destination === 'group' &&
+              selectedGroup && { group_id: String(selectedGroup.id) }),
+          });
           Alert.alert('Error', 'Failed to create post. Please try again.');
         },
       }

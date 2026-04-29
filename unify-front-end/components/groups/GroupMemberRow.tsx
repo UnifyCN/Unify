@@ -43,7 +43,9 @@ export default function GroupMemberRow({
         </View>
       </TouchableOpacity>
 
-      {!member.isFollowing && <FollowButton targetUserId={member.id} compact />}
+      {!member.isFollowing && (
+        <FollowButton targetUserId={member.id} compact source='community' />
+      )}
     </View>
   );
 }
