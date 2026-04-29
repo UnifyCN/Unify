@@ -145,8 +145,21 @@ function useAnalyticsIdentitySync() {
   const { identify, reset } = useAnalytics();
   const lastIdRef = useRef<string | null>(null);
   const lastTraitsRef = useRef<string>('');
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
+    // Cold-start: PostHog persists distinct_id to AsyncStorage, so on app
+    // launch the SDK may still hold the prior session's identity. If the
+    // user isn't authenticated when this effect first runs, clear that
+    // stale identity so pre-auth events (auth screens, app_opened) don't
+    // get attributed to whoever was last logged in on this device.
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      if (!currentUser?.id) {
+        reset();
+      }
+    }
+
     if (currentUser?.id) {
       const traits = {
         email: currentUser.email,
