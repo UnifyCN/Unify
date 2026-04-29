@@ -1,4 +1,5 @@
 # Unify
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/UnifyCN/mobile-app)
 
 A mobile app helping newcomers settle in Canada — built by [Unify](https://unifysocial.ca/).
 
