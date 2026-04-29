@@ -6,14 +6,15 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ScrollContextProvider } from '@/context/ScrollContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import 'react-native-reanimated';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PreLoginOnboarding from '@/components/onboarding/PreLoginOnboarding';
-import { UserProvider } from '@/context/UserContext';
+import { UserProvider, useCurrentUser } from '@/context/UserContext';
+import { useAnalytics } from '@/utils/analytics';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
@@ -135,11 +136,55 @@ export default function RootLayout() {
 }
 
 /**
+ * Syncs PostHog identity with the current authenticated user.
+ * - identify on sign-in / user-info load
+ * - reset when the user signs out (id transitions to null)
+ */
+function useAnalyticsIdentitySync() {
+  const { currentUser } = useCurrentUser();
+  const { identify, reset } = useAnalytics();
+  const lastIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (currentUser?.id && currentUser.id !== lastIdRef.current) {
+      identify(currentUser.id, {
+        email: currentUser.email,
+        username: currentUser.username,
+        persona: currentUser.persona ?? null,
+        is_premium: currentUser.isPremium,
+        city: currentUser.city,
+        province: currentUser.province,
+        arrival_date: currentUser.arrivalDate,
+        stage: currentUser.stage,
+      });
+      lastIdRef.current = currentUser.id;
+    } else if (!currentUser?.id && lastIdRef.current) {
+      reset();
+      lastIdRef.current = null;
+    }
+  }, [
+    currentUser?.id,
+    currentUser?.email,
+    currentUser?.username,
+    currentUser?.persona,
+    currentUser?.isPremium,
+    currentUser?.city,
+    currentUser?.province,
+    currentUser?.arrivalDate,
+    currentUser?.stage,
+    identify,
+    reset,
+  ]);
+}
+
+/**
  * Inner component that has access to UserContext for push notifications
  */
 function AppContent() {
   // Initialize push notifications (requires UserContext)
   usePushNotifications();
+  // Identify the user with PostHog whenever auth state resolves
+  useAnalyticsIdentitySync();
 
   return (
     <Stack>

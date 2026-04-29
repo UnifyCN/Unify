@@ -46,6 +46,7 @@ export function SignUp({
     trackSignUpStarted,
     trackSignUpCompleted,
     trackSignUpFailed,
+    trackSignInCompleted,
     trackGoogleSignInUsed,
     trackAppleSignInUsed,
   } = useAnalytics();
@@ -130,7 +131,7 @@ export function SignUp({
         return;
       }
 
-      trackSignUpCompleted();
+      trackSignUpCompleted('email');
       const acceptedAt = new Date().toISOString();
       onShowOTP?.(normalizedEmail, password, acceptedAt);
       return;
@@ -193,6 +194,7 @@ export function SignUp({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+          trackSignInCompleted('google');
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage('Unable to retrieve email from Google account');
           setLoading(false);
@@ -263,6 +265,7 @@ export function SignUp({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+          trackSignInCompleted('apple');
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage('Unable to retrieve email from Apple account');
           setLoading(false);

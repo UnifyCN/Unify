@@ -3,9 +3,6 @@ import { usePostHog } from 'posthog-react-native';
 
 // Event name constants for type safety and consistency
 export const AnalyticsEvents = {
-  // Screen views
-  SCREEN_VIEWED: 'screen_viewed',
-
   // Tab navigation
   TAB_SWITCHED: 'tab_switched',
 
@@ -16,6 +13,33 @@ export const AnalyticsEvents = {
   POST_UNSAVED: 'post_unsaved',
   POST_COMMENT_OPENED: 'post_comment_opened',
   POST_CREATED: 'post_created',
+  POST_DELETED: 'post_deleted',
+  POST_PINNED: 'post_pinned',
+  POST_UNPINNED: 'post_unpinned',
+  POST_FAILED: 'post_failed',
+
+  // Comments
+  COMMENT_CREATED: 'comment_created',
+  COMMENT_LIKED: 'comment_liked',
+  COMMENT_UNLIKED: 'comment_unliked',
+  COMMENT_DELETED: 'comment_deleted',
+  REPLY_PILL_TAPPED: 'reply_pill_tapped',
+
+  // Follow / profile
+  USER_FOLLOWED: 'user_followed',
+  USER_UNFOLLOWED: 'user_unfollowed',
+  PROFILE_VIEWED: 'profile_viewed',
+  PROFILE_PICTURE_UPDATED: 'profile_picture_updated',
+  PROFILE_EDITED: 'profile_edited',
+
+  // Block / safety
+  USER_BLOCKED: 'user_blocked',
+  USER_UNBLOCKED: 'user_unblocked',
+
+  // Push permissions
+  PUSH_PERMISSION_PROMPTED: 'push_permission_prompted',
+  PUSH_PERMISSION_GRANTED: 'push_permission_granted',
+  PUSH_PERMISSION_DENIED: 'push_permission_denied',
 
   // Groups
   GROUP_JOINED: 'group_joined',
@@ -54,6 +78,8 @@ export const AnalyticsEvents = {
   SIGN_IN_FAILED: 'sign_in_failed',
   GOOGLE_SIGN_IN_USED: 'google_sign_in_used',
   APPLE_SIGN_IN_USED: 'apple_sign_in_used',
+  USER_SIGNED_OUT: 'user_signed_out',
+  ACCOUNT_DELETED: 'account_deleted',
 
   // Search
   SEARCH_OPENED: 'search_opened',
@@ -89,6 +115,8 @@ export const AnalyticsEvents = {
 
   // AI Companion (extended)
   COMPANION_RESPONSE_RECEIVED: 'companion_response_received',
+  COMPANION_FEEDBACK_GIVEN: 'companion_feedback_given',
+  COMPANION_CHIP_REFRESHED: 'companion_chip_refreshed',
 
   // Daily Tips
   TIP_VIEWED: 'tip_viewed',
@@ -98,10 +126,15 @@ export const AnalyticsEvents = {
   INVITE_CODE_GENERATED: 'invite_code_generated',
   INVITE_SCREEN_OPENED: 'invite_screen_opened',
   INVITE_SHARE_SHEET_OPENED: 'invite_share_sheet_opened',
+  INVITE_SHARE_COMPLETED: 'invite_share_completed',
   INVITE_CODE_DETECTED_FROM_CLIPBOARD: 'invite_code_detected_from_clipboard',
   INVITE_REDEEMED: 'invite_redeemed',
   INVITE_REDEEM_FAILED: 'invite_redeem_failed',
   INVITE_GROUPS_JOINED_AT_SIGNUP: 'invite_groups_joined_at_signup',
+  REFERRAL_AUTO_FOLLOW_COMPLETED: 'referral_auto_follow_completed',
+
+  // Errors
+  MUTATION_FAILED: 'mutation_failed',
 } as const;
 
 export type AnalyticsEventName =
@@ -197,12 +230,95 @@ export interface TipViewedProperties {
   date: string;
 }
 
+export interface IdentifyUserProperties {
+  email?: string | null;
+  username?: string | null;
+  persona?: string | null;
+  is_premium?: boolean;
+  city?: string | null;
+  province?: string | null;
+  arrival_date?: string | null;
+  stage?: number | null;
+}
+
+export type AuthMethod = 'email' | 'google' | 'apple';
+
+export interface AuthCompletedProperties {
+  method: AuthMethod;
+}
+
+export interface CommentCreatedProperties {
+  post_id: string;
+  comment_id?: string;
+  is_reply: boolean;
+  parent_comment_id?: string;
+  body_length: number;
+}
+
+export interface CommentInteractionProperties {
+  comment_id: string;
+  post_id?: string;
+  is_reply?: boolean;
+}
+
+export type FollowSource =
+  | 'profile'
+  | 'feed'
+  | 'invite_auto_follow'
+  | 'search'
+  | 'followers_list'
+  | 'community';
+
+export interface FollowProperties {
+  target_user_id: string;
+  source: FollowSource;
+}
+
+export interface ProfileViewedProperties {
+  profile_user_id: string;
+  is_self: boolean;
+}
+
+export interface PushPermissionProperties {
+  prompted_in?: 'onboarding' | 'in_app' | 'system';
+}
+
+export interface PostFailedProperties {
+  surface: 'create' | 'delete' | 'pin' | 'unpin';
+  reason?: string;
+  group_id?: string;
+}
+
+export interface MutationFailedProperties {
+  surface: string;
+  error_message?: string;
+  error_code?: string;
+}
+
+export interface CompanionFeedbackProperties {
+  message_id?: string;
+  rating: 'up' | 'down';
+}
+
+export interface InviteShareCompletedProperties {
+  result: 'sent' | 'dismissed' | 'unknown';
+  activity_type?: string | null;
+}
+
 // Hook for analytics tracking
 export function useAnalytics() {
   const posthog = usePostHog();
 
   return useMemo(
     () => ({
+      // Identity
+      identify: (userId: string, properties: IdentifyUserProperties) => {
+        posthog?.identify(userId, { ...properties });
+      },
+      reset: () => {
+        posthog?.reset();
+      },
+
       // Screen tracking
       trackScreen: (screenName: string) => {
         posthog?.screen(screenName);
@@ -234,8 +350,130 @@ export function useAnalytics() {
           post_id: postId,
         });
       },
-      trackPostCreated: (postId: string) => {
-        posthog?.capture(AnalyticsEvents.POST_CREATED, { post_id: postId });
+      trackPostCreated: (postId?: string) => {
+        posthog?.capture(AnalyticsEvents.POST_CREATED, {
+          ...(postId && { post_id: postId }),
+          post_id_known: !!postId,
+        });
+      },
+      trackPostDeleted: (postId: string) => {
+        posthog?.capture(AnalyticsEvents.POST_DELETED, { post_id: postId });
+      },
+      trackPostPinned: (postId: string) => {
+        posthog?.capture(AnalyticsEvents.POST_PINNED, { post_id: postId });
+      },
+      trackPostUnpinned: (postId: string) => {
+        posthog?.capture(AnalyticsEvents.POST_UNPINNED, { post_id: postId });
+      },
+      trackPostFailed: (properties: PostFailedProperties) => {
+        posthog?.capture(AnalyticsEvents.POST_FAILED, { ...properties });
+      },
+
+      // Comments
+      trackCommentCreated: (properties: CommentCreatedProperties) => {
+        posthog?.capture(AnalyticsEvents.COMMENT_CREATED, { ...properties });
+      },
+      trackCommentLiked: (properties: CommentInteractionProperties) => {
+        posthog?.capture(AnalyticsEvents.COMMENT_LIKED, { ...properties });
+      },
+      trackCommentUnliked: (properties: CommentInteractionProperties) => {
+        posthog?.capture(AnalyticsEvents.COMMENT_UNLIKED, { ...properties });
+      },
+      trackCommentDeleted: (properties: CommentInteractionProperties) => {
+        posthog?.capture(AnalyticsEvents.COMMENT_DELETED, { ...properties });
+      },
+      trackReplyPillTapped: (parentCommentId: string) => {
+        posthog?.capture(AnalyticsEvents.REPLY_PILL_TAPPED, {
+          parent_comment_id: parentCommentId,
+        });
+      },
+
+      // Follow / profile
+      trackUserFollowed: (properties: FollowProperties) => {
+        posthog?.capture(AnalyticsEvents.USER_FOLLOWED, { ...properties });
+      },
+      trackUserUnfollowed: (properties: FollowProperties) => {
+        posthog?.capture(AnalyticsEvents.USER_UNFOLLOWED, { ...properties });
+      },
+      trackProfileViewed: (properties: ProfileViewedProperties) => {
+        posthog?.capture(AnalyticsEvents.PROFILE_VIEWED, { ...properties });
+      },
+      trackProfilePictureUpdated: () => {
+        posthog?.capture(AnalyticsEvents.PROFILE_PICTURE_UPDATED);
+      },
+      trackProfileEdited: (field: string) => {
+        posthog?.capture(AnalyticsEvents.PROFILE_EDITED, { field });
+      },
+
+      // Block / safety
+      trackUserBlocked: (targetUserId: string) => {
+        posthog?.capture(AnalyticsEvents.USER_BLOCKED, {
+          target_user_id: targetUserId,
+        });
+      },
+      trackUserUnblocked: (targetUserId: string) => {
+        posthog?.capture(AnalyticsEvents.USER_UNBLOCKED, {
+          target_user_id: targetUserId,
+        });
+      },
+
+      // Push permissions
+      trackPushPermissionPrompted: (properties?: PushPermissionProperties) => {
+        posthog?.capture(AnalyticsEvents.PUSH_PERMISSION_PROMPTED, {
+          ...(properties ?? {}),
+        });
+      },
+      trackPushPermissionGranted: (properties?: PushPermissionProperties) => {
+        posthog?.capture(AnalyticsEvents.PUSH_PERMISSION_GRANTED, {
+          ...(properties ?? {}),
+        });
+      },
+      trackPushPermissionDenied: (properties?: PushPermissionProperties) => {
+        posthog?.capture(AnalyticsEvents.PUSH_PERMISSION_DENIED, {
+          ...(properties ?? {}),
+        });
+      },
+
+      // Account lifecycle
+      trackUserSignedOut: (reason?: string) => {
+        posthog?.capture(
+          AnalyticsEvents.USER_SIGNED_OUT,
+          reason ? { reason } : {}
+        );
+      },
+      trackAccountDeleted: () => {
+        posthog?.capture(AnalyticsEvents.ACCOUNT_DELETED);
+      },
+
+      // Companion (extended)
+      trackCompanionFeedbackGiven: (
+        properties: CompanionFeedbackProperties
+      ) => {
+        posthog?.capture(AnalyticsEvents.COMPANION_FEEDBACK_GIVEN, {
+          ...properties,
+        });
+      },
+      trackCompanionChipRefreshed: () => {
+        posthog?.capture(AnalyticsEvents.COMPANION_CHIP_REFRESHED);
+      },
+
+      // Referrals (extended)
+      trackInviteShareCompleted: (
+        properties: InviteShareCompletedProperties
+      ) => {
+        posthog?.capture(AnalyticsEvents.INVITE_SHARE_COMPLETED, {
+          ...properties,
+        });
+      },
+      trackReferralAutoFollowCompleted: (referrerUserId: string) => {
+        posthog?.capture(AnalyticsEvents.REFERRAL_AUTO_FOLLOW_COMPLETED, {
+          referrer_user_id: referrerUserId,
+        });
+      },
+
+      // Errors
+      trackMutationFailed: (properties: MutationFailedProperties) => {
+        posthog?.capture(AnalyticsEvents.MUTATION_FAILED, { ...properties });
       },
 
       // Group interactions
@@ -284,10 +522,15 @@ export function useAnalytics() {
           message_length: messageLength,
         });
       },
-      trackCompanionStarterPromptUsed: (prompt: string, mode?: string) => {
+      trackCompanionStarterPromptUsed: (
+        prompt: string,
+        mode?: string,
+        isPersonalized?: boolean
+      ) => {
         posthog?.capture(AnalyticsEvents.COMPANION_STARTER_PROMPT_USED, {
           prompt,
           ...(mode && { mode }),
+          ...(isPersonalized !== undefined && { is_personalized: isPersonalized }),
         });
       },
       trackCompanionSuggestionClicked: (suggestion: string) => {
@@ -395,20 +638,21 @@ export function useAnalytics() {
       trackSignUpStarted: () => {
         posthog?.capture(AnalyticsEvents.SIGN_UP_STARTED);
       },
-      trackSignUpCompleted: () => {
-        posthog?.capture(AnalyticsEvents.SIGN_UP_COMPLETED);
+      trackSignUpCompleted: (method: AuthMethod = 'email') => {
+        posthog?.capture(AnalyticsEvents.SIGN_UP_COMPLETED, { method });
       },
       trackSignUpFailed: (errorType: string) => {
         posthog?.capture(AnalyticsEvents.SIGN_UP_FAILED, {
           error_type: errorType,
         });
       },
-      trackSignInCompleted: () => {
-        posthog?.capture(AnalyticsEvents.SIGN_IN_COMPLETED);
+      trackSignInCompleted: (method: AuthMethod = 'email') => {
+        posthog?.capture(AnalyticsEvents.SIGN_IN_COMPLETED, { method });
       },
-      trackSignInFailed: (errorType: string) => {
+      trackSignInFailed: (errorType: string, method: AuthMethod = 'email') => {
         posthog?.capture(AnalyticsEvents.SIGN_IN_FAILED, {
           error_type: errorType,
+          method,
         });
       },
       trackGoogleSignInUsed: (authType: 'sign_up' | 'sign_in') => {
@@ -488,9 +732,13 @@ export function useAnalytics() {
       },
 
       // Notifications
-      trackNotificationOpened: (notificationType: string) => {
+      trackNotificationOpened: (
+        notificationType: string,
+        deepLinkTarget?: string | null
+      ) => {
         posthog?.capture(AnalyticsEvents.NOTIFICATION_OPENED, {
           notification_type: notificationType,
+          ...(deepLinkTarget && { deep_link_target: deepLinkTarget }),
         });
       },
       trackNotificationsMarkAllRead: (count: number) => {

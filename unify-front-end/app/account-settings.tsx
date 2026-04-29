@@ -35,7 +35,8 @@ export default function AccountSettingsPage() {
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
     useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  const { trackScreen } = useAnalytics();
+  const { trackScreen, trackUserSignedOut, trackAccountDeleted } =
+    useAnalytics();
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
   const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const queryClient = useQueryClient();
@@ -57,13 +58,15 @@ export default function AccountSettingsPage() {
 
   const onLogout = async () => {
     try {
+      trackUserSignedOut('manual');
       try {
         await unregisterPushToken();
       } catch (e) {
         console.error('Failed to unregister push token on logout:', e);
       }
       await supabase.auth.signOut();
-      // Let AuthWrapper handle the navigation
+      // useAnalyticsIdentitySync calls posthog.reset() on session change.
+      // AuthWrapper handles navigation.
     } catch (err) {
       console.error('Logout failed', err);
     }
@@ -100,11 +103,20 @@ export default function AccountSettingsPage() {
       }
       const { error } = await supabase.rpc('delete_user');
       if (error) throw error;
+      trackAccountDeleted();
       setDeleteAccountModalVisible(false);
       Alert.alert(
         'Account deleted',
         'Your Unify account has been permanently deleted.',
-        [{ text: 'OK', onPress: () => supabase.auth.signOut() }]
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              trackUserSignedOut('account_deleted');
+              supabase.auth.signOut();
+            },
+          },
+        ]
       );
     } catch (err) {
       console.error('Delete account failed', err);
