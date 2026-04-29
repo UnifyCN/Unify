@@ -17,6 +17,8 @@ import { UserProvider } from '@/context/UserContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { InviteCodeProvider } from '@/context/InviteCodeContext';
+import { ClipboardListener } from '@/components/referrals/ClipboardListener';
 import AnimatedSplash from '@/components/AnimatedSplash';
 import { queryClient } from '@/lib/queryClient';
 import {
@@ -93,23 +95,32 @@ export default function RootLayout() {
             <SafeAreaProvider>
               <ToastProvider>
                 <ScrollContextProvider>
-                  {showOnboarding ? (
-                    <PreLoginOnboarding
-                      onFinish={() => setShowOnboarding(false)}
-                    />
-                  ) : (
-                    <UserProvider>
-                      <HapticsProvider>
-                        <AuthWrapper
-                          onBackToOnboarding={handleBackToOnboarding}
-                        >
-                          <ThemeProvider value={DefaultTheme}>
-                            <AppContent />
-                          </ThemeProvider>
-                        </AuthWrapper>
-                      </HapticsProvider>
-                    </UserProvider>
-                  )}
+                  {/* InviteCodeProvider + ClipboardListener live ABOVE the
+                      pre-login/auth conditional so the first-launch clipboard
+                      probe runs on app cold start regardless of which path
+                      the user is on (pre-login onboarding vs authed app).
+                      Otherwise an invite-code-bearing pasteboard would be
+                      missed for any new user who lands on PreLoginOnboarding. */}
+                  <InviteCodeProvider>
+                    <ClipboardListener />
+                    {showOnboarding ? (
+                      <PreLoginOnboarding
+                        onFinish={() => setShowOnboarding(false)}
+                      />
+                    ) : (
+                      <UserProvider>
+                        <HapticsProvider>
+                          <AuthWrapper
+                            onBackToOnboarding={handleBackToOnboarding}
+                          >
+                            <ThemeProvider value={DefaultTheme}>
+                              <AppContent />
+                            </ThemeProvider>
+                          </AuthWrapper>
+                        </HapticsProvider>
+                      </UserProvider>
+                    )}
+                  </InviteCodeProvider>
                 </ScrollContextProvider>
               </ToastProvider>
             </SafeAreaProvider>
@@ -162,6 +173,11 @@ function AppContent() {
       <Stack.Screen
         name='followers-following'
         options={{ headerShown: false }}
+      />
+      <Stack.Screen name='refer-a-friend' options={{ headerShown: false }} />
+      <Stack.Screen
+        name='welcome-from-inviter'
+        options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen name='+not-found' />
     </Stack>
