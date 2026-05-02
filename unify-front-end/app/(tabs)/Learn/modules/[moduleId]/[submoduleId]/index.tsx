@@ -10,6 +10,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModuleWithSubmodules } from '@/hooks/sanity/useSanityModules';
 import { Feather } from '@expo/vector-icons';
@@ -110,6 +111,7 @@ function getSectionStyles(
 
 export default function SubmoduleIndex() {
   const router = useRouter();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
@@ -288,8 +290,8 @@ export default function SubmoduleIndex() {
   const sections: SubmoduleSectionViewModel[] = [
     {
       id: 'learn',
-      title: 'Learn',
-      description: 'Key concepts & terms',
+      title: t('learn.submodule.learnTitle'),
+      description: t('learn.submodule.learnDescription'),
       iconName: 'book-open',
       progressPercent: learnProgressPercent,
       uiState:
@@ -304,8 +306,8 @@ export default function SubmoduleIndex() {
       ? [
           {
             id: 'tasks',
-            title: 'Tasks',
-            description: 'Real-world steps',
+            title: t('learn.submodule.tasksTitle'),
+            description: t('learn.submodule.tasksDescription'),
             iconName: 'check-square',
             progressPercent: taskProgressPercent,
             uiState: (taskProgressPercent >= 100
@@ -321,8 +323,8 @@ export default function SubmoduleIndex() {
       ? [
           {
             id: 'practice',
-            title: 'Practice',
-            description: 'Test your understanding',
+            title: t('learn.submodule.practiceTitle'),
+            description: t('learn.submodule.practiceDescription'),
             iconName: 'target',
             progressPercent: practiceProgressPercent,
             uiState:
@@ -362,16 +364,16 @@ export default function SubmoduleIndex() {
     );
     const statusLabel =
       section.progressPercent >= 100
-        ? 'Completed'
+        ? t('common.completed')
         : section.progressPercent > 0
-          ? `${Math.round(section.progressPercent)}% complete`
+          ? t('learn.submodule.percentComplete', { percent: Math.round(section.progressPercent) })
           : null;
     const ctaLabel =
       section.progressPercent >= 100
-        ? 'Review'
+        ? t('common.review')
         : section.progressPercent > 0
-          ? 'Continue'
-          : 'Start';
+          ? t('common.continue')
+          : t('common.start');
 
     return (
       <View key={section.id} style={styles.sectionRow}>
@@ -471,7 +473,7 @@ export default function SubmoduleIndex() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color={subjectColor} />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -482,7 +484,7 @@ export default function SubmoduleIndex() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
-            {error?.message || 'Unable to load this section'}
+            {error?.message || t('learn.submodule.unableToLoad')}
           </Text>
         </View>
       </SafeAreaView>
@@ -525,7 +527,7 @@ export default function SubmoduleIndex() {
           <View style={styles.headerTitleBlock}>
             <View style={styles.headerSectionPill}>
               <Text style={styles.headerSectionLabel}>
-                Section {sectionNumber}
+                {t('learn.module.section', { number: sectionNumber })}
               </Text>
             </View>
             <Text style={styles.headerTitle}>{submoduleData.title}</Text>
@@ -535,7 +537,7 @@ export default function SubmoduleIndex() {
         <View style={styles.headerDescriptionWrap}>
           <Text style={styles.headerDescription}>
             {submoduleData.description ||
-              'Learn key concepts and practice your skills.'}
+              t('learn.submodule.defaultDescription')}
           </Text>
         </View>
       </View>

@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "saving": "Đang lưu...",
+    "delete": "Xóa",
+    "back": "Quay lại",
+    "continue": "Tiếp tục",
+    "start": "Bắt đầu",
+    "review": "Xem lại",
+    "gotIt": "Đã hiểu",
+    "add": "Thêm",
+    "goBackToLearn": "Quay lại trang Học",
+    "errorLoadingModule": "Lỗi tải mô-đun: {{message}}",
+    "unknownError": "Lỗi không xác định",
+    "errorSignIn": "Vui lòng đăng nhập và thử lại.",
+    "errorGeneric": "Không thể tạo mục danh sách lúc này.",
+    "subject": "Chủ đề",
+    "stageNotSet": "Chưa thiết lập giai đoạn",
+    "user": "Người dùng",
+    "justNow": "vừa xong",
+    "completed": "Hoàn thành"
+  },
+
+  "tabs": {
+    "home": "Trang chủ",
+    "community": "Cộng đồng",
+    "companion": "Trợ lý",
+    "checklist": "Danh sách",
+    "learn": "Học"
+  },
+
+  "learn": {
+    "title": "Sẵn sàng học chưa?",
+    "subtitle": "Bắt đầu với các bài học để hiểu những kiến thức cơ bản về văn hóa Canada và cách hòa nhập với tư cách là người mới.",
+    "errorLoadingLessons": "Lỗi tải bài học",
+    "errorLoadingModules": "Lỗi tải mô-đun",
+    "noLessonsToContinue": "Không có bài học nào để tiếp tục",
+    "startLessonToSeeHere": "Bắt đầu một bài học để xem ở đây",
+    "continueLearning": "Tiếp tục học",
+    "recommendedForYou": "Đề xuất cho bạn",
+    "subjects": "Chủ đề",
+    "exploreMore": "Khám phá thêm",
+    "noModulesAvailable": "Không có mô-đun nào",
+    "sectionCount": "{{count}} phần",
+    "sectionCount_other": "{{count}} phần",
+    "announcementTitle": "Mới: Tô sáng & Hỏi AI",
+    "announcementBody": "Nhấn giữ bất kỳ từ hoặc cụm từ nào trong bài học để tô sáng hoặc nhờ AI giải thích. Các đoạn tô sáng được lưu trong 'Đã lưu từ Học' trên hồ sơ của bạn.",
+
+    "module": {
+      "errorLoading": "Lỗi tải mô-đun: {{message}}",
+      "section": "Phần {{number}}"
+    },
+
+    "submodule": {
+      "learnTitle": "Học",
+      "learnDescription": "Khái niệm & thuật ngữ chính",
+      "tasksTitle": "Nhiệm vụ",
+      "tasksDescription": "Các bước thực tế",
+      "practiceTitle": "Thực hành",
+      "practiceDescription": "Kiểm tra hiểu biết của bạn",
+      "defaultDescription": "Học các khái niệm chính và thực hành kỹ năng.",
+      "percentComplete": "{{percent}}% hoàn thành",
+      "unableToLoad": "Không thể tải phần này",
+      "loadingSubmodule": "Đang tải..."
+    },
+
+    "map": {
+      "loadingSubmodule": "Đang tải...",
+      "errorLoadingSubmodule": "Lỗi tải: {{message}}"
+    }
+  },
+
+  "checklist": {
+    "title": "Danh sách cá nhân",
+    "onboardingRequired": "Vui lòng hoàn tất đăng ký để xem danh sách cá nhân của bạn.",
+    "addYourOwnItem": "Thêm mục của riêng bạn",
+    "noTasksAvailable": "Không có nhiệm vụ nào cho giai đoạn hiện tại.",
+    "completeCount": "{{completed}}/{{total}} hoàn thành",
+    "deleteItemTitle": "Xóa mục này?",
+    "deleteItemMessage": "Hành động này không thể hoàn tác.",
+    "completedTime": "Hoàn thành {{time}}",
+    "markAsComplete": "Đánh dấu hoàn thành",
+    "undoCompletion": "Hoàn tác",
+    "learnHow": "Tìm hiểu cách làm",
+    "deleteTask": "Xóa nhiệm vụ",
+
+    "stage": {
+      "0": "Chưa đến",
+      "1": "0–3 tháng",
+      "2": "3–12 tháng",
+      "3": "1–3 năm",
+      "4": "3+ năm"
+    },
+
+    "persona": {
+      "international_student": "Sinh viên quốc tế",
+      "refugee": "Người tị nạn",
+      "protected_person": "Người được bảo vệ",
+      "skilled_worker": "Lao động tay nghề",
+      "immigrant": "Người nhập cư",
+      "pr": "PR"
+    },
+
+    "createItem": {
+      "headerTitle": "Mục danh sách mới",
+      "categoryLabel": "Danh mục",
+      "titleLabel": "Tiêu đề",
+      "titlePlaceholder": "Thêm tiêu đề ngắn",
+      "descriptionLabel": "Mô tả ngắn (tùy chọn)",
+      "descriptionPlaceholder": "Thêm chi tiết",
+      "priorityDoNow": "Làm ngay",
+      "priorityDoSoon": "Làm sớm",
+      "priorityExploreConnect": "Khám phá & kết nối",
+      "priorityOptionalLater": "Tùy chọn / sau"
+    }
+  },
+
+  "language": {
+    "title": "Ngôn ngữ",
+    "selectLanguage": "Chọn ngôn ngữ",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "spanish": "Español",
+    "hindi": "हिन्दी"
+  }
+}

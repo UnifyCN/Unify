@@ -91,6 +91,7 @@ export const saveOnboardingProfile = async (
       learning_interests: result.learning_interests || [],
       learning_interests_other: result.learning_interests_other,
       hobbies: result.hobbies || [],
+      preferred_language: result.preferred_language || 'en',
       wants_reminders: result.wants_reminders ?? false,
       onboarding_completed: result.onboarding_completed ?? false,
       onboarding_completed_at: result.onboarding_completed_at,

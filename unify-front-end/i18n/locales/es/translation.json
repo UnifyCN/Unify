@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "delete": "Eliminar",
+    "back": "Volver",
+    "continue": "Continuar",
+    "start": "Comenzar",
+    "review": "Revisar",
+    "gotIt": "Entendido",
+    "add": "Agregar",
+    "goBackToLearn": "Volver a Aprender",
+    "errorLoadingModule": "Error al cargar el módulo: {{message}}",
+    "unknownError": "Error desconocido",
+    "errorSignIn": "Por favor inicia sesión e intenta de nuevo.",
+    "errorGeneric": "No se puede crear el elemento ahora.",
+    "subject": "Tema",
+    "stageNotSet": "Etapa no establecida",
+    "user": "Usuario",
+    "justNow": "ahora mismo",
+    "completed": "Completado"
+  },
+
+  "tabs": {
+    "home": "Inicio",
+    "community": "Comunidad",
+    "companion": "Asistente",
+    "checklist": "Lista",
+    "learn": "Aprender"
+  },
+
+  "learn": {
+    "title": "¿Listo para aprender?",
+    "subtitle": "Comienza con lecciones para entender los fundamentos de la cultura canadiense y cómo establecerte como recién llegado.",
+    "errorLoadingLessons": "Error al cargar las lecciones",
+    "errorLoadingModules": "Error al cargar los módulos",
+    "noLessonsToContinue": "No hay lecciones para continuar",
+    "startLessonToSeeHere": "Comienza una lección para verla aquí",
+    "continueLearning": "Seguir aprendiendo",
+    "recommendedForYou": "Recomendado para ti",
+    "subjects": "Temas",
+    "exploreMore": "Explorar más",
+    "noModulesAvailable": "No hay módulos disponibles",
+    "sectionCount": "{{count}} sección",
+    "sectionCount_other": "{{count}} secciones",
+    "announcementTitle": "Nuevo: Resaltar y preguntar a la IA",
+    "announcementBody": "Mantén presionada cualquier palabra o frase en una lección para resaltarla o pedirle a la IA que la explique. Tus resaltados se guardan en 'Guardado de Aprender' en tu perfil.",
+
+    "module": {
+      "errorLoading": "Error al cargar el módulo: {{message}}",
+      "section": "Sección {{number}}"
+    },
+
+    "submodule": {
+      "learnTitle": "Aprender",
+      "learnDescription": "Conceptos y términos clave",
+      "tasksTitle": "Tareas",
+      "tasksDescription": "Pasos del mundo real",
+      "practiceTitle": "Práctica",
+      "practiceDescription": "Pon a prueba tu comprensión",
+      "defaultDescription": "Aprende conceptos clave y practica tus habilidades.",
+      "percentComplete": "{{percent}}% completado",
+      "unableToLoad": "No se puede cargar esta sección",
+      "loadingSubmodule": "Cargando..."
+    },
+
+    "map": {
+      "loadingSubmodule": "Cargando...",
+      "errorLoadingSubmodule": "Error al cargar: {{message}}"
+    }
+  },
+
+  "checklist": {
+    "title": "Lista personalizada",
+    "onboardingRequired": "Completa tu registro para ver tu lista personalizada.",
+    "addYourOwnItem": "Agregar tu propio elemento",
+    "noTasksAvailable": "No hay tareas disponibles para tu etapa actual.",
+    "completeCount": "{{completed}}/{{total}} completadas",
+    "deleteItemTitle": "¿Eliminar elemento?",
+    "deleteItemMessage": "Esta acción no se puede deshacer.",
+    "completedTime": "Completado {{time}}",
+    "markAsComplete": "Marcar como completado",
+    "undoCompletion": "Deshacer",
+    "learnHow": "Aprende cómo",
+    "deleteTask": "Eliminar tarea",
+
+    "stage": {
+      "0": "Aún no llegó",
+      "1": "0–3 meses",
+      "2": "3–12 meses",
+      "3": "1–3 años",
+      "4": "3+ años"
+    },
+
+    "persona": {
+      "international_student": "Estudiante internacional",
+      "refugee": "Refugiado",
+      "protected_person": "Persona protegida",
+      "skilled_worker": "Trabajador calificado",
+      "immigrant": "Inmigrante",
+      "pr": "PR"
+    },
+
+    "createItem": {
+      "headerTitle": "Nuevo elemento",
+      "categoryLabel": "Categoría",
+      "titleLabel": "Título",
+      "titlePlaceholder": "Agrega un título corto",
+      "descriptionLabel": "Descripción breve (opcional)",
+      "descriptionPlaceholder": "Agregar detalles",
+      "priorityDoNow": "Hacer ahora",
+      "priorityDoSoon": "Hacer pronto",
+      "priorityExploreConnect": "Explorar y conectar",
+      "priorityOptionalLater": "Opcional / después"
+    }
+  },
+
+  "language": {
+    "title": "Idioma",
+    "selectLanguage": "Seleccionar idioma",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "spanish": "Español",
+    "hindi": "हिन्दी"
+  }
+}

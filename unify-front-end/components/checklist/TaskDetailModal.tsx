@@ -8,6 +8,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -79,6 +80,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const backdropProgress = useSharedValue(0);
   const insets = useSafeAreaInsets();
   const latestVisibleRef = useRef(visible);
+  const { t } = useTranslation();
 
   useEffect(() => {
     latestVisibleRef.current = visible;
@@ -257,13 +259,13 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   size={20}
                   color={isCompleted ? '#059669' : '#fff'}
                 />
-                <Text
+                  <Text
                   style={[
                     styles.primaryButtonText,
                     isCompleted && styles.primaryButtonTextCompleted,
                   ]}
                 >
-                  {isCompleted ? 'Undo completion' : 'Mark as complete'}
+                  {isCompleted ? t('checklist.undoCompletion') : t('checklist.markAsComplete')}
                 </Text>
               </TouchableOpacity>
 
@@ -275,7 +277,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   activeOpacity={0.8}
                   accessibilityRole='button'
                 >
-                  <Text style={styles.secondaryButtonText}>Learn how</Text>
+                  <Text style={styles.secondaryButtonText}>{t('checklist.learnHow')}</Text>
                   <MaterialIcons
                     name='arrow-forward'
                     size={18}

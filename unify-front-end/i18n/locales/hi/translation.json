@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "saving": "सहेज रहा है...",
+    "delete": "हटाएं",
+    "back": "वापस",
+    "continue": "जारी रखें",
+    "start": "शुरू करें",
+    "review": "समीक्षा करें",
+    "gotIt": "समझ गया",
+    "add": "जोड़ें",
+    "goBackToLearn": "सीखें पर वापस जाएं",
+    "errorLoadingModule": "मॉड्यूल लोड करने में त्रुटि: {{message}}",
+    "unknownError": "अज्ञात त्रुटि",
+    "errorSignIn": "कृपया साइन इन करें और पुनः प्रयास करें।",
+    "errorGeneric": "अभी चेकलिस्ट आइटम नहीं बना सकते।",
+    "subject": "विषय",
+    "stageNotSet": "चरण सेट नहीं है",
+    "user": "उपयोगकर्ता",
+    "justNow": "अभी",
+    "completed": "पूर्ण"
+  },
+
+  "tabs": {
+    "home": "होम",
+    "community": "समुदाय",
+    "companion": "सहायक",
+    "checklist": "चेकलिस्ट",
+    "learn": "सीखें"
+  },
+
+  "learn": {
+    "title": "सीखने के लिए तैयार हैं?",
+    "subtitle": "कनाडा की संस्कृति की मूल बातें समझने और एक नवागंतुक के रूप में बसने के लिए पाठों से शुरुआत करें।",
+    "errorLoadingLessons": "पाठ लोड करने में त्रुटि",
+    "errorLoadingModules": "मॉड्यूल लोड करने में त्रुटि",
+    "noLessonsToContinue": "जारी रखने के लिए कोई पाठ नहीं",
+    "startLessonToSeeHere": "यहां देखने के लिए एक पाठ शुरू करें",
+    "continueLearning": "सीखना जारी रखें",
+    "recommendedForYou": "आपके लिए अनुशंसित",
+    "subjects": "विषय",
+    "exploreMore": "और अन्वेषण करें",
+    "noModulesAvailable": "कोई मॉड्यूल उपलब्ध नहीं",
+    "sectionCount": "{{count}} अनुभाग",
+    "sectionCount_other": "{{count}} अनुभाग",
+    "announcementTitle": "नया: हाइलाइट करें और AI से पूछें",
+    "announcementBody": "किसी भी शब्द या वाक्यांश को हाइलाइट करने या AI से समझाने के लिए पाठ में लंबे समय तक दबाएं। आपकी हाइलाइट्स आपकी प्रोफ़ाइल में 'सीखें से सहेजा गया' में सहेजी जाती हैं।",
+
+    "module": {
+      "errorLoading": "मॉड्यूल लोड करने में त्रुटि: {{message}}",
+      "section": "अनुभाग {{number}}"
+    },
+
+    "submodule": {
+      "learnTitle": "सीखें",
+      "learnDescription": "मुख्य अवधारणाएं और शब्दावली",
+      "tasksTitle": "कार्य",
+      "tasksDescription": "वास्तविक दुनिया के कदम",
+      "practiceTitle": "अभ्यास",
+      "practiceDescription": "अपनी समझ की जांच करें",
+      "defaultDescription": "मुख्य अवधारणाएं सीखें और अपने कौशल का अभ्यास करें।",
+      "percentComplete": "{{percent}}% पूर्ण",
+      "unableToLoad": "यह अनुभाग लोड करने में असमर्थ",
+      "loadingSubmodule": "लोड हो रहा है..."
+    },
+
+    "map": {
+      "loadingSubmodule": "लोड हो रहा है...",
+      "errorLoadingSubmodule": "लोड करने में त्रुटि: {{message}}"
+    }
+  },
+
+  "checklist": {
+    "title": "व्यक्तिगत चेकलिस्ट",
+    "onboardingRequired": "अपनी व्यक्तिगत चेकलिस्ट देखने के लिए कृपया अपना पंजीकरण पूरा करें।",
+    "addYourOwnItem": "अपना आइटम जोड़ें",
+    "noTasksAvailable": "आपके वर्तमान चरण के लिए कोई कार्य उपलब्ध नहीं है।",
+    "completeCount": "{{completed}}/{{total}} पूर्ण",
+    "deleteItemTitle": "आइटम हटाएं?",
+    "deleteItemMessage": "यह क्रिया पूर्ववत नहीं की जा सकती।",
+    "completedTime": "{{time}} पूर्ण हुआ",
+    "markAsComplete": "पूर्ण चिह्नित करें",
+    "undoCompletion": "पूर्ववत करें",
+    "learnHow": "कैसे करें सीखें",
+    "deleteTask": "कार्य हटाएं",
+
+    "stage": {
+      "0": "अभी नहीं पहुंचे",
+      "1": "0–3 महीने",
+      "2": "3–12 महीने",
+      "3": "1–3 साल",
+      "4": "3+ साल"
+    },
+
+    "persona": {
+      "international_student": "अंतर्राष्ट्रीय छात्र",
+      "refugee": "शरणार्थी",
+      "protected_person": "संरक्षित व्यक्ति",
+      "skilled_worker": "कुशल कर्मचारी",
+      "immigrant": "अप्रवासी",
+      "pr": "PR"
+    },
+
+    "createItem": {
+      "headerTitle": "नया चेकलिस्ट आइटम",
+      "categoryLabel": "श्रेणी",
+      "titleLabel": "शीर्षक",
+      "titlePlaceholder": "एक छोटा शीर्षक जोड़ें",
+      "descriptionLabel": "संक्षिप्त विवरण (वैकल्पिक)",
+      "descriptionPlaceholder": "विवरण जोड़ें",
+      "priorityDoNow": "अभी करें",
+      "priorityDoSoon": "जल्दी करें",
+      "priorityExploreConnect": "अन्वेषण करें और जुड़ें",
+      "priorityOptionalLater": "वैकल्पिक / बाद में"
+    }
+  },
+
+  "language": {
+    "title": "भाषा",
+    "selectLanguage": "भाषा चुनें",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "spanish": "Español",
+    "hindi": "हिन्दी"
+  }
+}

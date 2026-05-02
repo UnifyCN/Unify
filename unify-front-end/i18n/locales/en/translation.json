@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving...",
+    "delete": "Delete",
+    "back": "Back",
+    "continue": "Continue",
+    "start": "Start",
+    "review": "Review",
+    "gotIt": "Got it",
+    "add": "Add",
+    "goBackToLearn": "Go back to Learn",
+    "errorLoadingModule": "Error loading module: {{message}}",
+    "unknownError": "Unknown error",
+    "errorSignIn": "Please sign in and try again.",
+    "errorGeneric": "Unable to create checklist item right now.",
+    "subject": "Subject",
+    "stageNotSet": "Stage Not Set",
+    "user": "User",
+    "justNow": "just now",
+    "completed": "Completed"
+  },
+
+  "tabs": {
+    "home": "Home",
+    "community": "Community",
+    "companion": "Companion",
+    "checklist": "Checklist",
+    "learn": "Learn"
+  },
+
+  "learn": {
+    "title": "Ready to learn?",
+    "subtitle": "Get started with lessons to understand the basics of Canadian culture and how to settle in as a newcomer.",
+    "errorLoadingLessons": "Error loading lessons",
+    "errorLoadingModules": "Error loading modules",
+    "noLessonsToContinue": "No lessons to continue",
+    "startLessonToSeeHere": "Start a lesson to see it here",
+    "continueLearning": "Continue Learning",
+    "recommendedForYou": "Recommended for You",
+    "subjects": "Subjects",
+    "exploreMore": "Explore More",
+    "noModulesAvailable": "No modules available",
+    "sectionCount": "{{count}} section",
+    "sectionCount_other": "{{count}} sections",
+    "announcementTitle": "New: Highlight & Ask AI",
+    "announcementBody": "Long press any word or phrase in a lesson to highlight it or ask AI to explain it. Your highlights are saved under 'Saved from Learn' in your profile.",
+
+    "module": {
+      "errorLoading": "Error loading module: {{message}}",
+      "section": "Section {{number}}"
+    },
+
+    "submodule": {
+      "learnTitle": "Learn",
+      "learnDescription": "Key concepts & terms",
+      "tasksTitle": "Tasks",
+      "tasksDescription": "Real-world steps",
+      "practiceTitle": "Practice",
+      "practiceDescription": "Test your understanding",
+      "defaultDescription": "Learn key concepts and practice your skills.",
+      "percentComplete": "{{percent}}% complete",
+      "unableToLoad": "Unable to load this section",
+      "loadingSubmodule": "Loading submodule..."
+    },
+
+    "map": {
+      "loadingSubmodule": "Loading submodule...",
+      "errorLoadingSubmodule": "Error loading submodule: {{message}}"
+    }
+  },
+
+  "checklist": {
+    "title": "Personalized Checklist",
+    "onboardingRequired": "Please complete your onboarding to see your personalized checklist.",
+    "addYourOwnItem": "Add your own item",
+    "noTasksAvailable": "No tasks available for your current stage.",
+    "completeCount": "{{completed}}/{{total}} complete",
+    "deleteItemTitle": "Delete item?",
+    "deleteItemMessage": "This action cannot be undone.",
+    "completedTime": "Completed {{time}}",
+    "markAsComplete": "Mark as complete",
+    "undoCompletion": "Undo completion",
+    "learnHow": "Learn how",
+    "deleteTask": "Delete task",
+
+    "stage": {
+      "0": "Not arrived yet",
+      "1": "0–3 months",
+      "2": "3–12 months",
+      "3": "1–3 years",
+      "4": "3+ years"
+    },
+
+    "persona": {
+      "international_student": "International Student",
+      "refugee": "Refugee",
+      "protected_person": "Protected Person",
+      "skilled_worker": "Skilled Worker",
+      "immigrant": "Immigrant",
+      "pr": "PR"
+    },
+
+    "createItem": {
+      "headerTitle": "New Checklist Item",
+      "categoryLabel": "Category",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Add a short title",
+      "descriptionLabel": "Short description (optional)",
+      "descriptionPlaceholder": "Add details",
+      "priorityDoNow": "Do now",
+      "priorityDoSoon": "Do soon",
+      "priorityExploreConnect": "Explore and connect",
+      "priorityOptionalLater": "Optional / later"
+    }
+  },
+
+  "language": {
+    "title": "Language",
+    "selectLanguage": "Select Language",
+    "english": "English",
+    "vietnamese": "Tiếng Việt",
+    "spanish": "Español",
+    "hindi": "हिन्दी"
+  }
+}

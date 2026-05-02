@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { useUserStage } from '@/hooks/onboarding/useUserStage';
 import { useChecklistTasks } from '@/hooks/checklist/useChecklistTasks';
@@ -60,27 +61,26 @@ const TAB_SLUG_ALIASES: Record<string, ChecklistLinkTabSlug> = {
   index: 'home',
 };
 
-/** Time-in-Canada display ranges (no stage labels) */
-const stageDescriptions: Record<number, string> = {
-  0: 'Not arrived yet',
-  1: '0–3 months',
-  2: '3–12 months',
-  3: '1–3 years',
-  4: '3+ years',
+const STAGE_KEYS: Record<number, string> = {
+  0: 'checklist.stage.0',
+  1: 'checklist.stage.1',
+  2: 'checklist.stage.2',
+  3: 'checklist.stage.3',
+  4: 'checklist.stage.4',
 };
 
-/** Persona display labels per checklist spec (exactly 6 slugs) */
-const personaDisplayNames: Record<string, string> = {
-  international_student: 'International Student',
-  refugee: 'Refugee',
-  protected_person: 'Protected Person',
-  skilled_worker: 'Skilled Worker',
-  immigrant: 'Immigrant',
-  pr: 'PR',
+const PERSONA_KEYS: Record<string, string> = {
+  international_student: 'checklist.persona.international_student',
+  refugee: 'checklist.persona.refugee',
+  protected_person: 'checklist.persona.protected_person',
+  skilled_worker: 'checklist.persona.skilled_worker',
+  immigrant: 'checklist.persona.immigrant',
+  pr: 'checklist.persona.pr',
 };
 
 export default function ChecklistScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const {
     trackScreen,
     trackChecklistTaskCompleted,
@@ -306,10 +306,10 @@ export default function ChecklistScreen() {
     const customTaskId = selectedTask.custom_task_id;
     if (!customTaskId) return;
 
-    Alert.alert('Delete item?', 'This action cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('checklist.deleteItemTitle'), t('checklist.deleteItemMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Delete',
+        text: t('common.delete'),
         style: 'destructive',
         onPress: async () => {
           const prevTasks = tasks;
@@ -345,12 +345,11 @@ export default function ChecklistScreen() {
 
   const stageDescription =
     currentStage !== null
-      ? stageDescriptions[currentStage as keyof typeof stageDescriptions]
-      : 'Stage Not Set';
+      ? t(STAGE_KEYS[currentStage as keyof typeof STAGE_KEYS] || 'common.stageNotSet')
+      : t('common.stageNotSet');
   const personaDisplay = persona
-    ? (personaDisplayNames[persona as keyof typeof personaDisplayNames] ??
-      persona)
-    : 'User';
+    ? t(PERSONA_KEYS[persona as keyof typeof PERSONA_KEYS] || 'common.user')
+    : t('common.user');
 
   // Don't show checklist if stage is null
   if (currentStage === null) {
@@ -362,11 +361,10 @@ export default function ChecklistScreen() {
         >
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <Text style={styles.title}>Personalized Checklist</Text>
+              <Text style={styles.title}>{t('checklist.title')}</Text>
             </View>
             <Text style={styles.subtitle}>
-              Please complete your onboarding to see your personalized
-              checklist.
+              {t('checklist.onboardingRequired')}
             </Text>
           </View>
         </ScrollView>
@@ -383,7 +381,7 @@ export default function ChecklistScreen() {
       >
         <View style={styles.header}>
           <View style={styles.titleRow}>
-            <Text style={styles.title}>Personalized Checklist</Text>
+            <Text style={styles.title}>{t('checklist.title')}</Text>
             <TouchableOpacity
               style={styles.addButton}
               onPress={() =>
@@ -392,7 +390,7 @@ export default function ChecklistScreen() {
               activeOpacity={0.8}
             >
               <MaterialIcons name='add' size={18} color='#111' />
-              <Text style={styles.addButtonLabel}>Add</Text>
+              <Text style={styles.addButtonLabel}>{t('common.add')}</Text>
             </TouchableOpacity>
           </View>
           <Text style={styles.subtitle}>
@@ -431,13 +429,13 @@ export default function ChecklistScreen() {
           activeOpacity={0.7}
         >
           <MaterialIcons name='add-circle-outline' size={22} color='#6B6B6B' />
-          <Text style={styles.addOwnRowText}>Add your own item</Text>
+          <Text style={styles.addOwnRowText}>{t('checklist.addYourOwnItem')}</Text>
         </TouchableOpacity>
 
         {tasks.length === 0 && (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              No tasks available for your current stage.
+              {t('checklist.noTasksAvailable')}
             </Text>
           </View>
         )}

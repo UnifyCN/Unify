@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 import { ThemedText } from '@/components/ThemedText';
 import { UserTaskWithDetails, Priority } from '@/types/checklist';
 import { getChecklistTaskOrderKey } from '@/utils/checklistOrder';
@@ -28,7 +29,8 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
   onDragStart,
 }) => {
   const config = PRIORITY_CONFIG[priority];
-  const completedCount = tasks.filter(t => t.completed).length;
+  const { t } = useTranslation();
+  const completedCount = tasks.filter(task => task.completed).length;
   const totalCount = tasks.length;
 
   const renderItem = useCallback(
@@ -95,7 +97,7 @@ export const ChecklistSection: React.FC<ChecklistSectionProps> = ({
         <View style={styles.headerText}>
           <ThemedText style={styles.priority}>{priority}</ThemedText>
           <ThemedText style={styles.count}>
-            {completedCount}/{totalCount} complete
+            {t('checklist.completeCount', { completed: completedCount, total: totalCount })}
           </ThemedText>
         </View>
       </View>
