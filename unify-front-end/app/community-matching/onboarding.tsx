@@ -62,8 +62,8 @@ export default function MatchingOnboardingScreen() {
     } catch (error) {
       console.error('Failed to enter waitlist', error);
       Alert.alert(
-        'Something went wrong',
-        'Please try again in a moment or check your connection.'
+        t('circles.somethingWentWrong'),
+        t('circles.tryAgainMessage')
       );
     } finally {
       setIsSubmitting(false);
