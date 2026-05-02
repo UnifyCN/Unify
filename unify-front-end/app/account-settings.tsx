@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { LegalDocumentType } from '@/utils/legalUrls';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
@@ -21,6 +22,8 @@ import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload'
 import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
 import { useHapticsPreference } from '@/context/HapticsContext';
+import { useLanguage } from '@/hooks/useLanguage';
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { saveOnboardingProfile } from '@/services/onboarding/saveOnboardingProfile';
 import { unregisterPushToken } from '@/services/push/pushNotifications';
@@ -30,14 +33,17 @@ const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
     useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const { trackScreen, trackUserSignedOut, trackAccountDeleted } =
     useAnalytics();
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
+  const { currentLanguage, changeLanguage } = useLanguage();
   const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const queryClient = useQueryClient();
   const [notificationsEnabled, setNotificationsEnabled] = useState<
@@ -288,6 +294,24 @@ export default function AccountSettingsPage() {
               </Pressable>
             </View>
             <TouchableOpacity
+              style={[styles.row, styles.toggleRow]}
+              onPress={() => setLanguageModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.rowLabelContainer}>
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name='globe' size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>{t('language.title')}</Text>
+              </View>
+              <View style={styles.languageValueContainer}>
+                <Text style={styles.languageValueText}>
+                  {SUPPORTED_LANGUAGES[currentLanguage]}
+                </Text>
+                <Feather name='chevron-right' size={18} color='#8E8E93' />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={styles.row}
               onPress={() => router.push('/redo-onboarding' as any)}
             >
@@ -360,6 +384,55 @@ export default function AccountSettingsPage() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Language selection modal */}
+      <Modal
+        animationType='fade'
+        transparent
+        visible={languageModalVisible}
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <Pressable
+          style={styles.deleteModalOverlay}
+          onPress={() => setLanguageModalVisible(false)}
+        >
+          <View style={styles.languageModalCard}>
+            <Pressable onPress={e => e.stopPropagation()}>
+              <Text style={styles.languageModalTitle}>
+                {t('language.selectLanguage')}
+              </Text>
+              {(Object.entries(SUPPORTED_LANGUAGES) as [SupportedLanguage, string][]).map(
+                ([code, label]) => (
+                  <TouchableOpacity
+                    key={code}
+                    style={[
+                      styles.languageOption,
+                      currentLanguage === code && styles.languageOptionSelected,
+                    ]}
+                    onPress={async () => {
+                      await changeLanguage(code);
+                      setLanguageModalVisible(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.languageOptionText,
+                        currentLanguage === code && styles.languageOptionTextSelected,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                    {currentLanguage === code && (
+                      <Feather name='check' size={20} color={Theme.black} />
+                    )}
+                  </TouchableOpacity>
+                )
+              )}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* Delete account confirmation modal */}
       <Modal
@@ -542,6 +615,48 @@ const styles = StyleSheet.create({
     color: Theme.textInput,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  languageValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  languageValueText: {
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+  languageModalCard: {
+    backgroundColor: Theme.white,
+    borderRadius: 16,
+    padding: 8,
+    width: '100%',
+    maxWidth: 340,
+  },
+  languageModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Theme.black,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  languageOptionSelected: {
+    backgroundColor: '#F5F5F5',
+  },
+  languageOptionText: {
+    fontSize: 17,
+    color: '#333',
+  },
+  languageOptionTextSelected: {
+    fontWeight: '600',
+    color: Theme.black,
   },
   deleteModalOverlay: {
     flex: 1,
