@@ -54,7 +54,7 @@ const initI18n = async () => {
     interpolation: {
       escapeValue: false,
     },
-    compatibilityJSON: 'v4',
+    compatibilityJSON: 'v3',
     react: {
       useSuspense: false,
     },
