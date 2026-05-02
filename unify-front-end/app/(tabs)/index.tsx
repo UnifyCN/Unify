@@ -39,6 +39,7 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { useAnalytics } from '@/utils/analytics';
 import * as Haptics from 'expo-haptics';
 import { useHapticsPreference } from '@/context/HapticsContext';
+import { useTranslation } from 'react-i18next';
 
 interface HeaderProps {
   activeIndex: number;
@@ -47,15 +48,22 @@ interface HeaderProps {
   screenWidth: number;
 }
 
-const TABS = ['For You', 'Following', 'Groups'] as const;
-type FeedTab = (typeof TABS)[number];
+const TAB_KEYS = ['ForYou', 'Following', 'Groups'] as const;
+type FeedTab = (typeof TAB_KEYS)[number];
+
+const TAB_I18N: Record<FeedTab, string> = {
+  ForYou: 'home.forYou',
+  Following: 'home.followingTab',
+  Groups: 'home.groupsTab',
+};
 
 const FeedTabs = memo(
   ({ activeIndex, onTabPress, scrollX, screenWidth }: HeaderProps) => {
+    const { t } = useTranslation();
     const [containerWidth, setContainerWidth] = useState(0);
     const horizontalInset = 4;
     const tabWidth = containerWidth
-      ? (containerWidth - horizontalInset * 2) / TABS.length
+      ? (containerWidth - horizontalInset * 2) / TAB_KEYS.length
       : 0;
 
     const indicatorStyle = useAnimatedStyle(() => {
@@ -79,9 +87,9 @@ const FeedTabs = memo(
             style={[styles.tabIndicator, { width: tabWidth }, indicatorStyle]}
           />
         )}
-        {TABS.map((tab, index) => (
+        {TAB_KEYS.map((tabKey, index) => (
           <TouchableOpacity
-            key={tab}
+            key={tabKey}
             onPress={() => {
               onTabPress(index);
             }}
@@ -94,7 +102,7 @@ const FeedTabs = memo(
                 activeIndex === index && styles.activeTabText,
               ]}
             >
-              {tab}
+              {t(TAB_I18N[tabKey])}
             </Text>
           </TouchableOpacity>
         ))}
@@ -104,9 +112,10 @@ const FeedTabs = memo(
 );
 
 const GroupsCarousel = memo(() => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { width: screenWidth } = Dimensions.get('window');
-  const fullCardWidth = screenWidth - 40; // 20px padding on each side
+  const fullCardWidth = screenWidth - 40;
   const { data: groups, isLoading } = useQuery({
     queryKey: ['joined-groups', 'self'],
     queryFn: () => getUserJoinedGroups(),
@@ -128,7 +137,7 @@ const GroupsCarousel = memo(() => {
   return (
     <View style={styles.groupsCarouselContainer}>
       <HorizontalCarousel
-        title='Your Groups'
+        title={t('home.yourGroups')}
         titleStyle={styles.groupsCarouselTitle}
         data={groupsArray}
         isLoading={isLoading}
@@ -171,9 +180,9 @@ const GroupsCarousel = memo(() => {
                 <View style={styles.viewMoreContent}>
                   <GroupViewMoreCard width={193} height={144} />
                   <View style={styles.viewMoreTextOverlay}>
-                    <Text style={styles.viewMoreText}>Join groups!</Text>
+                    <Text style={styles.viewMoreText}>{t('home.joinGroups')}</Text>
                     <Text style={styles.viewMoreSubtext}>
-                      There's more to check out!
+                      {t('events.moreToCheckOut')}
                     </Text>
                   </View>
                 </View>
@@ -204,9 +213,9 @@ const GroupsCarousel = memo(() => {
                 <View style={styles.viewMoreContentFullWidth}>
                   <ViewMoreCardNews width={fullCardWidth} height={144} />
                   <View style={styles.viewMoreTextOverlay}>
-                    <Text style={styles.viewMoreText}>Join groups!</Text>
+                    <Text style={styles.viewMoreText}>{t('home.joinGroups')}</Text>
                     <Text style={styles.viewMoreSubtext}>
-                      There's more to check out!
+                      {t('events.moreToCheckOut')}
                     </Text>
                   </View>
                 </View>
@@ -265,19 +274,20 @@ const GroupsFeedPlaceholder = memo(() => (
 ));
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const [visitedTabs, setVisitedTabs] = useState<Record<FeedTab, boolean>>({
-    'For You': true,
+    ForYou: true,
     Following: false,
     Groups: false,
   });
-  const activeTab = TABS[activeIndex];
+  const activeTab = TAB_KEYS[activeIndex];
   const { trackScreen, trackFeedTabSwitched } = useAnalytics();
   const isFocused = useIsFocused();
   const { hapticsEnabled } = useHapticsPreference();
   const hasTrackedInitialFocus = useRef(false);
   const lastTrackedRef = useRef<number>(0);
-  const activeTabRef = useRef<FeedTab>(TABS[0]);
+  const activeTabRef = useRef<FeedTab>(TAB_KEYS[0]);
   const scrollViewRef = useRef<Animated.ScrollView>(null);
   const { width: screenWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
@@ -327,13 +337,13 @@ export default function HomeScreen() {
   const handleTabPress = useCallback(
     (index: number) => {
       if (index === activeIndex) return;
-      markTabVisited(TABS[index]);
+      markTabVisited(TAB_KEYS[index]);
       (scrollViewRef.current as unknown as ScrollView)?.scrollTo({
         x: index * screenWidth,
         animated: true,
       });
       setActiveIndex(index);
-      handleFeedTabChange(TABS[index]);
+      handleFeedTabChange(TAB_KEYS[index]);
     },
     [activeIndex, screenWidth, handleFeedTabChange, markTabVisited]
   );
@@ -342,9 +352,9 @@ export default function HomeScreen() {
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
       if (index !== activeIndex) {
-        markTabVisited(TABS[index]);
+        markTabVisited(TAB_KEYS[index]);
         setActiveIndex(index);
-        handleFeedTabChange(TABS[index]);
+        handleFeedTabChange(TAB_KEYS[index]);
       }
     },
     [activeIndex, screenWidth, handleFeedTabChange, markTabVisited]
@@ -357,7 +367,7 @@ export default function HomeScreen() {
   });
 
   useEffect(() => {
-    const index = Math.max(0, TABS.indexOf(activeTabRef.current));
+    const index = Math.max(0, TAB_KEYS.indexOf(activeTabRef.current));
     scrollViewRef.current?.scrollTo({
       x: index * screenWidth,
       animated: false,
@@ -397,11 +407,10 @@ export default function HomeScreen() {
               postVariant='homeCard'
               ListEmptyComponent={
                 <EmptyFeedMessage
-                  message='No posts here...'
+                  message={t('home.noPostsForYou')}
                   submessage={
                     <Text style={styles.emptyMessageSubtext}>
-                      No one has posted anything yet.{'\n'}
-                      Post something to see it here!
+                      {t('home.noOnePosted')}
                     </Text>
                   }
                 />
@@ -415,11 +424,10 @@ export default function HomeScreen() {
                 postVariant='homeCard'
                 ListEmptyComponent={
                   <EmptyFeedMessage
-                    message='No posts here...'
+                    message={t('home.noPostsFollowing')}
                     submessage={
                       <Text style={styles.emptyMessageSubtext}>
-                        You haven't followed any users yet.{'\n'}
-                        Follow other users to see their posts!
+                        {t('home.notFollowingAnyone')}
                       </Text>
                     }
                   />
@@ -438,11 +446,10 @@ export default function HomeScreen() {
                   postVariant='homeCard'
                   ListEmptyComponent={
                     <EmptyFeedMessage
-                      message='No group posts here...'
+                      message={t('home.noGroupPosts')}
                       submessage={
                         <Text style={styles.emptyMessageSubtext}>
-                          You haven't joined any groups yet.{'\n'}
-                          Join a group to see their posts!
+                          {t('home.notJoinedGroups')}
                         </Text>
                       }
                     />

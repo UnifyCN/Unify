@@ -123,23 +123,23 @@ export default function CreatePostForm({
 
   const handleSubmit = async () => {
     if (!trimmedTitle || !trimmedContent) {
-      Alert.alert('Error', 'Please fill in title and content');
+      Alert.alert(t('common.error'), t('posts.fillTitleContent'));
       return;
     }
     if (destination === 'group' && !selectedGroup) {
-      Alert.alert('Error', 'Please select a group to post to');
+      Alert.alert(t('common.error'), t('posts.selectGroupToPost'));
       return;
     }
 
     // Check content against banned words filter
     const titleCheck = isContentAllowed(trimmedTitle);
     if (!titleCheck.allowed) {
-      Alert.alert('Content Not Allowed', titleCheck.reason);
+      Alert.alert(t('posts.contentNotAllowed'), titleCheck.reason);
       return;
     }
     const contentCheck = isContentAllowed(trimmedContent);
     if (!contentCheck.allowed) {
-      Alert.alert('Content Not Allowed', contentCheck.reason);
+      Alert.alert(t('posts.contentNotAllowed'), contentCheck.reason);
       return;
     }
 
@@ -155,10 +155,10 @@ export default function CreatePostForm({
           .filter(r => r.success && r.key)
           .map(r => r.key!);
         if (post_image_urls.length !== images.length) {
-          Alert.alert('Warning', 'Some images failed to upload.');
+          Alert.alert(t('posts.warning'), t('posts.imageUploadPartial'));
         }
       } catch (e) {
-        Alert.alert('Error', 'Failed to upload images. Please try again.');
+        Alert.alert(t('common.error'), t('posts.imageUploadFailed'));
         setIsUploadingImages(false);
         return;
       } finally {
@@ -195,7 +195,7 @@ export default function CreatePostForm({
             ...(destination === 'group' &&
               selectedGroup && { group_id: String(selectedGroup.id) }),
           });
-          Alert.alert('Error', 'Failed to create post. Please try again.');
+          Alert.alert(t('common.error'), t('posts.createPostFailed'));
         },
       }
     );
@@ -330,7 +330,7 @@ export default function CreatePostForm({
         <View style={styles.titleContainer}>
           <TextInput
             style={styles.titleInput}
-            placeholder='Title'
+            placeholder={t('posts.titlePlaceholder')}
             placeholderTextColor={Theme.textAlternateGray}
             value={title}
             onChangeText={setTitle}
@@ -395,7 +395,7 @@ export default function CreatePostForm({
               styles.contentInput,
               images.length > 0 && styles.contentInputWithImages,
             ]}
-            placeholder="What's on your mind?"
+            placeholder={t('posts.contentPlaceholder')}
             placeholderTextColor={Theme.textAlternateGray}
             value={content}
             onChangeText={setContent}
