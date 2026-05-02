@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { DailyTip } from '@/types/dailyTip';
 import { useAnalytics } from '@/utils/analytics';
 
@@ -58,6 +59,7 @@ interface DailyTipCardProps {
 }
 
 export function DailyTipCard({ tip, maxWidth, onPress }: DailyTipCardProps) {
+  const { t } = useTranslation();
   const { trackTipViewed, trackTipTapped } = useAnalytics();
   const lastTrackedTipId = useRef<string | null>(null);
 
@@ -101,7 +103,7 @@ export function DailyTipCard({ tip, maxWidth, onPress }: DailyTipCardProps) {
             style={[styles.badge, { backgroundColor: config.accent + '14' }]}
           >
             <Text style={[styles.badgeText, { color: config.accent }]}>
-              Daily Tip
+              {t('tips.dailyTip')}
             </Text>
           </View>
           <View

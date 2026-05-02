@@ -10,6 +10,7 @@ import {
   Easing,
   RefreshControl,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -33,6 +34,7 @@ import { Theme } from '@/constants/Theme';
 import { useAnalytics } from '@/utils/analytics';
 
 const GroupDetailScreen = () => {
+  const { t } = useTranslation();
   const isFocused = useIsFocused();
   const router = useRouter();
   const { group, groupName } = useLocalSearchParams();
@@ -233,7 +235,7 @@ const GroupDetailScreen = () => {
   if (!groupData) {
     return (
       <View style={styles.container}>
-        <Text style={styles.loadingText}>Group not found</Text>
+        <Text style={styles.loadingText}>{t('groups.groupNotFound')}</Text>
       </View>
     );
   }
@@ -306,7 +308,7 @@ const GroupDetailScreen = () => {
                 disabled={joining}
               >
                 <Text style={styles.joinText}>
-                  {isMember ? 'Joined' : 'Join'}
+                  {isMember ? t('groups.joined') : t('groups.joinGroup')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -315,7 +317,7 @@ const GroupDetailScreen = () => {
             <View style={styles.card}>
               <Text style={styles.eventTitle}>{groupData.name}</Text>
               <Text style={styles.subtitle}>
-                {groupData.memberCount} members
+                {groupData.memberCount} {t('common.member_plural')}
               </Text>
               <Text style={styles.aboutText}>{groupData.description}</Text>
             </View>
@@ -326,7 +328,7 @@ const GroupDetailScreen = () => {
           return (
             <EmptyFeedMessage
               icon={<UnifyReplyIcon width={27} height={25} />}
-              message='Looks a little quiet here...'
+              message={t('groups.emptyGroup')}
               submessage={
                 <Text
                   style={{
@@ -336,7 +338,7 @@ const GroupDetailScreen = () => {
                     lineHeight: 20,
                   }}
                 >
-                  Be the first one to post!
+                  {t('groups.beFirstPost')}
                 </Text>
               }
             />

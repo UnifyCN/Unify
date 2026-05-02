@@ -20,6 +20,7 @@ import {
 import { getActiveCircleMembership } from '@/services/matching/circles';
 import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 
@@ -159,6 +160,7 @@ const stepStyles = StyleSheet.create({
 });
 
 export default function WaitingRoomScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
@@ -241,12 +243,12 @@ export default function WaitingRoomScreen() {
 
   const handleLeave = async () => {
     Alert.alert(
-      'Leave waitlist?',
-      "You won't lose your spot forever — you can rejoin anytime.",
+      t('circles.leaveWaitlistTitle'),
+      t('circles.leaveWaitlistMessage'),
       [
-        { text: 'Stay', style: 'cancel' },
+        { text: t('circles.stay'), style: 'cancel' },
         {
-          text: 'Leave',
+          text: t('circles.leave'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -291,19 +293,18 @@ export default function WaitingRoomScreen() {
         {/* Status badge */}
         <View style={styles.statusBadge}>
           <View style={styles.statusDot} />
-          <Text style={styles.statusText}>Looking for your circle</Text>
+          <Text style={styles.statusText}>{t('circles.lookingForCircle')}</Text>
         </View>
 
         {/* Title section */}
-        <Text style={styles.title}>Hang tight!</Text>
+        <Text style={styles.title}>{t('circles.hangTight')}</Text>
         <Text style={styles.subtitle}>
-          We're finding 3 more newcomers on a similar journey to connect you
-          with.
+          {t('circles.findingNewcomers')}
         </Text>
 
         {/* Your matching criteria */}
         <View style={styles.criteriaCard}>
-          <Text style={styles.criteriaLabel}>Your matching group</Text>
+          <Text style={styles.criteriaLabel}>{t('circles.yourMatchingGroup')}</Text>
           <View style={styles.criteriaRow}>
             <Feather name='user' size={16} color='#ff820b' />
             <Text style={styles.criteriaText}>
@@ -320,7 +321,7 @@ export default function WaitingRoomScreen() {
 
         {/* How it works section */}
         <View style={styles.stepsCard}>
-          <Text style={styles.stepsHeading}>How matching works</Text>
+          <Text style={styles.stepsHeading}>{t('circles.howMatchingWorks')}</Text>
           <StepItem
             text='We check for matches every few minutes'
             icon='clock'
@@ -349,7 +350,7 @@ export default function WaitingRoomScreen() {
           onPress={handleLeave}
           activeOpacity={0.7}
         >
-          <Text style={styles.leaveButtonText}>Leave waitlist</Text>
+          <Text style={styles.leaveButtonText}>{t('circles.leaveWaitlist')}</Text>
         </TouchableOpacity>
       </View>
     </View>

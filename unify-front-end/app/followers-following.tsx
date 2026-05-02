@@ -9,6 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useFollowers } from '@/hooks/users/useFollowers';
 import { useFollowing } from '@/hooks/users/useFollowing';
 import { Avatar } from '@/components/Avatar';
@@ -73,6 +74,7 @@ const UserListItem = ({ user, currentUserId, source }: UserListItemProps) => {
 
 export default function FollowersFollowingScreen() {
   const { userId, initialTab } = useLocalSearchParams();
+  const { t } = useTranslation();
   const { currentUser } = useCurrentUser();
   const [activeTab, setActiveTab] = useState<TabType>(
     (initialTab as TabType) || 'followers'
@@ -109,7 +111,7 @@ export default function FollowersFollowingScreen() {
     if (error) {
       return (
         <View style={styles.centerContainer}>
-          <Text style={styles.emptyText}>Failed to load users</Text>
+          <Text style={styles.emptyText}>{t('profile.failedLoadUsers')}</Text>
         </View>
       );
     }
@@ -118,8 +120,8 @@ export default function FollowersFollowingScreen() {
       <View style={styles.centerContainer}>
         <Text style={styles.emptyText}>
           {activeTab === 'followers'
-            ? 'No followers yet'
-            : 'Not following anyone yet'}
+            ? t('profile.noFollowersYet')
+            : t('profile.notFollowingAnyone')}
         </Text>
       </View>
     );
@@ -132,7 +134,7 @@ export default function FollowersFollowingScreen() {
       <View style={styles.tabsContainer}>
         {(['followers', 'following'] as TabType[]).map(tab => {
           const active = activeTab === tab;
-          const label = tab === 'followers' ? 'Followers' : 'Following';
+          const label = tab === 'followers' ? t('profile.followersTab') : t('profile.followingTab');
 
           return (
             <Pressable

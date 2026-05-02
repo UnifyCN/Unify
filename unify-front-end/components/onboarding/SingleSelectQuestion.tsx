@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface Option {
@@ -35,6 +36,7 @@ export default function SingleSelectQuestion({
   required = false,
   error,
 }: SingleSelectQuestionProps) {
+  const { t } = useTranslation();
   const selectedOption = options.find(opt => opt.value === selectedValue);
   const showOtherInput = selectedOption?.hasOther;
 
@@ -83,7 +85,7 @@ export default function SingleSelectQuestion({
         <View style={styles.otherInputContainer}>
           <TextInput
             style={styles.otherInput}
-            placeholder='Please specify...'
+            placeholder={t('onboarding.pleaseSpecify')}
             value={otherValue || ''}
             onChangeText={onOtherChange}
             placeholderTextColor={Theme.textInput}

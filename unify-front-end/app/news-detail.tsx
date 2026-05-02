@@ -8,6 +8,7 @@ import {
   Linking,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import { NewsDetails } from '@/types/news';
 import { Theme } from '@/constants/Theme';
@@ -27,6 +28,7 @@ const formatDate = (dateString: string | null): string => {
 };
 
 const NewsDetailScreen = () => {
+  const { t } = useTranslation();
   const { news } = useLocalSearchParams<{ news: string }>();
 
   let newsData: NewsDetails | null = null;
@@ -41,7 +43,7 @@ const NewsDetailScreen = () => {
       <View style={styles.container}>
         <BackHeader title='' />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Article not found</Text>
+          <Text style={styles.errorText}>{t('news.articleNotFound')}</Text>
         </View>
       </View>
     );
@@ -74,7 +76,7 @@ const NewsDetailScreen = () => {
           <Text style={styles.metadata}>
             {author && (
               <>
-                by <Text style={styles.authorText}>{author}</Text>
+                {t('news.by')} <Text style={styles.authorText}>{author}</Text>
               </>
             )}
             {author && date && ' on '}
@@ -100,7 +102,7 @@ const NewsDetailScreen = () => {
         <View style={styles.divide} />
         {content && <Text style={styles.contentText}>{content}</Text>}
         {!description && !content && (
-          <Text style={styles.contentText}>No content available.</Text>
+          <Text style={styles.contentText}>{t('news.noContent')}</Text>
         )}
 
         {/* Link to Original Article */}
@@ -109,7 +111,7 @@ const NewsDetailScreen = () => {
             onPress={handleLinkPress}
             style={styles.linkContainer}
           >
-            <Text style={styles.linkText}>Link to external article</Text>
+            <Text style={styles.linkText}>{t('news.linkToArticle')}</Text>
           </TouchableOpacity>
         )}
       </ScrollView>

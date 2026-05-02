@@ -13,6 +13,7 @@ import {
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { useRouter } from 'expo-router';
 
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import { Avatar } from '@/components/Avatar';
 import { useReferralLookup } from '@/hooks/referrals/useReferralLookup';
@@ -50,6 +51,7 @@ import { useCurrentUser } from '@/context/UserContext';
  * No back button — this is a moment, not a place.
  */
 export default function WelcomeFromInviterScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { capture } = useAnalytics();
   const { currentUser } = useCurrentUser();
@@ -123,19 +125,18 @@ export default function WelcomeFromInviterScreen() {
     );
   }
 
-  // Fallback when there's no inviter (deleted account or no referral row reached us)
   if (!inviter) {
     return (
       <View style={styles.container}>
         <View style={styles.intimate}>
-          <Text style={styles.headline}>Welcome to Unify.</Text>
-          <Text style={styles.subhead}>You&apos;re just getting started.</Text>
+          <Text style={styles.headline}>{t('welcome.title')}</Text>
+          <Text style={styles.subhead}>{t('welcome.subtitle')}</Text>
           <TouchableOpacity
             onPress={goHome}
             style={styles.primaryCta}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryCtaText}>Continue</Text>
+            <Text style={styles.primaryCtaText}>{t('welcome.continueButton')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -143,9 +144,11 @@ export default function WelcomeFromInviterScreen() {
   }
 
   const inviterName = inviter.username;
-  const cityClause = inviter.city ? ` from ${inviter.city}` : '';
-  const sayHiLabel = `Say hi to ${inviterName}`;
-  const joinLabel = `Join ${inviterName}'s ${groups.length} groups`;
+  const nameWithCity = inviter.city
+    ? `${inviterName} ${t('welcome.fromCity', { city: inviter.city })}`
+    : inviterName;
+  const sayHiLabel = t('welcome.sayHi', { name: inviterName });
+  const joinLabel = t('welcome.joinGroups', { name: inviterName, count: groups.length });
 
   return (
     <View style={styles.container}>
@@ -185,12 +188,11 @@ export default function WelcomeFromInviterScreen() {
             style={styles.headline}
             accessibilityRole='header'
           >
-            You are here because of {inviterName}.
+            {t('welcome.becauseOf')} {inviterName}.
           </Text>
 
           <Text style={styles.subhead}>
-            {inviterName}
-            {cityClause} invited you. You are both new to Canada — start here together.
+            {t('welcome.invitedYou', { name: nameWithCity })}
           </Text>
 
           <TouchableOpacity
@@ -232,10 +234,10 @@ export default function WelcomeFromInviterScreen() {
             onPress={goHome}
             style={styles.skipPressable}
             accessibilityRole='button'
-            accessibilityLabel='Skip for now'
+            accessibilityLabel={t('welcome.skipForNow')}
             hitSlop={8}
           >
-            <Text style={styles.skipText}>Skip for now</Text>
+            <Text style={styles.skipText}>{t('welcome.skipForNow')}</Text>
           </Pressable>
         </View>
       </ScrollView>

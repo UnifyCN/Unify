@@ -1,4 +1,5 @@
 import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -69,10 +70,6 @@ const HTML_TAG_STYLES: Record<string, MixedStyleDeclaration> = {
   del: { textDecorationLine: 'line-through' },
   strike: { textDecorationLine: 'line-through' },
 };
-
-const LINK_WARNING_TITLE = 'You are about to leave Unify';
-const LINK_WARNING_BODY =
-  'This link is trying to send you to an external page. Never click on links you do not trust. Proceed to';
 
 const PostImageCarousel = memo(
   ({
@@ -192,6 +189,7 @@ export const PostItem = memo(
     variant = 'default',
     onImageViewerOpen,
   }: PostItemProps) => {
+    const { t } = useTranslation();
     const router = useRouter();
     const { currentUser } = useCurrentUser();
     const { showToast } = useToast();
@@ -294,7 +292,7 @@ export const PostItem = memo(
         }
         const closingTags = openTags
           .toReversed()
-          .map(t => `</${t}>`)
+          .map(tag => `</${tag}>`)
           .join('');
         return html.slice(0, hIdx) + '...' + closingTags;
       };
@@ -385,8 +383,8 @@ export const PostItem = memo(
           },
           onError: error => {
             Alert.alert(
-              'Error',
-              error.message || `Failed to ${wasPinned ? 'unpin' : 'pin'} post`
+              t('common.error'),
+              error.message || t('home.failedDeletePost')
             );
           },
         }
@@ -413,7 +411,7 @@ export const PostItem = memo(
         {
           onSuccess: () => {
             if (!isSaved) {
-              showToast('Post saved! Find it in Settings > Saved Posts', () => {
+              showToast(t('home.postSavedToast'), () => {
                 router.push('/saved');
               });
             }
@@ -464,16 +462,16 @@ export const PostItem = memo(
 
     const handleDeletePost = () => {
       Alert.alert(
-        'Delete Post',
-        'Are you sure you want to delete this post? This action cannot be undone.',
+        t('home.deletePost'),
+        t('home.confirmDeletePost'),
         [
           {
-            text: 'Cancel',
+            text: t('common.cancel'),
             style: 'cancel',
             onPress: () => setDeleteModalVisible(false),
           },
           {
-            text: 'Delete',
+            text: t('common.delete'),
             style: 'destructive',
             onPress: () => {
               deletePostMutation.mutate(post.id, {
@@ -483,8 +481,8 @@ export const PostItem = memo(
                 },
                 onError: error => {
                   Alert.alert(
-                    'Error',
-                    error.message || 'Failed to delete post'
+                    t('common.error'),
+                    error.message || t('home.failedDeletePost')
                   );
                 },
               });
@@ -623,29 +621,26 @@ export const PostItem = memo(
       try {
         parsedUrl = new URL(href);
       } catch {
-        Alert.alert(LINK_WARNING_TITLE, 'This link is invalid or unsupported.');
+        Alert.alert(t('home.leavingUnify'), t('home.invalidLink'));
         return;
       }
 
       if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-        Alert.alert(
-          LINK_WARNING_TITLE,
-          'Only secure web links can be opened from Unify.'
-        );
+        Alert.alert(t('home.leavingUnify'), t('home.secureLinksOnly'));
         return;
       }
 
-      Alert.alert(LINK_WARNING_TITLE, `${LINK_WARNING_BODY} ${href}?`, [
-        { text: 'Go back', style: 'cancel' },
+      Alert.alert(t('home.leavingUnify'), `${t('home.externalLinkWarning')} ${href}?`, [
+        { text: t('home.goBackButton'), style: 'cancel' },
         {
-          text: 'Open link',
+          text: t('home.openLink'),
           onPress: () => {
             void Linking.canOpenURL(href)
               .then(canOpen => {
                 if (!canOpen) {
                   Alert.alert(
-                    'Unable to open link',
-                    'This link is not supported on your device.'
+                    t('home.unableOpenLink'),
+                    t('home.linkNotSupported')
                   );
                   return;
                 }
@@ -654,14 +649,14 @@ export const PostItem = memo(
               })
               .catch(() => {
                 Alert.alert(
-                  'Unable to open link',
-                  'Something went wrong while opening this link.'
+                  t('home.unableOpenLink'),
+                  t('home.linkOpenError')
                 );
               });
           },
         },
       ]);
-    }, []);
+    }, [t]);
 
     const renderersProps = useMemo(
       () => ({
@@ -669,8 +664,7 @@ export const PostItem = memo(
           onPress: isHomeCardVariant ? undefined : handleLinkPress,
         },
       }),
-      // handleLinkPress is stable because it has an empty dependency array.
-      [isHomeCardVariant]
+      [isHomeCardVariant, handleLinkPress]
     );
 
     const previewHtmlSource = useMemo(
@@ -772,7 +766,7 @@ export const PostItem = memo(
                         renderersProps={renderersProps}
                       />
                       {shouldShowReadMore && (
-                        <Text style={styles.readMoreText}>Read more</Text>
+                        <Text style={styles.readMoreText}>{t('common.readMore')}</Text>
                       )}
                     </View>
                   )}
@@ -826,7 +820,7 @@ export const PostItem = memo(
                     </Text>
                     {post.isPinned && (
                       <View style={styles.pinnedBadge}>
-                        <Text style={styles.pinnedText}>Pinned</Text>
+                        <Text style={styles.pinnedText}>{t('common.pinned')}</Text>
                       </View>
                     )}
                   </View>
@@ -906,7 +900,7 @@ export const PostItem = memo(
                       style={styles.optionIcon}
                     />
                     <Text style={[styles.modalOptionText, styles.deleteText]}>
-                      Delete Post
+                      {t('home.deletePost')}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -925,11 +919,11 @@ export const PostItem = memo(
                     <Text style={styles.modalOptionText}>
                       {pinPostMutation.isPending
                         ? post.isPinned
-                          ? 'Unpinning...'
-                          : 'Pinning...'
+                          ? t('home.unpinning')
+                          : t('home.pinning')
                         : post.isPinned
-                          ? 'Unpin Post'
-                          : 'Pin Post'}
+                          ? t('home.unpinPost')
+                          : t('home.pinPost')}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -950,14 +944,14 @@ export const PostItem = memo(
                       color={Theme.black}
                       style={styles.optionIcon}
                     />
-                    <Text style={styles.modalOptionText}>Report Post</Text>
+                    <Text style={styles.modalOptionText}>{t('home.reportPost')}</Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => setDeleteModalVisible(false)}
                 >
-                  <Text style={styles.modalOptionText}>Cancel</Text>
+                  <Text style={styles.modalOptionText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
               </Pressable>
             </View>

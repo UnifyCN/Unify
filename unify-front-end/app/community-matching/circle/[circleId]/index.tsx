@@ -27,9 +27,11 @@ import BackHeader from '@/components/BackHeader';
 import { Avatar } from '@/components/Avatar';
 import { CircleHeader } from '@/components/community-matching/CircleHeader';
 import { prefetchAvatarUrls } from '@/services/s3/avatarUrlCache';
+import { useTranslation } from 'react-i18next';
 import LoadingScreen from '@/components/LoadingScreen';
 
 export default function CircleDetailsScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
@@ -120,12 +122,12 @@ export default function CircleDetailsScreen() {
   const handleLeave = useCallback(() => {
     if (!circleId) return;
     Alert.alert(
-      'Leave this circle?',
-      'You can always rejoin matching to meet a new circle later.',
+      t('circles.leaveCircleTitle'),
+      t('circles.leaveCircleMessage'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Leave circle',
+          text: t('circles.leaveCircle'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -174,15 +176,15 @@ export default function CircleDetailsScreen() {
     const now = new Date();
     const end = new Date(circle.ends_at);
     const diffMs = end.getTime() - now.getTime();
-    if (diffMs <= 0) return 'Ending soon';
+    if (diffMs <= 0) return t('circles.endingSoon');
     const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
     const hours = Math.floor(
       (diffMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000)
     );
-    if (days > 0) return `${days} day${days === 1 ? '' : 's'} left`;
-    if (hours === 0) return 'Less than an hour left';
-    return `${hours} hour${hours === 1 ? '' : 's'} left`;
-  }, [circle]);
+    if (days > 0) return t('circles.daysLeft', { count: days });
+    if (hours === 0) return t('circles.lessThanHour');
+    return t('circles.hoursLeft', { count: hours });
+  }, [circle, t]);
 
   if (circleLoading || membersLoading || membershipLoading) {
     return <LoadingScreen />;
@@ -224,20 +226,20 @@ export default function CircleDetailsScreen() {
           dateRange={formattedDates}
           countdownText={countdownText}
           isActive={isActive}
-          statusText={circle.status === 'active' ? undefined : 'Circle ended'}
+          statusText={circle.status === 'active' ? undefined : t('circles.circleEnded')}
         />
 
         {hasLeftCircle && (
           <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>You left this circle</Text>
+            <Text style={styles.infoTitle}>{t('circles.youLeftCircle')}</Text>
             <Text style={styles.infoBody}>
-              Rejoin matching whenever you're ready for a new circle.
+              {t('circles.rejoinMessage')}
             </Text>
             <TouchableOpacity
               style={[styles.primaryButton, styles.infoButton]}
               onPress={() => router.replace('/community-matching' as const)}
             >
-              <Text style={styles.primaryButtonText}>Start matching again</Text>
+              <Text style={styles.primaryButtonText}>{t('circles.startMatchingAgain')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -291,17 +293,17 @@ export default function CircleDetailsScreen() {
         <View style={styles.membersHeader}>
           <Text style={styles.membersTitle}>Members</Text>
           <Text style={styles.membersCount}>
-            {members?.filter(m => !m.left_at).length || 0}/4 active
+            {members?.filter(m => !m.left_at).length || 0}{t('circles.activeCount')}
           </Text>
         </View>
 
         {members?.map(member => {
           const isSelf = member.user_id === currentUser?.id;
           const statusText = member.left_at
-            ? 'Left the circle'
+            ? t('circles.leftTheCircle')
             : member.joined_at
-              ? 'In chat'
-              : "Hasn't joined chat yet";
+              ? t('circles.inChat')
+              : t('circles.hasntJoinedYet');
           return (
             <View key={member.id} style={styles.memberRow}>
               <TouchableOpacity
@@ -322,7 +324,7 @@ export default function CircleDetailsScreen() {
                 <View style={styles.memberInfo}>
                   <Text style={styles.memberName}>
                     {member.user.username}
-                    {isSelf && ' (You)'}
+                    {isSelf && ` ${t('circles.you')}`}
                   </Text>
                   <Text style={styles.memberStatus}>{statusText}</Text>
                 </View>
@@ -344,7 +346,7 @@ export default function CircleDetailsScreen() {
             {isProcessing ? (
               <ActivityIndicator color='#fff' />
             ) : (
-              <Text style={styles.primaryButtonText}>Join circle chat</Text>
+              <Text style={styles.primaryButtonText}>{t('circles.joinCircleChat')}</Text>
             )}
           </TouchableOpacity>
         )}
@@ -353,13 +355,13 @@ export default function CircleDetailsScreen() {
             style={styles.primaryButton}
             onPress={handleOpenChat}
           >
-            <Text style={styles.primaryButtonText}>Open circle chat</Text>
+            <Text style={styles.primaryButtonText}>{t('circles.openCircleChat')}</Text>
           </TouchableOpacity>
         )}
         {!hasLeftCircle && (
           <TouchableOpacity style={styles.leaveButton} onPress={handleLeave}>
             <Text style={styles.leaveText}>
-              {isActive ? 'Leave circle' : 'Start matching again'}
+              {isActive ? t('circles.leaveCircle') : t('circles.startMatchingAgain')}
             </Text>
           </TouchableOpacity>
         )}

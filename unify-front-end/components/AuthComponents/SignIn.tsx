@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import isExpoGo from '../../utils/isExpoGo';
 import ForgotPassword from './ForgotPassword';
 import {
@@ -36,6 +37,7 @@ export function SignIn({
   onSwitchToSignUp?: () => void;
   onBack?: () => void;
 }): React.JSX.Element {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const {
     trackSignInCompleted,
@@ -64,13 +66,13 @@ export function SignIn({
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedEmail || !password) {
-      setErrorMessage('Invalid login credentials');
+      setErrorMessage(t('auth.invalidCredentials'));
       trackSignInFailed('empty_fields');
       return;
     }
 
     if (!emailRegex.test(normalizedEmail)) {
-      setErrorMessage('Invalid login credentials');
+      setErrorMessage(t('auth.invalidCredentials'));
       trackSignInFailed('invalid_email');
       return;
     }
@@ -81,7 +83,7 @@ export function SignIn({
       password: password,
     });
     if (error) {
-      setErrorMessage('Invalid login credentials');
+      setErrorMessage(t('auth.invalidCredentials'));
       trackSignInFailed(error.code || 'signin_failed', 'email');
       setLoading(false);
       return;
@@ -146,7 +148,7 @@ export function SignIn({
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
-              userCreationError?.message || 'Failed to complete sign-in setup'
+              userCreationError?.message || t('auth.failedSignInSetup')
             );
             setLoading(false);
             return;
@@ -158,16 +160,16 @@ export function SignIn({
           });
           trackSignInCompleted('google');
         } else if (data?.user?.id && !data?.user?.email) {
-          setErrorMessage('Unable to retrieve email from Google account');
+          setErrorMessage(t('auth.googleNoEmail'));
           setLoading(false);
           return;
         } else if (!data?.user?.id) {
-          setErrorMessage('Unable to retrieve user information from Google');
+          setErrorMessage(t('auth.googleNoUser'));
           setLoading(false);
           return;
         }
       } else {
-        setErrorMessage('No Google idToken');
+        setErrorMessage(t('auth.googleNoToken'));
       }
     } catch (error: any) {
       if (error?.code === statusCodes.IN_PROGRESS) {
@@ -175,11 +177,11 @@ export function SignIn({
         return;
       }
       if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setErrorMessage('Google Play Services not available');
+        setErrorMessage(t('auth.googlePlayNotAvailable'));
         setLoading(false);
         return;
       }
-      setErrorMessage('Google sign-in failed. Please try again.');
+      setErrorMessage(t('auth.googleSignInFailed'));
     }
     setLoading(false);
   };
@@ -217,7 +219,7 @@ export function SignIn({
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
-              userCreationError?.message || 'Failed to complete sign-in setup'
+              userCreationError?.message || t('auth.failedSignInSetup')
             );
             setLoading(false);
             return;
@@ -229,23 +231,23 @@ export function SignIn({
           });
           trackSignInCompleted('apple');
         } else if (data?.user?.id && !data?.user?.email) {
-          setErrorMessage('Unable to retrieve email from Apple account');
+          setErrorMessage(t('auth.appleNoEmail'));
           setLoading(false);
           return;
         } else if (!data?.user?.id) {
-          setErrorMessage('Unable to retrieve user information from Apple');
+          setErrorMessage(t('auth.appleNoUser'));
           setLoading(false);
           return;
         }
       } else {
-        setErrorMessage('No Apple identity token received');
+        setErrorMessage(t('auth.appleNoToken'));
       }
     } catch (error: any) {
       if (error?.code === 'ERR_REQUEST_CANCELED') {
         setLoading(false);
         return;
       }
-      setErrorMessage('Apple sign-in failed. Please try again.');
+      setErrorMessage(t('auth.appleSignInFailed'));
     }
     setLoading(false);
   };
@@ -300,11 +302,11 @@ export function SignIn({
         )}
 
         {/* Header */}
-        <Text style={styles.header}>Sign in</Text>
+        <Text style={styles.header}>{t('auth.signIn')}</Text>
         <View style={styles.subHeaderRow}>
-          <Text style={styles.subHeaderText}>New user? </Text>
+          <Text style={styles.subHeaderText}>{t('auth.newUser')}</Text>
           <Text style={styles.subHeaderLink} onPress={onSwitchToSignUp}>
-            Create an account
+            {t('auth.createAnAccount')}
           </Text>
         </View>
 
@@ -323,7 +325,7 @@ export function SignIn({
                 setEmail(text);
                 validateEmail(text);
               }}
-              placeholder='Email Address'
+              placeholder={t('auth.emailAddress')}
               placeholderTextColor='#999'
               style={[
                 styles.textField,
@@ -356,7 +358,7 @@ export function SignIn({
             <SimpleTextField
               value={password}
               onChangeText={setPassword}
-              placeholder='Password'
+              placeholder={t('auth.password')}
               placeholderTextColor='#999'
               style={[
                 styles.textField,
@@ -388,7 +390,7 @@ export function SignIn({
             <View />
           )}
           <TouchableOpacity onPress={() => setShowForgotPassword(true)}>
-            <Text style={styles.forgotText}>Forgot password?</Text>
+            <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -399,20 +401,20 @@ export function SignIn({
           activeOpacity={0.8}
           style={styles.loginButton}
           accessibilityRole='button'
-          accessibilityLabel='Login'
+          accessibilityLabel={t('auth.login')}
           accessibilityState={{ disabled: loading }}
         >
           {loading ? (
             <ActivityIndicator color='#fff' />
           ) : (
-            <Text style={styles.loginButtonText}>Login</Text>
+            <Text style={styles.loginButtonText}>{t('auth.login')}</Text>
           )}
         </TouchableOpacity>
 
         {/* Or divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
+          <Text style={styles.dividerText}>{t('common.or')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -421,7 +423,7 @@ export function SignIn({
           <TouchableOpacity
             style={styles.socialIconButton}
             onPress={handleGoogleSignIn}
-            accessibilityLabel='Sign in with Google'
+            accessibilityLabel={t('auth.signInWithGoogle')}
             accessibilityRole='button'
           >
             <Google width={24 * S} height={24 * S} />
@@ -430,7 +432,7 @@ export function SignIn({
             <TouchableOpacity
               style={styles.socialIconButton}
               onPress={handleAppleSignIn}
-              accessibilityLabel='Sign in with Apple'
+              accessibilityLabel={t('auth.signInWithApple')}
               accessibilityRole='button'
             >
               <Ionicons name='logo-apple' size={26 * S} color='#000' />
@@ -443,19 +445,19 @@ export function SignIn({
 
         {/* Legal text */}
         <Text style={styles.legalText}>
-          By signing in with an account, you agree to Unify's{' '}
+          {t('auth.agreeTermsSignIn')}{' '}
           <Text
             style={styles.legalLink}
             onPress={() => Linking.openURL(LEGAL_URLS.termsOfService)}
           >
-            Terms of Service
+            {t('auth.termsOfService')}
           </Text>{' '}
-          and{' '}
+          {t('auth.and')}{' '}
           <Text
             style={styles.legalLink}
             onPress={() => Linking.openURL(LEGAL_URLS.privacyPolicy)}
           >
-            Privacy Policy
+            {t('auth.privacyPolicy')}
           </Text>
           .
         </Text>

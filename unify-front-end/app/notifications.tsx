@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter, Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { useCommunityNotifications } from '@/hooks/useCommunityNotifications';
@@ -53,6 +54,7 @@ function getNotificationIcon(type: CommunityNotification['type']): string {
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const {
     trackScreen,
     trackNotificationOpened,
@@ -162,10 +164,9 @@ export default function NotificationsScreen() {
         <View style={styles.emptyIconCircle}>
           <Feather name='bell-off' size={40} color='#D0D0D0' />
         </View>
-        <Text style={styles.emptyTitle}>No Notifications Yet</Text>
+        <Text style={styles.emptyTitle}>{t('notifications.empty')}</Text>
         <Text style={styles.emptyBody}>
-          You'll get updates about new activity like follows, likes, comments,
-          and other important moments.
+          {t('notifications.emptyHint')}
         </Text>
       </View>
     </View>
@@ -181,7 +182,7 @@ export default function NotificationsScreen() {
         {isMarkingAllAsRead ? (
           <ActivityIndicator size='small' color={Theme.primaryGatherRed} />
         ) : (
-          <Text style={styles.markAllText}>Mark all read</Text>
+          <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
         )}
       </TouchableOpacity>
     ) : null;

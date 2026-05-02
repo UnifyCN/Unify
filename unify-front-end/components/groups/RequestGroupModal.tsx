@@ -13,6 +13,8 @@ import {
   ToastAndroid,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { sendGroupRequestEmail } from '@/services/groups/sendGroupRequestEmail';
 
 type Props = {
@@ -22,10 +24,11 @@ type Props = {
 
 function showToast(message: string) {
   if (Platform.OS === 'android') ToastAndroid.show(message, ToastAndroid.SHORT);
-  else Alert.alert('Done', message);
+  else Alert.alert(i18n.t('common.done'), message);
 }
 
 export default function RequestGroupModal({ visible, onClose }: Props) {
+  const { t } = useTranslation();
   const [groupName, setGroupName] = useState('');
   const [audience, setAudience] = useState('');
   const [reason, setReason] = useState('');
@@ -76,7 +79,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
 
   const submit = async () => {
     if (!canSubmit) {
-      showToast('Please fill all required fields.');
+      showToast(t('groups.requiredFields'));
       return;
     }
 
@@ -101,7 +104,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
         onClose();
       }, 2000);
     } catch (e: any) {
-      Alert.alert('Error', e?.message ?? 'Failed to send request.');
+      Alert.alert(t('common.error'), e?.message ?? t('groups.failedSendRequest'));
     } finally {
       setSubmitting(false);
     }
@@ -120,7 +123,7 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
           <View style={styles.sheet}>
             <View style={styles.header}>
               <Text style={styles.title}>
-                {showSuccess ? 'Request Sent!' : 'Request a Group'}
+                {showSuccess ? t('groups.requestSent') : t('groups.requestGroup')}
               </Text>
               <Pressable onPress={handleDismiss} style={styles.closeBtn}>
                 <Text style={styles.closeText}>✕</Text>
@@ -130,10 +133,9 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
             {showSuccess ? (
               <View style={styles.successContainer}>
                 <Text style={styles.successEmoji}>🎉</Text>
-                <Text style={styles.successTitle}>Thank you!</Text>
+                <Text style={styles.successTitle}>{t('groups.thankYou')}</Text>
                 <Text style={styles.successMessage}>
-                  Your group request has been sent to our team. We'll review it
-                  and get back to you soon.
+                  {t('groups.requestSentMessage')}
                 </Text>
               </View>
             ) : (
@@ -145,52 +147,52 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
                 showsVerticalScrollIndicator={false}
                 automaticallyAdjustKeyboardInsets
               >
-                <Text style={styles.label}>Group name *</Text>
+                <Text style={styles.label}>{t('groups.requestForm.groupNameLabel')}</Text>
                 <TextInput
                   value={groupName}
                   onChangeText={setGroupName}
-                  placeholder='e.g., Newcomers in Vancouver'
+                  placeholder={t('groups.requestForm.groupNamePlaceholder')}
                   style={styles.input}
                   editable={!submitting}
                 />
 
-                <Text style={styles.label}>Who is it for? *</Text>
+                <Text style={styles.label}>{t('groups.requestForm.audienceLabel')}</Text>
                 <TextInput
                   value={audience}
                   onChangeText={setAudience}
-                  placeholder='e.g., international students, PR applicants...'
+                  placeholder={t('groups.requestForm.audiencePlaceholder')}
                   style={styles.input}
                   editable={!submitting}
                 />
 
                 <Text style={styles.label}>
-                  Why should we create this group? *
+                  {t('groups.requestForm.reasonLabel')}
                 </Text>
                 <TextInput
                   value={reason}
                   onChangeText={setReason}
-                  placeholder='Explain the need (min 10 chars)'
+                  placeholder={t('groups.requestForm.reasonPlaceholder')}
                   style={[styles.input, styles.textArea]}
                   multiline
                   editable={!submitting}
                 />
 
-                <Text style={styles.label}>Your email (for follow-up) *</Text>
+                <Text style={styles.label}>{t('groups.requestForm.emailLabel')}</Text>
                 <TextInput
                   value={requesterEmail}
                   onChangeText={setRequesterEmail}
-                  placeholder='you@email.com'
+                  placeholder={t('groups.requestForm.emailPlaceholder')}
                   style={styles.input}
                   autoCapitalize='none'
                   keyboardType='email-address'
                   editable={!submitting}
                 />
 
-                <Text style={styles.label}>Extra notes (optional)</Text>
+                <Text style={styles.label}>{t('groups.requestForm.extraNotesLabel')}</Text>
                 <TextInput
                   value={extraNotes}
                   onChangeText={setExtraNotes}
-                  placeholder='Anything else that helps'
+                  placeholder={t('groups.requestForm.extraNotesPlaceholder')}
                   style={[styles.input, styles.textArea]}
                   multiline
                   editable={!submitting}
@@ -214,12 +216,12 @@ export default function RequestGroupModal({ visible, onClose }: Props) {
                   {submitting ? (
                     <ActivityIndicator />
                   ) : (
-                    <Text style={styles.submitText}>Send Request</Text>
+                    <Text style={styles.submitText}>{t('groups.sendRequest')}</Text>
                   )}
                 </Pressable>
 
                 <Text style={styles.helper}>
-                  * Required fields. This sends an email to our team.
+                  {t('groups.requestForm.helperText')}
                 </Text>
               </ScrollView>
             )}

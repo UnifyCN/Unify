@@ -11,6 +11,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
 import GroupSelectionSheet from './GroupSelectionSheet';
@@ -79,6 +80,7 @@ export default function CreatePostForm({
   onCancel,
   onSuccessNavigate,
 }: Readonly<CreatePostFormProps>) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -176,8 +178,8 @@ export default function CreatePostForm({
           trackPostCreated(data?.id ? String(data.id) : undefined);
           const postedToGroup = destination === 'group' && selectedGroup;
           const toastMessage = postedToGroup
-            ? `Posted to ${selectedGroup.name}`
-            : 'Posted to For You';
+            ? t('posts.postedTo', { name: selectedGroup.name })
+            : t('posts.postedToForYou');
           const groupToNavigate = selectedGroup;
           resetForm();
           showToast(toastMessage);
@@ -307,7 +309,7 @@ export default function CreatePostForm({
             {isPending ? (
               <ActivityIndicator size='small' color='white' />
             ) : (
-              <Text style={styles.postButtonText}>Post</Text>
+              <Text style={styles.postButtonText}>{t('posts.postButton')}</Text>
             )}
           </TouchableOpacity>
         }

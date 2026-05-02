@@ -19,8 +19,10 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
+import { useTranslation } from 'react-i18next';
 
 export default function PracticeActivityPageScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId, practiceId, pageNum } = useLocalSearchParams<{
     moduleId: string;
@@ -189,7 +191,7 @@ export default function PracticeActivityPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Loading activity...</Text>
+          <Text>{t('learn.lesson.loadingActivity')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -199,7 +201,7 @@ export default function PracticeActivityPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Error loading practice</Text>
+          <Text>{t('learn.practice.failedToLoad')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -209,7 +211,7 @@ export default function PracticeActivityPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Page not found</Text>
+          <Text>{t('learn.practice.pageNotFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -418,7 +420,7 @@ export default function PracticeActivityPageScreen() {
 
       <View style={styles.navigationContainer}>
         <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <Text style={styles.backBtnText}>Back</Text>
+          <Text style={styles.backBtnText}>{t('common.back')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -430,10 +432,10 @@ export default function PracticeActivityPageScreen() {
         >
           <Text style={styles.nextBtnText}>
             {!isSubmitted
-              ? 'Submit'
+              ? t('common.submit')
               : currentPage < totalPages
-                ? 'Next'
-                : 'Done'}
+                ? t('common.next')
+                : t('learn.pathwayCard.done')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -447,18 +449,17 @@ export default function PracticeActivityPageScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              Take a break from this activity?
+              {t('learn.practice.exitTitle')}
             </Text>
             <Text style={styles.modalDesc}>
-              Your progress will be saved. You can resume from the section page
-              later.
+              {t('learn.practice.exitBody')}
             </Text>
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
               onPress={handleSaveAndLeave}
             >
               <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
+                {t('learn.lesson.exitSave')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -466,7 +467,7 @@ export default function PracticeActivityPageScreen() {
               onPress={() => setShowExitModal(false)}
             >
               <Text style={styles.modalSecondaryBtnText}>
-                Continue Activity
+                {t('learn.lesson.exitActivityContinue')}
               </Text>
             </TouchableOpacity>
           </View>

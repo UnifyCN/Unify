@@ -1,11 +1,10 @@
 import React from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import LoadingDots from '@/assets/images/LoadingDots.svg';
 import { Theme } from '@/constants/Theme';
 
-const LOADING_MESSAGE =
-  'Please wait while we connect the dots for your journey…';
 const DOTS_ASPECT_RATIO = 347 / 394;
 const DOTS_COLOR = '#D8492C';
 
@@ -14,8 +13,10 @@ type LoadingScreenProps = {
 };
 
 export default function LoadingScreen({
-  message = LOADING_MESSAGE,
+  message,
 }: LoadingScreenProps) {
+  const { t } = useTranslation();
+  const displayMessage = message ?? t('loadingScreen.message');
   const { width, height } = useWindowDimensions();
   const dotsWidth = Math.max(width * 1.3, 430);
   const dotsHeight = dotsWidth * DOTS_ASPECT_RATIO;
@@ -29,7 +30,7 @@ export default function LoadingScreen({
             { marginTop: Math.max(88, height * 0.19) },
           ]}
         >
-          <Text style={styles.message}>{message}</Text>
+          <Text style={styles.message}>{displayMessage}</Text>
         </View>
         <View
           pointerEvents='none'

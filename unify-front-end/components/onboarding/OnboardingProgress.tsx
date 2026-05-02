@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface OnboardingProgressProps {
@@ -14,6 +15,7 @@ export default function OnboardingProgress({
   totalSteps,
   skipSafeArea = false,
 }: OnboardingProgressProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const progress = (currentStep / totalSteps) * 100;
 
@@ -28,7 +30,7 @@ export default function OnboardingProgress({
         <View style={[styles.progressBar, { width: `${progress}%` }]} />
       </View>
       <Text style={styles.stepText}>
-        Step {currentStep} of {totalSteps}
+        {t('onboarding.stepOf', { current: currentStep, total: totalSteps })}
       </Text>
     </View>
   );

@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 
 const SEE_ALL_COLOR = '#6A6A6A';
@@ -47,6 +48,7 @@ export function HorizontalCarousel<T>({
   contentContainerStyle,
   itemKeyExtractor,
 }: HorizontalCarouselProps<T>) {
+  const { t } = useTranslation();
   const dataArray = data || [];
   const displayItems = dataArray.slice(0, maxItems);
   const hasMoreItems = dataArray.length > maxItems;
@@ -57,7 +59,7 @@ export function HorizontalCarousel<T>({
         <Text style={[styles.headerText, titleStyle]}>{title}</Text>
         {showViewMore && onViewMore && (
           <TouchableOpacity onPress={onViewMore} style={styles.seeAllButton}>
-            <Text style={styles.seeAllText}>See all</Text>
+            <Text style={styles.seeAllText}>{t('common.seeAll')}</Text>
             <Feather name='chevron-right' size={16} color={SEE_ALL_COLOR} />
           </TouchableOpacity>
         )}

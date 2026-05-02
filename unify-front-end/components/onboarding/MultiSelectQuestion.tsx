@@ -7,6 +7,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface Option {
@@ -37,6 +38,7 @@ export default function MultiSelectQuestion({
   required = false,
   error,
 }: MultiSelectQuestionProps) {
+  const { t } = useTranslation();
   const otherOption = options.find(opt => opt.hasOther);
   const showOtherInput =
     otherOption && selectedValues.includes(otherOption.value);
@@ -96,7 +98,7 @@ export default function MultiSelectQuestion({
         <View style={styles.otherInputContainer}>
           <TextInput
             style={styles.otherInput}
-            placeholder='Please specify...'
+            placeholder={t('onboarding.pleaseSpecify')}
             value={otherValue || ''}
             onChangeText={onOtherChange}
             placeholderTextColor={Theme.textInput}

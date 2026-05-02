@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabase';
 import { MaterialIcons } from '@expo/vector-icons';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
@@ -34,6 +35,7 @@ export default function OTPVerification({
   onVerificationSuccess,
   onBackToSignUp,
 }: OTPVerificationProps) {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export default function OTPVerification({
   const handleVerify = async () => {
     const token = otp.join('');
     if (token.length !== 6) {
-      setErrorMessage('Please enter the complete 6-digit code');
+      setErrorMessage(t('auth.otp.enterComplete'));
       return;
     }
 
@@ -87,7 +89,7 @@ export default function OTPVerification({
       if (session) {
         // Create user record using shared helper
         if (!session.user.email) {
-          setErrorMessage('Unable to retrieve email from verified session');
+          setErrorMessage(t('auth.otp.unableRetrieveEmail'));
           setLoading(false);
           return;
         }
@@ -100,26 +102,26 @@ export default function OTPVerification({
         } catch (userCreationError: any) {
           console.error('Failed to create user record:', userCreationError);
           setErrorMessage(
-            userCreationError?.message || 'Failed to complete account setup'
+            userCreationError?.message || t('auth.otp.failedSetup')
           );
           setLoading(false);
           return;
         }
 
         // NOTE: just alert for now, until we have a UI designed for thos
-        Alert.alert('Success', 'Email verified successfully!', [
+        Alert.alert(t('auth.otp.successTitle'), t('auth.otp.successMessage'), [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => {
               onVerificationSuccess?.();
             },
           },
         ]);
       } else {
-        setErrorMessage('Verification failed. Please try again.');
+        setErrorMessage(t('auth.otp.verificationFailed'));
       }
     } catch (error) {
-      setErrorMessage('An error occurred during verification.');
+      setErrorMessage(t('auth.otp.verificationError'));
     }
 
     setLoading(false);
@@ -138,13 +140,13 @@ export default function OTPVerification({
       if (error) {
         setErrorMessage(error.message);
       } else {
-        Alert.alert('Success', 'OTP resent successfully!');
+        Alert.alert(t('auth.otp.successTitle'), t('auth.otp.otpResent'));
         // clear the otp input after resending
         setOtp(['', '', '', '', '', '']);
         setFullOtp('');
       }
     } catch (error) {
-      setErrorMessage('Failed to resend OTP.');
+      setErrorMessage(t('auth.otp.otpResendFailed'));
     }
 
     setResendLoading(false);
@@ -152,10 +154,10 @@ export default function OTPVerification({
 
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>Verify Email</ViewHeader>
+      <ViewHeader style={styles.header}>{t('auth.otp.verifyEmail')}</ViewHeader>
 
       <ViewSection style={{ marginTop: 30 }}>
-        <Text style={styles.subtitle}>We've sent a verification code to</Text>
+        <Text style={styles.subtitle}>{t('auth.otp.sentCodeTo')}</Text>
         <Text style={styles.emailText}>{email}</Text>
 
         {/* Hidden input for handling paste and continuous typing */}
@@ -193,21 +195,21 @@ export default function OTPVerification({
           style={[styles.verifyButton]}
           labelStyle={[styles.verifyButtonText]}
         >
-          Verify Email
+          {t('auth.otp.verifyEmail')}
         </SubmitButton>
 
         <View style={styles.resendContainer}>
-          <Text style={styles.resendText}>Didn't receive the code? </Text>
+          <Text style={styles.resendText}>{t('auth.otp.didntReceive')}</Text>
           <TouchableOpacity onPress={handleResendOTP} disabled={resendLoading}>
             <Text style={styles.resendLink}>
-              {resendLoading ? 'Sending...' : 'Resend'}
+              {resendLoading ? t('auth.otp.sending') : t('auth.otp.resend')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.backButton} onPress={onBackToSignUp}>
           <MaterialIcons name='arrow-back' size={20} color='#666' />
-          <Text style={styles.backButtonText}>Back to Sign Up</Text>
+          <Text style={styles.backButtonText}>{t('auth.otp.backToSignUp')}</Text>
         </TouchableOpacity>
       </ViewSection>
     </ViewContainer>

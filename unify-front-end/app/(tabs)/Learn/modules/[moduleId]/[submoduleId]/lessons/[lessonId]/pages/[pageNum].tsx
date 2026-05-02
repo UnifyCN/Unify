@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
@@ -41,6 +42,7 @@ import { useLessonPageSaved } from '@/hooks/learn/useLessonPageSaved';
 import { useMutateSaveLessonPage } from '@/hooks/learn/useMutateSaveLessonPage';
 
 export default function LessonPageScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId, lessonId, pageNum } = useLocalSearchParams<{
     moduleId: string;
@@ -346,14 +348,14 @@ export default function LessonPageScreen() {
         onSuccess: () => {
           if (!wasSaved) {
             showToast(
-              'Lesson page saved! Find it in Settings > Saved Lessons',
+              t('learn.lesson.savedToast'),
               () => router.push('/saved-lessons' as any)
             );
           }
         },
         onError: err => {
           Alert.alert(
-            'Could not update',
+            t('learn.lesson.couldNotUpdate'),
             err instanceof Error ? err.message : 'Please try again.'
           );
         },
@@ -376,7 +378,7 @@ export default function LessonPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Loading lesson...</Text>
+          <Text>{t('learn.lesson.loadingLesson')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -386,7 +388,7 @@ export default function LessonPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Error loading lesson page</Text>
+          <Text>{t('learn.lesson.errorLoadingPage')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -432,7 +434,7 @@ export default function LessonPageScreen() {
         {/* Navigation buttons - anchored at bottom */}
         <View style={styles.navigationContainer}>
           <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-            <Text style={styles.backBtnText}>Back</Text>
+            <Text style={styles.backBtnText}>{t('common.back')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -444,7 +446,7 @@ export default function LessonPageScreen() {
             onPress={handleNext}
             disabled={isSaving}
           >
-            <Text style={styles.nextBtnText}>Next</Text>
+            <Text style={styles.nextBtnText}>{t('common.next')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -459,11 +461,11 @@ export default function LessonPageScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>
-                Take a break from this lesson?
+                {t('learn.lesson.exitTitle')}
               </Text>
               <Text style={styles.modalDesc}>
-                No worries, your progress will be saved!{'\n'}
-                You can pick up right where you left off.
+                {t('learn.lesson.exitBody1')}{'\n'}
+                {t('learn.lesson.exitBody2')}
               </Text>
 
               <TouchableOpacity
@@ -471,7 +473,7 @@ export default function LessonPageScreen() {
                 onPress={handleSaveAndLeave}
               >
                 <Text style={styles.modalPrimaryBtnText}>
-                  Save progress & leave
+                  {t('learn.lesson.exitSave')}
                 </Text>
               </TouchableOpacity>
 
@@ -480,7 +482,7 @@ export default function LessonPageScreen() {
                 onPress={handleContinue}
               >
                 <Text style={styles.modalSecondaryBtnText}>
-                  Continue Lesson
+                  {t('learn.lesson.exitContinue')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -529,6 +531,7 @@ function LessonPageContent({
     pageNum: number;
   };
 }) {
+  const { t } = useTranslation();
   const { selection, clearSelection } = useSelection();
 
   const handleHighlight = useCallback(() => {
@@ -559,7 +562,7 @@ function LessonPageContent({
           clearSelection();
         },
         onError: () => {
-          Alert.alert('Error', 'Failed to save highlight. Please try again.');
+          Alert.alert('Error', t('learn.lesson.failedSaveHighlight'));
         },
       }
     );
@@ -581,7 +584,7 @@ function LessonPageContent({
         clearSelection();
       },
       onError: () => {
-        Alert.alert('Error', 'Failed to remove highlight. Please try again.');
+        Alert.alert('Error', t('learn.lesson.failedRemoveHighlight'));
       },
     });
   }, [

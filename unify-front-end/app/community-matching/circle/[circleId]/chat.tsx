@@ -41,6 +41,7 @@ import {
   normalizeAvatarSource,
   prefetchAvatarUrls,
 } from '@/services/s3/avatarUrlCache';
+import { useTranslation } from 'react-i18next';
 
 const GROUP_WINDOW_MS = 3 * 60 * 1000;
 
@@ -77,24 +78,28 @@ const isSameCalendarDay = (first: Date, second: Date): boolean =>
   first.getMonth() === second.getMonth() &&
   first.getDate() === second.getDate();
 
-const formatDateSeparatorLabel = (isoDate: string): string => {
+const formatDateSeparatorLabel = (
+  isoDate: string,
+  t: (key: string) => string
+): string => {
   const date = new Date(isoDate);
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
 
   if (isSameCalendarDay(date, now)) {
-    return 'Today';
+    return t('circles.today');
   }
 
   if (isSameCalendarDay(date, yesterday)) {
-    return 'Yesterday';
+    return t('circles.yesterday');
   }
 
   return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
 export default function CircleChatScreen() {
+  const { t } = useTranslation();
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -517,7 +522,7 @@ export default function CircleChatScreen() {
         items.push({
           type: 'date-separator',
           id: `date-${dateKey}-${index}`,
-          label: formatDateSeparatorLabel(message.created_at),
+          label: formatDateSeparatorLabel(message.created_at, t),
         });
       }
 
@@ -547,7 +552,7 @@ export default function CircleChatScreen() {
     });
 
     return items;
-  }, [currentUser?.id, messages]);
+  }, [currentUser?.id, messages, t]);
 
   const inputDisabled = circleExpired || membership?.left_at !== null;
 
@@ -677,7 +682,7 @@ export default function CircleChatScreen() {
             >
               <TextInput
                 style={[styles.input, inputDisabled && styles.inputDisabled]}
-                placeholder='Message...'
+                placeholder={t('circles.messagePlaceholder')}
                 placeholderTextColor='#98A2B3'
                 value={text}
                 onChangeText={handleTextChange}
@@ -751,7 +756,7 @@ export default function CircleChatScreen() {
               </View>
 
               <View style={styles.commonGroundSection}>
-                <Text style={styles.commonGroundTitle}>Shared Journey</Text>
+                <Text style={styles.commonGroundTitle}>{t('circles.sharedJourney')}</Text>
                 <View style={styles.commonGroundItem}>
                   <Feather name='map-pin' size={16} color='#ff820b' />
                   <Text style={styles.commonGroundText}>
@@ -768,7 +773,7 @@ export default function CircleChatScreen() {
                   style={styles.viewProfileBtn}
                   onPress={viewFullProfile}
                 >
-                  <Text style={styles.viewProfileText}>View Profile</Text>
+                  <Text style={styles.viewProfileText}>{t('circles.viewProfile')}</Text>
                 </TouchableOpacity>
                 <View style={styles.modalFollowBtn}>
                   <FollowButton targetUserId={selectedMember.user_id} />

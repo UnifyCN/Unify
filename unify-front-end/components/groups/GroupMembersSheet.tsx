@@ -1,4 +1,5 @@
 import { View, Text, SectionList, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import BottomSheet from '@/components/common/BottomSheet';
 import GroupMemberRow from './GroupMemberRow';
 import { Theme } from '@/constants/Theme';
@@ -14,15 +15,16 @@ export default function GroupMembersSheet({
   onClose: () => void;
   members: GroupMember[];
 }) {
+  const { t } = useTranslation();
   const mutuals = members.filter(m => m.isMutual);
   const others = members.filter(m => !m.isMutual);
 
   const sections = [
     ...(mutuals.length > 0
-      ? [{ key: 'mutuals', title: 'People you know', data: mutuals }]
+      ? [{ key: 'mutuals', title: t('groups.peopleYouKnow'), data: mutuals }]
       : []),
     ...(others.length > 0
-      ? [{ key: 'all', title: 'All members', data: others }]
+      ? [{ key: 'all', title: t('groups.allMembers'), data: others }]
       : []),
   ];
 
@@ -30,7 +32,7 @@ export default function GroupMembersSheet({
     <BottomSheet visible={visible} onClose={onClose} snapPoint={0.75}>
       {/* Sheet header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Members</Text>
+        <Text style={styles.headerTitle}>{t('common.members')}</Text>
         <View style={styles.countPill}>
           <Text style={styles.countText}>{members.length}</Text>
         </View>

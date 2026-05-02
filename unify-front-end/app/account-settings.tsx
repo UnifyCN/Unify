@@ -113,11 +113,11 @@ export default function AccountSettingsPage() {
       trackAccountDeleted();
       setDeleteAccountModalVisible(false);
       Alert.alert(
-        'Account deleted',
-        'Your Unify account has been permanently deleted.',
+        t('settings.accountDeleted'),
+        t('settings.accountDeletedMessage'),
         [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: async () => {
               try {
                 await supabase.auth.signOut();
@@ -135,10 +135,10 @@ export default function AccountSettingsPage() {
     } catch (err) {
       console.error('Delete account failed', err);
       Alert.alert(
-        'Could not delete account',
+        t('settings.couldNotDelete'),
         err instanceof Error
           ? err.message
-          : 'Something went wrong. Please try again.'
+          : t('settings.couldNotDelete')
       );
     } finally {
       setIsDeletingAccount(false);
@@ -149,7 +149,7 @@ export default function AccountSettingsPage() {
   // and legal-document.tsx may not be included in the typed routes yet
   const legalRows = [
     {
-      title: 'Privacy Policy',
+      title: t('settings.privacyPolicy'),
       icon: 'file-text' as const,
       onPress: () =>
         router.push({
@@ -158,7 +158,7 @@ export default function AccountSettingsPage() {
         }),
     },
     {
-      title: 'Community Guidelines',
+      title: t('settings.communityGuidelines'),
       icon: 'users' as const,
       onPress: () =>
         router.push({
@@ -167,7 +167,7 @@ export default function AccountSettingsPage() {
         }),
     },
     {
-      title: 'Terms of Service',
+      title: t('settings.termsOfService'),
       icon: 'book-open' as const,
       onPress: () =>
         router.push({
@@ -179,12 +179,12 @@ export default function AccountSettingsPage() {
 
   const accountRows = [
     {
-      title: 'Log Out',
+      title: t('auth.logOut'),
       icon: 'log-out' as const,
       onPress: onLogout,
     },
     {
-      title: 'Delete account',
+      title: t('settings.deleteAccount'),
       icon: 'trash-2' as const,
       onPress: () => setDeleteAccountModalVisible(true),
     },
@@ -192,7 +192,7 @@ export default function AccountSettingsPage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Settings' onBack={() => router.back()} />
+      <BackHeader title={t('settings.title')} onBack={() => router.back()} />
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
@@ -239,14 +239,14 @@ export default function AccountSettingsPage() {
           </View>
         </View>
         <View style={styles.rowsContainer}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>{t('settings.preferences')}</Text>
           <View style={styles.settingsCard}>
             <View style={[styles.row, styles.toggleRow]}>
               <View style={styles.rowLabelContainer}>
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name='bell' size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>Learning Reminders</Text>
+                <Text style={styles.rowText}>{t('settings.learningReminders')}</Text>
               </View>
               <Pressable
                 onPress={
@@ -256,7 +256,7 @@ export default function AccountSettingsPage() {
                 }
                 accessibilityRole='switch'
                 accessibilityState={{ checked: notificationsEnabled ?? false }}
-                accessibilityLabel='Learning Reminders'
+                accessibilityLabel={t('settings.learningReminders')}
                 hitSlop={8}
                 disabled={notificationsEnabled === null}
                 style={[
@@ -277,13 +277,13 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name='zap' size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>Haptics</Text>
+                <Text style={styles.rowText}>{t('settings.haptics')}</Text>
               </View>
               <Pressable
                 onPress={toggleHaptics}
                 accessibilityRole='switch'
                 accessibilityState={{ checked: hapticsEnabled }}
-                accessibilityLabel='Haptics'
+                accessibilityLabel={t('settings.haptics')}
                 hitSlop={8}
                 style={[
                   styles.toggleTrack,
@@ -318,7 +318,7 @@ export default function AccountSettingsPage() {
               <View style={styles.bookmarkIconContainer}>
                 <Feather name='refresh-cw' size={24} color={Theme.black} />
               </View>
-              <Text style={styles.rowText}>Redo Onboarding Quiz</Text>
+              <Text style={styles.rowText}>{t('settings.redoOnboarding')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
@@ -326,18 +326,18 @@ export default function AccountSettingsPage() {
           {/* Community Section — iOS-only (referrals are App Store only for now) */}
           {Platform.OS === 'ios' ? (
             <>
-              <Text style={styles.sectionTitle}>Community</Text>
+              <Text style={styles.sectionTitle}>{t('settings.community')}</Text>
               <View style={styles.settingsCard}>
                 <TouchableOpacity
                   style={styles.row}
                   onPress={() => router.push('/refer-a-friend' as any)}
                   accessibilityRole='button'
-                  accessibilityLabel='Refer a friend'
+                  accessibilityLabel={t('settings.referAFriend')}
                 >
                   <View style={styles.bookmarkIconContainer}>
                     <Feather name='gift' size={24} color={Theme.black} />
                   </View>
-                  <Text style={styles.rowText}>Refer a friend</Text>
+                  <Text style={styles.rowText}>{t('settings.referAFriend')}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.divider} />
@@ -345,7 +345,7 @@ export default function AccountSettingsPage() {
           ) : null}
 
           {/* Legal Section */}
-          <Text style={styles.sectionTitle}>Legal</Text>
+          <Text style={styles.sectionTitle}>{t('settings.legal')}</Text>
           <View style={styles.settingsCard}>
             {legalRows.map((row, index) => (
               <TouchableOpacity
@@ -363,7 +363,7 @@ export default function AccountSettingsPage() {
           <View style={styles.divider} />
 
           {/* Account Section */}
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>{t('settings.account')}</Text>
           <View style={styles.settingsCard}>
             {accountRows.map((row, index) => (
               <TouchableOpacity
@@ -452,11 +452,10 @@ export default function AccountSettingsPage() {
           <View style={styles.deleteModalCard}>
             <Pressable onPress={e => e.stopPropagation()}>
               <Text style={styles.deleteModalTitle}>
-                Delete your Unify account?
+                {t('settings.deleteAccountTitle')}
               </Text>
               <Text style={styles.deleteModalMessage}>
-                You're requesting to delete your account. This includes all your
-                posts, comments, likes, and saves.
+                {t('settings.deleteAccountMessage')}
               </Text>
               <View style={styles.deleteModalButtons}>
                 <TouchableOpacity
@@ -464,7 +463,7 @@ export default function AccountSettingsPage() {
                   onPress={() => setDeleteAccountModalVisible(false)}
                   disabled={isDeletingAccount}
                 >
-                  <Text style={styles.deleteModalCancelText}>Cancel</Text>
+                  <Text style={styles.deleteModalCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
@@ -475,7 +474,7 @@ export default function AccountSettingsPage() {
                   disabled={isDeletingAccount}
                 >
                   <Text style={styles.deleteModalConfirmText}>
-                    {isDeletingAccount ? 'Deleting…' : 'Delete'}
+                    {isDeletingAccount ? t('settings.deleting') : t('common.delete')}
                   </Text>
                 </TouchableOpacity>
               </View>

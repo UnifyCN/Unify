@@ -10,6 +10,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Save from '@/assets/images/Save.svg';
 import Save_Fill from '@/assets/images/Save_filled.svg';
+import { useTranslation } from 'react-i18next';
 
 const BOOKMARK_ICON_SIZE = 22;
 
@@ -56,6 +57,7 @@ export default function SubmoduleProgressBar({
   bookmarkLoading = false,
   colorHex,
 }: SubmoduleProgressBarProps) {
+  const { t } = useTranslation();
   const progressPercentage =
     totalPages > 0 ? (currentProgress / totalPages) * 100 : 0;
 
@@ -75,13 +77,13 @@ export default function SubmoduleProgressBar({
           onPress={onClose}
           style={styles.headerSide}
           accessibilityRole='button'
-          accessibilityLabel='Close lesson'
+          accessibilityLabel={t('learn.lesson.closeLessonA11y')}
         >
           <Feather name='x' size={20} color='#878787' />
         </TouchableOpacity>
 
         <Text style={styles.title} numberOfLines={2}>
-          Section {submoduleOrder}: {submoduleTitle}
+          {t('learn.module.section', { number: submoduleOrder })}: {submoduleTitle}
         </Text>
 
         <View style={styles.headerSide}>
@@ -92,7 +94,7 @@ export default function SubmoduleProgressBar({
               style={styles.bookmarkButton}
               accessibilityRole='button'
               accessibilityLabel={
-                isBookmarked ? 'Remove saved lesson page' : 'Save lesson page'
+                isBookmarked ? t('learn.lesson.removeSavedPage') : t('learn.lesson.saveLessonPage')
               }
             >
               {bookmarkLoading ? (

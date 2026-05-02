@@ -9,6 +9,7 @@ import {
   Share,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { Event } from '@/types/events';
 import { formatEventDate, formatEventTimeRange } from '@/helpers/dateHelpers';
@@ -19,6 +20,7 @@ import BackHeader from '@/components/BackHeader';
 import { useEvents } from '@/hooks/events/useEvents';
 
 const EventDetailScreen = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { event, eventId } = useLocalSearchParams<{
     event?: string | string[];
@@ -184,7 +186,7 @@ const EventDetailScreen = () => {
               style={styles.metadataIcon}
             />
             <Text style={styles.metadataText}>
-              Hosted by{' '}
+              {t('events.hostedBy')}{' '}
               <Text style={styles.metadataHighlight}>{eventData.hostedBy}</Text>
             </Text>
           </View>
@@ -196,18 +198,18 @@ const EventDetailScreen = () => {
             onPress={handleExternalLink}
             style={styles.ctaButton}
           >
-            <Text style={styles.ctaButtonText}>View Event Details</Text>
+            <Text style={styles.ctaButtonText}>{t('events.viewDetails')}</Text>
             <Feather name='external-link' size={18} color={Theme.white} />
           </TouchableOpacity>
         )}
 
         {/* About Event */}
-        <Text style={styles.aboutTitle}>About Event</Text>
+        <Text style={styles.aboutTitle}>{t('events.aboutEvent')}</Text>
         {eventData.description ? (
           <Text style={styles.aboutText}>{eventData.description}</Text>
         ) : (
           <Text style={styles.aboutText}>
-            No description available for this event.
+            {t('events.noEventDescription')}
           </Text>
         )}
       </ScrollView>

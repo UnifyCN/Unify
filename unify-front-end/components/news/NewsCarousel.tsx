@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { NewsCard } from '@/components/home/NewsCard';
 import ViewMoreCardNews from '@/components/icons/ViewMoreCardNews.svg';
@@ -15,6 +16,7 @@ import { DailyTipCardSkeletonLoader } from '@/components/tips/DailyTipCardSkelet
 import { useDailyTip } from '@/hooks/tips/useDailyTip';
 
 export const NewsCarousel = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { data: news, isLoading } = useNews();
 
@@ -36,7 +38,7 @@ export const NewsCarousel = () => {
   return (
     <View style={styles.newsSection}>
       <HorizontalCarousel
-        title='News & Tips'
+        title={t('news.title')}
         titleStyle={styles.headerText}
         data={newsArray}
         isLoading={isLoading}
@@ -69,7 +71,7 @@ export const NewsCarousel = () => {
         renderEmptyState={() => (
           <EmptyFeedMessage
             icon={<Feather name='file-text' size={24} color='#B4B1B1' />}
-            message='No news available'
+            message={t('news.noNews')}
             submessage={
               <Text
                 style={{
@@ -79,7 +81,7 @@ export const NewsCarousel = () => {
                   lineHeight: 20,
                 }}
               >
-                Check back later for new articles
+                {t('news.checkBackLater')}
               </Text>
             }
           />
@@ -94,11 +96,11 @@ export const NewsCarousel = () => {
               <ViewMoreCardNews width={332} height={132} />
               <View style={styles.viewMoreTextOverlay}>
                 <Text style={styles.viewMoreText}>
-                  View more news{' '}
+                  {t('news.viewMore')}{' '}
                   <Feather name='arrow-right' size={16} color='#000' />
                 </Text>
                 <Text style={styles.viewMoreSubtext}>
-                  There's more to check out!
+                  {t('news.moreToCheckOut')}
                 </Text>
               </View>
             </View>

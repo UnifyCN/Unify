@@ -17,8 +17,10 @@ import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodule
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { useTaskProgress } from '@/hooks/progress/useTaskProgress';
+import { useTranslation } from 'react-i18next';
 
 export default function TaskPageScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId, taskId } = useLocalSearchParams<{
     moduleId: string;
@@ -137,7 +139,7 @@ export default function TaskPageScreen() {
             size='large'
             color={moduleData?.colorTheme?.hex || '#575757'}
           />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -147,7 +149,7 @@ export default function TaskPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text style={styles.errorText}>Task not found</Text>
+          <Text style={styles.errorText}>{t('learn.tasks.taskNotFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -160,7 +162,7 @@ export default function TaskPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={submoduleData?.title || 'Task'}
+        submoduleTitle={submoduleData?.title || t('learn.tasks.taskFallback')}
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -183,7 +185,7 @@ export default function TaskPageScreen() {
 
       <View style={styles.navigationContainer}>
         <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <Text style={styles.backBtnText}>Back</Text>
+          <Text style={styles.backBtnText}>{t('common.back')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -196,7 +198,7 @@ export default function TaskPageScreen() {
           disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
-            {isSaving ? 'Saving...' : nextTask ? 'Next' : 'Done'}
+            {isSaving ? t('learn.tasks.savingProgress') : nextTask ? t('common.next') : t('learn.pathwayCard.done')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -209,9 +211,9 @@ export default function TaskPageScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Leave this task?</Text>
+            <Text style={styles.modalTitle}>{t('learn.tasks.leaveTitle')}</Text>
             <Text style={styles.modalDesc}>
-              Your progress will be saved. You can come back anytime.
+              {t('learn.tasks.leaveBody')}
             </Text>
 
             <TouchableOpacity
@@ -219,7 +221,7 @@ export default function TaskPageScreen() {
               onPress={handleSaveAndLeave}
             >
               <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
+                {t('learn.lesson.exitSave')}
               </Text>
             </TouchableOpacity>
 
@@ -227,7 +229,7 @@ export default function TaskPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>Continue</Text>
+              <Text style={styles.modalSecondaryBtnText}>{t('common.continue')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -7,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { UserInfo } from '@/services/users/getUserInfo';
 import { SkeletonLoader } from '@/components/SkeletonLoader';
@@ -34,6 +35,7 @@ export const ProfileHeader = ({
   userInfo,
   isCurrentUser,
 }: ProfileHeaderProps) => {
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const router = useRouter();
 
@@ -167,7 +169,7 @@ export const ProfileHeader = ({
               activeOpacity={0.7}
             >
               <Text style={styles.statNumber}>{userInfo.followerCount}</Text>
-              <Text style={styles.statLabel}>Followers</Text>
+              <Text style={styles.statLabel}>{t('profile.followersLabel')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.statItem}
@@ -175,7 +177,7 @@ export const ProfileHeader = ({
               activeOpacity={0.7}
             >
               <Text style={styles.statNumber}>{userInfo.followingCount}</Text>
-              <Text style={styles.statLabel}>Following</Text>
+              <Text style={styles.statLabel}>{t('profile.followingLabel')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -220,7 +222,7 @@ export const ProfileHeader = ({
       </View>
 
       <View style={styles.groupsSection}>
-        <Text style={styles.groupsTitle}>Groups</Text>
+        <Text style={styles.groupsTitle}>{t('profile.groups')}</Text>
 
         {groupsLoading ? (
           <View style={styles.groupSkeletonRow}>
@@ -234,7 +236,7 @@ export const ProfileHeader = ({
             ))}
           </View>
         ) : groupsError ? (
-          <Text style={styles.emptyGroupsText}>Unable to load groups</Text>
+          <Text style={styles.emptyGroupsText}>{t('profile.unableLoadGroups')}</Text>
         ) : joinedGroups.length > 0 ? (
           <FlatList
             data={joinedGroups}
@@ -261,7 +263,7 @@ export const ProfileHeader = ({
             )}
           />
         ) : (
-          <Text style={styles.emptyGroupsText}>No groups yet</Text>
+          <Text style={styles.emptyGroupsText}>{t('profile.noGroupsYet')}</Text>
         )}
       </View>
     </View>

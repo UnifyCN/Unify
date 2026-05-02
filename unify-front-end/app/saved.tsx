@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import FeedWithHook from '@/components/FeedWithHook';
 import { useGetSavedPosts } from '@/hooks/posts/useGetSavedPosts';
@@ -8,18 +9,20 @@ import UnifyReplyIcon from '@/components/icons/UnifyReply.svg';
 import { Theme } from '@/constants/Theme';
 
 export default function SavedPage() {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.container}>
-      <BackHeader title='Saved' />
+      <BackHeader title={t('saved.title')} />
       <FeedWithHook
         useFeedHook={useGetSavedPosts}
         ListEmptyComponent={
           <EmptyFeedMessage
             icon={<UnifyReplyIcon width={27} height={25} />}
-            message='Looks a little quiet here...'
+            message={t('saved.empty')}
             submessage={
               <Text style={styles.emptyMessageSubtext}>
-                Save posts to see them here
+                {t('saved.emptyHint')}
               </Text>
             }
           />

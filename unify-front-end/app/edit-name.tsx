@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import { Feather } from '@expo/vector-icons';
 import BackHeader from '@/components/BackHeader';
@@ -18,6 +19,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 export default function EditNamePage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
   const [username, setUsername] = useState(currentUser?.username || '');
@@ -31,7 +33,7 @@ export default function EditNamePage() {
 
   const handleSave = async () => {
     if (!username.trim()) {
-      Alert.alert('Error', 'Username cannot be empty');
+      Alert.alert(t('common.error'), t('editName.emptyError'));
       return;
     }
 
@@ -47,17 +49,17 @@ export default function EditNamePage() {
       if (result.success) {
         // Invalidate user info queries to refresh the context
         queryClient.invalidateQueries({ queryKey: ['userInfo'] });
-        Alert.alert('Success', 'Username updated successfully!', [
+        Alert.alert(t('editName.successTitle'), t('editName.successMessage'), [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => router.back(),
           },
         ]);
       } else {
-        Alert.alert('Error', result.error || 'Failed to update username');
+        Alert.alert(t('common.error'), result.error || t('editName.failedUpdate'));
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to update username. Please try again.');
+      Alert.alert(t('common.error'), t('editName.failedUpdate'));
     } finally {
       setIsSaving(false);
     }
@@ -69,19 +71,19 @@ export default function EditNamePage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Name' onBack={() => router.back()} />
+      <BackHeader title={t('editName.title')} onBack={() => router.back()} />
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps='handled'
       >
-        <Text style={styles.label}>Name</Text>
+        <Text style={styles.label}>{t('editName.title')}</Text>
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
             value={username}
             onChangeText={setUsername}
-            placeholder='Enter your name'
+            placeholder={t('editName.placeholder')}
             placeholderTextColor='#999'
             autoFocus
             maxLength={20}
@@ -100,7 +102,7 @@ export default function EditNamePage() {
         </View>
         <Text style={styles.characterCount}>{username.length}/20</Text>
         <Text style={styles.description}>
-          Only letters, numbers, and spaces allowed.
+          {t('editName.validationError')}
         </Text>
         <TouchableOpacity
           style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
@@ -108,7 +110,7 @@ export default function EditNamePage() {
           disabled={isSaving}
         >
           <Text style={styles.saveButtonText}>
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? t('common.saving') : t('common.save')}
           </Text>
         </TouchableOpacity>
       </ScrollView>

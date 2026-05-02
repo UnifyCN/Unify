@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter, Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell, Search, Settings } from 'lucide-react-native';
@@ -64,6 +65,7 @@ const ActionButton = ({
 };
 
 const Header = ({ showSearchIcon = true }: HeaderProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const headerHeight = getTabHeaderHeight(insets.top);
@@ -86,21 +88,21 @@ const Header = ({ showSearchIcon = true }: HeaderProps) => {
       <View style={styles.rightButtons}>
         {showSearchIcon && (
           <ActionButton
-            accessibilityLabel='Open search'
+            accessibilityLabel={t('common.openSearch')}
             icon={Search}
             isFirst
             onPress={() => router.push('/search' as any)}
           />
         )}
         <ActionButton
-          accessibilityLabel='Open notifications'
+          accessibilityLabel={t('common.openNotifications')}
           icon={Bell}
           onPress={() => router.push('/notifications' as Href)}
           showBadge
           badgeValue={unreadCount}
         />
         <ActionButton
-          accessibilityLabel='Open settings'
+          accessibilityLabel={t('common.openSettings')}
           icon={Settings}
           onPress={() => router.push('/account-settings')}
         />

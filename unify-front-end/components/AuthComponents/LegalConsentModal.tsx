@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { CheckBox } from 'react-native-elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -33,6 +34,7 @@ export default function LegalConsentModal({
   onAccept,
   onCancel,
 }: LegalConsentModalProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,7 @@ export default function LegalConsentModal({
       await onAccept();
       // Success - parent will dismiss modal
     } catch (err: any) {
-      setError(err?.message || 'Failed to save. Please try again.');
+      setError(err?.message || t('auth.legal.failedSave'));
     } finally {
       setLoading(false);
     }
@@ -91,9 +93,9 @@ export default function LegalConsentModal({
       {!webViewDoc && (
         <View style={[styles.container, { paddingTop: insets.top + 40 }]}>
           <View style={styles.content}>
-            <Text style={styles.title}>Before you continue</Text>
+            <Text style={styles.title}>{t('auth.legal.beforeContinue')}</Text>
             <Text style={styles.subtitle}>
-              Please review and accept our policies to use Unify.
+              {t('auth.legal.reviewPolicies')}
             </Text>
 
             {/* Checkbox row */}
@@ -109,26 +111,27 @@ export default function LegalConsentModal({
                 uncheckedColor={Theme.black}
               />
               <Text style={styles.checkboxText}>
-                I agree to the{' '}
+                {t('auth.agreeTerms')}{' '}
                 <Text
                   style={styles.linkText}
                   onPress={() => openDocument('termsOfService')}
                 >
-                  Terms of Service
+                  {t('auth.termsOfService')}
                 </Text>
                 {', '}
                 <Text
                   style={styles.linkText}
                   onPress={() => openDocument('privacyPolicy')}
                 >
-                  Privacy Policy
+                  {t('auth.privacyPolicy')}
                 </Text>
-                {', and '}
+                {', '}
+                {t('auth.and')}{' '}
                 <Text
                   style={styles.linkText}
                   onPress={() => openDocument('communityGuidelines')}
                 >
-                  Community Guidelines
+                  {t('auth.communityGuidelines')}
                 </Text>
               </Text>
             </View>
@@ -156,7 +159,7 @@ export default function LegalConsentModal({
                 <ActivityIndicator color={Theme.white} />
               ) : (
                 <Text style={styles.continueButtonText}>
-                  {error ? 'Retry' : 'Continue'}
+                  {error ? t('common.retry') : t('common.continue')}
                 </Text>
               )}
             </TouchableOpacity>
@@ -166,7 +169,7 @@ export default function LegalConsentModal({
               onPress={handleCancel}
               disabled={loading}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

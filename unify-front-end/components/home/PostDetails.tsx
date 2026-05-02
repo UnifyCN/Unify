@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -46,11 +47,14 @@ const CommentsLoadingState = () => (
 );
 
 // Error component
-const PostNotFound = () => (
-  <View style={styles.errorContainer}>
-    <Text>Post not found.</Text>
-  </View>
-);
+const PostNotFound = () => {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.errorContainer}>
+      <Text>{t('home.postNotFound')}</Text>
+    </View>
+  );
+};
 
 // Comment input component
 const CommentInput = React.forwardRef<
@@ -92,6 +96,7 @@ const CommentInput = React.forwardRef<
 CommentInput.displayName = 'CommentInput';
 
 const PostDetails = () => {
+  const { t } = useTranslation();
   const { post: postParam, postId: postIdParam } = useLocalSearchParams<{
     post?: string;
     postId?: string;
@@ -289,7 +294,7 @@ const PostDetails = () => {
             <View style={[{ paddingTop: 20 }]}>
               <EmptyFeedMessage
                 icon={<UnifyReplyIcon width={27} height={25} />}
-                message='Looks a little quiet here...'
+                message={t('home.emptyComments')}
                 submessage={
                   <Text
                     style={{
@@ -299,7 +304,7 @@ const PostDetails = () => {
                       lineHeight: 20,
                     }}
                   >
-                    Be the first one to comment!
+                    {t('home.beFirstComment')}
                   </Text>
                 }
               />
@@ -312,7 +317,7 @@ const PostDetails = () => {
         {replyingTo && (
           <View style={styles.replyingToPill}>
             <Text style={styles.replyingToText}>
-              Replying to {replyingTo.comment.username}
+              {t('home.replyingTo', { username: replyingTo.comment.username })}
             </Text>
             <TouchableOpacity onPress={() => setReplyingTo(null)} hitSlop={8}>
               <Feather name='x' size={18} color={Theme.textPostTime} />
@@ -323,8 +328,8 @@ const PostDetails = () => {
           ref={inputRef}
           placeholder={
             replyingTo
-              ? `Reply to ${replyingTo.comment.username}`
-              : `Reply to ${post.user.name}`
+              ? t('home.replyPlaceholder', { username: replyingTo.comment.username })
+              : t('home.replyPlaceholder', { username: post.user.name })
           }
           value={commentTextBox}
           onChangeText={setCommentTextBox}

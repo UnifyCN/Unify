@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
 import { Group } from '@/types/groups';
@@ -19,6 +20,7 @@ export default function DestinationToggle({
   onDestinationChange,
   onClearGroup,
 }: DestinationToggleProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.container}>
       <View style={styles.toggleContainer}>
@@ -35,7 +37,7 @@ export default function DestinationToggle({
               destination === '4u' && styles.toggleTextActive,
             ]}
           >
-            For You
+            {t('posts.forYou')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -51,25 +53,25 @@ export default function DestinationToggle({
               destination === 'group' && styles.toggleTextActive,
             ]}
           >
-            Group
+            {t('posts.group')}
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.indicatorContainer}>
         {destination === '4u' ? (
-          <Text style={styles.indicatorText}>Posting to For You feed</Text>
+          <Text style={styles.indicatorText}>{t('posts.postingToForYou')}</Text>
         ) : selectedGroup ? (
           <View style={styles.groupIndicator}>
             <Text style={styles.groupIndicatorText}>
-              Posting to {selectedGroup.name}
+              {t('posts.postingTo', { name: selectedGroup.name })}
             </Text>
             <TouchableOpacity onPress={onClearGroup} style={styles.clearButton}>
               <Feather name='x' size={16} color={Theme.textAlternateGray} />
             </TouchableOpacity>
           </View>
         ) : (
-          <Text style={styles.indicatorText}>Select a group to post</Text>
+          <Text style={styles.indicatorText}>{t('posts.selectGroup')}</Text>
         )}
       </View>
     </View>

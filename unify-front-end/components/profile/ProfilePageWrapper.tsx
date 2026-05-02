@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import Profile from '@/components/profile/Profile';
 import { Theme } from '@/constants/Theme';
 
@@ -11,13 +12,14 @@ export default function ProfilePageWrapper({
   userId,
   tab,
 }: ProfilePageWrapperProps) {
+  const { t } = useTranslation();
   const normalizedUserId = Array.isArray(userId) ? userId[0] : userId;
   const normalizedTab = Array.isArray(tab) ? tab[0] : tab;
 
   if (!normalizedUserId) {
     return (
       <View style={styles.container}>
-        <Text style={styles.messageText}>Invalid profile link</Text>
+        <Text style={styles.messageText}>{t('profile.invalidProfileLink')}</Text>
       </View>
     );
   }

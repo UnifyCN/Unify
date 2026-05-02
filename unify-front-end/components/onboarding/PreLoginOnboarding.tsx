@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import OnboardingPagination from './OnboardingPagination';
 import BelongingScreen from './screens/BelongingScreen';
 import ChecklistScreen from './screens/ChecklistScreen';
@@ -35,6 +36,7 @@ interface PreLoginOnboardingProps {
 export default function PreLoginOnboarding({
   onFinish,
 }: PreLoginOnboardingProps) {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -89,13 +91,13 @@ export default function PreLoginOnboarding({
       <View style={styles.header}>
         {currentStep > 0 ? (
           <Pressable onPress={handleBack} hitSlop={12}>
-            <Text style={styles.headerButtonText}>Back</Text>
+            <Text style={styles.headerButtonText}>{t('onboarding.backButton')}</Text>
           </Pressable>
         ) : (
           <View />
         )}
         <Pressable onPress={handleFinish} hitSlop={12}>
-          <Text style={styles.headerButtonText}>Skip</Text>
+          <Text style={styles.headerButtonText}>{t('onboarding.skipButton')}</Text>
         </Pressable>
       </View>
 
@@ -126,7 +128,7 @@ export default function PreLoginOnboarding({
           onPress={handleContinue}
         >
           <Text style={styles.continueText}>
-            {currentStep === TOTAL_STEPS - 1 ? 'Start Now' : 'Continue'}
+            {currentStep === TOTAL_STEPS - 1 ? t('onboarding.startNow') : t('onboarding.continue')}
           </Text>
         </Pressable>
 

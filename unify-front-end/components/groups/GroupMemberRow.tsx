@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Avatar } from '@/components/Avatar';
 import { FollowButton } from '@/components/profile/FollowButton';
 import { router } from 'expo-router';
@@ -12,11 +13,13 @@ export default function GroupMemberRow({
   member: GroupMember;
   highlight?: boolean;
 }) {
+  const { t } = useTranslation();
+
   const relationshipLabel =
     member.isFollowing && member.followsYou
-      ? 'Mutuals'
+      ? t('groups.mutuals')
       : member.followsYou
-        ? 'Follows you'
+        ? t('groups.followsYou')
         : null;
 
   return (

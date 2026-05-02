@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { getAllPosts } from '@/services/posts/getAllPosts';
@@ -8,6 +9,7 @@ import { PostItem } from '@/components/home/PostItem';
 import BackHeader from '@/components/BackHeader';
 
 export default function MorePostsScreen() {
+  const { t } = useTranslation();
   const { q } = useLocalSearchParams();
   const searchQuery = (q as string) ?? '';
 
@@ -25,7 +27,7 @@ export default function MorePostsScreen() {
 
   return (
     <View style={styles.searchContainer}>
-      <BackHeader title='Search' />
+      <BackHeader title={t('search.title')} />
 
       <FlatList
         data={posts}

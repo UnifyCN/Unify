@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
@@ -32,6 +33,7 @@ const getSanityImageUrl = (assetRef: string | undefined): string | null => {
 };
 
 export default function SubmoduleIntroScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId, pageNum } = useLocalSearchParams<{
     moduleId: string;
@@ -273,7 +275,7 @@ export default function SubmoduleIntroScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Loading intro...</Text>
+          <Text>{t('learn.lesson.loadingIntro')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -283,7 +285,7 @@ export default function SubmoduleIntroScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Error loading intro</Text>
+          <Text>{t('learn.lesson.errorLoadingIntro')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -321,7 +323,7 @@ export default function SubmoduleIntroScreen() {
       <View style={styles.buttonContainer}>
         {currentPage > 1 && (
           <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-            <Text style={styles.backBtnText}>Back</Text>
+            <Text style={styles.backBtnText}>{t('common.back')}</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -331,7 +333,7 @@ export default function SubmoduleIntroScreen() {
           ]}
           onPress={handleNext}
         >
-          <Text style={styles.nextBtnText}>Next</Text>
+          <Text style={styles.nextBtnText}>{t('common.next')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -345,11 +347,11 @@ export default function SubmoduleIntroScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              Take a break from this lesson?
+              {t('learn.lesson.exitTitle')}
             </Text>
             <Text style={styles.modalDesc}>
-              No worries, your progress will be saved!{'\n'}
-              You can pick up right where you left off.
+              {t('learn.lesson.exitBody1')}{'\n'}
+              {t('learn.lesson.exitBody2')}
             </Text>
 
             <TouchableOpacity
@@ -357,7 +359,7 @@ export default function SubmoduleIntroScreen() {
               onPress={handleSaveAndLeave}
             >
               <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
+                {t('learn.lesson.exitSave')}
               </Text>
             </TouchableOpacity>
 
@@ -365,7 +367,7 @@ export default function SubmoduleIntroScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>Continue Lesson</Text>
+              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitContinue')}</Text>
             </TouchableOpacity>
           </View>
         </View>

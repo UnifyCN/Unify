@@ -9,6 +9,7 @@ import {
   Image,
   useWindowDimensions,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
@@ -75,7 +76,8 @@ const GroupDiscoveryCard = memo(
     onPress: () => void;
     cardWidth: number;
   }) => {
-    const description = group.description?.trim() || 'Recommended community';
+    const { t } = useTranslation();
+    const description = group.description?.trim() || t('groups.recommendedCommunity');
 
     return (
       <TouchableOpacity
@@ -83,7 +85,7 @@ const GroupDiscoveryCard = memo(
         activeOpacity={0.8}
         style={[styles.discoveryCard, { width: cardWidth }]}
         accessibilityRole='button'
-        accessibilityLabel={`Open group ${group.name}`}
+        accessibilityLabel={t('groups.openGroup', { name: group.name })}
       >
         <View style={styles.discoveryImageWrap}>
           <GroupCoverImage group={group} />
@@ -115,6 +117,7 @@ const GroupDiscoverySkeleton = () => {
 };
 
 const GroupsForYouSection = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const [requestOpen, setRequestOpen] = useState(false);
@@ -147,7 +150,7 @@ const GroupsForYouSection = () => {
     return (
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.headerText}>Join Groups</Text>
+          <Text style={styles.headerText}>{t('groups.joinGroups')}</Text>
         </View>
         <ScrollView
           horizontal
@@ -174,7 +177,7 @@ const GroupsForYouSection = () => {
     return (
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.headerText}>Join Groups</Text>
+          <Text style={styles.headerText}>{t('groups.joinGroups')}</Text>
         </View>
         <View style={styles.emptyStateContainer}>
           <Pressable
@@ -184,7 +187,7 @@ const GroupsForYouSection = () => {
               pressed ? { opacity: 0.85 } : null,
             ]}
           >
-            <Text style={styles.requestButtonText}>Request a Group</Text>
+            <Text style={styles.requestButtonText}>{t('groups.requestGroup')}</Text>
           </Pressable>
         </View>
         <RequestGroupModal
@@ -198,7 +201,7 @@ const GroupsForYouSection = () => {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.headerText}>Join Groups</Text>
+        <Text style={styles.headerText}>{t('groups.joinGroups')}</Text>
         <Pressable
           onPress={() => router.push('/see-more-groups')}
           style={({ pressed }) => [
@@ -206,7 +209,7 @@ const GroupsForYouSection = () => {
             pressed && styles.pressed,
           ]}
         >
-          <Text style={styles.seeAllText}>See all</Text>
+          <Text style={styles.seeAllText}>{t('common.seeAll')}</Text>
           <Feather name='chevron-right' size={16} color='#6A6A6A' />
         </Pressable>
       </View>
@@ -245,7 +248,7 @@ const GroupsForYouSection = () => {
             pressed ? { opacity: 0.85 } : null,
           ]}
         >
-          <Text style={styles.requestButtonText}>Request a Group</Text>
+          <Text style={styles.requestButtonText}>{t('groups.requestGroup')}</Text>
         </Pressable>
       </View>
       <RequestGroupModal
@@ -257,15 +260,17 @@ const GroupsForYouSection = () => {
 };
 
 const GatherHeader = memo(() => {
+  const { t } = useTranslation();
   return (
     <View style={styles.eventsCarousel}>
-      <EventsCarousel title='Community Events' titleStyle={styles.headerText} />
+      <EventsCarousel title={t('events.title')} titleStyle={styles.headerText} />
     </View>
   );
 });
 GatherHeader.displayName = 'GatherHeader';
 
 export default function GatherScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { trackScreen } = useAnalytics();
   const lastTrackedRef = useRef<number>(0);
@@ -284,7 +289,7 @@ export default function GatherScreen() {
 
   return (
     <View style={styles.root}>
-      <TabHeader variant='minimal' title='Community' />
+      <TabHeader variant='minimal' title={t('tabs.community')} />
       <View style={styles.container}>
         <StatusBar style='dark' />
         <ScrollView

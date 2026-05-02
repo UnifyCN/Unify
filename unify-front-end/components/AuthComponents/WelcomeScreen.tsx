@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,8 @@ export default function WelcomeScreen({
   onLogIn,
   onBack,
 }: WelcomeScreenProps) {
+  const { t } = useTranslation();
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Back button */}
@@ -34,10 +37,9 @@ export default function WelcomeScreen({
         />
 
         {/* Text */}
-        <Text style={styles.title}>Start Building Your Life in Canada</Text>
+        <Text style={styles.title}>{t('auth.welcome.title')}</Text>
         <Text style={styles.description}>
-          Get personalized support, trusted guidance, and a community that
-          understands your journey
+          {t('auth.welcome.subtitle')}
         </Text>
       </View>
 
@@ -50,7 +52,7 @@ export default function WelcomeScreen({
           ]}
           onPress={onCreateAccount}
         >
-          <Text style={styles.createButtonText}>Create My Account</Text>
+          <Text style={styles.createButtonText}>{t('auth.welcome.createAccount')}</Text>
         </Pressable>
 
         <Pressable
@@ -60,7 +62,7 @@ export default function WelcomeScreen({
           ]}
           onPress={onLogIn}
         >
-          <Text style={styles.loginButtonText}>Log In</Text>
+          <Text style={styles.loginButtonText}>{t('auth.welcome.logIn')}</Text>
         </Pressable>
       </View>
     </SafeAreaView>
