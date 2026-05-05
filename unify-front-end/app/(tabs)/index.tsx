@@ -327,7 +327,7 @@ export default function HomeScreen() {
       if (hapticsEnabled) {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       }
-      trackFeedTabSwitched(tab);
+      trackFeedTabSwitched(tab === 'ForYou' ? 'For You' : tab);
       // Also update the screen name for the new tab
       trackScreen(tab);
     },
