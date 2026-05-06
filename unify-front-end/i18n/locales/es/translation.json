@@ -48,6 +48,8 @@
     "members": "Miembros",
     "member": "miembro",
     "member_plural": "miembros",
+    "memberCount": "{{count}} miembro",
+    "memberCount_plural": "{{count}} miembros",
     "followers": "seguidores",
     "following": "siguiendo",
     "noDescription": "Sin descripción disponible",
@@ -124,6 +126,14 @@
     "communityGuidelines": "Normas de la comunidad",
     "and": "y",
     "acceptTermsRequired": "Por favor acepta los Términos de servicio, Política de privacidad y Normas de la comunidad",
+    "legalSignIn": "Al iniciar sesión con una cuenta, aceptas los <terms>Términos de servicio</terms> y la <privacy>Política de privacidad</privacy> de Unify.",
+    "legalSignUp": "Acepto los <terms>Términos de servicio</terms>, la <privacy>Política de privacidad</privacy> y las <guidelines>Normas de la comunidad</guidelines>",
+    "legalConsent": "Acepto los <terms>Términos de servicio</terms>, la <privacy>Política de privacidad</privacy> y las <guidelines>Normas de la comunidad</guidelines>",
+    "accessibility": {
+      "termsOfService": "Abrir Términos de servicio",
+      "privacyPolicy": "Abrir Política de privacidad",
+      "communityGuidelines": "Abrir Normas de la comunidad"
+    },
     "welcome": {
       "title": "Comienza a construir tu vida en Canadá",
       "subtitle": "Conéctate con otros recién llegados, aprende habilidades esenciales y construye tu comunidad — todo en un solo lugar.",

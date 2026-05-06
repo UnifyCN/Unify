@@ -48,6 +48,8 @@
     "members": "Members",
     "member": "member",
     "member_plural": "members",
+    "memberCount": "{{count}} member",
+    "memberCount_plural": "{{count}} members",
     "followers": "followers",
     "following": "following",
     "noDescription": "No description available",
@@ -124,6 +126,14 @@
     "communityGuidelines": "Community Guidelines",
     "and": "and",
     "acceptTermsRequired": "Please accept the Terms of Service, Privacy Policy, and Community Guidelines",
+    "legalSignIn": "By signing in with an account, you agree to Unify's <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+    "legalSignUp": "I agree to the <terms>Terms of Service</terms>, <privacy>Privacy Policy</privacy> & <guidelines>Community Guidelines</guidelines>",
+    "legalConsent": "I agree to the <terms>Terms of Service</terms>, <privacy>Privacy Policy</privacy>, and <guidelines>Community Guidelines</guidelines>",
+    "accessibility": {
+      "termsOfService": "Open Terms of Service",
+      "privacyPolicy": "Open Privacy Policy",
+      "communityGuidelines": "Open Community Guidelines"
+    },
     "welcome": {
       "title": "Start Building Your Life in Canada",
       "subtitle": "Connect with fellow newcomers, learn essential skills, and build your community — all in one place.",

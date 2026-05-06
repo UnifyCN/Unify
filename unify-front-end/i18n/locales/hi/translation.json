@@ -48,6 +48,8 @@
     "members": "सदस्य",
     "member": "सदस्य",
     "member_plural": "सदस्य",
+    "memberCount": "{{count}} सदस्य",
+    "memberCount_plural": "{{count}} सदस्य",
     "followers": "अनुयायी",
     "following": "अनुसरण",
     "noDescription": "कोई विवरण उपलब्ध नहीं",
@@ -124,6 +126,14 @@
     "communityGuidelines": "सामुदायिक दिशानिर्देश",
     "and": "और",
     "acceptTermsRequired": "कृपया सेवा की शर्तें, गोपनीयता नीति और सामुदायिक दिशानिर्देश स्वीकार करें",
+    "legalSignIn": "किसी खाते से साइन इन करके, आप Unify की <terms>सेवा की शर्तों</terms> और <privacy>गोपनीयता नीति</privacy> से सहमत होते हैं।",
+    "legalSignUp": "मैं <terms>सेवा की शर्तों</terms>, <privacy>गोपनीयता नीति</privacy> और <guidelines>सामुदायिक दिशानिर्देशों</guidelines> से सहमत हूँ",
+    "legalConsent": "मैं <terms>सेवा की शर्तों</terms>, <privacy>गोपनीयता नीति</privacy> और <guidelines>सामुदायिक दिशानिर्देशों</guidelines> से सहमत हूँ",
+    "accessibility": {
+      "termsOfService": "सेवा की शर्तें खोलें",
+      "privacyPolicy": "गोपनीयता नीति खोलें",
+      "communityGuidelines": "सामुदायिक दिशानिर्देश खोलें"
+    },
     "welcome": {
       "title": "कनाडा में अपना जीवन बनाना शुरू करें",
       "subtitle": "अन्य नवागंतुकों से जुड़ें, आवश्यक कौशल सीखें और अपना समुदाय बनाएं — सब एक जगह।",

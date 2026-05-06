@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import isExpoGo from '../../utils/isExpoGo';
 import ForgotPassword from './ForgotPassword';
 import {
@@ -445,21 +445,23 @@ export function SignIn({
 
         {/* Legal text */}
         <Text style={styles.legalText}>
-          {t('auth.agreeTermsSignIn')}{' '}
-          <Text
-            style={styles.legalLink}
-            onPress={() => Linking.openURL(LEGAL_URLS.termsOfService)}
-          >
-            {t('auth.termsOfService')}
-          </Text>{' '}
-          {t('auth.and')}{' '}
-          <Text
-            style={styles.legalLink}
-            onPress={() => Linking.openURL(LEGAL_URLS.privacyPolicy)}
-          >
-            {t('auth.privacyPolicy')}
-          </Text>
-          .
+          <Trans
+            i18nKey='auth.legalSignIn'
+            components={{
+              terms: (
+                <Text
+                  style={styles.legalLink}
+                  onPress={() => Linking.openURL(LEGAL_URLS.termsOfService)}
+                />
+              ),
+              privacy: (
+                <Text
+                  style={styles.legalLink}
+                  onPress={() => Linking.openURL(LEGAL_URLS.privacyPolicy)}
+                />
+              ),
+            }}
+          />
         </Text>
       </ScrollView>
     </SafeAreaView>

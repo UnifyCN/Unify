@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -442,33 +442,35 @@ export function SignUp({
             wrapperStyle={styles.checkboxWrapper}
           />
           <Text style={styles.checkboxText}>
-            {t('auth.agreeTerms')}{' '}
-            <Text
-              style={styles.checkboxLinkText}
-              onPress={() => setWebViewDoc('termsOfService')}
-              accessibilityRole='link'
-              accessibilityLabel='Open Terms of Service'
-            >
-              {t('auth.termsOfService')}
-            </Text>
-            ,{' '}
-            <Text
-              style={styles.checkboxLinkText}
-              onPress={() => setWebViewDoc('privacyPolicy')}
-              accessibilityRole='link'
-              accessibilityLabel='Open Privacy Policy'
-            >
-              {t('auth.privacyPolicy')}
-            </Text>
-            {' & '}
-            <Text
-              style={styles.checkboxLinkText}
-              onPress={() => setWebViewDoc('communityGuidelines')}
-              accessibilityRole='link'
-              accessibilityLabel='Open Community Guidelines'
-            >
-              {t('auth.communityGuidelines')}
-            </Text>
+            <Trans
+              i18nKey='auth.legalSignUp'
+              components={{
+                terms: (
+                  <Text
+                    style={styles.checkboxLinkText}
+                    onPress={() => setWebViewDoc('termsOfService')}
+                    accessibilityRole='link'
+                    accessibilityLabel={t('auth.accessibility.termsOfService')}
+                  />
+                ),
+                privacy: (
+                  <Text
+                    style={styles.checkboxLinkText}
+                    onPress={() => setWebViewDoc('privacyPolicy')}
+                    accessibilityRole='link'
+                    accessibilityLabel={t('auth.accessibility.privacyPolicy')}
+                  />
+                ),
+                guidelines: (
+                  <Text
+                    style={styles.checkboxLinkText}
+                    onPress={() => setWebViewDoc('communityGuidelines')}
+                    accessibilityRole='link'
+                    accessibilityLabel={t('auth.accessibility.communityGuidelines')}
+                  />
+                ),
+              }}
+            />
           </Text>
         </View>
 

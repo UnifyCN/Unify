@@ -48,6 +48,8 @@
     "members": "Thành viên",
     "member": "thành viên",
     "member_plural": "thành viên",
+    "memberCount": "{{count}} thành viên",
+    "memberCount_plural": "{{count}} thành viên",
     "followers": "người theo dõi",
     "following": "đang theo dõi",
     "noDescription": "Chưa có mô tả",
@@ -124,6 +126,14 @@
     "communityGuidelines": "Quy tắc cộng đồng",
     "and": "và",
     "acceptTermsRequired": "Vui lòng chấp nhận Điều khoản dịch vụ, Chính sách quyền riêng tư và Quy tắc cộng đồng",
+    "legalSignIn": "Bằng cách đăng nhập, bạn đồng ý với <terms>Điều khoản dịch vụ</terms> và <privacy>Chính sách quyền riêng tư</privacy> của Unify.",
+    "legalSignUp": "Tôi đồng ý với <terms>Điều khoản dịch vụ</terms>, <privacy>Chính sách quyền riêng tư</privacy> và <guidelines>Quy tắc cộng đồng</guidelines>",
+    "legalConsent": "Tôi đồng ý với <terms>Điều khoản dịch vụ</terms>, <privacy>Chính sách quyền riêng tư</privacy> và <guidelines>Quy tắc cộng đồng</guidelines>",
+    "accessibility": {
+      "termsOfService": "Mở Điều khoản dịch vụ",
+      "privacyPolicy": "Mở Chính sách quyền riêng tư",
+      "communityGuidelines": "Mở Quy tắc cộng đồng"
+    },
     "welcome": {
       "title": "Bắt đầu xây dựng cuộc sống tại Canada",
       "subtitle": "Kết nối với những người mới đến, học các kỹ năng cần thiết và xây dựng cộng đồng — tất cả trong một ứng dụng.",

@@ -317,7 +317,7 @@ const GroupDetailScreen = () => {
             <View style={styles.card}>
               <Text style={styles.eventTitle}>{groupData.name}</Text>
               <Text style={styles.subtitle}>
-                {groupData.memberCount} {t('common.member_plural')}
+                {t('common.memberCount', { count: groupData.memberCount })}
               </Text>
               <Text style={styles.aboutText}>{groupData.description}</Text>
             </View>

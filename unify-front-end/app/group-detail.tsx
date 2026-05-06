@@ -330,8 +330,7 @@ const GroupDetailScreen = () => {
                 style={styles.metadataIcon}
               />
               <Text style={styles.metadataText}>
-                {groupData.memberCount}{' '}
-                {groupData.memberCount === 1 ? t('common.member') : t('common.member_plural')}
+                {t('common.memberCount', { count: groupData.memberCount })}
               </Text>
               {isMember && (
                 <View style={styles.memberBadge}>

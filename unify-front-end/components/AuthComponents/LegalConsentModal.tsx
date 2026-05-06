@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { CheckBox } from 'react-native-elements';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -111,28 +111,35 @@ export default function LegalConsentModal({
                 uncheckedColor={Theme.black}
               />
               <Text style={styles.checkboxText}>
-                {t('auth.agreeTerms')}{' '}
-                <Text
-                  style={styles.linkText}
-                  onPress={() => openDocument('termsOfService')}
-                >
-                  {t('auth.termsOfService')}
-                </Text>
-                {', '}
-                <Text
-                  style={styles.linkText}
-                  onPress={() => openDocument('privacyPolicy')}
-                >
-                  {t('auth.privacyPolicy')}
-                </Text>
-                {', '}
-                {t('auth.and')}{' '}
-                <Text
-                  style={styles.linkText}
-                  onPress={() => openDocument('communityGuidelines')}
-                >
-                  {t('auth.communityGuidelines')}
-                </Text>
+                <Trans
+                  i18nKey='auth.legalConsent'
+                  components={{
+                    terms: (
+                      <Text
+                        style={styles.linkText}
+                        onPress={() => openDocument('termsOfService')}
+                        accessibilityRole='link'
+                        accessibilityLabel={t('auth.accessibility.termsOfService')}
+                      />
+                    ),
+                    privacy: (
+                      <Text
+                        style={styles.linkText}
+                        onPress={() => openDocument('privacyPolicy')}
+                        accessibilityRole='link'
+                        accessibilityLabel={t('auth.accessibility.privacyPolicy')}
+                      />
+                    ),
+                    guidelines: (
+                      <Text
+                        style={styles.linkText}
+                        onPress={() => openDocument('communityGuidelines')}
+                        accessibilityRole='link'
+                        accessibilityLabel={t('auth.accessibility.communityGuidelines')}
+                      />
+                    ),
+                  }}
+                />
               </Text>
             </View>
 

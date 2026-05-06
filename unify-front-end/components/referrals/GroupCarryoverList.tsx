@@ -41,7 +41,7 @@ export function GroupCarryoverList({
             accessibilityState={{ checked: isSelected }}
             accessibilityLabel={`${g.name}${
               g.member_count != null
-                ? `, ${g.member_count} ${t('common.member', { count: g.member_count })}`
+                ? `, ${t('common.memberCount', { count: g.member_count })}`
                 : ''
             }`}
           >
@@ -56,7 +56,7 @@ export function GroupCarryoverList({
               </Text>
               {g.member_count != null ? (
                 <Text style={styles.rowMembers}>
-                  {g.member_count} {t('common.member', { count: g.member_count })}
+                  {t('common.memberCount', { count: g.member_count })}
                 </Text>
               ) : null}
             </View>
