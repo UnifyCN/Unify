@@ -231,9 +231,9 @@ export default function CreatePostForm({
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status === 'denied') {
         Alert.alert(
-          'Camera Access Denied',
-          'Unify needs camera access to take a photo for your post. You can enable it in your device settings, or use the gallery instead.',
-          [{ text: 'OK' }]
+          t('posts.cameraAccessDeniedTitle'),
+          t('posts.cameraAccessDeniedMessage'),
+          [{ text: t('common.ok') }]
         );
         return;
       }
@@ -247,10 +247,7 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert(
-        'Camera Error',
-        'Something went wrong while accessing the camera. Please try again.'
-      );
+      Alert.alert(t('posts.cameraError'));
     }
   };
 
@@ -260,9 +257,9 @@ export default function CreatePostForm({
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status === 'denied') {
         Alert.alert(
-          'Photo Library Access Denied',
-          'Unify needs access to your photo library to attach an existing photo. You can enable it in your device settings, or take a new photo using the camera instead.',
-          [{ text: 'OK' }]
+          t('posts.galleryAccessDeniedTitle'),
+          t('posts.galleryAccessDeniedMessage'),
+          [{ text: t('common.ok') }]
         );
         return;
       }
@@ -278,10 +275,7 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert(
-        'Gallery Error',
-        'Something went wrong while accessing your photo library. Please try again.'
-      );
+      Alert.alert(t('posts.galleryError'));
     }
   };
 

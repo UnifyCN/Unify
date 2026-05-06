@@ -72,16 +72,18 @@ const NewsDetailScreen = () => {
         <Text style={styles.articleTitle}>{title}</Text>
 
         {/* Author and Date */}
-        {(author || date) && (
+        {author && date && (
           <Text style={styles.metadata}>
-            {author && (
-              <>
-                {t('news.by')} <Text style={styles.authorText}>{author}</Text>
-              </>
-            )}
-            {author && date && ' on '}
-            {date && formatDate(date)}
+            {t('news.byAuthorOnDate', { author, date: formatDate(date) })}
           </Text>
+        )}
+        {author && !date && (
+          <Text style={styles.metadata}>
+            {t('news.by')} <Text style={styles.authorText}>{author}</Text>
+          </Text>
+        )}
+        {!author && date && (
+          <Text style={styles.metadata}>{formatDate(date)}</Text>
         )}
 
         {/* Article Image */}

@@ -188,7 +188,7 @@ export default function WelcomeFromInviterScreen() {
             style={styles.headline}
             accessibilityRole='header'
           >
-            {t('welcome.becauseOf')} {inviterName}.
+            {t('welcome.becauseOf', { name: inviterName })}
           </Text>
 
           <Text style={styles.subhead}>

@@ -430,7 +430,7 @@ export default function SavedLessonsPage() {
       <View style={styles.container}>
         <BackHeader title={t('savedLessons.title')} />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>Could not load saved content.</Text>
+          <Text style={styles.errorText}>{t('savedLessons.errorLoadingContent')}</Text>
         </View>
       </View>
     );
@@ -441,7 +441,7 @@ export default function SavedLessonsPage() {
       <BackHeader title={t('savedLessons.title')} />
       {totalItems > 0 && (
         <Text style={styles.countLabel}>
-          {totalItems} saved {totalItems === 1 ? 'item' : 'items'}
+          {t('savedLessons.savedCount', { count: totalItems })}
         </Text>
       )}
       <FlatList

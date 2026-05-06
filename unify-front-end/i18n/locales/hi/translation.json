@@ -115,6 +115,10 @@
     "appleSignUpFailed": "Apple साइन-अप विफल",
     "googleNoEmail": "Google खाते से ईमेल प्राप्त करने में असमर्थ",
     "googleNoUser": "Google से उपयोगकर्ता जानकारी प्राप्त करने में असमर्थ",
+    "forgotPasswordError": "एक अज्ञात त्रुटि हुई",
+    "signInGenericError": "साइन इन विफल। कृपया पुनः प्रयास करें।",
+    "unexpectedError": "एक अप्रत्याशित त्रुटि हुई। कृपया पुनः प्रयास करें।",
+    "otpExpired": "सत्यापन कोड समाप्त हो गया है या अमान्य है। कृपया नया अनुरोध करें।",
     "signInWithGoogle": "Google से साइन इन करें",
     "signInWithApple": "Apple से साइन इन करें",
     "signUpWithGoogle": "Google से साइन अप करें",
@@ -216,6 +220,7 @@
     "savedPages": "सहेजे गए पृष्ठ",
     "highlights": "हाइलाइट्स",
     "couldNotLoad": "सहेजी गई सामग्री लोड नहीं हो सकी।",
+    "errorLoadingContent": "आपकी सहेजी गई सामग्री लोड नहीं हो सकी",
     "savedCount": "{{count}} सहेजा गया आइटम",
     "savedCount_plural": "{{count}} सहेजे गए आइटम",
     "emptyTitle": "अभी तक सीखें से कुछ नहीं सहेजा",
@@ -243,7 +248,12 @@
     "posts": "पोस्ट",
     "groups": "समूह",
     "noResults": "कोई खोज परिणाम नहीं मिला।",
-    "searchEvents": "अपने पास के इवेंट खोजें"
+    "searchEvents": "अपने पास के इवेंट खोजें",
+    "discoveryPrompt": "समूह, पोस्ट और लोगों को खोजें"
+  },
+
+  "report": {
+    "sendReport": "रिपोर्ट भेजें"
   },
 
   "learn": {
@@ -378,7 +388,8 @@
     "explainTerm": {
       "title": "इसका क्या मतलब है?",
       "gettingExplanation": "व्याख्या प्राप्त हो रही है...",
-      "tryAgain": "फिर से प्रयास करें"
+      "tryAgain": "फिर से प्रयास करें",
+      "errorFallback": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।"
     },
 
     "selectionBubble": {
@@ -490,6 +501,11 @@
       "settleServices": "बसावट सेवाएं",
       "settleServicesDesc": "नवागंतुकों के लिए मुफ्त सेवाएं।",
       "settleServicesPrompt": "कनाडा में नवागंतुकों के लिए कौन सी मुफ्त बसावट सेवाएं उपलब्ध हैं?"
+    },
+    "history": {
+      "newChat": "नई चैट",
+      "noConversationsFound": "कोई बातचीत नहीं मिली",
+      "noConversationsYet": "अभी तक कोई बातचीत नहीं"
     }
   },
 
@@ -608,7 +624,9 @@
     "requiredFields": "कृपया सभी आवश्यक फ़ील्ड भरें।",
     "failedSendRequest": "अनुरोध भेजने में विफल।",
     "mutuals": "आपसी",
-    "followsYou": "आपको फॉलो करता है"
+    "followsYou": "आपको फॉलो करता है",
+    "discoverTabLabel": "समूह खोजें टैब",
+    "joinedTabLabel": "जुड़े समूह टैब"
   },
 
   "posts": {
@@ -630,7 +648,17 @@
     "warning": "चेतावनी",
     "imageUploadPartial": "कुछ छवियां अपलोड नहीं हो सकीं।",
     "imageUploadFailed": "छवियां अपलोड करने में विफल। कृपया पुनः प्रयास करें।",
-    "createPostFailed": "पोस्ट बनाने में विफल। कृपया पुनः प्रयास करें।"
+    "createPostFailed": "पोस्ट बनाने में विफल। कृपया पुनः प्रयास करें।",
+    "cameraAccessDeniedTitle": "कैमरा एक्सेस अस्वीकृत",
+    "cameraAccessDeniedMessage": "फ़ोटो लेने के लिए कृपया सेटिंग्स में कैमरा एक्सेस सक्षम करें।",
+    "cameraError": "कैमरा एक्सेस नहीं हो सका। कृपया पुनः प्रयास करें।",
+    "galleryAccessDeniedTitle": "फ़ोटो एक्सेस अस्वीकृत",
+    "galleryAccessDeniedMessage": "छवियां जोड़ने के लिए कृपया सेटिंग्स में फ़ोटो एक्सेस सक्षम करें।",
+    "galleryError": "फ़ोटो लाइब्रेरी नहीं खुल सकी। कृपया पुनः प्रयास करें।",
+    "couldNotJoin": "समूह में शामिल नहीं हो सके। कृपया पुनः प्रयास करें।",
+    "tryDifferentSearchTerm": "कोई अन्य खोज शब्द आज़माएँ",
+    "noGroupsAvailable": "कोई समूह उपलब्ध नहीं है",
+    "checkBackLaterForNewGroups": "नए समूहों के लिए बाद में वापस जाँचें"
   },
 
   "news": {
@@ -643,7 +671,8 @@
     "articleNotFound": "लेख नहीं मिला",
     "noContent": "कोई सामग्री उपलब्ध नहीं।",
     "linkToArticle": "बाहरी लेख का लिंक",
-    "by": "द्वारा"
+    "by": "द्वारा",
+    "byAuthorOnDate": "{{date}} को {{author}} द्वारा"
   },
 
   "tips": {
@@ -709,7 +738,7 @@
     "continueButton": "जारी रखें",
     "sayHi": "{{name}} को नमस्ते कहें",
     "joinGroups": "{{name}} के {{count}} समूहों में शामिल हों",
-    "becauseOf": "आप यहां हैं",
+    "becauseOf": "आप {{name}} की वजह से यहाँ हैं।",
     "invitedYou": "{{name}} ने आपको आमंत्रित किया। आप दोनों कनाडा में नए हैं — यहां से साथ शुरू करें।",
     "skipForNow": "अभी छोड़ें",
     "fromCity": "{{city}} से"

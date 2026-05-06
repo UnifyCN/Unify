@@ -103,7 +103,7 @@ export default function GroupSelectionSheet({
         t('posts.failedToJoin'),
         error instanceof Error
           ? error.message
-          : 'Could not join group. Please try again.'
+          : t('posts.couldNotJoin')
       );
     } finally {
       setJoiningGroupId(null);
@@ -227,16 +227,16 @@ export default function GroupSelectionSheet({
                           {t('groups.noGroupsMatch')}
                         </Text>
                         <Text style={styles.emptySubtitle}>
-                          Try a different search term
+                          {t('posts.tryDifferentSearchTerm')}
                         </Text>
                       </>
                     ) : (
                       <>
                         <Text style={styles.emptyTitle}>
-                          No groups available
+                          {t('posts.noGroupsAvailable')}
                         </Text>
                         <Text style={styles.emptySubtitle}>
-                          Check back later for new groups to join!
+                          {t('posts.checkBackLaterForNewGroups')}
                         </Text>
                       </>
                     )}

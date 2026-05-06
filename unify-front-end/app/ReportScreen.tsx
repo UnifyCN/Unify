@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { useMutateReport } from '@/hooks/posts/useMutateReport';
@@ -19,6 +20,7 @@ const MIN_LENGTH = 5;
 const MAX_LENGTH = 500;
 
 export default function ReportScreen() {
+  const { t } = useTranslation();
   const { postId, userId, type = 'post' } = useLocalSearchParams();
   const router = useRouter();
   const { showToast } = useToast();
@@ -106,7 +108,7 @@ export default function ReportScreen() {
             onPress={() => router.back()}
             disabled={submitting}
           >
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -117,7 +119,7 @@ export default function ReportScreen() {
             {submitting ? (
               <ActivityIndicator color='#fff' />
             ) : (
-              <Text style={styles.buttonText}>Send Report</Text>
+              <Text style={styles.buttonText}>{t('report.sendReport')}</Text>
             )}
           </TouchableOpacity>
         </View>

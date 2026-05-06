@@ -15,10 +15,11 @@ export default function AnnouncementModal({
   storageKey,
   title,
   body,
-  buttonLabel = 'Got it',
+  buttonLabel,
   icon,
 }: AnnouncementModalProps) {
   const { t } = useTranslation();
+  const resolvedButtonLabel = buttonLabel ?? t('common.gotIt');
   // null = loading, true = show, false = hide
   const [visible, setVisible] = useState<boolean | null>(null);
 
@@ -82,7 +83,7 @@ export default function AnnouncementModal({
               onPress={dismiss}
               activeOpacity={0.85}
             >
-              <Text style={styles.buttonText}>{buttonLabel}</Text>
+              <Text style={styles.buttonText}>{resolvedButtonLabel}</Text>
             </TouchableOpacity>
           </View>
         </View>

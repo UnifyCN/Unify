@@ -76,7 +76,7 @@ export default function MoreGroupsScreen() {
               style={styles.tabButton}
               accessibilityRole='tab'
               accessibilityState={{ selected: active }}
-              accessibilityLabel={`${tab === 'discover' ? t('groups.discover') : t('groups.joined')} ${t('groups.title').toLowerCase()}`}
+              accessibilityLabel={tab === 'discover' ? t('groups.discoverTabLabel') : t('groups.joinedTabLabel')}
             >
               <Text style={[styles.tabText, active && styles.tabTextActive]}>
                 {tab === 'discover' ? t('groups.discover') : t('groups.joined')}

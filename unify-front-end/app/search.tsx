@@ -275,7 +275,7 @@ const SearchScreen = () => {
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
             <ActivityIndicator size='small' color='#666' />
-            <Text style={{ marginTop: 8, color: '#666' }}>Loading...</Text>
+            <Text style={{ marginTop: 8, color: '#666' }}>{t('common.loading')}</Text>
           </View>
         ) : (
           <>
@@ -290,7 +290,7 @@ const SearchScreen = () => {
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
             <ActivityIndicator size='small' color='#666' />
-            <Text style={{ marginTop: 8, color: '#666' }}>Loading...</Text>
+            <Text style={{ marginTop: 8, color: '#666' }}>{t('common.loading')}</Text>
           </View>
         ) : (
           <>

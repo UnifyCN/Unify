@@ -46,7 +46,7 @@ export default function ExplainTermModal({
       setExplanation(result);
     } catch (err: any) {
       if (currentRequestId !== requestIdRef.current) return;
-      setError(err.message || 'Something went wrong. Please try again.');
+      setError(err.message || t('learn.explainTerm.errorFallback'));
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setLoading(false);

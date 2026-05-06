@@ -81,7 +81,13 @@ export default function OTPVerification({
       });
 
       if (verifyError) {
-        setErrorMessage(verifyError.message);
+        const isExpiredOrInvalid =
+          /expired|invalid/i.test(verifyError.message ?? '');
+        setErrorMessage(
+          isExpiredOrInvalid
+            ? t('auth.otpExpired')
+            : t('auth.unexpectedError')
+        );
         setLoading(false);
         return;
       }

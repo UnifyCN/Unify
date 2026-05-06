@@ -115,6 +115,10 @@
     "appleSignUpFailed": "Apple sign-up failed",
     "googleNoEmail": "Unable to retrieve email from Google account",
     "googleNoUser": "Unable to retrieve user information from Google",
+    "forgotPasswordError": "An unknown error occurred",
+    "signInGenericError": "Sign in failed. Please try again.",
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "otpExpired": "The verification code has expired or is invalid. Please request a new one.",
     "signInWithGoogle": "Sign in with Google",
     "signInWithApple": "Sign in with Apple",
     "signUpWithGoogle": "Sign up with Google",
@@ -216,6 +220,7 @@
     "savedPages": "SAVED PAGES",
     "highlights": "HIGHLIGHTS",
     "couldNotLoad": "Could not load saved content.",
+    "errorLoadingContent": "Couldn't load your saved content",
     "savedCount": "{{count}} saved item",
     "savedCount_plural": "{{count}} saved items",
     "emptyTitle": "Nothing saved from Learn yet",
@@ -243,7 +248,12 @@
     "posts": "POSTS",
     "groups": "GROUPS",
     "noResults": "No search results found.",
-    "searchEvents": "Search for events near you"
+    "searchEvents": "Search for events near you",
+    "discoveryPrompt": "Search for groups, posts, and people"
+  },
+
+  "report": {
+    "sendReport": "Send Report"
   },
 
   "learn": {
@@ -378,7 +388,8 @@
     "explainTerm": {
       "title": "What does this mean?",
       "gettingExplanation": "Getting explanation...",
-      "tryAgain": "Try Again"
+      "tryAgain": "Try Again",
+      "errorFallback": "Something went wrong. Please try again."
     },
 
     "selectionBubble": {
@@ -490,6 +501,11 @@
       "settleServices": "Settlement Services",
       "settleServicesDesc": "Free services for newcomers.",
       "settleServicesPrompt": "What free settlement services are available for newcomers in Canada?"
+    },
+    "history": {
+      "newChat": "New chat",
+      "noConversationsFound": "No conversations found",
+      "noConversationsYet": "No conversations yet"
     }
   },
 
@@ -608,7 +624,9 @@
     "requiredFields": "Please fill all required fields.",
     "failedSendRequest": "Failed to send request.",
     "mutuals": "Mutuals",
-    "followsYou": "Follows you"
+    "followsYou": "Follows you",
+    "discoverTabLabel": "Discover groups tab",
+    "joinedTabLabel": "Joined groups tab"
   },
 
   "posts": {
@@ -630,7 +648,17 @@
     "warning": "Warning",
     "imageUploadPartial": "Some images failed to upload.",
     "imageUploadFailed": "Failed to upload images. Please try again.",
-    "createPostFailed": "Failed to create post. Please try again."
+    "createPostFailed": "Failed to create post. Please try again.",
+    "cameraAccessDeniedTitle": "Camera access denied",
+    "cameraAccessDeniedMessage": "Please enable camera access in Settings to take photos.",
+    "cameraError": "Couldn't access the camera. Please try again.",
+    "galleryAccessDeniedTitle": "Photo access denied",
+    "galleryAccessDeniedMessage": "Please enable photo access in Settings to add images.",
+    "galleryError": "Couldn't open photo library. Please try again.",
+    "couldNotJoin": "Could not join group. Please try again.",
+    "tryDifferentSearchTerm": "Try a different search term",
+    "noGroupsAvailable": "No groups available",
+    "checkBackLaterForNewGroups": "Check back later for new groups"
   },
 
   "news": {
@@ -643,7 +671,8 @@
     "articleNotFound": "Article not found",
     "noContent": "No content available.",
     "linkToArticle": "Link to external article",
-    "by": "by"
+    "by": "by",
+    "byAuthorOnDate": "By {{author}} on {{date}}"
   },
 
   "tips": {
@@ -709,7 +738,7 @@
     "continueButton": "Continue",
     "sayHi": "Say hi to {{name}}",
     "joinGroups": "Join {{name}}'s {{count}} groups",
-    "becauseOf": "You are here because of",
+    "becauseOf": "You are here because of {{name}}.",
     "invitedYou": "{{name}} invited you. You are both new to Canada — start here together.",
     "skipForNow": "Skip for now",
     "fromCity": "from {{city}}"

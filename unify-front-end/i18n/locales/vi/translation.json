@@ -115,6 +115,10 @@
     "appleSignUpFailed": "Đăng ký Apple thất bại",
     "googleNoEmail": "Không thể lấy email từ tài khoản Google",
     "googleNoUser": "Không thể lấy thông tin người dùng từ Google",
+    "forgotPasswordError": "Đã xảy ra lỗi không xác định",
+    "signInGenericError": "Đăng nhập thất bại. Vui lòng thử lại.",
+    "unexpectedError": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.",
+    "otpExpired": "Mã xác minh đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu mã mới.",
     "signInWithGoogle": "Đăng nhập với Google",
     "signInWithApple": "Đăng nhập với Apple",
     "signUpWithGoogle": "Đăng ký với Google",
@@ -216,6 +220,7 @@
     "savedPages": "TRANG ĐÃ LƯU",
     "highlights": "NỔI BẬT",
     "couldNotLoad": "Không thể tải nội dung đã lưu.",
+    "errorLoadingContent": "Không thể tải nội dung đã lưu",
     "savedCount": "{{count}} mục đã lưu",
     "savedCount_plural": "{{count}} mục đã lưu",
     "emptyTitle": "Chưa lưu gì từ Học",
@@ -243,7 +248,12 @@
     "posts": "BÀI VIẾT",
     "groups": "NHÓM",
     "noResults": "Không tìm thấy kết quả.",
-    "searchEvents": "Tìm sự kiện gần bạn"
+    "searchEvents": "Tìm sự kiện gần bạn",
+    "discoveryPrompt": "Tìm nhóm, bài viết và mọi người"
+  },
+
+  "report": {
+    "sendReport": "Gửi báo cáo"
   },
 
   "learn": {
@@ -378,7 +388,8 @@
     "explainTerm": {
       "title": "Điều này nghĩa là gì?",
       "gettingExplanation": "Đang lấy giải thích...",
-      "tryAgain": "Thử lại"
+      "tryAgain": "Thử lại",
+      "errorFallback": "Đã xảy ra lỗi. Vui lòng thử lại."
     },
 
     "selectionBubble": {
@@ -490,6 +501,11 @@
       "settleServices": "Dịch vụ hỗ trợ",
       "settleServicesDesc": "Dịch vụ miễn phí cho người mới đến.",
       "settleServicesPrompt": "Có những dịch vụ hỗ trợ miễn phí nào cho người mới đến Canada?"
+    },
+    "history": {
+      "newChat": "Cuộc trò chuyện mới",
+      "noConversationsFound": "Không tìm thấy cuộc trò chuyện",
+      "noConversationsYet": "Chưa có cuộc trò chuyện nào"
     }
   },
 
@@ -608,7 +624,9 @@
     "requiredFields": "Vui lòng điền đầy đủ các trường bắt buộc.",
     "failedSendRequest": "Gửi yêu cầu thất bại.",
     "mutuals": "Chung",
-    "followsYou": "Theo dõi bạn"
+    "followsYou": "Theo dõi bạn",
+    "discoverTabLabel": "Tab khám phá nhóm",
+    "joinedTabLabel": "Tab nhóm đã tham gia"
   },
 
   "posts": {
@@ -630,7 +648,17 @@
     "warning": "Cảnh báo",
     "imageUploadPartial": "Một số ảnh tải lên thất bại.",
     "imageUploadFailed": "Tải ảnh thất bại. Vui lòng thử lại.",
-    "createPostFailed": "Tạo bài viết thất bại. Vui lòng thử lại."
+    "createPostFailed": "Tạo bài viết thất bại. Vui lòng thử lại.",
+    "cameraAccessDeniedTitle": "Đã từ chối quyền truy cập máy ảnh",
+    "cameraAccessDeniedMessage": "Vui lòng bật quyền truy cập máy ảnh trong Cài đặt để chụp ảnh.",
+    "cameraError": "Không thể truy cập máy ảnh. Vui lòng thử lại.",
+    "galleryAccessDeniedTitle": "Đã từ chối quyền truy cập ảnh",
+    "galleryAccessDeniedMessage": "Vui lòng bật quyền truy cập ảnh trong Cài đặt để thêm hình ảnh.",
+    "galleryError": "Không thể mở thư viện ảnh. Vui lòng thử lại.",
+    "couldNotJoin": "Không thể tham gia nhóm. Vui lòng thử lại.",
+    "tryDifferentSearchTerm": "Thử từ khóa tìm kiếm khác",
+    "noGroupsAvailable": "Không có nhóm nào",
+    "checkBackLaterForNewGroups": "Quay lại sau để xem nhóm mới"
   },
 
   "news": {
@@ -643,7 +671,8 @@
     "articleNotFound": "Không tìm thấy bài viết",
     "noContent": "Không có nội dung.",
     "linkToArticle": "Liên kết đến bài viết ngoài",
-    "by": "bởi"
+    "by": "bởi",
+    "byAuthorOnDate": "Bởi {{author}} vào {{date}}"
   },
 
   "tips": {
@@ -709,7 +738,7 @@
     "continueButton": "Tiếp tục",
     "sayHi": "Chào {{name}}",
     "joinGroups": "Tham gia {{count}} nhóm của {{name}}",
-    "becauseOf": "Bạn ở đây nhờ",
+    "becauseOf": "Bạn ở đây nhờ {{name}}.",
     "invitedYou": "{{name}} đã mời bạn. Cả hai đều mới đến Canada — hãy bắt đầu cùng nhau.",
     "skipForNow": "Bỏ qua",
     "fromCity": "từ {{city}}"

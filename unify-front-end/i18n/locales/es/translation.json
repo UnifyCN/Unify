@@ -115,6 +115,10 @@
     "appleSignUpFailed": "Error de registro con Apple",
     "googleNoEmail": "No se pudo obtener el correo de la cuenta Google",
     "googleNoUser": "No se pudo obtener la información del usuario de Google",
+    "forgotPasswordError": "Ocurrió un error desconocido",
+    "signInGenericError": "Error al iniciar sesión. Por favor inténtalo de nuevo.",
+    "unexpectedError": "Ocurrió un error inesperado. Por favor inténtalo de nuevo.",
+    "otpExpired": "El código de verificación ha expirado o es inválido. Por favor solicita uno nuevo.",
     "signInWithGoogle": "Iniciar sesión con Google",
     "signInWithApple": "Iniciar sesión con Apple",
     "signUpWithGoogle": "Registrarse con Google",
@@ -216,6 +220,7 @@
     "savedPages": "PÁGINAS GUARDADAS",
     "highlights": "RESALTADOS",
     "couldNotLoad": "No se pudo cargar el contenido guardado.",
+    "errorLoadingContent": "No se pudo cargar tu contenido guardado",
     "savedCount": "{{count}} elemento guardado",
     "savedCount_plural": "{{count}} elementos guardados",
     "emptyTitle": "Nada guardado de Aprender aún",
@@ -243,7 +248,12 @@
     "posts": "PUBLICACIONES",
     "groups": "GRUPOS",
     "noResults": "No se encontraron resultados.",
-    "searchEvents": "Buscar eventos cerca de ti"
+    "searchEvents": "Buscar eventos cerca de ti",
+    "discoveryPrompt": "Busca grupos, publicaciones y personas"
+  },
+
+  "report": {
+    "sendReport": "Enviar reporte"
   },
 
   "learn": {
@@ -378,7 +388,8 @@
     "explainTerm": {
       "title": "¿Qué significa esto?",
       "gettingExplanation": "Obteniendo explicación...",
-      "tryAgain": "Intentar de nuevo"
+      "tryAgain": "Intentar de nuevo",
+      "errorFallback": "Algo salió mal. Por favor inténtalo de nuevo."
     },
 
     "selectionBubble": {
@@ -490,6 +501,11 @@
       "settleServices": "Servicios de asentamiento",
       "settleServicesDesc": "Servicios gratuitos para recién llegados.",
       "settleServicesPrompt": "¿Qué servicios gratuitos hay para recién llegados en Canadá?"
+    },
+    "history": {
+      "newChat": "Nueva conversación",
+      "noConversationsFound": "No se encontraron conversaciones",
+      "noConversationsYet": "Aún no hay conversaciones"
     }
   },
 
@@ -608,7 +624,9 @@
     "requiredFields": "Por favor completa todos los campos requeridos.",
     "failedSendRequest": "Error al enviar la solicitud.",
     "mutuals": "Mutuos",
-    "followsYou": "Te sigue"
+    "followsYou": "Te sigue",
+    "discoverTabLabel": "Pestaña descubrir grupos",
+    "joinedTabLabel": "Pestaña grupos unidos"
   },
 
   "posts": {
@@ -630,7 +648,17 @@
     "warning": "Advertencia",
     "imageUploadPartial": "Algunas imágenes no se pudieron subir.",
     "imageUploadFailed": "Error al subir imágenes. Intenta de nuevo.",
-    "createPostFailed": "Error al crear la publicación. Intenta de nuevo."
+    "createPostFailed": "Error al crear la publicación. Intenta de nuevo.",
+    "cameraAccessDeniedTitle": "Acceso a la cámara denegado",
+    "cameraAccessDeniedMessage": "Por favor activa el acceso a la cámara en Configuración para tomar fotos.",
+    "cameraError": "No se pudo acceder a la cámara. Por favor inténtalo de nuevo.",
+    "galleryAccessDeniedTitle": "Acceso a fotos denegado",
+    "galleryAccessDeniedMessage": "Por favor activa el acceso a las fotos en Configuración para agregar imágenes.",
+    "galleryError": "No se pudo abrir la galería de fotos. Por favor inténtalo de nuevo.",
+    "couldNotJoin": "No se pudo unir al grupo. Por favor inténtalo de nuevo.",
+    "tryDifferentSearchTerm": "Prueba con otro término de búsqueda",
+    "noGroupsAvailable": "No hay grupos disponibles",
+    "checkBackLaterForNewGroups": "Vuelve más tarde para ver nuevos grupos"
   },
 
   "news": {
@@ -643,7 +671,8 @@
     "articleNotFound": "Artículo no encontrado",
     "noContent": "No hay contenido disponible.",
     "linkToArticle": "Enlace al artículo externo",
-    "by": "por"
+    "by": "por",
+    "byAuthorOnDate": "Por {{author}} el {{date}}"
   },
 
   "tips": {
@@ -709,7 +738,7 @@
     "continueButton": "Continuar",
     "sayHi": "Saluda a {{name}}",
     "joinGroups": "Únete a los {{count}} grupos de {{name}}",
-    "becauseOf": "Estás aquí gracias a",
+    "becauseOf": "Estás aquí gracias a {{name}}.",
     "invitedYou": "{{name}} te invitó. Ambos son nuevos en Canadá — comiencen juntos.",
     "skipForNow": "Omitir por ahora",
     "fromCity": "de {{city}}"

@@ -68,7 +68,7 @@ export default function ForgotPassword({
       const messageWithFallback =
         error instanceof Error
           ? error.message
-          : String(error || 'An unknown error occurred');
+          : String(error || t('auth.forgotPasswordError'));
 
       console.error('Password reset error:', messageWithFallback);
       setMessage({

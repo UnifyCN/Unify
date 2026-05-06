@@ -117,7 +117,7 @@ export function SignIn({
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
       });
-      if (error) setErrorMessage(error.message);
+      if (error) setErrorMessage(error.message || t('auth.signInGenericError'));
       return;
     }
 
@@ -137,7 +137,7 @@ export function SignIn({
           token: idToken,
         });
         if (error) {
-          setErrorMessage(error.message);
+          setErrorMessage(error.message || t('auth.signInGenericError'));
           setLoading(false);
           return;
         }
@@ -208,7 +208,7 @@ export function SignIn({
         });
 
         if (error) {
-          setErrorMessage(error.message);
+          setErrorMessage(error.message || t('auth.signInGenericError'));
           setLoading(false);
           return;
         }
