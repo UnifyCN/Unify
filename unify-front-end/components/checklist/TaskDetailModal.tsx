@@ -32,6 +32,7 @@ import {
   type PriorityConfig,
 } from '@/constants/ChecklistPriority';
 import { normalizeChecklistPriority } from '@/utils/checklistOrder';
+import { formatRelativeTime } from '@/helpers/dateHelpers';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const ANIM_IN_MS = 280;
@@ -47,23 +48,6 @@ interface TaskDetailModalProps {
   onMarkComplete: () => void;
   isCustomTask?: boolean;
   onDeleteCustomTask?: () => void;
-}
-
-function formatRelativeTime(iso: string): string {
-  const now = Date.now();
-  const then = new Date(iso).getTime();
-  const diffSec = Math.max(0, Math.floor((now - then) / 1000));
-  if (diffSec < 60) return 'just now';
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  if (diffDay < 30) return `${diffDay}d ago`;
-  return new Date(iso).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
@@ -239,7 +223,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                     color='#059669'
                   />
                   <Text style={styles.completedBannerText}>
-                    Completed {completedLabel}
+                    {t('common.completedAgo', { time: completedLabel })}
                   </Text>
                 </View>
               )}

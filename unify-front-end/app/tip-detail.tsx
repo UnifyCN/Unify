@@ -14,11 +14,12 @@ import BackHeader from '@/components/BackHeader';
 import { CATEGORY_CONFIG } from '@/components/tips/DailyTipCard';
 import { DailyTip } from '@/types/dailyTip';
 import { Theme } from '@/constants/Theme';
+import i18n from '@/i18n';
 
 const formatDate = (dateString: string): string => {
   try {
     const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(i18n.language, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
