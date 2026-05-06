@@ -268,7 +268,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         }
       />
     );
-  }, [activeTab, isCurrentUser, useCommentsFeedHook, usePostsFeedHook, userId]);
+  }, [activeTab, isCurrentUser, useCommentsFeedHook, usePostsFeedHook, userId, t]);
 
   const renderItem = useCallback(
     ({ item }: { item: { key: string; type: string } }) => {

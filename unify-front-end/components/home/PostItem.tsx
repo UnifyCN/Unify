@@ -630,7 +630,7 @@ export const PostItem = memo(
         return;
       }
 
-      Alert.alert(t('home.leavingUnify'), `${t('home.externalLinkWarning')} ${href}?`, [
+      Alert.alert(t('home.leavingUnify'), t('home.externalLinkWarning', { href }), [
         { text: t('home.goBackButton'), style: 'cancel' },
         {
           text: t('home.openLink'),

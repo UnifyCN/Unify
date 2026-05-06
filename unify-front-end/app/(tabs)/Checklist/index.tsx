@@ -153,7 +153,7 @@ export default function ChecklistScreen() {
 
   // Compute progress
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.completed).length;
+  const completedTasks = tasks.filter(task => task.completed).length;
   const progressPercent = totalTasks > 0 ? completedTasks / totalTasks : 0;
 
   const isLoading = stageLoading || isLoadingProfile || tasksLoading;

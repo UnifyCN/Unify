@@ -45,7 +45,7 @@ export default function TaskPageScreen() {
     [tasks]
   );
   const currentIndex = useMemo(
-    () => sortedTasks.findIndex(t => t._id === taskId),
+    () => sortedTasks.findIndex(task => task._id === taskId),
     [sortedTasks, taskId]
   );
   const totalTasks = sortedTasks.length;

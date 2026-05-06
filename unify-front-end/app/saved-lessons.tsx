@@ -409,7 +409,7 @@ export default function SavedLessonsPage() {
         </View>
       );
     },
-    [moduleMap, submoduleTitleMap, openLessonPage, navigateToHighlight]
+    [moduleMap, submoduleTitleMap, openLessonPage, navigateToHighlight, t]
   );
 
   const keyExtractor = useCallback((item: UnifiedSection) => item.key, []);

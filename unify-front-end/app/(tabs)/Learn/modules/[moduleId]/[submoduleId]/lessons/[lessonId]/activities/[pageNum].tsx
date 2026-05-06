@@ -426,8 +426,7 @@ export default function ActivityPageScreen() {
               {t('learn.lesson.exitActivityTitle')}
             </Text>
             <Text style={styles.modalDesc}>
-              {t('learn.lesson.exitBody1')}{'\n'}
-              {t('learn.lesson.exitBody2')}
+              {t('learn.lesson.exitBody')}
             </Text>
 
             <TouchableOpacity

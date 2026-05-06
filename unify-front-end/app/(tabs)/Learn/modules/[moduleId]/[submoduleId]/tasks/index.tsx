@@ -37,7 +37,7 @@ export default function TasksEntryScreen() {
           .filter(r => r.is_completed)
           .map(r => r.sanity_task_id)
       );
-      const firstIncomplete = sorted.find(t => !completedIds.has(t._id));
+      const firstIncomplete = sorted.find(task => !completedIds.has(task._id));
       const target = firstIncomplete ?? sorted[0];
       router.replace({
         pathname:

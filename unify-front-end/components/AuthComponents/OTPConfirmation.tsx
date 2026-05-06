@@ -154,7 +154,7 @@ export default function OTPVerification({
 
   return (
     <ViewContainer style={styles.container}>
-      <ViewHeader style={styles.header}>{t('auth.otp.verifyEmail')}</ViewHeader>
+      <ViewHeader style={styles.header}>{t('auth.otp.title')}</ViewHeader>
 
       <ViewSection style={{ marginTop: 30 }}>
         <Text style={styles.subtitle}>{t('auth.otp.sentCodeTo')}</Text>
@@ -195,7 +195,7 @@ export default function OTPVerification({
           style={[styles.verifyButton]}
           labelStyle={[styles.verifyButtonText]}
         >
-          {t('auth.otp.verifyEmail')}
+          {t('auth.otp.verifyButton')}
         </SubmitButton>
 
         <View style={styles.resendContainer}>
