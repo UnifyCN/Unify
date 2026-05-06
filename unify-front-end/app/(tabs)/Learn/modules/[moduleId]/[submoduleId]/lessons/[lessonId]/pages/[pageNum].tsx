@@ -356,7 +356,7 @@ export default function LessonPageScreen() {
         onError: err => {
           Alert.alert(
             t('learn.lesson.couldNotUpdate'),
-            err instanceof Error ? err.message : 'Please try again.'
+            err instanceof Error ? err.message : t('common.tryAgain')
           );
         },
       }
@@ -562,7 +562,7 @@ function LessonPageContent({
           clearSelection();
         },
         onError: () => {
-          Alert.alert('Error', t('learn.lesson.failedSaveHighlight'));
+          Alert.alert(t('learn.lesson.errorTitle'), t('learn.lesson.failedSaveHighlight'));
         },
       }
     );
@@ -584,7 +584,7 @@ function LessonPageContent({
         clearSelection();
       },
       onError: () => {
-        Alert.alert('Error', t('learn.lesson.failedRemoveHighlight'));
+        Alert.alert(t('learn.lesson.errorTitle'), t('learn.lesson.failedRemoveHighlight'));
       },
     });
   }, [

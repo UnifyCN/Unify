@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -62,6 +63,7 @@ export default function OnboardingQuiz({
   onComplete,
   isRedo = false,
 }: OnboardingQuizProps) {
+  const { t } = useTranslation();
   const saveMutation = useSaveOnboardingProfile();
   const { trackOnboardingStepCompleted, trackOnboardingCompleted, capture } =
     useAnalytics();
@@ -730,7 +732,7 @@ export default function OnboardingQuiz({
             disabled={isLoading}
           >
             <Feather name='chevron-left' size={24} color={Theme.black} />
-            <Text style={styles.navButtonText}>Back</Text>
+            <Text style={styles.navButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         )}
         {currentStep < 10 && (
@@ -743,7 +745,7 @@ export default function OnboardingQuiz({
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>Next</Text>
+                <Text style={styles.nextButtonText}>{t('common.next')}</Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}

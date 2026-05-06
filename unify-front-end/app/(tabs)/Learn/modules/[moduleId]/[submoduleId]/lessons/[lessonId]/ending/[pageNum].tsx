@@ -394,7 +394,7 @@ export default function EndingPageScreen() {
                 <View style={styles.reviewHandle} />
 
                 <Text style={styles.reviewTitle}>
-                  Was this content helpful?
+                  {t('learn.lesson.reviewTitle')}
                 </Text>
 
                 {/* stars */}
@@ -435,7 +435,7 @@ export default function EndingPageScreen() {
                     <TextInput
                       style={styles.commentInput}
                       multiline
-                      placeholder='How can we make it better? (optional)'
+                      placeholder={t('learn.lesson.reviewPlaceholder')}
                       placeholderTextColor='#878787'
                       value={comment}
                       onChangeText={setComment}

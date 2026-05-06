@@ -326,7 +326,13 @@
       "closeLessonA11y": "Đóng bài học",
       "saveLessonPage": "Lưu trang bài học",
       "removeSavedPage": "Bỏ lưu trang bài học",
-      "progressLabel": "Tiến trình: {{completed}} bài học đã hoàn thành"
+      "progressLabel": "Tiến trình: {{completed}} bài học đã hoàn thành",
+      "errorTitle": "Lỗi",
+      "imagePlaceholder": "Hình ảnh",
+      "submoduleFallback": "Mô-đun phụ",
+      "reviewTitle": "Bạn thấy bài học này thế nào?",
+      "reviewPlaceholder": "Chia sẻ suy nghĩ của bạn (tùy chọn)",
+      "example": "VÍ DỤ"
     },
 
     "quiz": {
@@ -339,6 +345,12 @@
       "loadingQuestion": "Đang tải câu hỏi...",
       "errorLoadingQuestion": "Lỗi tải câu hỏi",
       "questionNotFound": "Không tìm thấy câu hỏi"
+    },
+
+    "quizzes": {
+      "errorLoading": "Lỗi tải bài kiểm tra: {{message}}",
+      "empty": "Bài học này chưa có bài kiểm tra nào.",
+      "header": "Kiểm tra kiến thức của bạn với những bài kiểm tra này"
     },
 
     "tasks": {
@@ -370,7 +382,8 @@
       "exitContinue": "Tiếp tục bài kiểm tra",
       "exitActivityTitle": "Tạm nghỉ hoạt động này?",
       "exitActivityContinue": "Tiếp tục hoạt động",
-      "pageNotFound": "Không tìm thấy trang"
+      "pageNotFound": "Không tìm thấy trang",
+      "fallback": "Luyện tập"
     },
 
     "heroCard": {
@@ -833,7 +846,12 @@
     "next": "Tiếp",
     "saveChanges": "Lưu thay đổi",
     "exploreUnify": "Khám phá Unify",
-    "pleaseSpecify": "Vui lòng ghi rõ..."
+    "pleaseSpecify": "Vui lòng ghi rõ...",
+    "monthPickerTitle": "Chọn tháng và năm",
+    "monthLabel": "Tháng",
+    "yearLabel": "Năm",
+    "confirm": "Xác nhận",
+    "otherSpecify": "Khác (chỉ rõ)"
   },
 
   "loadingScreen": {

@@ -57,7 +57,7 @@ export default function QuizzesPage() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            Error loading quizzes: {error.message}
+            {t('learn.quizzes.errorLoading', { message: error.message })}
           </Text>
         </View>
       </SafeAreaView>
@@ -70,7 +70,7 @@ export default function QuizzesPage() {
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyTitle}>{t('learn.quiz.noQuizzesAvailable')}</Text>
           <Text style={styles.emptyText}>
-            This lesson doesn't have any quizzes yet.
+            {t('learn.quizzes.empty')}
           </Text>
           <TouchableOpacity
             style={styles.backButton}
@@ -89,7 +89,7 @@ export default function QuizzesPage() {
         <View style={styles.header}>
           <Text style={styles.title}>{t('learn.quiz.quizzesTitle')}</Text>
           <Text style={styles.subtitle}>
-            Test your knowledge with these quizzes
+            {t('learn.quizzes.header')}
           </Text>
         </View>
 

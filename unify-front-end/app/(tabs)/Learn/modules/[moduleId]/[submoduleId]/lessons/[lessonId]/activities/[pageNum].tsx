@@ -315,7 +315,7 @@ export default function ActivityPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={submoduleData?.title || 'Submodule'}
+        submoduleTitle={submoduleData?.title || t('learn.lesson.submoduleFallback')}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}

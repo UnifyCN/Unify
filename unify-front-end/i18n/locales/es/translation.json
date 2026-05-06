@@ -326,7 +326,13 @@
       "closeLessonA11y": "Cerrar lección",
       "saveLessonPage": "Guardar página de lección",
       "removeSavedPage": "Eliminar página guardada",
-      "progressLabel": "Progreso: {{completed}} lecciones completadas"
+      "progressLabel": "Progreso: {{completed}} lecciones completadas",
+      "errorTitle": "Error",
+      "imagePlaceholder": "Imagen",
+      "submoduleFallback": "Submódulo",
+      "reviewTitle": "¿Cómo te pareció esta lección?",
+      "reviewPlaceholder": "Comparte tus pensamientos (opcional)",
+      "example": "EJEMPLO"
     },
 
     "quiz": {
@@ -339,6 +345,12 @@
       "loadingQuestion": "Cargando pregunta...",
       "errorLoadingQuestion": "Error al cargar la pregunta",
       "questionNotFound": "Pregunta no encontrada"
+    },
+
+    "quizzes": {
+      "errorLoading": "Error al cargar los cuestionarios: {{message}}",
+      "empty": "Esta lección aún no tiene cuestionarios.",
+      "header": "Pon a prueba tus conocimientos con estos cuestionarios"
     },
 
     "tasks": {
@@ -370,7 +382,8 @@
       "exitContinue": "Continuar cuestionario",
       "exitActivityTitle": "¿Tomar un descanso de esta actividad?",
       "exitActivityContinue": "Continuar actividad",
-      "pageNotFound": "Página no encontrada"
+      "pageNotFound": "Página no encontrada",
+      "fallback": "Práctica"
     },
 
     "heroCard": {
@@ -833,7 +846,12 @@
     "next": "Siguiente",
     "saveChanges": "Guardar cambios",
     "exploreUnify": "Explorar Unify",
-    "pleaseSpecify": "Por favor especifica..."
+    "pleaseSpecify": "Por favor especifica...",
+    "monthPickerTitle": "Selecciona mes y año",
+    "monthLabel": "Mes",
+    "yearLabel": "Año",
+    "confirm": "Confirmar",
+    "otherSpecify": "Otro (especificar)"
   },
 
   "loadingScreen": {

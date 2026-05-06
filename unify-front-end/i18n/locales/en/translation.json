@@ -326,7 +326,13 @@
       "closeLessonA11y": "Close lesson",
       "saveLessonPage": "Save lesson page",
       "removeSavedPage": "Remove saved lesson page",
-      "progressLabel": "Progress: {{completed}} lessons completed"
+      "progressLabel": "Progress: {{completed}} lessons completed",
+      "errorTitle": "Error",
+      "imagePlaceholder": "Image",
+      "submoduleFallback": "Submodule",
+      "reviewTitle": "How was this lesson?",
+      "reviewPlaceholder": "Share your thoughts (optional)",
+      "example": "EXAMPLE"
     },
 
     "quiz": {
@@ -339,6 +345,12 @@
       "loadingQuestion": "Loading question...",
       "errorLoadingQuestion": "Error loading question",
       "questionNotFound": "Question not found"
+    },
+
+    "quizzes": {
+      "errorLoading": "Error loading quizzes: {{message}}",
+      "empty": "This lesson doesn't have any quizzes yet.",
+      "header": "Test your knowledge with these quizzes"
     },
 
     "tasks": {
@@ -370,7 +382,8 @@
       "exitContinue": "Continue Quiz",
       "exitActivityTitle": "Take a break from this activity?",
       "exitActivityContinue": "Continue Activity",
-      "pageNotFound": "Page not found"
+      "pageNotFound": "Page not found",
+      "fallback": "Practice"
     },
 
     "heroCard": {
@@ -833,7 +846,12 @@
     "next": "Next",
     "saveChanges": "Save Changes",
     "exploreUnify": "Explore Unify",
-    "pleaseSpecify": "Please specify..."
+    "pleaseSpecify": "Please specify...",
+    "monthPickerTitle": "Select Month and Year",
+    "monthLabel": "Month",
+    "yearLabel": "Year",
+    "confirm": "Confirm",
+    "otherSpecify": "Other (specify)"
   },
 
   "loadingScreen": {

@@ -222,7 +222,7 @@ export default function PracticeActivityPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={practice.title || submoduleData?.title || 'Practice'}
+        submoduleTitle={practice.title || submoduleData?.title || t('learn.practice.fallback')}
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}

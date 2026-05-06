@@ -326,7 +326,13 @@
       "closeLessonA11y": "पाठ बंद करें",
       "saveLessonPage": "पाठ पृष्ठ सहेजें",
       "removeSavedPage": "सहेजा गया पृष्ठ हटाएं",
-      "progressLabel": "प्रगति: {{completed}} पाठ पूर्ण"
+      "progressLabel": "प्रगति: {{completed}} पाठ पूर्ण",
+      "errorTitle": "त्रुटि",
+      "imagePlaceholder": "छवि",
+      "submoduleFallback": "उप-मॉड्यूल",
+      "reviewTitle": "यह पाठ कैसा था?",
+      "reviewPlaceholder": "अपने विचार साझा करें (वैकल्पिक)",
+      "example": "उदाहरण"
     },
 
     "quiz": {
@@ -339,6 +345,12 @@
       "loadingQuestion": "प्रश्न लोड हो रहा है...",
       "errorLoadingQuestion": "प्रश्न लोड करने में त्रुटि",
       "questionNotFound": "प्रश्न नहीं मिला"
+    },
+
+    "quizzes": {
+      "errorLoading": "क्विज़ लोड करने में त्रुटि: {{message}}",
+      "empty": "इस पाठ में अभी तक कोई क्विज़ नहीं है।",
+      "header": "इन क्विज़ के साथ अपने ज्ञान का परीक्षण करें"
     },
 
     "tasks": {
@@ -370,7 +382,8 @@
       "exitContinue": "क्विज़ जारी रखें",
       "exitActivityTitle": "इस गतिविधि से विराम लें?",
       "exitActivityContinue": "गतिविधि जारी रखें",
-      "pageNotFound": "पृष्ठ नहीं मिला"
+      "pageNotFound": "पृष्ठ नहीं मिला",
+      "fallback": "अभ्यास"
     },
 
     "heroCard": {
@@ -833,7 +846,12 @@
     "next": "अगला",
     "saveChanges": "बदलाव सहेजें",
     "exploreUnify": "Unify का अन्वेषण करें",
-    "pleaseSpecify": "कृपया बताएं..."
+    "pleaseSpecify": "कृपया बताएं...",
+    "monthPickerTitle": "महीना और वर्ष चुनें",
+    "monthLabel": "महीना",
+    "yearLabel": "वर्ष",
+    "confirm": "पुष्टि करें",
+    "otherSpecify": "अन्य (निर्दिष्ट करें)"
   },
 
   "loadingScreen": {

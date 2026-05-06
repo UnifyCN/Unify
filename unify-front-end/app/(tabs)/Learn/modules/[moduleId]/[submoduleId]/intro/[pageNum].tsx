@@ -169,7 +169,9 @@ export default function SubmoduleIntroScreen() {
                 />
               ) : (
                 <View style={styles.imagePlaceholder}>
-                  <Text style={styles.imagePlaceholderText}>Image</Text>
+                  <Text style={styles.imagePlaceholderText}>
+                    {t('learn.lesson.imagePlaceholder')}
+                  </Text>
                 </View>
               )}
             </View>
@@ -248,7 +250,7 @@ export default function SubmoduleIntroScreen() {
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Text style={styles.imagePlaceholderText}>
-                  {section.alt || 'Image placeholder'}
+                  {section.alt || t('learn.lesson.imagePlaceholder')}
                 </Text>
               </View>
             )}
@@ -260,7 +262,7 @@ export default function SubmoduleIntroScreen() {
           <View key={index} style={styles.imageSection}>
             <View style={styles.imagePlaceholder}>
               <Text style={styles.imagePlaceholderText}>
-                {section.alt || 'Image placeholder'}
+                {section.alt || t('learn.lesson.imagePlaceholder')}
               </Text>
             </View>
           </View>

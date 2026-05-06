@@ -385,7 +385,7 @@ export default function PracticeQuizQuestionPage() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={quizTitle || submoduleData?.title || 'Practice'}
+        submoduleTitle={quizTitle || submoduleData?.title || t('learn.practice.fallback')}
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}

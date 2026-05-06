@@ -18,6 +18,8 @@ import {
   getProvinceForCity,
 } from '@/constants/LocationData';
 
+const OTHER_CITY_SENTINEL = '__other__';
+
 interface LocationStepProps {
   selectedCity: string | null;
   selectedProvince: string | null;
@@ -47,16 +49,17 @@ export default function LocationStep({
     : null;
   const displayProvince = autoFilledProvince || selectedProvince;
 
-  const filteredCities = [...CANADIAN_CITIES, 'Other (specify)'].filter(city =>
-    city.toLowerCase().includes(citySearchQuery.toLowerCase())
-  );
+  const filteredCities = [...CANADIAN_CITIES, OTHER_CITY_SENTINEL].filter(city => {
+    const label = city === OTHER_CITY_SENTINEL ? t('onboarding.otherSpecify') : city;
+    return label.toLowerCase().includes(citySearchQuery.toLowerCase());
+  });
 
   const filteredProvinces = CANADIAN_PROVINCES.filter(province =>
     province.toLowerCase().includes(provinceSearchQuery.toLowerCase())
   );
 
   const handleCitySelect = (city: string) => {
-    if (city === 'Other (specify)') {
+    if (city === OTHER_CITY_SENTINEL) {
       setIsOtherSelected(true);
       setCustomCity('');
       // Don't call onCityChange yet — wait for user to type a custom city
@@ -182,24 +185,31 @@ export default function LocationStep({
             <FlatList
               data={filteredCities}
               keyExtractor={item => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.modalOption,
-                    selectedCity === item && styles.modalOptionSelected,
-                  ]}
-                  onPress={() => handleCitySelect(item)}
-                >
-                  <Text
+              renderItem={({ item }) => {
+                const isOther = item === OTHER_CITY_SENTINEL;
+                const label = isOther ? t('onboarding.otherSpecify') : item;
+                const isSelected = isOther
+                  ? isOtherSelected
+                  : selectedCity === item;
+                return (
+                  <TouchableOpacity
                     style={[
-                      styles.modalOptionText,
-                      selectedCity === item && styles.modalOptionTextSelected,
+                      styles.modalOption,
+                      isSelected && styles.modalOptionSelected,
                     ]}
+                    onPress={() => handleCitySelect(item)}
                   >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              )}
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        isSelected && styles.modalOptionTextSelected,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
             />
           </View>
         </View>
