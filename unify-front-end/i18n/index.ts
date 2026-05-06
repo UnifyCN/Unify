@@ -61,6 +61,9 @@ const initI18n = async () => {
   });
 };
 
-initI18n();
+// Promise resolved once i18n is initialized with the user's stored/device language.
+// Awaited in app/_layout.tsx so the first render uses the correct language and
+// non-English users don't see an English flash on cold start.
+export const i18nReady = initI18n();
 
 export default i18n;

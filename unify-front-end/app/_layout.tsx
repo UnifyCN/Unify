@@ -8,7 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import 'react-native-reanimated';
-import '@/i18n';
+import { i18nReady } from '@/i18n';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
@@ -42,10 +42,11 @@ export default function RootLayout() {
 
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [i18nLoaded, setI18nLoaded] = useState(false);
 
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
-  const isReady = loaded && onboardingChecked;
+  const isReady = loaded && onboardingChecked && i18nLoaded;
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -60,6 +61,12 @@ export default function RootLayout() {
       }
     };
     checkOnboarding();
+  }, []);
+
+  useEffect(() => {
+    i18nReady
+      .catch(e => console.error('Failed to initialize i18n:', e))
+      .finally(() => setI18nLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -78,8 +85,8 @@ export default function RootLayout() {
     setShowOnboarding(true);
   }, []);
 
-  if (!loaded || !onboardingChecked) {
-    return null; // or a loading spinner
+  if (!isReady) {
+    return null; // splash stays up via SplashScreen.preventAutoHideAsync
   }
 
   return (

@@ -8,15 +8,20 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  Modal,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
+import { Feather } from '@expo/vector-icons';
 import OnboardingPagination from './OnboardingPagination';
 import BelongingScreen from './screens/BelongingScreen';
 import ChecklistScreen from './screens/ChecklistScreen';
 import CompanionScreen from './screens/CompanionScreen';
 import LearnScreen from './screens/LearnScreen';
+import { useLanguage } from '@/hooks/useLanguage';
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -37,7 +42,9 @@ export default function PreLoginOnboarding({
   onFinish,
 }: PreLoginOnboardingProps) {
   const { t } = useTranslation();
+  const { currentLanguage, changeLanguage } = useLanguage();
   const [currentStep, setCurrentStep] = useState(0);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleFinish = useCallback(async () => {
@@ -87,7 +94,7 @@ export default function PreLoginOnboarding({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header: Back + Skip */}
+      {/* Header: Back + (Language · Skip) */}
       <View style={styles.header}>
         {currentStep > 0 ? (
           <Pressable onPress={handleBack} hitSlop={12}>
@@ -96,9 +103,23 @@ export default function PreLoginOnboarding({
         ) : (
           <View />
         )}
-        <Pressable onPress={handleFinish} hitSlop={12}>
-          <Text style={styles.headerButtonText}>{t('onboarding.skipButton')}</Text>
-        </Pressable>
+        <View style={styles.headerRight}>
+          <Pressable
+            onPress={() => setLanguageModalVisible(true)}
+            hitSlop={12}
+            accessibilityRole='button'
+            accessibilityLabel={t('language.selectLanguage')}
+            style={styles.languagePill}
+          >
+            <Feather name='globe' size={14} color='#535353' />
+            <Text style={styles.languagePillText}>
+              {SUPPORTED_LANGUAGES[currentLanguage]}
+            </Text>
+          </Pressable>
+          <Pressable onPress={handleFinish} hitSlop={12}>
+            <Text style={styles.headerButtonText}>{t('onboarding.skipButton')}</Text>
+          </Pressable>
+        </View>
       </View>
 
       {/* Swipeable screens */}
@@ -140,6 +161,55 @@ export default function PreLoginOnboarding({
           />
         </View>
       </View>
+
+      {/* Language selection modal */}
+      <Modal
+        animationType='fade'
+        transparent
+        visible={languageModalVisible}
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setLanguageModalVisible(false)}
+        >
+          <View style={styles.modalCard}>
+            <Pressable onPress={e => e.stopPropagation()}>
+              <Text style={styles.modalTitle}>
+                {t('language.selectLanguage')}
+              </Text>
+              {(Object.entries(SUPPORTED_LANGUAGES) as [SupportedLanguage, string][]).map(
+                ([code, label]) => (
+                  <TouchableOpacity
+                    key={code}
+                    style={[
+                      styles.languageOption,
+                      currentLanguage === code && styles.languageOptionSelected,
+                    ]}
+                    onPress={async () => {
+                      await changeLanguage(code);
+                      setLanguageModalVisible(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.languageOptionText,
+                        currentLanguage === code && styles.languageOptionTextSelected,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                    {currentLanguage === code && (
+                      <Feather name='check' size={20} color='#000' />
+                    )}
+                  </TouchableOpacity>
+                )
+              )}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -152,8 +222,28 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 30,
     paddingTop: 8,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  languagePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: '#F5F5F5',
+  },
+  languagePillText: {
+    fontFamily: 'FunnelSans_500Medium',
+    fontSize: 13,
+    color: '#535353',
   },
   headerButtonText: {
     fontFamily: 'FunnelSans_400Regular',
@@ -192,5 +282,45 @@ const styles = StyleSheet.create({
   },
   paginationWrapper: {
     alignItems: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 8,
+    width: '100%',
+    maxWidth: 340,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  languageOptionSelected: {
+    backgroundColor: '#F5F5F5',
+  },
+  languageOptionText: {
+    fontSize: 17,
+    color: '#333',
+  },
+  languageOptionTextSelected: {
+    fontWeight: '600',
+    color: '#000',
   },
 });
