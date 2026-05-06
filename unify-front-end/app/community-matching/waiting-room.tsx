@@ -260,8 +260,8 @@ export default function WaitingRoomScreen() {
             } catch (error) {
               console.error('Failed to leave waitlist', error);
               Alert.alert(
-                'Something went wrong',
-                'Please try again in a moment.'
+                t('common.somethingWentWrong'),
+                t('common.tryAgain')
               );
             }
           },
@@ -323,15 +323,15 @@ export default function WaitingRoomScreen() {
         <View style={styles.stepsCard}>
           <Text style={styles.stepsHeading}>{t('circles.howMatchingWorks')}</Text>
           <StepItem
-            text='We check for matches every few minutes'
+            text={t('circles.checkMatches')}
             icon='clock'
           />
           <StepItem
-            text='Groups form when 4 compatible people are ready'
+            text={t('circles.groupsForm')}
             icon='users'
           />
           <StepItem
-            text="You'll get notified the moment you're matched!"
+            text={t('circles.notifiedWhenMatched')}
             icon='bell'
           />
         </View>
@@ -339,7 +339,7 @@ export default function WaitingRoomScreen() {
         {/* Joined timestamp */}
         <View style={styles.joinedInfo}>
           <Feather name='check-circle' size={16} color='#0F8B54' />
-          <Text style={styles.joinedText}>Joined {timeAgo}</Text>
+          <Text style={styles.joinedText}>{t('circles.joinedTime', { time: timeAgo })}</Text>
         </View>
       </ScrollView>
 

@@ -111,13 +111,13 @@ export default function CircleDetailsScreen() {
     } catch (error) {
       console.error('Failed to join circle chat', error);
       Alert.alert(
-        'Unable to join',
-        'Please try again in a moment. If the issue persists, re-open the app.'
+        t('circles.unableToJoin'),
+        t('circles.unableToJoinMessage')
       );
     } finally {
       setIsProcessing(false);
     }
-  }, [circleId, queryClient, refetchMembers, refetchMembership, router]);
+  }, [circleId, queryClient, refetchMembers, refetchMembership, router, t]);
 
   const handleLeave = useCallback(() => {
     if (!circleId) return;
@@ -143,13 +143,16 @@ export default function CircleDetailsScreen() {
               router.replace('/community-matching' as const);
             } catch (error) {
               console.error('Failed to leave circle', error);
-              Alert.alert('Unable to leave', 'Please try again in a moment.');
+              Alert.alert(
+                t('circles.unableToLeave'),
+                t('circles.unableToLeaveMessage')
+              );
             }
           },
         },
       ]
     );
-  }, [circleId, queryClient, router]);
+  }, [circleId, queryClient, router, t]);
 
   const handleOpenChat = useCallback(() => {
     router.push(`/community-matching/circle/${circleId}/chat` as const);
@@ -194,13 +197,13 @@ export default function CircleDetailsScreen() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>
-          We couldn't find this circle. It may have ended or been removed.
+          {t('circles.circleNotFound')}
         </Text>
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={() => router.replace('/community-matching' as const)}
         >
-          <Text style={styles.primaryButtonText}>Back to matching</Text>
+          <Text style={styles.primaryButtonText}>{t('circles.backToMatching')}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -248,10 +251,9 @@ export default function CircleDetailsScreen() {
         {!isActive && (
           <View style={styles.graduationCard}>
             <View style={styles.graduationHeader}>
-              <Text style={styles.graduationTitle}>🎉 Circle Completed!</Text>
+              <Text style={styles.graduationTitle}>{t('circles.circleCompleted')}</Text>
               <Text style={styles.graduationSubtitle}>
-                You've shared 14 days of growth. Keep the support going by
-                following your circle mates.
+                {t('circles.circleCompletedMessage')}
               </Text>
             </View>
 
@@ -291,7 +293,7 @@ export default function CircleDetailsScreen() {
         )}
 
         <View style={styles.membersHeader}>
-          <Text style={styles.membersTitle}>Members</Text>
+          <Text style={styles.membersTitle}>{t('circles.members')}</Text>
           <Text style={styles.membersCount}>
             {members?.filter(m => !m.left_at).length || 0}{t('circles.activeCount')}
           </Text>
@@ -303,7 +305,7 @@ export default function CircleDetailsScreen() {
             ? t('circles.leftTheCircle')
             : member.joined_at
               ? t('circles.inChat')
-              : t('circles.hasntJoinedYet');
+              : t('circles.notJoinedChat');
           return (
             <View key={member.id} style={styles.memberRow}>
               <TouchableOpacity

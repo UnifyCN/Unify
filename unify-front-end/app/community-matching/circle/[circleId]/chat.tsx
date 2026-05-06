@@ -271,7 +271,7 @@ export default function CircleChatScreen() {
                     id: payload.new.sender_user_id,
                     username:
                       memberLookup[payload.new.sender_user_id]?.user.username ||
-                      'Circle member',
+                      t('circles.memberFallback'),
                     profile_picture_url:
                       memberLookup[payload.new.sender_user_id]?.user
                         .profile_picture_url || null,
@@ -421,7 +421,7 @@ export default function CircleChatScreen() {
       console.error('Failed to send message', error);
       // Remove the optimistic message on failure
       setMessages(prev => prev.filter(m => m.id !== tempId));
-      Alert.alert('Message not sent', 'Please try again.');
+      Alert.alert(t('circles.messageNotSent'), t('common.tryAgain'));
     } finally {
       setIsSending(false);
     }
@@ -599,21 +599,21 @@ export default function CircleChatScreen() {
                   </TouchableOpacity>
                 ))}
             </View>
-            <Text style={styles.presenceText}>{onlineMembers.size} online</Text>
+            <Text style={styles.presenceText}>{t('circles.online', { count: onlineMembers.size })}</Text>
           </View>
         )}
 
         {circleExpired && (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>
-              This circle has ended. Chat is read-only.
+              {t('circles.circleEndedReadOnly')}
             </Text>
           </View>
         )}
         {membership?.left_at && (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>
-              You left this circle. Messages are archived for reference.
+              {t('circles.youLeftReadOnly')}
             </Text>
           </View>
         )}

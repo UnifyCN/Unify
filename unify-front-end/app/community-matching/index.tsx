@@ -189,20 +189,20 @@ export default function CommunityMatchingHome() {
           <FeatureItem
             icon='group-add'
             iconType='material'
-            title='Matching'
-            description='Get paired based on your own journey and background'
+            title={t('circles.matching')}
+            description={t('circles.matchingDesc')}
           />
           <FeatureItem
             icon='schedule'
             iconType='material'
-            title='2-Week Duration'
-            description='Fixed duration with icebreakers and prompts to guide your conversations'
+            title={t('circles.twoWeekDuration')}
+            description={t('circles.twoWeekDesc')}
           />
           <FeatureItem
             icon='chat-bubble'
             iconType='material'
-            title='Group Chat'
-            description='Connect and share experiences, and leave with new friends'
+            title={t('circles.groupChat')}
+            description={t('circles.groupChatDesc')}
           />
         </View>
       </ScrollView>

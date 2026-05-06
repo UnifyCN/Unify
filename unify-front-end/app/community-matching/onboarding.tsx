@@ -38,8 +38,8 @@ export default function MatchingOnboardingScreen() {
   const handleComplete = async (selections: QuizSelections) => {
     if (!onboardingProfile?.persona || !derivedTimeInCanada) {
       Alert.alert(
-        t('circles.missingInfoTitle'),
-        t('circles.missingInfoMessage')
+        t('circles.missingInfo'),
+        t('circles.finishOnboarding')
       );
       router.replace('/community-matching' as const);
       return;
@@ -62,8 +62,8 @@ export default function MatchingOnboardingScreen() {
     } catch (error) {
       console.error('Failed to enter waitlist', error);
       Alert.alert(
-        t('circles.somethingWentWrong'),
-        t('circles.tryAgainMessage')
+        t('common.somethingWentWrong'),
+        t('common.tryAgain')
       );
     } finally {
       setIsSubmitting(false);

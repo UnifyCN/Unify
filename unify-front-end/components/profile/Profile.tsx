@@ -114,8 +114,8 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     if (!blockStatusResolved) return;
     if (isBlockedUser) {
       unblockMutation.mutate(userId, {
-        onSuccess: () => showToast?.('User unblocked'),
-        onError: () => showToast?.('Failed to unblock user'),
+        onSuccess: () => showToast?.(t('profile.userUnblocked')),
+        onError: () => showToast?.(t('profile.userUnblockFailed')),
       });
     } else {
       Alert.alert(
@@ -128,8 +128,8 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
             style: 'destructive',
             onPress: () => {
               blockMutation.mutate(userId, {
-                onSuccess: () => showToast?.('User blocked'),
-                onError: () => showToast?.('Failed to block user'),
+                onSuccess: () => showToast?.(t('profile.userBlocked')),
+                onError: () => showToast?.(t('profile.userBlockFailed')),
               });
             },
           },
@@ -189,8 +189,8 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         accessibilityRole='button'
         accessibilityHint={
           isBlockedUser
-            ? 'Unblocks this user so their posts appear in your feed'
-            : 'Blocks this user and hides their posts from your feed'
+            ? t('profile.unblockUserHint')
+            : t('profile.blockUserHint')
         }
         accessibilityState={{
           disabled:
@@ -226,15 +226,15 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
           ListEmptyComponent={
             <EmptyFeedMessage
               icon={<UnifyReplyIcon width={27} height={25} />}
-              message='Looks a little quiet here...'
+              message={t('profile.emptyTabTitle')}
               submessage={
                 isCurrentUser ? (
                   <Text style={styles.emptyMessageSubtext}>
-                    You haven't commented on any posts yet
+                    {t('profile.emptyCommentsSelf')}
                   </Text>
                 ) : (
                   <Text style={styles.emptyMessageSubtext}>
-                    This person hasn't commented on any posts yet
+                    {t('profile.emptyCommentsOther')}
                   </Text>
                 )
               }
@@ -251,16 +251,15 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         ListEmptyComponent={
           <EmptyFeedMessage
             icon={<UnifyReplyIcon width={27} height={25} />}
-            message='Looks a little quiet here...'
+            message={t('profile.emptyTabTitle')}
             submessage={
               isCurrentUser ? (
                 <Text style={styles.emptyMessageSubtext}>
-                  We'd love to hear from you!{'\n'}
-                  Create a post to show up here.
+                  {t('profile.emptyPostsSelf')}
                 </Text>
               ) : (
                 <Text style={styles.emptyMessageSubtext}>
-                  This person hasn't posted anything yet.
+                  {t('profile.emptyPostsOther')}
                 </Text>
               )
             }
