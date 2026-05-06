@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
+    "check-i18n": "node ./scripts/check-i18n-parity.mjs",
     "deploy": "echo 'Deploy script is not set up yet'",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx}\"",
     "sync-sanity-modules": "npx tsx scripts/sync-sanity-modules.ts"

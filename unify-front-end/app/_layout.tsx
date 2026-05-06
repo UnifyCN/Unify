@@ -8,7 +8,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import 'react-native-reanimated';
-import { i18nReady } from '@/i18n';
+import { useTranslation } from 'react-i18next';
+import {
+  i18nReady,
+  setStoredLanguage,
+  SUPPORTED_LANGUAGES,
+  type SupportedLanguage,
+} from '@/i18n';
+import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
@@ -151,6 +158,7 @@ export default function RootLayout() {
 function useAnalyticsIdentitySync() {
   const { currentUser } = useCurrentUser();
   const { identify, reset } = useAnalytics();
+  const { i18n } = useTranslation();
   const lastIdRef = useRef<string | null>(null);
   const lastTraitsRef = useRef<string>('');
   const hasInitializedRef = useRef(false);
@@ -178,6 +186,7 @@ function useAnalyticsIdentitySync() {
         province: currentUser.province,
         arrival_date: currentUser.arrivalDate,
         stage: currentUser.stage,
+        language: i18n.language,
       };
       const traitsKey = JSON.stringify(traits);
       const idChanged = currentUser.id !== lastIdRef.current;
@@ -204,9 +213,36 @@ function useAnalyticsIdentitySync() {
     currentUser?.province,
     currentUser?.arrivalDate,
     currentUser?.stage,
+    i18n.language,
     identify,
     reset,
   ]);
+}
+
+/**
+ * On first authed mount, if the user's preferred_language stored in Supabase
+ * differs from the local i18n language, switch local to match. Lets users keep
+ * their language across devices/reinstalls. One-shot per session.
+ */
+function useLanguageSyncFromSupabase() {
+  const { currentUser } = useCurrentUser();
+  const { i18n } = useTranslation();
+  const { data: profile } = useOnboardingProfile(currentUser?.id);
+  const syncedRef = useRef(false);
+
+  useEffect(() => {
+    if (syncedRef.current) return;
+    if (!currentUser?.id || !profile) return;
+    const remote = profile.preferred_language;
+    if (remote && remote !== i18n.language && remote in SUPPORTED_LANGUAGES) {
+      syncedRef.current = true;
+      setStoredLanguage(remote as SupportedLanguage).catch(e =>
+        console.error('Failed to sync language from supabase:', e)
+      );
+    } else if (remote) {
+      syncedRef.current = true;
+    }
+  }, [currentUser?.id, profile, i18n.language]);
 }
 
 /**
@@ -217,6 +253,8 @@ function AppContent() {
   usePushNotifications();
   // Identify the user with PostHog whenever auth state resolves
   useAnalyticsIdentitySync();
+  // Restore language from Supabase on first authed mount
+  useLanguageSyncFromSupabase();
 
   return (
     <Stack>

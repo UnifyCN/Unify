@@ -61,6 +61,25 @@ export default function TabLayout() {
     }
   };
 
+  // Stable, locale-independent labels for analytics so PostHog event values
+  // don't fragment by user language.
+  const getTabAnalyticsLabel = (routeName: string) => {
+    switch (routeName) {
+      case 'index':
+        return 'Home';
+      case 'Gather':
+        return 'Community';
+      case 'companion':
+        return 'Companion';
+      case 'Checklist':
+        return 'Checklist';
+      case 'Learn':
+        return 'Learn';
+      default:
+        return routeName;
+    }
+  };
+
   const getCurrentTabFromPath = (path: string) => {
     if (path.startsWith('/Gather')) return 'Gather';
     if (path.startsWith('/companion')) return 'companion';
@@ -102,8 +121,8 @@ export default function TabLayout() {
             // Track tab switch
             if (isTabSwitch) {
               trackTabSwitch(
-                getTabDisplayName(currentTab),
-                getTabDisplayName(routeName)
+                getTabAnalyticsLabel(currentTab),
+                getTabAnalyticsLabel(routeName)
               );
             }
 
