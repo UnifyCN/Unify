@@ -92,7 +92,11 @@ export default function LessonHeroCard({
 
         <View style={styles.textContainer}>
           <Text style={styles.metaText}>
-            {moduleTitle} {t('learn.heroCard.sectionOf', { current: currentSection, total: totalSections })}
+            {t('learn.heroCard.sectionOf', {
+              module: moduleTitle,
+              current: currentSection,
+              total: totalSections,
+            })}
           </Text>
           <Text style={styles.title}>{submoduleTitle}</Text>
         </View>

@@ -1413,7 +1413,7 @@ export default function RichTextRenderer({
                     styles.matchingCheckButtonTextDisabled,
                 ]}
               >
-                Check
+                {t('common.check')}
               </Text>
             </TouchableOpacity>
           </View>

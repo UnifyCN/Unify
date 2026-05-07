@@ -32,27 +32,27 @@ export default function ReportScreen() {
   const submitting = mutation.isPending;
   const isPost = type === 'post';
 
-  const title = isPost ? 'Report Post' : 'Report User';
+  const title = isPost ? t('reportScreen.titlePost') : t('reportScreen.titleUser');
   const subtitle = isPost
-    ? 'Tell us why you’re reporting this post. This message is private and will only be visible to moderators.'
-    : 'Tell us why you’re reporting this user. This message is private and will only be visible to moderators.';
+    ? t('reportScreen.subtitlePost')
+    : t('reportScreen.subtitleUser');
   const placeholder = isPost
-    ? "Write why you're reporting this post..."
-    : "Write why you're reporting this user...";
+    ? t('reportScreen.placeholderPost')
+    : t('reportScreen.placeholderUser');
 
   const handleSubmit = () => {
     const trimmed = (message || '').trim().slice(0, MAX_LENGTH);
     if (trimmed.length < MIN_LENGTH) {
-      Alert.alert('Please provide a short reason (min 5 characters).');
+      Alert.alert(t('common.error'), t('reportScreen.minLengthMessage'));
       return;
     }
 
     if (isPost && !postId) {
-      Alert.alert('Missing post id');
+      Alert.alert(t('common.error'), t('reportScreen.missingPostId'));
       return;
     }
     if (!isPost && !userId) {
-      Alert.alert('Missing user id');
+      Alert.alert(t('common.error'), t('reportScreen.missingUserId'));
       return;
     }
 
@@ -67,12 +67,12 @@ export default function ReportScreen() {
       {
         onSuccess: () => {
           trackReportSubmitted(isPost ? 'post' : 'user');
-          showToast?.('Report submitted. Thank you.');
+          showToast?.(t('reportScreen.submittedToast'));
           router.back();
         },
         onError: err => {
           console.error('Report failed', err);
-          Alert.alert('Failed to submit report. Please try again.');
+          Alert.alert(t('common.error'), t('reportScreen.submitFailed'));
         },
       }
     );

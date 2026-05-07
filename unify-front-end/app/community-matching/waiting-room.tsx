@@ -23,6 +23,7 @@ import { supabase } from '@/lib/supabase';
 import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import LoadingScreen from '@/components/LoadingScreen';
+import { formatRelativeTime } from '@/helpers/dateHelpers';
 
 // Animated ripple circles for the waiting indicator
 function WaitingAnimation() {
@@ -274,8 +275,7 @@ export default function WaitingRoomScreen() {
     return <LoadingScreen />;
   }
 
-  const joinedDate = new Date(waitlistEntry.created_at);
-  const timeAgo = getTimeAgo(joinedDate);
+  const timeAgo = formatRelativeTime(waitlistEntry.created_at);
 
   return (
     <View style={styles.root}>
@@ -355,21 +355,6 @@ export default function WaitingRoomScreen() {
       </View>
     </View>
   );
-}
-
-function getTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60)
-    return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
-  if (diffHours < 24)
-    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-  return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
 }
 
 const styles = StyleSheet.create({

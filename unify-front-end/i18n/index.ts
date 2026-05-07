@@ -25,7 +25,12 @@ async function getStoredLanguage(): Promise<SupportedLanguage> {
     if (stored && stored in SUPPORTED_LANGUAGES) {
       return stored as SupportedLanguage;
     }
-  } catch {}
+  } catch (e) {
+    console.error(
+      `AsyncStorage.getItem(${LANGUAGE_STORAGE_KEY}) failed during i18n init:`,
+      e
+    );
+  }
 
   const deviceLang = Localization.getLocales()[0]?.languageCode ?? 'en';
   if (deviceLang in SUPPORTED_LANGUAGES) {

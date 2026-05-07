@@ -26,7 +26,26 @@ function flatten(obj, prefix = '') {
 
 function load(lang) {
   const path = join(localesDir, lang, 'translation.json');
-  return flatten(JSON.parse(readFileSync(path, 'utf8')));
+  try {
+    return flatten(JSON.parse(readFileSync(path, 'utf8')));
+  } catch (e) {
+    throw new Error(`Failed to load locale '${lang}' from ${path}: ${e.message}`);
+  }
+}
+
+// Extract {{name}} interpolation tokens; ignores i18next plural suffixes like {{count, number}}.
+const PLACEHOLDER_RE = /\{\{\s*([\w.]+)(?:\s*,[^}]*)?\s*\}\}/g;
+function extractPlaceholders(value) {
+  if (typeof value !== 'string') return new Set();
+  const tokens = new Set();
+  let m;
+  while ((m = PLACEHOLDER_RE.exec(value)) !== null) tokens.add(m[1]);
+  return tokens;
+}
+function setEqual(a, b) {
+  if (a.size !== b.size) return false;
+  for (const v of a) if (!b.has(v)) return false;
+  return true;
 }
 
 const baseline = load(BASELINE);
@@ -37,7 +56,24 @@ for (const lang of LOCALES) {
   const other = load(lang);
   const missing = Object.keys(baseline).filter(k => !(k in other));
   const extra = Object.keys(other).filter(k => !(k in baseline));
-  if (missing.length === 0 && extra.length === 0) {
+  const placeholderMismatches = [];
+  for (const key of Object.keys(baseline)) {
+    if (!(key in other)) continue;
+    const want = extractPlaceholders(baseline[key]);
+    const got = extractPlaceholders(other[key]);
+    if (!setEqual(want, got)) {
+      placeholderMismatches.push({
+        key,
+        want: [...want].sort(),
+        got: [...got].sort(),
+      });
+    }
+  }
+  if (
+    missing.length === 0 &&
+    extra.length === 0 &&
+    placeholderMismatches.length === 0
+  ) {
     console.log(`✔ ${lang}: ${Object.keys(other).length} keys (matches ${BASELINE})`);
   } else {
     hasError = true;
@@ -47,6 +83,13 @@ for (const lang of LOCALES) {
     }
     if (extra.length) {
       console.error(`  extra (${extra.length}): ${extra.slice(0, 10).join(', ')}${extra.length > 10 ? '...' : ''}`);
+    }
+    if (placeholderMismatches.length) {
+      console.error(`  placeholder mismatch (${placeholderMismatches.length}):`);
+      for (const m of placeholderMismatches.slice(0, 10)) {
+        console.error(`    ${m.key}: want {${m.want.join(',')}} got {${m.got.join(',')}}`);
+      }
+      if (placeholderMismatches.length > 10) console.error('    ...');
     }
   }
 }

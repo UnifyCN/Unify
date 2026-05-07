@@ -107,9 +107,7 @@ export default function OTPVerification({
           });
         } catch (userCreationError: any) {
           console.error('Failed to create user record:', userCreationError);
-          setErrorMessage(
-            userCreationError?.message || t('auth.otp.failedSetup')
-          );
+          setErrorMessage(t('auth.otp.failedSetup'));
           setLoading(false);
           return;
         }
@@ -144,7 +142,8 @@ export default function OTPVerification({
       });
 
       if (error) {
-        setErrorMessage(error.message);
+        console.error('Resend OTP error:', error);
+        setErrorMessage(t('auth.otp.otpResendFailed'));
       } else {
         Alert.alert(t('auth.otp.successTitle'), t('auth.otp.otpResent'));
         // clear the otp input after resending

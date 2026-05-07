@@ -60,7 +60,6 @@
     "openSettings": "Open settings",
     "openProfileMenu": "Open profile menu"
   },
-
   "tabs": {
     "home": "Home",
     "community": "Community",
@@ -68,7 +67,6 @@
     "checklist": "Checklist",
     "learn": "Learn"
   },
-
   "auth": {
     "signIn": "Sign in",
     "signUp": "Sign Up",
@@ -175,7 +173,6 @@
       "failedSaveAcceptance": "Failed to save your acceptance. Please try again."
     }
   },
-
   "settings": {
     "title": "Settings",
     "preferences": "Preferences",
@@ -197,7 +194,6 @@
     "accountDeletedMessage": "Your Unify account has been permanently deleted.",
     "couldNotDelete": "Could not delete account"
   },
-
   "editName": {
     "title": "Name",
     "placeholder": "Enter your name",
@@ -208,13 +204,11 @@
     "failedUpdateRetry": "Failed to update username. Please try again.",
     "validationError": "Only letters, numbers, and spaces allowed."
   },
-
   "saved": {
     "title": "Saved",
     "empty": "Looks a little quiet here...",
     "emptyHint": "Save posts to see them here"
   },
-
   "savedLessons": {
     "title": "Saved from Learn",
     "savedPages": "SAVED PAGES",
@@ -229,14 +223,12 @@
     "lesson": "Lesson",
     "from": "from"
   },
-
   "notifications": {
     "title": "Notifications",
     "empty": "No Notifications Yet",
     "emptyHint": "You'll get updates about new activity like follows, likes, comments, and other important moments.",
     "markAllRead": "Mark all read"
   },
-
   "search": {
     "title": "Search",
     "placeholder": "Search posts, groups, and people",
@@ -251,11 +243,9 @@
     "searchEvents": "Search for events near you",
     "discoveryPrompt": "Search for groups, posts, and people"
   },
-
   "report": {
     "sendReport": "Send Report"
   },
-
   "learn": {
     "title": "Ready to learn?",
     "subtitle": "Get started with lessons to understand the basics of Canadian culture and how to settle in as a newcomer.",
@@ -272,12 +262,10 @@
     "sectionCount_plural": "{{count}} sections",
     "announcementTitle": "New: Highlight & Ask AI",
     "announcementBody": "Long press any word or phrase in a lesson to highlight it or ask AI to explain it. Your highlights are saved under 'Saved from Learn' in your profile.",
-
     "module": {
       "errorLoading": "Error loading module: {{message}}",
       "section": "Section {{number}}"
     },
-
     "submodule": {
       "learnTitle": "Learn",
       "learnDescription": "Key concepts & terms",
@@ -290,12 +278,10 @@
       "unableToLoad": "Unable to load this section",
       "loadingSubmodule": "Loading..."
     },
-
     "map": {
       "loadingSubmodule": "Loading submodule...",
       "errorLoadingSubmodule": "Error loading submodule: {{message}}"
     },
-
     "lesson": {
       "loadingLesson": "Loading lesson...",
       "errorLoadingPage": "Error loading lesson page",
@@ -334,7 +320,6 @@
       "reviewPlaceholder": "Share your thoughts (optional)",
       "example": "EXAMPLE"
     },
-
     "quiz": {
       "loadingQuizzes": "Loading quizzes...",
       "noQuizzesAvailable": "No Quizzes Available",
@@ -346,13 +331,11 @@
       "errorLoadingQuestion": "Error loading question",
       "questionNotFound": "Question not found"
     },
-
     "quizzes": {
       "errorLoading": "Error loading quizzes: {{message}}",
       "empty": "This lesson doesn't have any quizzes yet.",
       "header": "Test your knowledge with these quizzes"
     },
-
     "tasks": {
       "loadingTasks": "Loading tasks...",
       "failedToLoad": "Failed to load tasks",
@@ -364,7 +347,6 @@
       "leaveTitle": "Leave this task?",
       "leaveBody": "Your progress will be saved. You can come back anytime."
     },
-
     "practice": {
       "loadingPractice": "Loading practice...",
       "failedToLoad": "Failed to load practice",
@@ -385,33 +367,28 @@
       "pageNotFound": "Page not found",
       "fallback": "Practice"
     },
-
     "heroCard": {
       "continue": "Continue",
-      "sectionOf": " • Section {{current}} out of {{total}}",
+      "sectionOf": "{{module}} • Section {{current}} out of {{total}}",
       "resumeSubmodule": "Resume {{title}}",
       "resumeLesson": "Resume lesson"
     },
-
     "pathwayCard": {
       "continue": "Continue",
       "done": "Done"
     },
-
     "explainTerm": {
       "title": "What does this mean?",
       "gettingExplanation": "Getting explanation...",
       "tryAgain": "Try Again",
       "errorFallback": "Something went wrong. Please try again."
     },
-
     "selectionBubble": {
       "remove": "Remove",
       "highlight": "Highlight",
       "askAI": "Ask AI"
     }
   },
-
   "checklist": {
     "title": "Personalized Checklist",
     "onboardingRequired": "Please complete your onboarding to see your personalized checklist.",
@@ -425,7 +402,6 @@
     "undoCompletion": "Undo completion",
     "learnHow": "Learn how",
     "deleteTask": "Delete task",
-
     "stage": {
       "0": "Not arrived yet",
       "1": "0–3 months",
@@ -433,7 +409,6 @@
       "3": "1–3 years",
       "4": "3+ years"
     },
-
     "persona": {
       "international_student": "International Student",
       "refugee": "Refugee",
@@ -442,7 +417,6 @@
       "immigrant": "Immigrant",
       "pr": "PR"
     },
-
     "createItem": {
       "headerTitle": "New Checklist Item",
       "categoryLabel": "Category",
@@ -456,7 +430,6 @@
       "priorityOptionalLater": "Optional / later"
     }
   },
-
   "companion": {
     "goBack": "Go back",
     "title": "Companion",
@@ -521,7 +494,6 @@
       "noConversationsYet": "No conversations yet"
     }
   },
-
   "home": {
     "forYou": "For You",
     "followingTab": "Following",
@@ -556,9 +528,9 @@
     "unpinPost": "Unpin Post",
     "pinPost": "Pin Post",
     "reportPost": "Report Post",
-    "postSavedToast": "Post saved! Find it in Settings > Saved Posts"
+    "postSavedToast": "Post saved! Find it in Settings > Saved Posts",
+    "failedPinPost": "Failed to pin post. Please try again."
   },
-
   "profile": {
     "title": "Profile",
     "posts": "Posts",
@@ -600,12 +572,10 @@
     "followersTab": "Followers",
     "followingTab": "Following"
   },
-
   "profilePicture": {
     "chooseFromLibrary": "Choose from library",
     "removeCurrentPhoto": "Remove current photo"
   },
-
   "groups": {
     "title": "Groups",
     "discover": "Discover",
@@ -641,7 +611,6 @@
     "discoverTabLabel": "Discover groups tab",
     "joinedTabLabel": "Joined groups tab"
   },
-
   "posts": {
     "postButton": "Post",
     "forYou": "For You",
@@ -671,9 +640,9 @@
     "couldNotJoin": "Could not join group. Please try again.",
     "tryDifferentSearchTerm": "Try a different search term",
     "noGroupsAvailable": "No groups available",
-    "checkBackLaterForNewGroups": "Check back later for new groups"
+    "checkBackLaterForNewGroups": "Check back later for new groups",
+    "contentNotAllowedReason": "Your post contains language that violates our Community Guidelines. Please revise and try again."
   },
-
   "news": {
     "title": "News & Tips",
     "loading": "Loading news...",
@@ -684,10 +653,9 @@
     "articleNotFound": "Article not found",
     "noContent": "No content available.",
     "linkToArticle": "Link to external article",
-    "by": "by",
-    "byAuthorOnDate": "By {{author}} on {{date}}"
+    "byAuthorOnDate": "By {{author}} on {{date}}",
+    "byAuthor": "By {{author}}"
   },
-
   "tips": {
     "pastTips": "Past Tips",
     "loading": "Loading tips...",
@@ -698,7 +666,6 @@
     "seePastTips": "See past tips",
     "dailyTip": "Daily Tip"
   },
-
   "events": {
     "title": "Community Events",
     "all": "All",
@@ -716,7 +683,6 @@
     "aboutEvent": "About Event",
     "noEventDescription": "No description available for this event."
   },
-
   "resetPassword": {
     "title": "Reset Password",
     "enterNewPassword": "Enter your new password below.",
@@ -729,7 +695,6 @@
     "successMessage": "Password has been reset successfully",
     "errorMessage": "An error occurred while resetting your password"
   },
-
   "referrals": {
     "title": "Refer a friend",
     "inviteDesc": "Invite a friend to start their Canada journey with you.",
@@ -744,7 +709,6 @@
     "friendCount_plural": "{{count}} friends have joined Unify thanks to you.",
     "isInGroups": "{{name}} is in these groups"
   },
-
   "welcome": {
     "title": "Welcome to Unify.",
     "subtitle": "You're just getting started.",
@@ -756,7 +720,6 @@
     "skipForNow": "Skip for now",
     "fromCity": "from {{city}}"
   },
-
   "circles": {
     "title": "Unify Circles",
     "description": "Get matched with 3 newcomers who share your background for a 2-week group chat.",
@@ -837,7 +800,6 @@
     "dayAgo": "{{count}} day ago",
     "dayAgo_plural": "{{count}} days ago"
   },
-
   "onboarding": {
     "stepOf": "Step {{current}} of {{total}}",
     "backButton": "Back",
@@ -851,17 +813,16 @@
     "monthLabel": "Month",
     "yearLabel": "Year",
     "confirm": "Confirm",
-    "otherSpecify": "Other (specify)"
+    "otherSpecify": "Other (specify)",
+    "continue": "Continue",
+    "selectMonthYear": "Select month and year"
   },
-
   "loadingScreen": {
     "message": "Please wait while we connect the dots for your journey…"
   },
-
   "legalWebView": {
     "couldntLoad": "Couldn't load the document"
   },
-
   "language": {
     "title": "Language",
     "selectLanguage": "Select Language",
@@ -869,5 +830,99 @@
     "vietnamese": "Tiếng Việt",
     "spanish": "Español",
     "hindi": "हिन्दी"
+  },
+  "reportScreen": {
+    "titlePost": "Report Post",
+    "titleUser": "Report User",
+    "subtitlePost": "Tell us why you're reporting this post. This message is private and will only be visible to moderators.",
+    "subtitleUser": "Tell us why you're reporting this user. This message is private and will only be visible to moderators.",
+    "placeholderPost": "Write why you're reporting this post...",
+    "placeholderUser": "Write why you're reporting this user...",
+    "minLengthMessage": "Please provide a short reason (min 5 characters).",
+    "missingPostId": "Missing post ID.",
+    "missingUserId": "Missing user ID.",
+    "submittedToast": "Report submitted. Thank you.",
+    "submitFailed": "Failed to submit report. Please try again."
+  },
+  "quiz": {
+    "errors": {
+      "selectOption": "Please select an option",
+      "specifySituation": "Please specify your situation",
+      "specifyReferral": "Please specify how you heard about us",
+      "selectMonthYear": "Please select a month and year",
+      "selectCity": "Please select a city",
+      "selectProvince": "Please select a province",
+      "selectAtLeastOne": "Please select at least one option",
+      "specifyGoal": "Please specify your goal",
+      "specifyInterest": "Please specify your interest",
+      "signInRequired": "Please sign in to continue",
+      "saveFailed": "Failed to save your onboarding information. Please try again."
+    },
+    "q": {
+      "persona": "What best describes your situation in Canada?",
+      "referralSource": "How did you hear about Unify?",
+      "arrivalDate": "When did you arrive, or when will you arrive in Canada?",
+      "goals": "What do you want to accomplish? (Select all that apply)",
+      "interests": "Which topics interest you? (Select all that apply)",
+      "hobbies": "What are your hobbies? (Select all that apply)",
+      "reminders": "Want gentle reminders so you don't miss important steps?"
+    },
+    "options": {
+      "persona": {
+        "internationalStudent": "I'm an international student",
+        "skilledWorker": "I'm a skilled worker / PR / immigrant",
+        "refugee": "I'm a refugee or protected person",
+        "other": "Other"
+      },
+      "referral": {
+        "facebookInstagram": "Facebook / Instagram",
+        "googleSearch": "Google Search",
+        "appStore": "App Store",
+        "friendsFamily": "Friends / family",
+        "newsArticle": "News / article / blog",
+        "tiktok": "TikTok",
+        "other": "Other"
+      },
+      "goals": {
+        "learnSomething": "Learn something new",
+        "buildCommunity": "Build community & friends",
+        "quickAnswers": "Quick answers",
+        "somethingElse": "Something else"
+      },
+      "interests": {
+        "documents": "Documents & IDs",
+        "employment": "Jobs & career",
+        "finance": "Money & banking",
+        "housing": "Housing",
+        "prImmigration": "PR & immigration",
+        "healthcare": "Healthcare",
+        "familyKids": "Family & kids",
+        "transit": "Transit",
+        "other": "Other"
+      },
+      "hobbies": {
+        "careerGrowth": "Career growth",
+        "exploringCanada": "Explore Canada",
+        "wellness": "Wellness & growth",
+        "technology": "Tech & digital",
+        "music": "Music & arts",
+        "fitness": "Fitness & sports",
+        "personalFinance": "Personal finance",
+        "familyParenting": "Family & parenting",
+        "education": "Education & learning",
+        "foodCooking": "Food & cooking",
+        "movies": "Movies"
+      }
+    },
+    "reminders": {
+      "subtitle": "You'll always get notified about likes, comments, and follows. This controls learning reminders — nudges about lessons you started but haven't finished.",
+      "yes": "Yes, send reminders",
+      "no": "No thanks"
+    },
+    "cta": {
+      "continue": "Continue",
+      "saveChanges": "Save Changes",
+      "exploreUnify": "Explore Unify"
+    }
   }
 }

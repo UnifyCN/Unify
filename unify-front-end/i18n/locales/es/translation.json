@@ -60,7 +60,6 @@
     "openSettings": "Abrir configuración",
     "openProfileMenu": "Abrir menú de perfil"
   },
-
   "tabs": {
     "home": "Inicio",
     "community": "Comunidad",
@@ -68,7 +67,6 @@
     "checklist": "Lista",
     "learn": "Aprender"
   },
-
   "auth": {
     "signIn": "Iniciar sesión",
     "signUp": "Registrarse",
@@ -175,7 +173,6 @@
       "failedSaveAcceptance": "Error al guardar tu aceptación. Por favor intenta de nuevo."
     }
   },
-
   "settings": {
     "title": "Configuración",
     "preferences": "Preferencias",
@@ -197,7 +194,6 @@
     "accountDeletedMessage": "Tu cuenta de Unify ha sido eliminada permanentemente.",
     "couldNotDelete": "No se pudo eliminar la cuenta"
   },
-
   "editName": {
     "title": "Nombre",
     "placeholder": "Ingresa tu nombre",
@@ -208,13 +204,11 @@
     "failedUpdateRetry": "Error al actualizar el nombre. Por favor intenta de nuevo.",
     "validationError": "Solo se permiten letras, números y espacios."
   },
-
   "saved": {
     "title": "Guardado",
     "empty": "Esto está un poco vacío...",
     "emptyHint": "Guarda publicaciones para verlas aquí"
   },
-
   "savedLessons": {
     "title": "Guardado de Aprender",
     "savedPages": "PÁGINAS GUARDADAS",
@@ -229,14 +223,12 @@
     "lesson": "Lección",
     "from": "de"
   },
-
   "notifications": {
     "title": "Notificaciones",
     "empty": "Sin notificaciones aún",
     "emptyHint": "Recibirás actualizaciones sobre nueva actividad como seguidores, likes, comentarios y otros momentos importantes.",
     "markAllRead": "Marcar todo como leído"
   },
-
   "search": {
     "title": "Buscar",
     "placeholder": "Buscar publicaciones, grupos y personas",
@@ -251,11 +243,9 @@
     "searchEvents": "Buscar eventos cerca de ti",
     "discoveryPrompt": "Busca grupos, publicaciones y personas"
   },
-
   "report": {
     "sendReport": "Enviar reporte"
   },
-
   "learn": {
     "title": "¿Listo para aprender?",
     "subtitle": "Comienza con lecciones para entender los fundamentos de la cultura canadiense y cómo establecerte como recién llegado.",
@@ -272,12 +262,10 @@
     "sectionCount_plural": "{{count}} secciones",
     "announcementTitle": "Nuevo: Resaltar y preguntar a la IA",
     "announcementBody": "Mantén presionada cualquier palabra o frase en una lección para resaltarla o pedirle a la IA que la explique. Tus resaltados se guardan en 'Guardado de Aprender' en tu perfil.",
-
     "module": {
       "errorLoading": "Error al cargar el módulo: {{message}}",
       "section": "Sección {{number}}"
     },
-
     "submodule": {
       "learnTitle": "Aprender",
       "learnDescription": "Conceptos y términos clave",
@@ -290,12 +278,10 @@
       "unableToLoad": "No se puede cargar esta sección",
       "loadingSubmodule": "Cargando..."
     },
-
     "map": {
       "loadingSubmodule": "Cargando...",
       "errorLoadingSubmodule": "Error al cargar: {{message}}"
     },
-
     "lesson": {
       "loadingLesson": "Cargando lección...",
       "errorLoadingPage": "Error al cargar la página de la lección",
@@ -334,7 +320,6 @@
       "reviewPlaceholder": "Comparte tus pensamientos (opcional)",
       "example": "EJEMPLO"
     },
-
     "quiz": {
       "loadingQuizzes": "Cargando cuestionarios...",
       "noQuizzesAvailable": "No hay cuestionarios disponibles",
@@ -346,13 +331,11 @@
       "errorLoadingQuestion": "Error al cargar la pregunta",
       "questionNotFound": "Pregunta no encontrada"
     },
-
     "quizzes": {
       "errorLoading": "Error al cargar los cuestionarios: {{message}}",
       "empty": "Esta lección aún no tiene cuestionarios.",
       "header": "Pon a prueba tus conocimientos con estos cuestionarios"
     },
-
     "tasks": {
       "loadingTasks": "Cargando tareas...",
       "failedToLoad": "Error al cargar las tareas",
@@ -364,7 +347,6 @@
       "leaveTitle": "¿Salir de esta tarea?",
       "leaveBody": "Tu progreso se guardará. Puedes volver en cualquier momento."
     },
-
     "practice": {
       "loadingPractice": "Cargando práctica...",
       "failedToLoad": "Error al cargar la práctica",
@@ -385,33 +367,28 @@
       "pageNotFound": "Página no encontrada",
       "fallback": "Práctica"
     },
-
     "heroCard": {
       "continue": "Continuar",
-      "sectionOf": " • Sección {{current}} de {{total}}",
+      "sectionOf": "{{module}} • Sección {{current}} de {{total}}",
       "resumeSubmodule": "Reanudar {{title}}",
       "resumeLesson": "Reanudar lección"
     },
-
     "pathwayCard": {
       "continue": "Continuar",
       "done": "Listo"
     },
-
     "explainTerm": {
       "title": "¿Qué significa esto?",
       "gettingExplanation": "Obteniendo explicación...",
       "tryAgain": "Intentar de nuevo",
       "errorFallback": "Algo salió mal. Por favor inténtalo de nuevo."
     },
-
     "selectionBubble": {
       "remove": "Eliminar",
       "highlight": "Resaltar",
       "askAI": "Preguntar a IA"
     }
   },
-
   "checklist": {
     "title": "Lista personalizada",
     "onboardingRequired": "Completa tu registro para ver tu lista personalizada.",
@@ -425,7 +402,6 @@
     "undoCompletion": "Deshacer",
     "learnHow": "Aprende cómo",
     "deleteTask": "Eliminar tarea",
-
     "stage": {
       "0": "Aún no llegó",
       "1": "0–3 meses",
@@ -433,7 +409,6 @@
       "3": "1–3 años",
       "4": "3+ años"
     },
-
     "persona": {
       "international_student": "Estudiante internacional",
       "refugee": "Refugiado",
@@ -442,7 +417,6 @@
       "immigrant": "Inmigrante",
       "pr": "PR"
     },
-
     "createItem": {
       "headerTitle": "Nuevo elemento",
       "categoryLabel": "Categoría",
@@ -456,7 +430,6 @@
       "priorityOptionalLater": "Opcional / después"
     }
   },
-
   "companion": {
     "goBack": "Regresar",
     "title": "Asistente",
@@ -521,7 +494,6 @@
       "noConversationsYet": "Aún no hay conversaciones"
     }
   },
-
   "home": {
     "forYou": "Para ti",
     "followingTab": "Siguiendo",
@@ -556,9 +528,9 @@
     "unpinPost": "Desfijar publicación",
     "pinPost": "Fijar publicación",
     "reportPost": "Reportar publicación",
-    "postSavedToast": "¡Publicación guardada! Encuéntrala en Configuración > Publicaciones guardadas"
+    "postSavedToast": "¡Publicación guardada! Encuéntrala en Configuración > Publicaciones guardadas",
+    "failedPinPost": "No se pudo fijar la publicación. Inténtalo de nuevo."
   },
-
   "profile": {
     "title": "Perfil",
     "posts": "Publicaciones",
@@ -600,12 +572,10 @@
     "followersTab": "Seguidores",
     "followingTab": "Siguiendo"
   },
-
   "profilePicture": {
     "chooseFromLibrary": "Elegir de la biblioteca",
     "removeCurrentPhoto": "Eliminar foto actual"
   },
-
   "groups": {
     "title": "Grupos",
     "discover": "Descubrir",
@@ -641,7 +611,6 @@
     "discoverTabLabel": "Pestaña descubrir grupos",
     "joinedTabLabel": "Pestaña grupos unidos"
   },
-
   "posts": {
     "postButton": "Publicar",
     "forYou": "Para ti",
@@ -671,9 +640,9 @@
     "couldNotJoin": "No se pudo unir al grupo. Por favor inténtalo de nuevo.",
     "tryDifferentSearchTerm": "Prueba con otro término de búsqueda",
     "noGroupsAvailable": "No hay grupos disponibles",
-    "checkBackLaterForNewGroups": "Vuelve más tarde para ver nuevos grupos"
+    "checkBackLaterForNewGroups": "Vuelve más tarde para ver nuevos grupos",
+    "contentNotAllowedReason": "Tu publicación contiene lenguaje que infringe nuestras Normas de la Comunidad. Por favor, edítala e inténtalo de nuevo."
   },
-
   "news": {
     "title": "Noticias y consejos",
     "loading": "Cargando noticias...",
@@ -684,10 +653,9 @@
     "articleNotFound": "Artículo no encontrado",
     "noContent": "No hay contenido disponible.",
     "linkToArticle": "Enlace al artículo externo",
-    "by": "por",
-    "byAuthorOnDate": "Por {{author}} el {{date}}"
+    "byAuthorOnDate": "Por {{author}} el {{date}}",
+    "byAuthor": "Por {{author}}"
   },
-
   "tips": {
     "pastTips": "Consejos anteriores",
     "loading": "Cargando consejos...",
@@ -698,7 +666,6 @@
     "seePastTips": "Ver consejos anteriores",
     "dailyTip": "Consejo del día"
   },
-
   "events": {
     "title": "Eventos comunitarios",
     "all": "Todos",
@@ -716,7 +683,6 @@
     "aboutEvent": "Sobre el evento",
     "noEventDescription": "No hay descripción disponible para este evento."
   },
-
   "resetPassword": {
     "title": "Restablecer contraseña",
     "enterNewPassword": "Ingresa tu nueva contraseña a continuación.",
@@ -729,7 +695,6 @@
     "successMessage": "Contraseña restablecida exitosamente",
     "errorMessage": "Ocurrió un error al restablecer la contraseña"
   },
-
   "referrals": {
     "title": "Referir a un amigo",
     "inviteDesc": "Invita a un amigo a comenzar su viaje en Canadá contigo.",
@@ -744,7 +709,6 @@
     "friendCount_plural": "{{count}} amigos se unieron a Unify gracias a ti.",
     "isInGroups": "{{name}} está en estos grupos"
   },
-
   "welcome": {
     "title": "Bienvenido a Unify.",
     "subtitle": "Estás empezando.",
@@ -756,7 +720,6 @@
     "skipForNow": "Omitir por ahora",
     "fromCity": "de {{city}}"
   },
-
   "circles": {
     "title": "Círculos Unify",
     "description": "Emparejarse con 3 recién llegados que comparten tu experiencia para un chat grupal de 2 semanas.",
@@ -837,7 +800,6 @@
     "dayAgo": "hace {{count}} día",
     "dayAgo_plural": "hace {{count}} días"
   },
-
   "onboarding": {
     "stepOf": "Paso {{current}} de {{total}}",
     "backButton": "Volver",
@@ -851,17 +813,16 @@
     "monthLabel": "Mes",
     "yearLabel": "Año",
     "confirm": "Confirmar",
-    "otherSpecify": "Otro (especificar)"
+    "otherSpecify": "Otro (especificar)",
+    "continue": "Continuar",
+    "selectMonthYear": "Selecciona mes y año"
   },
-
   "loadingScreen": {
     "message": "Por favor espera mientras conectamos los puntos de tu viaje…"
   },
-
   "legalWebView": {
     "couldntLoad": "No se pudo cargar el documento"
   },
-
   "language": {
     "title": "Idioma",
     "selectLanguage": "Seleccionar idioma",
@@ -869,5 +830,99 @@
     "vietnamese": "Tiếng Việt",
     "spanish": "Español",
     "hindi": "हिन्दी"
+  },
+  "reportScreen": {
+    "titlePost": "Reportar publicación",
+    "titleUser": "Reportar usuario",
+    "subtitlePost": "Cuéntanos por qué estás reportando esta publicación. Este mensaje es privado y solo será visible para los moderadores.",
+    "subtitleUser": "Cuéntanos por qué estás reportando a este usuario. Este mensaje es privado y solo será visible para los moderadores.",
+    "placeholderPost": "Escribe por qué estás reportando esta publicación...",
+    "placeholderUser": "Escribe por qué estás reportando a este usuario...",
+    "minLengthMessage": "Por favor proporciona una breve razón (mínimo 5 caracteres).",
+    "missingPostId": "Falta el ID de la publicación.",
+    "missingUserId": "Falta el ID del usuario.",
+    "submittedToast": "Reporte enviado. Gracias.",
+    "submitFailed": "No se pudo enviar el reporte. Inténtalo de nuevo."
+  },
+  "quiz": {
+    "errors": {
+      "selectOption": "Por favor selecciona una opción",
+      "specifySituation": "Por favor especifica tu situación",
+      "specifyReferral": "Por favor especifica cómo te enteraste de nosotros",
+      "selectMonthYear": "Por favor selecciona mes y año",
+      "selectCity": "Por favor selecciona una ciudad",
+      "selectProvince": "Por favor selecciona una provincia",
+      "selectAtLeastOne": "Por favor selecciona al menos una opción",
+      "specifyGoal": "Por favor especifica tu objetivo",
+      "specifyInterest": "Por favor especifica tu interés",
+      "signInRequired": "Por favor inicia sesión para continuar",
+      "saveFailed": "No se pudo guardar tu información de onboarding. Inténtalo de nuevo."
+    },
+    "q": {
+      "persona": "¿Qué describe mejor tu situación en Canadá?",
+      "referralSource": "¿Cómo te enteraste de Unify?",
+      "arrivalDate": "¿Cuándo llegaste, o cuándo llegarás a Canadá?",
+      "goals": "¿Qué quieres lograr? (Selecciona todas las que apliquen)",
+      "interests": "¿Qué temas te interesan? (Selecciona todos los que apliquen)",
+      "hobbies": "¿Cuáles son tus pasatiempos? (Selecciona todos los que apliquen)",
+      "reminders": "¿Quieres recordatorios suaves para no perderte pasos importantes?"
+    },
+    "options": {
+      "persona": {
+        "internationalStudent": "Soy estudiante internacional",
+        "skilledWorker": "Soy trabajador calificado / RP / inmigrante",
+        "refugee": "Soy refugiado o persona protegida",
+        "other": "Otro"
+      },
+      "referral": {
+        "facebookInstagram": "Facebook / Instagram",
+        "googleSearch": "Búsqueda de Google",
+        "appStore": "App Store",
+        "friendsFamily": "Amigos / familia",
+        "newsArticle": "Noticias / artículo / blog",
+        "tiktok": "TikTok",
+        "other": "Otro"
+      },
+      "goals": {
+        "learnSomething": "Aprender algo nuevo",
+        "buildCommunity": "Construir comunidad y amistades",
+        "quickAnswers": "Respuestas rápidas",
+        "somethingElse": "Algo más"
+      },
+      "interests": {
+        "documents": "Documentos e identificaciones",
+        "employment": "Empleo y carrera",
+        "finance": "Dinero y banca",
+        "housing": "Vivienda",
+        "prImmigration": "RP e inmigración",
+        "healthcare": "Salud",
+        "familyKids": "Familia e hijos",
+        "transit": "Transporte",
+        "other": "Otro"
+      },
+      "hobbies": {
+        "careerGrowth": "Crecimiento profesional",
+        "exploringCanada": "Explorar Canadá",
+        "wellness": "Bienestar y crecimiento",
+        "technology": "Tecnología y digital",
+        "music": "Música y arte",
+        "fitness": "Ejercicio y deportes",
+        "personalFinance": "Finanzas personales",
+        "familyParenting": "Familia y crianza",
+        "education": "Educación y aprendizaje",
+        "foodCooking": "Comida y cocina",
+        "movies": "Películas"
+      }
+    },
+    "reminders": {
+      "subtitle": "Siempre recibirás notificaciones sobre likes, comentarios y seguidores. Esto controla los recordatorios de aprendizaje — avisos sobre lecciones que comenzaste pero no terminaste.",
+      "yes": "Sí, envíame recordatorios",
+      "no": "No, gracias"
+    },
+    "cta": {
+      "continue": "Continuar",
+      "saveChanges": "Guardar cambios",
+      "exploreUnify": "Explorar Unify"
+    }
   }
 }

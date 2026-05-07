@@ -133,13 +133,13 @@ export default function CreatePostForm({
 
     // Check content against banned words filter
     const titleCheck = isContentAllowed(trimmedTitle);
-    if (!titleCheck.allowed) {
-      Alert.alert(t('posts.contentNotAllowed'), titleCheck.reason);
+    if (!titleCheck.allowed && titleCheck.reasonKey) {
+      Alert.alert(t('posts.contentNotAllowed'), t(titleCheck.reasonKey));
       return;
     }
     const contentCheck = isContentAllowed(trimmedContent);
-    if (!contentCheck.allowed) {
-      Alert.alert(t('posts.contentNotAllowed'), contentCheck.reason);
+    if (!contentCheck.allowed && contentCheck.reasonKey) {
+      Alert.alert(t('posts.contentNotAllowed'), t(contentCheck.reasonKey));
       return;
     }
 
@@ -247,7 +247,7 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert(t('posts.cameraError'));
+      Alert.alert(t('common.error'), t('posts.cameraError'));
     }
   };
 
@@ -275,7 +275,7 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert(t('posts.galleryError'));
+      Alert.alert(t('common.error'), t('posts.galleryError'));
     }
   };
 

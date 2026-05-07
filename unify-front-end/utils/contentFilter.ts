@@ -147,7 +147,8 @@ const BANNED_REGEXES = BANNED_WORDS.map(
 
 export interface ContentFilterResult {
   allowed: boolean;
-  reason?: string;
+  /** i18n key the caller should translate; not pre-translated to keep this util UI-free. */
+  reasonKey?: string;
 }
 
 /**
@@ -166,8 +167,7 @@ export function isContentAllowed(text: string): ContentFilterResult {
     if (regex.test(normalized)) {
       return {
         allowed: false,
-        reason:
-          'Your post contains language that violates our Community Guidelines. Please revise and try again.',
+        reasonKey: 'posts.contentNotAllowedReason',
       };
     }
   }

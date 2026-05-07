@@ -382,10 +382,8 @@ export const PostItem = memo(
             setDeleteModalVisible(false);
           },
           onError: error => {
-            Alert.alert(
-              t('common.error'),
-              error.message || t('home.failedDeletePost')
-            );
+            console.error('Pin/unpin post failed:', error);
+            Alert.alert(t('common.error'), t('home.failedPinPost'));
           },
         }
       );

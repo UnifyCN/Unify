@@ -60,7 +60,6 @@
     "openSettings": "सेटिंग्स खोलें",
     "openProfileMenu": "प्रोफ़ाइल मेनू खोलें"
   },
-
   "tabs": {
     "home": "होम",
     "community": "समुदाय",
@@ -68,7 +67,6 @@
     "checklist": "चेकलिस्ट",
     "learn": "सीखें"
   },
-
   "auth": {
     "signIn": "साइन इन करें",
     "signUp": "साइन अप करें",
@@ -175,7 +173,6 @@
       "failedSaveAcceptance": "स्वीकृति सहेजने में विफल। कृपया पुनः प्रयास करें।"
     }
   },
-
   "settings": {
     "title": "सेटिंग्स",
     "preferences": "प्राथमिकताएं",
@@ -197,7 +194,6 @@
     "accountDeletedMessage": "आपका Unify खाता स्थायी रूप से हटा दिया गया है।",
     "couldNotDelete": "खाता हटा नहीं सका"
   },
-
   "editName": {
     "title": "नाम",
     "placeholder": "अपना नाम दर्ज करें",
@@ -208,13 +204,11 @@
     "failedUpdateRetry": "नाम अपडेट करने में विफल। कृपया पुनः प्रयास करें।",
     "validationError": "केवल अक्षर, संख्याएं और स्पेस की अनुमति है।"
   },
-
   "saved": {
     "title": "सहेजा गया",
     "empty": "यहां थोड़ा शांत है...",
     "emptyHint": "पोस्ट सहेजें और यहां देखें"
   },
-
   "savedLessons": {
     "title": "सीखें से सहेजा गया",
     "savedPages": "सहेजे गए पृष्ठ",
@@ -229,14 +223,12 @@
     "lesson": "पाठ",
     "from": "से"
   },
-
   "notifications": {
     "title": "सूचनाएं",
     "empty": "अभी तक कोई सूचना नहीं",
     "emptyHint": "आपको नई गतिविधि जैसे फॉलो, लाइक, टिप्पणियां और अन्य महत्वपूर्ण क्षणों के बारे में अपडेट मिलेंगे।",
     "markAllRead": "सभी पढ़ा हुआ चिह्नित करें"
   },
-
   "search": {
     "title": "खोजें",
     "placeholder": "पोस्ट, समूह और लोगों को खोजें",
@@ -251,11 +243,9 @@
     "searchEvents": "अपने पास के इवेंट खोजें",
     "discoveryPrompt": "समूह, पोस्ट और लोगों को खोजें"
   },
-
   "report": {
     "sendReport": "रिपोर्ट भेजें"
   },
-
   "learn": {
     "title": "सीखने के लिए तैयार हैं?",
     "subtitle": "कनाडा की संस्कृति की मूल बातें समझने और एक नवागंतुक के रूप में बसने के लिए पाठों से शुरुआत करें।",
@@ -272,12 +262,10 @@
     "sectionCount_plural": "{{count}} अनुभाग",
     "announcementTitle": "नया: हाइलाइट करें और AI से पूछें",
     "announcementBody": "किसी भी शब्द या वाक्यांश को हाइलाइट करने या AI से समझाने के लिए पाठ में लंबे समय तक दबाएं। आपकी हाइलाइट्स आपकी प्रोफ़ाइल में 'सीखें से सहेजा गया' में सहेजी जाती हैं।",
-
     "module": {
       "errorLoading": "मॉड्यूल लोड करने में त्रुटि: {{message}}",
       "section": "अनुभाग {{number}}"
     },
-
     "submodule": {
       "learnTitle": "सीखें",
       "learnDescription": "मुख्य अवधारणाएं और शब्दावली",
@@ -290,12 +278,10 @@
       "unableToLoad": "यह अनुभाग लोड करने में असमर्थ",
       "loadingSubmodule": "लोड हो रहा है..."
     },
-
     "map": {
       "loadingSubmodule": "लोड हो रहा है...",
       "errorLoadingSubmodule": "लोड करने में त्रुटि: {{message}}"
     },
-
     "lesson": {
       "loadingLesson": "पाठ लोड हो रहा है...",
       "errorLoadingPage": "पाठ पृष्ठ लोड करने में त्रुटि",
@@ -334,7 +320,6 @@
       "reviewPlaceholder": "अपने विचार साझा करें (वैकल्पिक)",
       "example": "उदाहरण"
     },
-
     "quiz": {
       "loadingQuizzes": "क्विज़ लोड हो रहे हैं...",
       "noQuizzesAvailable": "कोई क्विज़ उपलब्ध नहीं",
@@ -346,13 +331,11 @@
       "errorLoadingQuestion": "प्रश्न लोड करने में त्रुटि",
       "questionNotFound": "प्रश्न नहीं मिला"
     },
-
     "quizzes": {
       "errorLoading": "क्विज़ लोड करने में त्रुटि: {{message}}",
       "empty": "इस पाठ में अभी तक कोई क्विज़ नहीं है।",
       "header": "इन क्विज़ के साथ अपने ज्ञान का परीक्षण करें"
     },
-
     "tasks": {
       "loadingTasks": "कार्य लोड हो रहे हैं...",
       "failedToLoad": "कार्य लोड करने में विफल",
@@ -364,7 +347,6 @@
       "leaveTitle": "इस कार्य को छोड़ें?",
       "leaveBody": "आपकी प्रगति सहेजी जाएगी। आप कभी भी वापस आ सकते हैं।"
     },
-
     "practice": {
       "loadingPractice": "अभ्यास लोड हो रहा है...",
       "failedToLoad": "अभ्यास लोड करने में विफल",
@@ -385,33 +367,28 @@
       "pageNotFound": "पृष्ठ नहीं मिला",
       "fallback": "अभ्यास"
     },
-
     "heroCard": {
       "continue": "जारी रखें",
-      "sectionOf": " • अनुभाग {{current}} / {{total}}",
+      "sectionOf": "{{module}} • अनुभाग {{current}} / {{total}}",
       "resumeSubmodule": "{{title}} जारी रखें",
       "resumeLesson": "पाठ जारी रखें"
     },
-
     "pathwayCard": {
       "continue": "जारी रखें",
       "done": "हो गया"
     },
-
     "explainTerm": {
       "title": "इसका क्या मतलब है?",
       "gettingExplanation": "व्याख्या प्राप्त हो रही है...",
       "tryAgain": "फिर से प्रयास करें",
       "errorFallback": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।"
     },
-
     "selectionBubble": {
       "remove": "हटाएं",
       "highlight": "हाइलाइट",
       "askAI": "AI से पूछें"
     }
   },
-
   "checklist": {
     "title": "व्यक्तिगत चेकलिस्ट",
     "onboardingRequired": "अपनी व्यक्तिगत चेकलिस्ट देखने के लिए कृपया अपना पंजीकरण पूरा करें।",
@@ -425,7 +402,6 @@
     "undoCompletion": "पूर्ववत करें",
     "learnHow": "कैसे करें सीखें",
     "deleteTask": "कार्य हटाएं",
-
     "stage": {
       "0": "अभी नहीं पहुंचे",
       "1": "0–3 महीने",
@@ -433,7 +409,6 @@
       "3": "1–3 साल",
       "4": "3+ साल"
     },
-
     "persona": {
       "international_student": "अंतर्राष्ट्रीय छात्र",
       "refugee": "शरणार्थी",
@@ -442,7 +417,6 @@
       "immigrant": "अप्रवासी",
       "pr": "PR"
     },
-
     "createItem": {
       "headerTitle": "नया चेकलिस्ट आइटम",
       "categoryLabel": "श्रेणी",
@@ -456,7 +430,6 @@
       "priorityOptionalLater": "वैकल्पिक / बाद में"
     }
   },
-
   "companion": {
     "goBack": "वापस जाएं",
     "title": "सहायक",
@@ -521,7 +494,6 @@
       "noConversationsYet": "अभी तक कोई बातचीत नहीं"
     }
   },
-
   "home": {
     "forYou": "आपके लिए",
     "followingTab": "अनुसरण",
@@ -556,9 +528,9 @@
     "unpinPost": "पोस्ट अनपिन करें",
     "pinPost": "पोस्ट पिन करें",
     "reportPost": "पोस्ट रिपोर्ट करें",
-    "postSavedToast": "पोस्ट सहेजी गई! सेटिंग्स > सहेजी गई पोस्ट में खोजें"
+    "postSavedToast": "पोस्ट सहेजी गई! सेटिंग्स > सहेजी गई पोस्ट में खोजें",
+    "failedPinPost": "पोस्ट पिन करने में विफल। कृपया पुनः प्रयास करें।"
   },
-
   "profile": {
     "title": "प्रोफ़ाइल",
     "posts": "पोस्ट",
@@ -600,12 +572,10 @@
     "followersTab": "अनुयायी",
     "followingTab": "अनुसरण"
   },
-
   "profilePicture": {
     "chooseFromLibrary": "लाइब्रेरी से चुनें",
     "removeCurrentPhoto": "वर्तमान फ़ोटो हटाएं"
   },
-
   "groups": {
     "title": "समूह",
     "discover": "खोजें",
@@ -641,7 +611,6 @@
     "discoverTabLabel": "समूह खोजें टैब",
     "joinedTabLabel": "जुड़े समूह टैब"
   },
-
   "posts": {
     "postButton": "पोस्ट करें",
     "forYou": "आपके लिए",
@@ -671,9 +640,9 @@
     "couldNotJoin": "समूह में शामिल नहीं हो सके। कृपया पुनः प्रयास करें।",
     "tryDifferentSearchTerm": "कोई अन्य खोज शब्द आज़माएँ",
     "noGroupsAvailable": "कोई समूह उपलब्ध नहीं है",
-    "checkBackLaterForNewGroups": "नए समूहों के लिए बाद में वापस जाँचें"
+    "checkBackLaterForNewGroups": "नए समूहों के लिए बाद में वापस जाँचें",
+    "contentNotAllowedReason": "आपकी पोस्ट में ऐसी भाषा है जो हमारे सामुदायिक दिशानिर्देशों का उल्लंघन करती है। कृपया संशोधित करें और पुनः प्रयास करें।"
   },
-
   "news": {
     "title": "समाचार और सुझाव",
     "loading": "समाचार लोड हो रहे हैं...",
@@ -684,10 +653,9 @@
     "articleNotFound": "लेख नहीं मिला",
     "noContent": "कोई सामग्री उपलब्ध नहीं।",
     "linkToArticle": "बाहरी लेख का लिंक",
-    "by": "द्वारा",
-    "byAuthorOnDate": "{{date}} को {{author}} द्वारा"
+    "byAuthorOnDate": "{{date}} को {{author}} द्वारा",
+    "byAuthor": "{{author}} द्वारा"
   },
-
   "tips": {
     "pastTips": "पिछले सुझाव",
     "loading": "सुझाव लोड हो रहे हैं...",
@@ -698,7 +666,6 @@
     "seePastTips": "पिछले सुझाव देखें",
     "dailyTip": "दैनिक सुझाव"
   },
-
   "events": {
     "title": "सामुदायिक कार्यक्रम",
     "all": "सभी",
@@ -716,7 +683,6 @@
     "aboutEvent": "कार्यक्रम के बारे में",
     "noEventDescription": "इस कार्यक्रम के लिए कोई विवरण उपलब्ध नहीं।"
   },
-
   "resetPassword": {
     "title": "पासवर्ड रीसेट करें",
     "enterNewPassword": "नीचे अपना नया पासवर्ड दर्ज करें।",
@@ -729,7 +695,6 @@
     "successMessage": "पासवर्ड सफलतापूर्वक रीसेट हो गया",
     "errorMessage": "पासवर्ड रीसेट करते समय एक त्रुटि हुई"
   },
-
   "referrals": {
     "title": "मित्र को रेफ़र करें",
     "inviteDesc": "अपने मित्र को कनाडा की यात्रा साथ शुरू करने के लिए आमंत्रित करें।",
@@ -744,7 +709,6 @@
     "friendCount_plural": "{{count}} मित्र आपकी बदौलत Unify में शामिल हुए हैं।",
     "isInGroups": "{{name}} इन समूहों में है"
   },
-
   "welcome": {
     "title": "Unify में आपका स्वागत है।",
     "subtitle": "आप अभी शुरुआत कर रहे हैं।",
@@ -756,7 +720,6 @@
     "skipForNow": "अभी छोड़ें",
     "fromCity": "{{city}} से"
   },
-
   "circles": {
     "title": "Unify सर्कल",
     "description": "2 सप्ताह के ग्रुप चैट के लिए आपकी पृष्ठभूमि साझा करने वाले 3 नवागंतुकों से मिलें।",
@@ -837,7 +800,6 @@
     "dayAgo": "{{count}} दिन पहले",
     "dayAgo_plural": "{{count}} दिन पहले"
   },
-
   "onboarding": {
     "stepOf": "चरण {{current}} / {{total}}",
     "backButton": "वापस",
@@ -851,17 +813,16 @@
     "monthLabel": "महीना",
     "yearLabel": "वर्ष",
     "confirm": "पुष्टि करें",
-    "otherSpecify": "अन्य (निर्दिष्ट करें)"
+    "otherSpecify": "अन्य (निर्दिष्ट करें)",
+    "continue": "जारी रखें",
+    "selectMonthYear": "महीना और वर्ष चुनें"
   },
-
   "loadingScreen": {
     "message": "कृपया प्रतीक्षा करें जब हम आपकी यात्रा के लिए सब कुछ जोड़ रहे हैं…"
   },
-
   "legalWebView": {
     "couldntLoad": "दस्तावेज़ लोड नहीं हो सका"
   },
-
   "language": {
     "title": "भाषा",
     "selectLanguage": "भाषा चुनें",
@@ -869,5 +830,99 @@
     "vietnamese": "Tiếng Việt",
     "spanish": "Español",
     "hindi": "हिन्दी"
+  },
+  "reportScreen": {
+    "titlePost": "पोस्ट रिपोर्ट करें",
+    "titleUser": "उपयोगकर्ता रिपोर्ट करें",
+    "subtitlePost": "हमें बताएं कि आप इस पोस्ट को क्यों रिपोर्ट कर रहे हैं। यह संदेश निजी है और केवल मॉडरेटरों को दिखाई देगा।",
+    "subtitleUser": "हमें बताएं कि आप इस उपयोगकर्ता को क्यों रिपोर्ट कर रहे हैं। यह संदेश निजी है और केवल मॉडरेटरों को दिखाई देगा।",
+    "placeholderPost": "लिखें कि आप इस पोस्ट को क्यों रिपोर्ट कर रहे हैं...",
+    "placeholderUser": "लिखें कि आप इस उपयोगकर्ता को क्यों रिपोर्ट कर रहे हैं...",
+    "minLengthMessage": "कृपया एक संक्षिप्त कारण बताएं (न्यूनतम 5 अक्षर)।",
+    "missingPostId": "पोस्ट आईडी अनुपस्थित।",
+    "missingUserId": "उपयोगकर्ता आईडी अनुपस्थित।",
+    "submittedToast": "रिपोर्ट जमा की गई। धन्यवाद।",
+    "submitFailed": "रिपोर्ट जमा करने में विफल। कृपया पुनः प्रयास करें।"
+  },
+  "quiz": {
+    "errors": {
+      "selectOption": "कृपया एक विकल्प चुनें",
+      "specifySituation": "कृपया अपनी स्थिति बताएं",
+      "specifyReferral": "कृपया बताएं कि आपने हमारे बारे में कैसे सुना",
+      "selectMonthYear": "कृपया महीना और वर्ष चुनें",
+      "selectCity": "कृपया एक शहर चुनें",
+      "selectProvince": "कृपया एक प्रांत चुनें",
+      "selectAtLeastOne": "कृपया कम से कम एक विकल्प चुनें",
+      "specifyGoal": "कृपया अपना लक्ष्य बताएं",
+      "specifyInterest": "कृपया अपनी रुचि बताएं",
+      "signInRequired": "जारी रखने के लिए कृपया साइन इन करें",
+      "saveFailed": "आपकी ऑनबोर्डिंग जानकारी सहेजने में विफल। कृपया पुनः प्रयास करें।"
+    },
+    "q": {
+      "persona": "कनाडा में आपकी स्थिति को सबसे अच्छा क्या बताता है?",
+      "referralSource": "आपने Unify के बारे में कैसे सुना?",
+      "arrivalDate": "आप कनाडा कब पहुंचे, या कब पहुंचेंगे?",
+      "goals": "आप क्या हासिल करना चाहते हैं? (सभी लागू विकल्प चुनें)",
+      "interests": "आपको कौन से विषय पसंद हैं? (सभी लागू विकल्प चुनें)",
+      "hobbies": "आपके शौक क्या हैं? (सभी लागू विकल्प चुनें)",
+      "reminders": "क्या आप महत्वपूर्ण कदमों से न चूकें इसके लिए हल्के रिमाइंडर चाहते हैं?"
+    },
+    "options": {
+      "persona": {
+        "internationalStudent": "मैं एक अंतर्राष्ट्रीय छात्र हूं",
+        "skilledWorker": "मैं एक कुशल कर्मचारी / PR / प्रवासी हूं",
+        "refugee": "मैं एक शरणार्थी या संरक्षित व्यक्ति हूं",
+        "other": "अन्य"
+      },
+      "referral": {
+        "facebookInstagram": "Facebook / Instagram",
+        "googleSearch": "Google खोज",
+        "appStore": "App Store",
+        "friendsFamily": "मित्र / परिवार",
+        "newsArticle": "समाचार / लेख / ब्लॉग",
+        "tiktok": "TikTok",
+        "other": "अन्य"
+      },
+      "goals": {
+        "learnSomething": "कुछ नया सीखना",
+        "buildCommunity": "समुदाय और मित्र बनाना",
+        "quickAnswers": "त्वरित उत्तर",
+        "somethingElse": "कुछ और"
+      },
+      "interests": {
+        "documents": "दस्तावेज़ और पहचान",
+        "employment": "नौकरी और करियर",
+        "finance": "पैसा और बैंकिंग",
+        "housing": "आवास",
+        "prImmigration": "PR और आव्रजन",
+        "healthcare": "स्वास्थ्य देखभाल",
+        "familyKids": "परिवार और बच्चे",
+        "transit": "परिवहन",
+        "other": "अन्य"
+      },
+      "hobbies": {
+        "careerGrowth": "करियर विकास",
+        "exploringCanada": "कनाडा का अन्वेषण",
+        "wellness": "स्वास्थ्य और विकास",
+        "technology": "तकनीक और डिजिटल",
+        "music": "संगीत और कला",
+        "fitness": "फिटनेस और खेल",
+        "personalFinance": "व्यक्तिगत वित्त",
+        "familyParenting": "परिवार और पालन-पोषण",
+        "education": "शिक्षा और सीखना",
+        "foodCooking": "भोजन और खाना पकाना",
+        "movies": "फ़िल्में"
+      }
+    },
+    "reminders": {
+      "subtitle": "आपको हमेशा लाइक, टिप्पणियों और फ़ॉलो के बारे में सूचनाएं मिलेंगी। यह सीखने के रिमाइंडर को नियंत्रित करता है — उन पाठों के बारे में संकेत जो आपने शुरू किए लेकिन पूरे नहीं किए।",
+      "yes": "हां, रिमाइंडर भेजें",
+      "no": "नहीं, धन्यवाद"
+    },
+    "cta": {
+      "continue": "जारी रखें",
+      "saveChanges": "परिवर्तन सहेजें",
+      "exploreUnify": "Unify का अन्वेषण करें"
+    }
   }
 }

@@ -67,8 +67,8 @@ type CircleDateSeparatorItem = {
 
 type CircleChatListItem = CircleMessageListItem | CircleDateSeparatorItem;
 
-const formatMessageTime = (isoDate: string): string =>
-  new Date(isoDate).toLocaleTimeString([], {
+const formatMessageTime = (isoDate: string, locale: string): string =>
+  new Date(isoDate).toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
   });
@@ -80,7 +80,8 @@ const isSameCalendarDay = (first: Date, second: Date): boolean =>
 
 const formatDateSeparatorLabel = (
   isoDate: string,
-  t: (key: string) => string
+  t: (key: string) => string,
+  locale: string
 ): string => {
   const date = new Date(isoDate);
   const now = new Date();
@@ -95,11 +96,11 @@ const formatDateSeparatorLabel = (
     return t('circles.yesterday');
   }
 
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 };
 
 export default function CircleChatScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -522,7 +523,7 @@ export default function CircleChatScreen() {
         items.push({
           type: 'date-separator',
           id: `date-${dateKey}-${index}`,
-          label: formatDateSeparatorLabel(message.created_at, t),
+          label: formatDateSeparatorLabel(message.created_at, t, i18n.language),
         });
       }
 
@@ -546,13 +547,13 @@ export default function CircleChatScreen() {
         isGroupEnd,
         showTimestamp,
         timestampLabel: showTimestamp
-          ? formatMessageTime(message.created_at)
+          ? formatMessageTime(message.created_at, i18n.language)
           : undefined,
       });
     });
 
     return items;
-  }, [currentUser?.id, messages, t]);
+  }, [currentUser?.id, messages, t, i18n.language]);
 
   const inputDisabled = circleExpired || membership?.left_at !== null;
 

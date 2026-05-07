@@ -228,19 +228,20 @@ function useLanguageSyncFromSupabase() {
   const { currentUser } = useCurrentUser();
   const { i18n } = useTranslation();
   const { data: profile } = useOnboardingProfile(currentUser?.id);
-  const syncedRef = useRef(false);
+  // Track per-user-id rather than a single boolean so account switches re-sync.
+  const syncedForUserRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (syncedRef.current) return;
     if (!currentUser?.id || !profile) return;
+    if (syncedForUserRef.current === currentUser.id) return;
     const remote = profile.preferred_language;
     if (remote && remote !== i18n.language && remote in SUPPORTED_LANGUAGES) {
-      syncedRef.current = true;
+      syncedForUserRef.current = currentUser.id;
       setStoredLanguage(remote as SupportedLanguage).catch(e =>
         console.error('Failed to sync language from supabase:', e)
       );
     } else if (remote) {
-      syncedRef.current = true;
+      syncedForUserRef.current = currentUser.id;
     }
   }, [currentUser?.id, profile, i18n.language]);
 }

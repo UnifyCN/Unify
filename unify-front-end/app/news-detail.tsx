@@ -79,7 +79,7 @@ const NewsDetailScreen = () => {
         )}
         {author && !date && (
           <Text style={styles.metadata}>
-            {t('news.by')} <Text style={styles.authorText}>{author}</Text>
+            {t('news.byAuthor', { author })}
           </Text>
         )}
         {!author && date && (

@@ -60,7 +60,6 @@
     "openSettings": "Mở cài đặt",
     "openProfileMenu": "Mở menu hồ sơ"
   },
-
   "tabs": {
     "home": "Trang chủ",
     "community": "Cộng đồng",
@@ -68,7 +67,6 @@
     "checklist": "Danh sách",
     "learn": "Học"
   },
-
   "auth": {
     "signIn": "Đăng nhập",
     "signUp": "Đăng ký",
@@ -175,7 +173,6 @@
       "failedSaveAcceptance": "Lưu chấp nhận thất bại. Vui lòng thử lại."
     }
   },
-
   "settings": {
     "title": "Cài đặt",
     "preferences": "Tùy chọn",
@@ -197,7 +194,6 @@
     "accountDeletedMessage": "Tài khoản Unify của bạn đã bị xóa vĩnh viễn.",
     "couldNotDelete": "Không thể xóa tài khoản"
   },
-
   "editName": {
     "title": "Tên",
     "placeholder": "Nhập tên của bạn",
@@ -208,13 +204,11 @@
     "failedUpdateRetry": "Cập nhật tên thất bại. Vui lòng thử lại.",
     "validationError": "Chỉ cho phép chữ cái, số và khoảng trắng."
   },
-
   "saved": {
     "title": "Đã lưu",
     "empty": "Chưa có gì ở đây...",
     "emptyHint": "Lưu bài viết để xem ở đây"
   },
-
   "savedLessons": {
     "title": "Đã lưu từ Học",
     "savedPages": "TRANG ĐÃ LƯU",
@@ -229,14 +223,12 @@
     "lesson": "Bài học",
     "from": "từ"
   },
-
   "notifications": {
     "title": "Thông báo",
     "empty": "Chưa có thông báo",
     "emptyHint": "Bạn sẽ nhận được cập nhật về hoạt động mới như theo dõi, thích, bình luận và các sự kiện quan trọng khác.",
     "markAllRead": "Đánh dấu tất cả đã đọc"
   },
-
   "search": {
     "title": "Tìm kiếm",
     "placeholder": "Tìm bài viết, nhóm và mọi người",
@@ -251,11 +243,9 @@
     "searchEvents": "Tìm sự kiện gần bạn",
     "discoveryPrompt": "Tìm nhóm, bài viết và mọi người"
   },
-
   "report": {
     "sendReport": "Gửi báo cáo"
   },
-
   "learn": {
     "title": "Sẵn sàng học chưa?",
     "subtitle": "Bắt đầu với các bài học để hiểu những kiến thức cơ bản về văn hóa Canada và cách hòa nhập với tư cách là người mới.",
@@ -272,12 +262,10 @@
     "sectionCount_plural": "{{count}} phần",
     "announcementTitle": "Mới: Tô sáng & Hỏi AI",
     "announcementBody": "Nhấn giữ bất kỳ từ hoặc cụm từ nào trong bài học để tô sáng hoặc nhờ AI giải thích. Các đoạn tô sáng được lưu trong 'Đã lưu từ Học' trên hồ sơ của bạn.",
-
     "module": {
       "errorLoading": "Lỗi tải mô-đun: {{message}}",
       "section": "Phần {{number}}"
     },
-
     "submodule": {
       "learnTitle": "Học",
       "learnDescription": "Khái niệm & thuật ngữ chính",
@@ -290,12 +278,10 @@
       "unableToLoad": "Không thể tải phần này",
       "loadingSubmodule": "Đang tải..."
     },
-
     "map": {
       "loadingSubmodule": "Đang tải...",
       "errorLoadingSubmodule": "Lỗi tải: {{message}}"
     },
-
     "lesson": {
       "loadingLesson": "Đang tải bài học...",
       "errorLoadingPage": "Lỗi tải trang bài học",
@@ -334,7 +320,6 @@
       "reviewPlaceholder": "Chia sẻ suy nghĩ của bạn (tùy chọn)",
       "example": "VÍ DỤ"
     },
-
     "quiz": {
       "loadingQuizzes": "Đang tải bài kiểm tra...",
       "noQuizzesAvailable": "Không có bài kiểm tra",
@@ -346,13 +331,11 @@
       "errorLoadingQuestion": "Lỗi tải câu hỏi",
       "questionNotFound": "Không tìm thấy câu hỏi"
     },
-
     "quizzes": {
       "errorLoading": "Lỗi tải bài kiểm tra: {{message}}",
       "empty": "Bài học này chưa có bài kiểm tra nào.",
       "header": "Kiểm tra kiến thức của bạn với những bài kiểm tra này"
     },
-
     "tasks": {
       "loadingTasks": "Đang tải nhiệm vụ...",
       "failedToLoad": "Tải nhiệm vụ thất bại",
@@ -364,7 +347,6 @@
       "leaveTitle": "Rời khỏi nhiệm vụ?",
       "leaveBody": "Tiến trình sẽ được lưu. Bạn có thể quay lại bất cứ lúc nào."
     },
-
     "practice": {
       "loadingPractice": "Đang tải bài thực hành...",
       "failedToLoad": "Tải bài thực hành thất bại",
@@ -385,33 +367,28 @@
       "pageNotFound": "Không tìm thấy trang",
       "fallback": "Luyện tập"
     },
-
     "heroCard": {
       "continue": "Tiếp tục",
-      "sectionOf": " • Phần {{current}} trên {{total}}",
+      "sectionOf": "{{module}} • Phần {{current}} trên {{total}}",
       "resumeSubmodule": "Tiếp tục {{title}}",
       "resumeLesson": "Tiếp tục bài học"
     },
-
     "pathwayCard": {
       "continue": "Tiếp tục",
       "done": "Xong"
     },
-
     "explainTerm": {
       "title": "Điều này nghĩa là gì?",
       "gettingExplanation": "Đang lấy giải thích...",
       "tryAgain": "Thử lại",
       "errorFallback": "Đã xảy ra lỗi. Vui lòng thử lại."
     },
-
     "selectionBubble": {
       "remove": "Xóa",
       "highlight": "Tô sáng",
       "askAI": "Hỏi AI"
     }
   },
-
   "checklist": {
     "title": "Danh sách cá nhân",
     "onboardingRequired": "Vui lòng hoàn tất đăng ký để xem danh sách cá nhân của bạn.",
@@ -425,7 +402,6 @@
     "undoCompletion": "Hoàn tác",
     "learnHow": "Tìm hiểu cách làm",
     "deleteTask": "Xóa nhiệm vụ",
-
     "stage": {
       "0": "Chưa đến",
       "1": "0–3 tháng",
@@ -433,7 +409,6 @@
       "3": "1–3 năm",
       "4": "3+ năm"
     },
-
     "persona": {
       "international_student": "Sinh viên quốc tế",
       "refugee": "Người tị nạn",
@@ -442,7 +417,6 @@
       "immigrant": "Người nhập cư",
       "pr": "PR"
     },
-
     "createItem": {
       "headerTitle": "Mục danh sách mới",
       "categoryLabel": "Danh mục",
@@ -456,7 +430,6 @@
       "priorityOptionalLater": "Tùy chọn / sau"
     }
   },
-
   "companion": {
     "goBack": "Quay lại",
     "title": "Trợ lý",
@@ -521,7 +494,6 @@
       "noConversationsYet": "Chưa có cuộc trò chuyện nào"
     }
   },
-
   "home": {
     "forYou": "Dành cho bạn",
     "followingTab": "Đang theo dõi",
@@ -556,9 +528,9 @@
     "unpinPost": "Bỏ ghim bài viết",
     "pinPost": "Ghim bài viết",
     "reportPost": "Báo cáo bài viết",
-    "postSavedToast": "Đã lưu bài viết! Tìm trong Cài đặt > Bài viết đã lưu"
+    "postSavedToast": "Đã lưu bài viết! Tìm trong Cài đặt > Bài viết đã lưu",
+    "failedPinPost": "Không thể ghim bài viết. Vui lòng thử lại."
   },
-
   "profile": {
     "title": "Hồ sơ",
     "posts": "Bài viết",
@@ -600,12 +572,10 @@
     "followersTab": "Người theo dõi",
     "followingTab": "Đang theo dõi"
   },
-
   "profilePicture": {
     "chooseFromLibrary": "Chọn từ thư viện",
     "removeCurrentPhoto": "Xóa ảnh hiện tại"
   },
-
   "groups": {
     "title": "Nhóm",
     "discover": "Khám phá",
@@ -641,7 +611,6 @@
     "discoverTabLabel": "Tab khám phá nhóm",
     "joinedTabLabel": "Tab nhóm đã tham gia"
   },
-
   "posts": {
     "postButton": "Đăng",
     "forYou": "Dành cho bạn",
@@ -671,9 +640,9 @@
     "couldNotJoin": "Không thể tham gia nhóm. Vui lòng thử lại.",
     "tryDifferentSearchTerm": "Thử từ khóa tìm kiếm khác",
     "noGroupsAvailable": "Không có nhóm nào",
-    "checkBackLaterForNewGroups": "Quay lại sau để xem nhóm mới"
+    "checkBackLaterForNewGroups": "Quay lại sau để xem nhóm mới",
+    "contentNotAllowedReason": "Bài viết của bạn chứa nội dung vi phạm Nguyên tắc Cộng đồng. Vui lòng chỉnh sửa và thử lại."
   },
-
   "news": {
     "title": "Tin tức & Mẹo",
     "loading": "Đang tải tin tức...",
@@ -684,10 +653,9 @@
     "articleNotFound": "Không tìm thấy bài viết",
     "noContent": "Không có nội dung.",
     "linkToArticle": "Liên kết đến bài viết ngoài",
-    "by": "bởi",
-    "byAuthorOnDate": "Bởi {{author}} vào {{date}}"
+    "byAuthorOnDate": "Bởi {{author}} vào {{date}}",
+    "byAuthor": "Bởi {{author}}"
   },
-
   "tips": {
     "pastTips": "Mẹo trước đây",
     "loading": "Đang tải mẹo...",
@@ -698,7 +666,6 @@
     "seePastTips": "Xem mẹo trước đây",
     "dailyTip": "Mẹo hàng ngày"
   },
-
   "events": {
     "title": "Sự kiện cộng đồng",
     "all": "Tất cả",
@@ -716,7 +683,6 @@
     "aboutEvent": "Về sự kiện",
     "noEventDescription": "Chưa có mô tả cho sự kiện này."
   },
-
   "resetPassword": {
     "title": "Đặt lại mật khẩu",
     "enterNewPassword": "Nhập mật khẩu mới bên dưới.",
@@ -729,7 +695,6 @@
     "successMessage": "Đã đặt lại mật khẩu thành công",
     "errorMessage": "Đã xảy ra lỗi khi đặt lại mật khẩu"
   },
-
   "referrals": {
     "title": "Giới thiệu bạn bè",
     "inviteDesc": "Mời bạn bè bắt đầu hành trình Canada cùng bạn.",
@@ -744,7 +709,6 @@
     "friendCount_plural": "{{count}} bạn đã tham gia Unify nhờ bạn.",
     "isInGroups": "{{name}} đang ở trong các nhóm này"
   },
-
   "welcome": {
     "title": "Chào mừng đến Unify.",
     "subtitle": "Bạn mới bắt đầu.",
@@ -756,7 +720,6 @@
     "skipForNow": "Bỏ qua",
     "fromCity": "từ {{city}}"
   },
-
   "circles": {
     "title": "Vòng kết nối Unify",
     "description": "Được ghép với 3 người mới đến có chung hoàn cảnh cho cuộc trò chuyện nhóm 2 tuần.",
@@ -837,7 +800,6 @@
     "dayAgo": "{{count}} ngày trước",
     "dayAgo_plural": "{{count}} ngày trước"
   },
-
   "onboarding": {
     "stepOf": "Bước {{current}} trên {{total}}",
     "backButton": "Quay lại",
@@ -851,17 +813,16 @@
     "monthLabel": "Tháng",
     "yearLabel": "Năm",
     "confirm": "Xác nhận",
-    "otherSpecify": "Khác (chỉ rõ)"
+    "otherSpecify": "Khác (chỉ rõ)",
+    "continue": "Tiếp tục",
+    "selectMonthYear": "Chọn tháng và năm"
   },
-
   "loadingScreen": {
     "message": "Vui lòng chờ trong khi chúng tôi kết nối mọi thứ cho hành trình của bạn…"
   },
-
   "legalWebView": {
     "couldntLoad": "Không thể tải tài liệu"
   },
-
   "language": {
     "title": "Ngôn ngữ",
     "selectLanguage": "Chọn ngôn ngữ",
@@ -869,5 +830,99 @@
     "vietnamese": "Tiếng Việt",
     "spanish": "Español",
     "hindi": "हिन्दी"
+  },
+  "reportScreen": {
+    "titlePost": "Báo cáo bài viết",
+    "titleUser": "Báo cáo người dùng",
+    "subtitlePost": "Cho chúng tôi biết tại sao bạn báo cáo bài viết này. Tin nhắn này là riêng tư và chỉ hiển thị cho người kiểm duyệt.",
+    "subtitleUser": "Cho chúng tôi biết tại sao bạn báo cáo người dùng này. Tin nhắn này là riêng tư và chỉ hiển thị cho người kiểm duyệt.",
+    "placeholderPost": "Viết lý do bạn báo cáo bài viết này...",
+    "placeholderUser": "Viết lý do bạn báo cáo người dùng này...",
+    "minLengthMessage": "Vui lòng cung cấp lý do ngắn (tối thiểu 5 ký tự).",
+    "missingPostId": "Thiếu ID bài viết.",
+    "missingUserId": "Thiếu ID người dùng.",
+    "submittedToast": "Đã gửi báo cáo. Cảm ơn bạn.",
+    "submitFailed": "Không thể gửi báo cáo. Vui lòng thử lại."
+  },
+  "quiz": {
+    "errors": {
+      "selectOption": "Vui lòng chọn một tùy chọn",
+      "specifySituation": "Vui lòng nêu rõ tình huống của bạn",
+      "specifyReferral": "Vui lòng nêu rõ bạn biết đến chúng tôi như thế nào",
+      "selectMonthYear": "Vui lòng chọn tháng và năm",
+      "selectCity": "Vui lòng chọn một thành phố",
+      "selectProvince": "Vui lòng chọn một tỉnh",
+      "selectAtLeastOne": "Vui lòng chọn ít nhất một tùy chọn",
+      "specifyGoal": "Vui lòng nêu rõ mục tiêu của bạn",
+      "specifyInterest": "Vui lòng nêu rõ sở thích của bạn",
+      "signInRequired": "Vui lòng đăng nhập để tiếp tục",
+      "saveFailed": "Không thể lưu thông tin đăng ký. Vui lòng thử lại."
+    },
+    "q": {
+      "persona": "Điều gì mô tả tốt nhất tình huống của bạn ở Canada?",
+      "referralSource": "Bạn biết đến Unify như thế nào?",
+      "arrivalDate": "Bạn đến, hoặc sẽ đến Canada khi nào?",
+      "goals": "Bạn muốn đạt được điều gì? (Chọn tất cả phù hợp)",
+      "interests": "Chủ đề nào khiến bạn quan tâm? (Chọn tất cả phù hợp)",
+      "hobbies": "Sở thích của bạn là gì? (Chọn tất cả phù hợp)",
+      "reminders": "Bạn có muốn nhắc nhở nhẹ nhàng để không bỏ lỡ các bước quan trọng không?"
+    },
+    "options": {
+      "persona": {
+        "internationalStudent": "Tôi là sinh viên quốc tế",
+        "skilledWorker": "Tôi là lao động lành nghề / PR / di dân",
+        "refugee": "Tôi là người tị nạn hoặc người được bảo vệ",
+        "other": "Khác"
+      },
+      "referral": {
+        "facebookInstagram": "Facebook / Instagram",
+        "googleSearch": "Tìm kiếm Google",
+        "appStore": "App Store",
+        "friendsFamily": "Bạn bè / gia đình",
+        "newsArticle": "Tin tức / bài báo / blog",
+        "tiktok": "TikTok",
+        "other": "Khác"
+      },
+      "goals": {
+        "learnSomething": "Học điều mới",
+        "buildCommunity": "Xây dựng cộng đồng và bạn bè",
+        "quickAnswers": "Câu trả lời nhanh",
+        "somethingElse": "Điều khác"
+      },
+      "interests": {
+        "documents": "Giấy tờ và ID",
+        "employment": "Việc làm và sự nghiệp",
+        "finance": "Tiền bạc và ngân hàng",
+        "housing": "Nhà ở",
+        "prImmigration": "PR và nhập cư",
+        "healthcare": "Chăm sóc sức khỏe",
+        "familyKids": "Gia đình và trẻ em",
+        "transit": "Giao thông",
+        "other": "Khác"
+      },
+      "hobbies": {
+        "careerGrowth": "Phát triển sự nghiệp",
+        "exploringCanada": "Khám phá Canada",
+        "wellness": "Sức khỏe và phát triển",
+        "technology": "Công nghệ và kỹ thuật số",
+        "music": "Âm nhạc và nghệ thuật",
+        "fitness": "Thể dục và thể thao",
+        "personalFinance": "Tài chính cá nhân",
+        "familyParenting": "Gia đình và nuôi dạy con",
+        "education": "Giáo dục và học tập",
+        "foodCooking": "Ẩm thực và nấu ăn",
+        "movies": "Phim ảnh"
+      }
+    },
+    "reminders": {
+      "subtitle": "Bạn sẽ luôn được thông báo về lượt thích, bình luận và người theo dõi. Tùy chọn này điều khiển nhắc nhở học tập — thúc đẩy về các bài học bạn đã bắt đầu nhưng chưa hoàn thành.",
+      "yes": "Có, gửi nhắc nhở",
+      "no": "Không, cảm ơn"
+    },
+    "cta": {
+      "continue": "Tiếp tục",
+      "saveChanges": "Lưu thay đổi",
+      "exploreUnify": "Khám phá Unify"
+    }
   }
 }
