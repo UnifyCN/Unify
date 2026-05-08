@@ -46,7 +46,7 @@ import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarte
 import { AICompanionBusyError } from '@/utils/gemini';
 import { useToast } from '@/context/ToastContext';
 
-const MESSAGE_LIMIT = 3;
+const MESSAGE_LIMIT = 6;
 const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 const dottedLineTopOffset = -windowHeight * 0.001;
