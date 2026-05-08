@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StatusBar } from 'expo-status-bar';
 import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
@@ -22,6 +23,7 @@ import { getUpcomingEventsSorted } from '@/helpers/eventHelpers';
 const EVENTS_LIST_CARD_HEIGHT = 228;
 
 const EventsScreen = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { data: events, isLoading, error } = useEvents();
 
@@ -29,7 +31,12 @@ const EventsScreen = () => {
   const [selectedTag, setSelectedTag] = useState<string>('Upcoming');
   // const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
 
-  const tags = ['All', 'Upcoming', 'Past'];
+  const tags = ['All', 'Upcoming', 'Past'] as const;
+  const tagLabels: Record<string, string> = {
+    All: t('events.all'),
+    Upcoming: t('events.upcoming'),
+    Past: t('events.past'),
+  };
   // const genreTags = [
   //   'All Events',
   //   'Socials',
@@ -97,7 +104,7 @@ const EventsScreen = () => {
       <View style={styles.container}>
         <StatusBar style='dark' />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading events...</Text>
+          <Text style={styles.loadingText}>{t('events.loading')}</Text>
         </View>
       </View>
     );
@@ -108,12 +115,12 @@ const EventsScreen = () => {
       <View style={styles.container}>
         <StatusBar style='dark' />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load events</Text>
+          <Text style={styles.errorText}>{t('events.failedToLoad')}</Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.retryButtonText}>Go Back</Text>
+            <Text style={styles.retryButtonText}>{t('common.goBack')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -122,7 +129,7 @@ const EventsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Community Events' />
+      <BackHeader title={t('events.title')} />
 
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
@@ -136,7 +143,7 @@ const EventsScreen = () => {
             value={searchQuery}
             onChangeText={setSearchQuery}
             style={styles.searchInput}
-            placeholder='Search for events near you'
+            placeholder={t('search.searchEvents')}
             placeholderTextColor={Theme.textInput}
           />
           {/* TODO: Implement addtional filter screen later */}
@@ -162,7 +169,7 @@ const EventsScreen = () => {
                 selectedTag === tag && styles.tagTextSelected,
               ]}
             >
-              {tag}
+              {tagLabels[tag]}
             </Text>
           </TouchableOpacity>
         ))}
@@ -209,7 +216,7 @@ const EventsScreen = () => {
         ListEmptyComponent={
           <EmptyFeedMessage
             icon={<Feather name='calendar' size={24} color='#B4B1B1' />}
-            message='No events available'
+            message={t('events.noEvents')}
             submessage={
               <Text
                 style={{
@@ -219,7 +226,7 @@ const EventsScreen = () => {
                   lineHeight: 20,
                 }}
               >
-                Check back later for new events
+                {t('events.checkBackLater')}
               </Text>
             }
           />

@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
+import { useTranslation } from 'react-i18next';
 import ImageViewerModal from '@/components/sanity/ImageViewerModal';
 import DropdownBlock from '@/components/sanity/DropdownBlock';
 import ChecklistCheckboxBlock from '@/components/sanity/ChecklistCheckboxBlock';
@@ -44,6 +45,7 @@ export default function RichTextRenderer({
   compactContainer = false,
   highlights = [],
 }: RichTextRendererProps) {
+  const { t } = useTranslation();
   // Image viewer modal state
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -862,7 +864,7 @@ export default function RichTextRenderer({
             </TouchableOpacity>
           ) : (
             <View style={mergedStyles.imagePlaceholder}>
-              <Text style={mergedStyles.imagePlaceholderText}>Image</Text>
+              <Text style={mergedStyles.imagePlaceholderText}>{t('learn.lesson.imagePlaceholder')}</Text>
             </View>
           )}
         </View>
@@ -895,7 +897,7 @@ export default function RichTextRenderer({
       // keep your current example override
       return (
         <View key={block._key || index} style={mergedStyles.exampleBox}>
-          <Text style={mergedStyles.exampleBoxTitle}>EXAMPLE</Text>
+          <Text style={mergedStyles.exampleBoxTitle}>{t('learn.lesson.example')}</Text>
           <RichTextRenderer
             blocks={block.content || []}
             markDefs={markDefs}
@@ -1411,7 +1413,7 @@ export default function RichTextRenderer({
                     styles.matchingCheckButtonTextDisabled,
                 ]}
               >
-                Check
+                {t('common.check')}
               </Text>
             </TouchableOpacity>
           </View>

@@ -11,6 +11,7 @@ import {
   PanResponder,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import {
   uploadProfilePicture,
@@ -34,6 +35,7 @@ export const ProfilePictureUpload = ({
   modalVisible,
   onClose,
 }: ProfilePictureUploadProps) => {
+  const { t } = useTranslation();
   const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
   const slideAnim = useRef(new Animated.Value(300)).current;
@@ -112,8 +114,8 @@ export const ProfilePictureUpload = ({
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permission Required',
-        'Please grant permission to access your photo library to upload a profile picture.'
+        t('profilePicture.permissionRequired'),
+        t('profilePicture.permissionMessage')
       );
       return false;
     }
@@ -169,19 +171,19 @@ export const ProfilePictureUpload = ({
 
           // Invalidate and refetch user info and all post feeds
           invalidateAllQueries();
-          Alert.alert('Success', 'Profile picture updated successfully!');
+          Alert.alert(t('common.success'), t('profilePicture.updateSuccess'));
         } else {
           Alert.alert(
-            'Error',
-            updateResult.error || 'Failed to update profile picture'
+            t('common.error'),
+            updateResult.error || t('profilePicture.updateFailed')
           );
         }
       } else {
-        Alert.alert('Error', uploadResult.error || 'Failed to upload image');
+        Alert.alert(t('common.error'), uploadResult.error || t('profilePicture.uploadFailed'));
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      Alert.alert('Error', 'Failed to upload image. Please try again.');
+      Alert.alert(t('common.error'), t('profilePicture.uploadFailed'));
     } finally {
       setIsUploading(false);
     }
@@ -189,12 +191,12 @@ export const ProfilePictureUpload = ({
 
   const removePicture = async () => {
     Alert.alert(
-      'Remove Profile Picture',
-      'Are you sure you want to remove your profile picture?',
+      t('profilePicture.removeTitle'),
+      t('profilePicture.removeConfirm'),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Remove',
+          text: t('common.remove'),
           style: 'destructive',
           onPress: async () => {
             setIsUploading(true);
@@ -213,18 +215,18 @@ export const ProfilePictureUpload = ({
                 }
                 // Invalidate and refetch user info and all post feeds
                 invalidateAllQueries();
-                Alert.alert('Success', 'Profile picture removed successfully!');
+                Alert.alert(t('common.success'), t('profilePicture.removeSuccess'));
               } else {
                 Alert.alert(
-                  'Error',
-                  updateResult.error || 'Failed to remove profile picture'
+                  t('common.error'),
+                  updateResult.error || t('profilePicture.removeFailed')
                 );
               }
             } catch (error) {
               console.error('Error removing picture:', error);
               Alert.alert(
-                'Error',
-                'Failed to remove profile picture. Please try again.'
+                t('common.error'),
+                t('profilePicture.removeFailed')
               );
             } finally {
               setIsUploading(false);
@@ -267,7 +269,7 @@ export const ProfilePictureUpload = ({
                   color={Theme.black}
                   style={styles.optionIcon}
                 />
-                <Text style={styles.modalOptionText}>Choose from library</Text>
+                <Text style={styles.modalOptionText}>{t('profilePicture.chooseFromLibrary')}</Text>
               </TouchableOpacity>
 
               {currentPictureUrl && (
@@ -286,7 +288,7 @@ export const ProfilePictureUpload = ({
                     style={styles.optionIcon}
                   />
                   <Text style={styles.modalOptionText}>
-                    Remove current photo
+                    {t('profilePicture.removeCurrentPhoto')}
                   </Text>
                 </TouchableOpacity>
               )}

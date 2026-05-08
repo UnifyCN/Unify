@@ -20,8 +20,10 @@ import {
 import { getActiveCircleMembership } from '@/services/matching/circles';
 import { formatPersonaLabel, formatTimeInCanadaLabel } from '@/matching/pools';
 import { supabase } from '@/lib/supabase';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import LoadingScreen from '@/components/LoadingScreen';
+import { formatRelativeTime } from '@/helpers/dateHelpers';
 
 // Animated ripple circles for the waiting indicator
 function WaitingAnimation() {
@@ -159,6 +161,7 @@ const stepStyles = StyleSheet.create({
 });
 
 export default function WaitingRoomScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
@@ -241,12 +244,12 @@ export default function WaitingRoomScreen() {
 
   const handleLeave = async () => {
     Alert.alert(
-      'Leave waitlist?',
-      "You won't lose your spot forever — you can rejoin anytime.",
+      t('circles.leaveWaitlistTitle'),
+      t('circles.leaveWaitlistMessage'),
       [
-        { text: 'Stay', style: 'cancel' },
+        { text: t('circles.stay'), style: 'cancel' },
         {
-          text: 'Leave',
+          text: t('circles.leave'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -258,8 +261,8 @@ export default function WaitingRoomScreen() {
             } catch (error) {
               console.error('Failed to leave waitlist', error);
               Alert.alert(
-                'Something went wrong',
-                'Please try again in a moment.'
+                t('common.somethingWentWrong'),
+                t('common.tryAgain')
               );
             }
           },
@@ -272,8 +275,7 @@ export default function WaitingRoomScreen() {
     return <LoadingScreen />;
   }
 
-  const joinedDate = new Date(waitlistEntry.created_at);
-  const timeAgo = getTimeAgo(joinedDate);
+  const timeAgo = formatRelativeTime(waitlistEntry.created_at);
 
   return (
     <View style={styles.root}>
@@ -291,19 +293,18 @@ export default function WaitingRoomScreen() {
         {/* Status badge */}
         <View style={styles.statusBadge}>
           <View style={styles.statusDot} />
-          <Text style={styles.statusText}>Looking for your circle</Text>
+          <Text style={styles.statusText}>{t('circles.lookingForCircle')}</Text>
         </View>
 
         {/* Title section */}
-        <Text style={styles.title}>Hang tight!</Text>
+        <Text style={styles.title}>{t('circles.hangTight')}</Text>
         <Text style={styles.subtitle}>
-          We're finding 3 more newcomers on a similar journey to connect you
-          with.
+          {t('circles.findingNewcomers')}
         </Text>
 
         {/* Your matching criteria */}
         <View style={styles.criteriaCard}>
-          <Text style={styles.criteriaLabel}>Your matching group</Text>
+          <Text style={styles.criteriaLabel}>{t('circles.yourMatchingGroup')}</Text>
           <View style={styles.criteriaRow}>
             <Feather name='user' size={16} color='#ff820b' />
             <Text style={styles.criteriaText}>
@@ -320,17 +321,17 @@ export default function WaitingRoomScreen() {
 
         {/* How it works section */}
         <View style={styles.stepsCard}>
-          <Text style={styles.stepsHeading}>How matching works</Text>
+          <Text style={styles.stepsHeading}>{t('circles.howMatchingWorks')}</Text>
           <StepItem
-            text='We check for matches every few minutes'
+            text={t('circles.checkMatches')}
             icon='clock'
           />
           <StepItem
-            text='Groups form when 4 compatible people are ready'
+            text={t('circles.groupsForm')}
             icon='users'
           />
           <StepItem
-            text="You'll get notified the moment you're matched!"
+            text={t('circles.notifiedWhenMatched')}
             icon='bell'
           />
         </View>
@@ -338,7 +339,7 @@ export default function WaitingRoomScreen() {
         {/* Joined timestamp */}
         <View style={styles.joinedInfo}>
           <Feather name='check-circle' size={16} color='#0F8B54' />
-          <Text style={styles.joinedText}>Joined {timeAgo}</Text>
+          <Text style={styles.joinedText}>{t('circles.joinedTime', { time: timeAgo })}</Text>
         </View>
       </ScrollView>
 
@@ -349,26 +350,11 @@ export default function WaitingRoomScreen() {
           onPress={handleLeave}
           activeOpacity={0.7}
         >
-          <Text style={styles.leaveButtonText}>Leave waitlist</Text>
+          <Text style={styles.leaveButtonText}>{t('circles.leaveWaitlist')}</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-}
-
-function getTimeAgo(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'just now';
-  if (diffMins < 60)
-    return `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
-  if (diffHours < 24)
-    return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
-  return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
 }
 
 const styles = StyleSheet.create({

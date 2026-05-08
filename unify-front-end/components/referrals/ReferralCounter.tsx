@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import { useReferralCounter } from '@/hooks/referrals/useReferralCounter';
 
@@ -16,20 +17,18 @@ import { useReferralCounter } from '@/hooks/referrals/useReferralCounter';
  * a sent-invites table, this can grow back to two metrics.
  */
 export function ReferralCounter() {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useReferralCounter();
 
   if (isError || isLoading || !data || data.joined === 0) return null;
-
-  const friendWord = data.joined === 1 ? 'friend' : 'friends';
-  const haveWord = data.joined === 1 ? 'has' : 'have';
 
   return (
     <View style={styles.wrap}>
       <Text
         style={styles.text}
-        accessibilityLabel={`${data.joined} ${friendWord} ${haveWord} joined Unify thanks to you.`}
+        accessibilityLabel={t('referrals.friendCount', { count: data.joined })}
       >
-        {data.joined} {friendWord} {haveWord} joined Unify thanks to you.
+        {t('referrals.friendCount', { count: data.joined })}
       </Text>
     </View>
   );

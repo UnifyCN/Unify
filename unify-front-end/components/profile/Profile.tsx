@@ -7,6 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { useState, memo, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import FeedWithHook from '@/components/FeedWithHook';
@@ -32,20 +33,24 @@ interface TabHeaderProps {
 }
 
 const TabHeader = memo(({ activeTab, setActiveTab }: TabHeaderProps) => {
-  const tabs = ['Posts', 'Comments'];
+  const { t } = useTranslation();
+  const tabs = [
+    { key: 'Posts', label: t('profile.posts') },
+    { key: 'Comments', label: t('profile.comments') },
+  ];
 
   return (
     <View style={styles.tabs}>
       {tabs.map(tab => (
         <TouchableOpacity
-          key={tab}
-          onPress={() => setActiveTab(tab)}
-          style={[styles.tab, activeTab === tab && styles.activeTab]}
+          key={tab.key}
+          onPress={() => setActiveTab(tab.key)}
+          style={[styles.tab, activeTab === tab.key && styles.activeTab]}
         >
           <Text
-            style={[styles.tabText, activeTab === tab && styles.activeTabText]}
+            style={[styles.tabText, activeTab === tab.key && styles.activeTabText]}
           >
-            {tab}
+            {tab.label}
           </Text>
         </TouchableOpacity>
       ))}
@@ -59,6 +64,7 @@ interface ProfileProps {
 }
 
 export default function Profile({ userId, initialTab }: ProfileProps) {
+  const { t } = useTranslation();
   const { currentUser, isLoading: isLoadingCurrentUser } = useCurrentUser();
   const currentUserId = currentUser?.id;
   const { data: userInfo } = useUserInfo(userId);
@@ -108,22 +114,22 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     if (!blockStatusResolved) return;
     if (isBlockedUser) {
       unblockMutation.mutate(userId, {
-        onSuccess: () => showToast?.('User unblocked'),
-        onError: () => showToast?.('Failed to unblock user'),
+        onSuccess: () => showToast?.(t('profile.userUnblocked')),
+        onError: () => showToast?.(t('profile.userUnblockFailed')),
       });
     } else {
       Alert.alert(
-        'Block User',
-        'Are you sure you want to block this user? Their posts will be hidden from your feed.',
+        t('profile.blockUser'),
+        t('profile.blockUserConfirm'),
         [
-          { text: 'Cancel', style: 'cancel' },
+          { text: t('common.cancel'), style: 'cancel' },
           {
-            text: 'Block',
+            text: t('profile.block'),
             style: 'destructive',
             onPress: () => {
               blockMutation.mutate(userId, {
-                onSuccess: () => showToast?.('User blocked'),
-                onError: () => showToast?.('Failed to block user'),
+                onSuccess: () => showToast?.(t('profile.userBlocked')),
+                onError: () => showToast?.(t('profile.userBlockFailed')),
               });
             },
           },
@@ -137,6 +143,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     blockMutation,
     unblockMutation,
     showToast,
+    t,
   ]);
 
   const reportButton = useMemo(() => {
@@ -147,7 +154,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         style={styles.reportButton}
         onPress={() => {
           if (isReportedUser) {
-            showToast?.("You've already reported this user.");
+            showToast?.(t('profile.alreadyReported'));
             return;
           }
           router.push({
@@ -163,7 +170,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         />
       </TouchableOpacity>
     );
-  }, [isCurrentUser, isReportedUser, router, showToast, userId]);
+  }, [isCurrentUser, isReportedUser, router, showToast, userId, t]);
 
   const blockButton = useMemo(() => {
     if (isCurrentUser) return null;
@@ -178,12 +185,12 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
           unblockMutation.isPending
         }
         hitSlop={{ top: 10, left: 10, right: 10, bottom: 10 }}
-        accessibilityLabel={isBlockedUser ? 'Unblock user' : 'Block user'}
+        accessibilityLabel={isBlockedUser ? t('profile.unblockUser') : t('profile.blockUser')}
         accessibilityRole='button'
         accessibilityHint={
           isBlockedUser
-            ? 'Unblocks this user so their posts appear in your feed'
-            : 'Blocks this user and hides their posts from your feed'
+            ? t('profile.unblockUserHint')
+            : t('profile.blockUserHint')
         }
         accessibilityState={{
           disabled:
@@ -207,6 +214,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
     handleBlockToggle,
     blockMutation.isPending,
     unblockMutation.isPending,
+    t,
   ]);
 
   const renderTabContent = useMemo(() => {
@@ -218,15 +226,15 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
           ListEmptyComponent={
             <EmptyFeedMessage
               icon={<UnifyReplyIcon width={27} height={25} />}
-              message='Looks a little quiet here...'
+              message={t('profile.emptyTabTitle')}
               submessage={
                 isCurrentUser ? (
                   <Text style={styles.emptyMessageSubtext}>
-                    You haven't commented on any posts yet
+                    {t('profile.emptyCommentsSelf')}
                   </Text>
                 ) : (
                   <Text style={styles.emptyMessageSubtext}>
-                    This person hasn't commented on any posts yet
+                    {t('profile.emptyCommentsOther')}
                   </Text>
                 )
               }
@@ -243,16 +251,15 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         ListEmptyComponent={
           <EmptyFeedMessage
             icon={<UnifyReplyIcon width={27} height={25} />}
-            message='Looks a little quiet here...'
+            message={t('profile.emptyTabTitle')}
             submessage={
               isCurrentUser ? (
                 <Text style={styles.emptyMessageSubtext}>
-                  We'd love to hear from you!{'\n'}
-                  Create a post to show up here.
+                  {t('profile.emptyPostsSelf')}
                 </Text>
               ) : (
                 <Text style={styles.emptyMessageSubtext}>
-                  This person hasn't posted anything yet.
+                  {t('profile.emptyPostsOther')}
                 </Text>
               )
             }
@@ -260,7 +267,7 @@ export default function Profile({ userId, initialTab }: ProfileProps) {
         }
       />
     );
-  }, [activeTab, isCurrentUser, useCommentsFeedHook, usePostsFeedHook, userId]);
+  }, [activeTab, isCurrentUser, useCommentsFeedHook, usePostsFeedHook, userId, t]);
 
   const renderItem = useCallback(
     ({ item }: { item: { key: string; type: string } }) => {

@@ -10,6 +10,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { explainTerm } from '@/services/highlights/explainTerm';
 import { useAnalytics } from '@/utils/analytics';
+import { useTranslation } from 'react-i18next';
 
 interface ExplainTermModalProps {
   visible: boolean;
@@ -26,6 +27,7 @@ export default function ExplainTermModal({
   lessonId,
   onClose,
 }: ExplainTermModalProps) {
+  const { t } = useTranslation();
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export default function ExplainTermModal({
       setExplanation(result);
     } catch (err: any) {
       if (currentRequestId !== requestIdRef.current) return;
-      setError(err.message || 'Something went wrong. Please try again.');
+      setError(err.message || t('learn.explainTerm.errorFallback'));
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setLoading(false);
@@ -91,7 +93,7 @@ export default function ExplainTermModal({
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Feather name='help-circle' size={18} color='#6B7280' />
-              <Text style={styles.headerTitle}>What does this mean?</Text>
+              <Text style={styles.headerTitle}>{t('learn.explainTerm.title')}</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={8}>
               <Feather name='x' size={20} color='#9CA3AF' />
@@ -106,7 +108,7 @@ export default function ExplainTermModal({
             {loading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size='small' color='#6B7280' />
-                <Text style={styles.loadingText}>Getting explanation...</Text>
+                <Text style={styles.loadingText}>{t('learn.explainTerm.gettingExplanation')}</Text>
               </View>
             )}
 
@@ -122,7 +124,7 @@ export default function ExplainTermModal({
                   onPress={handleRetry}
                 >
                   <Feather name='refresh-cw' size={14} color='#fff' />
-                  <Text style={styles.retryButtonText}>Try Again</Text>
+                  <Text style={styles.retryButtonText}>{t('learn.explainTerm.tryAgain')}</Text>
                 </TouchableOpacity>
               </View>
             )}

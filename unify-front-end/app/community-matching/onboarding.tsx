@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Alert, View, StyleSheet } from 'react-native';
-
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -13,6 +13,7 @@ import { useCurrentUser } from '@/context/UserContext';
 import { deriveTimeInCanadaFromArrivalDate } from '@/matching/pools';
 
 export default function MatchingOnboardingScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
@@ -37,8 +38,8 @@ export default function MatchingOnboardingScreen() {
   const handleComplete = async (selections: QuizSelections) => {
     if (!onboardingProfile?.persona || !derivedTimeInCanada) {
       Alert.alert(
-        'Missing info',
-        'Finish onboarding first so we know your matching persona.'
+        t('circles.missingInfo'),
+        t('circles.finishOnboarding')
       );
       router.replace('/community-matching' as const);
       return;
@@ -61,8 +62,8 @@ export default function MatchingOnboardingScreen() {
     } catch (error) {
       console.error('Failed to enter waitlist', error);
       Alert.alert(
-        'Something went wrong',
-        'Please try again in a moment or check your connection.'
+        t('common.somethingWentWrong'),
+        t('common.tryAgain')
       );
     } finally {
       setIsSubmitting(false);

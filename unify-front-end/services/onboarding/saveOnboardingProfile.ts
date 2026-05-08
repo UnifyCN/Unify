@@ -58,6 +58,14 @@ export const saveOnboardingProfile = async (
       onboarding_completed: data.onboarding_completed ?? false,
     };
 
+    // Only include preferred_language if the caller passed it. Omitting it
+    // keeps Postgres' column default ('en') on first INSERT, and avoids
+    // clobbering an existing value on subsequent updates from callers that
+    // don't manage language (e.g. notification toggle).
+    if (data.preferred_language !== undefined) {
+      supabaseData.preferred_language = data.preferred_language;
+    }
+
     // Add stage to the data if it was calculated
     if (calculatedStage !== null) {
       supabaseData.stage = calculatedStage;
@@ -91,6 +99,7 @@ export const saveOnboardingProfile = async (
       learning_interests: result.learning_interests || [],
       learning_interests_other: result.learning_interests_other,
       hobbies: result.hobbies || [],
+      preferred_language: result.preferred_language || 'en',
       wants_reminders: result.wants_reminders ?? false,
       onboarding_completed: result.onboarding_completed ?? false,
       onboarding_completed_at: result.onboarding_completed_at,

@@ -10,6 +10,7 @@ import {
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import { Layout, getHeaderHeight } from '@/constants/Layout';
 
@@ -35,6 +36,7 @@ export default function LegalWebView({
   onClose,
   allowedDomain = 'notion.so',
 }: LegalWebViewProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const headerHeight = getHeaderHeight(insets.top);
   const [loading, setLoading] = useState(true);
@@ -103,9 +105,9 @@ export default function LegalWebView({
         {error ? (
           <View style={styles.errorContainer}>
             <Feather name='alert-circle' size={48} color={Theme.textInput} />
-            <Text style={styles.errorText}>Couldn't load the document</Text>
+            <Text style={styles.errorText}>{t('legalWebView.couldntLoad')}</Text>
             <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-              <Text style={styles.retryButtonText}>Retry</Text>
+              <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

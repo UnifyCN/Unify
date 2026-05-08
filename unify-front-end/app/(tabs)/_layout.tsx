@@ -5,6 +5,7 @@ import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { View, Text, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
 import CommunityIcon from '@/components/icons/CommunityIcon';
@@ -41,9 +42,28 @@ export default function TabLayout() {
   const pathname = usePathname();
   const { trackTabSwitch } = useAnalytics();
   const { hapticsEnabled } = useHapticsPreference();
+  const { t } = useTranslation();
 
-  // Map route names to display names
   const getTabDisplayName = (routeName: string) => {
+    switch (routeName) {
+      case 'index':
+        return t('tabs.home');
+      case 'Gather':
+        return t('tabs.community');
+      case 'companion':
+        return t('tabs.companion');
+      case 'Checklist':
+        return t('tabs.checklist');
+      case 'Learn':
+        return t('tabs.learn');
+      default:
+        return routeName;
+    }
+  };
+
+  // Stable, locale-independent labels for analytics so PostHog event values
+  // don't fragment by user language.
+  const getTabAnalyticsLabel = (routeName: string) => {
     switch (routeName) {
       case 'index':
         return 'Home';
@@ -101,8 +121,8 @@ export default function TabLayout() {
             // Track tab switch
             if (isTabSwitch) {
               trackTabSwitch(
-                getTabDisplayName(currentTab),
-                getTabDisplayName(routeName)
+                getTabAnalyticsLabel(currentTab),
+                getTabAnalyticsLabel(routeName)
               );
             }
 
@@ -119,11 +139,11 @@ export default function TabLayout() {
         <Tabs.Screen
           name='index'
           options={{
-            title: 'Home',
+            title: t('tabs.home'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
                 IconComponent={focused ? ClickedHomeIcon : HomeIcon}
-                title='Home'
+                title={t('tabs.home')}
                 focused={focused}
               />
             ),
@@ -132,11 +152,11 @@ export default function TabLayout() {
         <Tabs.Screen
           name='Gather'
           options={{
-            title: 'Community',
+            title: t('tabs.community'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
                 IconComponent={CommunityIcon}
-                title='Community'
+                title={t('tabs.community')}
                 focused={focused}
               />
             ),
@@ -145,11 +165,11 @@ export default function TabLayout() {
         <Tabs.Screen
           name='companion'
           options={{
-            title: 'Companion',
+            title: t('tabs.companion'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
                 IconComponent={CompanionIcon}
-                title='Companion'
+                title={t('tabs.companion')}
                 focused={focused}
               />
             ),
@@ -158,11 +178,11 @@ export default function TabLayout() {
         <Tabs.Screen
           name='Checklist'
           options={{
-            title: 'Checklist',
+            title: t('tabs.checklist'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
                 IconComponent={ChecklistIcon}
-                title='Checklist'
+                title={t('tabs.checklist')}
                 focused={focused}
               />
             ),
@@ -171,11 +191,11 @@ export default function TabLayout() {
         <Tabs.Screen
           name='Learn'
           options={{
-            title: 'Learn',
+            title: t('tabs.learn'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
                 IconComponent={focused ? ClickedLearnIcon : LearnIcon}
-                title='Learn'
+                title={t('tabs.learn')}
                 focused={focused}
               />
             ),

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useFollowUser } from '@/hooks/users/useFollowUser';
 import { useFollowStatus } from '@/hooks/users/useFollowStatus';
 import { Theme } from '@/constants/Theme';
@@ -16,6 +17,7 @@ export const FollowButton = ({
   compact = false,
   source = 'profile',
 }: FollowButtonProps) => {
+  const { t } = useTranslation();
   const { data: isFollowing } = useFollowStatus(targetUserId);
   const followUserMutation = useFollowUser();
   const { trackUserFollowed, trackUserUnfollowed } = useAnalytics();
@@ -64,7 +66,7 @@ export const FollowButton = ({
       disabled={followUserMutation.isPending}
     >
       <Text style={compact ? styles.buttonTextCompact : styles.buttonText}>
-        {localIsFollowing ? (compact ? 'Following' : 'Unfollow') : 'Follow'}
+        {localIsFollowing ? (compact ? t('profile.following') : t('profile.unfollow')) : t('profile.follow')}
       </Text>
     </TouchableOpacity>
   );

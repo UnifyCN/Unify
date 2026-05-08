@@ -7,6 +7,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface SearchButtonProps {
@@ -19,18 +20,20 @@ interface SearchButtonProps {
 }
 
 export default function SearchButton({
-  placeholder = 'Search for posts and groups',
+  placeholder,
   onPress,
   style,
   placeholderStyle,
   iconSize = 20,
   iconColor = Theme.textInput,
 }: SearchButtonProps) {
+  const { t } = useTranslation();
+  const displayPlaceholder = placeholder ?? t('search.searchPlaceholder');
   return (
     <TouchableOpacity style={[styles.searchButton, style]} onPress={onPress}>
       <Feather name='search' size={iconSize} color={iconColor} />
       <Text style={[styles.searchPlaceholder, placeholderStyle]}>
-        {placeholder}
+        {displayPlaceholder}
       </Text>
     </TouchableOpacity>
   );

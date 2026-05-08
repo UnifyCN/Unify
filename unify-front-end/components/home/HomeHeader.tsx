@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter, Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell, Search } from 'lucide-react-native';
@@ -16,6 +17,7 @@ interface TabHeaderProps {
 }
 
 const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const headerHeight = getTabHeaderHeight(insets.top);
@@ -48,10 +50,10 @@ const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
               ]}
               onPress={() => router.push('/search' as any)}
               accessibilityRole='button'
-              accessibilityLabel='Open search'
+              accessibilityLabel={t('common.openSearch')}
             >
               <Search color='#999' size={18} strokeWidth={2.5} />
-              <Text style={styles.searchPlaceholder}>Search</Text>
+              <Text style={styles.searchPlaceholder}>{t('common.search')}</Text>
             </Pressable>
 
             <Pressable
@@ -61,7 +63,7 @@ const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
               ]}
               onPress={() => router.push('/notifications' as Href)}
               accessibilityRole='button'
-              accessibilityLabel='Open notifications'
+              accessibilityLabel={t('common.openNotifications')}
             >
               <View style={styles.bellWrap}>
                 <Bell
@@ -95,7 +97,7 @@ const TabHeader = ({ variant = 'full', title }: TabHeaderProps) => {
             pressed && styles.actionButtonPressed,
           ]}
           accessibilityRole='button'
-          accessibilityLabel='Open profile menu'
+          accessibilityLabel={t('common.openProfileMenu')}
         >
           <Avatar
             profilePictureUrl={currentUser?.profilePictureUrl}

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { getAvailableGroups } from '@/services/groups/getAvailableGroups';
 import { joinGroup } from '@/services/groups/joinGroup';
@@ -32,6 +33,7 @@ export default function GroupSelectionSheet({
   onGroupSelect,
   useModal = true,
 }: GroupSelectionSheetProps) {
+  const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [joiningGroupId, setJoiningGroupId] = useState<number | null>(null);
   const queryClient = useQueryClient();
@@ -98,10 +100,10 @@ export default function GroupSelectionSheet({
       handleGroupSelect(group);
     } catch (error) {
       Alert.alert(
-        'Failed to Join',
+        t('posts.failedToJoin'),
         error instanceof Error
           ? error.message
-          : 'Could not join group. Please try again.'
+          : t('posts.couldNotJoin')
       );
     } finally {
       setJoiningGroupId(null);
@@ -131,7 +133,7 @@ export default function GroupSelectionSheet({
       <View style={styles.groupInfo}>
         <Text style={styles.groupName}>{group.name}</Text>
         <Text style={styles.groupDescription} numberOfLines={2}>
-          {group.description || 'No description available'}
+          {group.description || t('common.noDescription')}
         </Text>
       </View>
       {!isJoined && (
@@ -143,7 +145,7 @@ export default function GroupSelectionSheet({
           {joiningGroupId === group.id ? (
             <ActivityIndicator size='small' color='#fff' />
           ) : (
-            <Text style={styles.joinButtonText}>Join & Post</Text>
+            <Text style={styles.joinButtonText}>{t('posts.joinAndPost')}</Text>
           )}
         </TouchableOpacity>
       )}
@@ -158,7 +160,7 @@ export default function GroupSelectionSheet({
             <Feather name='search' size={20} color={Theme.textInput} />
             <TextInput
               style={styles.searchInput}
-              placeholder='Search groups'
+              placeholder={t('groups.searchGroups')}
               placeholderTextColor={Theme.textAlternateGray}
               value={searchText}
               onChangeText={setSearchText}
@@ -172,14 +174,14 @@ export default function GroupSelectionSheet({
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size='large' color={Theme.primaryGatherRed} />
-              <Text style={styles.loadingText}>Loading groups...</Text>
+              <Text style={styles.loadingText}>{t('groups.loadingGroups')}</Text>
             </View>
           ) : (
             <>
               {/* Your Groups Section */}
               {hasJoinedGroups && (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Your Groups</Text>
+                  <Text style={styles.sectionTitle}>{t('groups.yourGroups')}</Text>
                   <View style={styles.groupsList}>
                     {filteredJoinedGroups.length > 0 ? (
                       filteredJoinedGroups.map(group =>
@@ -187,7 +189,7 @@ export default function GroupSelectionSheet({
                       )
                     ) : (
                       <Text style={styles.noResultsText}>
-                        No groups match your search
+                        {t('groups.noGroupsMatch')}
                       </Text>
                     )}
                   </View>
@@ -200,11 +202,11 @@ export default function GroupSelectionSheet({
                   <View style={styles.section}>
                     <Text style={styles.sectionTitle}>
                       {hasJoinedGroups
-                        ? 'Discover More Groups'
-                        : 'Discover Groups'}
+                        ? t('groups.discoverMore')
+                        : t('groups.discoverGroups')}
                     </Text>
                     <Text style={styles.sectionSubtitle}>
-                      Join a group to post there
+                      {t('groups.joinToPost')}
                     </Text>
                     <View style={styles.groupsList}>
                       {filteredAvailableGroups.map(group =>
@@ -222,19 +224,19 @@ export default function GroupSelectionSheet({
                     {searchText.trim() ? (
                       <>
                         <Text style={styles.emptyTitle}>
-                          No groups match your search
+                          {t('groups.noGroupsMatch')}
                         </Text>
                         <Text style={styles.emptySubtitle}>
-                          Try a different search term
+                          {t('posts.tryDifferentSearchTerm')}
                         </Text>
                       </>
                     ) : (
                       <>
                         <Text style={styles.emptyTitle}>
-                          No groups available
+                          {t('posts.noGroupsAvailable')}
                         </Text>
                         <Text style={styles.emptySubtitle}>
-                          Check back later for new groups to join!
+                          {t('posts.checkBackLaterForNewGroups')}
                         </Text>
                       </>
                     )}

@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import LessonPageSkeletonLoader from '@/components/learn/lesson-page-skeleton-loader/LessonPageSkeletonLoader';
 
 export default function LessonIndex() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
     moduleId: string;
@@ -36,7 +38,7 @@ export default function LessonIndex() {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.loading}>
-        <Text>Redirecting to lesson...</Text>
+        <Text>{t('learn.lesson.redirecting')}</Text>
       </View>
     </SafeAreaView>
   );

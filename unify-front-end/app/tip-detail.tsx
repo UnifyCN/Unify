@@ -7,17 +7,19 @@ import {
   Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import BackHeader from '@/components/BackHeader';
 import { CATEGORY_CONFIG } from '@/components/tips/DailyTipCard';
 import { DailyTip } from '@/types/dailyTip';
 import { Theme } from '@/constants/Theme';
+import i18n from '@/i18n';
 
 const formatDate = (dateString: string): string => {
   try {
     const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(i18n.language, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -44,6 +46,7 @@ function isDailyTip(value: unknown): value is DailyTip {
 }
 
 const TipDetailScreen = () => {
+  const { t } = useTranslation();
   const { tip } = useLocalSearchParams<{ tip: string }>();
   const router = useRouter();
 
@@ -64,7 +67,7 @@ const TipDetailScreen = () => {
       <View style={styles.container}>
         <BackHeader title='' />
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Tip not found</Text>
+          <Text style={styles.errorText}>{t('tips.tipNotFound')}</Text>
         </View>
       </View>
     );
@@ -131,7 +134,7 @@ const TipDetailScreen = () => {
         {/* Source References */}
         {tipData.sourceRefs && tipData.sourceRefs.length > 0 && (
           <View style={styles.sourcesSection}>
-            <Text style={styles.sourcesTitle}>Sources</Text>
+            <Text style={styles.sourcesTitle}>{t('tips.sources')}</Text>
             {tipData.sourceRefs.map((ref, index) => (
               <TouchableOpacity
                 key={index}
@@ -161,7 +164,7 @@ const TipDetailScreen = () => {
           onPress={() => router.push('/past-tips' as any)}
           activeOpacity={0.7}
         >
-          <Text style={styles.pastTipsText}>See past tips</Text>
+          <Text style={styles.pastTipsText}>{t('tips.seePastTips')}</Text>
           <Feather name='chevron-right' size={16} color={Theme.surfaceBlue} />
         </TouchableOpacity>
       </ScrollView>

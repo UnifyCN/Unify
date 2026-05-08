@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import { Layout, getHeaderHeight } from '@/constants/Layout';
 
@@ -198,6 +199,7 @@ export default function SourceViewer({
   sourceTitle,
   onClose,
 }: SourceViewerProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const headerHeight = getHeaderHeight(insets.top);
   const [loading, setLoading] = useState(true);
@@ -306,7 +308,7 @@ export default function SourceViewer({
           {loading && (
             <View style={styles.centerContainer}>
               <ActivityIndicator size='large' color={Theme.surfaceBlue} />
-              <Text style={styles.loadingText}>Loading source...</Text>
+              <Text style={styles.loadingText}>{t('companion.loadingSource')}</Text>
             </View>
           )}
 
@@ -319,19 +321,19 @@ export default function SourceViewer({
                 style={styles.errorIcon}
               />
               <Text style={styles.errorText}>
-                Failed to load source document
+                {t('companion.failedLoadSource')}
               </Text>
               <TouchableOpacity
                 onPress={handleRetry}
                 style={styles.retryButton}
               >
-                <Text style={styles.retryButtonText}>Retry</Text>
+                <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleOpenInBrowser}
                 style={styles.browserLinkButton}
               >
-                <Text style={styles.browserLinkText}>Open in Browser</Text>
+                <Text style={styles.browserLinkText}>{t('companion.openInBrowser')}</Text>
               </TouchableOpacity>
             </View>
           )}

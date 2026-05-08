@@ -1,3 +1,5 @@
+import i18n from '@/i18n';
+
 const formatSocialMediaTime = (timestamp: string | Date): string => {
   const now = new Date();
   const postDate = new Date(timestamp);
@@ -5,35 +7,34 @@ const formatSocialMediaTime = (timestamp: string | Date): string => {
 
   // Less than 1 minute
   if (diffInSeconds < 60) {
-    return 'Just now';
+    return i18n.t('common.justNow');
   }
 
   // Less than 1 hour
   if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
-    return `${minutes}m`;
+    return i18n.t('common.minutesShort', { count: minutes });
   }
 
   // Less than 24 hours
   if (diffInSeconds < 86400) {
     const hours = Math.floor(diffInSeconds / 3600);
-    return `${hours}h`;
+    return i18n.t('common.hoursShort', { count: hours });
   }
 
   // Less than 7 days
   const diffInDays = Math.floor(diffInSeconds / 86400);
   if (diffInDays < 7) {
-    return `${diffInDays}d ago`;
+    return i18n.t('common.daysAgo', { count: diffInDays });
   }
 
   // Less than 6 weeks (42 days)
   if (diffInDays < 42) {
     const weeks = Math.floor(diffInDays / 7);
     if (weeks === 1) {
-      return '1 week ago';
-    } else {
-      return `${weeks} weeks ago`;
+      return i18n.t('common.weekAgo');
     }
+    return i18n.t('common.weeksAgo', { count: weeks });
   }
 
   // After 6 weeks, display pure date in yy-mm-dd format
@@ -50,14 +51,14 @@ const formatAbsoluteDate = (timestamp: string | Date): string => {
 
   // If it's this year, show month and day
   if (postDate.getFullYear() === now.getFullYear()) {
-    return postDate.toLocaleDateString('en-US', {
+    return postDate.toLocaleDateString(i18n.language, {
       month: 'short',
       day: 'numeric',
     });
   }
 
   // If it's a different year, show month, day, and year
-  return postDate.toLocaleDateString('en-US', {
+  return postDate.toLocaleDateString(i18n.language, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

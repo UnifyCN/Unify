@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import Like from '@/assets/images/Like.svg';
@@ -62,6 +63,7 @@ const PostCommentItem = memo(
     onReply,
     isReply = false,
   }: PostCommentItemProps) => {
+    const { t } = useTranslation();
     const { currentUser } = useCurrentUser();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
     const [repliesExpanded, setRepliesExpanded] = useState(false);
@@ -89,16 +91,16 @@ const PostCommentItem = memo(
 
     const handleDeleteComment = useCallback(() => {
       Alert.alert(
-        'Delete Comment',
-        'Are you sure you want to delete this comment? This action cannot be undone.',
+        t('home.deleteComment'),
+        t('home.deleteCommentConfirm'),
         [
           {
-            text: 'Cancel',
+            text: t('common.cancel'),
             style: 'cancel',
             onPress: () => setDeleteModalVisible(false),
           },
           {
-            text: 'Delete',
+            text: t('common.delete'),
             style: 'destructive',
             onPress: () => {
               deleteCommentMutation.mutate(
@@ -109,8 +111,8 @@ const PostCommentItem = memo(
                   },
                   onError: error => {
                     Alert.alert(
-                      'Error',
-                      error.message || 'Failed to delete comment'
+                      t('common.error'),
+                      error.message || t('home.failedDeleteComment')
                     );
                   },
                 }
@@ -119,7 +121,7 @@ const PostCommentItem = memo(
           },
         ]
       );
-    }, [comment.id, comment.post_id, deleteCommentMutation]);
+    }, [comment.id, comment.post_id, deleteCommentMutation, t]);
 
     // Use batch-loaded metadata
     const likeCount = metadata?.likeCount ?? 0;
@@ -127,8 +129,8 @@ const PostCommentItem = memo(
 
     const replyCount = replies?.length ?? 0;
     const replyToggleLabel = repliesExpanded
-      ? 'Hide replies'
-      : `View ${replyCount} ${replyCount === 1 ? 'reply' : 'replies'}`;
+      ? t('home.hideReplies')
+      : t('home.viewReplies', { count: replyCount });
 
     const avatarSize = isReply ? 32 : 40;
 
@@ -224,7 +226,7 @@ const PostCommentItem = memo(
                   style={styles.replyButton}
                   hitSlop={6}
                 >
-                  <Text style={styles.replyButtonText}>Reply</Text>
+                  <Text style={styles.replyButtonText}>{t('home.reply')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -297,14 +299,14 @@ const PostCommentItem = memo(
                     style={styles.optionIcon}
                   />
                   <Text style={[styles.modalOptionText, styles.deleteText]}>
-                    Delete Comment
+                    {t('home.deleteComment')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => setDeleteModalVisible(false)}
                 >
-                  <Text style={styles.modalOptionText}>Cancel</Text>
+                  <Text style={styles.modalOptionText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
               </Pressable>
             </View>

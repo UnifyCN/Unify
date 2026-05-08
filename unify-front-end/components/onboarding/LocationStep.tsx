@@ -10,12 +10,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import {
   CANADIAN_CITIES,
   CANADIAN_PROVINCES,
   getProvinceForCity,
 } from '@/constants/LocationData';
+
+const OTHER_CITY_SENTINEL = '__other__';
 
 interface LocationStepProps {
   selectedCity: string | null;
@@ -32,6 +35,7 @@ export default function LocationStep({
   onProvinceChange,
   error,
 }: LocationStepProps) {
+  const { t } = useTranslation();
   const [showCityModal, setShowCityModal] = useState(false);
   const [showProvinceModal, setShowProvinceModal] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
@@ -45,16 +49,17 @@ export default function LocationStep({
     : null;
   const displayProvince = autoFilledProvince || selectedProvince;
 
-  const filteredCities = [...CANADIAN_CITIES, 'Other (specify)'].filter(city =>
-    city.toLowerCase().includes(citySearchQuery.toLowerCase())
-  );
+  const filteredCities = [...CANADIAN_CITIES, OTHER_CITY_SENTINEL].filter(city => {
+    const label = city === OTHER_CITY_SENTINEL ? t('onboarding.otherSpecify') : city;
+    return label.toLowerCase().includes(citySearchQuery.toLowerCase());
+  });
 
   const filteredProvinces = CANADIAN_PROVINCES.filter(province =>
     province.toLowerCase().includes(provinceSearchQuery.toLowerCase())
   );
 
   const handleCitySelect = (city: string) => {
-    if (city === 'Other (specify)') {
+    if (city === OTHER_CITY_SENTINEL) {
       setIsOtherSelected(true);
       setCustomCity('');
       // Don't call onCityChange yet — wait for user to type a custom city
@@ -81,12 +86,12 @@ export default function LocationStep({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.question}>Where are you located in Canada?</Text>
+      <Text style={styles.question}>{t('onboarding.locationQuestion')}</Text>
       {error && <Text style={styles.errorText}>{error}</Text>}
 
       {/* City Dropdown */}
       <View style={styles.fieldWrapper}>
-        <Text style={styles.label}>City</Text>
+        <Text style={styles.label}>{t('onboarding.city')}</Text>
         <TouchableOpacity
           style={[
             styles.dropdown,
@@ -102,8 +107,8 @@ export default function LocationStep({
             ]}
           >
             {isOtherSelected
-              ? (customCity?.trim() || 'Other (specify below)')
-              : selectedCity || 'Select a city'}
+              ? (customCity?.trim() || t('onboarding.otherSpecifyBelow'))
+              : selectedCity || t('onboarding.selectCity')}
           </Text>
           <Feather name='chevron-down' size={20} color={Theme.textInput} />
         </TouchableOpacity>
@@ -114,7 +119,7 @@ export default function LocationStep({
         <View style={styles.fieldWrapper}>
           <TextInput
             style={styles.customInput}
-            placeholder='Enter your city'
+            placeholder={t('onboarding.enterCity')}
             value={customCity || ''}
             onChangeText={handleCustomCityChange}
             placeholderTextColor={Theme.textInput}
@@ -124,7 +129,7 @@ export default function LocationStep({
 
       {/* Province Dropdown */}
       <View style={styles.fieldWrapper}>
-        <Text style={styles.label}>Province</Text>
+        <Text style={styles.label}>{t('onboarding.province')}</Text>
         <TouchableOpacity
           style={[
             styles.dropdown,
@@ -142,13 +147,13 @@ export default function LocationStep({
               autoFilledProvince && styles.autoFilledText,
             ]}
           >
-            {displayProvince || 'Select a province'}
+            {displayProvince || t('onboarding.selectProvince')}
           </Text>
           {!autoFilledProvince && (
             <Feather name='chevron-down' size={20} color={Theme.textInput} />
           )}
           {autoFilledProvince && (
-            <Text style={styles.autoFilledBadge}>Auto-filled</Text>
+            <Text style={styles.autoFilledBadge}>{t('onboarding.autoFilled')}</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -163,7 +168,7 @@ export default function LocationStep({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select a City</Text>
+              <Text style={styles.modalTitle}>{t('onboarding.selectCity')}</Text>
               <TouchableOpacity onPress={() => setShowCityModal(false)}>
                 <Feather name='x' size={24} color={Theme.black} />
               </TouchableOpacity>
@@ -171,7 +176,7 @@ export default function LocationStep({
 
             <TextInput
               style={styles.searchInput}
-              placeholder='Search cities...'
+              placeholder={t('onboarding.searchCities')}
               value={citySearchQuery}
               onChangeText={setCitySearchQuery}
               placeholderTextColor={Theme.textInput}
@@ -180,24 +185,31 @@ export default function LocationStep({
             <FlatList
               data={filteredCities}
               keyExtractor={item => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.modalOption,
-                    selectedCity === item && styles.modalOptionSelected,
-                  ]}
-                  onPress={() => handleCitySelect(item)}
-                >
-                  <Text
+              renderItem={({ item }) => {
+                const isOther = item === OTHER_CITY_SENTINEL;
+                const label = isOther ? t('onboarding.otherSpecify') : item;
+                const isSelected = isOther
+                  ? isOtherSelected
+                  : selectedCity === item;
+                return (
+                  <TouchableOpacity
                     style={[
-                      styles.modalOptionText,
-                      selectedCity === item && styles.modalOptionTextSelected,
+                      styles.modalOption,
+                      isSelected && styles.modalOptionSelected,
                     ]}
+                    onPress={() => handleCitySelect(item)}
                   >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              )}
+                    <Text
+                      style={[
+                        styles.modalOptionText,
+                        isSelected && styles.modalOptionTextSelected,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
             />
           </View>
         </View>
@@ -214,7 +226,7 @@ export default function LocationStep({
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Select a Province</Text>
+                <Text style={styles.modalTitle}>{t('onboarding.selectProvince')}</Text>
                 <TouchableOpacity onPress={() => setShowProvinceModal(false)}>
                   <Feather name='x' size={24} color={Theme.black} />
                 </TouchableOpacity>
@@ -222,7 +234,7 @@ export default function LocationStep({
 
               <TextInput
                 style={styles.searchInput}
-                placeholder='Search provinces...'
+                placeholder={t('onboarding.searchProvinces')}
                 value={provinceSearchQuery}
                 onChangeText={setProvinceSearchQuery}
                 placeholderTextColor={Theme.textInput}

@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { Layout } from '@/constants/Layout';
 import { supabase } from '@/lib/supabase';
 import { createCustomChecklistTask } from '@/services/checklist/customChecklistTasks';
@@ -37,6 +38,7 @@ const PRIORITY_COLORS: Record<
 export default function CreateCustomItemScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [priority, setPriority] = useState<CustomPriority>('Do now');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -55,7 +57,7 @@ export default function CreateCustomItemScreen() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        Alert.alert('Error', 'Please sign in and try again.');
+        Alert.alert(t('common.error'), t('common.errorSignIn'));
         return;
       }
 
@@ -69,7 +71,7 @@ export default function CreateCustomItemScreen() {
       await invalidateChecklistTasksQueries(queryClient);
       router.back();
     } catch (error) {
-      Alert.alert('Error', 'Unable to create checklist item right now.');
+      Alert.alert(t('common.error'), t('common.errorGeneric'));
       console.error('Error creating custom checklist task:', error);
     } finally {
       setIsSaving(false);
@@ -90,7 +92,7 @@ export default function CreateCustomItemScreen() {
         >
           <MaterialIcons name='close' size={24} color='#111' />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>New Checklist Item</Text>
+        <Text style={styles.headerTitle}>{t('checklist.createItem.headerTitle')}</Text>
         <TouchableOpacity
           onPress={handleSave}
           disabled={!isFormValid || isSaving}
@@ -105,12 +107,12 @@ export default function CreateCustomItemScreen() {
               (!isFormValid || isSaving) && styles.saveButtonTextDisabled,
             ]}
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {isSaving ? t('common.saving') : t('common.save')}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.sectionLabel}>Category</Text>
+      <Text style={styles.sectionLabel}>{t('checklist.createItem.categoryLabel')}</Text>
       <View style={styles.priorityContainer}>
         {PRIORITY_OPTIONS.map(option => {
           const selected = priority === option;
@@ -135,21 +137,21 @@ export default function CreateCustomItemScreen() {
         })}
       </View>
 
-      <Text style={styles.sectionLabel}>Title</Text>
+      <Text style={styles.sectionLabel}>{t('checklist.createItem.titleLabel')}</Text>
       <TextInput
         value={title}
         onChangeText={setTitle}
-        placeholder='Add a short title'
+        placeholder={t('checklist.createItem.titlePlaceholder')}
         placeholderTextColor='#8E8E93'
         style={styles.input}
         maxLength={120}
       />
 
-      <Text style={styles.sectionLabel}>Short description (optional)</Text>
+      <Text style={styles.sectionLabel}>{t('checklist.createItem.descriptionLabel')}</Text>
       <TextInput
         value={description}
         onChangeText={setDescription}
-        placeholder='Add details'
+        placeholder={t('checklist.createItem.descriptionPlaceholder')}
         placeholderTextColor='#8E8E93'
         multiline
         style={[styles.input, styles.descriptionInput]}
@@ -160,7 +162,7 @@ export default function CreateCustomItemScreen() {
         onPress={() => router.back()}
         style={styles.cancelButton}
       >
-        <Text style={styles.cancelButtonText}>Cancel</Text>
+        <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
       </TouchableOpacity>
     </View>
   );

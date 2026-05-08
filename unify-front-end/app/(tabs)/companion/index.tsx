@@ -41,6 +41,7 @@ import SendIcon from '@/components/icons/SendIcon.svg';
 import BlueDottedLine from '@/assets/images/blue-dotted.svg';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarters';
 import { AICompanionBusyError } from '@/utils/gemini';
@@ -74,6 +75,7 @@ const isSendButtonDisabled = (
 };
 
 export default function CompanionScreen() {
+  const { t } = useTranslation();
   const { data: personalization } = usePersonalizedStarters();
   const { conversationId } = useLocalSearchParams<{
     conversationId?: string;
@@ -322,7 +324,7 @@ export default function CompanionScreen() {
     if (prompt === '' && !mode) {
       const greeting: Message = {
         id: 'greeting-' + Date.now(),
-        text: 'Hey there, how can I help?',
+        text: t('companion.greeting'),
         isUser: false,
         timestamp: new Date(),
       };
@@ -336,7 +338,7 @@ export default function CompanionScreen() {
     if (mode === 'form_help') {
       const formGreeting: Message = {
         id: 'form-greeting-' + Date.now(),
-        text: 'Which form are you working on?',
+        text: t('companion.formGreeting'),
         isUser: false,
         timestamp: new Date(),
       };
@@ -417,7 +419,7 @@ export default function CompanionScreen() {
       <View style={styles.contentWrapper}>
         {/* Header */}
         <CompanionHeader
-          title='AI Companion'
+          title={t('companion.title')}
           showBackButton={false}
           leftButton={
             <Pressable
@@ -426,7 +428,7 @@ export default function CompanionScreen() {
                 trackCompanionHistoryViewed();
               }}
               accessibilityRole='button'
-              accessibilityLabel='Open conversation history'
+              accessibilityLabel={t('companion.openHistory')}
               style={({ pressed }) => [
                 styles.headerButton,
                 pressed && styles.headerButtonPressed,
@@ -444,7 +446,7 @@ export default function CompanionScreen() {
             <Pressable
               onPress={handleNewChatPress}
               accessibilityRole='button'
-              accessibilityLabel='Start a new chat'
+              accessibilityLabel={t('companion.newChat')}
               style={({ pressed }) => [
                 styles.headerButton,
                 pressed && styles.headerButtonPressed,
@@ -476,9 +478,9 @@ export default function CompanionScreen() {
               />
             </View>
             <Text style={styles.heroTitle}>
-              I'm here to simplify your journey.
+              {t('companion.heroTitle')}
             </Text>
-            <Text style={styles.heroSubtitle}>How can I help you?</Text>
+            <Text style={styles.heroSubtitle}>{t('companion.heroSubtitle')}</Text>
           </View>
         ) : (
           <FlatList
@@ -521,7 +523,7 @@ export default function CompanionScreen() {
               value={inputText}
               onChangeText={setInputText}
               placeholder={
-                canSend ? 'Type your message...' : 'Daily limit reached'
+                canSend ? t('companion.inputPlaceholder') : t('companion.dailyLimitReached')
               }
               placeholderTextColor='#999'
               multiline
@@ -551,7 +553,7 @@ export default function CompanionScreen() {
           {/* Disclaimer */}
           <View style={styles.disclaimerContainer}>
             <Text style={styles.disclaimerText}>
-              AI Companion can make mistakes, check important info.
+              {t('companion.disclaimer')}
             </Text>
           </View>
         </View>

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import type { RedeemGroup } from '@/services/referrals/redeemReferral';
 
@@ -22,11 +23,12 @@ export function GroupCarryoverList({
   selected,
   onToggle,
 }: GroupCarryoverListProps) {
+  const { t } = useTranslation();
   if (groups.length === 0) return null;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>{inviterName} is in these groups</Text>
+      <Text style={styles.heading}>{t('referrals.isInGroups', { name: inviterName })}</Text>
       {groups.map(g => {
         const isSelected = selected.has(g.id);
         return (
@@ -39,7 +41,7 @@ export function GroupCarryoverList({
             accessibilityState={{ checked: isSelected }}
             accessibilityLabel={`${g.name}${
               g.member_count != null
-                ? `, ${g.member_count} ${g.member_count === 1 ? 'member' : 'members'}`
+                ? `, ${t('common.memberCount', { count: g.member_count })}`
                 : ''
             }`}
           >
@@ -54,7 +56,7 @@ export function GroupCarryoverList({
               </Text>
               {g.member_count != null ? (
                 <Text style={styles.rowMembers}>
-                  {g.member_count} {g.member_count === 1 ? 'member' : 'members'}
+                  {t('common.memberCount', { count: g.member_count })}
                 </Text>
               ) : null}
             </View>

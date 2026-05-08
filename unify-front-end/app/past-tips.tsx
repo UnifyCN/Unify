@@ -1,5 +1,6 @@
 import { StyleSheet, View, FlatList, Text } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import { DailyTipCard } from '@/components/tips/DailyTipCard';
 import { DailyTip } from '@/types/dailyTip';
@@ -9,6 +10,7 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { Feather } from '@expo/vector-icons';
 
 const PastTipsScreen = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { data: tips, isLoading } = usePastTips();
 
@@ -29,9 +31,9 @@ const PastTipsScreen = () => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <BackHeader title='Past Tips' />
+        <BackHeader title={t('tips.pastTips')} />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading tips...</Text>
+          <Text style={styles.loadingText}>{t('tips.loading')}</Text>
         </View>
       </View>
     );
@@ -40,11 +42,11 @@ const PastTipsScreen = () => {
   if (!tips || tips.length === 0) {
     return (
       <View style={styles.container}>
-        <BackHeader title='Past Tips' />
+        <BackHeader title={t('tips.pastTips')} />
         <View style={styles.emptyContainer}>
           <EmptyFeedMessage
             icon={<Feather name='sun' size={24} color='#B4B1B1' />}
-            message='No tips yet'
+            message={t('tips.noTips')}
             submessage={
               <Text
                 style={{
@@ -54,7 +56,7 @@ const PastTipsScreen = () => {
                   lineHeight: 20,
                 }}
               >
-                Check back tomorrow for your first daily tip!
+                {t('tips.checkBackTomorrow')}
               </Text>
             }
           />
@@ -65,7 +67,7 @@ const PastTipsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Past Tips' />
+      <BackHeader title={t('tips.pastTips')} />
       <FlatList
         data={tips}
         renderItem={renderTipCard}

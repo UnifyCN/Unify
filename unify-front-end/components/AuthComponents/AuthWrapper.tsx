@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import i18n from '@/i18n';
 import { SignIn } from './SignIn';
 import { SignUp } from './SignUp';
 import WelcomeScreen from './WelcomeScreen';
@@ -55,7 +56,7 @@ async function updateUserLegalAcceptance(userId: string): Promise<void> {
 
   if (error) {
     console.error('Error updating legal acceptance:', error);
-    throw new Error('Failed to save your acceptance. Please try again.');
+    throw new Error(i18n.t('auth.legal.failedSaveAcceptance'));
   }
 }
 

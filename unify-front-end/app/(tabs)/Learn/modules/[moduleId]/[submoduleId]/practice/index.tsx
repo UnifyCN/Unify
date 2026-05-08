@@ -7,10 +7,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSanityPractices } from '@/hooks/sanity/useSanityPractices';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
 
 export default function PracticeEntryScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
@@ -64,7 +66,7 @@ export default function PracticeEntryScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <ActivityIndicator size='large' color='#10B981' />
-          <Text style={styles.loadingText}>Loading practice...</Text>
+          <Text style={styles.loadingText}>{t('learn.practice.loadingPractice')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -75,7 +77,7 @@ export default function PracticeEntryScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <Text style={styles.errorText}>
-            {error.message || 'Failed to load practice'}
+            {error.message || t('learn.practice.failedToLoad')}
           </Text>
         </View>
       </SafeAreaView>
@@ -91,7 +93,7 @@ export default function PracticeEntryScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <Text style={styles.emptyText}>
-            No practice items for this section yet.
+            {t('learn.practice.noPractice')}
           </Text>
         </View>
       </SafeAreaView>
@@ -102,7 +104,7 @@ export default function PracticeEntryScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.center}>
         <ActivityIndicator size='large' color='#10B981' />
-        <Text style={styles.loadingText}>Opening practice...</Text>
+        <Text style={styles.loadingText}>{t('learn.practice.opening')}</Text>
       </View>
     </SafeAreaView>
   );

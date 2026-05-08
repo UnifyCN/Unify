@@ -7,6 +7,7 @@ import {
   RefreshControl,
   FlatList,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -39,6 +40,7 @@ import GroupMembersSheet from '@/components/groups/GroupMembersSheet';
 const DESTRUCTIVE_RED = '#DC3545';
 
 const GroupDetailScreen = () => {
+  const { t } = useTranslation();
   const isFocused = useIsFocused();
   const { group, groupName } = useLocalSearchParams();
   const [groupData, setGroupData] = useState<Group | null>(
@@ -276,7 +278,7 @@ const GroupDetailScreen = () => {
     return (
       <View style={styles.container}>
         <BackHeader />
-        <Text style={styles.loadingText}>Group not found</Text>
+        <Text style={styles.loadingText}>{t('groups.groupNotFound')}</Text>
       </View>
     );
   }
@@ -328,13 +330,12 @@ const GroupDetailScreen = () => {
                 style={styles.metadataIcon}
               />
               <Text style={styles.metadataText}>
-                {groupData.memberCount}{' '}
-                {groupData.memberCount === 1 ? 'member' : 'members'}
+                {t('common.memberCount', { count: groupData.memberCount })}
               </Text>
               {isMember && (
                 <View style={styles.memberBadge}>
                   <Feather name='check-circle' size={14} color='#4CAF50' />
-                  <Text style={styles.memberBadgeText}>Joined</Text>
+                  <Text style={styles.memberBadgeText}>{t('groups.joined')}</Text>
                 </View>
               )}
             </View>
@@ -362,18 +363,18 @@ const GroupDetailScreen = () => {
               <Text style={styles.ctaButtonText}>
                 {joining
                   ? isMember
-                    ? 'Leaving...'
-                    : 'Joining...'
+                    ? t('groups.leaving')
+                    : t('groups.joining')
                   : isMember
-                    ? 'Leave Group'
-                    : 'Join Group'}
+                    ? t('groups.leaveGroup')
+                    : t('groups.joinGroup')}
               </Text>
             </TouchableOpacity>
 
             {/* About Group */}
             {groupData.description && (
               <>
-                <Text style={styles.aboutTitle}>About</Text>
+                <Text style={styles.aboutTitle}>{t('groups.about')}</Text>
                 <Text style={styles.aboutText}>{groupData.description}</Text>
               </>
             )}
@@ -387,7 +388,7 @@ const GroupDetailScreen = () => {
           return (
             <EmptyFeedMessage
               icon={<UnifyReplyIcon width={27} height={25} />}
-              message='Looks a little quiet here...'
+              message={t('groups.emptyGroup')}
               submessage={
                 <Text
                   style={{
@@ -397,7 +398,7 @@ const GroupDetailScreen = () => {
                     lineHeight: 20,
                   }}
                 >
-                  Be the first one to post!
+                  {t('groups.beFirstPost')}
                 </Text>
               }
             />

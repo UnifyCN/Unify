@@ -1,21 +1,32 @@
+import i18n from '@/i18n';
+
+// Helpers below intentionally read from the i18n singleton (i18n.t / i18n.language)
+// rather than taking a TFunction param. Components that render strings produced by
+// these helpers should call useTranslation() so they re-render on language change —
+// every current call site already does, since they render translated text alongside.
+
 export const formatRelativeTime = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
+  // Future timestamps would otherwise produce negative counts; clamp to 0.
+  const diffMs = Math.max(0, now.getTime() - date.getTime());
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  if (diffMins < 1) return i18n.t('common.justNow');
+  if (diffMins < 60) return i18n.t('common.minutesAgo', { count: diffMins });
+  if (diffHours < 24) return i18n.t('common.hoursAgo', { count: diffHours });
+  if (diffDays < 7) return i18n.t('common.daysAgo', { count: diffDays });
+  return date.toLocaleDateString(i18n.language, {
+    month: 'short',
+    day: 'numeric',
+  });
 };
 
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(i18n.language, {
     month: 'long',
     day: 'numeric',
   });
@@ -23,7 +34,7 @@ export const formatDate = (dateString: string) => {
 
 export const formatTime = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', {
+  return date.toLocaleTimeString(i18n.language, {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -35,7 +46,7 @@ export const formatEventDate = (dateString: string) => {
     return '';
   }
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(i18n.language, {
     month: 'long',
     day: 'numeric',
     year: 'numeric',

@@ -7,11 +7,13 @@ import {
   ViewContainer,
 } from '@/components/AuthComponents/Components';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import { useRouter } from 'expo-router';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -31,7 +33,7 @@ export default function ResetPasswordPage() {
 
     // Validate passwords match
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'Passwords do not match' });
+      setMessage({ type: 'error', text: t('resetPassword.passwordsDoNotMatch') });
       setLoading(false);
       return;
     }
@@ -40,7 +42,7 @@ export default function ResetPasswordPage() {
     if (!validatePassword(newPassword)) {
       setMessage({
         type: 'error',
-        text: 'Password must be at least 8 characters long',
+        text: t('resetPassword.passwordTooShort'),
       });
       setLoading(false);
       return;
@@ -56,7 +58,7 @@ export default function ResetPasswordPage() {
       } else {
         setMessage({
           type: 'success',
-          text: 'Password has been reset successfully',
+          text: t('resetPassword.success'),
         });
         // Redirect to sign in after a short delay
         setTimeout(() => {
@@ -66,7 +68,7 @@ export default function ResetPasswordPage() {
     } catch (error) {
       setMessage({
         type: 'error',
-        text: 'An error occurred while resetting your password',
+        text: t('resetPassword.error'),
       });
     } finally {
       setLoading(false);
@@ -76,21 +78,21 @@ export default function ResetPasswordPage() {
   return (
     <ViewContainer style={styles.container}>
       <BackHeader
-        title='Reset Password'
+        title={t('resetPassword.title')}
         onBack={() => router.back()}
         backIcon='x'
       />
 
       <View style={styles.content}>
-        <Text style={styles.description}>Enter your new password below.</Text>
+        <Text style={styles.description}>{t('resetPassword.description')}</Text>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>New Password</Text>
+          <Text style={styles.label}>{t('resetPassword.newPassword')}</Text>
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={newPassword}
               onChangeText={setNewPassword}
-              placeholder='New password'
+              placeholder={t('resetPassword.newPasswordPlaceholder')}
               style={[
                 styles.textField,
                 message?.type === 'error' && { borderColor: '#f00' },
@@ -112,12 +114,12 @@ export default function ResetPasswordPage() {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Confirm Password</Text>
+          <Text style={styles.label}>{t('resetPassword.confirmPassword')}</Text>
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder='Confirm password'
+              placeholder={t('resetPassword.confirmPasswordPlaceholder')}
               style={[
                 styles.textField,
                 message?.type === 'error' && { borderColor: '#f00' },
@@ -148,7 +150,7 @@ export default function ResetPasswordPage() {
           style={styles.button}
           labelStyle={styles.buttonText}
         >
-          Reset Password
+          {t('resetPassword.title')}
         </SubmitButton>
       </View>
     </ViewContainer>

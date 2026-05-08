@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { LinkProps } from 'expo-router';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import Blob3 from '../../assets/images/Blob3.svg';
 import Blob8 from '../../assets/images/Blob8.svg';
 import Blob10 from '../../assets/images/Blob10.svg';
@@ -66,6 +67,7 @@ export default function PathwayCard({
   moduleId,
   progress = 'not_started',
 }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const { trackModuleCardClicked } = useAnalytics();
   const backgroundColor = colorTheme || '#d9d9d9';
@@ -123,13 +125,13 @@ export default function PathwayCard({
         {isInProgress && (
           <View style={styles.progressBadge}>
             <View style={styles.progressDot} />
-            <Text style={styles.progressBadgeText}>Continue</Text>
+            <Text style={styles.progressBadgeText}>{t('learn.pathwayCard.continue')}</Text>
           </View>
         )}
         {isCompleted && (
           <View style={[styles.progressBadge, styles.completedBadge]}>
             <Feather name='check' size={10} color='#FFFFFF' />
-            <Text style={styles.progressBadgeText}>Done</Text>
+            <Text style={styles.progressBadgeText}>{t('learn.pathwayCard.done')}</Text>
           </View>
         )}
 

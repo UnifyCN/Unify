@@ -11,6 +11,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import KeyboardAvoidingView from '@/components/common/KeyboardAvoidingView';
 import { useMutateCreatePost } from '@/hooks/posts/useCreatePost';
 import GroupSelectionSheet from './GroupSelectionSheet';
@@ -79,6 +80,7 @@ export default function CreatePostForm({
   onCancel,
   onSuccessNavigate,
 }: Readonly<CreatePostFormProps>) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -121,23 +123,23 @@ export default function CreatePostForm({
 
   const handleSubmit = async () => {
     if (!trimmedTitle || !trimmedContent) {
-      Alert.alert('Error', 'Please fill in title and content');
+      Alert.alert(t('common.error'), t('posts.fillTitleContent'));
       return;
     }
     if (destination === 'group' && !selectedGroup) {
-      Alert.alert('Error', 'Please select a group to post to');
+      Alert.alert(t('common.error'), t('posts.selectGroupToPost'));
       return;
     }
 
     // Check content against banned words filter
     const titleCheck = isContentAllowed(trimmedTitle);
-    if (!titleCheck.allowed) {
-      Alert.alert('Content Not Allowed', titleCheck.reason);
+    if (!titleCheck.allowed && titleCheck.reasonKey) {
+      Alert.alert(t('posts.contentNotAllowed'), t(titleCheck.reasonKey));
       return;
     }
     const contentCheck = isContentAllowed(trimmedContent);
-    if (!contentCheck.allowed) {
-      Alert.alert('Content Not Allowed', contentCheck.reason);
+    if (!contentCheck.allowed && contentCheck.reasonKey) {
+      Alert.alert(t('posts.contentNotAllowed'), t(contentCheck.reasonKey));
       return;
     }
 
@@ -153,10 +155,10 @@ export default function CreatePostForm({
           .filter(r => r.success && r.key)
           .map(r => r.key!);
         if (post_image_urls.length !== images.length) {
-          Alert.alert('Warning', 'Some images failed to upload.');
+          Alert.alert(t('posts.warning'), t('posts.imageUploadPartial'));
         }
       } catch (e) {
-        Alert.alert('Error', 'Failed to upload images. Please try again.');
+        Alert.alert(t('common.error'), t('posts.imageUploadFailed'));
         setIsUploadingImages(false);
         return;
       } finally {
@@ -176,8 +178,8 @@ export default function CreatePostForm({
           trackPostCreated(data?.id ? String(data.id) : undefined);
           const postedToGroup = destination === 'group' && selectedGroup;
           const toastMessage = postedToGroup
-            ? `Posted to ${selectedGroup.name}`
-            : 'Posted to For You';
+            ? t('posts.postedTo', { name: selectedGroup.name })
+            : t('posts.postedToForYou');
           const groupToNavigate = selectedGroup;
           resetForm();
           showToast(toastMessage);
@@ -193,7 +195,7 @@ export default function CreatePostForm({
             ...(destination === 'group' &&
               selectedGroup && { group_id: String(selectedGroup.id) }),
           });
-          Alert.alert('Error', 'Failed to create post. Please try again.');
+          Alert.alert(t('common.error'), t('posts.createPostFailed'));
         },
       }
     );
@@ -229,9 +231,9 @@ export default function CreatePostForm({
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status === 'denied') {
         Alert.alert(
-          'Camera Access Denied',
-          'Unify needs camera access to take a photo for your post. You can enable it in your device settings, or use the gallery instead.',
-          [{ text: 'OK' }]
+          t('posts.cameraAccessDeniedTitle'),
+          t('posts.cameraAccessDeniedMessage'),
+          [{ text: t('common.ok') }]
         );
         return;
       }
@@ -245,10 +247,7 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert(
-        'Camera Error',
-        'Something went wrong while accessing the camera. Please try again.'
-      );
+      Alert.alert(t('common.error'), t('posts.cameraError'));
     }
   };
 
@@ -258,9 +257,9 @@ export default function CreatePostForm({
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status === 'denied') {
         Alert.alert(
-          'Photo Library Access Denied',
-          'Unify needs access to your photo library to attach an existing photo. You can enable it in your device settings, or take a new photo using the camera instead.',
-          [{ text: 'OK' }]
+          t('posts.galleryAccessDeniedTitle'),
+          t('posts.galleryAccessDeniedMessage'),
+          [{ text: t('common.ok') }]
         );
         return;
       }
@@ -276,10 +275,7 @@ export default function CreatePostForm({
         setImages(prev => [...prev, ...result.assets].slice(0, 10));
       }
     } catch (error) {
-      Alert.alert(
-        'Gallery Error',
-        'Something went wrong while accessing your photo library. Please try again.'
-      );
+      Alert.alert(t('common.error'), t('posts.galleryError'));
     }
   };
 
@@ -307,7 +303,7 @@ export default function CreatePostForm({
             {isPending ? (
               <ActivityIndicator size='small' color='white' />
             ) : (
-              <Text style={styles.postButtonText}>Post</Text>
+              <Text style={styles.postButtonText}>{t('posts.postButton')}</Text>
             )}
           </TouchableOpacity>
         }
@@ -328,7 +324,7 @@ export default function CreatePostForm({
         <View style={styles.titleContainer}>
           <TextInput
             style={styles.titleInput}
-            placeholder='Title'
+            placeholder={t('posts.titlePlaceholder')}
             placeholderTextColor={Theme.textAlternateGray}
             value={title}
             onChangeText={setTitle}
@@ -393,7 +389,7 @@ export default function CreatePostForm({
               styles.contentInput,
               images.length > 0 && styles.contentInputWithImages,
             ]}
-            placeholder="What's on your mind?"
+            placeholder={t('posts.contentPlaceholder')}
             placeholderTextColor={Theme.textAlternateGray}
             value={content}
             onChangeText={setContent}

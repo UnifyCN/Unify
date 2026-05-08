@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 interface LessonProgressBarProps {
   completed: number;
@@ -11,13 +12,14 @@ const LessonProgressBar: React.FC<LessonProgressBarProps> = ({
   completed,
   total,
 }) => {
+  const { t } = useTranslation();
   const percentage = (completed / total) * 100;
 
   return (
     <View style={styles.container}>
       {/* Progress Text */}
       <Text style={styles.progressText}>
-        Progress: {completed}/{total} lessons completed
+        {t('learn.lesson.progressLabel', { completed: `${completed}/${total}` })}
       </Text>
 
       {/* Progress Bar Container */}

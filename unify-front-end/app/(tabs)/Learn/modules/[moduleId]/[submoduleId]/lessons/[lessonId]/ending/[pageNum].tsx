@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialIcons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -35,6 +36,7 @@ import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function EndingPageScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId, lessonId, pageNum } = useLocalSearchParams<{
     moduleId: string;
@@ -278,7 +280,7 @@ export default function EndingPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Loading ending page...</Text>
+          <Text>{t('learn.lesson.loadingEnding')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -288,7 +290,7 @@ export default function EndingPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Error loading ending page</Text>
+          <Text>{t('learn.lesson.errorLoadingEnding')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -326,7 +328,7 @@ export default function EndingPageScreen() {
       {/* Navigation buttons - anchored at bottom */}
       <View style={styles.navigationContainer}>
         <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <Text style={styles.backBtnText}>Back</Text>
+          <Text style={styles.backBtnText}>{t('common.back')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -338,7 +340,7 @@ export default function EndingPageScreen() {
           onPress={handleNext}
           disabled={isSaving}
         >
-          <Text style={styles.nextBtnText}>Next</Text>
+          <Text style={styles.nextBtnText}>{t('common.next')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -352,11 +354,11 @@ export default function EndingPageScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              Take a break from this lesson?
+              {t('learn.lesson.exitTitle')}
             </Text>
             <Text style={styles.modalDesc}>
-              No worries, your progress will be saved!{'\n'}
-              You can pick up right where you left off.
+              {t('learn.lesson.exitBody1')}{'\n'}
+              {t('learn.lesson.exitBody2')}
             </Text>
 
             <TouchableOpacity
@@ -364,7 +366,7 @@ export default function EndingPageScreen() {
               onPress={handleSaveAndLeave}
             >
               <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
+                {t('learn.lesson.exitSave')}
               </Text>
             </TouchableOpacity>
 
@@ -372,7 +374,7 @@ export default function EndingPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>Continue Lesson</Text>
+              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitContinue')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -392,7 +394,7 @@ export default function EndingPageScreen() {
                 <View style={styles.reviewHandle} />
 
                 <Text style={styles.reviewTitle}>
-                  Was this content helpful?
+                  {t('learn.lesson.reviewTitle')}
                 </Text>
 
                 {/* stars */}
@@ -433,7 +435,7 @@ export default function EndingPageScreen() {
                     <TextInput
                       style={styles.commentInput}
                       multiline
-                      placeholder='How can we make it better? (optional)'
+                      placeholder={t('learn.lesson.reviewPlaceholder')}
                       placeholderTextColor='#878787'
                       value={comment}
                       onChangeText={setComment}
@@ -453,7 +455,7 @@ export default function EndingPageScreen() {
                   ]}
                   onPress={handleSubmitReview}
                 >
-                  <Text style={styles.reviewSubmitText}>Submit</Text>
+                  <Text style={styles.reviewSubmitText}>{t('common.submit')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

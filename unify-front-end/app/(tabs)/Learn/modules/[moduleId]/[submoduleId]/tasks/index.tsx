@@ -7,10 +7,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSanityTasks } from '@/hooks/sanity/useSanityTasks';
 import { useTaskProgress } from '@/hooks/progress/useTaskProgress';
 
 export default function TasksEntryScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId } = useLocalSearchParams<{
     moduleId: string;
@@ -35,7 +37,7 @@ export default function TasksEntryScreen() {
           .filter(r => r.is_completed)
           .map(r => r.sanity_task_id)
       );
-      const firstIncomplete = sorted.find(t => !completedIds.has(t._id));
+      const firstIncomplete = sorted.find(task => !completedIds.has(task._id));
       const target = firstIncomplete ?? sorted[0];
       router.replace({
         pathname:
@@ -60,7 +62,7 @@ export default function TasksEntryScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <ActivityIndicator size='large' color='#10B981' />
-          <Text style={styles.loadingText}>Loading tasks...</Text>
+          <Text style={styles.loadingText}>{t('learn.tasks.loadingTasks')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -71,7 +73,7 @@ export default function TasksEntryScreen() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
           <Text style={styles.errorText}>
-            {error.message || 'Failed to load tasks'}
+            {error.message || t('learn.tasks.failedToLoad')}
           </Text>
         </View>
       </SafeAreaView>
@@ -86,7 +88,7 @@ export default function TasksEntryScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <Text style={styles.emptyText}>No tasks for this section yet.</Text>
+          <Text style={styles.emptyText}>{t('learn.tasks.noTasks')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -96,7 +98,7 @@ export default function TasksEntryScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.center}>
         <ActivityIndicator size='large' color='#10B981' />
-        <Text style={styles.loadingText}>Opening tasks...</Text>
+        <Text style={styles.loadingText}>{t('learn.tasks.opening')}</Text>
       </View>
     </SafeAreaView>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Group } from '@/types/groups';
 import { Avatar } from '@/components/Avatar';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
@@ -16,6 +17,8 @@ export default function SearchGroupsList({
   onGroupSelect,
   searchText,
 }: GroupsListProps) {
+  const { t } = useTranslation();
+
   return (
     <View style={styles.groupsList}>
       {groups.length > 0 ? (
@@ -34,7 +37,7 @@ export default function SearchGroupsList({
             <View style={styles.groupInfo}>
               <Text style={styles.groupName}>{group.name}</Text>
               <Text style={styles.groupDescription} numberOfLines={2}>
-                {group.description || 'No description available'}
+                {group.description || t('common.noDescription')}
               </Text>
             </View>
           </TouchableOpacity>
@@ -43,10 +46,10 @@ export default function SearchGroupsList({
         <View style={styles.emptyStateContainer}>
           <Text style={styles.emptyStateText}>
             {searchText?.trim() ? (
-              'No groups found matching your search'
+              t('groups.noGroupsMatch')
             ) : (
               <EmptyFeedMessage
-                message='No groups here...'
+                message={t('groups.noGroupsHere')}
                 submessage={
                   <Text
                     style={{
@@ -56,8 +59,8 @@ export default function SearchGroupsList({
                       lineHeight: 20,
                     }}
                   >
-                    You haven't joined any groups yet.{'\n'}
-                    Join a group to start the conversation!
+                    {t('groups.notJoinedHint')}{'\n'}
+                    {t('groups.joinToStart')}
                   </Text>
                 }
               />

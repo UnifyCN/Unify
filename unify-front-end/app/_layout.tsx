@@ -8,6 +8,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
+import {
+  i18nReady,
+  setStoredLanguage,
+  SUPPORTED_LANGUAGES,
+  type SupportedLanguage,
+} from '@/i18n';
+import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { PostHogProvider } from 'posthog-react-native';
@@ -41,10 +49,11 @@ export default function RootLayout() {
 
   const [onboardingChecked, setOnboardingChecked] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [i18nLoaded, setI18nLoaded] = useState(false);
 
   const [showAnimatedSplash, setShowAnimatedSplash] = useState(true);
 
-  const isReady = loaded && onboardingChecked;
+  const isReady = loaded && onboardingChecked && i18nLoaded;
 
   useEffect(() => {
     const checkOnboarding = async () => {
@@ -59,6 +68,12 @@ export default function RootLayout() {
       }
     };
     checkOnboarding();
+  }, []);
+
+  useEffect(() => {
+    i18nReady
+      .catch(e => console.error('Failed to initialize i18n:', e))
+      .finally(() => setI18nLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -77,8 +92,8 @@ export default function RootLayout() {
     setShowOnboarding(true);
   }, []);
 
-  if (!loaded || !onboardingChecked) {
-    return null; // or a loading spinner
+  if (!isReady) {
+    return null; // splash stays up via SplashScreen.preventAutoHideAsync
   }
 
   return (
@@ -143,6 +158,7 @@ export default function RootLayout() {
 function useAnalyticsIdentitySync() {
   const { currentUser } = useCurrentUser();
   const { identify, reset } = useAnalytics();
+  const { i18n } = useTranslation();
   const lastIdRef = useRef<string | null>(null);
   const lastTraitsRef = useRef<string>('');
   const hasInitializedRef = useRef(false);
@@ -170,6 +186,7 @@ function useAnalyticsIdentitySync() {
         province: currentUser.province,
         arrival_date: currentUser.arrivalDate,
         stage: currentUser.stage,
+        language: i18n.language,
       };
       const traitsKey = JSON.stringify(traits);
       const idChanged = currentUser.id !== lastIdRef.current;
@@ -196,9 +213,37 @@ function useAnalyticsIdentitySync() {
     currentUser?.province,
     currentUser?.arrivalDate,
     currentUser?.stage,
+    i18n.language,
     identify,
     reset,
   ]);
+}
+
+/**
+ * On first authed mount, if the user's preferred_language stored in Supabase
+ * differs from the local i18n language, switch local to match. Lets users keep
+ * their language across devices/reinstalls. One-shot per session.
+ */
+function useLanguageSyncFromSupabase() {
+  const { currentUser } = useCurrentUser();
+  const { i18n } = useTranslation();
+  const { data: profile } = useOnboardingProfile(currentUser?.id);
+  // Track per-user-id rather than a single boolean so account switches re-sync.
+  const syncedForUserRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!currentUser?.id || !profile) return;
+    if (syncedForUserRef.current === currentUser.id) return;
+    const remote = profile.preferred_language;
+    if (remote && remote !== i18n.language && remote in SUPPORTED_LANGUAGES) {
+      syncedForUserRef.current = currentUser.id;
+      setStoredLanguage(remote as SupportedLanguage).catch(e =>
+        console.error('Failed to sync language from supabase:', e)
+      );
+    } else if (remote) {
+      syncedForUserRef.current = currentUser.id;
+    }
+  }, [currentUser?.id, profile, i18n.language]);
 }
 
 /**
@@ -209,6 +254,8 @@ function AppContent() {
   usePushNotifications();
   // Identify the user with PostHog whenever auth state resolves
   useAnalyticsIdentitySync();
+  // Restore language from Supabase on first authed mount
+  useLanguageSyncFromSupabase();
 
   return (
     <Stack>

@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSelection } from '@/context/SelectionContext';
+import { useTranslation } from 'react-i18next';
 
 interface SelectionActionBubbleProps {
   onHighlight: () => void;
@@ -24,6 +25,7 @@ export default function SelectionActionBubble({
   onRemoveHighlight,
   onAskAI,
 }: SelectionActionBubbleProps) {
+  const { t } = useTranslation();
   const { selection } = useSelection();
   const { width: screenWidth } = useWindowDimensions();
 
@@ -61,7 +63,7 @@ export default function SelectionActionBubble({
               color='#fff'
             />
             <Text style={styles.buttonText}>
-              {isHighlighted ? 'Remove' : 'Highlight'}
+              {isHighlighted ? t('learn.selectionBubble.remove') : t('learn.selectionBubble.highlight')}
             </Text>
           </Pressable>
 
@@ -69,7 +71,7 @@ export default function SelectionActionBubble({
 
           <Pressable style={styles.button} onPress={onAskAI}>
             <Feather name='help-circle' size={16} color='#fff' />
-            <Text style={styles.buttonText}>Ask AI</Text>
+            <Text style={styles.buttonText}>{t('learn.selectionBubble.askAI')}</Text>
           </Pressable>
         </View>
 

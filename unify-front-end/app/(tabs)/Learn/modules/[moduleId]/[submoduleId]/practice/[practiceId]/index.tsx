@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSanityPractice } from '@/hooks/sanity/useSanityPractices';
 import { getPracticeProgress } from '@/services/progress/practiceProgressService';
 import { startPractice } from '@/services/progress/practiceProgressService';
 
 export default function PracticeEntryScreen() {
+  const { t } = useTranslation();
   const { moduleId, submoduleId, practiceId } = useLocalSearchParams<{
     moduleId: string;
     submoduleId: string;
@@ -97,7 +99,7 @@ export default function PracticeEntryScreen() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size='large' color='#10B981' />
-        <Text style={styles.text}>Loading...</Text>
+        <Text style={styles.text}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -106,7 +108,7 @@ export default function PracticeEntryScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.error}>
-          {error?.message || 'Practice not found'}
+          {error?.message || t('learn.practice.practiceNotFound')}
         </Text>
       </View>
     );
@@ -123,7 +125,7 @@ export default function PracticeEntryScreen() {
   if (!hasContent) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>No content in this practice yet.</Text>
+        <Text style={styles.error}>{t('learn.practice.noContent')}</Text>
       </View>
     );
   }
@@ -131,7 +133,7 @@ export default function PracticeEntryScreen() {
   return (
     <View style={styles.center}>
       <ActivityIndicator size='large' color='#10B981' />
-      <Text style={styles.text}>Opening...</Text>
+      <Text style={styles.text}>{t('learn.practice.openingContent')}</Text>
     </View>
   );
 }

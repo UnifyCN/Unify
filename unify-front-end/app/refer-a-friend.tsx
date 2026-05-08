@@ -14,6 +14,7 @@ import * as Haptics from 'expo-haptics';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import { Theme } from '@/constants/Theme';
 import { useInvite } from '@/hooks/referrals/useInvite';
@@ -41,6 +42,7 @@ import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
  *   └────────────────────────────────────┘
  */
 export default function ReferAFriendScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { code, loading, error, invite, inviting } = useInvite();
   const { capture } = useAnalytics();
@@ -53,8 +55,6 @@ export default function ReferAFriendScreen() {
     if (!code) return;
     try {
       await Clipboard.setStringAsync(code);
-      // Haptics is best-effort — await so a rejected promise can't escape the
-      // outer try/catch unhandled.
       await Haptics.notificationAsync(
         Haptics.NotificationFeedbackType.Success
       ).catch(() => {
@@ -69,17 +69,17 @@ export default function ReferAFriendScreen() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Refer a friend' onBack={() => router.back()} />
+      <BackHeader title={t('referrals.title')} onBack={() => router.back()} />
 
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
       >
         <Text style={styles.headline}>
-          Invite a friend to start their Canada journey with you.
+          {t('referrals.inviteDesc')}
         </Text>
         <Text style={styles.subhead}>
-          Newcomers do best when they have a friend already inside.
+          {t('referrals.newcomersBenefit')}
         </Text>
 
         <TouchableOpacity
@@ -91,34 +91,31 @@ export default function ReferAFriendScreen() {
             (!code || inviting || isAndroid) && styles.primaryCtaDisabled,
           ]}
           accessibilityRole='button'
-          accessibilityLabel='Invite a friend'
+          accessibilityLabel={t('referrals.inviteAFriend')}
         >
           {inviting ? (
             <ActivityIndicator color={Theme.white} />
           ) : (
-            <Text style={styles.primaryCtaText}>Invite a friend</Text>
+            <Text style={styles.primaryCtaText}>{t('referrals.inviteAFriend')}</Text>
           )}
         </TouchableOpacity>
 
         {isAndroid ? (
           <Text style={styles.androidNotice}>
-            Referrals are only available on iOS for now.
+            {t('referrals.iosOnly')}
           </Text>
         ) : null}
 
         {error ? (
           <Text style={styles.errorText}>
-            Couldn&apos;t generate your invite link. Pull down or revisit to retry.
+            {t('referrals.couldntGenerate')}
           </Text>
         ) : null}
 
-        {/* Code section — secondary, fallback-only. The Invite button does this for you;
-            this is for verbal sharing or for friends who type the code manually. */}
         <View style={styles.codeSection}>
-          <Text style={styles.codeSectionLabel}>Your invite code</Text>
+          <Text style={styles.codeSectionLabel}>{t('referrals.yourInviteCode')}</Text>
           <Text style={styles.codeSectionExplainer}>
-            Friends who tap your invite link are linked to you automatically. They can
-            also type this code during signup if needed.
+            {t('referrals.inviteCodeHint')}
           </Text>
 
           <Pressable
@@ -131,7 +128,7 @@ export default function ReferAFriendScreen() {
             ]}
             accessibilityRole='button'
             accessibilityLabel={
-              code ? `Your invite code: ${code}. Tap to copy.` : 'Loading invite code'
+              code ? `${t('referrals.yourInviteCode')}: ${code}` : t('referrals.loadingInviteCode')
             }
           >
             {loading || !code ? (

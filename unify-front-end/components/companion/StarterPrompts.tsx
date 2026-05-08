@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import type { PersonalizedStarter } from '@/hooks/companion/usePersonalizedStarters';
 import {
@@ -36,49 +37,59 @@ interface StaticCard {
   description: string;
 }
 
-const MODE_CARDS: StaticCard[] = [
-  { id: 'fact_check', label: 'Fact Check', prompt: 'I heard that ', mode: 'fact_check',
+interface StaticCardDef {
+  id: string;
+  labelKey: string;
+  promptKey: string;
+  mode?: string;
+  iconName: keyof typeof Feather.glyphMap;
+  iconBackground: string;
+  descriptionKey: string;
+}
+
+const MODE_CARD_DEFS: StaticCardDef[] = [
+  { id: 'fact_check', labelKey: 'companion.starters.factCheck', promptKey: 'companion.starters.factCheckPrompt', mode: 'fact_check',
     iconName: 'search', iconBackground: '#4F7BCB',
-    description: "Verify info you've heard or read." },
-  { id: 'form_help', label: 'Form Help', prompt: '', mode: 'form_help',
+    descriptionKey: 'companion.starters.factCheckDesc' },
+  { id: 'form_help', labelKey: 'companion.starters.formHelp', promptKey: '', mode: 'form_help',
     iconName: 'file-text', iconBackground: '#F0A04B',
-    description: 'Step-by-step guidance on any form.' },
+    descriptionKey: 'companion.starters.formHelpDesc' },
 ];
 
-const TOPIC_STARTERS: StaticCard[] = [
-  { id: 'ee_eligibility', label: 'Express Entry', prompt: 'Am I eligible for Express Entry? What are the requirements?',
-    iconName: 'award', iconBackground: '#5C6BC0', description: 'Check Express Entry eligibility.' },
-  { id: 'ee_crs', label: 'CRS Score', prompt: 'How is the CRS score calculated for Express Entry?',
-    iconName: 'bar-chart-2', iconBackground: '#5C6BC0', description: 'Understand CRS point breakdown.' },
-  { id: 'ee_rounds', label: 'Recent Draws', prompt: 'What were the most recent Express Entry draw scores?',
-    iconName: 'trending-up', iconBackground: '#5C6BC0', description: 'Latest invitation round details.' },
-  { id: 'sp_apply', label: 'Study Permit', prompt: 'How do I apply for a Canadian study permit?',
-    iconName: 'book-open', iconBackground: '#26A69A', description: 'Study permit application steps.' },
-  { id: 'sp_pgwp', label: 'After Graduation', prompt: 'How do I get a post-graduation work permit (PGWP)?',
-    iconName: 'briefcase', iconBackground: '#26A69A', description: 'PGWP eligibility and process.' },
-  { id: 'wp_types', label: 'Work Permits', prompt: 'What types of work permits are available in Canada?',
-    iconName: 'tool', iconBackground: '#EF5350', description: 'Compare open vs employer-specific.' },
-  { id: 'wp_lmia', label: 'LMIA Process', prompt: 'What is an LMIA and when do I need one?',
-    iconName: 'clipboard', iconBackground: '#EF5350', description: 'Labour market impact assessment.' },
-  { id: 'cit_eligibility', label: 'Citizenship', prompt: 'What are the requirements to become a Canadian citizen?',
-    iconName: 'flag', iconBackground: '#E3A0C9', description: 'Citizenship eligibility check.' },
-  { id: 'cit_test', label: 'Citizenship Test', prompt: 'What should I study for the Canadian citizenship test?',
-    iconName: 'edit-3', iconBackground: '#E3A0C9', description: 'Test prep and study guide.' },
-  { id: 'settle_health', label: 'Healthcare', prompt: 'How does healthcare work for newcomers to Canada?',
-    iconName: 'heart', iconBackground: '#66BB6A', description: 'Provincial health coverage info.' },
-  { id: 'settle_services', label: 'Newcomer Help', prompt: 'What free settlement services are available for newcomers?',
-    iconName: 'users', iconBackground: '#66BB6A', description: 'Free support for new arrivals.' },
+const TOPIC_STARTER_DEFS: StaticCardDef[] = [
+  { id: 'ee_eligibility', labelKey: 'companion.starters.eeEligibility', promptKey: 'companion.starters.eeEligibilityPrompt',
+    iconName: 'award', iconBackground: '#5C6BC0', descriptionKey: 'companion.starters.eeEligibilityDesc' },
+  { id: 'ee_crs', labelKey: 'companion.starters.eeCrs', promptKey: 'companion.starters.eeCrsPrompt',
+    iconName: 'bar-chart-2', iconBackground: '#5C6BC0', descriptionKey: 'companion.starters.eeCrsDesc' },
+  { id: 'ee_rounds', labelKey: 'companion.starters.eeRounds', promptKey: 'companion.starters.eeRoundsPrompt',
+    iconName: 'trending-up', iconBackground: '#5C6BC0', descriptionKey: 'companion.starters.eeRoundsDesc' },
+  { id: 'sp_apply', labelKey: 'companion.starters.spApply', promptKey: 'companion.starters.spApplyPrompt',
+    iconName: 'book-open', iconBackground: '#26A69A', descriptionKey: 'companion.starters.spApplyDesc' },
+  { id: 'sp_pgwp', labelKey: 'companion.starters.spPgwp', promptKey: 'companion.starters.spPgwpPrompt',
+    iconName: 'briefcase', iconBackground: '#26A69A', descriptionKey: 'companion.starters.spPgwpDesc' },
+  { id: 'wp_types', labelKey: 'companion.starters.wpTypes', promptKey: 'companion.starters.wpTypesPrompt',
+    iconName: 'tool', iconBackground: '#EF5350', descriptionKey: 'companion.starters.wpTypesDesc' },
+  { id: 'wp_lmia', labelKey: 'companion.starters.wpLmia', promptKey: 'companion.starters.wpLmiaPrompt',
+    iconName: 'clipboard', iconBackground: '#EF5350', descriptionKey: 'companion.starters.wpLmiaDesc' },
+  { id: 'cit_eligibility', labelKey: 'companion.starters.citEligibility', promptKey: 'companion.starters.citEligibilityPrompt',
+    iconName: 'flag', iconBackground: '#E3A0C9', descriptionKey: 'companion.starters.citEligibilityDesc' },
+  { id: 'cit_test', labelKey: 'companion.starters.citTest', promptKey: 'companion.starters.citTestPrompt',
+    iconName: 'edit-3', iconBackground: '#E3A0C9', descriptionKey: 'companion.starters.citTestDesc' },
+  { id: 'settle_health', labelKey: 'companion.starters.settleHealth', promptKey: 'companion.starters.settleHealthPrompt',
+    iconName: 'heart', iconBackground: '#66BB6A', descriptionKey: 'companion.starters.settleHealthDesc' },
+  { id: 'settle_services', labelKey: 'companion.starters.settleServices', promptKey: 'companion.starters.settleServicesPrompt',
+    iconName: 'users', iconBackground: '#66BB6A', descriptionKey: 'companion.starters.settleServicesDesc' },
 ];
 
-const selectRandomTopicStarters = (): StaticCard[] => {
-  const categories = new Map<string, StaticCard[]>();
-  TOPIC_STARTERS.forEach(card => {
+const selectRandomTopicStarterDefs = (): StaticCardDef[] => {
+  const categories = new Map<string, StaticCardDef[]>();
+  TOPIC_STARTER_DEFS.forEach(card => {
     const existing = categories.get(card.iconBackground) || [];
     existing.push(card);
     categories.set(card.iconBackground, existing);
   });
 
-  const selected: StaticCard[] = [];
+  const selected: StaticCardDef[] = [];
   const categoryKeys = Array.from(categories.keys());
   for (let i = categoryKeys.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -130,7 +141,21 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
   onPromptSelect,
   personalizedStarters,
 }) => {
-  const topicStarters = useMemo(() => selectRandomTopicStarters(), []);
+  const { t } = useTranslation();
+  const topicStarterDefs = useMemo(() => selectRandomTopicStarterDefs(), []);
+
+  const translateDef = useCallback(
+    (def: StaticCardDef): StaticCard => ({
+      id: def.id,
+      label: t(def.labelKey),
+      prompt: def.promptKey ? t(def.promptKey) : '',
+      mode: def.mode,
+      iconName: def.iconName,
+      iconBackground: def.iconBackground,
+      description: t(def.descriptionKey),
+    }),
+    [t]
+  );
   // Stable pool ref: same array reference unless the input genuinely changed.
   // personalizedStarters from React Query is referentially stable across renders
   // when data hasn't changed, so this useMemo only re-fires on real updates.
@@ -246,23 +271,26 @@ export const StarterPrompts: React.FC<StarterPromptsProps> = ({
           </View>
         ))}
 
-        {[...MODE_CARDS, ...topicStarters].map(card => (
-          <TouchableOpacity
-            key={card.id}
-            style={styles.card}
-            onPress={() => onPromptSelect(card.prompt, card.mode, false)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.cardHeader}>
-              <View style={[styles.iconBadge, { backgroundColor: card.iconBackground }]}>
-                <Feather name={card.iconName} size={16} color={Theme.white} />
+        {[...MODE_CARD_DEFS, ...topicStarterDefs].map(def => {
+          const card = translateDef(def);
+          return (
+            <TouchableOpacity
+              key={card.id}
+              style={styles.card}
+              onPress={() => onPromptSelect(card.prompt, card.mode, false)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.cardHeader}>
+                <View style={[styles.iconBadge, { backgroundColor: card.iconBackground }]}>
+                  <Feather name={card.iconName} size={16} color={Theme.white} />
+                </View>
+                <Text style={styles.cardLabel}>{card.label}</Text>
+                <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
               </View>
-              <Text style={styles.cardLabel}>{card.label}</Text>
-              <Feather name='chevron-right' size={16} color={Theme.textInactiveTab} />
-            </View>
-            <Text style={styles.cardDescription} numberOfLines={2}>{card.description}</Text>
-          </TouchableOpacity>
-        ))}
+              <Text style={styles.cardDescription} numberOfLines={2}>{card.description}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );

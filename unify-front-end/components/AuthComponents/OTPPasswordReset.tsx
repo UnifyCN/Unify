@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { SimpleTextField, SubmitButton, ViewContainer } from './Components';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -19,6 +20,7 @@ export default function OTPPasswordReset({
   onBack,
   onSuccess,
 }: Readonly<OTPPasswordResetProps>) {
+  const { t } = useTranslation();
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -57,7 +59,7 @@ export default function OTPPasswordReset({
     if (newPassword !== confirmPassword) {
       setMessage({
         type: 'error',
-        text: 'Passwords do not match',
+        text: t('auth.passwordsDoNotMatch'),
       });
       setFieldErrors(prev => ({ ...prev, confirm: true }));
       setLoading(false);
@@ -68,7 +70,7 @@ export default function OTPPasswordReset({
     if (newPassword.length < 6) {
       setMessage({
         type: 'error',
-        text: 'Password must be at least 6 characters long.',
+        text: t('auth.passwordMinLength6'),
       });
       setFieldErrors(prev => ({ ...prev, password: true }));
       setLoading(false);
@@ -100,7 +102,7 @@ export default function OTPPasswordReset({
       } else {
         setMessage({
           type: 'success',
-          text: 'Password has been reset successfully!',
+          text: t('auth.passwordResetSuccess'),
         });
 
         if (successTimerRef.current) {
@@ -115,7 +117,7 @@ export default function OTPPasswordReset({
       console.error(error);
       setMessage({
         type: 'error',
-        text: 'An error occurred while resetting your password',
+        text: t('auth.passwordResetError'),
       });
     } finally {
       setLoading(false);
@@ -124,23 +126,22 @@ export default function OTPPasswordReset({
 
   return (
     <ViewContainer style={styles.container}>
-      <BackHeader title='Reset Password' onBack={onBack} backIcon='x' />
+      <BackHeader title={t('auth.resetPassword')} onBack={onBack} backIcon='x' />
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter the 6-digit code sent to your email ({email}) to create your new
-          password.
+          {t('auth.otpReset.enterCode', { email })}
         </Text>
 
         <View>
-          <Text style={styles.label}>Verification Code</Text>
+          <Text style={styles.label}>{t('auth.otpReset.verificationCode')}</Text>
           <SimpleTextField
             value={otp}
             onChangeText={text => {
               setOtp(text);
               setFieldErrors(prev => ({ ...prev, otp: false }));
             }}
-            placeholder='Enter 6-digit code'
+            placeholder={t('auth.otpReset.enterDigitCode')}
             style={[
               styles.textField,
               fieldErrors.otp && { borderColor: '#f00' },
@@ -152,7 +153,7 @@ export default function OTPPasswordReset({
         </View>
 
         <View>
-          <Text style={styles.label}>New Password</Text>
+          <Text style={styles.label}>{t('auth.newPassword')}</Text>
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={newPassword}
@@ -160,7 +161,7 @@ export default function OTPPasswordReset({
                 setNewPassword(text);
                 setFieldErrors(prev => ({ ...prev, password: false }));
               }}
-              placeholder='New password'
+              placeholder={t('auth.newPasswordPlaceholder')}
               style={[
                 styles.textField,
                 fieldErrors.password && { borderColor: '#f00' },
@@ -182,7 +183,7 @@ export default function OTPPasswordReset({
         </View>
 
         <View>
-          <Text style={styles.label}>Confirm Password</Text>
+          <Text style={styles.label}>{t('auth.confirmPassword')}</Text>
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={confirmPassword}
@@ -190,7 +191,7 @@ export default function OTPPasswordReset({
                 setConfirmPassword(text);
                 setFieldErrors(prev => ({ ...prev, confirm: false }));
               }}
-              placeholder='Confirm password'
+              placeholder={t('auth.confirmPasswordPlaceholder')}
               style={[
                 styles.textField,
                 fieldErrors.confirm && { borderColor: '#f00' },
@@ -233,7 +234,7 @@ export default function OTPPasswordReset({
           style={styles.button}
           labelStyle={styles.buttonText}
         >
-          Reset Password
+          {t('auth.resetPassword')}
         </SubmitButton>
       </View>
     </ViewContainer>

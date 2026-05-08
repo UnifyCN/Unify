@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import BackHeader from '@/components/BackHeader';
@@ -168,6 +169,7 @@ const HighlightItem = React.memo(function HighlightItem({
 
 export default function SavedLessonsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const {
     data: pagesData,
@@ -377,7 +379,7 @@ export default function SavedLessonsPage() {
           {/* Pages */}
           {section.pages.length > 0 && (
             <>
-              {hasBoth && <Text style={styles.subHeader}>SAVED PAGES</Text>}
+              {hasBoth && <Text style={styles.subHeader}>{t('savedLessons.savedPages')}</Text>}
               {section.pages.map(page => (
                 <SavedLessonCard
                   key={page.id}
@@ -394,7 +396,7 @@ export default function SavedLessonsPage() {
           {/* Highlights */}
           {section.highlights.length > 0 && (
             <>
-              {hasBoth && <Text style={styles.subHeader}>HIGHLIGHTS</Text>}
+              {hasBoth && <Text style={styles.subHeader}>{t('savedLessons.highlights')}</Text>}
               {section.highlights.map(h => (
                 <HighlightItem
                   key={h.id}
@@ -407,7 +409,7 @@ export default function SavedLessonsPage() {
         </View>
       );
     },
-    [moduleMap, submoduleTitleMap, openLessonPage, navigateToHighlight]
+    [moduleMap, submoduleTitleMap, openLessonPage, navigateToHighlight, t]
   );
 
   const keyExtractor = useCallback((item: UnifiedSection) => item.key, []);
@@ -415,7 +417,7 @@ export default function SavedLessonsPage() {
   if (isLoadingAll) {
     return (
       <View style={styles.container}>
-        <BackHeader title='Saved from Learn' />
+        <BackHeader title={t('savedLessons.title')} />
         <View style={styles.centered}>
           <ActivityIndicator size='large' color={Theme.black} />
         </View>
@@ -426,9 +428,9 @@ export default function SavedLessonsPage() {
   if (pagesError && !pagesData && !highlightsData) {
     return (
       <View style={styles.container}>
-        <BackHeader title='Saved from Learn' />
+        <BackHeader title={t('savedLessons.title')} />
         <View style={styles.centered}>
-          <Text style={styles.errorText}>Could not load saved content.</Text>
+          <Text style={styles.errorText}>{t('savedLessons.errorLoadingContent')}</Text>
         </View>
       </View>
     );
@@ -436,10 +438,10 @@ export default function SavedLessonsPage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Saved from Learn' />
+      <BackHeader title={t('savedLessons.title')} />
       {totalItems > 0 && (
         <Text style={styles.countLabel}>
-          {totalItems} saved {totalItems === 1 ? 'item' : 'items'}
+          {t('savedLessons.savedCount', { count: totalItems })}
         </Text>
       )}
       <FlatList
@@ -460,10 +462,10 @@ export default function SavedLessonsPage() {
             icon={
               <Feather name='book-open' size={27} color={Theme.textInput} />
             }
-            message='Nothing saved from Learn yet'
+            message={t('savedLessons.emptyTitle')}
             submessage={
               <Text style={styles.emptyMessageSubtext}>
-                Bookmark lesson pages or highlight text to save them here
+                {t('savedLessons.emptyHint')}
               </Text>
             }
           />

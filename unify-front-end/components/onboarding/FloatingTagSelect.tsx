@@ -20,6 +20,7 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface Option {
@@ -251,6 +252,7 @@ export default function FloatingTagSelect({
   required = false,
   error,
 }: FloatingTagSelectProps) {
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
 
   const otherOption = options.find(opt => opt.hasOther);
@@ -307,7 +309,7 @@ export default function FloatingTagSelect({
         <Animated.View style={[styles.otherInputContainer, otherInputStyle]}>
           <TextInput
             style={styles.otherInput}
-            placeholder='Please specify...'
+            placeholder={t('onboarding.pleaseSpecify')}
             value={otherValue || ''}
             onChangeText={onOtherChange}
             placeholderTextColor={Theme.textInput}

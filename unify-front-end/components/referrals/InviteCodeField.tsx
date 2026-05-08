@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface InviteCodeFieldProps {
@@ -17,10 +18,12 @@ const CODE_MAX = 6;
  * via clipboard, the field is pre-filled and dimmed but still editable.
  */
 export function InviteCodeField({ value, onChange, autoFilled }: InviteCodeFieldProps) {
-  const label = autoFilled ? 'Their invite code' : 'Their invite code (optional)';
+  const { t } = useTranslation();
+  const label = autoFilled
+    ? t('referrals.theirInviteCode')
+    : t('referrals.theirInviteCodeOptional');
 
   const handleChange = (next: string) => {
-    // Restrict to allowed alphabet (uppercase letters minus I/O, digits 2-9), max 6 chars
     const cleaned = next
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, '')
@@ -36,13 +39,13 @@ export function InviteCodeField({ value, onChange, autoFilled }: InviteCodeField
         style={[styles.input, autoFilled && styles.inputAutoFilled]}
         value={value}
         onChangeText={handleChange}
-        placeholder='e.g. SARAHA'
+        placeholder={t('referrals.inviteCodePlaceholder')}
         placeholderTextColor={Theme.textPostTime}
         autoCapitalize='characters'
         autoCorrect={false}
         spellCheck={false}
         maxLength={CODE_MAX}
-        accessibilityLabel='Their invite code'
+        accessibilityLabel={t('referrals.theirInviteCode')}
       />
     </View>
   );
