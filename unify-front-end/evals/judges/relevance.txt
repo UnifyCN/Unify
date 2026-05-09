@@ -1,9 +1,5 @@
-Evaluate whether the assistant's answer directly addresses the user's question.
+The output addresses the user's question. The user asked: "{{ prompt }}"
 
-USER QUESTION: {{vars.prompt}}
-ASSISTANT ANSWER: {{output}}
+PASS if the output answers the user's actual question. Tangential context is acceptable as long as the question is answered.
 
-Respond YES or NO with a one-sentence reason.
-
-Pass (YES): The answer addresses the user's actual question. Tangential context is OK as long as the question is answered.
-Fail (NO): The answer is off-topic, dodges the question, or only answers a related-but-different question.
+FAIL if the output is off-topic, dodges the question, or only answers a related-but-different question.

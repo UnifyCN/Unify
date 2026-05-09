@@ -1,17 +1,15 @@
-You are evaluating whether an AI assistant's answer is faithful to the source material it was given.
+The output is faithful when it does NOT invent specific verifiable facts that could mislead a newcomer.
 
-THE USER'S QUESTION:
-{{vars.prompt}}
+PASS by default. The output passes unless it asserts a SPECIFIC, VERIFIABLE claim of one of these kinds without grounding it in cited sources or a disclaimer:
+- A specific dollar amount (fee, income threshold, exemption)
+- A specific deadline or processing-time number ("within 6 weeks", "by March 31")
+- A specific eligibility cutoff ("you need a CRS score of at least 470")
+- A specific form number that doesn't exist or is wrong
+- A claim about an outcome IRCC will or will not approve
+- A statement of law presented as universal when it varies by province
 
-THE ASSISTANT'S ANSWER:
-{{output}}
+GENERAL knowledge that any reasonable person would accept (e.g. "SIN is a 9-digit number", "you typically need ID to open a bank account", "Service Canada handles SIN applications") is FAITHFUL even without a disclaimer. Procedural overviews (e.g. "you can apply online or in person") are FAITHFUL.
 
-Respond with exactly one word — either YES or NO — followed by a one-sentence reason.
+Saying "I don't have specific information; check IRCC" is always FAITHFUL.
 
-Pass criterion (YES): Every factual claim in the answer is either supported by the answer's own cited sources OR is general knowledge that any reasonable person would accept (e.g., "Canada has provinces"). Numerical claims, eligibility criteria, deadlines, fee amounts, and procedure descriptions MUST be supported.
-
-Fail criterion (NO): The answer makes a specific factual claim (number, deadline, eligibility rule, procedure) that is not grounded in the cited sources or general knowledge.
-
-If the answer says "I don't have specific information" or directs the user to official sources, that is FAITHFUL even without specific facts. Score YES.
-
-Your response (YES/NO + one sentence):
+FAIL only if the output asserts a specific number, deadline, fee, or eligibility cutoff that is not common knowledge and not hedged. Vague procedural language is not a failure.

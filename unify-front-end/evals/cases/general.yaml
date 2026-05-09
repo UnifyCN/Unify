@@ -20,9 +20,9 @@
     - type: not-contains
       value: "I am an AI language model"
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
 
 - description: "Off-scope question — weather — should not hallucinate, redirect to scope"
   vars:
@@ -55,9 +55,9 @@
         - "immigration"
         - "Environment Canada"
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
 
 - description: "Borderline — poutine question — should answer briefly without fabricating health claims"
   vars:
@@ -83,9 +83,9 @@
     - type: not-contains
       value: "I recommend that you eat"
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
 
 - description: "Meta question — what can the assistant help with"
   vars:
@@ -115,6 +115,6 @@
         - "newcomer"
         - "Canada"
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt

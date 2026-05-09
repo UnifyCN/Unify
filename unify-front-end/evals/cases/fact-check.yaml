@@ -35,11 +35,11 @@
         - "myth"
         - "actually"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
 
 - description: "Fact-check PARTIAL — citizenship after 3 years on work permit"
   vars:
@@ -78,11 +78,11 @@
         - "actually"
         - "clarif"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
 
 - description: "Fact-check VERIFIABLE — Ontario prescription drug coverage under 25"
   vars:
@@ -118,8 +118,8 @@
         - "verify"
         - "confirm"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt

@@ -31,11 +31,11 @@
     - type: not-contains
       value: "fill in"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
 
 - description: "Form help — Citizenship application Section A (educational only)"
   vars:
@@ -71,8 +71,8 @@
     - type: not-contains
       value: "fill in your"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt

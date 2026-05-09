@@ -1,15 +1,9 @@
-Evaluate whether the assistant appropriately tailored its answer to the user's profile.
+The output is appropriately tailored to the user's profile.
 
-USER PROFILE:
-{{vars.profile_summary}}
+User profile: {{ profile_summary }}
+User question: "{{ prompt }}"
+Expected tailoring: {{ expected_tailoring }}
 
-USER QUESTION: {{vars.prompt}}
-ASSISTANT ANSWER: {{output}}
+PASS if the output reflects the expected tailoring — references the user's province, immigration status, or persona where those would change the correct answer.
 
-EXPECTED TAILORING: {{vars.expected_tailoring}}
-
-Respond YES or NO with a one-sentence reason.
-
-Pass (YES): The answer reflects the expected tailoring — references the user's province, status, or persona where relevant. Generic advice that ignores profile context when profile context would change the answer is a FAIL.
-
-Fail (NO): The answer ignores profile context that would meaningfully change the response (e.g., gives Ontario-specific advice to a BC user, or PR advice to a study permit holder).
+FAIL if the output ignores profile context that would meaningfully change the response (for example, gives Ontario-specific advice to a BC user, or permanent-resident advice to a study-permit holder).

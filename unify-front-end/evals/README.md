@@ -73,6 +73,30 @@ LLM judges live in `judges/*.txt`. Each is a plain prompt with `{{output}}` and 
 
 Keep judges binary (YES/NO + one sentence). Multi-axis rubrics produce noisier signal.
 
+## Baseline (2026-05-09)
+
+First clean run after the AI Companion optimization PR. Treat these numbers as the watermark — future PRs should not regress them.
+
+| Metric                  | Value         |
+|-------------------------|---------------|
+| Cases passed            | 10/40 (25%)   |
+| Latency p50             | 2.3s          |
+| Latency p95             | 8.3s          |
+| Latency max             | 10.7s         |
+
+A case passes only when every assertion (deterministic + LLM judges) passes. With 4-6 assertions per case and per-judge rates of 48-100%, the compounded case-level pass rate sits around 25%. That is normal for this style of suite — track the per-judge numbers below for the real signal.
+
+| Judge            | Pass rate     |
+|------------------|---------------|
+| anti-stereotype  | 6/6 (100%)    |
+| faithfulness     | 26/27 (96%)   |
+| relevance        | 29/36 (81%)   |
+| personalization  | 23/48 (48%)   |
+
+Deterministic assertions (JavaScript length bounds, contains, icontains-any, not-contains) pass at 85-100% — model output shape and required keyword coverage is solid.
+
+**Watch list:** personalization at 48% is the real opportunity. The model frequently fails to reference province/immigration-status context that the user profile provided. Targeted system-prompt work in `rag-query/index.ts` (`buildUserProfileContext`) is the next lever.
+
 ## TODO
 
 1. Deploy the `rag-query` edge function changes that accept an `eval_profile` body field plus an `x-eval-mode: 1` header (bypasses the DB profile lookup). Currently the harness assumes this exists; without it, the function will look up profiles by user id and fail.

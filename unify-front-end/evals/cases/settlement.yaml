@@ -26,11 +26,11 @@
         - "SIN"
         - "Social Insurance"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Filipino caregiver in Vancouver asks about newcomer banking"
   vars:
@@ -63,11 +63,11 @@
     - type: not-contains
       value: "the best bank is"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Ukrainian family in Manitoba asks how to find a family doctor / get health card"
   vars:
@@ -99,11 +99,11 @@
     - type: not-contains
       value: "OHIP"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Syrian refugee family in Ontario asks about school enrollment for kids"
   vars:
@@ -134,11 +134,11 @@
         - "Ontario"
         - "register"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Nigerian PR in Alberta asks about first Canadian tax return + TFSA"
   vars:
@@ -169,11 +169,11 @@
         - "Tax-Free Savings"
         - "tax return"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Chinese family-sponsorship applicant in BC asks about renting without Canadian credit"
   vars:
@@ -206,11 +206,11 @@
     - type: not-contains
       value: "key money"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Brazilian worker in Quebec asks how to get a driver's license (province-specific)"
   vars:
@@ -244,11 +244,11 @@
     - type: not-contains
       value: "DriveTest"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Pakistani internationally-trained nurse asks about credential recognition"
   vars:
@@ -282,10 +282,10 @@
     - type: not-contains
       value: "you will be licensed"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt

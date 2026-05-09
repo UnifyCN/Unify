@@ -24,11 +24,11 @@
     - type: contains
       value: "PGWP"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Filipino caregiver work permit holder asks about PR pathway"
   vars:
@@ -59,13 +59,13 @@
         - "Home Care"
         - "permanent residence"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
 
 - description: "Nigerian Express Entry PR asks how to check CRS score"
   vars:
@@ -96,11 +96,11 @@
         - "Comprehensive Ranking"
         - "Express Entry"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "Ukrainian under CUAET asks about extending stay"
   vars:
@@ -128,13 +128,13 @@
         - "extension"
         - "extend"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
 
 - description: "Brazilian on LMIA work permit asks about renewal"
   vars:
@@ -162,13 +162,13 @@
         - "work permit"
         - "employer"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
 
 - description: "Indian PR-hopeful asks how Express Entry CRS score is calculated"
   vars:
@@ -201,13 +201,13 @@
     - type: not-contains
       value: "you will get"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
 
 - description: "Pakistani professional in Saskatchewan asks about SINP eligibility"
   vars:
@@ -241,13 +241,13 @@
     - type: not-contains
       value: "you definitely qualify"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
 
 - description: "Mexican PR sponsor asks about spousal sponsorship inland vs outland"
   vars:
@@ -279,13 +279,13 @@
     - type: not-contains
       value: "I recommend that you choose"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
 
 - description: "Iranian PR in Ontario asks about citizenship test prep"
   vars:
@@ -315,11 +315,11 @@
         - "Discover Canada"
         - "citizenship test"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
 
 - description: "South Korean visitor asks about visitor-to-work-permit conversion"
   vars:
@@ -351,13 +351,13 @@
     - type: not-contains
       value: "you are eligible"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt
 
 - description: "Eritrean refugee claimant asks how to check status of refugee claim"
   vars:
@@ -390,10 +390,10 @@
     - type: not-contains
       value: "you will be approved"
     - type: llm-rubric
-      rubric: file://judges/faithfulness.txt
+      value: file://judges/faithfulness.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/safety.txt
+      value: file://judges/safety.txt

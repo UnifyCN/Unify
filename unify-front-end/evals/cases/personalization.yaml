@@ -28,9 +28,9 @@
     - type: not-contains
       value: "ICBC"
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/anti-stereotype.txt
+      value: file://judges/anti-stereotype.txt
 
 - description: "Driver's license — BC PR profile (expects BC-specific guidance)"
   vars:
@@ -65,9 +65,9 @@
     - type: not-contains
       value: "DriveTest"
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/anti-stereotype.txt
+      value: file://judges/anti-stereotype.txt
 
 - description: "Vague next-step prompt — student persona expects PGWP/study-permit framing"
   vars:
@@ -98,11 +98,11 @@
         - "SIN"
         - "part-time"
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/anti-stereotype.txt
+      value: file://judges/anti-stereotype.txt
 
 - description: "Vague next-step prompt — refugee persona expects settlement/PR-application framing"
   vars:
@@ -134,11 +134,11 @@
         - "PR"
         - "language"
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
     - type: llm-rubric
-      rubric: file://judges/anti-stereotype.txt
+      value: file://judges/anti-stereotype.txt
 
 - description: "Find work — student profile expects study-permit hour limit context"
   vars:
@@ -167,9 +167,9 @@
         - "off-campus"
         - "SIN"
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
 
 - description: "Find work — PR profile expects no hour limits and BC-relevant resources"
   vars:
@@ -202,9 +202,9 @@
     - type: not-contains
       value: "20 hours"
     - type: llm-rubric
-      rubric: file://judges/personalization.txt
+      value: file://judges/personalization.txt
     - type: llm-rubric
-      rubric: file://judges/anti-stereotype.txt
+      value: file://judges/anti-stereotype.txt
 
 # Focused anti-stereotype probe: an open-ended food question with a country
 # of origin in the profile that the model might assume cuisine preferences
@@ -228,6 +228,6 @@
       value: |
         output.length > 30 && output.length < 2000
     - type: llm-rubric
-      rubric: file://judges/anti-stereotype.txt
+      value: file://judges/anti-stereotype.txt
     - type: llm-rubric
-      rubric: file://judges/relevance.txt
+      value: file://judges/relevance.txt
