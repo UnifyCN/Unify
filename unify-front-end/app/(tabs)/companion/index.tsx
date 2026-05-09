@@ -38,7 +38,7 @@ import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
 import { TAB_HEADER_METRICS } from '@/constants/TabHeader';
 import SendIcon from '@/components/icons/SendIcon.svg';
-import BlueDottedLine from '@/assets/images/blue-dotted.svg';
+import { AnimatedDottedBackground } from '@/components/companion/AnimatedDottedBackground';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -466,7 +466,7 @@ export default function CompanionScreen() {
         ) : showEmptyState ? (
           <View style={styles.emptyState}>
             <View style={styles.dottedLineContainer} pointerEvents='none'>
-              <BlueDottedLine
+              <AnimatedDottedBackground
                 width={dottedLineWidth}
                 height={dottedLineHeight}
               />
