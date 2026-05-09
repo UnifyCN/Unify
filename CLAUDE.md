@@ -7,6 +7,19 @@ React Native / Expo project.
 - Always apply `vercel-react-native-skills` when working on React Native components, screens, navigation, animations, lists, or UI/performance code.
 - **Frontend design:** Always invoke BOTH `frontend-design` AND `ui-ux-pro-max` skills together when changing any UI.
 
+## Internationalization
+
+The app supports multiple languages (currently en, es, hi, vi) and the list keeps expanding. Treat i18n as a hard requirement, not an afterthought.
+
+When making ANY change that touches user-facing text — UI copy, alerts, button labels, error messages, placeholders, accessibility labels — follow these rules:
+
+- **Never hardcode user-facing strings.** Use `t()` from `useTranslation()`.
+- **Locale files live at `unify-front-end/i18n/locales/{lang}/translation.json`.** List the directory first (`ls unify-front-end/i18n/locales/`) — don't assume the locale set, new languages get added regularly.
+- **Add every new key to ALL locale files in lockstep.** Provide a real translation per locale, not English copy-pasted everywhere.
+- **Translations are nested by feature namespace** (e.g. `companion.welcomeTitle`, `auth.signIn`). Place new keys in the right namespace.
+- **Before deleting a key**, grep the codebase (`grep -rn "namespace.keyName"`) to confirm no callers remain in any source file.
+- **When renaming a key**, update all locale files in the same commit so they stay in sync.
+
 ## Commits
 
 When committing, only stage files relevant to the change. Skip unrelated modifications (e.g. package-lock.json, build.gradle) unless they're part of the feature.
