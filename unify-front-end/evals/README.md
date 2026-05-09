@@ -73,29 +73,31 @@ LLM judges live in `judges/*.txt`. Each is a plain prompt with `{{output}}` and 
 
 Keep judges binary (YES/NO + one sentence). Multi-axis rubrics produce noisier signal.
 
-## Baseline (2026-05-09)
+## Baseline + history (2026-05-09)
 
-First clean run after the AI Companion optimization PR. Treat these numbers as the watermark — future PRs should not regress them.
+Treat these as the watermark — future PRs should not regress them.
 
-| Metric                  | Value         |
-|-------------------------|---------------|
-| Cases passed            | 10/40 (25%)   |
-| Latency p50             | 2.3s          |
-| Latency p95             | 8.3s          |
-| Latency max             | 10.7s         |
+| Metric              | 2026-05-09 baseline | After tier-1 prompt + retrieval changes (same day) |
+|---------------------|---------------------|----------------------------------------------------|
+| Cases passed        | 10/40 (25%)         | **20/40 (50%)** _(+25pp)_                          |
+| Latency p50         | 2.3s                | **1.9s**                                           |
+| Latency p95         | 8.3s                | **4.2s**                                           |
+| anti-stereotype     | 100% (6/6)          | 100% (6/6)                                         |
+| faithfulness        | 96% (26/27)         | 96% (26/27)                                        |
+| relevance           | 81% (29/36)         | 83% (30/36)                                        |
+| personalization     | 48% (23/48)         | **73% (35/48)** _(+25pp)_                          |
 
-A case passes only when every assertion (deterministic + LLM judges) passes. With 4-6 assertions per case and per-judge rates of 48-100%, the compounded case-level pass rate sits around 25%. That is normal for this style of suite — track the per-judge numbers below for the real signal.
+A case passes only when every assertion (deterministic + LLM judges) passes — case-level pass rate compounds across 4-6 assertions. Per-judge numbers are the real signal.
 
-| Judge            | Pass rate     |
-|------------------|---------------|
-| anti-stereotype  | 6/6 (100%)    |
-| faithfulness     | 26/27 (96%)   |
-| relevance        | 29/36 (81%)   |
-| personalization  | 23/48 (48%)   |
+**Tier-1 changes that moved the needle (commit `aa994c26`):**
+- `buildUserProfileContext` now injects `immigration_status` (was silently dropped) and names `country_of_origin` inside the bias guard
+- Vector retrieval embeds `[Context: province, status, persona] prompt`, not the bare prompt — pulls province-specific KB chunks first try
+- Province → authority hint table (Ontario/ServiceOntario, BC/ICBC, Quebec/SAAQ, etc.) appended to the immigration system instruction
+- Form-help template no longer asks "which form?" when the user's prompt mentions an IMMxxxx number
+- Loosened deflection on stable public facts (citizenship test, CRS components, what a SIN is) — model was dodging well-known questions
+- Anti-fee-quoting rule + mandatory lawyer/RCIC referral for sensitive intents
 
-Deterministic assertions (JavaScript length bounds, contains, icontains-any, not-contains) pass at 85-100% — model output shape and required keyword coverage is solid.
-
-**Watch list:** personalization at 48% is the real opportunity. The model frequently fails to reference province/immigration-status context that the user profile provided. Targeted system-prompt work in `rag-query/index.ts` (`buildUserProfileContext`) is the next lever.
+**Note on Haiku-judge variance:** the first post-deploy run showed flat aggregate numbers because two borderline cases flipped against the wins. Always run twice when reading small deltas.
 
 ## TODO
 
