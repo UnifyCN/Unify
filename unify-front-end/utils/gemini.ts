@@ -1,4 +1,9 @@
 import Constants from 'expo-constants';
+// IMPORTANT: use expo/fetch (not the global fetch) for streaming. React
+// Native's standard fetch buffers the full response before resolving, so
+// `response.body` is always null. expo/fetch exposes `body` as a real
+// ReadableStream<Uint8Array> on Hermes — required for SSE consumption.
+import { fetch } from 'expo/fetch';
 import { supabase } from '@/lib/supabase';
 import { parseSSEStream } from '@/utils/sseParser';
 import { Source } from '@/helpers/companion/messageHelpers';
