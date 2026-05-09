@@ -236,74 +236,33 @@ async function resolveAuthenticatedUserId(
 }
 
 // ============================================================================
-// CLASSIFIER FUNCTION
+// CLASSIFIER (heuristic — no LLM call)
 // ============================================================================
 
+const FACT_CHECK_PATTERN =
+  /\b(is it true|i heard|can you verify|verify (this|that|if)|debunk|myth|rumou?r)\b/i;
+
+const FORM_HELP_PATTERN =
+  /\b(imm\s?\d+|form\s+\d{4}|fill (out|in) (a |the )?form|form field)\b/i;
+
+const GREETING_PATTERN =
+  /^(hi|hello|hey|thanks|thank you|good (morning|evening|afternoon|night)|how are you|what'?s up|sup)[\s!.?]*$/i;
+
 /**
- * Classifies the user query to determine routing.
- * Runs BEFORE embeddings/RAG to avoid unnecessary vector searches for general queries.
+ * Heuristic query classifier — picks one of the 5 lanes without an LLM call.
+ *
+ * Replaces a per-request OpenRouter call that added ~500-1500ms TTFT. The
+ * default lane is `immigration`, which has the full RAG + safety guardrails
+ * baked in, so any false negative from the regex routing fails open into the
+ * safest, most-grounded prompt.
  */
-async function classifyQuery(prompt: string): Promise<QueryType> {
-  const classifierSystemMessage = `You are a classifier. Given a user question, respond with exactly one label: immigration, newcomer_settlement, general, fact_check, or form_help. Do not explain, do not add text.
+function classifyQueryHeuristic(prompt: string): QueryType {
+  const trimmed = prompt.trim();
 
-Labels:
-- immigration: Questions about visas, work permits, PR, citizenship, IRCC processes
-- newcomer_settlement: Questions about settling in Canada (banking, TFSA, RRSP, credit, jobs, SIN, EI, housing, ESL)
-- fact_check: User wants to verify a rumor or claim they heard (contains phrases like "I heard that", "Is it true that", "Can you verify", "myth", "rumor")
-- form_help: User needs help understanding or filling out an immigration form (IMM forms, specific form fields)
-- general: Everything else (jokes, weather, unrelated topics)
-
-Examples:
-- "How do I apply for a work permit?" → immigration
-- "Where can I find ESL classes in Toronto?" → newcomer_settlement
-- "What's the weather like today?" → general
-- "Am I eligible for PR?" → immigration
-- "How do I open a bank account in Canada?" → newcomer_settlement
-- "What's a TFSA?" → newcomer_settlement
-- "How does RRSP work?" → newcomer_settlement
-- "How do I build credit in Canada?" → newcomer_settlement
-- "What is EI?" → newcomer_settlement
-- "How do I find a job in Canada?" → newcomer_settlement
-- "How do I get a SIN number?" → newcomer_settlement
-- "I heard that international students can work 40 hours now" → fact_check
-- "Is it true that PR holders can sponsor parents?" → fact_check
-- "Can you verify if PGWP is being extended?" → fact_check
-- "Help me fill out IMM5710" → form_help
-- "What does field 4a on IMM5257 mean?" → form_help
-- "I need help with my study permit application form" → form_help
-- "Tell me a joke" → general`;
-
-  const result = await callOpenRouter({
-    messages: [
-      { role: 'system', content: classifierSystemMessage },
-      { role: 'user', content: prompt },
-    ],
-    maxTokens: 15,
-    temperature: 0,
-    timeoutMs: 12000,
-    retries: 1,
-    retryDelayMs: 300,
-    appName: 'Unify — rag-query classifier',
-  });
-
-  if (!result.ok) {
-    // Fall back to 'immigration' on classifier failure — for an immigration-
-    // help app, that's the safest default: it triggers RAG grounding and the
-    // immigration system prompt with disclaimer/guardrails. A 'general'
-    // fallback would skip RAG and the disclaimer for a query that may well
-    // have been about immigration.
-    console.error('Classifier OpenRouter call failed:', result.message);
-    return 'immigration';
-  }
-
-  const label = result.content.trim().toLowerCase();
-  console.log('Classifier result:', label);
-
-  if (label === 'immigration') return 'immigration';
-  if (label === 'newcomer_settlement') return 'newcomer_settlement';
-  if (label === 'fact_check') return 'fact_check';
-  if (label === 'form_help') return 'form_help';
-  return 'general';
+  if (GREETING_PATTERN.test(trimmed)) return 'general';
+  if (FACT_CHECK_PATTERN.test(trimmed)) return 'fact_check';
+  if (FORM_HELP_PATTERN.test(trimmed)) return 'form_help';
+  return 'immigration';
 }
 
 // ============================================================================
@@ -571,13 +530,15 @@ Deno.serve(async (req: Request) => {
       stageTimings.auth_ms = Math.round(performance.now() - authStartedAt);
       return userId;
     });
+    // Heuristic classifier — synchronous, no LLM call. Replaces a per-request
+    // OpenRouter classifier that added ~500-1500ms TTFT. Default lane is
+    // 'immigration', which has the safest prompt + RAG grounding, so any
+    // false negative fails open into the most-grounded path.
     const classifyStartedAt = performance.now();
-    const classifyPromise = classifyQuery(prompt.trim()).then(queryType => {
-      stageTimings.classify_ms = Math.round(
-        performance.now() - classifyStartedAt
-      );
-      return queryType;
-    });
+    const queryType = classifyQueryHeuristic(prompt.trim());
+    stageTimings.classify_ms = Math.round(
+      performance.now() - classifyStartedAt
+    );
 
     const authenticatedUserId = await authPromise;
 
@@ -638,10 +599,6 @@ Deno.serve(async (req: Request) => {
         })()
       : Promise.resolve('');
 
-    // ========================================================================
-    // STEP 1: CLASSIFY THE QUERY (runs BEFORE embeddings to save costs)
-    // ========================================================================
-    const queryType = await classifyPromise;
     console.log('Query classified as:', queryType);
 
     // Determine if we need RAG (knowledge base search)
