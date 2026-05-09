@@ -98,11 +98,12 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
   const city = profile.city as string | null;
   const province = profile.province as string | null;
   const arrivalDate = profile.arrival_date as string | null;
+  const immigrationStatus = profile.immigration_status as string | null;
+  const countryOfOrigin = profile.country_of_origin as string | null;
   const goals = (profile.goals as string[] | null) ?? [];
   const learningInterests =
     (profile.learning_interests as string[] | null) ?? [];
 
-  // Build prompt parts, omitting null/empty fields gracefully
   const parts: string[] = [];
 
   if (persona && city && province) {
@@ -116,6 +117,15 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
   } else if (persona) {
     parts.push(
       `You are speaking with a ${persona.replace(/_/g, ' ')} in Canada${arrivalDate ? `, who arrived on ${arrivalDate.split('T')[0]}` : ''}.`
+    );
+  }
+
+  // Immigration status drives most tailoring (PR vs work permit vs study
+  // permit vs refugee vs CUAET vs sponsorship applicant). Without this the
+  // model cannot pick the right pathway, fee schedule, or rights summary.
+  if (immigrationStatus) {
+    parts.push(
+      `Their current immigration status: ${immigrationStatus.replace(/_/g, ' ')}. Tailor pathway/eligibility/rights guidance to this specific status.`
     );
   }
 
@@ -143,18 +153,51 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
 
   // Bias guard — research (EMNLP 2025, "Reading Between the Prompts") shows
   // LLMs implicitly stereotype based on country/persona cues. Explicitly
-  // forbid extrapolating beyond stated facts.
-  parts.push(
-    `Do NOT assume cultural traits, religion, language fluency, family situation, education level, or financial status beyond what is stated above.`
-  );
+  // forbid extrapolating beyond stated facts. Country is named so the model
+  // knows exactly which assumptions to suppress.
+  if (countryOfOrigin) {
+    parts.push(
+      `Country of origin: ${countryOfOrigin}. Do NOT assume cultural traits, religion, language fluency, family situation, education level, financial status, dietary preferences, or cuisine preferences from this country of origin or from any other profile field. Only use country of origin if the user's question is explicitly about it (e.g. credential recognition from that country).`
+    );
+  } else {
+    parts.push(
+      `Do NOT assume cultural traits, religion, language fluency, family situation, education level, or financial status beyond what is stated above.`
+    );
+  }
 
   return `\nUSER PROFILE CONTEXT:\n${parts.join(' ')}`;
 }
 
+/**
+ * Build a profile-aware string to embed for vector retrieval. Pure prompt
+ * embedding causes wrong-province / wrong-status retrieval (e.g. a Quebec
+ * user asking about driver's licenses retrieves generic Canadian content
+ * instead of SAAQ chunks). Prepending province + status pulls more relevant
+ * chunks without changing the user-visible answer.
+ */
+function buildRetrievalQuery(
+  prompt: string,
+  profile: Record<string, unknown> | null
+): string {
+  if (!profile) return prompt;
+  const province = profile.province as string | null;
+  const status = profile.immigration_status as string | null;
+  const persona = profile.persona as string | null;
+  const cues = [province, status?.replace(/_/g, ' '), persona?.replace(/_/g, ' ')]
+    .filter(Boolean)
+    .join(', ');
+  return cues ? `[Context: ${cues}] ${prompt}` : prompt;
+}
+
+type ProfileBundle = {
+  text: string;
+  raw: Record<string, unknown> | null;
+};
+
 async function fetchUserProfileContext(
   supabase: ReturnType<typeof createClient>,
   userId: string
-): Promise<string> {
+): Promise<ProfileBundle> {
   try {
     const { data: profile, error: profileError } = await supabase
       .from('user_onboarding_profiles')
@@ -163,15 +206,15 @@ async function fetchUserProfileContext(
       .maybeSingle();
 
     if (profileError || !profile) {
-      return '';
+      return { text: '', raw: null };
     }
 
     const userProfileContext = buildUserProfileContext(profile);
     console.log('User profile context loaded:', userProfileContext.length > 0);
-    return userProfileContext;
+    return { text: userProfileContext, raw: profile };
   } catch (_profileFetchError) {
     console.error('Failed to fetch user onboarding profile context');
-    return '';
+    return { text: '', raw: null };
   }
 }
 
@@ -315,11 +358,23 @@ End with one actionable next step the user can take.
 
 Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
+PROVINCE-SPECIFIC AUTHORITIES (refer to the user's province when relevant):
+- Driver's licensing: Ontario→ServiceOntario / DriveTest (G1/G2/G), British Columbia→ICBC (Class 7L/7N/5), Quebec→SAAQ (Classes 5/6), Alberta→Service Alberta / Alberta Registries, Manitoba→Manitoba Public Insurance, Saskatchewan→SGI, Nova Scotia→Service Nova Scotia, New Brunswick→Service New Brunswick.
+- Health coverage: Ontario→OHIP, British Columbia→MSP, Quebec→RAMQ, Alberta→AHCIP, Manitoba→Manitoba Health, Saskatchewan→Saskatchewan Health, Nova Scotia→MSI, New Brunswick→Medicare NB.
+- Tenancy / housing: Ontario→Landlord and Tenant Board, British Columbia→Residential Tenancy Branch (BC RTA), Quebec→Tribunal administratif du logement, Alberta→Residential Tenancy Dispute Resolution Service.
+- Employment standards: each province has its own; Quebec→CNESST, Ontario→Ministry of Labour, BC→Employment Standards Branch.
+When the user is in Quebec, also surface Quebec-specific programs (CSQ, PEQ, francisation classes) when settlement-relevant.
+
+PROFESSIONAL CREDENTIAL RECOGNITION:
+Direct internationally-trained professionals to (a) the federal credential assessment service for their occupation (e.g. NNAS for nurses, MCC for physicians, ECA for engineers via WES/ICES/CES), AND (b) the provincial regulator in their province (e.g. CRNS in Saskatchewan, CNO in Ontario, BCCNM in BC for nurses). Mention bridging programs when known.
+
 CRITICAL GUARDRAILS:
-1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
-2. **NO PERSONAL DECISIONS**: For questions like "Am I eligible?" — explain general criteria but recommend they verify with IRCC or a licensed professional.
-3. **OFFICIAL SOURCES**: Recommend IRCC (ircc.canada.ca) for current information.
-4. **CITE SOURCES**: Only include sources when directly using knowledge base information.${SUGGESTIONS_INSTRUCTION}`;
+1. **PERSONAL ELIGIBILITY**: For "Am I eligible?" or "Will I get approved?" questions — explain the general criteria, then say to verify with IRCC or a licensed immigration professional. Do not give a yes/no.
+2. **STABLE PUBLIC FACTS**: Common public knowledge IS answerable directly — citizenship test format (20 multiple-choice questions, pass mark 15/20), CRS components and how points are calculated, Express Entry vs PNP basics, study/work permit work-hour rules, what a SIN is, what a TFSA is, etc. Do NOT dodge these by pointing to IRCC for the answer.
+3. **NEVER QUOTE FEES OR PROCESSING TIMES FROM MEMORY**: Specific dollar amounts (PGWP fee, study permit fee, citizenship fee) and processing-time numbers change frequently. ONLY cite a fee or processing time if it appears in the KB context above. Otherwise say "check current fees and processing times on canada.ca/ircc" without naming a number.
+4. **MANDATORY LAWYER/RCIC REFERRAL** for these topics: refugee/asylum claims, deportation/removal/inadmissibility, application denials, misrepresentation, criminality, sponsorship-application denials, overstay disclosure questions, judicial review. ALWAYS include the phrase "consult a licensed immigration lawyer or RCIC (Regulated Canadian Immigration Consultant)" in responses on these topics. Do NOT recommend specific lawyers or firms by name.
+5. **OFFICIAL SOURCES**: For changing/recent rules, point to IRCC (ircc.canada.ca). For provincial topics, point to the province-specific authority listed above.
+6. **CITE SOURCES**: Only include sources when directly using knowledge base information.${SUGGESTIONS_INSTRUCTION}`;
 }
 
 /**
@@ -340,13 +395,22 @@ End with one actionable next step the user can take.
 
 Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
-Note: You are answering from general knowledge (not the knowledge base). Mention that users should verify with official sources like IRCC.
+Note: You are answering from general knowledge (not the knowledge base). Mention that users should verify with official sources like IRCC for current rules.
+
+PROVINCE-SPECIFIC AUTHORITIES (refer to the user's province when relevant):
+- Driver's licensing: Ontario→ServiceOntario / DriveTest, British Columbia→ICBC, Quebec→SAAQ, Alberta→Service Alberta, Manitoba→MPI, Saskatchewan→SGI.
+- Health coverage: Ontario→OHIP, BC→MSP, Quebec→RAMQ, Alberta→AHCIP, Manitoba→Manitoba Health.
+- Tenancy: Ontario→Landlord and Tenant Board, BC→BC RTA / Residential Tenancy Branch, Quebec→Tribunal administratif du logement.
+
+PROFESSIONAL CREDENTIALS:
+Direct internationally-trained professionals to the federal assessment service for their occupation (NNAS for nurses, MCC for physicians, ECA via WES/ICES/CES for engineers) AND the provincial regulator in their province.
 
 CRITICAL GUARDRAILS:
-1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
-2. **NO PERSONAL DECISIONS**: For questions like "Am I eligible?" — explain general criteria but recommend they verify with IRCC or a licensed professional.
-3. **OFFICIAL SOURCES**: Recommend IRCC (ircc.canada.ca) for current information.
-4. **USE GENERAL KNOWLEDGE**: Answer using general knowledge but note it should be verified with official sources.${SUGGESTIONS_INSTRUCTION}`;
+1. **PERSONAL ELIGIBILITY**: For "Am I eligible?" or "Will I get approved?" — explain general criteria, recommend verifying with IRCC or a licensed professional. No yes/no.
+2. **STABLE PUBLIC FACTS**: Citizenship test format (20 questions, pass mark 15/20), CRS components, study/work permit work-hour rules, what a SIN/TFSA is — answer directly. Do NOT dodge these.
+3. **NEVER QUOTE FEES OR PROCESSING TIMES FROM MEMORY**: Specific dollar amounts and processing times change. Without KB context, say "check current fees and processing times on canada.ca/ircc" instead of naming a number.
+4. **MANDATORY LAWYER/RCIC REFERRAL** for: refugee/asylum, deportation/removal/inadmissibility, application denials, misrepresentation, criminality, sponsorship denials, overstay disclosure, judicial review. Always include "consult a licensed immigration lawyer or RCIC".
+5. **OFFICIAL SOURCES**: Point to IRCC (ircc.canada.ca) for changing rules; province-specific authority for provincial topics.${SUGGESTIONS_INSTRUCTION}`;
 }
 
 /**
@@ -401,15 +465,17 @@ ${kbContext}
 CRITICAL: EDUCATIONAL ONLY - NEVER TELL THEM WHAT TO WRITE
 Your job is to EXPLAIN what questions mean and what information is being asked for. You are NOT providing legal advice or telling them how to answer.
 
-RESPONSE FORMAT:
+DETECT THE FORM FIRST:
+If the user's question mentions a form number (anything like "IMM 5710", "IMM5257", "IMM 1294", "form 5710"), proceed DIRECTLY to the field explanation. Do NOT ask which form they are working on. Only ask for the form number when the user has not mentioned one.
 
-## Which Form?
-If not specified, ask: "Which form are you working on? (e.g., IMM5710, IMM5257, IMM1294)"
+RESPONSE FORMAT:
 
 ## Field Explanation
 Explain what the field/question is asking for in simple terms. Use examples of the TYPE of information needed, not specific answers.
 
 Example: "This field asks for your travel history - list all countries you've visited in the past 10 years, including short trips."
+
+For the official wording and any sub-instructions, point the user to the IRCC instruction guide for that specific form (e.g. "IMM 5710 instruction guide" on canada.ca/ircc).
 
 ## Tips
 1-2 practical tips for filling out this section accurately.
@@ -598,23 +664,24 @@ Deno.serve(async (req: Request) => {
       console.warn('Ignoring mismatched request userId and authenticated user');
     }
 
-    const profilePromise = isEvalMode
-      ? Promise.resolve(
-          evalProfile ? buildUserProfileContext(evalProfile) : ''
-        )
+    const profilePromise: Promise<ProfileBundle> = isEvalMode
+      ? Promise.resolve({
+          text: evalProfile ? buildUserProfileContext(evalProfile) : '',
+          raw: evalProfile,
+        })
       : effectiveUserId
       ? (async () => {
           const profileStartedAt = performance.now();
-          const userProfileContext = await fetchUserProfileContext(
+          const bundle = await fetchUserProfileContext(
             supabase,
             effectiveUserId
           );
           stageTimings.profile_ms = Math.round(
             performance.now() - profileStartedAt
           );
-          return userProfileContext;
+          return bundle;
         })()
-      : Promise.resolve('');
+      : Promise.resolve<ProfileBundle>({ text: '', raw: null });
 
     console.log('Query classified as:', queryType);
 
@@ -647,7 +714,17 @@ Deno.serve(async (req: Request) => {
           'OPENAI_API_KEY is missing. Proceeding without KB retrieval for this request.'
         );
       } else {
-        // Generate embedding for user query
+        // Profile-aware retrieval: prepend province/status/persona to the
+        // embedding input so a Quebec user asking about driver's licenses
+        // pulls SAAQ chunks instead of generic Canadian content. Profile fetch
+        // ran in parallel with auth/classify; awaiting it here costs nothing.
+        const profileBundleForRetrieval = await profilePromise;
+        const retrievalQuery = buildRetrievalQuery(
+          prompt,
+          profileBundleForRetrieval.raw
+        );
+
+        // Generate embedding for profile-aware query
         const embeddingStartedAt = performance.now();
         const embeddingResponse = await fetchWithRetry(
           'https://api.openai.com/v1/embeddings',
@@ -659,7 +736,7 @@ Deno.serve(async (req: Request) => {
             },
             body: JSON.stringify({
               model: EMBEDDING_MODEL,
-              input: prompt,
+              input: retrievalQuery,
             }),
           },
           { timeoutMs: 15000, retries: 2, retryDelayMs: 400 }
@@ -806,12 +883,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // Add preprompt if available
-    const userProfileContext = await profilePromise;
+    const userProfileBundle = await profilePromise;
     let fullSystemInstruction = preprompt
       ? `${preprompt}\n\n${systemInstruction}`
       : systemInstruction;
-    if (userProfileContext) {
-      fullSystemInstruction = `${fullSystemInstruction}\n\n${userProfileContext}`;
+    if (userProfileBundle.text) {
+      fullSystemInstruction = `${fullSystemInstruction}\n\n${userProfileBundle.text}`;
     }
 
     // ========================================================================
