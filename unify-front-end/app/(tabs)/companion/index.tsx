@@ -18,7 +18,6 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { History, Plus } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
@@ -82,7 +81,6 @@ export default function CompanionScreen() {
     conversationId?: string;
   }>();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { showToast } = useToast();
   const { height: kbHeight, progress: kbProgress } =
@@ -125,10 +123,6 @@ export default function CompanionScreen() {
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
-  const emptyStateTopPadding = Math.max(
-    180,
-    (windowHeight - insets.top - insets.bottom) * 0.42
-  );
 
   // Fetch messages for the current conversation
   const { data: dbMessages, isLoading: isLoadingMessages } =
@@ -470,19 +464,19 @@ export default function CompanionScreen() {
             <ActivityIndicator size='large' color={Theme.surfaceBlue} />
           </View>
         ) : showEmptyState ? (
-          <View
-            style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}
-          >
+          <View style={styles.emptyState}>
             <View style={styles.dottedLineContainer} pointerEvents='none'>
               <BlueDottedLine
                 width={dottedLineWidth}
                 height={dottedLineHeight}
               />
             </View>
-            <Text style={styles.heroTitle}>
-              {t('companion.heroTitle')}
+            <Text style={styles.welcomeTitle}>
+              {t('companion.welcomeTitle')}
             </Text>
-            <Text style={styles.heroSubtitle}>{t('companion.heroSubtitle')}</Text>
+            <Text style={styles.welcomeCaption}>
+              {t('companion.welcomeCaption')}
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -511,10 +505,15 @@ export default function CompanionScreen() {
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
           {showEmptyState && (
-            <StarterPrompts
-              onPromptSelect={handleStarterPromptSelect}
-              personalizedStarters={personalization?.starters}
-            />
+            <>
+              <Text style={styles.startersLabel}>
+                {t('companion.tryOneOfThese')}
+              </Text>
+              <StarterPrompts
+                onPromptSelect={handleStarterPromptSelect}
+                personalizedStarters={personalization?.starters}
+              />
+            </>
           )}
 
           {/* Input */}
@@ -581,10 +580,10 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    paddingHorizontal: 18,
+    paddingBottom: 8,
   },
   dottedLineContainer: {
     position: 'absolute',
@@ -594,18 +593,25 @@ const styles = StyleSheet.create({
     left: -windowWidth * 0.65,
     opacity: 1,
   },
-  heroTitle: {
+  welcomeTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Theme.black,
-    lineHeight: 30,
+    lineHeight: 26,
   },
-  heroSubtitle: {
+  welcomeCaption: {
     fontSize: 20,
     fontWeight: '400',
     color: Theme.textInput,
+    lineHeight: 26,
     marginTop: 6,
-    lineHeight: 28,
+  },
+  startersLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Theme.textInput,
+    paddingHorizontal: 20,
+    paddingTop: 14,
   },
   messagesList: {
     flex: 1,

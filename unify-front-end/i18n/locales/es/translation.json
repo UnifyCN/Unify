@@ -433,8 +433,9 @@
   "companion": {
     "goBack": "Regresar",
     "title": "Asistente",
-    "heroTitle": "Pregunta lo que sea.",
-    "heroSubtitle": "Obtén respuestas verificadas sobre la vida en Canadá.",
+    "welcomeTitle": "Pregúntame lo que sea.",
+    "welcomeCaption": "Respuestas verificadas sobre cualquier cosa en Canadá.",
+    "tryOneOfThese": "Prueba una de estas",
     "greeting": "¡Hola! Soy tu Asistente Unify. Pregúntame sobre la vida en Canadá — inmigración, vivienda, salud, empleo y más. ¿Cómo puedo ayudarte hoy?",
     "formGreeting": "Puedo ayudarte a completar cualquier formulario paso a paso. ¿Con qué formulario necesitas ayuda?",
     "inputPlaceholder": "Pregunta lo que sea...",

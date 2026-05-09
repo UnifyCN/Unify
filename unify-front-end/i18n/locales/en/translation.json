@@ -433,8 +433,9 @@
   "companion": {
     "goBack": "Go back",
     "title": "Companion",
-    "heroTitle": "Ask anything.",
-    "heroSubtitle": "Get fact-checked answers about life in Canada.",
+    "welcomeTitle": "Ask me anything.",
+    "welcomeCaption": "Fact-checked answers about anything in Canada.",
+    "tryOneOfThese": "Try one of these",
     "greeting": "Hi! I'm your Unify Companion. Ask me anything about life in Canada — immigration, housing, healthcare, jobs, and more. How can I help you today?",
     "formGreeting": "I can help you fill out any form step by step. Which form do you need help with?",
     "inputPlaceholder": "Ask anything...",

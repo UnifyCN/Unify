@@ -433,8 +433,9 @@
   "companion": {
     "goBack": "Quay lại",
     "title": "Trợ lý",
-    "heroTitle": "Hỏi bất cứ điều gì.",
-    "heroSubtitle": "Nhận câu trả lời đã xác minh về cuộc sống tại Canada.",
+    "welcomeTitle": "Hỏi tôi bất cứ điều gì.",
+    "welcomeCaption": "Câu trả lời đã xác minh về bất cứ điều gì ở Canada.",
+    "tryOneOfThese": "Thử một trong số này",
     "greeting": "Xin chào! Tôi là Trợ lý Unify. Hãy hỏi tôi bất cứ điều gì về cuộc sống tại Canada — di trú, nhà ở, y tế, việc làm và nhiều hơn nữa. Tôi có thể giúp gì cho bạn?",
     "formGreeting": "Tôi có thể giúp bạn điền bất kỳ biểu mẫu nào từng bước. Bạn cần trợ giúp biểu mẫu nào?",
     "inputPlaceholder": "Hỏi bất cứ điều gì...",
