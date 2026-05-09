@@ -138,6 +138,13 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
     parts.push(`Refer to local resources in ${city} when relevant.`);
   }
 
+  // Bias guard — research (EMNLP 2025, "Reading Between the Prompts") shows
+  // LLMs implicitly stereotype based on country/persona cues. Explicitly
+  // forbid extrapolating beyond stated facts.
+  parts.push(
+    `Do NOT assume cultural traits, religion, language fluency, family situation, education level, or financial status beyond what is stated above.`
+  );
+
   return `\nUSER PROFILE CONTEXT:\n${parts.join(' ')}`;
 }
 
