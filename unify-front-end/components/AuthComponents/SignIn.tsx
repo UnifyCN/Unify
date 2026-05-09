@@ -450,12 +450,14 @@ export function SignIn({
             components={{
               terms: (
                 <Text
+                  key='terms'
                   style={styles.legalLink}
                   onPress={() => Linking.openURL(LEGAL_URLS.termsOfService)}
                 />
               ),
               privacy: (
                 <Text
+                  key='privacy'
                   style={styles.legalLink}
                   onPress={() => Linking.openURL(LEGAL_URLS.privacyPolicy)}
                 />

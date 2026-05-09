@@ -12,9 +12,11 @@ import { useTranslation } from 'react-i18next';
 import {
   i18nReady,
   setStoredLanguage,
+  hasUserPickedLanguageThisSession,
   SUPPORTED_LANGUAGES,
   type SupportedLanguage,
 } from '@/i18n';
+import { supabase } from '@/lib/supabase';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import AuthWrapper from '@/components/AuthComponents/AuthWrapper';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -220,9 +222,14 @@ function useAnalyticsIdentitySync() {
 }
 
 /**
- * On first authed mount, if the user's preferred_language stored in Supabase
- * differs from the local i18n language, switch local to match. Lets users keep
- * their language across devices/reinstalls. One-shot per session.
+ * On first authed mount, reconcile local i18n language with the user's
+ * preferred_language in Supabase. Direction depends on whether the user
+ * actively picked a language during this session:
+ *   - User picked (pre-login picker, account-settings) → push local to server.
+ *     Their just-made choice wins, and propagates to other devices.
+ *   - No explicit pick → pull server to local. Cross-device sync preserved
+ *     (returning users with stale AsyncStorage get the correct language).
+ * One-shot per user-id per session.
  */
 function useLanguageSyncFromSupabase() {
   const { currentUser } = useCurrentUser();
@@ -234,14 +241,27 @@ function useLanguageSyncFromSupabase() {
   useEffect(() => {
     if (!currentUser?.id || !profile) return;
     if (syncedForUserRef.current === currentUser.id) return;
+    syncedForUserRef.current = currentUser.id;
+
     const remote = profile.preferred_language;
-    if (remote && remote !== i18n.language && remote in SUPPORTED_LANGUAGES) {
-      syncedForUserRef.current = currentUser.id;
-      setStoredLanguage(remote as SupportedLanguage).catch(e =>
-        console.error('Failed to sync language from supabase:', e)
+    const local = i18n.language as SupportedLanguage;
+
+    if (hasUserPickedLanguageThisSession()) {
+      if (local && local in SUPPORTED_LANGUAGES && local !== remote) {
+        supabase
+          .from('user_onboarding_profiles')
+          .update({ preferred_language: local })
+          .eq('id', currentUser.id)
+          .then(({ error }) => {
+            if (error) {
+              console.error('Failed to push language to supabase:', error);
+            }
+          });
+      }
+    } else if (remote && remote in SUPPORTED_LANGUAGES && remote !== local) {
+      setStoredLanguage(remote as SupportedLanguage, { source: 'server' }).catch(
+        e => console.error('Failed to sync language from supabase:', e)
       );
-    } else if (remote) {
-      syncedForUserRef.current = currentUser.id;
     }
   }, [currentUser?.id, profile, i18n.language]);
 }

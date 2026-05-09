@@ -19,6 +19,17 @@ export type SupportedLanguage = keyof typeof SUPPORTED_LANGUAGES;
 
 const LANGUAGE_STORAGE_KEY = 'user_preferred_language';
 
+// In-memory flag — set when the *user* actively picks a language during this
+// app session (pre-login picker, account-settings). Lets the post-login sync
+// hook tell apart "user just chose this" from "AsyncStorage value left over
+// from a previous run." Resets on cold start so cross-device server-wins
+// behavior is preserved when nobody has explicitly picked yet this session.
+let userPickedLanguageThisSession = false;
+
+export function hasUserPickedLanguageThisSession(): boolean {
+  return userPickedLanguageThisSession;
+}
+
 async function getStoredLanguage(): Promise<SupportedLanguage> {
   try {
     const stored = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -39,8 +50,14 @@ async function getStoredLanguage(): Promise<SupportedLanguage> {
   return 'en';
 }
 
-export async function setStoredLanguage(lang: SupportedLanguage) {
+export async function setStoredLanguage(
+  lang: SupportedLanguage,
+  opts: { source: 'user' | 'server' } = { source: 'user' }
+) {
   await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+  if (opts.source === 'user') {
+    userPickedLanguageThisSession = true;
+  }
   await i18n.changeLanguage(lang);
 }
 

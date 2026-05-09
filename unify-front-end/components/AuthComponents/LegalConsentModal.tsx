@@ -116,6 +116,7 @@ export default function LegalConsentModal({
                   components={{
                     terms: (
                       <Text
+                        key='terms'
                         style={styles.linkText}
                         onPress={() => openDocument('termsOfService')}
                         accessibilityRole='link'
@@ -124,6 +125,7 @@ export default function LegalConsentModal({
                     ),
                     privacy: (
                       <Text
+                        key='privacy'
                         style={styles.linkText}
                         onPress={() => openDocument('privacyPolicy')}
                         accessibilityRole='link'
@@ -132,6 +134,7 @@ export default function LegalConsentModal({
                     ),
                     guidelines: (
                       <Text
+                        key='guidelines'
                         style={styles.linkText}
                         onPress={() => openDocument('communityGuidelines')}
                         accessibilityRole='link'

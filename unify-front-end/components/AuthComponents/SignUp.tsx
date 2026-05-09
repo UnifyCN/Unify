@@ -447,6 +447,7 @@ export function SignUp({
               components={{
                 terms: (
                   <Text
+                    key='terms'
                     style={styles.checkboxLinkText}
                     onPress={() => setWebViewDoc('termsOfService')}
                     accessibilityRole='link'
@@ -455,6 +456,7 @@ export function SignUp({
                 ),
                 privacy: (
                   <Text
+                    key='privacy'
                     style={styles.checkboxLinkText}
                     onPress={() => setWebViewDoc('privacyPolicy')}
                     accessibilityRole='link'
@@ -463,6 +465,7 @@ export function SignUp({
                 ),
                 guidelines: (
                   <Text
+                    key='guidelines'
                     style={styles.checkboxLinkText}
                     onPress={() => setWebViewDoc('communityGuidelines')}
                     accessibilityRole='link'
