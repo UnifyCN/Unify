@@ -6,8 +6,9 @@
  * Meta, DeepSeek, etc.) plus an automatic fallback chain on per-upstream 429s.
  *
  * Models default to env vars so they can be tuned without redeploying:
- *   OPENROUTER_MODEL_PRIMARY            (default: deepseek/deepseek-v4-flash)
- *   OPENROUTER_MODEL_FALLBACKS          (comma-separated; default: gemini-2.5-flash)
+ *   OPENROUTER_MODEL_PRIMARY            (default: google/gemini-2.5-flash)
+ *   OPENROUTER_MODEL_FALLBACKS          (comma-separated; default:
+ *                                        deepseek/deepseek-v4-flash)
  *
  * Provider routing (latency tuning) — also env-driven:
  *   OPENROUTER_PROVIDER_SORT            (default: "throughput"; set to ""
@@ -26,8 +27,8 @@ import { fetchWithRetry } from './fetchWithRetry.ts';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
-const DEFAULT_PRIMARY_MODEL = 'deepseek/deepseek-v4-flash';
-const DEFAULT_FALLBACK_MODELS = ['google/gemini-2.5-flash'];
+const DEFAULT_PRIMARY_MODEL = 'google/gemini-2.5-flash';
+const DEFAULT_FALLBACK_MODELS = ['deepseek/deepseek-v4-flash'];
 
 export type OpenRouterMessageRole = 'system' | 'user' | 'assistant';
 
