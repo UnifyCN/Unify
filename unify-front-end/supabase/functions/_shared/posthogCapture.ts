@@ -23,6 +23,11 @@ interface AiGenerationProperties {
   // Trace
   $ai_trace_id?: string;
 
+  // Conversation content (powers PostHog LLM trace UI + eval mining).
+  // Note: $ai_input may contain PII — audit retention before adding new sinks.
+  $ai_input?: Array<{ role: string; content: string }>;
+  $ai_output_choices?: Array<{ role: string; content: string }>;
+
   // Custom properties
   [key: string]: unknown;
 }
