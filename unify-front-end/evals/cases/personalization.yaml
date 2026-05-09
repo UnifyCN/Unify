@@ -1,0 +1,207 @@
+- description: "Driver's license — Ontario student profile (expects Ontario-specific guidance)"
+  vars:
+    prompt: "How do I get a driver's license?"
+    profile:
+      persona: student
+      country_of_origin: India
+      province: Ontario
+      city: Toronto
+      immigration_status: study_permit
+      arrival_date: "2024-09-01"
+      goals:
+        - find_part_time_work
+      learning_interests:
+        - transit
+    profile_summary: "Indian student on study permit, currently in Ontario"
+    expected_tailoring: "Should reference Ontario-specific licensing (G1/G2/G), ServiceOntario or DriveTest, and not give BC-specific guidance"
+  assert:
+    - type: javascript
+      value: |
+        return output.length > 50 && output.length < 2500
+    - type: icontains-any
+      value:
+        - "G1"
+        - "G2"
+        - "Ontario"
+        - "ServiceOntario"
+        - "DriveTest"
+    - type: not-contains
+      value: "ICBC"
+    - type: llm-rubric
+      rubric: file://judges/personalization.txt
+    - type: llm-rubric
+      rubric: file://judges/anti-stereotype.txt
+
+- description: "Driver's license — BC PR profile (expects BC-specific guidance)"
+  vars:
+    prompt: "How do I get a driver's license?"
+    profile:
+      persona: professional
+      country_of_origin: United Kingdom
+      province: British Columbia
+      city: Victoria
+      immigration_status: permanent_resident_express_entry
+      arrival_date: "2024-10-01"
+      goals:
+        - buy_a_home
+        - register_for_msp
+      learning_interests:
+        - housing
+    profile_summary: "British permanent resident in British Columbia"
+    expected_tailoring: "Should reference BC-specific licensing (ICBC, Class 7L/7N/5), and may mention reciprocal exchange for UK licence holders; should NOT give Ontario-specific guidance"
+  assert:
+    - type: javascript
+      value: |
+        return output.length > 50 && output.length < 2500
+    - type: icontains-any
+      value:
+        - "ICBC"
+        - "British Columbia"
+        - "BC"
+        - "Class 5"
+        - "Class 7"
+    - type: not-contains
+      value: "G1"
+    - type: not-contains
+      value: "DriveTest"
+    - type: llm-rubric
+      rubric: file://judges/personalization.txt
+    - type: llm-rubric
+      rubric: file://judges/anti-stereotype.txt
+
+- description: "Vague next-step prompt — student persona expects PGWP/study-permit framing"
+  vars:
+    prompt: "What's the next step for me?"
+    profile:
+      persona: student
+      country_of_origin: India
+      province: Ontario
+      city: Toronto
+      immigration_status: study_permit
+      arrival_date: "2024-09-01"
+      goals:
+        - find_part_time_work
+        - apply_for_pgwp
+      learning_interests:
+        - banking
+        - tax
+    profile_summary: "Indian student on study permit in Ontario, goals include part-time work and PGWP"
+    expected_tailoring: "Should suggest next steps relevant to a study-permit holder (PGWP planning, part-time work hours, SIN, banking) — NOT PR-specific or refugee-specific steps"
+  assert:
+    - type: javascript
+      value: |
+        return output.length > 50 && output.length < 2500
+    - type: icontains-any
+      value:
+        - "PGWP"
+        - "study"
+        - "SIN"
+        - "part-time"
+    - type: llm-rubric
+      rubric: file://judges/personalization.txt
+    - type: llm-rubric
+      rubric: file://judges/relevance.txt
+    - type: llm-rubric
+      rubric: file://judges/anti-stereotype.txt
+
+- description: "Vague next-step prompt — refugee persona expects settlement/PR-application framing"
+  vars:
+    prompt: "What's the next step for me?"
+    profile:
+      persona: family
+      country_of_origin: Syria
+      province: Ontario
+      city: Mississauga
+      immigration_status: refugee_protected_person
+      arrival_date: "2023-12-05"
+      goals:
+        - apply_for_pr
+        - access_settlement_supports
+      learning_interests:
+        - settlement_services
+        - language_classes
+        - legal_aid
+    profile_summary: "Syrian refugee (protected person) in Ontario, goals include PR application and settlement supports"
+    expected_tailoring: "Should suggest next steps relevant to a protected-person status (PR application timing, settlement services, language classes) — NOT study-permit or work-permit steps"
+  assert:
+    - type: javascript
+      value: |
+        return output.length > 50 && output.length < 2500
+    - type: icontains-any
+      value:
+        - "settlement"
+        - "permanent resident"
+        - "PR"
+        - "language"
+    - type: llm-rubric
+      rubric: file://judges/personalization.txt
+    - type: llm-rubric
+      rubric: file://judges/relevance.txt
+    - type: llm-rubric
+      rubric: file://judges/anti-stereotype.txt
+
+- description: "Find work — student profile expects study-permit hour limit context"
+  vars:
+    prompt: "How do I find work?"
+    profile:
+      persona: student
+      country_of_origin: India
+      province: Ontario
+      city: Toronto
+      immigration_status: study_permit
+      arrival_date: "2024-09-01"
+      goals:
+        - find_part_time_work
+      learning_interests:
+        - banking
+    profile_summary: "Indian student on study permit in Ontario"
+    expected_tailoring: "Should mention study-permit work-hour limits (e.g. weekly cap during studies / unlimited during scheduled breaks) and SIN; should NOT skip the permit-hour limit context"
+  assert:
+    - type: javascript
+      value: |
+        return output.length > 50 && output.length < 2500
+    - type: icontains-any
+      value:
+        - "hours"
+        - "study permit"
+        - "off-campus"
+        - "SIN"
+    - type: llm-rubric
+      rubric: file://judges/personalization.txt
+    - type: llm-rubric
+      rubric: file://judges/relevance.txt
+
+- description: "Find work — PR profile expects no hour limits and BC-relevant resources"
+  vars:
+    prompt: "How do I find work?"
+    profile:
+      persona: professional
+      country_of_origin: United Kingdom
+      province: British Columbia
+      city: Victoria
+      immigration_status: permanent_resident_express_entry
+      arrival_date: "2024-10-01"
+      goals:
+        - find_skilled_work
+      learning_interests:
+        - job_search
+    profile_summary: "British permanent resident in British Columbia, looking for skilled work"
+    expected_tailoring: "Should reference WorkBC and/or Job Bank, treat user as having unrestricted work rights; should NOT mention study-permit hour limits"
+  assert:
+    - type: javascript
+      value: |
+        return output.length > 50 && output.length < 2500
+    - type: icontains-any
+      value:
+        - "WorkBC"
+        - "Job Bank"
+        - "permanent resident"
+        - "PR"
+    - type: not-contains
+      value: "study permit"
+    - type: not-contains
+      value: "20 hours"
+    - type: llm-rubric
+      rubric: file://judges/personalization.txt
+    - type: llm-rubric
+      rubric: file://judges/anti-stereotype.txt

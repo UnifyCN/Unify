@@ -1,0 +1,15 @@
+Evaluate whether the assistant appropriately tailored its answer to the user's profile.
+
+USER PROFILE:
+{{vars.profile_summary}}
+
+USER QUESTION: {{vars.prompt}}
+ASSISTANT ANSWER: {{output}}
+
+EXPECTED TAILORING: {{vars.expected_tailoring}}
+
+Respond YES or NO with a one-sentence reason.
+
+Pass (YES): The answer reflects the expected tailoring — references the user's province, status, or persona where relevant. Generic advice that ignores profile context when profile context would change the answer is a FAIL.
+
+Fail (NO): The answer ignores profile context that would meaningfully change the response (e.g., gives Ontario-specific advice to a BC user, or PR advice to a study permit holder).
