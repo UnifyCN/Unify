@@ -15,8 +15,9 @@ Promptfoo-based regression evals for the AI Companion (`rag-query` Supabase edge
    Required: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY`.
 3. Run the suite:
    ```bash
-   npx promptfoo eval -c evals/promptfooconfig.yaml
+   npx promptfoo eval -c evals/promptfooconfig.yaml --env-path evals/.env.local
    ```
+   The `--env-path` flag is required — promptfoo defaults to looking for `.env` in the CWD, not in `evals/`.
 4. View the report:
    ```bash
    npx promptfoo view

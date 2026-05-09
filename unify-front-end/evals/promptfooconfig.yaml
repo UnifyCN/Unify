@@ -1,10 +1,16 @@
 description: "AI Companion regression evals — newcomer-to-Canada RAG chat"
 
-providers:
-  - id: rag-query
-    config:
-      provider: ./lib/callRag.ts
+# Each test case sets `prompt` in vars; this top-level template just forwards
+# that string to the provider as the prompt. Without this, promptfoo emits a
+# "Expected top-level 'prompts' property" warning.
+prompts:
+  - "{{prompt}}"
 
+providers:
+  - id: file://lib/callRag.ts
+    label: companion-rag
+
+# All llm-rubric judges run against Claude Haiku 4.5 via OpenRouter.
 defaultTest:
   options:
     provider:

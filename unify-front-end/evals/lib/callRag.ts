@@ -19,20 +19,35 @@ interface RagResponse {
   estimatedCostUsd?: number
 }
 
-const provider: ApiProvider = {
-  id: () => 'companion-rag-query',
+/**
+ * Custom Promptfoo provider — promptfoo loads this file and calls
+ * `new CallRagProvider(options)`, then invokes `callApi` per test case.
+ * Must be a class because promptfoo's loader does `new ImportedDefault(...)`.
+ */
+export default class CallRagProvider implements ApiProvider {
+  // promptfoo passes `{ config, label, id }` to the constructor; we don't
+  // need any of it for this provider, but the constructor must exist.
+  constructor(_options?: unknown) {}
 
-  async callApi(prompt: string, context?: CallContext): Promise<ProviderResponse> {
+  id(): string {
+    return 'companion-rag-query'
+  }
+
+  async callApi(
+    prompt: string,
+    context?: CallContext
+  ): Promise<ProviderResponse> {
     const supabaseUrl = process.env.SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
     if (!supabaseUrl || !serviceRoleKey) {
       throw new Error(
-        'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Copy evals/.env.example to evals/.env.local and fill in real values.',
+        'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Copy evals/.env.example to evals/.env.local and fill in real values.'
       )
     }
 
-    const evalProfile = (context?.vars?.profile as Record<string, unknown> | undefined) ?? null
+    const evalProfile =
+      (context?.vars?.profile as Record<string, unknown> | undefined) ?? null
 
     const startedAt = Date.now()
 
@@ -62,7 +77,9 @@ const provider: ApiProvider = {
     const data = (await res.json()) as RagResponse
 
     if (!data.answer || typeof data.answer !== 'string') {
-      throw new Error(`rag-query response missing 'answer' field. Got: ${JSON.stringify(data).slice(0, 500)}`)
+      throw new Error(
+        `rag-query response missing 'answer' field. Got: ${JSON.stringify(data).slice(0, 500)}`
+      )
     }
 
     return {
@@ -82,7 +99,5 @@ const provider: ApiProvider = {
         latency_ms: latencyMs,
       },
     } as ProviderResponse
-  },
+  }
 }
-
-export default provider
