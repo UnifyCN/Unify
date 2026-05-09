@@ -23,6 +23,7 @@ import { History, Plus } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
+import { useCompanionReviewPrompt } from '@/hooks/companion/useCompanionReviewPrompt';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
 import { useCurrentUser } from '@/context/UserContext';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -125,8 +126,8 @@ export default function CompanionScreen() {
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
   const emptyStateTopPadding = Math.max(
-    220,
-    (windowHeight - insets.top - insets.bottom) * 0.52
+    180,
+    (windowHeight - insets.top - insets.bottom) * 0.42
   );
 
   // Fetch messages for the current conversation
@@ -210,6 +211,7 @@ export default function CompanionScreen() {
   });
 
   const messageCount = usage?.message_count ?? 0;
+  useCompanionReviewPrompt(usage?.message_count);
   const messagesLeft = getMessagesLeft(messageCount, MESSAGE_LIMIT);
   const canSend = canSendMessage(isPremium, messagesLeft);
   const sendButtonDisabled = isSendButtonDisabled(
@@ -603,7 +605,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: Theme.textInput,
     marginTop: 6,
-    lineHeight: 22,
+    lineHeight: 28,
   },
   messagesList: {
     flex: 1,
