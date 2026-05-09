@@ -889,6 +889,10 @@ Deno.serve(async (req: Request) => {
       $ai_total_tokens: tokenUsage.total_tokens,
       $ai_total_cost_usd: estimatedCostUsd,
       $ai_trace_id: conversationIdentifier || undefined,
+      // Conversation content for LLM trace UI + eval mining. Excludes the
+      // system prompt and RAG context (constants, not worth logging per event).
+      $ai_input: [{ role: 'user', content: prompt }],
+      $ai_output_choices: [{ role: 'assistant', content: rawAnswer }],
       // Custom properties for filtering
       feature: 'ai_companion',
       query_type: queryType,
