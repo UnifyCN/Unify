@@ -532,7 +532,6 @@ Deno.serve(async (req: Request) => {
       conversationIdentifier,
       messages,
       userId: requestUserId,
-      eval_profile: evalProfile,
     } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
@@ -553,15 +552,6 @@ Deno.serve(async (req: Request) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Eval-mode bypass: skip auth/rate-limit/profile-fetch/usage-persist when
-    // the request comes from the regression eval harness. Gated by BOTH the
-    // x-eval-mode header AND the service role key in Authorization (server-only
-    // secret), so external callers cannot trigger this.
-    const isEvalMode =
-      req.headers.get('x-eval-mode') === '1' &&
-      req.headers.get('Authorization') === `Bearer ${supabaseServiceKey}`;
-
     const authStartedAt = performance.now();
     const authPromise = resolveAuthenticatedUserId(
       req,
@@ -582,34 +572,29 @@ Deno.serve(async (req: Request) => {
     const authenticatedUserId = await authPromise;
 
     // Require authentication — reject unauthenticated requests to prevent
-    // abuse and uncontrolled API credit consumption. Eval mode skips this.
-    if (!isEvalMode && !authenticatedUserId) {
+    // abuse and uncontrolled API credit consumption.
+    if (!authenticatedUserId) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const effectiveUserId = isEvalMode
-      ? 'eval-mode'
-      : authenticatedUserId!;
+    const effectiveUserId = authenticatedUserId;
 
     // Atomic rate limit: check + increment in one RPC (fail-closed).
-    // Returns false if over the daily cap or on any DB error. Skipped in eval
-    // mode so regression runs don't consume real users' daily quotas.
-    if (!isEvalMode) {
-      const DAILY_MESSAGE_LIMIT = 30;
-      const { data: allowed, error: quotaError } = await supabase.rpc(
-        'check_and_increment_chatbot_usage',
-        { p_user_id: effectiveUserId, p_daily_limit: DAILY_MESSAGE_LIMIT }
-      );
+    // Returns false if over the daily cap or on any DB error.
+    const DAILY_MESSAGE_LIMIT = 30;
+    const { data: allowed, error: quotaError } = await supabase.rpc(
+      'check_and_increment_chatbot_usage',
+      { p_user_id: effectiveUserId, p_daily_limit: DAILY_MESSAGE_LIMIT }
+    );
 
-      if (quotaError || allowed === false) {
-        return new Response(
-          JSON.stringify({ error: 'Daily message limit reached. Try again tomorrow.' }),
-          { status: 429, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
+    if (quotaError || allowed === false) {
+      return new Response(
+        JSON.stringify({ error: 'Daily message limit reached. Try again tomorrow.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
+      );
     }
 
     if (
@@ -620,11 +605,7 @@ Deno.serve(async (req: Request) => {
       console.warn('Ignoring mismatched request userId and authenticated user');
     }
 
-    const profilePromise = isEvalMode
-      ? Promise.resolve(
-          evalProfile ? buildUserProfileContext(evalProfile) : ''
-        )
-      : effectiveUserId
+    const profilePromise = effectiveUserId
       ? (async () => {
           const profileStartedAt = performance.now();
           const userProfileContext = await fetchUserProfileContext(
@@ -900,30 +881,23 @@ Deno.serve(async (req: Request) => {
 
     // Send $ai_generation event to PostHog LLM analytics. effectiveUserId is
     // guaranteed non-null here — unauthenticated requests already 401'd above.
-    // Skipped in eval mode so regression runs don't pollute prod analytics.
-    if (!isEvalMode) {
-      captureAiGeneration(effectiveUserId, {
-        $ai_model: llmResult.model,
-        $ai_provider: llmResult.provider,
-        $ai_input_tokens: tokenUsage.prompt_tokens,
-        $ai_output_tokens: tokenUsage.completion_tokens,
-        $ai_total_tokens: tokenUsage.total_tokens,
-        $ai_total_cost_usd: estimatedCostUsd,
-        $ai_trace_id: conversationIdentifier || undefined,
-        // Conversation content for LLM trace UI + eval mining. Excludes the
-        // system prompt and RAG context (constants, not worth logging per event).
-        $ai_input: [{ role: 'user', content: prompt }],
-        $ai_output_choices: [{ role: 'assistant', content: rawAnswer }],
-        // Custom properties for filtering
-        feature: 'ai_companion',
-        query_type: queryType,
-        has_sources: sources.length > 0,
-        response_time_ms: stageTimings.generation_ms,
-      });
-    }
+    captureAiGeneration(effectiveUserId, {
+      $ai_model: llmResult.model,
+      $ai_provider: llmResult.provider,
+      $ai_input_tokens: tokenUsage.prompt_tokens,
+      $ai_output_tokens: tokenUsage.completion_tokens,
+      $ai_total_tokens: tokenUsage.total_tokens,
+      $ai_total_cost_usd: estimatedCostUsd,
+      $ai_trace_id: conversationIdentifier || undefined,
+      // Custom properties for filtering
+      feature: 'ai_companion',
+      query_type: queryType,
+      has_sources: sources.length > 0,
+      response_time_ms: stageTimings.generation_ms,
+    });
 
     // Store token usage outside the response critical path.
-    if (!isEvalMode && effectiveUserId && tokenUsage.total_tokens > 0) {
+    if (effectiveUserId && tokenUsage.total_tokens > 0) {
       scheduleBackgroundTask(
         persistChatbotUsage(
           supabase,
