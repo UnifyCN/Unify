@@ -717,6 +717,7 @@ const styles = StyleSheet.create({
   },
   leftColumn: {
     width: 36,
+    alignSelf: 'stretch',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
