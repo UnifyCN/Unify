@@ -15,7 +15,6 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
 }) => {
   const isCompleted = task.completed;
   const taskName = task.task.task_name?.trim() ?? '';
-  const taskDescription = task.task.task_description?.trim() ?? '';
 
   return (
     <TouchableOpacity
@@ -24,38 +23,35 @@ export const ChecklistItem: React.FC<ChecklistItemProps> = ({
       activeOpacity={0.7}
     >
       <ThemedText
-        style={[
-          styles.taskName,
-          isCompleted && { color: styles.taskDescription.color },
-        ]}
+        style={[styles.taskName, isCompleted && styles.taskNameCompleted]}
+        numberOfLines={2}
+        ellipsizeMode='tail'
       >
         {taskName}
       </ThemedText>
-      <ThemedText style={styles.taskDescription}>{taskDescription}</ThemedText>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'column',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     backgroundColor: '#fff',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#D6D5D5',
+    minHeight: 52,
+    justifyContent: 'center',
   },
   taskName: {
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 20,
     fontWeight: '500',
-    color: '#000',
+    color: '#0F172A',
   },
-  taskDescription: {
-    fontSize: 14,
-    lineHeight: 18,
-    fontWeight: '500',
-    color: '#727272',
+  taskNameCompleted: {
+    color: '#94A3B8',
+    textDecorationLine: 'line-through',
   },
 });
