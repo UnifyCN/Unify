@@ -39,10 +39,11 @@ export default class CallRagProvider implements ApiProvider {
   ): Promise<ProviderResponse> {
     const supabaseUrl = process.env.SUPABASE_URL
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const evalBypassSecret = process.env.EVAL_BYPASS_SECRET
 
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey || !evalBypassSecret) {
       throw new Error(
-        'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Copy evals/.env.example to evals/.env.local and fill in real values.'
+        'Missing SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, or EVAL_BYPASS_SECRET. Copy evals/.env.example to evals/.env.local and fill in real values.'
       )
     }
 
@@ -54,9 +55,13 @@ export default class CallRagProvider implements ApiProvider {
     const res = await fetch(`${supabaseUrl}/functions/v1/rag-query`, {
       method: 'POST',
       headers: {
+        // service_role key satisfies Supabase platform-level JWT verification.
+        // The actual eval-mode bypass inside the function is gated on
+        // x-eval-secret matching EVAL_BYPASS_SECRET.
         Authorization: `Bearer ${serviceRoleKey}`,
         apikey: serviceRoleKey,
         'x-eval-mode': '1',
+        'x-eval-secret': evalBypassSecret,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

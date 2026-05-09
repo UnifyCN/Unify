@@ -17,7 +17,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "IMM 5710"
@@ -56,7 +56,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "Section A"

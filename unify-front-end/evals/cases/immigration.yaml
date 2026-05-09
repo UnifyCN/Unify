@@ -20,7 +20,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 30 && output.length < 2000
+        output.length > 30 && output.length < 2000
     - type: contains
       value: "PGWP"
     - type: llm-rubric
@@ -52,7 +52,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "caregiver"
@@ -89,7 +89,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "CRS"
@@ -121,7 +121,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "CUAET"
@@ -155,7 +155,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "LMIA"
@@ -191,7 +191,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "CRS"
@@ -230,7 +230,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "SINP"
@@ -269,7 +269,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "inland"
@@ -307,7 +307,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "15"
@@ -341,7 +341,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "work permit"
@@ -379,7 +379,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "IRB"

@@ -16,7 +16,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 10 && output.length < 1500
+        output.length > 10 && output.length < 1500
     - type: not-contains
       value: "I am an AI language model"
     - type: llm-rubric
@@ -42,7 +42,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 10 && output.length < 1500
+        output.length > 10 && output.length < 1500
     - type: not-contains
       value: "degrees Celsius"
     - type: not-contains
@@ -77,7 +77,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 20 && output.length < 1500
+        output.length > 20 && output.length < 1500
     - type: not-contains
       value: "you are covered"
     - type: not-contains
@@ -107,7 +107,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 30 && output.length < 2000
+        output.length > 30 && output.length < 2000
     - type: icontains-any
       value:
         - "immigration"

@@ -18,7 +18,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "730"
@@ -61,7 +61,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "1095"
@@ -104,7 +104,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "OHIP+"

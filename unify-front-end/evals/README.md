@@ -12,7 +12,23 @@ Promptfoo-based regression evals for the AI Companion (`rag-query` Supabase edge
    ```bash
    cp evals/.env.example evals/.env.local
    ```
-   Required: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY`.
+   Required: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY`, `EVAL_BYPASS_SECRET`.
+
+   The bypass secret must also be set as a Supabase Functions secret so the
+   deployed `rag-query` function recognizes eval requests:
+   ```bash
+   # generate a fresh secret if you don't have one
+   openssl rand -hex 32
+
+   # set it in Supabase (one-time per project)
+   npx supabase secrets set EVAL_BYPASS_SECRET=<paste hex> --project-ref <project-ref>
+   ```
+   Then put the **same value** in `evals/.env.local` as `EVAL_BYPASS_SECRET`.
+
+   Why a separate secret? `SUPABASE_SERVICE_ROLE_KEY` exists in two formats
+   right now (legacy `eyJ…` JWT vs new `sb_secret_…`); a key-equality check
+   against the Authorization header would silently fail when the formats
+   diverge. The dedicated bypass secret avoids that whole class of bug.
 3. Run the suite:
    ```bash
    npx promptfoo eval -c evals/promptfooconfig.yaml --env-path evals/.env.local

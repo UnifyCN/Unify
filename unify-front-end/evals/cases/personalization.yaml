@@ -17,7 +17,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "G1"
@@ -52,7 +52,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "ICBC"
@@ -90,7 +90,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "PGWP"
@@ -126,7 +126,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "settlement"
@@ -159,7 +159,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "hours"
@@ -190,7 +190,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "WorkBC"
@@ -226,7 +226,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 30 && output.length < 2000
+        output.length > 30 && output.length < 2000
     - type: llm-rubric
       rubric: file://judges/anti-stereotype.txt
     - type: llm-rubric

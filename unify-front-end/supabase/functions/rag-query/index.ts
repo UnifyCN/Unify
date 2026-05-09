@@ -527,12 +527,16 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Eval-mode bypass: skip auth/rate-limit/profile-fetch/usage-persist when
-    // the request comes from the regression eval harness. Gated by BOTH the
-    // x-eval-mode header AND the service role key in Authorization (server-only
-    // secret), so external callers cannot trigger this.
+    // the request comes from the regression eval harness. Gated by the
+    // x-eval-secret header matching the EVAL_BYPASS_SECRET env var (server-only
+    // secret set via Supabase Functions Secrets), so external callers cannot
+    // trigger this without knowing the secret. Decoupled from the service-role
+    // key so it works regardless of legacy JWT vs new sb_secret_ key format.
+    const evalBypassSecret = Deno.env.get('EVAL_BYPASS_SECRET');
     const isEvalMode =
       req.headers.get('x-eval-mode') === '1' &&
-      req.headers.get('Authorization') === `Bearer ${supabaseServiceKey}`;
+      !!evalBypassSecret &&
+      req.headers.get('x-eval-secret') === evalBypassSecret;
 
     const authStartedAt = performance.now();
     const authPromise = resolveAuthenticatedUserId(

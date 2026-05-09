@@ -19,7 +19,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "Service Canada"
@@ -53,7 +53,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "newcomer"
@@ -90,7 +90,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "Manitoba Health"
@@ -126,7 +126,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "school board"
@@ -161,7 +161,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "CRA"
@@ -196,7 +196,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "rent"
@@ -233,7 +233,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 50 && output.length < 2500
+        output.length > 50 && output.length < 2500
     - type: icontains-any
       value:
         - "SAAQ"
@@ -272,7 +272,7 @@
   assert:
     - type: javascript
       value: |
-        return output.length > 80 && output.length < 3000
+        output.length > 80 && output.length < 3000
     - type: icontains-any
       value:
         - "NNAS"
