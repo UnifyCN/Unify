@@ -2,7 +2,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
-import { callOpenRouter } from '../_shared/openrouter.ts';
+import {
+  callOpenRouter,
+  callOpenRouterStream,
+} from '../_shared/openrouter.ts';
 import { captureAiGeneration } from '../_shared/posthogCapture.ts';
 
 // ============================================================================
@@ -499,7 +502,10 @@ Deno.serve(async (req: Request) => {
       messages,
       userId: requestUserId,
       eval_profile: evalProfile,
+      stream: streamRequested,
     } = await req.json();
+
+    const isStreaming = streamRequested === true;
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -816,7 +822,199 @@ Deno.serve(async (req: Request) => {
     console.log('OpenRouter Request Details:');
     console.log('- Query type:', queryType);
     console.log('- Has good KB hits:', hasGoodKBHits);
+    console.log('- Streaming:', isStreaming);
 
+    // ========================================================================
+    // STEP 5a: STREAMING BRANCH
+    // ========================================================================
+    // When the client opts in via `stream: true`, return a text/event-stream
+    // response. We emit:
+    //   event: metadata    — sources/queryType/disclaimer/lastVerified
+    //   event: token       — incremental delta from OpenRouter
+    //   event: complete    — final cleanAnswer + suggestions + token usage
+    //
+    // Token tracking, PostHog capture, and chatbot_usage persistence still
+    // run server-side at completion using the FINAL accumulated answer.
+    // The non-streaming path below is unchanged so the eval harness keeps
+    // working.
+    if (isStreaming) {
+      const streamResult = await callOpenRouterStream({
+        messages: messagesForLlm,
+        maxTokens: 1200,
+        timeoutMs: 25000,
+        retries: 1,
+        retryDelayMs: 500,
+        appName: 'Unify — AI Companion',
+      });
+
+      if (!streamResult.ok) {
+        if (streamResult.retryable) {
+          logStageTimings('error');
+          return new Response(
+            JSON.stringify({
+              error:
+                'AI Companion is busy right now. Please try again in a minute.',
+              code: 'ai_companion_busy',
+            }),
+            {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+        }
+        console.error(
+          'OpenRouter streaming call failed:',
+          streamResult.message
+        );
+        throw new Error(streamResult.message);
+      }
+
+      const generationStartedAt = performance.now();
+      const encoder = new TextEncoder();
+
+      const sse = (event: string, payload: unknown): Uint8Array =>
+        encoder.encode(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
+
+      const responseStream = new ReadableStream<Uint8Array>({
+        async start(controller) {
+          let accumulatedAnswer = '';
+          let finalUsage:
+            | {
+                promptTokens: number;
+                completionTokens: number;
+                totalTokens: number;
+                costUsd?: number;
+              }
+            | undefined;
+          let resolvedModel: string | undefined;
+          let resolvedProvider: string | undefined;
+
+          try {
+            // Emit metadata first so the client can render sources / disclaimer
+            // alongside the empty bot bubble before any tokens arrive.
+            controller.enqueue(
+              sse('metadata', {
+                sources: sources.length > 0 ? sources : undefined,
+                queryType,
+                disclaimer,
+                lastVerified: lastVerified || undefined,
+              })
+            );
+
+            for await (const chunk of streamResult.stream) {
+              if (chunk.delta) {
+                accumulatedAnswer += chunk.delta;
+                controller.enqueue(sse('token', { delta: chunk.delta }));
+              }
+              if (chunk.usage) finalUsage = chunk.usage;
+              if (chunk.model) resolvedModel = chunk.model;
+              if (chunk.provider) resolvedProvider = chunk.provider;
+            }
+
+            stageTimings.generation_ms = Math.round(
+              performance.now() - generationStartedAt
+            );
+
+            const rawAnswer =
+              accumulatedAnswer || 'Sorry, I could not generate a response.';
+            const tokenUsage = {
+              prompt_tokens: finalUsage?.promptTokens ?? 0,
+              completion_tokens: finalUsage?.completionTokens ?? 0,
+              total_tokens: finalUsage?.totalTokens ?? 0,
+            };
+            const estimatedCostUsd = finalUsage?.costUsd;
+
+            // PostHog $ai_generation capture — same shape as non-streaming.
+            if (!isEvalMode) {
+              captureAiGeneration(effectiveUserId, {
+                $ai_model: resolvedModel ?? 'unknown',
+                $ai_provider: resolvedProvider ?? 'unknown',
+                $ai_input_tokens: tokenUsage.prompt_tokens,
+                $ai_output_tokens: tokenUsage.completion_tokens,
+                $ai_total_tokens: tokenUsage.total_tokens,
+                $ai_total_cost_usd: estimatedCostUsd,
+                $ai_trace_id: conversationIdentifier || undefined,
+                $ai_input: [{ role: 'user', content: prompt }],
+                $ai_output_choices: [
+                  { role: 'assistant', content: rawAnswer },
+                ],
+                feature: 'ai_companion',
+                query_type: queryType,
+                has_sources: sources.length > 0,
+                response_time_ms: stageTimings.generation_ms,
+              });
+            }
+
+            if (
+              !isEvalMode &&
+              effectiveUserId &&
+              tokenUsage.total_tokens > 0
+            ) {
+              scheduleBackgroundTask(
+                persistChatbotUsage(
+                  supabase,
+                  effectiveUserId,
+                  tokenUsage,
+                  estimatedCostUsd
+                )
+              );
+            }
+
+            const { cleanAnswer, suggestions } =
+              parseSuggestionsFromResponse(rawAnswer);
+
+            controller.enqueue(
+              sse('complete', {
+                cleanAnswer,
+                suggestedNextSteps:
+                  suggestions.length > 0 ? suggestions : undefined,
+                tokenUsage,
+                estimatedCostUsd,
+                model: resolvedModel,
+                provider: resolvedProvider,
+              })
+            );
+
+            logStageTimings('success');
+          } catch (streamErr) {
+            console.error('Streaming generation failed:', streamErr);
+            try {
+              controller.enqueue(
+                sse('error', {
+                  error:
+                    streamErr instanceof Error
+                      ? streamErr.message
+                      : 'Streaming failed',
+                })
+              );
+            } catch {
+              // controller may already be closed
+            }
+            logStageTimings('error');
+          } finally {
+            try {
+              controller.close();
+            } catch {
+              // already closed
+            }
+          }
+        },
+      });
+
+      return new Response(responseStream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+          // Disable proxy buffering (nginx/cloudflare) so tokens flush immediately.
+          'x-accel-buffering': 'no',
+        },
+      });
+    }
+
+    // ========================================================================
+    // STEP 5b: NON-STREAMING (eval harness + backwards-compat)
+    // ========================================================================
     const generationStartedAt = performance.now();
     const llmResult = await callOpenRouter({
       messages: messagesForLlm,

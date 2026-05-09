@@ -197,6 +197,7 @@ export default function CompanionScreen() {
     isWaitingForBot,
     lastSuggestedNextSteps,
     lastVerified,
+    streamingBotMessage,
   } = useSendMessage({
     messages,
     currentConversationId,
@@ -213,9 +214,18 @@ export default function CompanionScreen() {
     isLoading,
     canSend
   );
+  // Render the in-flight streaming bot bubble at the bottom of the list while
+  // tokens are arriving. Once the message is persisted, useSendMessage clears
+  // streamingBotMessage and the saved copy from the React Query cache takes
+  // over — no flicker, no duplicate.
+  const displayMessages: Message[] = useMemo(
+    () =>
+      streamingBotMessage ? [...messages, streamingBotMessage] : messages,
+    [messages, streamingBotMessage]
+  );
   const showLoadingState =
-    messages.length === 0 && (isLoadingMessages || isLoading);
-  const showEmptyState = !showLoadingState && messages.length === 0;
+    displayMessages.length === 0 && (isLoadingMessages || isLoading);
+  const showEmptyState = !showLoadingState && displayMessages.length === 0;
 
   const resetDraftState = useCallback(() => {
     setOptimisticMessages([]);
@@ -237,7 +247,7 @@ export default function CompanionScreen() {
 
   // Scroll to end only when new messages are added (not when sources expand/collapse)
   useEffect(() => {
-    const currentMessageCount = messages.length;
+    const currentMessageCount = displayMessages.length;
     const previousMessageCount = previousMessageCountRef.current;
 
     // Only scroll if message count increased (new message added)
@@ -249,7 +259,7 @@ export default function CompanionScreen() {
     }
 
     previousMessageCountRef.current = currentMessageCount;
-  }, [messages.length]);
+  }, [displayMessages.length]);
 
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
@@ -368,9 +378,12 @@ export default function CompanionScreen() {
   const renderMessage = useCallback(
     ({ item, index }: { item: Message; index: number }) => {
       // Only show suggestions and lastVerified on the last bot message
-      const isLastMessage = index === messages.length - 1;
+      const isLastMessage = index === displayMessages.length - 1;
       const isLastBotMessage = isLastMessage && !item.isUser;
-      const showSuggestions = isLastBotMessage && lastSuggestedNextSteps;
+      // Suppress chips while a token stream is still mid-flight — only show
+      // suggestions on the *settled* final bot message.
+      const showSuggestions =
+        isLastBotMessage && !streamingBotMessage && lastSuggestedNextSteps;
 
       // Attach lastVerified to the last bot message for real-time display
       const displayItem =
@@ -387,7 +400,8 @@ export default function CompanionScreen() {
       );
     },
     [
-      messages.length,
+      displayMessages.length,
+      streamingBotMessage,
       lastSuggestedNextSteps,
       lastVerified,
       handleSuggestionClick,
@@ -481,7 +495,7 @@ export default function CompanionScreen() {
         ) : (
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={displayMessages}
             renderItem={renderMessage}
             keyExtractor={keyExtractor}
             style={styles.messagesList}
