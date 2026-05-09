@@ -6,8 +6,17 @@
  * Meta, DeepSeek, etc.) plus an automatic fallback chain on per-upstream 429s.
  *
  * Models default to env vars so they can be tuned without redeploying:
- *   OPENROUTER_MODEL_PRIMARY    (default: deepseek/deepseek-v4-flash)
- *   OPENROUTER_MODEL_FALLBACKS  (comma-separated; default: gemini-2.5-flash)
+ *   OPENROUTER_MODEL_PRIMARY            (default: deepseek/deepseek-v4-flash)
+ *   OPENROUTER_MODEL_FALLBACKS          (comma-separated; default: gemini-2.5-flash)
+ *
+ * Provider routing (latency tuning) — also env-driven:
+ *   OPENROUTER_PROVIDER_SORT            (default: "throughput"; set to ""
+ *                                        to disable; alternatives: "latency",
+ *                                        "price")
+ *   OPENROUTER_PROVIDER_ORDER           (comma-separated; e.g. "together,
+ *                                        deepinfra"; takes precedence over
+ *                                        sort when set)
+ *   OPENROUTER_PROVIDER_ALLOW_FALLBACKS ("true" | "false"; default: "true")
  *
  * The helper requests inline usage data so we get token counts AND a USD cost
  * straight from OpenRouter — no per-model rate table to maintain.
@@ -27,6 +36,15 @@ export interface OpenRouterMessage {
   content: string;
 }
 
+export interface ProviderRouting {
+  /** Pinned provider order — first available wins. Overrides `sort` when set. */
+  order?: string[];
+  /** Sort across providers when no `order` is given. */
+  sort?: 'throughput' | 'latency' | 'price';
+  /** When false, fail instead of falling back outside `order`. */
+  allow_fallbacks?: boolean;
+}
+
 export interface OpenRouterCallOptions {
   messages: OpenRouterMessage[];
   /** Primary model — overrides OPENROUTER_MODEL_PRIMARY env. */
@@ -44,6 +62,8 @@ export interface OpenRouterCallOptions {
   /** Optional metadata for OpenRouter's dashboard / leaderboards. */
   appName?: string;
   appUrl?: string;
+  /** Provider routing — overrides OPENROUTER_PROVIDER_* env vars. */
+  provider?: ProviderRouting;
 }
 
 export interface OpenRouterUsage {
@@ -84,6 +104,39 @@ function readDefaultFallbackModels(): string[] {
     .filter(Boolean);
 }
 
+function readDefaultProviderRouting(): ProviderRouting | null {
+  const orderRaw = Deno.env.get('OPENROUTER_PROVIDER_ORDER');
+  // Default sort when env is unset is "throughput" — matches OpenRouter's
+  // :nitro shortcut, the universal "go fast" hint. Set the env to empty
+  // string to disable sorting entirely.
+  const sortRaw = Deno.env.get('OPENROUTER_PROVIDER_SORT') ?? 'throughput';
+  const allowFallbacksRaw = Deno.env.get('OPENROUTER_PROVIDER_ALLOW_FALLBACKS');
+
+  const order = orderRaw
+    ? orderRaw
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean)
+    : undefined;
+
+  const sort =
+    sortRaw === 'throughput' || sortRaw === 'latency' || sortRaw === 'price'
+      ? (sortRaw as ProviderRouting['sort'])
+      : undefined;
+
+  const allow_fallbacks = allowFallbacksRaw
+    ? allowFallbacksRaw.toLowerCase() !== 'false'
+    : undefined;
+
+  if (!order && !sort && allow_fallbacks === undefined) return null;
+
+  return {
+    ...(order && { order }),
+    ...(sort && !order && { sort }),
+    ...(allow_fallbacks !== undefined && { allow_fallbacks }),
+  };
+}
+
 export async function callOpenRouter(
   options: OpenRouterCallOptions
 ): Promise<OpenRouterResult> {
@@ -111,6 +164,9 @@ export async function callOpenRouter(
   if (options.maxTokens !== undefined) body.max_tokens = options.maxTokens;
   if (options.temperature !== undefined) body.temperature = options.temperature;
   if (options.jsonMode) body.response_format = { type: 'json_object' };
+
+  const provider = options.provider ?? readDefaultProviderRouting();
+  if (provider) body.provider = provider;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
