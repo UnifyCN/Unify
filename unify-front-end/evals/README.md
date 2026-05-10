@@ -56,7 +56,7 @@ Cases live in `cases/*.yaml`. Each file is a YAML list of test entries. To add a
        - type: contains
          value: "PGWP"
        - type: llm-rubric
-         rubric: file://judges/faithfulness.txt
+         value: file://judges/faithfulness.txt
    ```
 3. Re-run `npx promptfoo eval` and inspect the diff.
 
@@ -101,9 +101,11 @@ A case passes only when every assertion (deterministic + LLM judges) passes — 
 
 ## TODO
 
-1. Deploy the `rag-query` edge function changes that accept an `eval_profile` body field plus an `x-eval-mode: 1` header (bypasses the DB profile lookup). Currently the harness assumes this exists; without it, the function will look up profiles by user id and fail.
-2. Wire this into CI (GitHub Actions) — gate PRs on regressions in faithfulness/safety pass rate.
-3. Once streaming lands in the edge function, measure TTFT (time-to-first-token) per case and add a latency assertion to the provider response.
+1. Wire this into CI (GitHub Actions) — gate PRs on regressions in faithfulness/safety pass rate.
+2. Add a TTFT (time-to-first-token) assertion now that streaming is live in the edge function — the eval harness currently uses the non-streaming branch (`stream: false`) so this needs a streaming-aware assertion path.
+
+Already shipped (kept for reference):
+- `rag-query` accepts `eval_profile` in the request body and gates the bypass on `x-eval-mode: 1` + `x-eval-secret` matching `EVAL_BYPASS_SECRET`. See `supabase/functions/rag-query/index.ts` (the `isEvalMode` block + the `evalProfile` branch in `profilePromise`).
 
 ## Cost note
 

@@ -922,6 +922,11 @@ Deno.serve(async (req: Request) => {
     // The non-streaming path below is unchanged so the eval harness keeps
     // working.
     if (isStreaming) {
+      // Propagated into callOpenRouterStream and triggered when the client
+      // disconnects mid-stream. Without this, the upstream OpenRouter SSE
+      // keeps draining tokens that nobody sees — pure cost leak.
+      const upstreamAbort = new AbortController();
+
       const streamResult = await callOpenRouterStream({
         messages: messagesForLlm,
         maxTokens: 1200,
@@ -929,6 +934,7 @@ Deno.serve(async (req: Request) => {
         retries: 1,
         retryDelayMs: 500,
         appName: 'Unify — AI Companion',
+        signal: upstreamAbort.signal,
       });
 
       if (!streamResult.ok) {
@@ -959,6 +965,13 @@ Deno.serve(async (req: Request) => {
       const sse = (event: string, payload: unknown): Uint8Array =>
         encoder.encode(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
 
+      // Set true when controller.enqueue throws (client closed connection)
+      // OR when the ReadableStream `cancel` hook fires. Used to abort the
+      // upstream OpenRouter fetch and to skip post-stream PostHog capture
+      // and chatbot_usage persistence — we don't bill or analytics-log a
+      // half-consumed answer the user never saw.
+      let clientDisconnected = false;
+
       const responseStream = new ReadableStream<Uint8Array>({
         async start(controller) {
           let accumulatedAnswer = '';
@@ -973,26 +986,52 @@ Deno.serve(async (req: Request) => {
           let resolvedModel: string | undefined;
           let resolvedProvider: string | undefined;
 
+          // controller.enqueue throws TypeError once the stream has been
+          // canceled (client disconnect, RN unmount). Catch, mark disconnected,
+          // abort upstream so OpenRouter stops draining tokens.
+          const safeEnqueue = (bytes: Uint8Array): boolean => {
+            try {
+              controller.enqueue(bytes);
+              return true;
+            } catch {
+              clientDisconnected = true;
+              upstreamAbort.abort();
+              return false;
+            }
+          };
+
           try {
             // Emit metadata first so the client can render sources / disclaimer
             // alongside the empty bot bubble before any tokens arrive.
-            controller.enqueue(
-              sse('metadata', {
-                sources: sources.length > 0 ? sources : undefined,
-                queryType,
-                disclaimer,
-                lastVerified: lastVerified || undefined,
-              })
-            );
+            if (
+              !safeEnqueue(
+                sse('metadata', {
+                  sources: sources.length > 0 ? sources : undefined,
+                  queryType,
+                  disclaimer,
+                  lastVerified: lastVerified || undefined,
+                })
+              )
+            ) {
+              return;
+            }
 
             for await (const chunk of streamResult.stream) {
+              if (clientDisconnected) break;
               if (chunk.delta) {
                 accumulatedAnswer += chunk.delta;
-                controller.enqueue(sse('token', { delta: chunk.delta }));
+                if (!safeEnqueue(sse('token', { delta: chunk.delta }))) break;
               }
               if (chunk.usage) finalUsage = chunk.usage;
               if (chunk.model) resolvedModel = chunk.model;
               if (chunk.provider) resolvedProvider = chunk.provider;
+            }
+
+            // If the client dropped mid-stream, skip everything below: we
+            // don't bill, don't capture analytics, don't emit `complete`.
+            if (clientDisconnected) {
+              logStageTimings('error');
+              return;
             }
 
             stageTimings.generation_ms = Math.round(
@@ -1009,6 +1048,11 @@ Deno.serve(async (req: Request) => {
             const estimatedCostUsd = finalUsage?.costUsd;
 
             // PostHog $ai_generation capture — same shape as non-streaming.
+            // $ai_input includes the full multi-turn conversation (last 10
+            // turns from conversationHistory + the current user prompt) so
+            // LLM trace UI and eval mining can reconstruct context. System
+            // prompt and RAG context are excluded — they're constants per
+            // queryType and would balloon event payload.
             if (!isEvalMode) {
               captureAiGeneration(effectiveUserId, {
                 $ai_model: resolvedModel ?? 'unknown',
@@ -1018,7 +1062,10 @@ Deno.serve(async (req: Request) => {
                 $ai_total_tokens: tokenUsage.total_tokens,
                 $ai_total_cost_usd: estimatedCostUsd,
                 $ai_trace_id: conversationIdentifier || undefined,
-                $ai_input: [{ role: 'user', content: prompt }],
+                $ai_input: [
+                  ...conversationHistory,
+                  { role: 'user', content: prompt },
+                ],
                 $ai_output_choices: [
                   { role: 'assistant', content: rawAnswer },
                 ],
@@ -1047,7 +1094,7 @@ Deno.serve(async (req: Request) => {
             const { cleanAnswer, suggestions } =
               parseSuggestionsFromResponse(rawAnswer);
 
-            controller.enqueue(
+            safeEnqueue(
               sse('complete', {
                 cleanAnswer,
                 suggestedNextSteps:
@@ -1061,19 +1108,25 @@ Deno.serve(async (req: Request) => {
 
             logStageTimings('success');
           } catch (streamErr) {
-            console.error('Streaming generation failed:', streamErr);
-            try {
-              controller.enqueue(
-                sse('error', {
-                  error:
-                    streamErr instanceof Error
-                      ? streamErr.message
-                      : 'Streaming failed',
-                })
-              );
-            } catch {
-              // controller may already be closed
+            // Distinguish a real upstream/parse error from an abort triggered
+            // by client disconnect. AbortError is the expected control-flow
+            // signal when upstreamAbort.abort() fires from cancel/safeEnqueue.
+            const isAbort =
+              streamErr instanceof DOMException &&
+              streamErr.name === 'AbortError';
+            if (isAbort && clientDisconnected) {
+              logStageTimings('error');
+              return;
             }
+            console.error('Streaming generation failed:', streamErr);
+            safeEnqueue(
+              sse('error', {
+                error:
+                  streamErr instanceof Error
+                    ? streamErr.message
+                    : 'Streaming failed',
+              })
+            );
             logStageTimings('error');
           } finally {
             try {
@@ -1082,6 +1135,15 @@ Deno.serve(async (req: Request) => {
               // already closed
             }
           }
+        },
+        // Fires when the consumer (Deno HTTP server / client connection)
+        // cancels the stream — e.g. RN client unmount, network drop. Abort
+        // the upstream OpenRouter fetch so we stop billing for tokens nobody
+        // will see. The for-await loop in start() exits via AbortError, then
+        // skips the post-stream PostHog/persist work via clientDisconnected.
+        cancel(_reason) {
+          clientDisconnected = true;
+          upstreamAbort.abort();
         },
       });
 
@@ -1156,9 +1218,14 @@ Deno.serve(async (req: Request) => {
         $ai_total_tokens: tokenUsage.total_tokens,
         $ai_total_cost_usd: estimatedCostUsd,
         $ai_trace_id: conversationIdentifier || undefined,
-        // Conversation content for LLM trace UI + eval mining. Excludes the
-        // system prompt and RAG context (constants, not worth logging per event).
-        $ai_input: [{ role: 'user', content: prompt }],
+        // Full multi-turn conversation for LLM trace UI + eval mining
+        // (last 10 turns + the current user prompt). Excludes the system
+        // prompt and RAG context — constants per queryType, would balloon
+        // event payload.
+        $ai_input: [
+          ...conversationHistory,
+          { role: 'user', content: prompt },
+        ],
         $ai_output_choices: [{ role: 'assistant', content: rawAnswer }],
         // Custom properties for filtering
         feature: 'ai_companion',
