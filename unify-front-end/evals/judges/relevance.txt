@@ -1,0 +1,5 @@
+The output addresses the user's question. The user asked: "{{ prompt }}"
+
+PASS if the output answers the user's actual question. Tangential context is acceptable as long as the question is answered.
+
+FAIL if the output is off-topic, dodges the question, or only answers a related-but-different question.
