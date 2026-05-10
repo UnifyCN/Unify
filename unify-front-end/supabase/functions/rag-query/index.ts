@@ -295,8 +295,11 @@ async function resolveAuthenticatedUserId(
 const FACT_CHECK_PATTERN =
   /\b(is it true|i heard|can you verify|verify (this|that|if)|debunk|myth|rumou?r)\b/i;
 
+// IMM forms are 4-5 digit numbers (IMM 5710, IMM 1294). Restricting to
+// {4,5} prevents over-matching "imm 5" or "imm 100" which would otherwise
+// mis-route real questions into form-help mode.
 const FORM_HELP_PATTERN =
-  /\b(imm\s?\d+|form\s+\d{4}|fill (out|in) (a |the )?form|form field)\b/i;
+  /\b(imm[\s-]?\d{4,5}|form\s+\d{4}|fill (out|in) (a |the )?form|form field)\b/i;
 
 const GREETING_PATTERN =
   /^(hi|hello|hey|thanks|thank you|good (morning|evening|afternoon|night)|how are you|what'?s up|sup)[\s!.?]*$/i;
