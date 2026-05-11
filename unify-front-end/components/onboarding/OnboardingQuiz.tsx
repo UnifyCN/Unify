@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Platform,
 } from 'react-native';
+import { logActivation } from '@/services/analytics/metaEvents';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -309,12 +311,20 @@ export default function OnboardingQuiz({
         extras: inviteExtras,
       });
 
+      // Fire Meta activation event after profile persists. Deduped per user
+      // by SecureStore, so redo-onboarding won't double-fire.
+      await logActivation(user.id);
+
       trackOnboardingCompleted(persona);
 
       // Always clear the in-memory clipboard code regardless of redeem outcome
       // so it can't leak into a future flow (e.g. redo-onboarding) and trigger
       // an unintended re-redeem attempt.
       inviteCtx.clear();
+
+      // First-time iOS users see the ATT pre-prompt before their final destination.
+      // initMetaSDK persists the decision, so this is a one-shot per device.
+      const showATTPrompt = Platform.OS === 'ios' && !isRedo;
 
       // If redeem succeeded, route the user to the welcome moment instead of home.
       if (result.redeem?.success) {
@@ -332,7 +342,13 @@ export default function OnboardingQuiz({
             referrer_user_id: inviterId,
           });
         }
-        router.replace('/welcome-from-inviter' as any);
+        if (showATTPrompt) {
+          router.replace(
+            `/att-pre-prompt?next=${encodeURIComponent('/welcome-from-inviter')}` as any,
+          );
+        } else {
+          router.replace('/welcome-from-inviter' as any);
+        }
         return; // do NOT call onComplete; welcome screen handles its own dismiss
       }
 
@@ -341,6 +357,13 @@ export default function OnboardingQuiz({
         capture(AnalyticsEvents.INVITE_REDEEM_FAILED, {
           reason: result.redeem.reason,
         });
+      }
+
+      if (showATTPrompt) {
+        // Push the pre-prompt on top of whatever AuthWrapper now renders (main
+        // app, since onboarding_completed just flipped to true in the cache).
+        // The user dismisses the prompt and lands in the app.
+        router.push('/att-pre-prompt' as any);
       }
       onComplete();
     } catch (error) {
