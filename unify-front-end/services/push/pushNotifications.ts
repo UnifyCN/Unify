@@ -1,7 +1,9 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import * as Application from 'expo-application';
 import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
+import { logPushPermissionGranted } from '@/services/analytics/metaEvents';
 
 // Configure how notifications are handled when app is in foreground
 Notifications.setNotificationHandler({
@@ -49,6 +51,13 @@ export async function registerForPushNotifications(): Promise<PushRegistrationRe
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
     prompted = true;
+    if (status === 'granted') {
+      const deviceId =
+        Platform.OS === 'ios'
+          ? (await Application.getIosIdForVendorAsync()) ?? 'unknown-device'
+          : (Application.getAndroidId() ?? 'unknown-device');
+      await logPushPermissionGranted(deviceId);
+    }
   }
 
   if (finalStatus !== 'granted') {
