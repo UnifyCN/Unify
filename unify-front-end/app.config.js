@@ -78,6 +78,21 @@ module.exports = {
       ],
       '@react-native-google-signin/google-signin',
       'expo-secure-store',
+      'expo-tracking-transparency',
+      [
+        'react-native-fbsdk-next',
+        {
+          appID: process.env.META_APP_ID,
+          clientToken: process.env.META_CLIENT_TOKEN,
+          displayName: 'Unify',
+          scheme: `fb${process.env.META_APP_ID}`,
+          advertiserIDCollectionEnabled: true,
+          autoLogAppEventsEnabled: false,
+          isAutoInitEnabled: false,
+          iosUserTrackingPermission:
+            'Allowing tracking helps us show you relevant ads and improve Unify for our community.',
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,
