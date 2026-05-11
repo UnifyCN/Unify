@@ -926,5 +926,18 @@
       "saveChanges": "Guardar cambios",
       "exploreUnify": "Explorar Unify"
     }
+  },
+  "privacy": {
+    "attPrompt": {
+      "title": "Ayúdanos a llegar a más personas como tú",
+      "body": "Unify usa la atribución de anuncios para encontrar nuevos miembros de la comunidad a quienes les encantaría la app. Nunca vendemos tus datos; esto solo ayuda a que nuestros anuncios funcionen mejor.",
+      "continue": "Continuar",
+      "notNow": "Ahora no"
+    },
+    "settings": {
+      "sectionTitle": "Privacidad",
+      "personalizedAdsLabel": "Anuncios personalizados",
+      "personalizedAdsHelp": "Cuando está activado, la actividad anónima en la app ayuda a Meta a mostrarte anuncios relevantes. Desactivarlo lo deshabilita de inmediato."
+    }
   }
 }

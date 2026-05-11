@@ -926,5 +926,18 @@
       "saveChanges": "Lưu thay đổi",
       "exploreUnify": "Khám phá Unify"
     }
+  },
+  "privacy": {
+    "attPrompt": {
+      "title": "Giúp chúng tôi tiếp cận thêm những người như bạn",
+      "body": "Unify sử dụng phân bổ quảng cáo để tìm những thành viên cộng đồng mới sẽ yêu thích ứng dụng. Chúng tôi không bao giờ bán dữ liệu của bạn — điều này chỉ giúp quảng cáo của chúng tôi hiệu quả hơn.",
+      "continue": "Tiếp tục",
+      "notNow": "Để sau"
+    },
+    "settings": {
+      "sectionTitle": "Quyền riêng tư",
+      "personalizedAdsLabel": "Quảng cáo cá nhân hóa",
+      "personalizedAdsHelp": "Khi bật, hoạt động ẩn danh trong ứng dụng giúp Meta hiển thị quảng cáo phù hợp. Tắt sẽ ngừng ngay lập tức."
+    }
   }
 }
