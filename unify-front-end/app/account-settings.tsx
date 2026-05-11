@@ -28,6 +28,8 @@ import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { saveOnboardingProfile } from '@/services/onboarding/saveOnboardingProfile';
 import { unregisterPushToken } from '@/services/push/pushNotifications';
 import { useQueryClient } from '@tanstack/react-query';
+import * as SecureStore from 'expo-secure-store';
+import { Settings as FBSettings } from 'react-native-fbsdk-next';
 
 const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
 
@@ -49,6 +51,9 @@ export default function AccountSettingsPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState<
     boolean | null
   >(null);
+  const [personalizedAdsEnabled, setPersonalizedAdsEnabled] = useState<
+    boolean | null
+  >(null);
 
   // Track screen view on mount
   useEffect(() => {
@@ -61,6 +66,30 @@ export default function AccountSettingsPage() {
       setNotificationsEnabled(onboardingProfile.wants_reminders);
     }
   }, [onboardingProfile?.wants_reminders]);
+
+  // Sync the personalized ads toggle with the persisted ATT decision.
+  // iOS-only; meta_att_status is set by services/analytics/initMetaSDK.
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    let cancelled = false;
+    SecureStore.getItemAsync('meta_att_status').then(v => {
+      if (!cancelled) setPersonalizedAdsEnabled(v === 'granted');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const togglePersonalizedAds = async () => {
+    if (personalizedAdsEnabled === null) return;
+    const next = !personalizedAdsEnabled;
+    setPersonalizedAdsEnabled(next);
+    FBSettings.setAdvertiserTrackingEnabled(next);
+    await SecureStore.setItemAsync(
+      'meta_att_status',
+      next ? 'granted' : 'denied',
+    );
+  };
 
   const onLogout = async () => {
     try {
@@ -322,6 +351,55 @@ export default function AccountSettingsPage() {
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
+
+          {/* Privacy Section — iOS-only (ATT is iOS-only) */}
+          {Platform.OS === 'ios' ? (
+            <>
+              <Text style={styles.sectionTitle}>
+                {t('privacy.settings.sectionTitle')}
+              </Text>
+              <View style={styles.settingsCard}>
+                <View style={[styles.row, styles.toggleRow]}>
+                  <View style={styles.rowLabelContainer}>
+                    <View style={styles.bookmarkIconContainer}>
+                      <Feather name='shield' size={24} color={Theme.black} />
+                    </View>
+                    <Text style={styles.rowText}>
+                      {t('privacy.settings.personalizedAdsLabel')}
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={
+                      personalizedAdsEnabled !== null
+                        ? togglePersonalizedAds
+                        : undefined
+                    }
+                    accessibilityRole='switch'
+                    accessibilityState={{
+                      checked: personalizedAdsEnabled ?? false,
+                    }}
+                    accessibilityLabel={t(
+                      'privacy.settings.personalizedAdsLabel',
+                    )}
+                    hitSlop={8}
+                    disabled={personalizedAdsEnabled === null}
+                    style={[
+                      styles.toggleTrack,
+                      personalizedAdsEnabled === null
+                        ? styles.toggleTrackOff
+                        : personalizedAdsEnabled
+                          ? styles.toggleTrackOn
+                          : styles.toggleTrackOff,
+                      personalizedAdsEnabled === null && { opacity: 0.5 },
+                    ]}
+                  >
+                    <View style={styles.toggleThumb} />
+                  </Pressable>
+                </View>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null}
 
           {/* Community Section — iOS-only (referrals are App Store only for now) */}
           {Platform.OS === 'ios' ? (
