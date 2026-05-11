@@ -27,6 +27,7 @@ import Google from '../../assets/images/Google.svg';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import { SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
+import { logAccountCreated } from '@/services/analytics/metaEvents';
 import LegalWebView from '@/components/LegalWebView';
 import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
 
@@ -132,6 +133,9 @@ export function SignUp({
       }
 
       trackSignUpCompleted('email');
+      if (data?.user?.id) {
+        await logAccountCreated(data.user.id);
+      }
       const acceptedAt = new Date().toISOString();
       onShowOTP?.(normalizedEmail, password, acceptedAt);
       return;
@@ -195,6 +199,12 @@ export function SignUp({
             queryFn: () => getUserInfo(data.user.id),
           });
           trackSignInCompleted('google');
+          if (
+            data.user.created_at &&
+            Date.now() - new Date(data.user.created_at).getTime() < 60_000
+          ) {
+            await logAccountCreated(data.user.id);
+          }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.googleNoEmail'));
           setLoading(false);
@@ -266,6 +276,12 @@ export function SignUp({
             queryFn: () => getUserInfo(data.user.id),
           });
           trackSignInCompleted('apple');
+          if (
+            data.user.created_at &&
+            Date.now() - new Date(data.user.created_at).getTime() < 60_000
+          ) {
+            await logAccountCreated(data.user.id);
+          }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.appleNoEmail'));
           setLoading(false);
