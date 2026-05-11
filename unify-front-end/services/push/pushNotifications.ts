@@ -52,11 +52,16 @@ export async function registerForPushNotifications(): Promise<PushRegistrationRe
     finalStatus = status;
     prompted = true;
     if (status === 'granted') {
-      const deviceId =
-        Platform.OS === 'ios'
-          ? (await Application.getIosIdForVendorAsync()) ?? 'unknown-device'
-          : (Application.getAndroidId() ?? 'unknown-device');
-      await logPushPermissionGranted(deviceId);
+      // Analytics must not abort push registration if it throws.
+      try {
+        const deviceId =
+          Platform.OS === 'ios'
+            ? (await Application.getIosIdForVendorAsync()) ?? 'unknown-device'
+            : (Application.getAndroidId() ?? 'unknown-device');
+        await logPushPermissionGranted(deviceId);
+      } catch (err) {
+        console.warn('[meta] logPushPermissionGranted failed', err);
+      }
     }
   }
 

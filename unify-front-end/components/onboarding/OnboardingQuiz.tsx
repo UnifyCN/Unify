@@ -312,8 +312,11 @@ export default function OnboardingQuiz({
       });
 
       // Fire Meta activation event after profile persists. Deduped per user
-      // by SecureStore, so redo-onboarding won't double-fire.
-      await logActivation(user.id);
+      // by SecureStore, so redo-onboarding won't double-fire. Non-blocking:
+      // an analytics failure must not trigger the "save failed" alert below.
+      logActivation(user.id).catch(err =>
+        console.warn('[meta] logActivation failed', err),
+      );
 
       trackOnboardingCompleted(persona);
 

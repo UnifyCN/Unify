@@ -6,35 +6,38 @@ export interface InitMetaSDKOptions {
   requestATT: boolean;
 }
 
-type ATTStatus = 'granted' | 'denied' | 'restricted' | 'undetermined' | 'skipped';
+type TerminalStatus = 'granted' | 'denied';
+type ATTStatus = TerminalStatus | 'restricted' | 'undetermined' | 'skipped';
 
 const STORAGE_KEY = 'meta_att_status';
 
-export async function initMetaSDK({ requestATT }: InitMetaSDKOptions): Promise<void> {
-  let attStatus: ATTStatus | null = null;
+const isTerminal = (s: string | null): s is TerminalStatus =>
+  s === 'granted' || s === 'denied';
 
-  // Check if ATT decision is already persisted
+export async function initMetaSDK({
+  requestATT,
+}: InitMetaSDKOptions): Promise<void> {
+  let attStatus: ATTStatus;
+
+  // Only terminal OS decisions ('granted' / 'denied') short-circuit the
+  // request path. 'skipped' (user tapped "Not now") and edge states
+  // ('undetermined' / 'restricted') leave the door open to re-request later.
   const persistedStatus = await SecureStore.getItemAsync(STORAGE_KEY);
 
-  if (persistedStatus) {
-    // Use persisted status, skip requesting ATT
-    attStatus = persistedStatus as ATTStatus;
+  if (isTerminal(persistedStatus)) {
+    attStatus = persistedStatus;
   } else if (requestATT) {
-    // Request ATT permission
     const result = await TrackingTransparency.requestTrackingPermissionsAsync();
     attStatus = result.status as ATTStatus;
   } else {
-    // User opted out of ATT request
     attStatus = 'skipped';
   }
 
-  // Initialize Meta SDK
   Settings.initializeSDK();
+  Settings.setAdvertiserTrackingEnabled(attStatus === 'granted');
 
-  // Enable advertiser tracking only if ATT was granted
-  const trackingEnabled = attStatus === 'granted';
-  Settings.setAdvertiserTrackingEnabled(trackingEnabled);
-
-  // Persist the ATT decision for future sessions
-  await SecureStore.setItemAsync(STORAGE_KEY, attStatus);
+  // Persist only terminal decisions so non-terminal states can re-prompt.
+  if (isTerminal(attStatus)) {
+    await SecureStore.setItemAsync(STORAGE_KEY, attStatus);
+  }
 }

@@ -67,14 +67,24 @@ export default function AccountSettingsPage() {
     }
   }, [onboardingProfile?.wants_reminders]);
 
-  // Sync the personalized ads toggle with the persisted ATT decision.
-  // iOS-only; meta_att_status is set by services/analytics/initMetaSDK.
+  // Sync the personalized ads toggle. Two keys keep concerns orthogonal:
+  //   meta_att_status        — OS source-of-truth, written only by initMetaSDK
+  //   personalized_ads_pref  — in-app user preference, written only by this toggle
+  // Read personalized_ads_pref first (if user has set it); otherwise fall back
+  // to meta_att_status so the toggle reflects the OS-level decision until the
+  // user explicitly changes it in-app.
   useEffect(() => {
     if (Platform.OS !== 'ios') return;
     let cancelled = false;
-    SecureStore.getItemAsync('meta_att_status').then(v => {
-      if (!cancelled) setPersonalizedAdsEnabled(v === 'granted');
-    });
+    (async () => {
+      const pref = await SecureStore.getItemAsync('personalized_ads_pref');
+      if (pref !== null) {
+        if (!cancelled) setPersonalizedAdsEnabled(pref === 'granted');
+        return;
+      }
+      const att = await SecureStore.getItemAsync('meta_att_status');
+      if (!cancelled) setPersonalizedAdsEnabled(att === 'granted');
+    })();
     return () => {
       cancelled = true;
     };
@@ -86,7 +96,7 @@ export default function AccountSettingsPage() {
     setPersonalizedAdsEnabled(next);
     FBSettings.setAdvertiserTrackingEnabled(next);
     await SecureStore.setItemAsync(
-      'meta_att_status',
+      'personalized_ads_pref',
       next ? 'granted' : 'denied',
     );
   };

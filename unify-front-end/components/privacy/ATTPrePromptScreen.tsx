@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { initMetaSDK } from '@/services/analytics/initMetaSDK';
+import { Theme } from '@/constants/Theme';
 
 interface Props {
   onComplete: () => void;
@@ -11,17 +12,27 @@ export default function ATTPrePromptScreen({ onComplete }: Props) {
   const { t } = useTranslation();
 
   const handleContinue = async () => {
-    if (Platform.OS === 'ios') {
-      await initMetaSDK({ requestATT: true });
+    try {
+      if (Platform.OS === 'ios') {
+        await initMetaSDK({ requestATT: true });
+      }
+    } catch (err) {
+      console.warn('[ATTPrePrompt] initMetaSDK failed (continue)', err);
+    } finally {
+      onComplete();
     }
-    onComplete();
   };
 
   const handleNotNow = async () => {
-    if (Platform.OS === 'ios') {
-      await initMetaSDK({ requestATT: false });
+    try {
+      if (Platform.OS === 'ios') {
+        await initMetaSDK({ requestATT: false });
+      }
+    } catch (err) {
+      console.warn('[ATTPrePrompt] initMetaSDK failed (notNow)', err);
+    } finally {
+      onComplete();
     }
-    onComplete();
   };
 
   return (
@@ -49,29 +60,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 80,
-    backgroundColor: '#ffffff',
+    backgroundColor: Theme.white,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
     marginBottom: 16,
-    color: '#000000',
+    color: Theme.black,
   },
   body: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#3c3c43',
+    color: Theme.textAlternateGray,
     marginBottom: 40,
   },
   primaryBtn: {
-    backgroundColor: '#ff9d40',
+    backgroundColor: Theme.primaryGatherRed,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginBottom: 12,
   },
   primaryBtnText: {
-    color: '#ffffff',
+    color: Theme.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -81,7 +92,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryBtnText: {
-    color: '#3c3c43',
+    color: Theme.textAlternateGray,
     fontSize: 16,
     fontWeight: '500',
   },

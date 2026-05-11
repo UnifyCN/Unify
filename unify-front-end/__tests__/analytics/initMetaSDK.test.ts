@@ -60,11 +60,27 @@ describe('initMetaSDK', () => {
     expect(mockSetAdvertiserTrackingEnabled).toHaveBeenCalledWith(false);
   });
 
-  it('does not re-request ATT if a decision is already persisted', async () => {
+  it('does not re-request ATT if a terminal decision is already persisted', async () => {
     getItem.mockResolvedValueOnce('granted');
     await initMetaSDK({ requestATT: true });
     expect(requestTracking).not.toHaveBeenCalled();
     expect(mockInitializeSDK).toHaveBeenCalledTimes(1);
     expect(mockSetAdvertiserTrackingEnabled).toHaveBeenCalledWith(true);
+  });
+
+  it('re-requests ATT when persisted value is "skipped" (non-terminal)', async () => {
+    getItem.mockResolvedValueOnce('skipped');
+    requestTracking.mockResolvedValueOnce({ status: 'granted' });
+    await initMetaSDK({ requestATT: true });
+    expect(requestTracking).toHaveBeenCalledTimes(1);
+    expect(mockSetAdvertiserTrackingEnabled).toHaveBeenCalledWith(true);
+    expect(setItem).toHaveBeenCalledWith('meta_att_status', 'granted');
+  });
+
+  it('does not persist non-terminal statuses', async () => {
+    requestTracking.mockResolvedValueOnce({ status: 'undetermined' });
+    await initMetaSDK({ requestATT: true });
+    expect(setItem).not.toHaveBeenCalled();
+    expect(mockSetAdvertiserTrackingEnabled).toHaveBeenCalledWith(false);
   });
 });

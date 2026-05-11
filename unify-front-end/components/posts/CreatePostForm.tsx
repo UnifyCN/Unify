@@ -178,10 +178,14 @@ export default function CreatePostForm({
       {
         onSuccess: async (data: any) => {
           trackPostCreated(data?.id ? String(data.id) : undefined);
-          const userId = (await supabase.auth.getSession()).data.session?.user
-            ?.id;
-          if (userId) {
-            await logFirstPostCreated(userId);
+          try {
+            const userId = (await supabase.auth.getSession()).data.session
+              ?.user?.id;
+            if (userId) {
+              await logFirstPostCreated(userId);
+            }
+          } catch (err) {
+            console.warn('[meta] logFirstPostCreated failed', err);
           }
           const postedToGroup = destination === 'group' && selectedGroup;
           const toastMessage = postedToGroup

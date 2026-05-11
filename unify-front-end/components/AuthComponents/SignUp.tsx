@@ -134,7 +134,9 @@ export function SignUp({
 
       trackSignUpCompleted('email');
       if (data?.user?.id) {
-        await logAccountCreated(data.user.id);
+        logAccountCreated(data.user.id).catch(err =>
+          console.warn('[meta] logAccountCreated failed', err),
+        );
       }
       const acceptedAt = new Date().toISOString();
       onShowOTP?.(normalizedEmail, password, acceptedAt);
@@ -203,7 +205,9 @@ export function SignUp({
             data.user.created_at &&
             Date.now() - new Date(data.user.created_at).getTime() < 60_000
           ) {
-            await logAccountCreated(data.user.id);
+            logAccountCreated(data.user.id).catch(err =>
+              console.warn('[meta] logAccountCreated failed', err),
+            );
           }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.googleNoEmail'));
@@ -280,7 +284,9 @@ export function SignUp({
             data.user.created_at &&
             Date.now() - new Date(data.user.created_at).getTime() < 60_000
           ) {
-            await logAccountCreated(data.user.id);
+            logAccountCreated(data.user.id).catch(err =>
+              console.warn('[meta] logAccountCreated failed', err),
+            );
           }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.appleNoEmail'));
