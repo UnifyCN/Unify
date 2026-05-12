@@ -29,10 +29,15 @@ export const createUserIfNotExists = async (
     );
   }
 
-  // 1. Check if user already exists in public.users
+  // 1. Check if user already exists in public.users. We fetch the consent
+  // columns too because the handle_new_user DB trigger creates the row at
+  // auth.signUp time *without* timestamps, so the row can exist with nulls.
+  // When that happens, we need to UPDATE rather than skip the consent persist.
   const { data: existingUser, error: fetchError } = await supabase
     .from('users')
-    .select('id')
+    .select(
+      'id, privacy_policy_accepted_at, community_guidelines_accepted_at'
+    )
     .eq('id', userId)
     .maybeSingle();
 
@@ -43,7 +48,39 @@ export const createUserIfNotExists = async (
     );
   }
 
-  if (existingUser) return;
+  if (existingUser) {
+    // Backfill consent timestamps if caller provided them and the row's
+    // timestamps are currently null. Never overwrite an existing acceptance.
+    const needsPrivacy =
+      options?.privacyPolicyAcceptedAt &&
+      !existingUser.privacy_policy_accepted_at;
+    const needsGuidelines =
+      options?.communityGuidelinesAcceptedAt &&
+      !existingUser.community_guidelines_accepted_at;
+
+    if (needsPrivacy || needsGuidelines) {
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({
+          ...(needsPrivacy && {
+            privacy_policy_accepted_at: options!.privacyPolicyAcceptedAt,
+          }),
+          ...(needsGuidelines && {
+            community_guidelines_accepted_at:
+              options!.communityGuidelinesAcceptedAt,
+          }),
+        })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('Error backfilling consent timestamps:', updateError);
+        throw new Error(
+          `Failed to record consent acceptance: ${updateError.message}`
+        );
+      }
+    }
+    return;
+  }
 
   // 2. Retry loop for insertion (handles username collisions race conditions)
   const maxRetries = 5;

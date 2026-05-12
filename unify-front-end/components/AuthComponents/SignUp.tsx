@@ -162,6 +162,11 @@ export function SignUp({
 
   const handleGoogleSignIn = async () => {
     if (isExpoGo) return;
+    if (!isChecked) {
+      setErrorMessage(t('auth.acceptTermsRequired'));
+      trackSignUpFailed('terms_not_accepted');
+      return;
+    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -186,7 +191,14 @@ export function SignUp({
 
         if (data?.user?.id && data?.user?.email) {
           try {
-            await createUserIfNotExists(data.user.id, data.user.email);
+            // SignUp path: the checkbox gates form submission, so by the time
+            // we reach here the user has consented. Persist it now so the
+            // AuthWrapper backup gate doesn't re-prompt for the same consent.
+            const acceptedAt = new Date().toISOString();
+            await createUserIfNotExists(data.user.id, data.user.email, {
+              privacyPolicyAcceptedAt: acceptedAt,
+              communityGuidelinesAcceptedAt: acceptedAt,
+            });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
@@ -238,6 +250,11 @@ export function SignUp({
 
   const handleAppleSignIn = async () => {
     if (isExpoGo) return;
+    if (!isChecked) {
+      setErrorMessage(t('auth.acceptTermsRequired'));
+      trackSignUpFailed('terms_not_accepted');
+      return;
+    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -265,7 +282,14 @@ export function SignUp({
 
         if (data?.user?.id && data?.user?.email) {
           try {
-            await createUserIfNotExists(data.user.id, data.user.email);
+            // SignUp path: same as Google — the consent checkbox has already
+            // gated form submission, so persist the timestamp here so the
+            // post-auth AuthWrapper modal doesn't ask the user a second time.
+            const acceptedAt = new Date().toISOString();
+            await createUserIfNotExists(data.user.id, data.user.email, {
+              privacyPolicyAcceptedAt: acceptedAt,
+              communityGuidelinesAcceptedAt: acceptedAt,
+            });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
