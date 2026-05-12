@@ -6,23 +6,35 @@ import {
   View,
   AccessibilityInfo,
 } from 'react-native';
-import { ChevronRight, Gift, X } from 'lucide-react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+import { ChevronRight, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 
 import { Theme } from '@/constants/Theme';
 import { useGiveawayCountdown } from '@/hooks/giveaway/useGiveawayCountdown';
 import { useGiveawayEntry } from '@/hooks/giveaway/useGiveawayEntry';
 import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
 import { useHapticsPreference } from '@/context/HapticsContext';
-import * as Haptics from 'expo-haptics';
+import { GiftBoxIcon } from './GiftBoxIcon';
+
+const ICON_SIZE = 44;
 
 /**
  * GiveawayBanner — pinned above the feed tabs on Home.
  *
  *   Three states:
- *     1. active & not entered     → tap CTA + dismiss X
- *     2. active & entered         → "You're entered ✓" (no dismiss)
+ *     1. active & not entered     → animated gift box + CTA + dismiss X
+ *     2. active & entered         → "You're entered ✓" (no dismiss, no animation)
  *     3. expired or dismissed     → null
  *
  * Dismissal is per-session (component-local state). Re-mounts on next app
@@ -42,8 +54,6 @@ export function GiveawayBanner() {
   const shouldRender = isActive && !dismissed;
 
   useEffect(() => {
-    // Fire banner_shown once per mount when the banner first becomes visible
-    // and we know the user's entry state.
     if (!shouldRender || isLoading || hasFiredShown) return;
     capture(AnalyticsEvents.GIVEAWAY_BANNER_SHOWN, {
       state: hasEntered ? 'entered' : 'cta',
@@ -57,15 +67,17 @@ export function GiveawayBanner() {
     return (
       <View style={styles.outerWrap}>
         <View
-          style={styles.card}
+          style={[styles.card, styles.enteredCard]}
           accessibilityRole='text'
           accessibilityLabel={`${t('giveaway.banner.enteredHeadline')} ${t(
             'giveaway.banner.enteredSubtext'
           )}`}
         >
-          <Gift color={Theme.black} size={18} strokeWidth={2.2} />
+          <View style={styles.iconWrap}>
+            <GiftBoxIcon size={ICON_SIZE} />
+          </View>
           <View style={styles.textBlock}>
-            <Text style={styles.headline} numberOfLines={1}>
+            <Text style={styles.headlineEntered} numberOfLines={1}>
               {t('giveaway.banner.enteredHeadline')}
             </Text>
             <Text style={styles.subtext} numberOfLines={1}>
@@ -106,13 +118,18 @@ export function GiveawayBanner() {
           accessibilityLabel={t('giveaway.banner.headline')}
           accessibilityHint={t('giveaway.welcome.cta')}
         >
-          <Gift color={Theme.black} size={18} strokeWidth={2.2} />
-          <Text style={styles.headline} numberOfLines={1}>
-            {t('giveaway.banner.headline')}
-          </Text>
-          <View style={styles.divider} />
-          <CountdownInline />
-          <ChevronRight color={Theme.textAlternateGray} size={16} strokeWidth={2.2} />
+          <WigglingGift />
+          <View style={styles.textBlock}>
+            <Text style={styles.headline} numberOfLines={1}>
+              {t('giveaway.banner.headline')}
+            </Text>
+            <CountdownLine />
+          </View>
+          <ChevronRight
+            color={Theme.textAlternateGray}
+            size={20}
+            strokeWidth={2.2}
+          />
         </Pressable>
         <Pressable
           onPress={handleDismiss}
@@ -124,16 +141,66 @@ export function GiveawayBanner() {
           accessibilityRole='button'
           accessibilityLabel={t('common.cancel')}
         >
-          <X color={Theme.textInactiveTab} size={15} strokeWidth={2.4} />
+          <X color={Theme.textInactiveTab} size={16} strokeWidth={2.4} />
         </Pressable>
       </View>
     </View>
   );
 }
 
-// Inline countdown — pulls the banner's neutral palette and keeps the
-// type scale tight against the headline.
-function CountdownInline() {
+/**
+ * The gift box sits still for ~2.5s, wiggles for ~600ms, repeats forever.
+ * Pattern is deliberate: continuous motion is distracting; periodic motion
+ * draws the eye exactly when the user might be scanning past it.
+ */
+function WigglingGift() {
+  const rotation = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    rotation.value = withRepeat(
+      withSequence(
+        withDelay(
+          2500,
+          withTiming(-12, { duration: 100, easing: Easing.out(Easing.quad) })
+        ),
+        withTiming(12, { duration: 120, easing: Easing.inOut(Easing.quad) }),
+        withTiming(-10, { duration: 120, easing: Easing.inOut(Easing.quad) }),
+        withTiming(8, { duration: 120, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 140, easing: Easing.out(Easing.quad) })
+      ),
+      -1,
+      false
+    );
+
+    scale.value = withRepeat(
+      withSequence(
+        withDelay(
+          2500,
+          withTiming(1.08, { duration: 150, easing: Easing.out(Easing.quad) })
+        ),
+        withTiming(1, { duration: 450, easing: Easing.out(Easing.quad) })
+      ),
+      -1,
+      false
+    );
+  }, [rotation, scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { rotate: `${rotation.value}deg` },
+      { scale: scale.value },
+    ],
+  }));
+
+  return (
+    <Animated.View style={[styles.iconWrap, animatedStyle]}>
+      <GiftBoxIcon size={ICON_SIZE} />
+    </Animated.View>
+  );
+}
+
+function CountdownLine() {
   const { t } = useTranslation();
   const { isActive, display } = useGiveawayCountdown();
   if (!isActive) return null;
@@ -152,48 +219,61 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.white,
-    borderRadius: 16,
+    backgroundColor: '#FFF8E7',
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Theme.borderCard,
+    borderColor: '#F2DDA3',
     paddingHorizontal: 14,
-    paddingVertical: 11,
-    minHeight: 48,
+    paddingVertical: 12,
+    minHeight: 72,
+  },
+  enteredCard: {
+    backgroundColor: Theme.white,
+    borderColor: Theme.borderCard,
   },
   pressArea: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
+  },
+  iconWrap: {
+    width: ICON_SIZE,
+    height: ICON_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   textBlock: {
     flex: 1,
     flexDirection: 'column',
-    marginLeft: 8,
+    justifyContent: 'center',
   },
   headline: {
     color: Theme.black,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
+    letterSpacing: -0.2,
+    flexShrink: 1,
+  },
+  headlineEntered: {
+    color: Theme.black,
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.2,
     flexShrink: 1,
   },
   subtext: {
     color: Theme.textAlternateGray,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     marginTop: 2,
-  },
-  divider: {
-    width: StyleSheet.hairlineWidth,
-    height: 14,
-    backgroundColor: Theme.borderCard,
-    marginHorizontal: 4,
   },
   countdown: {
     color: Theme.textAlternateGray,
     fontSize: 13,
     fontWeight: '500',
-    flexShrink: 1,
+    marginTop: 2,
   },
   dismissButton: {
     paddingLeft: 10,
