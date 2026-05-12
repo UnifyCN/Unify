@@ -87,5 +87,17 @@ export async function submitGiveawayEntry(
     return { success: false, reason: 'server_error', message: error.message };
   }
 
+  // Fire-and-forget confirmation email. The entry is already persisted; the
+  // email is a nice-to-have, not a gate. Errors are logged in the edge fn.
+  void supabase.functions
+    .invoke('giveaway-confirm', {
+      body: { campaignId: GIVEAWAY.campaignId },
+    })
+    .catch(emailError => {
+      if (__DEV__) {
+        console.warn('[giveaway] confirmation email failed', emailError);
+      }
+    });
+
   return { success: true, entry: data };
 }
