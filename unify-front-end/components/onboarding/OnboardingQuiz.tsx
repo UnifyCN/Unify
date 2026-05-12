@@ -6,12 +6,12 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   ActivityIndicator,
   Alert,
   TextInput,
   Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { logActivation } from '@/services/analytics/metaEvents';
 import { initMetaSDK } from '@/services/analytics/initMetaSDK';
 import { Feather } from '@expo/vector-icons';
@@ -454,15 +454,19 @@ export default function OnboardingQuiz({
               error={errors[3]}
             />
             {referralSource === 'friends_family' ? (
-              <InviteCodeField
-                value={inviteCodeInput}
-                onChange={next => {
-                  setInviteCodeInput(next);
-                  // Once the user types, it's no longer "auto-filled."
-                  if (inviteCodeAutoFilled) setInviteCodeAutoFilled(false);
-                }}
-                autoFilled={inviteCodeAutoFilled}
-              />
+              <>
+                <InviteCodeField
+                  value={inviteCodeInput}
+                  onChange={next => {
+                    setInviteCodeInput(next);
+                    // Once the user types, it's no longer "auto-filled."
+                    if (inviteCodeAutoFilled) setInviteCodeAutoFilled(false);
+                  }}
+                  autoFilled={inviteCodeAutoFilled}
+                />
+                {/* Spacer so the OTP boxes can scroll well above the keyboard. */}
+                <View style={styles.inviteCodeBottomSpacer} />
+              </>
             ) : null}
           </View>
         );
@@ -734,13 +738,16 @@ export default function OnboardingQuiz({
         totalSteps={TOTAL_STEPS}
         skipSafeArea={isRedo}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps='handled'
+        bottomOffset={120}
+        extraKeyboardSpace={120}
       >
         {renderStep()}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View
         style={[styles.navContainer, { paddingBottom: 20 + insets.bottom }]}
@@ -939,6 +946,9 @@ const styles = StyleSheet.create({
   },
   finalStepText: {
     fontWeight: '700',
+  },
+  inviteCodeBottomSpacer: {
+    height: 240,
   },
   dateInputContainer: {
     marginTop: 16,
