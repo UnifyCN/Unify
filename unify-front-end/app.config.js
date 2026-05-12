@@ -39,7 +39,7 @@ module.exports = {
     name: 'Unify',
     slug: 'unify-front-end',
     owner: 'unifysocial',
-    version: '1.4.0',
+    version: '1.5.0',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'myapp',
