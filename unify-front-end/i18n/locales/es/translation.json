@@ -816,8 +816,18 @@
     "yearLabel": "Año",
     "confirm": "Confirmar",
     "otherSpecify": "Otro (especificar)",
+    "otherSpecifyBelow": "Otro (especifica abajo)",
     "continue": "Continuar",
-    "selectMonthYear": "Selecciona mes y año"
+    "selectMonthYear": "Selecciona mes y año",
+    "locationQuestion": "¿En qué parte de Canadá vives?",
+    "city": "Ciudad",
+    "province": "Provincia",
+    "selectCity": "Selecciona tu ciudad",
+    "selectProvince": "Selecciona tu provincia",
+    "enterCity": "Ingresa tu ciudad",
+    "searchCities": "Buscar ciudades",
+    "searchProvinces": "Buscar provincias",
+    "autoFilled": "Autocompletado"
   },
   "loadingScreen": {
     "message": "Por favor espera mientras conectamos los puntos de tu viaje…"

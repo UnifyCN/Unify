@@ -816,8 +816,18 @@
     "yearLabel": "Năm",
     "confirm": "Xác nhận",
     "otherSpecify": "Khác (chỉ rõ)",
+    "otherSpecifyBelow": "Khác (ghi rõ bên dưới)",
     "continue": "Tiếp tục",
-    "selectMonthYear": "Chọn tháng và năm"
+    "selectMonthYear": "Chọn tháng và năm",
+    "locationQuestion": "Bạn sống ở đâu tại Canada?",
+    "city": "Thành phố",
+    "province": "Tỉnh bang",
+    "selectCity": "Chọn thành phố của bạn",
+    "selectProvince": "Chọn tỉnh bang của bạn",
+    "enterCity": "Nhập thành phố của bạn",
+    "searchCities": "Tìm thành phố",
+    "searchProvinces": "Tìm tỉnh bang",
+    "autoFilled": "Tự động điền"
   },
   "loadingScreen": {
     "message": "Vui lòng chờ trong khi chúng tôi kết nối mọi thứ cho hành trình của bạn…"

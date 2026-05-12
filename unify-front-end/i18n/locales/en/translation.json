@@ -816,8 +816,18 @@
     "yearLabel": "Year",
     "confirm": "Confirm",
     "otherSpecify": "Other (specify)",
+    "otherSpecifyBelow": "Other (specify below)",
     "continue": "Continue",
-    "selectMonthYear": "Select month and year"
+    "selectMonthYear": "Select month and year",
+    "locationQuestion": "Where in Canada are you based?",
+    "city": "City",
+    "province": "Province",
+    "selectCity": "Select your city",
+    "selectProvince": "Select your province",
+    "enterCity": "Enter your city",
+    "searchCities": "Search cities",
+    "searchProvinces": "Search provinces",
+    "autoFilled": "Auto-filled"
   },
   "loadingScreen": {
     "message": "Please wait while we connect the dots for your journey…"

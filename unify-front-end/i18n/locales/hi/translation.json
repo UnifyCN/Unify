@@ -816,8 +816,18 @@
     "yearLabel": "वर्ष",
     "confirm": "पुष्टि करें",
     "otherSpecify": "अन्य (निर्दिष्ट करें)",
+    "otherSpecifyBelow": "अन्य (नीचे बताएं)",
     "continue": "जारी रखें",
-    "selectMonthYear": "महीना और वर्ष चुनें"
+    "selectMonthYear": "महीना और वर्ष चुनें",
+    "locationQuestion": "आप कनाडा में कहाँ रहते हैं?",
+    "city": "शहर",
+    "province": "प्रांत",
+    "selectCity": "अपना शहर चुनें",
+    "selectProvince": "अपना प्रांत चुनें",
+    "enterCity": "अपना शहर दर्ज करें",
+    "searchCities": "शहर खोजें",
+    "searchProvinces": "प्रांत खोजें",
+    "autoFilled": "स्वतः भरा गया"
   },
   "loadingScreen": {
     "message": "कृपया प्रतीक्षा करें जब हम आपकी यात्रा के लिए सब कुछ जोड़ रहे हैं…"
