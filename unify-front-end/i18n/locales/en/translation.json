@@ -180,7 +180,7 @@
     "haptics": "Haptics",
     "redoOnboarding": "Redo Onboarding Quiz",
     "community": "Community",
-    "referAFriend": "Refer a friend",
+    "referAFriend": "Refer a Friend",
     "legal": "Legal",
     "privacyPolicy": "Privacy Policy",
     "communityGuidelines": "Community Guidelines",
@@ -698,7 +698,7 @@
     "errorMessage": "An error occurred while resetting your password"
   },
   "referrals": {
-    "title": "Refer a friend",
+    "title": "Refer a Friend",
     "inviteDesc": "Invite a friend to start their Canada journey with you.",
     "newcomersBenefit": "Newcomers do best when they have a friend already inside.",
     "inviteAFriend": "Invite a friend",
@@ -936,7 +936,7 @@
     },
     "settings": {
       "sectionTitle": "Privacy",
-      "personalizedAdsLabel": "Personalized ads",
+      "personalizedAdsLabel": "Personalized Ads",
       "personalizedAdsHelp": "When on, anonymous app activity helps Meta show you relevant ads. Off disables this immediately."
     }
   }

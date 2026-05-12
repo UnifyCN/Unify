@@ -70,9 +70,9 @@ export default function AccountSettingsPage() {
   // Sync the personalized ads toggle. Two keys keep concerns orthogonal:
   //   meta_att_status        — OS source-of-truth, written only by initMetaSDK
   //   personalized_ads_pref  — in-app user preference, written only by this toggle
-  // Read personalized_ads_pref first (if user has set it); otherwise fall back
-  // to meta_att_status so the toggle reflects the OS-level decision until the
-  // user explicitly changes it in-app.
+  // Default-ON semantics: unless the user has explicitly opted out in-app OR
+  // denied ATT at the OS level, show the toggle as ON. The Meta SDK still
+  // honors the OS ATT decision regardless of this UI state.
   useEffect(() => {
     if (Platform.OS !== 'ios') return;
     let cancelled = false;
@@ -83,7 +83,7 @@ export default function AccountSettingsPage() {
         return;
       }
       const att = await SecureStore.getItemAsync('meta_att_status');
-      if (!cancelled) setPersonalizedAdsEnabled(att === 'granted');
+      if (!cancelled) setPersonalizedAdsEnabled(att !== 'denied');
     })();
     return () => {
       cancelled = true;
