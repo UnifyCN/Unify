@@ -354,17 +354,17 @@ function WelcomeStep() {
   ];
   return (
     <View>
-      <View style={styles.prizeIconWrap}>
-        <GiftBoxIcon size={44} />
-      </View>
-      <Text style={styles.title}>{t('giveaway.welcome.title')}</Text>
-      <Text style={styles.subtitle}>{t('giveaway.welcome.subtitle')}</Text>
       <View style={styles.liveCountdownWrap}>
         <Text style={styles.countdownLabelInline}>
           {t('giveaway.banner.countdownPrefix').toUpperCase()}
         </Text>
         <LiveCountdown />
       </View>
+      <View style={styles.prizeIconWrap}>
+        <GiftBoxIcon size={44} />
+      </View>
+      <Text style={styles.title}>{t('giveaway.welcome.title')}</Text>
+      <Text style={styles.subtitle}>{t('giveaway.welcome.subtitle')}</Text>
       <Text style={styles.sectionTitle}>{t('giveaway.welcome.rulesTitle')}</Text>
       <View style={styles.rulesList}>
         {rules.map((rule, idx) => (
