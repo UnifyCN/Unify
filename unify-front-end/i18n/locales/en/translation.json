@@ -938,16 +938,10 @@
     }
   },
   "privacy": {
-    "attPrompt": {
-      "title": "Help us reach more people like you",
-      "body": "Unify uses ad attribution to find new community members who'd love the app. We never sell your data — this just helps our ads work better.",
-      "continue": "Continue",
-      "notNow": "Not now"
-    },
     "settings": {
       "sectionTitle": "Privacy",
-      "personalizedAdsLabel": "Personalized Ads",
-      "personalizedAdsHelp": "When on, anonymous app activity helps Meta show you relevant ads. Off disables this immediately."
+      "personalizedAdsLabel": "Allow Activity Tracking",
+      "personalizedAdsHelp": "Lets us share anonymous app activity with our advertising partners so you see more relevant ads. Turn off anytime."
     }
   }
 }

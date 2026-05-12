@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { logActivation } from '@/services/analytics/metaEvents';
+import { initMetaSDK } from '@/services/analytics/initMetaSDK';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -325,9 +326,18 @@ export default function OnboardingQuiz({
       // an unintended re-redeem attempt.
       inviteCtx.clear();
 
-      // First-time iOS users see the ATT pre-prompt before their final destination.
-      // initMetaSDK persists the decision, so this is a one-shot per device.
+      // First-time iOS users see the system ATT dialog directly after
+      // onboarding. initMetaSDK persists the decision, so this is a one-shot
+      // per device. We await it so the user lands on the next screen after
+      // dismissing the dialog instead of seeing it pop over the home tab.
       const showATTPrompt = Platform.OS === 'ios' && !isRedo;
+      if (showATTPrompt) {
+        try {
+          await initMetaSDK({ requestATT: true });
+        } catch (err) {
+          console.warn('[meta] initMetaSDK failed', err);
+        }
+      }
 
       // If redeem succeeded, route the user to the welcome moment instead of home.
       if (result.redeem?.success) {
@@ -345,13 +355,7 @@ export default function OnboardingQuiz({
             referrer_user_id: inviterId,
           });
         }
-        if (showATTPrompt) {
-          router.replace(
-            `/att-pre-prompt?next=${encodeURIComponent('/welcome-from-inviter')}` as any,
-          );
-        } else {
-          router.replace('/welcome-from-inviter' as any);
-        }
+        router.replace('/welcome-from-inviter' as any);
         return; // do NOT call onComplete; welcome screen handles its own dismiss
       }
 
@@ -362,12 +366,6 @@ export default function OnboardingQuiz({
         });
       }
 
-      if (showATTPrompt) {
-        // Push the pre-prompt on top of whatever AuthWrapper now renders (main
-        // app, since onboarding_completed just flipped to true in the cache).
-        // The user dismisses the prompt and lands in the app.
-        router.push('/att-pre-prompt' as any);
-      }
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
