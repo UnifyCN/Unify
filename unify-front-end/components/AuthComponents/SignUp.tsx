@@ -190,11 +190,11 @@ export function SignUp({
         }
 
         if (data?.user?.id && data?.user?.email) {
+          const acceptedAt = new Date().toISOString();
           try {
             // SignUp path: the checkbox gates form submission, so by the time
             // we reach here the user has consented. Persist it now so the
             // AuthWrapper backup gate doesn't re-prompt for the same consent.
-            const acceptedAt = new Date().toISOString();
             await createUserIfNotExists(data.user.id, data.user.email, {
               privacyPolicyAcceptedAt: acceptedAt,
               communityGuidelinesAcceptedAt: acceptedAt,
@@ -207,6 +207,14 @@ export function SignUp({
             setLoading(false);
             return;
           }
+
+          // Seed the legal status cache so AuthWrapper doesn't flash the
+          // consent modal during the gap between session-set and the
+          // userLegalStatus query refetch landing.
+          queryClient.setQueryData(['userLegalStatus', data.user.id], {
+            privacy_policy_accepted_at: acceptedAt,
+            community_guidelines_accepted_at: acceptedAt,
+          });
 
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
@@ -281,11 +289,11 @@ export function SignUp({
         }
 
         if (data?.user?.id && data?.user?.email) {
+          const acceptedAt = new Date().toISOString();
           try {
             // SignUp path: same as Google — the consent checkbox has already
             // gated form submission, so persist the timestamp here so the
             // post-auth AuthWrapper modal doesn't ask the user a second time.
-            const acceptedAt = new Date().toISOString();
             await createUserIfNotExists(data.user.id, data.user.email, {
               privacyPolicyAcceptedAt: acceptedAt,
               communityGuidelinesAcceptedAt: acceptedAt,
@@ -298,6 +306,12 @@ export function SignUp({
             setLoading(false);
             return;
           }
+
+          // Seed the legal status cache (see Google handler for rationale).
+          queryClient.setQueryData(['userLegalStatus', data.user.id], {
+            privacy_policy_accepted_at: acceptedAt,
+            community_guidelines_accepted_at: acceptedAt,
+          });
 
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
