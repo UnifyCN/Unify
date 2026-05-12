@@ -980,6 +980,7 @@
       "emailInvalid": "Vui lòng nhập một địa chỉ email hợp lệ.",
       "skillAnswerRequired": "Vui lòng trả lời câu hỏi kiểm tra kỹ năng.",
       "skillAnswerIncorrect": "Câu trả lời chưa đúng. Vui lòng thử lại.",
+      "consentRequired": "Vui lòng đánh dấu vào ô để xác nhận bạn đồng ý.",
       "submitFailed": "Không thể gửi lượt tham gia. Vui lòng thử lại."
     }
   }

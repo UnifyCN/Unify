@@ -980,6 +980,7 @@
       "emailInvalid": "Por favor, ingresa un correo electrónico válido.",
       "skillAnswerRequired": "Por favor, responde la pregunta de habilidad.",
       "skillAnswerIncorrect": "Esa respuesta no es correcta. Inténtalo de nuevo.",
+      "consentRequired": "Por favor, marca la casilla para confirmar que aceptas.",
       "submitFailed": "No se pudo enviar tu participación. Por favor, intenta de nuevo."
     }
   }

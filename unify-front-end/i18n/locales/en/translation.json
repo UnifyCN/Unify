@@ -980,6 +980,7 @@
       "emailInvalid": "Please enter a valid email address.",
       "skillAnswerRequired": "Please answer the skill-testing question.",
       "skillAnswerIncorrect": "That's not quite right. Try again.",
+      "consentRequired": "Please check the box to confirm you agree.",
       "submitFailed": "Couldn't submit your entry. Please try again."
     }
   }

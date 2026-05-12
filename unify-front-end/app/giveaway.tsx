@@ -29,6 +29,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Step = 'welcome' | 'question' | 'details' | 'success';
 
+interface DetailsErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  skillAnswer?: string;
+  consent?: string;
+}
+
 const VALIDATION_KEY_MAP: Record<string, string> = {
   short_answer_required: 'giveaway.errors.shortAnswerRequired',
   short_answer_too_long: 'giveaway.errors.shortAnswerTooLong',
@@ -55,8 +63,18 @@ export default function GiveawayScreen() {
   const [phone, setPhone] = useState('');
   const [skillAnswer, setSkillAnswer] = useState('');
   const [consent, setConsent] = useState(false);
-  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [questionError, setQuestionError] = useState<string | null>(null);
+  const [detailsErrors, setDetailsErrors] = useState<DetailsErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const clearDetailsError = (field: keyof DetailsErrors) => {
+    setDetailsErrors(prev => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // If the user has already entered (e.g. came back to /giveaway after the
   // fact), jump straight to the success state so we never let them re-submit.
@@ -114,7 +132,8 @@ export default function GiveawayScreen() {
   const isFinalStep = step === 'details';
 
   const handleBack = () => {
-    setFieldError(null);
+    setQuestionError(null);
+    setDetailsErrors({});
     setSubmitError(null);
     if (step === 'success') {
       router.back();
@@ -131,36 +150,40 @@ export default function GiveawayScreen() {
   const validateQuestion = (): boolean => {
     const value = shortAnswer.trim();
     if (!value) {
-      setFieldError(t('giveaway.errors.shortAnswerRequired'));
+      setQuestionError(t('giveaway.errors.shortAnswerRequired'));
       return false;
     }
     if (value.length > GIVEAWAY.shortAnswerMaxLength) {
-      setFieldError(t('giveaway.errors.shortAnswerTooLong'));
+      setQuestionError(t('giveaway.errors.shortAnswerTooLong'));
       return false;
     }
-    setFieldError(null);
+    setQuestionError(null);
     return true;
   };
 
+  /**
+   * Collects every invalid field at once so users see all the missing
+   * pieces in one pass instead of fixing them one at a time.
+   */
   const validateDetails = (): boolean => {
+    const errors: DetailsErrors = {};
     if (!firstName.trim()) {
-      setFieldError(t('giveaway.errors.firstNameRequired'));
-      return false;
+      errors.firstName = t('giveaway.errors.firstNameRequired');
     }
     if (!lastName.trim()) {
-      setFieldError(t('giveaway.errors.lastNameRequired'));
-      return false;
+      errors.lastName = t('giveaway.errors.lastNameRequired');
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setFieldError(t('giveaway.errors.emailInvalid'));
-      return false;
+      errors.email = t('giveaway.errors.emailInvalid');
     }
     if (GIVEAWAY.enableSkillQuestion && !skillAnswer.trim()) {
-      setFieldError(t('giveaway.errors.skillAnswerRequired'));
-      return false;
+      errors.skillAnswer = t('giveaway.errors.skillAnswerRequired');
     }
-    setFieldError(null);
-    return true;
+    if (!consent) {
+      errors.consent = t('giveaway.errors.consentRequired');
+    }
+    setDetailsErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handlePrimary = () => {
@@ -174,10 +197,6 @@ export default function GiveawayScreen() {
     }
     if (step === 'details') {
       if (!validateDetails()) return;
-      if (!consent) {
-        setFieldError(t('giveaway.details.consent'));
-        return;
-      }
       setSubmitError(null);
       mutation.mutate({
         shortAnswer: shortAnswer.trim(),
@@ -246,9 +265,9 @@ export default function GiveawayScreen() {
             value={shortAnswer}
             onChange={text => {
               setShortAnswer(text);
-              if (fieldError) setFieldError(null);
+              if (questionError) setQuestionError(null);
             }}
-            error={fieldError}
+            error={questionError}
           />
         )}
         {step === 'details' && (
@@ -261,26 +280,26 @@ export default function GiveawayScreen() {
             consent={consent}
             onFirstName={v => {
               setFirstName(v);
-              if (fieldError) setFieldError(null);
+              clearDetailsError('firstName');
             }}
             onLastName={v => {
               setLastName(v);
-              if (fieldError) setFieldError(null);
+              clearDetailsError('lastName');
             }}
             onEmail={v => {
               setEmail(v);
-              if (fieldError) setFieldError(null);
+              clearDetailsError('email');
             }}
             onPhone={setPhone}
             onSkillAnswer={v => {
               setSkillAnswer(v);
-              if (fieldError) setFieldError(null);
+              clearDetailsError('skillAnswer');
             }}
             onConsentChange={value => {
               setConsent(value);
-              if (fieldError) setFieldError(null);
+              clearDetailsError('consent');
             }}
-            error={fieldError}
+            errors={detailsErrors}
             submitError={submitError}
           />
         )}
@@ -410,7 +429,7 @@ interface DetailsStepProps {
   onPhone: (v: string) => void;
   onSkillAnswer: (v: string) => void;
   onConsentChange: (v: boolean) => void;
-  error: string | null;
+  errors: DetailsErrors;
   submitError: string | null;
 }
 
@@ -427,7 +446,7 @@ function DetailsStep({
   onPhone,
   onSkillAnswer,
   onConsentChange,
-  error,
+  errors,
   submitError,
 }: DetailsStepProps) {
   const { t } = useTranslation();
@@ -437,27 +456,29 @@ function DetailsStep({
 
       <FieldLabel>{t('giveaway.details.firstName')}</FieldLabel>
       <TextInput
-        style={styles.textInput}
+        style={[styles.textInput, !!errors.firstName && styles.inputError]}
         value={firstName}
         onChangeText={onFirstName}
         autoCapitalize='words'
         autoComplete='given-name'
         textContentType='givenName'
       />
+      <FieldError message={errors.firstName} />
 
       <FieldLabel>{t('giveaway.details.lastName')}</FieldLabel>
       <TextInput
-        style={styles.textInput}
+        style={[styles.textInput, !!errors.lastName && styles.inputError]}
         value={lastName}
         onChangeText={onLastName}
         autoCapitalize='words'
         autoComplete='family-name'
         textContentType='familyName'
       />
+      <FieldError message={errors.lastName} />
 
       <FieldLabel>{t('giveaway.details.email')}</FieldLabel>
       <TextInput
-        style={styles.textInput}
+        style={[styles.textInput, !!errors.email && styles.inputError]}
         value={email}
         onChangeText={onEmail}
         keyboardType='email-address'
@@ -465,6 +486,7 @@ function DetailsStep({
         autoComplete='email'
         textContentType='emailAddress'
       />
+      <FieldError message={errors.email} />
 
       <FieldLabel>{t('giveaway.details.phone')}</FieldLabel>
       <TextInput
@@ -488,11 +510,15 @@ function DetailsStep({
             </Text>
           </View>
           <TextInput
-            style={styles.textInput}
+            style={[
+              styles.textInput,
+              !!errors.skillAnswer && styles.inputError,
+            ]}
             value={skillAnswer}
             onChangeText={onSkillAnswer}
             keyboardType='number-pad'
           />
+          <FieldError message={errors.skillAnswer} />
         </>
       )}
 
@@ -509,6 +535,7 @@ function DetailsStep({
           style={[
             styles.checkbox,
             consent && styles.checkboxChecked,
+            !!errors.consent && !consent && styles.checkboxError,
           ]}
         >
           {consent && (
@@ -519,8 +546,12 @@ function DetailsStep({
           {t('giveaway.details.consent')}
         </Text>
       </Pressable>
+      {!!errors.consent && (
+        <Text style={[styles.errorText, styles.consentErrorText]}>
+          {errors.consent}
+        </Text>
+      )}
 
-      {!!error && <Text style={styles.errorText}>{error}</Text>}
       {!!submitError && (
         <Text style={[styles.errorText, styles.submitErrorText]}>
           {submitError}
@@ -528,6 +559,11 @@ function DetailsStep({
       )}
     </View>
   );
+}
+
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <Text style={[styles.errorText, styles.fieldErrorText]}>{message}</Text>;
 }
 
 function SuccessStep({ firstName }: { firstName: string }) {
@@ -712,8 +748,15 @@ const styles = StyleSheet.create({
     color: Theme.destructive,
     fontWeight: '500',
   },
+  fieldErrorText: {
+    marginTop: 6,
+  },
+  consentErrorText: {
+    marginTop: 8,
+    marginLeft: 34,
+  },
   submitErrorText: {
-    marginTop: 12,
+    marginTop: 16,
   },
   fieldLabel: {
     fontSize: 13,
@@ -769,6 +812,9 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: Theme.black,
     borderColor: Theme.black,
+  },
+  checkboxError: {
+    borderColor: Theme.destructive,
   },
   consentText: {
     flex: 1,
