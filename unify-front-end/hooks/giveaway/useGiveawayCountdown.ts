@@ -67,19 +67,28 @@ export function useGiveawayCountdown(): GiveawayCountdown {
   useEffect(() => {
     if (millisecondsUntilDeadline() <= 0) return; // already expired, no need to tick
 
-    const interval = setInterval(() => {
-      setState(compute(Date.now()));
-    }, MS_PER_MINUTE);
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    const tick = () => {
+      const next = compute(Date.now());
+      setState(next);
+      if (!next.isActive && interval) {
+        clearInterval(interval);
+        interval = undefined;
+      }
+    };
+
+    interval = setInterval(tick, MS_PER_MINUTE);
 
     const onAppStateChange = (next: AppStateStatus) => {
       if (next === 'active') {
-        setState(compute(Date.now()));
+        tick();
       }
     };
     const subscription = AppState.addEventListener('change', onAppStateChange);
 
     return () => {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       subscription.remove();
     };
   }, []);

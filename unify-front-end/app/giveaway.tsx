@@ -49,6 +49,7 @@ const VALIDATION_KEY_MAP: Record<string, string> = {
   email_invalid: 'giveaway.errors.emailInvalid',
   skill_answer_required: 'giveaway.errors.skillAnswerRequired',
   skill_answer_incorrect: 'giveaway.errors.skillAnswerIncorrect',
+  consent_required: 'giveaway.errors.consentRequired',
 };
 
 export default function GiveawayScreen() {
@@ -221,6 +222,7 @@ export default function GiveawayScreen() {
         skillAnswer: GIVEAWAY.enableSkillQuestion
           ? skillAnswer.trim()
           : undefined,
+        termsAccepted: consent,
       });
       return;
     }
@@ -375,7 +377,7 @@ function WelcomeStep() {
     <View>
       <View style={styles.liveCountdownWrap}>
         <Text style={styles.countdownLabelInline}>
-          {t('giveaway.banner.countdownPrefix').toUpperCase()}
+          {t('giveaway.banner.countdownPrefix')}
         </Text>
         <LiveCountdown />
       </View>
@@ -480,6 +482,7 @@ function DetailsStep({
         autoCapitalize='words'
         autoComplete='given-name'
         textContentType='givenName'
+        accessibilityLabel={t('giveaway.details.firstName')}
       />
       <FieldError message={errors.firstName} />
 
@@ -491,6 +494,7 @@ function DetailsStep({
         autoCapitalize='words'
         autoComplete='family-name'
         textContentType='familyName'
+        accessibilityLabel={t('giveaway.details.lastName')}
       />
       <FieldError message={errors.lastName} />
 
@@ -503,6 +507,7 @@ function DetailsStep({
         autoCapitalize='none'
         autoComplete='email'
         textContentType='emailAddress'
+        accessibilityLabel={t('giveaway.details.email')}
       />
       <FieldError message={errors.email} />
 
@@ -514,6 +519,7 @@ function DetailsStep({
         keyboardType='phone-pad'
         autoComplete='tel'
         textContentType='telephoneNumber'
+        accessibilityLabel={t('giveaway.details.phone')}
       />
 
       {GIVEAWAY.enableSkillQuestion && (
@@ -535,6 +541,8 @@ function DetailsStep({
             value={skillAnswer}
             onChangeText={onSkillAnswer}
             keyboardType='number-pad'
+            accessibilityLabel={t('giveaway.details.skillQuestion')}
+            accessibilityHint={t('giveaway.details.skillQuestionHelp')}
           />
           <FieldError message={errors.skillAnswer} />
         </>
@@ -592,7 +600,7 @@ function SuccessStep({ firstName }: { firstName: string }) {
       <Text style={[styles.title, styles.successTitle]}>{t('giveaway.success.title')}</Text>
       <Text style={[styles.subtitle, styles.successSubtitle]}>
         {firstName
-          ? `${firstName}, ${t('giveaway.success.subtitle')}`
+          ? t('giveaway.success.subtitlePersonalized', { name: firstName })
           : t('giveaway.success.subtitle')}
       </Text>
       <View style={styles.successDeadlineCard}>
@@ -688,6 +696,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Theme.textAlternateGray,
     letterSpacing: 0.8,
+    // Uppercase via presentation, not via .toUpperCase() on the localized
+    // string — locales like German have casing rules that JS uppercasing
+    // breaks (e.g. ß → SS is not always desired).
+    textTransform: 'uppercase',
     marginBottom: 10,
   },
   countdownLabel: {

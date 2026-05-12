@@ -11,6 +11,9 @@ export interface GiveawayEntryInput {
   phone?: string;
   /** Optional. Required only when `GIVEAWAY.enableSkillQuestion` is true. */
   skillAnswer?: string;
+  /** Whether the user checked the legal consent box on the details step.
+   *  Persisted to the DB and audit-checked server-side via a CHECK constraint. */
+  termsAccepted: boolean;
 }
 
 export interface GiveawayEntry {
@@ -23,6 +26,7 @@ export interface GiveawayEntry {
   email: string;
   phone: string | null;
   skill_answer: string | null;
+  terms_accepted: boolean;
   created_at: string;
 }
 

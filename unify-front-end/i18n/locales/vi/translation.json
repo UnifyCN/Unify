@@ -971,6 +971,7 @@
     "success": {
       "title": "Bạn đã tham gia!",
       "subtitle": "Chúng tôi sẽ gửi email cho bạn nếu bạn thắng. Chúc may mắn!",
+      "subtitlePersonalized": "{{name}}, chúng tôi sẽ gửi email cho bạn nếu bạn thắng. Chúc may mắn!",
       "deadlineLabel": "Người thắng được công bố",
       "deadlineDate": "21/5",
       "cta": "Về Trang chủ"

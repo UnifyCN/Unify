@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { ChevronRight, X } from 'lucide-react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
@@ -94,7 +94,7 @@ export function GiveawayBanner() {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     capture(AnalyticsEvents.GIVEAWAY_BANNER_TAPPED);
-    router.push('/giveaway' as never);
+    router.push('/giveaway' as Href);
   };
 
   const handleDismiss = () => {

@@ -148,7 +148,7 @@ Deno.serve(async req => {
     if (!token) {
       return new Response(
         JSON.stringify({ success: false, error: 'Unauthorized' }),
-        { status: 200 }
+        { status: 401 }
       );
     }
 
@@ -158,7 +158,7 @@ Deno.serve(async req => {
     if (userError || !user) {
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid user' }),
-        { status: 200 }
+        { status: 401 }
       );
     }
 

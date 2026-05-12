@@ -971,6 +971,7 @@
     "success": {
       "title": "You're in!",
       "subtitle": "We'll email you if you win. Good luck.",
+      "subtitlePersonalized": "{{name}}, we'll email you if you win. Good luck.",
       "deadlineLabel": "Winner announced",
       "deadlineDate": "May 21",
       "cta": "Back to home"

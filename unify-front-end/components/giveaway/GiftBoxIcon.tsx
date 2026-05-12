@@ -12,7 +12,17 @@ interface GiftBoxIconProps {
  */
 export function GiftBoxIcon({ size = 40 }: GiftBoxIconProps) {
   return (
-    <Svg width={size} height={size} viewBox='0 0 64 64'>
+    <Svg
+      width={size}
+      height={size}
+      viewBox='0 0 64 64'
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility='no-hide-descendants'
+      aria-hidden
+      focusable={false}
+      role='presentation'
+    >
       {/* ground shadow */}
       <Ellipse cx='32' cy='59' rx='22' ry='2.2' fill='rgba(0,0,0,0.10)' />
 

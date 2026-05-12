@@ -44,19 +44,28 @@ export function useGiveawayCountdownPrecise(): PreciseCountdown {
   useEffect(() => {
     if (millisecondsUntilDeadline() <= 0) return;
 
-    const interval = setInterval(() => {
-      setState(compute(Date.now()));
-    }, MS_PER_SECOND);
+    let interval: ReturnType<typeof setInterval> | undefined;
+
+    const tick = () => {
+      const next = compute(Date.now());
+      setState(next);
+      if (!next.isActive && interval) {
+        clearInterval(interval);
+        interval = undefined;
+      }
+    };
+
+    interval = setInterval(tick, MS_PER_SECOND);
 
     const onAppStateChange = (next: AppStateStatus) => {
       if (next === 'active') {
-        setState(compute(Date.now()));
+        tick();
       }
     };
     const subscription = AppState.addEventListener('change', onAppStateChange);
 
     return () => {
-      clearInterval(interval);
+      if (interval) clearInterval(interval);
       subscription.remove();
     };
   }, []);

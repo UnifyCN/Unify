@@ -66,8 +66,17 @@ export function SuccessCelebration() {
     ],
   }));
 
+  // The whole celebration is decorative — the surrounding "You're in!" title
+  // and subtitle already convey success to assistive tech. Hide everything
+  // under this wrap from VoiceOver / TalkBack to avoid noisy "emoji emoji
+  // emoji" announcements.
   return (
-    <View style={styles.wrap}>
+    <View
+      style={styles.wrap}
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility='no-hide-descendants'
+    >
       {PIECES.map((piece, idx) => (
         <ConfettiEmoji key={idx} piece={piece} />
       ))}
@@ -113,7 +122,12 @@ function ConfettiEmoji({ piece }: { piece: ConfettiPiece }) {
   });
 
   return (
-    <Animated.View style={[styles.confetti, style]}>
+    <Animated.View
+      style={[styles.confetti, style]}
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility='no-hide-descendants'
+    >
       <Text style={styles.confettiText}>{piece.emoji}</Text>
     </Animated.View>
   );

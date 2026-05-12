@@ -2,12 +2,17 @@
  * Giveaway campaign configuration.
  *
  * One active campaign at a time. To run a new campaign, update these constants
- * (or migrate this to a remote-config source if campaigns become recurring).
+ * AND the matching constants in the `giveaway_enforce_window` trigger function
+ * (migration `giveaway_entries_server_enforcement`). The trigger has the
+ * canonical deadline and campaign id — these constants must stay in lockstep.
  *
- * When the deadline passes:
- *   - `GiveawayBanner` self-hides via `isGiveawayActive()`
- *   - Submissions are blocked client-side; the DB still accepts them, so the
- *     final check is enforced in `submitGiveawayEntry` not the schema.
+ * Enforcement layers (defense in depth):
+ *   1. UI:       `GiveawayBanner` self-hides via `isGiveawayActive()`
+ *   2. Service:  `submitGiveawayEntry` short-circuits when expired or invalid
+ *   3. DB:       `giveaway_enforce_window` BEFORE INSERT trigger rejects late
+ *                writes and pins `created_at` to server time so a tampered
+ *                client cannot backdate
+ *   4. DB:       UNIQUE(user_id, campaign_id) + `terms_accepted = true` CHECK
  */
 
 export const GIVEAWAY = {

@@ -53,6 +53,10 @@ export async function submitGiveawayEntry(
     }
   }
 
+  if (input.termsAccepted !== true) {
+    return { success: false, reason: 'validation', message: 'consent_required' };
+  }
+
   const {
     data: { user },
     error: userError,
@@ -72,6 +76,7 @@ export async function submitGiveawayEntry(
       email: trimmed.email,
       phone: trimmed.phone ?? null,
       skill_answer: trimmed.skillAnswer ?? null,
+      terms_accepted: true,
     })
     .select()
     .single();
