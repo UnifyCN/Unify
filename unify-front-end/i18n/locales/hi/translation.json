@@ -151,7 +151,6 @@
       "unableRetrieveEmail": "सत्यापित सत्र से ईमेल प्राप्त करने में असमर्थ",
       "failedSetup": "खाता सेटअप पूरा करने में विफल",
       "successTitle": "सफल",
-      "successMessage": "ईमेल सफलतापूर्वक सत्यापित हो गया!",
       "verificationFailed": "सत्यापन विफल। कृपया पुनः प्रयास करें।",
       "verificationError": "सत्यापन के दौरान एक त्रुटि हुई।",
       "otpResent": "OTP सफलतापूर्वक पुनः भेजा गया!",
@@ -706,6 +705,10 @@
     "couldntGenerate": "आमंत्रण लिंक नहीं बना सका। नीचे खींचें या पुनः प्रयास करें।",
     "yourInviteCode": "आपका आमंत्रण कोड",
     "inviteCodeHint": "जो मित्र आपके आमंत्रण लिंक पर टैप करेंगे वे स्वचालित रूप से आपसे जुड़ जाएंगे। वे साइन अप के दौरान यह कोड भी टाइप कर सकते हैं।",
+    "theirInviteCode": "उनका आमंत्रण कोड",
+    "theirInviteCodeHeading": "क्या आपके पास उनका आमंत्रण कोड है?",
+    "theirInviteCodeHint": "वैकल्पिक। आपको आपके मित्र से जोड़ता है।",
+    "theirInviteCodeAutoFilled": "आपके क्लिपबोर्ड में मिला। ज़रूरत हो तो बदलें।",
     "loadingInviteCode": "आमंत्रण कोड लोड हो रहा है",
     "friendCount": "{{count}} मित्र आपकी बदौलत Unify में शामिल हुआ है।",
     "friendCount_plural": "{{count}} मित्र आपकी बदौलत Unify में शामिल हुए हैं।",
@@ -816,8 +819,18 @@
     "yearLabel": "वर्ष",
     "confirm": "पुष्टि करें",
     "otherSpecify": "अन्य (निर्दिष्ट करें)",
+    "otherSpecifyBelow": "अन्य (नीचे बताएं)",
     "continue": "जारी रखें",
-    "selectMonthYear": "महीना और वर्ष चुनें"
+    "selectMonthYear": "महीना और वर्ष चुनें",
+    "locationQuestion": "आप कनाडा में कहाँ रहते हैं?",
+    "city": "शहर",
+    "province": "प्रांत",
+    "selectCity": "अपना शहर चुनें",
+    "selectProvince": "अपना प्रांत चुनें",
+    "enterCity": "अपना शहर दर्ज करें",
+    "searchCities": "शहर खोजें",
+    "searchProvinces": "प्रांत खोजें",
+    "autoFilled": "स्वतः भरा गया"
   },
   "loadingScreen": {
     "message": "कृपया प्रतीक्षा करें जब हम आपकी यात्रा के लिए सब कुछ जोड़ रहे हैं…"
@@ -925,6 +938,13 @@
       "continue": "जारी रखें",
       "saveChanges": "परिवर्तन सहेजें",
       "exploreUnify": "Unify का अन्वेषण करें"
+    }
+  },
+  "privacy": {
+    "settings": {
+      "sectionTitle": "गोपनीयता",
+      "personalizedAdsLabel": "गतिविधि ट्रैकिंग की अनुमति दें",
+      "personalizedAdsHelp": "हमें आपको अधिक प्रासंगिक विज्ञापन दिखाने के लिए विज्ञापन साझेदारों के साथ अनाम ऐप गतिविधि साझा करने देता है। कभी भी बंद करें।"
     }
   }
 }

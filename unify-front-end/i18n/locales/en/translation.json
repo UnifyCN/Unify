@@ -151,7 +151,6 @@
       "unableRetrieveEmail": "Unable to retrieve email from verified session",
       "failedSetup": "Failed to complete account setup",
       "successTitle": "Success",
-      "successMessage": "Email verified successfully!",
       "verificationFailed": "Verification failed. Please try again.",
       "verificationError": "An error occurred during verification.",
       "otpResent": "OTP resent successfully!",
@@ -180,7 +179,7 @@
     "haptics": "Haptics",
     "redoOnboarding": "Redo Onboarding Quiz",
     "community": "Community",
-    "referAFriend": "Refer a friend",
+    "referAFriend": "Refer a Friend",
     "legal": "Legal",
     "privacyPolicy": "Privacy Policy",
     "communityGuidelines": "Community Guidelines",
@@ -698,7 +697,7 @@
     "errorMessage": "An error occurred while resetting your password"
   },
   "referrals": {
-    "title": "Refer a friend",
+    "title": "Refer a Friend",
     "inviteDesc": "Invite a friend to start their Canada journey with you.",
     "newcomersBenefit": "Newcomers do best when they have a friend already inside.",
     "inviteAFriend": "Invite a friend",
@@ -706,6 +705,10 @@
     "couldntGenerate": "Couldn't generate your invite link. Pull down or revisit to retry.",
     "yourInviteCode": "Your invite code",
     "inviteCodeHint": "Friends who tap your invite link are linked to you automatically. They can also type this code during signup if needed.",
+    "theirInviteCode": "Their invite code",
+    "theirInviteCodeHeading": "Got their invite code?",
+    "theirInviteCodeHint": "Optional. Links you with your friend.",
+    "theirInviteCodeAutoFilled": "Found in your clipboard. Edit if needed.",
     "loadingInviteCode": "Loading invite code",
     "friendCount": "{{count}} friend has joined Unify thanks to you.",
     "friendCount_plural": "{{count}} friends have joined Unify thanks to you.",
@@ -816,8 +819,18 @@
     "yearLabel": "Year",
     "confirm": "Confirm",
     "otherSpecify": "Other (specify)",
+    "otherSpecifyBelow": "Other (specify below)",
     "continue": "Continue",
-    "selectMonthYear": "Select month and year"
+    "selectMonthYear": "Select month and year",
+    "locationQuestion": "Where in Canada are you based?",
+    "city": "City",
+    "province": "Province",
+    "selectCity": "Select your city",
+    "selectProvince": "Select your province",
+    "enterCity": "Enter your city",
+    "searchCities": "Search cities",
+    "searchProvinces": "Search provinces",
+    "autoFilled": "Auto-filled"
   },
   "loadingScreen": {
     "message": "Please wait while we connect the dots for your journey…"
@@ -925,6 +938,13 @@
       "continue": "Continue",
       "saveChanges": "Save Changes",
       "exploreUnify": "Explore Unify"
+    }
+  },
+  "privacy": {
+    "settings": {
+      "sectionTitle": "Privacy",
+      "personalizedAdsLabel": "Allow Activity Tracking",
+      "personalizedAdsHelp": "Lets us share anonymous app activity with our advertising partners so you see more relevant ads. Turn off anytime."
     }
   }
 }

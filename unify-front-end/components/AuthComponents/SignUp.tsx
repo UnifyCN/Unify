@@ -27,6 +27,7 @@ import Google from '../../assets/images/Google.svg';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import { SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
+import { logAccountCreated } from '@/services/analytics/metaEvents';
 import LegalWebView from '@/components/LegalWebView';
 import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
 
@@ -132,6 +133,11 @@ export function SignUp({
       }
 
       trackSignUpCompleted('email');
+      if (data?.user?.id) {
+        logAccountCreated(data.user.id).catch(err =>
+          console.warn('[meta] logAccountCreated failed', err),
+        );
+      }
       const acceptedAt = new Date().toISOString();
       onShowOTP?.(normalizedEmail, password, acceptedAt);
       return;
@@ -156,6 +162,11 @@ export function SignUp({
 
   const handleGoogleSignIn = async () => {
     if (isExpoGo) return;
+    if (!isChecked) {
+      setErrorMessage(t('auth.acceptTermsRequired'));
+      trackSignUpFailed('terms_not_accepted');
+      return;
+    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -179,8 +190,15 @@ export function SignUp({
         }
 
         if (data?.user?.id && data?.user?.email) {
+          const acceptedAt = new Date().toISOString();
           try {
-            await createUserIfNotExists(data.user.id, data.user.email);
+            // SignUp path: the checkbox gates form submission, so by the time
+            // we reach here the user has consented. Persist it now so the
+            // AuthWrapper backup gate doesn't re-prompt for the same consent.
+            await createUserIfNotExists(data.user.id, data.user.email, {
+              privacyPolicyAcceptedAt: acceptedAt,
+              communityGuidelinesAcceptedAt: acceptedAt,
+            });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
@@ -190,11 +208,27 @@ export function SignUp({
             return;
           }
 
+          // Seed the legal status cache so AuthWrapper doesn't flash the
+          // consent modal during the gap between session-set and the
+          // userLegalStatus query refetch landing.
+          queryClient.setQueryData(['userLegalStatus', data.user.id], {
+            privacy_policy_accepted_at: acceptedAt,
+            community_guidelines_accepted_at: acceptedAt,
+          });
+
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
           trackSignInCompleted('google');
+          if (
+            data.user.created_at &&
+            Date.now() - new Date(data.user.created_at).getTime() < 60_000
+          ) {
+            logAccountCreated(data.user.id).catch(err =>
+              console.warn('[meta] logAccountCreated failed', err),
+            );
+          }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.googleNoEmail'));
           setLoading(false);
@@ -224,6 +258,11 @@ export function SignUp({
 
   const handleAppleSignIn = async () => {
     if (isExpoGo) return;
+    if (!isChecked) {
+      setErrorMessage(t('auth.acceptTermsRequired'));
+      trackSignUpFailed('terms_not_accepted');
+      return;
+    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -250,8 +289,15 @@ export function SignUp({
         }
 
         if (data?.user?.id && data?.user?.email) {
+          const acceptedAt = new Date().toISOString();
           try {
-            await createUserIfNotExists(data.user.id, data.user.email);
+            // SignUp path: same as Google — the consent checkbox has already
+            // gated form submission, so persist the timestamp here so the
+            // post-auth AuthWrapper modal doesn't ask the user a second time.
+            await createUserIfNotExists(data.user.id, data.user.email, {
+              privacyPolicyAcceptedAt: acceptedAt,
+              communityGuidelinesAcceptedAt: acceptedAt,
+            });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
@@ -261,11 +307,25 @@ export function SignUp({
             return;
           }
 
+          // Seed the legal status cache (see Google handler for rationale).
+          queryClient.setQueryData(['userLegalStatus', data.user.id], {
+            privacy_policy_accepted_at: acceptedAt,
+            community_guidelines_accepted_at: acceptedAt,
+          });
+
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
           trackSignInCompleted('apple');
+          if (
+            data.user.created_at &&
+            Date.now() - new Date(data.user.created_at).getTime() < 60_000
+          ) {
+            logAccountCreated(data.user.id).catch(err =>
+              console.warn('[meta] logAccountCreated failed', err),
+            );
+          }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.appleNoEmail'));
           setLoading(false);

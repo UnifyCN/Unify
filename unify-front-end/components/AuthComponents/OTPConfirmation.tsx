@@ -112,15 +112,10 @@ export default function OTPVerification({
           return;
         }
 
-        // NOTE: just alert for now, until we have a UI designed for thos
-        Alert.alert(t('auth.otp.successTitle'), t('auth.otp.successMessage'), [
-          {
-            text: t('common.ok'),
-            onPress: () => {
-              onVerificationSuccess?.();
-            },
-          },
-        ]);
+        // OTP confirmation provides its own implicit visual feedback (the
+        // loading spinner clears, screen unmounts). An explicit "success"
+        // dialog would add a tap without telling the user anything new.
+        onVerificationSuccess?.();
       } else {
         setErrorMessage(t('auth.otp.verificationFailed'));
       }
