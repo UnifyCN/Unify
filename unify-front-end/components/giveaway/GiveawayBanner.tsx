@@ -55,21 +55,23 @@ export function GiveawayBanner() {
 
   if (hasEntered) {
     return (
-      <View
-        style={styles.banner}
-        accessibilityRole='text'
-        accessibilityLabel={`${t('giveaway.banner.enteredHeadline')} ${t(
-          'giveaway.banner.enteredSubtext'
-        )}`}
-      >
-        <Gift color={Theme.white} size={18} strokeWidth={2.4} />
-        <View style={styles.textBlock}>
-          <Text style={styles.headline} numberOfLines={1}>
-            {t('giveaway.banner.enteredHeadline')}
-          </Text>
-          <Text style={styles.subtext} numberOfLines={1}>
-            {t('giveaway.banner.enteredSubtext')}
-          </Text>
+      <View style={styles.outerWrap}>
+        <View
+          style={styles.card}
+          accessibilityRole='text'
+          accessibilityLabel={`${t('giveaway.banner.enteredHeadline')} ${t(
+            'giveaway.banner.enteredSubtext'
+          )}`}
+        >
+          <Gift color={Theme.black} size={18} strokeWidth={2.2} />
+          <View style={styles.textBlock}>
+            <Text style={styles.headline} numberOfLines={1}>
+              {t('giveaway.banner.enteredHeadline')}
+            </Text>
+            <Text style={styles.subtext} numberOfLines={1}>
+              {t('giveaway.banner.enteredSubtext')}
+            </Text>
+          </View>
         </View>
       </View>
     );
@@ -92,43 +94,45 @@ export function GiveawayBanner() {
   };
 
   return (
-    <View style={styles.banner}>
-      <Pressable
-        style={({ pressed }) => [
-          styles.pressArea,
-          pressed && styles.pressed,
-        ]}
-        onPress={handlePress}
-        accessibilityRole='button'
-        accessibilityLabel={t('giveaway.banner.headline')}
-        accessibilityHint={t('giveaway.welcome.cta')}
-      >
-        <Gift color={Theme.white} size={18} strokeWidth={2.4} />
-        <Text style={styles.headline} numberOfLines={1}>
-          {t('giveaway.banner.headline')}
-        </Text>
-        <View style={styles.divider} />
-        <CountdownInline />
-        <ChevronRight color={Theme.white} size={18} strokeWidth={2.4} />
-      </Pressable>
-      <Pressable
-        onPress={handleDismiss}
-        hitSlop={12}
-        style={({ pressed }) => [
-          styles.dismissButton,
-          pressed && styles.pressed,
-        ]}
-        accessibilityRole='button'
-        accessibilityLabel={t('common.cancel')}
-      >
-        <X color={Theme.white} size={16} strokeWidth={2.4} />
-      </Pressable>
+    <View style={styles.outerWrap}>
+      <View style={styles.card}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.pressArea,
+            pressed && styles.pressed,
+          ]}
+          onPress={handlePress}
+          accessibilityRole='button'
+          accessibilityLabel={t('giveaway.banner.headline')}
+          accessibilityHint={t('giveaway.welcome.cta')}
+        >
+          <Gift color={Theme.black} size={18} strokeWidth={2.2} />
+          <Text style={styles.headline} numberOfLines={1}>
+            {t('giveaway.banner.headline')}
+          </Text>
+          <View style={styles.divider} />
+          <CountdownInline />
+          <ChevronRight color={Theme.textAlternateGray} size={16} strokeWidth={2.2} />
+        </Pressable>
+        <Pressable
+          onPress={handleDismiss}
+          hitSlop={12}
+          style={({ pressed }) => [
+            styles.dismissButton,
+            pressed && styles.pressed,
+          ]}
+          accessibilityRole='button'
+          accessibilityLabel={t('common.cancel')}
+        >
+          <X color={Theme.textInactiveTab} size={15} strokeWidth={2.4} />
+        </Pressable>
+      </View>
     </View>
   );
 }
 
-// Inline countdown — local to the banner so it picks up the banner's
-// white text color and tighter type scale.
+// Inline countdown — pulls the banner's neutral palette and keeps the
+// type scale tight against the headline.
 function CountdownInline() {
   const { t } = useTranslation();
   const { isActive, display } = useGiveawayCountdown();
@@ -141,13 +145,20 @@ function CountdownInline() {
 }
 
 const styles = StyleSheet.create({
-  banner: {
+  outerWrap: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.primaryGatherRed,
+    backgroundColor: Theme.white,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Theme.borderCard,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 44,
+    paddingVertical: 11,
+    minHeight: 48,
   },
   pressArea: {
     flex: 1,
@@ -161,35 +172,34 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   headline: {
-    color: Theme.white,
+    color: Theme.black,
     fontSize: 14,
     fontWeight: '700',
     flexShrink: 1,
   },
   subtext: {
-    color: Theme.white,
+    color: Theme.textAlternateGray,
     fontSize: 12,
     fontWeight: '500',
-    opacity: 0.9,
-    marginTop: 1,
+    marginTop: 2,
   },
   divider: {
-    width: 1,
-    height: 12,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    marginHorizontal: 2,
+    width: StyleSheet.hairlineWidth,
+    height: 14,
+    backgroundColor: Theme.borderCard,
+    marginHorizontal: 4,
   },
   countdown: {
-    color: Theme.white,
+    color: Theme.textAlternateGray,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '500',
     flexShrink: 1,
   },
   dismissButton: {
-    paddingLeft: 12,
+    paddingLeft: 10,
     paddingVertical: 4,
   },
   pressed: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
 });

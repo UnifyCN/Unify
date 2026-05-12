@@ -311,6 +311,7 @@ function AppContent() {
         options={{ headerShown: false }}
       />
       <Stack.Screen name='refer-a-friend' options={{ headerShown: false }} />
+      <Stack.Screen name='giveaway' options={{ headerShown: false }} />
       <Stack.Screen
         name='welcome-from-inviter'
         options={{ headerShown: false, gestureEnabled: false }}
