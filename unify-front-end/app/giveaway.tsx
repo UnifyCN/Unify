@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -10,12 +10,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronLeft } from 'lucide-react-native';
 
 import { GiftBoxIcon } from '@/components/giveaway/GiftBoxIcon';
+import { SuccessCelebration } from '@/components/giveaway/SuccessCelebration';
 
 import { Theme } from '@/constants/Theme';
 import { GIVEAWAY } from '@/constants/Giveaway';
@@ -68,6 +70,10 @@ export default function GiveawayScreen() {
   const [questionError, setQuestionError] = useState<string | null>(null);
   const [detailsErrors, setDetailsErrors] = useState<DetailsErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+
+  const scrollToTop = () =>
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
 
   const clearDetailsError = (field: keyof DetailsErrors) => {
     setDetailsErrors(prev => {
@@ -153,10 +159,12 @@ export default function GiveawayScreen() {
     const value = shortAnswer.trim();
     if (!value) {
       setQuestionError(t('giveaway.errors.shortAnswerRequired'));
+      scrollToTop();
       return false;
     }
     if (value.length > GIVEAWAY.shortAnswerMaxLength) {
       setQuestionError(t('giveaway.errors.shortAnswerTooLong'));
+      scrollToTop();
       return false;
     }
     setQuestionError(null);
@@ -185,7 +193,11 @@ export default function GiveawayScreen() {
       errors.consent = t('giveaway.errors.consentRequired');
     }
     setDetailsErrors(errors);
-    return Object.keys(errors).length === 0;
+    if (Object.keys(errors).length > 0) {
+      scrollToTop();
+      return false;
+    }
+    return true;
   };
 
   const handlePrimary = () => {
@@ -256,11 +268,17 @@ export default function GiveawayScreen() {
       </View>
 
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps='handled'
         showsVerticalScrollIndicator={false}
       >
+        <Animated.View
+          key={step}
+          entering={FadeIn.duration(220)}
+          style={styles.stepWrap}
+        >
         {step === 'welcome' && <WelcomeStep />}
         {step === 'question' && (
           <QuestionStep
@@ -310,6 +328,7 @@ export default function GiveawayScreen() {
             firstName={existingEntry?.first_name ?? firstName.trim()}
           />
         )}
+        </Animated.View>
       </ScrollView>
 
       <View
@@ -569,11 +588,9 @@ function SuccessStep({ firstName }: { firstName: string }) {
   const { t } = useTranslation();
   return (
     <View style={styles.successWrap}>
-      <View style={styles.successIcon}>
-        <Check color={Theme.white} size={36} strokeWidth={3} />
-      </View>
-      <Text style={styles.title}>{t('giveaway.success.title')}</Text>
-      <Text style={styles.subtitle}>
+      <SuccessCelebration />
+      <Text style={[styles.title, styles.successTitle]}>{t('giveaway.success.title')}</Text>
+      <Text style={[styles.subtitle, styles.successSubtitle]}>
         {firstName
           ? `${firstName}, ${t('giveaway.success.subtitle')}`
           : t('giveaway.success.subtitle')}
@@ -817,14 +834,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 32,
   },
-  successIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Theme.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
+  successTitle: {
+    textAlign: 'center',
+  },
+  successSubtitle: {
+    textAlign: 'center',
+  },
+  stepWrap: {
+    flex: 1,
   },
   successDeadlineCard: {
     flexDirection: 'row',
