@@ -934,6 +934,12 @@
       "enteredHeadline": "You're entered ✓",
       "enteredSubtext": "Winner announced May 21"
     },
+    "live": {
+      "days": "Days",
+      "hours": "Hrs",
+      "minutes": "Min",
+      "seconds": "Sec"
+    },
     "welcome": {
       "title": "$100 Loblaws Gift Card",
       "subtitle": "Tell us one thing you wish you'd known when you first moved to Canada. One entry per account.",

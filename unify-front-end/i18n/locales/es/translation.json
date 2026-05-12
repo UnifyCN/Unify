@@ -934,6 +934,12 @@
       "enteredHeadline": "¡Estás dentro! ✓",
       "enteredSubtext": "Ganador anunciado el 21 de mayo"
     },
+    "live": {
+      "days": "Días",
+      "hours": "Hrs",
+      "minutes": "Min",
+      "seconds": "Seg"
+    },
     "welcome": {
       "title": "Tarjeta de regalo Loblaws de $100",
       "subtitle": "Cuéntanos una cosa que te hubiera gustado saber cuando llegaste a Canadá. Una participación por cuenta.",

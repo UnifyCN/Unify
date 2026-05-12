@@ -934,6 +934,12 @@
       "enteredHeadline": "Bạn đã tham gia ✓",
       "enteredSubtext": "Người thắng được công bố ngày 21/5"
     },
+    "live": {
+      "days": "Ngày",
+      "hours": "Giờ",
+      "minutes": "Phút",
+      "seconds": "Giây"
+    },
     "welcome": {
       "title": "Thẻ quà tặng Loblaws $100",
       "subtitle": "Hãy chia sẻ một điều bạn ước có ai đó đã nói với bạn khi mới chuyển đến Canada. Mỗi tài khoản một lượt tham gia.",

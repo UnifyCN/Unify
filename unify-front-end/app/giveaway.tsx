@@ -13,11 +13,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, ChevronLeft, Gift } from 'lucide-react-native';
+import { Check, ChevronLeft } from 'lucide-react-native';
+
+import { GiftBoxIcon } from '@/components/giveaway/GiftBoxIcon';
 
 import { Theme } from '@/constants/Theme';
 import { GIVEAWAY } from '@/constants/Giveaway';
-import { useGiveawayCountdown } from '@/hooks/giveaway/useGiveawayCountdown';
 import {
   useGiveawayEntry,
   GIVEAWAY_ENTRY_QUERY_KEY,
@@ -26,6 +27,7 @@ import { submitGiveawayEntry } from '@/services/giveaway/submitGiveawayEntry';
 import type { GiveawayEntryInput } from '@/services/giveaway/types';
 import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LiveCountdown } from '@/components/giveaway/LiveCountdown';
 
 type Step = 'welcome' | 'question' | 'details' | 'success';
 
@@ -344,7 +346,6 @@ export default function GiveawayScreen() {
 
 function WelcomeStep() {
   const { t } = useTranslation();
-  const { isActive, display } = useGiveawayCountdown();
   const rules = [
     t('giveaway.welcome.rule1'),
     t('giveaway.welcome.rule2'),
@@ -354,18 +355,16 @@ function WelcomeStep() {
   return (
     <View>
       <View style={styles.prizeIconWrap}>
-        <Gift color={Theme.black} size={32} strokeWidth={1.8} />
+        <GiftBoxIcon size={44} />
       </View>
       <Text style={styles.title}>{t('giveaway.welcome.title')}</Text>
       <Text style={styles.subtitle}>{t('giveaway.welcome.subtitle')}</Text>
-      {isActive && (
-        <View style={styles.countdownCard}>
-          <Text style={styles.countdownLabel}>
-            {t('giveaway.banner.countdownPrefix')}
-          </Text>
-          <Text style={styles.countdownValue}>{display}</Text>
-        </View>
-      )}
+      <View style={styles.liveCountdownWrap}>
+        <Text style={styles.countdownLabelInline}>
+          {t('giveaway.banner.countdownPrefix').toUpperCase()}
+        </Text>
+        <LiveCountdown />
+      </View>
       <Text style={styles.sectionTitle}>{t('giveaway.welcome.rulesTitle')}</Text>
       <View style={styles.rulesList}>
         {rules.map((rule, idx) => (
@@ -664,28 +663,20 @@ const styles = StyleSheet.create({
     color: Theme.textAlternateGray,
     marginBottom: 16,
   },
-  countdownCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    backgroundColor: Theme.white,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: Theme.borderCard,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 24,
+  liveCountdownWrap: {
+    marginBottom: 28,
+  },
+  countdownLabelInline: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Theme.textAlternateGray,
+    letterSpacing: 0.8,
+    marginBottom: 10,
   },
   countdownLabel: {
     fontSize: 13,
     fontWeight: '500',
     color: Theme.textAlternateGray,
-  },
-  countdownValue: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Theme.black,
-    letterSpacing: -0.4,
   },
   sectionTitle: {
     fontSize: 14,
