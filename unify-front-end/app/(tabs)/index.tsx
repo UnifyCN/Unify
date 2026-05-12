@@ -26,6 +26,7 @@ import { useFollowingFeed } from '@/hooks/feeds/useFollowingFeed';
 import { useGroupsFeed } from '@/hooks/feeds/useGroupsFeed';
 import { memo, useState, useCallback, useRef, useEffect } from 'react';
 import CreatePostButton from '@/components/posts/CreatePostButton';
+import { GiveawayBanner } from '@/components/giveaway/GiveawayBanner';
 import { HorizontalCarousel } from '@/components/HorizontalCarousel';
 import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { useQuery } from '@tanstack/react-query';
@@ -380,6 +381,7 @@ export default function HomeScreen() {
       <TabHeader />
       <View style={styles.container}>
         <StatusBar style='dark' />
+        <GiveawayBanner />
         <FeedTabs
           activeIndex={activeIndex}
           onTabPress={handleTabPress}
