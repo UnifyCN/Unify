@@ -14,6 +14,7 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { logActivation } from '@/services/analytics/metaEvents';
 import { initMetaSDK } from '@/services/analytics/initMetaSDK';
+import { sendWelcomeEmail } from '@/services/onboarding/sendWelcomeEmail';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -317,6 +318,13 @@ export default function OnboardingQuiz({
       // an analytics failure must not trigger the "save failed" alert below.
       logActivation(user.id).catch(err =>
         console.warn('[meta] logActivation failed', err),
+      );
+
+      // Welcome email is gated server-side on welcome_email_sent_at, so
+      // redo-onboarding never re-sends. Non-blocking: a failure must not
+      // trigger the "save failed" alert below.
+      sendWelcomeEmail().catch(err =>
+        console.warn('[welcome] sendWelcomeEmail failed', err),
       );
 
       trackOnboardingCompleted(persona);
