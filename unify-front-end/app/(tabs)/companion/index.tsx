@@ -472,47 +472,51 @@ export default function CompanionScreen() {
           }
         />
 
-        {/* Messages - takes up available space */}
-        {showLoadingState ? (
-          <View style={styles.emptyContainer}>
-            <ActivityIndicator size='large' color={Theme.surfaceBlue} />
-          </View>
-        ) : showEmptyState ? (
-          <View style={styles.emptyState}>
-            <View style={styles.dottedLineContainer} pointerEvents='none'>
-              <AnimatedDottedBackground
-                width={dottedLineWidth}
-                height={dottedLineHeight}
-              />
+        {/* Messages - takes up available space. Tapping anywhere in this
+            area dismisses the keyboard; interactive children (messages,
+            suggestion chips, etc.) still receive their own taps first. */}
+        <Pressable style={styles.messagesArea} onPress={Keyboard.dismiss}>
+          {showLoadingState ? (
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator size='large' color={Theme.surfaceBlue} />
             </View>
-            <Text style={styles.welcomeTitle}>
-              {t('companion.welcomeTitle')}
-            </Text>
-            <Text style={styles.welcomeCaption}>
-              {t('companion.welcomeCaption')}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            ref={flatListRef}
-            data={displayMessages}
-            renderItem={renderMessage}
-            keyExtractor={keyExtractor}
-            style={styles.messagesList}
-            contentContainerStyle={styles.messagesContent}
-            ListFooterComponent={renderLoadingIndicator}
-            keyboardShouldPersistTaps='handled'
-            keyboardDismissMode='interactive'
-            initialNumToRender={10}
-            maxToRenderPerBatch={8}
-            windowSize={7}
-            updateCellsBatchingPeriod={50}
-            nestedScrollEnabled={Platform.OS === 'android'}
-            // Keep clipping disabled to avoid truncation/scroll lock for long rich bot responses on Android.
-            // Repro observed in Companion screen after response render with dynamic markdown content.
-            removeClippedSubviews={false}
-          />
-        )}
+          ) : showEmptyState ? (
+            <View style={styles.emptyState}>
+              <View style={styles.dottedLineContainer} pointerEvents='none'>
+                <AnimatedDottedBackground
+                  width={dottedLineWidth}
+                  height={dottedLineHeight}
+                />
+              </View>
+              <Text style={styles.welcomeTitle}>
+                {t('companion.welcomeTitle')}
+              </Text>
+              <Text style={styles.welcomeCaption}>
+                {t('companion.welcomeCaption')}
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={displayMessages}
+              renderItem={renderMessage}
+              keyExtractor={keyExtractor}
+              style={styles.messagesList}
+              contentContainerStyle={styles.messagesContent}
+              ListFooterComponent={renderLoadingIndicator}
+              keyboardShouldPersistTaps='handled'
+              keyboardDismissMode='interactive'
+              initialNumToRender={10}
+              maxToRenderPerBatch={8}
+              windowSize={7}
+              updateCellsBatchingPeriod={50}
+              nestedScrollEnabled={Platform.OS === 'android'}
+              // Keep clipping disabled to avoid truncation/scroll lock for long rich bot responses on Android.
+              // Repro observed in Companion screen after response render with dynamic markdown content.
+              removeClippedSubviews={false}
+            />
+          )}
+        </Pressable>
       </View>
 
       <Animated.View style={[styles.stickyContainer, bottomAnimatedStyle]}>
@@ -626,6 +630,9 @@ const styles = StyleSheet.create({
     color: Theme.textInput,
     paddingHorizontal: 20,
     paddingTop: 14,
+  },
+  messagesArea: {
+    flex: 1,
   },
   messagesList: {
     flex: 1,
