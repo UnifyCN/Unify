@@ -6,6 +6,7 @@ import { en } from './templates/en.ts';
 const RESEND_USER_EMAILS_API_KEY = Deno.env.get('RESEND_USER_EMAILS_API_KEY');
 const RESEND_WELCOME_FROM = Deno.env.get('RESEND_WELCOME_FROM');
 const REPLY_TO = 'contact@unifysocial.ca';
+const RESEND_TIMEOUT_MS = 5000;
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -80,8 +81,15 @@ Deno.serve(async req => {
     const template = templates[lang] ?? templates.en;
 
     let resendId: string | undefined;
+    let timeoutHandle: number | undefined;
     try {
-      const { data: sendData, error: sendError } = await resend.emails.send({
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutHandle = setTimeout(
+          () => reject(new Error('resend_timeout')),
+          RESEND_TIMEOUT_MS,
+        );
+      });
+      const sendPromise = resend.emails.send({
         from: RESEND_WELCOME_FROM,
         to: userRow.email,
         replyTo: REPLY_TO,
@@ -89,14 +97,28 @@ Deno.serve(async req => {
         html: template.html,
         text: template.text,
       });
+      const { data: sendData, error: sendError } = await Promise.race([
+        sendPromise,
+        timeoutPromise,
+      ]);
       if (sendError) throw sendError;
       resendId = sendData?.id;
     } catch (emailErr) {
-      console.error('[welcome] resend_failed', emailErr);
+      const isTimeout =
+        emailErr instanceof Error && emailErr.message === 'resend_timeout';
+      console.error(
+        isTimeout ? '[welcome] resend_timeout' : '[welcome] resend_failed',
+        emailErr,
+      );
       return new Response(
-        JSON.stringify({ success: false, error: 'resend_failed' }),
+        JSON.stringify({
+          success: false,
+          error: isTimeout ? 'resend_timeout' : 'resend_failed',
+        }),
         { status: 200 },
       );
+    } finally {
+      if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     }
 
     const { error: updateError } = await supabase
