@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useId } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useCurrentUser } from '@/context/UserContext';
@@ -22,6 +22,7 @@ const unreadCountQueryKey = (userId: string | undefined) => [
 export function useCommunityNotifications() {
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
+  const subscriptionId = useId();
 
   const {
     data: notifications = [],
@@ -51,7 +52,7 @@ export function useCommunityNotifications() {
     }
 
     const channel = supabase
-      .channel(`community-notifications-${currentUser.id}`)
+      .channel(`community-notifications-${currentUser.id}-${subscriptionId}`)
       .on(
         'postgres_changes',
         {
@@ -75,7 +76,7 @@ export function useCommunityNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, queryClient]);
+  }, [currentUser, queryClient, subscriptionId]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
@@ -131,6 +132,7 @@ export function useCommunityNotifications() {
 export function useUnreadNotificationCount() {
   const { currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
+  const subscriptionId = useId();
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: unreadCountQueryKey(currentUser?.id),
@@ -147,7 +149,7 @@ export function useUnreadNotificationCount() {
     }
 
     const channel = supabase
-      .channel(`community-notifications-count-${currentUser.id}`)
+      .channel(`community-notifications-count-${currentUser.id}-${subscriptionId}`)
       .on(
         'postgres_changes',
         {
@@ -167,7 +169,7 @@ export function useUnreadNotificationCount() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, queryClient]);
+  }, [currentUser, queryClient, subscriptionId]);
 
   return unreadCount;
 }
