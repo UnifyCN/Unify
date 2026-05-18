@@ -53,10 +53,10 @@ import LoadingScreen from '@/components/LoadingScreen';
 /**
  * Map checklist tab slug to (tabs) route for "Learn how" navigation.
  * Paths must match tab bar in app/(tabs)/_layout.tsx (Tabs.Screen name):
- * - index (Home), Gather (Community), companion, Checklist, Learn.
+ * - Social, Gather (Community), companion, Checklist, Learn.
  */
 const TAB_SLUG_TO_ROUTE: Record<ChecklistLinkTabSlug, string> = {
-  home: '/(tabs)/index',
+  home: '/(tabs)/Social',
   community: '/(tabs)/Gather',
   companion: '/(tabs)/companion',
   checklist: '/(tabs)/Checklist',
@@ -67,6 +67,7 @@ const TAB_SLUG_TO_ROUTE: Record<ChecklistLinkTabSlug, string> = {
 const TAB_SLUG_ALIASES: Record<string, ChecklistLinkTabSlug> = {
   gather: 'community',
   index: 'home',
+  social: 'home',
 };
 
 const STAGE_KEYS: Record<number, string> = {
