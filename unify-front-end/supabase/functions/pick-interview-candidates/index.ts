@@ -64,16 +64,26 @@ Deno.serve(async (_req) => {
       apiKey:      POSTHOG_API_KEY,
     });
 
-    // 4. Resolve PostHog person ids to auth.users + drop do_not_contact
-    const personIds = allActive.map(u => u.personId);
+    // 4. Resolve to Supabase user via email (PostHog person_id is PostHog-internal,
+    //    NOT auth.users.id — the only stable cross-system key is email).
+    //    Re-key each ActiveUser.personId to the resolved auth.users.id so all
+    //    downstream code (inserts, cooldown, tokens) speaks Supabase ids.
+    const emails = allActive.map(u => u.email);
     const { data: validUsers } = await supabase
       .from('users')
-      .select('id, do_not_contact')
-      .in('id', personIds);
-    const allowedIds = new Set(
-      (validUsers ?? []).filter(u => !u.do_not_contact).map(u => u.id),
-    );
-    const eligible = allActive.filter(u => allowedIds.has(u.personId));
+      .select('id, email, do_not_contact, created_at')
+      .in('email', emails);
+    const emailMeta = new Map<string, { id: string; createdAt: string }>();
+    for (const u of validUsers ?? []) {
+      if (u.do_not_contact || !u.email) continue;
+      emailMeta.set(u.email as string, {
+        id: u.id as string,
+        createdAt: u.created_at as string,
+      });
+    }
+    const eligible = allActive
+      .filter(u => emailMeta.has(u.email))
+      .map(u => ({ ...u, personId: emailMeta.get(u.email)!.id }));
 
     // 5. Cooldown exclusion set
     const { data: cooldownRows } = await supabase
@@ -141,12 +151,8 @@ Deno.serve(async (_req) => {
       const approveToken = await signToken(inserted.id, 'approve', INTERVIEW_SIGNING_SECRET);
       const skipToken    = await signToken(inserted.id, 'skip',    INTERVIEW_SIGNING_SECRET);
 
-      // user_created_at for display: from auth.users via users join (fallback to row created)
-      const { data: userMeta } = await supabase
-        .from('users')
-        .select('created_at')
-        .eq('id', pick.user.personId)
-        .maybeSingle();
+      // user_created_at for display: from cached emailMeta (avoid N+1 query)
+      const createdAt = emailMeta.get(pick.user.email)?.createdAt ?? inserted.created_at;
 
       approvalCandidates.push({
         email:              pick.user.email,
@@ -155,7 +161,7 @@ Deno.serve(async (_req) => {
         surfaces14d:        pick.user.surfaces14d,
         events14d:          pick.user.events14d,
         companionMsgs14d:   pick.user.companionMsgs14d,
-        userCreatedAt:      formatDate(userMeta?.created_at ?? inserted.created_at),
+        userCreatedAt:      formatDate(createdAt),
         emailSubject:       outbound.subject,
         emailBodyExcerpt:   outbound.text.slice(0, 240) + (outbound.text.length > 240 ? '…' : ''),
         approveUrl:         `${FUNCTIONS_BASE_URL}/approve-interview-invite?i=${inserted.id}&t=${approveToken}`,
