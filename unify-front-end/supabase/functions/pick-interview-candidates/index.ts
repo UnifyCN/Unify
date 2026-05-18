@@ -176,18 +176,18 @@ Deno.serve(async (_req) => {
       warning,
     });
 
-    if (DRY_RUN) {
-      console.log('[interview-picker] DRY_RUN — would email', APPROVAL_EMAIL_RECIPIENT, 'subject:', approval.subject);
-    } else {
-      await resend.emails.send({
-        from:     RESEND_INTERVIEW_FROM,
-        to:       APPROVAL_EMAIL_RECIPIENT,
-        subject:  approval.subject,
-        html:     approval.html,
-        text:     approval.text,
-        replyTo:  'contact@unifysocial.ca',
-      });
-    }
+    // The approval email always sends — even in DRY_RUN — because it's the
+    // only way the operator sees what the picker would have done. Only the
+    // per-candidate outbound emails are suppressed by DRY_RUN (handled in the
+    // approve handler).
+    await resend.emails.send({
+      from:     RESEND_INTERVIEW_FROM,
+      to:       APPROVAL_EMAIL_RECIPIENT,
+      subject:  approval.subject,
+      html:     approval.html,
+      text:     approval.text,
+      replyTo:  'contact@unifysocial.ca',
+    });
 
     return new Response(JSON.stringify({
       ok: true,
