@@ -8,7 +8,6 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import LearnIcon from '@/components/icons/LearnPageIcon';
 import CommunityIcon from '@/components/icons/CommunityIcon';
-import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
 import SocialIcon from '@/components/icons/SocialIcon';
 import { useAnalytics } from '@/utils/analytics';
@@ -144,7 +143,7 @@ export default function TabLayout() {
             title: t('tabs.learn'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent={focused ? ClickedLearnIcon : LearnIcon}
+                IconComponent={LearnIcon}
                 title={t('tabs.learn')}
                 focused={focused}
               />
