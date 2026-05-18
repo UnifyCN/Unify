@@ -56,12 +56,6 @@ Deno.serve(async (req) => {
     return html(renderInfoPage('This approval link has expired.'));
   }
 
-  // Flip to approved
-  await supabase
-    .from('interview_invites')
-    .update({ status: 'approved', approved_at: new Date().toISOString() })
-    .eq('id', inviteId);
-
   // Re-render outbound (so unsub URL is regenerated freshly)
   const unsubToken = await signToken(invite.user_id, 'unsubscribe', INTERVIEW_SIGNING_SECRET);
   const unsubUrl = `${FUNCTIONS_BASE_URL}/unsubscribe-interview?u=${invite.user_id}&t=${unsubToken}`;
@@ -76,6 +70,12 @@ Deno.serve(async (req) => {
     console.log('[interview-approve] DRY_RUN — would send to', invite.email);
     return html(renderInfoPage(`DRY RUN: would have sent to ${invite.email}.`));
   }
+
+  // Flip to approved (only on real send path)
+  await supabase
+    .from('interview_invites')
+    .update({ status: 'approved', approved_at: new Date().toISOString() })
+    .eq('id', inviteId);
 
   const sendRes = await resend.emails.send({
     from:    RESEND_INTERVIEW_FROM,
