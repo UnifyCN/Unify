@@ -509,6 +509,7 @@
     "postNotFound": "Không tìm thấy bài viết.",
     "emptyComments": "Chưa có gì ở đây...",
     "beFirstComment": "Hãy là người đầu tiên bình luận!",
+    "reply": "Trả lời",
     "replyingTo": "Đang trả lời {{username}}",
     "replyPlaceholder": "Trả lời {{username}}",
     "leavingUnify": "Bạn sắp rời khỏi Unify",

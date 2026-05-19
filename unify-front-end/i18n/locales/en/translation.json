@@ -509,6 +509,7 @@
     "postNotFound": "Post not found.",
     "emptyComments": "Looks a little quiet here...",
     "beFirstComment": "Be the first one to comment!",
+    "reply": "Reply",
     "replyingTo": "Replying to {{username}}",
     "replyPlaceholder": "Reply to {{username}}",
     "leavingUnify": "You are about to leave Unify",

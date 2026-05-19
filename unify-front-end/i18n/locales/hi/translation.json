@@ -509,6 +509,7 @@
     "postNotFound": "पोस्ट नहीं मिली।",
     "emptyComments": "यहां थोड़ा शांत है...",
     "beFirstComment": "पहले टिप्पणी करने वाले बनें!",
+    "reply": "जवाब दें",
     "replyingTo": "{{username}} को जवाब दे रहे हैं",
     "replyPlaceholder": "{{username}} को जवाब दें",
     "leavingUnify": "आप Unify छोड़ने वाले हैं",

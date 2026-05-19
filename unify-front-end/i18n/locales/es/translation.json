@@ -509,6 +509,7 @@
     "postNotFound": "Publicación no encontrada.",
     "emptyComments": "Esto está un poco vacío...",
     "beFirstComment": "¡Sé el primero en comentar!",
+    "reply": "Responder",
     "replyingTo": "Respondiendo a {{username}}",
     "replyPlaceholder": "Responder a {{username}}",
     "leavingUnify": "Estás a punto de salir de Unify",
