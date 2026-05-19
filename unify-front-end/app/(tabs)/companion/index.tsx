@@ -25,7 +25,7 @@ import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
 import { useCompanionReviewPrompt } from '@/hooks/companion/useCompanionReviewPrompt';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
 import { useCurrentUser } from '@/context/UserContext';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import {
@@ -81,7 +81,7 @@ export default function CompanionScreen() {
     conversationId?: string;
   }>();
   const router = useRouter();
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarHeight = useTabBarHeight();
   const { showToast } = useToast();
   const { height: kbHeight, progress: kbProgress } =
     useReanimatedKeyboardAnimation();
