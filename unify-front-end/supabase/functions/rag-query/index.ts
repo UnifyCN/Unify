@@ -686,6 +686,29 @@ Deno.serve(async (req: Request) => {
         })()
       : Promise.resolve<ProfileBundle>({ text: '', raw: null });
 
+    // Fetch first_name to personalize the system prompt. Missing first_name is
+    // expected for existing users — we just skip the name directive. Failures
+    // are non-fatal: the Companion still works without a name.
+    const firstNamePromise: Promise<string | null> =
+      !isEvalMode && effectiveUserId
+        ? (async () => {
+            try {
+              const { data: userRow } = await supabase
+                .from('users')
+                .select('first_name')
+                .eq('id', effectiveUserId)
+                .maybeSingle();
+              return (userRow?.first_name as string | null) ?? null;
+            } catch (err) {
+              console.warn(
+                '[rag-query] first_name lookup failed (non-fatal)',
+                err
+              );
+              return null;
+            }
+          })()
+        : Promise.resolve(null);
+
     console.log('Query classified as:', queryType);
 
     // Determine if we need RAG (knowledge base search)
@@ -887,9 +910,13 @@ Deno.serve(async (req: Request) => {
 
     // Add preprompt if available
     const userProfileBundle = await profilePromise;
+    const userFirstName = await firstNamePromise;
+    const nameDirective = userFirstName
+      ? `The user's first name is ${userFirstName}. Address them by name occasionally where it feels natural — not in every response, and never in formal/legal answers.\n\n`
+      : '';
     let fullSystemInstruction = preprompt
-      ? `${preprompt}\n\n${systemInstruction}`
-      : systemInstruction;
+      ? `${nameDirective}${preprompt}\n\n${systemInstruction}`
+      : `${nameDirective}${systemInstruction}`;
     if (userProfileBundle.text) {
       fullSystemInstruction = `${fullSystemInstruction}\n\n${userProfileBundle.text}`;
     }
