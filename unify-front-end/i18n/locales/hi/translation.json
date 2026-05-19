@@ -248,6 +248,14 @@
   "learn": {
     "title": "सीखने के लिए तैयार हैं?",
     "subtitle": "कनाडा की संस्कृति की मूल बातें समझने और एक नवागंतुक के रूप में बसने के लिए पाठों से शुरुआत करें।",
+    "greeting": {
+      "morning": "सुप्रभात, {{name}}",
+      "afternoon": "नमस्कार, {{name}}",
+      "evening": "शुभ संध्या, {{name}}",
+      "morningAnon": "सुप्रभात",
+      "afternoonAnon": "नमस्कार",
+      "eveningAnon": "शुभ संध्या"
+    },
     "errorLoadingLessons": "पाठ लोड करने में त्रुटि",
     "errorLoadingModules": "मॉड्यूल लोड करने में त्रुटि",
     "noLessonsToContinue": "जारी रखने के लिए कोई पाठ नहीं",

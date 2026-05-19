@@ -248,6 +248,14 @@
   "learn": {
     "title": "¿Listo para aprender?",
     "subtitle": "Comienza con lecciones para entender los fundamentos de la cultura canadiense y cómo establecerte como recién llegado.",
+    "greeting": {
+      "morning": "Buenos días, {{name}}",
+      "afternoon": "Buenas tardes, {{name}}",
+      "evening": "Buenas noches, {{name}}",
+      "morningAnon": "Buenos días",
+      "afternoonAnon": "Buenas tardes",
+      "eveningAnon": "Buenas noches"
+    },
     "errorLoadingLessons": "Error al cargar las lecciones",
     "errorLoadingModules": "Error al cargar los módulos",
     "noLessonsToContinue": "No hay lecciones para continuar",

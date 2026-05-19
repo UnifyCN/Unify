@@ -248,6 +248,14 @@
   "learn": {
     "title": "Sẵn sàng học chưa?",
     "subtitle": "Bắt đầu với các bài học để hiểu những kiến thức cơ bản về văn hóa Canada và cách hòa nhập với tư cách là người mới.",
+    "greeting": {
+      "morning": "Chào buổi sáng, {{name}}",
+      "afternoon": "Chào buổi chiều, {{name}}",
+      "evening": "Chào buổi tối, {{name}}",
+      "morningAnon": "Chào buổi sáng",
+      "afternoonAnon": "Chào buổi chiều",
+      "eveningAnon": "Chào buổi tối"
+    },
     "errorLoadingLessons": "Lỗi tải bài học",
     "errorLoadingModules": "Lỗi tải mô-đun",
     "noLessonsToContinue": "Không có bài học nào để tiếp tục",
