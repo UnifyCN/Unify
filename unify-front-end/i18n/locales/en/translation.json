@@ -251,7 +251,6 @@
     "sendReport": "Send Report"
   },
   "learn": {
-    "title": "Ready to learn?",
     "subtitle": "Get started with lessons to understand the basics of Canadian culture and how to settle in as a newcomer.",
     "greeting": {
       "morning": "Good morning, {{name}}",

@@ -251,7 +251,6 @@
     "sendReport": "Enviar reporte"
   },
   "learn": {
-    "title": "¿Listo para aprender?",
     "subtitle": "Comienza con lecciones para entender los fundamentos de la cultura canadiense y cómo establecerte como recién llegado.",
     "greeting": {
       "morning": "Buenos días, {{name}}",
