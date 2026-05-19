@@ -76,7 +76,14 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
           username={currentUser.username}
           size={72}
         />
-        <Text style={styles.username}>@{currentUser.username}</Text>
+        {currentUser.firstName ? (
+          <>
+            <Text style={styles.displayName}>{currentUser.firstName}</Text>
+            <Text style={styles.handle}>@{currentUser.username}</Text>
+          </>
+        ) : (
+          <Text style={styles.username}>@{currentUser.username}</Text>
+        )}
         <Text style={styles.counts}>
           {followerCount} {t('common.followers')}{'  '}·{'  '}
           {followingCount} {t('common.following')}
@@ -126,6 +133,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Theme.black,
     marginTop: 12,
+  },
+  displayName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Theme.black,
+    marginTop: 12,
+  },
+  handle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
   counts: {
     fontSize: 14,
