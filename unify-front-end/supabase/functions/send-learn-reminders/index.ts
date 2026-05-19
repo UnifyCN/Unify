@@ -227,7 +227,7 @@ Deno.serve(async (req: Request) => {
   // user_onboarding_profiles is keyed on `id` (= auth.users.id), there is no `user_id` column.
   const { data: profiles, error: profilesError } = await supabase
     .from('user_onboarding_profiles')
-    .select('id, wants_reminders')
+    .select('id, wants_reminders, first_name')
     .in('id', userIds);
 
   if (profilesError) {
@@ -244,6 +244,16 @@ Deno.serve(async (req: Request) => {
       .filter((p: { wants_reminders: boolean }) => p.wants_reminders === true)
       .map((p: { id: string }) => p.id)
   );
+
+  // Map user id -> first name (trimmed, only if non-empty) for push personalization
+  const firstNameByUser = new Map<string, string>();
+  for (const p of (profiles ?? []) as Array<{
+    id: string;
+    first_name: string | null;
+  }>) {
+    const name = p.first_name?.trim();
+    if (name) firstNameByUser.set(p.id, name);
+  }
 
   // Get push tokens for opted-in users
   const eligibleUserIds = userIds.filter(id => optedInUsers.has(id));
@@ -288,12 +298,19 @@ Deno.serve(async (req: Request) => {
     const tokens = tokensByUser.get(candidate.user_id);
     if (!tokens?.length) continue;
 
+    // Prefix body with first name when available so the push feels personal.
+    // Lowercase the first letter so "Pick up..." reads as "Alex, pick up..."
+    const firstName = firstNameByUser.get(candidate.user_id);
+    const body = firstName
+      ? `${firstName}, ${tier.body.charAt(0).toLowerCase()}${tier.body.slice(1)}`
+      : tier.body;
+
     for (const token of tokens) {
       messages.push({
         to: token,
         sound: 'default',
         title: tier.title,
-        body: tier.body,
+        body,
         data: {
           type: 'learn_reminder',
           lesson_id: candidate.sanity_lesson_id,
