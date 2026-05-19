@@ -1,12 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface ThankYouStepProps {
   isRedo?: boolean;
+  firstName?: string;
 }
 
-export default function ThankYouStep({ isRedo = false }: ThankYouStepProps) {
+export default function ThankYouStep({
+  isRedo = false,
+  firstName,
+}: ThankYouStepProps) {
+  const { t } = useTranslation();
+  const trimmedName = firstName?.trim();
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
@@ -20,6 +28,8 @@ export default function ThankYouStep({ isRedo = false }: ThankYouStepProps) {
             <>
               Profile <Text style={styles.headlineItalic}>updated</Text>
             </>
+          ) : trimmedName ? (
+            t('quiz.thankYou.titlePersonalized', { name: trimmedName })
           ) : (
             <>
               Your journey to Canada,{' '}
