@@ -271,7 +271,14 @@ export default function AccountSettingsPage() {
               onPress={() => router.push('/edit-name')}
               activeOpacity={0.7}
             >
-              <Text style={styles.userName}>{currentUser?.username || ''}</Text>
+              <View style={styles.nameStack}>
+                <Text style={styles.userName}>
+                  {currentUser?.firstName || currentUser?.username || ''}
+                </Text>
+                {currentUser?.firstName ? (
+                  <Text style={styles.userHandle}>@{currentUser.username}</Text>
+                ) : null}
+              </View>
               <Feather name='edit-3' size={20} color={Theme.black} />
             </TouchableOpacity>
             <Text style={styles.userEmail}>{currentUser?.email || ''}</Text>
@@ -627,6 +634,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: Theme.black,
+  },
+  nameStack: {
+    flexDirection: 'column',
+  },
+  userHandle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
   userEmail: {
     fontSize: 14,
