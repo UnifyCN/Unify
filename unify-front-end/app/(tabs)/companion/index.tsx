@@ -519,7 +519,16 @@ export default function CompanionScreen() {
         </Pressable>
       </View>
 
-      <Animated.View style={[styles.stickyContainer, bottomAnimatedStyle]}>
+      <Animated.View
+        style={[
+          styles.stickyContainer,
+          // NativeTabs (iOS) floats above content rather than carving its own
+          // viewport, so lift the input/disclaimer above the bar. Android JS
+          // Tabs already excludes the bar from the viewport — no padding needed.
+          Platform.OS === 'ios' && { paddingBottom: tabBarHeight },
+          bottomAnimatedStyle,
+        ]}
+      >
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
           {showEmptyState && (
