@@ -8,6 +8,7 @@ import { getPublicOnboardingProfile } from '@/services/onboarding/getPublicOnboa
 export interface UserInfo {
   id: string;
   username: string;
+  firstName: string | null;
   createdAt: string;
   followingCount: number;
   followerCount: number;
@@ -62,7 +63,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       supabase
         .from('users')
         .select(
-          'id, username, created_at, profile_picture_url, is_premium, permissions'
+          'id, username, first_name, created_at, profile_picture_url, is_premium, permissions'
         )
         .eq('id', targetUserId)
         .single(),
@@ -178,6 +179,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     return {
       id: userData.id,
       username: userData.username,
+      firstName: userData.first_name ?? null,
       createdAt: userData.created_at,
       followingCount: followingCount || 0,
       followerCount: followerCount || 0,
