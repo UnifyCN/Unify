@@ -201,7 +201,12 @@
     "successMessage": "Username updated successfully!",
     "failedUpdate": "Failed to update username",
     "failedUpdateRetry": "Failed to update username. Please try again.",
-    "validationError": "Only letters, numbers, and spaces allowed."
+    "validationError": "Only letters, numbers, and spaces allowed.",
+    "firstNameLabel": "Name",
+    "firstNamePlaceholder": "Your name",
+    "firstNameHelper": "Shown when we greet you and in your settings.",
+    "usernameLabel": "Username",
+    "usernameHelper": "Your public @handle. Other users see this on posts."
   },
   "saved": {
     "title": "Saved",

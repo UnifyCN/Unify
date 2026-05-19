@@ -201,7 +201,12 @@
     "successMessage": "¡Nombre de usuario actualizado exitosamente!",
     "failedUpdate": "Error al actualizar el nombre",
     "failedUpdateRetry": "Error al actualizar el nombre. Por favor intenta de nuevo.",
-    "validationError": "Solo se permiten letras, números y espacios."
+    "validationError": "Solo se permiten letras, números y espacios.",
+    "firstNameLabel": "Nombre",
+    "firstNamePlaceholder": "Tu nombre",
+    "firstNameHelper": "Se muestra al saludarte y en tu configuración.",
+    "usernameLabel": "Nombre de usuario",
+    "usernameHelper": "Tu @nombre público. Otros usuarios lo ven en las publicaciones."
   },
   "saved": {
     "title": "Guardado",

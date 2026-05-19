@@ -201,7 +201,12 @@
     "successMessage": "Đã cập nhật tên thành công!",
     "failedUpdate": "Cập nhật tên thất bại",
     "failedUpdateRetry": "Cập nhật tên thất bại. Vui lòng thử lại.",
-    "validationError": "Chỉ cho phép chữ cái, số và khoảng trắng."
+    "validationError": "Chỉ cho phép chữ cái, số và khoảng trắng.",
+    "firstNameLabel": "Tên",
+    "firstNamePlaceholder": "Tên của bạn",
+    "firstNameHelper": "Hiển thị khi chúng tôi chào bạn và trong cài đặt.",
+    "usernameLabel": "Tên người dùng",
+    "usernameHelper": "@tên công khai của bạn. Người khác thấy nó trên bài đăng."
   },
   "saved": {
     "title": "Đã lưu",
