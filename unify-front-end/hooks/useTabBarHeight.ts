@@ -4,8 +4,9 @@ import { useBottomTabBarHeight as useJsBottomTabBarHeight } from '@react-navigat
 // On iOS we render NativeTabs (UITabBar), so @react-navigation/bottom-tabs'
 // useBottomTabBarHeight throws — there is no JS tab navigator to measure.
 // iOS 26's Liquid Glass tab bar floats with its own bottom margin clearing
-// the home indicator, so we only need to pad for the pill's visual height
-// (~50pt). Adding the bottom safe-area inset on top would double-count.
+// the home indicator, so we only pad for the pill's visual obstruction
+// (empirically ~80pt with a small breathing gap). Adding the bottom
+// safe-area inset on top would double-count.
 const useIOSTabBarHeight = (): number => 80;
 
 // Platform.OS is determined at module load and never changes within a session,

@@ -7,13 +7,13 @@ import { HIDDEN_TAB_BAR_ROUTES } from '@/constants/Routes';
 import { useAnalytics } from '@/utils/analytics';
 import { useHapticsPreference } from '@/context/HapticsContext';
 
-const getCurrentTabFromPath = (path: string) => {
+const getCurrentTabFromPath = (path: string): string | null => {
   if (path.startsWith('/Gather')) return 'Gather';
   if (path.startsWith('/companion')) return 'companion';
   if (path.startsWith('/Checklist')) return 'Checklist';
   if (path.startsWith('/Learn')) return 'Learn';
   if (path.startsWith('/Social')) return 'Social';
-  return 'Learn';
+  return null;
 };
 
 // Stable, locale-independent labels for analytics so PostHog event values
@@ -47,9 +47,12 @@ export default function TabLayout() {
   );
 
   // NativeTabs has no tabPress listener. Watch the pathname's tab segment
-  // and fire haptic + analytics whenever the active tab changes.
+  // and fire haptic + analytics whenever the active tab changes. Ignore
+  // navigations to non-tab routes (e.g. /post-details) so we don't fire
+  // phantom switches when the user opens an inner screen.
   useEffect(() => {
     const currentTab = getCurrentTabFromPath(pathname);
+    if (!currentTab) return;
     const prevTab = prevTabRef.current;
     if (prevTab && prevTab !== currentTab) {
       if (hapticsEnabled) {
