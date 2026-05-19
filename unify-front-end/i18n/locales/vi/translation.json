@@ -871,7 +871,18 @@
       "specifyGoal": "Vui lòng nêu rõ mục tiêu của bạn",
       "specifyInterest": "Vui lòng nêu rõ sở thích của bạn",
       "signInRequired": "Vui lòng đăng nhập để tiếp tục",
-      "saveFailed": "Không thể lưu thông tin đăng ký. Vui lòng thử lại."
+      "saveFailed": "Không thể lưu thông tin đăng ký. Vui lòng thử lại.",
+      "firstNameRequired": "Vui lòng nhập tên của bạn"
+    },
+    "welcome": {
+      "titleNew": "Chào mừng đến Unify",
+      "subtitleNew": "Đầu tiên, chúng tôi nên gọi bạn là gì?"
+    },
+    "firstName": {
+      "placeholder": "Tên của bạn"
+    },
+    "thankYou": {
+      "titlePersonalized": "Chào mừng đến Unify, {{name}}!"
     },
     "q": {
       "persona": "Điều gì mô tả tốt nhất tình huống của bạn ở Canada?",

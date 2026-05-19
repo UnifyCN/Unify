@@ -871,7 +871,18 @@
       "specifyGoal": "Please specify your goal",
       "specifyInterest": "Please specify your interest",
       "signInRequired": "Please sign in to continue",
-      "saveFailed": "Failed to save your onboarding information. Please try again."
+      "saveFailed": "Failed to save your onboarding information. Please try again.",
+      "firstNameRequired": "Please enter your first name"
+    },
+    "welcome": {
+      "titleNew": "Welcome to Unify",
+      "subtitleNew": "First, what should we call you?"
+    },
+    "firstName": {
+      "placeholder": "Your first name"
+    },
+    "thankYou": {
+      "titlePersonalized": "Welcome to Unify, {{name}}!"
     },
     "q": {
       "persona": "What best describes your situation in Canada?",
