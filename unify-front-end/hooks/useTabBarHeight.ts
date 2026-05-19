@@ -1,15 +1,12 @@
 import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight as useJsBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 // On iOS we render NativeTabs (UITabBar), so @react-navigation/bottom-tabs'
 // useBottomTabBarHeight throws — there is no JS tab navigator to measure.
-// Approximate the native bar height: 49pt UITabBar + bottom safe-area inset
-// (home indicator region).
-const useIOSTabBarHeight = (): number => {
-  const insets = useSafeAreaInsets();
-  return 49 + insets.bottom;
-};
+// iOS 26's Liquid Glass tab bar floats with its own bottom margin clearing
+// the home indicator, so we only need to pad for the pill's visual height
+// (~50pt). Adding the bottom safe-area inset on top would double-count.
+const useIOSTabBarHeight = (): number => 50;
 
 // Platform.OS is determined at module load and never changes within a session,
 // so the exported hook reference is stable — no rules-of-hooks violation.
