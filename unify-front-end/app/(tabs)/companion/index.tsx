@@ -676,6 +676,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     backgroundColor: Theme.surfaceTextInput,
     color: Theme.black,
+    textAlignVertical: 'center',
   },
   disabledInput: {
     backgroundColor: '#f0f0f0',
