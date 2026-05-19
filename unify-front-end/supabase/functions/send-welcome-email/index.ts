@@ -51,7 +51,7 @@ Deno.serve(async req => {
 
     const { data: userRow } = await supabase
       .from('users')
-      .select('email')
+      .select('email, first_name')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -78,7 +78,8 @@ Deno.serve(async req => {
     }
 
     const lang = profileRow?.preferred_language ?? 'en';
-    const template = templates[lang] ?? templates.en;
+    const templateFactory = templates[lang] ?? templates.en;
+    const template = templateFactory({ firstName: userRow?.first_name ?? null });
 
     let resendId: string | undefined;
     let timeoutHandle: number | undefined;
