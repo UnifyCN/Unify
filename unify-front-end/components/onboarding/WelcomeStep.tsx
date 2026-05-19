@@ -9,6 +9,7 @@ interface WelcomeStepProps {
   isRedo?: boolean;
   firstName: string;
   onChangeFirstName: (value: string) => void;
+  error?: string;
 }
 
 export default function WelcomeStep({
@@ -16,6 +17,7 @@ export default function WelcomeStep({
   isRedo = false,
   firstName,
   onChangeFirstName,
+  error,
 }: WelcomeStepProps) {
   const { t } = useTranslation();
   const inputRef = useRef<TextInput>(null);
@@ -50,6 +52,7 @@ export default function WelcomeStep({
             if (firstName.trim()) onNext();
           }}
         />
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </View>
     </View>
   );
@@ -93,6 +96,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     fontSize: 18,
     color: Theme.black,
+    textAlign: 'center',
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#f00',
+    marginTop: 12,
     textAlign: 'center',
   },
 });

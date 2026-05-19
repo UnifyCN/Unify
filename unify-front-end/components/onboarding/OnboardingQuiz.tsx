@@ -41,10 +41,12 @@ import { requestStoreReview } from '@/utils/storeReview';
 import { useInviteCode } from '@/context/InviteCodeContext';
 import { InviteCodeField } from '@/components/referrals/InviteCodeField';
 import { isInviteCode } from '@/utils/inviteLink';
+import { updateFirstName } from '@/services/users/updateFirstName';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
   isRedo?: boolean;
+  prefilledName?: string | null;
 }
 
 const TOTAL_STEPS = 11;
@@ -66,6 +68,7 @@ const STEP_NAMES: Record<number, string> = {
 export default function OnboardingQuiz({
   onComplete,
   isRedo = false,
+  prefilledName = null,
 }: OnboardingQuizProps) {
   const { t } = useTranslation();
   const saveMutation = useSaveOnboardingProfile();
@@ -76,6 +79,7 @@ export default function OnboardingQuiz({
   const inviteCtx = useInviteCode();
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [firstName, setFirstName] = useState<string>(prefilledName ?? '');
 
   // Form state
   const [persona, setPersona] = useState<Persona | null>(null);
@@ -129,6 +133,13 @@ export default function OnboardingQuiz({
     const newErrors: Record<number, string> = {};
 
     switch (step) {
+      case 1: // First name
+        if (!firstName.trim()) {
+          newErrors[1] = t('quiz.errors.firstNameRequired');
+          setErrors(newErrors);
+          return false;
+        }
+        break;
       case 2: // Persona
         if (!persona) {
           newErrors[2] = t('quiz.errors.selectOption');
@@ -313,6 +324,21 @@ export default function OnboardingQuiz({
         extras: inviteExtras,
       });
 
+      // Persist first_name on public.users (separate from user_onboarding_profiles).
+      // Non-blocking failure: if this fails after profile save succeeded, the user
+      // is already onboarded; they can re-enter their name from Account Settings.
+      try {
+        const firstNameResult = await updateFirstName(firstName);
+        if (!firstNameResult.success) {
+          console.warn(
+            '[onboarding] updateFirstName failed but profile saved:',
+            firstNameResult.error
+          );
+        }
+      } catch (err) {
+        console.warn('[onboarding] updateFirstName threw:', err);
+      }
+
       // Fire Meta activation event after profile persists. Deduped per user
       // by SecureStore, so redo-onboarding won't double-fire. Non-blocking:
       // an analytics failure must not trigger the "save failed" alert below.
@@ -412,7 +438,15 @@ export default function OnboardingQuiz({
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <WelcomeStep onNext={handleNext} isRedo={isRedo} />;
+        return (
+          <WelcomeStep
+            onNext={handleNext}
+            isRedo={isRedo}
+            firstName={firstName}
+            onChangeFirstName={setFirstName}
+            error={errors[1]}
+          />
+        );
       case 2:
         return (
           <SingleSelectQuestion
@@ -731,7 +765,7 @@ export default function OnboardingQuiz({
       case 10:
         return <OutcomesStep />;
       case 11:
-        return <ThankYouStep isRedo={isRedo} />;
+        return <ThankYouStep isRedo={isRedo} firstName={firstName} />;
       default:
         return null;
     }
