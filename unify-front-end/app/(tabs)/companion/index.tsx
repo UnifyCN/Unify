@@ -501,10 +501,11 @@ export default function CompanionScreen() {
             NOT wrapped in a Pressable: wrapping a scrollable in a Pressable
             creates a gesture-responder race with the list's scroll responder
             (especially while programmatic scrolls or rapid state updates are
-            in flight), which can leave the list unscrollable. Instead, the
-            list dismisses the keyboard on drag (keyboardDismissMode) and on
-            scroll start; the tap-to-dismiss Pressable is only used for the
-            non-scrollable empty/loading states. */}
+            in flight), which can leave the list unscrollable. Keyboard
+            dismissal: keyboardDismissMode='interactive' handles smooth
+            drag-to-dismiss, keyboardShouldPersistTaps='handled' dismisses on
+            tap-outside-children. The tap-to-dismiss Pressable is only used
+            for the non-scrollable empty/loading states. */}
         {showLoadingState ? (
           <Pressable style={styles.messagesArea} onPress={Keyboard.dismiss}>
             <View style={styles.emptyContainer}>
@@ -539,7 +540,6 @@ export default function CompanionScreen() {
             ListFooterComponent={renderLoadingIndicator}
             keyboardShouldPersistTaps='handled'
             keyboardDismissMode='interactive'
-            onScrollBeginDrag={Keyboard.dismiss}
             onScroll={handleScroll}
             scrollEventThrottle={16}
             initialNumToRender={10}
