@@ -17,6 +17,8 @@ import {
   Keyboard,
   ActivityIndicator,
   Platform,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
 import { History, Plus } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -187,6 +189,10 @@ export default function CompanionScreen() {
   // Ref for the text input to handle focusing
   const inputRef = useRef<TextInput>(null);
   const previousMessageCountRef = useRef<number>(0);
+  // Tracks whether the user is currently pinned near the bottom of the list.
+  // While true, new content auto-scrolls into view; when the user scrolls up
+  // to read earlier messages, we stop fighting their gesture.
+  const isNearBottomRef = useRef<boolean>(true);
 
   const { data: usage } = useChatbotUsage();
   const { currentUser } = useCurrentUser();
@@ -243,23 +249,41 @@ export default function CompanionScreen() {
     }
     resetDraftState();
     previousMessageCountRef.current = 0;
+    isNearBottomRef.current = true;
   }, [conversationId, resetDraftState]);
 
-  // Scroll to end only when new messages are added (not when sources expand/collapse)
+  // Scroll to end only when new messages are added (not when sources expand/collapse).
+  // Skip while the user has scrolled up to read earlier messages, and use a
+  // non-animated scroll while a bot response is streaming so the auto-scroll
+  // doesn't fight a user gesture mid-stream.
   useEffect(() => {
     const currentMessageCount = displayMessages.length;
     const previousMessageCount = previousMessageCountRef.current;
 
-    // Only scroll if message count increased (new message added)
-    if (currentMessageCount > previousMessageCount && currentMessageCount > 0) {
-      // Use setTimeout to ensure the layout has updated
+    if (
+      currentMessageCount > previousMessageCount &&
+      currentMessageCount > 0 &&
+      isNearBottomRef.current
+    ) {
+      const animated = !streamingBotMessage;
       setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated });
       }, 100);
     }
 
     previousMessageCountRef.current = currentMessageCount;
-  }, [displayMessages.length]);
+  }, [displayMessages.length, streamingBotMessage]);
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromBottom =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      isNearBottomRef.current = distanceFromBottom < 80;
+    },
+    []
+  );
 
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
@@ -420,6 +444,7 @@ export default function CompanionScreen() {
     setCurrentConversationId(null);
     resetDraftState();
     previousMessageCountRef.current = 0;
+    isNearBottomRef.current = true;
     Keyboard.dismiss();
     router.replace('/(tabs)/companion' as any);
   }, [resetDraftState, router]);
@@ -472,15 +497,22 @@ export default function CompanionScreen() {
           }
         />
 
-        {/* Messages - takes up available space. Tapping anywhere in this
-            area dismisses the keyboard; interactive children (messages,
-            suggestion chips, etc.) still receive their own taps first. */}
-        <Pressable style={styles.messagesArea} onPress={Keyboard.dismiss}>
-          {showLoadingState ? (
+        {/* Messages - takes up available space. The FlatList is intentionally
+            NOT wrapped in a Pressable: wrapping a scrollable in a Pressable
+            creates a gesture-responder race with the list's scroll responder
+            (especially while programmatic scrolls or rapid state updates are
+            in flight), which can leave the list unscrollable. Instead, the
+            list dismisses the keyboard on drag (keyboardDismissMode) and on
+            scroll start; the tap-to-dismiss Pressable is only used for the
+            non-scrollable empty/loading states. */}
+        {showLoadingState ? (
+          <Pressable style={styles.messagesArea} onPress={Keyboard.dismiss}>
             <View style={styles.emptyContainer}>
               <ActivityIndicator size='large' color={Theme.surfaceBlue} />
             </View>
-          ) : showEmptyState ? (
+          </Pressable>
+        ) : showEmptyState ? (
+          <Pressable style={styles.messagesArea} onPress={Keyboard.dismiss}>
             <View style={styles.emptyState}>
               <View style={styles.dottedLineContainer} pointerEvents='none'>
                 <AnimatedDottedBackground
@@ -495,28 +527,31 @@ export default function CompanionScreen() {
                 {t('companion.welcomeCaption')}
               </Text>
             </View>
-          ) : (
-            <FlatList
-              ref={flatListRef}
-              data={displayMessages}
-              renderItem={renderMessage}
-              keyExtractor={keyExtractor}
-              style={styles.messagesList}
-              contentContainerStyle={styles.messagesContent}
-              ListFooterComponent={renderLoadingIndicator}
-              keyboardShouldPersistTaps='handled'
-              keyboardDismissMode='interactive'
-              initialNumToRender={10}
-              maxToRenderPerBatch={8}
-              windowSize={7}
-              updateCellsBatchingPeriod={50}
-              nestedScrollEnabled={Platform.OS === 'android'}
-              // Keep clipping disabled to avoid truncation/scroll lock for long rich bot responses on Android.
-              // Repro observed in Companion screen after response render with dynamic markdown content.
-              removeClippedSubviews={false}
-            />
-          )}
-        </Pressable>
+          </Pressable>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={displayMessages}
+            renderItem={renderMessage}
+            keyExtractor={keyExtractor}
+            style={styles.messagesList}
+            contentContainerStyle={styles.messagesContent}
+            ListFooterComponent={renderLoadingIndicator}
+            keyboardShouldPersistTaps='handled'
+            keyboardDismissMode='interactive'
+            onScrollBeginDrag={Keyboard.dismiss}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            initialNumToRender={10}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            updateCellsBatchingPeriod={50}
+            nestedScrollEnabled={Platform.OS === 'android'}
+            // Keep clipping disabled to avoid truncation/scroll lock for long rich bot responses on Android.
+            // Repro observed in Companion screen after response render with dynamic markdown content.
+            removeClippedSubviews={false}
+          />
+        )}
       </View>
 
       <Animated.View style={[styles.stickyContainer, bottomAnimatedStyle]}>
