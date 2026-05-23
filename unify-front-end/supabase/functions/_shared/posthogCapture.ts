@@ -33,6 +33,30 @@ interface AiGenerationProperties {
 }
 
 /**
+ * Register a background promise with the Edge Runtime so the function
+ * instance stays alive until it settles. Without this, async work dispatched
+ * just before the response (or SSE stream) closes gets killed mid-flight —
+ * which is exactly what was dropping the PostHog capture POST in production
+ * after the AI Companion switched to streaming responses.
+ */
+function keepAlive(promise: Promise<unknown>): void {
+  const edgeRuntime = (
+    globalThis as typeof globalThis & {
+      EdgeRuntime?: { waitUntil?: (p: Promise<unknown>) => void };
+    }
+  ).EdgeRuntime;
+
+  if (edgeRuntime?.waitUntil) {
+    edgeRuntime.waitUntil(promise);
+    return;
+  }
+
+  void promise.catch(err => {
+    console.error('PostHog keepAlive task failed:', err);
+  });
+}
+
+/**
  * Capture a PostHog `$ai_generation` event from an edge function.
  * This powers the LLM analytics dashboard (Generations view, cost tracking).
  *
@@ -58,14 +82,20 @@ export function captureAiGeneration(
     },
   });
 
-  // Fire-and-forget — don't block the response
-  fetch(`${POSTHOG_HOST}/capture/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-  }).catch(err => {
-    console.error('PostHog capture failed:', err);
-  });
+  // Don't block the response, but DO register with EdgeRuntime.waitUntil so
+  // the runtime keeps the function instance alive until the POST resolves.
+  // A naked fire-and-forget fetch here gets killed when the request closes —
+  // particularly in the streaming path, where the SSE stream ends within
+  // milliseconds of the capture call.
+  keepAlive(
+    fetch(`${POSTHOG_HOST}/capture/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+    }).catch(err => {
+      console.error('PostHog capture failed:', err);
+    })
+  );
 }
 
 /**
