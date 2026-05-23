@@ -213,8 +213,8 @@ function CountdownLine() {
 
 const styles = StyleSheet.create({
   outerWrap: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 4,
+    paddingBottom: 16,
   },
   card: {
     flexDirection: 'row',
