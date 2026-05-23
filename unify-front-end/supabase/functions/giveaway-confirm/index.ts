@@ -201,6 +201,7 @@ Deno.serve(async req => {
       await resend.emails.send({
         from: RESEND_FROM,
         to: entry.email,
+        replyTo: 'contact@unifysocial.ca',
         subject: `You're entered to win a ${PRIZE_LABEL} 🎁`,
         html: renderHtml({
           firstName: entry.first_name,
