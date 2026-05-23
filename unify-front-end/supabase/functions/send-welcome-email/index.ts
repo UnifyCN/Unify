@@ -5,6 +5,7 @@ import { en } from './templates/en.ts';
 
 const RESEND_USER_EMAILS_API_KEY = Deno.env.get('RESEND_USER_EMAILS_API_KEY');
 const RESEND_WELCOME_FROM = Deno.env.get('RESEND_WELCOME_FROM');
+const WELCOME_EMAIL_API_KEY = Deno.env.get('WELCOME_EMAIL_API_KEY');
 const REPLY_TO = 'contact@unifysocial.ca';
 const RESEND_TIMEOUT_MS = 5000;
 
@@ -20,10 +21,34 @@ Deno.serve(async req => {
       status: 500,
     });
   }
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    console.error('[welcome] missing Supabase env vars');
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !WELCOME_EMAIL_API_KEY) {
+    console.error('[welcome] missing Supabase/internal env vars');
     return new Response(JSON.stringify({ error: 'missing_env' }), {
       status: 500,
+    });
+  }
+
+  // Caller must be the cron job (or a manual operator) — proven by a
+  // shared secret kept in Vault. Stops random authenticated clients from
+  // re-firing welcome emails on demand.
+  const apiKey = req.headers.get('x-api-key');
+  if (apiKey !== WELCOME_EMAIL_API_KEY) {
+    console.warn('[welcome] unauthorized invocation: bad or missing x-api-key');
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401,
+    });
+  }
+
+  let userId: string | undefined;
+  try {
+    const body = await req.json();
+    userId = typeof body?.userId === 'string' ? body.userId : undefined;
+  } catch {
+    // empty/invalid body — handled below
+  }
+  if (!userId) {
+    return new Response(JSON.stringify({ error: 'missing_user_id' }), {
+      status: 400,
     });
   }
 
@@ -31,55 +56,86 @@ Deno.serve(async req => {
   const resend = new Resend(RESEND_USER_EMAILS_API_KEY);
 
   try {
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '');
-    if (!token) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'unauthorized' }),
-        { status: 200 },
-      );
-    }
-
-    const { data: authData, error: authError } =
-      await supabase.auth.getUser(token);
-    const user = authData?.user;
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'unauthorized' }),
-        { status: 200 },
-      );
-    }
-
-    const { data: userRow } = await supabase
-      .from('users')
-      .select('email, first_name')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (!userRow?.email) {
-      console.error('[welcome] no_email for user', user.id);
-      return new Response(
-        JSON.stringify({ success: false, error: 'no_email' }),
-        { status: 200 },
-      );
-    }
-
-    const { data: profileRow } = await supabase
+    const { data: profileRow, error: profileError } = await supabase
       .from('user_onboarding_profiles')
-      .select('welcome_email_sent_at, preferred_language')
-      .eq('id', user.id)
+      .select('welcome_email_sent_at, welcome_email_attempts, preferred_language')
+      .eq('id', userId)
       .maybeSingle();
 
-    if (profileRow?.welcome_email_sent_at) {
-      console.log('[welcome] skipped: already_sent for user', user.id);
+    if (profileError) {
+      console.error('[welcome] profile lookup failed', { userId, profileError });
+      return new Response(
+        JSON.stringify({ success: false, error: 'profile_lookup_failed' }),
+        { status: 500 },
+      );
+    }
+    if (!profileRow) {
+      console.error('[welcome] no profile for user', userId);
+      return new Response(
+        JSON.stringify({ success: false, error: 'no_profile' }),
+        { status: 200 },
+      );
+    }
+    if (profileRow.welcome_email_sent_at) {
+      console.log('[welcome] skipped: already_sent', { userId });
       return new Response(
         JSON.stringify({ success: true, skipped: 'already_sent' }),
         { status: 200 },
       );
     }
 
-    const lang = profileRow?.preferred_language ?? 'en';
+    const { data: userRow, error: userError } = await supabase
+      .from('users')
+      .select('email, first_name')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (userError) {
+      console.error('[welcome] user lookup failed', { userId, userError });
+      return new Response(
+        JSON.stringify({ success: false, error: 'user_lookup_failed' }),
+        { status: 500 },
+      );
+    }
+    if (!userRow?.email) {
+      console.error('[welcome] no_email for user', userId);
+      // Bump attempts so cron stops retrying a user who can never receive.
+      await supabase
+        .from('user_onboarding_profiles')
+        .update({
+          welcome_email_attempts: (profileRow.welcome_email_attempts ?? 0) + 1,
+          welcome_email_last_attempt_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+      return new Response(
+        JSON.stringify({ success: false, error: 'no_email' }),
+        { status: 200 },
+      );
+    }
+
+    const lang = profileRow.preferred_language ?? 'en';
     const templateFactory = templates[lang] ?? templates.en;
-    const template = templateFactory({ firstName: userRow?.first_name ?? null });
+    const template = templateFactory({ firstName: userRow.first_name ?? null });
+
+    // Bump attempts BEFORE sending. If the send hangs and we crash, the next
+    // cron tick still sees the bumped counter — prevents runaway retries.
+    const { error: bumpError } = await supabase
+      .from('user_onboarding_profiles')
+      .update({
+        welcome_email_attempts: (profileRow.welcome_email_attempts ?? 0) + 1,
+        welcome_email_last_attempt_at: new Date().toISOString(),
+      })
+      .eq('id', userId);
+    if (bumpError) {
+      console.error('[welcome] failed to bump attempt counter', {
+        userId,
+        bumpError,
+      });
+      return new Response(
+        JSON.stringify({ success: false, error: 'attempt_bump_failed' }),
+        { status: 500 },
+      );
+    }
 
     let resendId: string | undefined;
     let timeoutHandle: number | undefined;
@@ -109,7 +165,7 @@ Deno.serve(async req => {
         emailErr instanceof Error && emailErr.message === 'resend_timeout';
       console.error(
         isTimeout ? '[welcome] resend_timeout' : '[welcome] resend_failed',
-        emailErr,
+        { userId, from: RESEND_WELCOME_FROM, error: emailErr },
       );
       return new Response(
         JSON.stringify({
@@ -125,20 +181,25 @@ Deno.serve(async req => {
     const { error: updateError } = await supabase
       .from('user_onboarding_profiles')
       .update({ welcome_email_sent_at: new Date().toISOString() })
-      .eq('id', user.id);
+      .eq('id', userId);
 
     if (updateError) {
-      console.error(
-        '[welcome] failed to update welcome_email_sent_at',
+      // Resend ack'd the send but we failed to flip the gate. Next cron tick
+      // will re-send — duplicate welcome is annoying but not catastrophic;
+      // worth surfacing so we know to investigate.
+      console.error('[welcome] sent but failed to flip welcome_email_sent_at', {
+        userId,
+        resendId,
         updateError,
-      );
-      // Email was sent. Don't fail the request.
+      });
     }
 
-    console.log('[welcome] sent', { userId: user.id, resendId });
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
+    console.log('[welcome] sent', { userId, resendId });
+    return new Response(JSON.stringify({ success: true, resendId }), {
+      status: 200,
+    });
   } catch (err) {
-    console.error('[welcome] unexpected error', err);
+    console.error('[welcome] unexpected error', { userId, err });
     return new Response(
       JSON.stringify({ success: false, error: 'server_error' }),
       { status: 500 },
