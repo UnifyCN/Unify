@@ -394,6 +394,13 @@
       "tryAgain": "Thử lại",
       "errorFallback": "Đã xảy ra lỗi. Vui lòng thử lại."
     },
+    "practiceFeedback": {
+      "title": "Phản hồi",
+      "generating": "Đang xem xét câu trả lời của bạn...",
+      "tryAgain": "Thử lại",
+      "gotIt": "Đã hiểu",
+      "errorFallback": "Không thể tạo phản hồi. Vui lòng thử lại."
+    },
     "selectionBubble": {
       "remove": "Xóa",
       "highlight": "Tô sáng",

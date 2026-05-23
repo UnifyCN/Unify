@@ -394,6 +394,13 @@
       "tryAgain": "Intentar de nuevo",
       "errorFallback": "Algo salió mal. Por favor inténtalo de nuevo."
     },
+    "practiceFeedback": {
+      "title": "Comentarios",
+      "generating": "Revisando tu respuesta...",
+      "tryAgain": "Intentar de nuevo",
+      "gotIt": "Entendido",
+      "errorFallback": "No se pudo generar la retroalimentación. Inténtalo de nuevo."
+    },
     "selectionBubble": {
       "remove": "Eliminar",
       "highlight": "Resaltar",

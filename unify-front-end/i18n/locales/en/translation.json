@@ -394,6 +394,13 @@
       "tryAgain": "Try Again",
       "errorFallback": "Something went wrong. Please try again."
     },
+    "practiceFeedback": {
+      "title": "Feedback",
+      "generating": "Reviewing your answer...",
+      "tryAgain": "Try Again",
+      "gotIt": "Got It",
+      "errorFallback": "Couldn't generate feedback. Please try again."
+    },
     "selectionBubble": {
       "remove": "Remove",
       "highlight": "Highlight",

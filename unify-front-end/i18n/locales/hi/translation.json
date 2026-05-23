@@ -394,6 +394,13 @@
       "tryAgain": "फिर से प्रयास करें",
       "errorFallback": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।"
     },
+    "practiceFeedback": {
+      "title": "प्रतिक्रिया",
+      "generating": "आपके उत्तर की समीक्षा हो रही है...",
+      "tryAgain": "फिर से प्रयास करें",
+      "gotIt": "समझ गया",
+      "errorFallback": "प्रतिक्रिया नहीं मिल सकी। कृपया पुनः प्रयास करें।"
+    },
     "selectionBubble": {
       "remove": "हटाएं",
       "highlight": "हाइलाइट",
