@@ -66,9 +66,18 @@ export function captureAiGeneration(
   distinctId: string,
   properties: AiGenerationProperties
 ): void {
-  const apiKey = Deno.env.get('POSTHOG_API_KEY');
+  // PostHog's /capture/ ingestion endpoint requires the Project API Key
+  // (phc_...), NOT a Personal API Key (phx_...). The two key types used to
+  // share the POSTHOG_API_KEY secret, and a personal key landed there during
+  // the interview-picker rollout — silently breaking ingestion. Read the
+  // dedicated project-key secret first; fall back to the legacy name during
+  // rollover so we don't break if both secrets aren't set yet.
+  const apiKey =
+    Deno.env.get('POSTHOG_PROJECT_API_KEY') ?? Deno.env.get('POSTHOG_API_KEY');
   if (!apiKey) {
-    console.warn('POSTHOG_API_KEY not set — skipping $ai_generation capture');
+    console.warn(
+      'POSTHOG_PROJECT_API_KEY not set — skipping $ai_generation capture'
+    );
     return;
   }
 
