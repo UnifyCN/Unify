@@ -61,7 +61,7 @@
     "openProfileMenu": "Mở menu hồ sơ"
   },
   "tabs": {
-    "home": "Trang chủ",
+    "social": "Xã hội",
     "community": "Cộng đồng",
     "companion": "Trợ lý",
     "checklist": "Danh sách",
@@ -151,7 +151,6 @@
       "unableRetrieveEmail": "Không thể lấy email từ phiên đã xác minh",
       "failedSetup": "Không thể hoàn tất thiết lập tài khoản",
       "successTitle": "Thành công",
-      "successMessage": "Email đã được xác minh thành công!",
       "verificationFailed": "Xác minh thất bại. Vui lòng thử lại.",
       "verificationError": "Đã xảy ra lỗi trong quá trình xác minh.",
       "otpResent": "Đã gửi lại OTP thành công!",
@@ -202,7 +201,12 @@
     "successMessage": "Đã cập nhật tên thành công!",
     "failedUpdate": "Cập nhật tên thất bại",
     "failedUpdateRetry": "Cập nhật tên thất bại. Vui lòng thử lại.",
-    "validationError": "Chỉ cho phép chữ cái, số và khoảng trắng."
+    "validationError": "Chỉ cho phép chữ cái, số và khoảng trắng.",
+    "firstNameLabel": "Tên",
+    "firstNamePlaceholder": "Tên của bạn",
+    "firstNameHelper": "Hiển thị khi chúng tôi chào bạn và trong cài đặt.",
+    "usernameLabel": "Tên người dùng",
+    "usernameHelper": "@tên công khai của bạn. Người khác thấy nó trên bài đăng."
   },
   "saved": {
     "title": "Đã lưu",
@@ -247,8 +251,15 @@
     "sendReport": "Gửi báo cáo"
   },
   "learn": {
-    "title": "Sẵn sàng học chưa?",
     "subtitle": "Bắt đầu với các bài học để hiểu những kiến thức cơ bản về văn hóa Canada và cách hòa nhập với tư cách là người mới.",
+    "greeting": {
+      "morning": "Chào buổi sáng, {{name}}",
+      "afternoon": "Chào buổi chiều, {{name}}",
+      "evening": "Chào buổi tối, {{name}}",
+      "morningAnon": "Chào buổi sáng",
+      "afternoonAnon": "Chào buổi chiều",
+      "eveningAnon": "Chào buổi tối"
+    },
     "errorLoadingLessons": "Lỗi tải bài học",
     "errorLoadingModules": "Lỗi tải mô-đun",
     "noLessonsToContinue": "Không có bài học nào để tiếp tục",
@@ -706,6 +717,10 @@
     "couldntGenerate": "Không thể tạo liên kết mời. Kéo xuống hoặc quay lại để thử.",
     "yourInviteCode": "Mã mời của bạn",
     "inviteCodeHint": "Bạn bè nhấn vào liên kết mời sẽ tự động liên kết với bạn. Họ cũng có thể nhập mã này khi đăng ký.",
+    "theirInviteCode": "Mã mời của họ",
+    "theirInviteCodeHeading": "Có mã mời của họ không?",
+    "theirInviteCodeHint": "Tùy chọn. Giúp kết nối bạn với họ.",
+    "theirInviteCodeAutoFilled": "Tìm thấy trong bộ nhớ tạm. Chỉnh sửa nếu cần.",
     "loadingInviteCode": "Đang tải mã mời",
     "friendCount": "{{count}} bạn đã tham gia Unify nhờ bạn.",
     "friendCount_plural": "{{count}} bạn đã tham gia Unify nhờ bạn.",
@@ -816,8 +831,18 @@
     "yearLabel": "Năm",
     "confirm": "Xác nhận",
     "otherSpecify": "Khác (chỉ rõ)",
+    "otherSpecifyBelow": "Khác (ghi rõ bên dưới)",
     "continue": "Tiếp tục",
-    "selectMonthYear": "Chọn tháng và năm"
+    "selectMonthYear": "Chọn tháng và năm",
+    "locationQuestion": "Bạn sống ở đâu tại Canada?",
+    "city": "Thành phố",
+    "province": "Tỉnh bang",
+    "selectCity": "Chọn thành phố của bạn",
+    "selectProvince": "Chọn tỉnh bang của bạn",
+    "enterCity": "Nhập thành phố của bạn",
+    "searchCities": "Tìm thành phố",
+    "searchProvinces": "Tìm tỉnh bang",
+    "autoFilled": "Tự động điền"
   },
   "loadingScreen": {
     "message": "Vui lòng chờ trong khi chúng tôi kết nối mọi thứ cho hành trình của bạn…"
@@ -858,7 +883,26 @@
       "specifyGoal": "Vui lòng nêu rõ mục tiêu của bạn",
       "specifyInterest": "Vui lòng nêu rõ sở thích của bạn",
       "signInRequired": "Vui lòng đăng nhập để tiếp tục",
-      "saveFailed": "Không thể lưu thông tin đăng ký. Vui lòng thử lại."
+      "saveFailed": "Không thể lưu thông tin đăng ký. Vui lòng thử lại.",
+      "firstNameRequired": "Vui lòng nhập tên của bạn"
+    },
+    "welcome": {
+      "titleNew": "Chào mừng đến Unify",
+      "subtitleNew": "Đầu tiên, chúng tôi nên gọi bạn là gì?",
+      "titleRedo": "Cập nhật hồ sơ của bạn",
+      "subtitleRedo": "Mọi thứ thay đổi — hãy cập nhật câu trả lời của bạn để chúng tôi đưa ra gợi ý và phản hồi tốt hơn."
+    },
+    "firstName": {
+      "placeholder": "Tên của bạn"
+    },
+    "thankYou": {
+      "titlePersonalized": "Chào mừng đến Unify, {{name}}!",
+      "titleRedoStart": "Hồ sơ ",
+      "titleRedoItalic": "đã cập nhật",
+      "titleDefaultStart": "Hành trình đến Canada của bạn, ",
+      "titleDefaultItalic": "đơn giản hơn",
+      "bodyRedo": "Tuỳ chọn của bạn đã được cập nhật. Checklist và phản hồi từ Companion giờ sẽ phản ánh các câu trả lời mới nhất của bạn.",
+      "bodyDefault": "Bạn đã sẵn sàng khám phá Unify. Chúng tôi sẽ tiếp tục nỗ lực để hành trình của bạn dễ dàng hơn!"
     },
     "q": {
       "persona": "Điều gì mô tả tốt nhất tình huống của bạn ở Canada?",
@@ -932,7 +976,7 @@
       "headline": "Thắng $100 Loblaws",
       "countdownPrefix": "Kết thúc trong",
       "enteredHeadline": "Bạn đã tham gia ✓",
-      "enteredSubtext": "Người thắng được công bố ngày 21/5"
+      "enteredSubtext": "Người thắng được công bố ngày 1/6"
     },
     "live": {
       "days": "Ngày",
@@ -946,7 +990,7 @@
       "rulesTitle": "Cách thức",
       "rule1": "Dành cho cư dân Canada từ 18 tuổi trở lên",
       "rule2": "Mỗi tài khoản Unify chỉ một lượt",
-      "rule3": "Người thắng được rút ngẫu nhiên vào ngày 21/5",
+      "rule3": "Người thắng được rút ngẫu nhiên vào ngày 1/6",
       "rule4": "Phần thưởng được gửi qua email dưới dạng thẻ quà tặng số",
       "cta": "Tham gia ngay"
     },
@@ -973,7 +1017,7 @@
       "subtitle": "Chúng tôi sẽ gửi email cho bạn nếu bạn thắng. Chúc may mắn!",
       "subtitlePersonalized": "{{name}}, chúng tôi sẽ gửi email cho bạn nếu bạn thắng. Chúc may mắn!",
       "deadlineLabel": "Người thắng được công bố",
-      "deadlineDate": "21/5",
+      "deadlineDate": "1/6",
       "cta": "Về Trang chủ"
     },
     "errors": {
@@ -989,6 +1033,13 @@
       "skillAnswerIncorrect": "Câu trả lời chưa đúng. Vui lòng thử lại.",
       "consentRequired": "Vui lòng đánh dấu vào ô để xác nhận bạn đồng ý.",
       "submitFailed": "Không thể gửi lượt tham gia. Vui lòng thử lại."
+    }
+  },
+  "privacy": {
+    "settings": {
+      "sectionTitle": "Quyền riêng tư",
+      "personalizedAdsLabel": "Cho phép theo dõi hoạt động",
+      "personalizedAdsHelp": "Cho phép chúng tôi chia sẻ hoạt động ẩn danh trong ứng dụng với các đối tác quảng cáo để hiển thị quảng cáo phù hợp hơn. Tắt bất cứ lúc nào."
     }
   }
 }

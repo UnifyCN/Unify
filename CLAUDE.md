@@ -7,6 +7,22 @@ React Native / Expo project.
 - Always apply `vercel-react-native-skills` when working on React Native components, screens, navigation, animations, lists, or UI/performance code.
 - **Frontend design:** Always invoke BOTH `frontend-design` AND `ui-ux-pro-max` skills together when changing any UI.
 
+## UI patterns: prefer layered compositions over full screens
+
+When designing any new feature or sub-task, **default to layered, in-place UI** before reaching for a new full screen. iOS HIG favors spatial continuity — pushing the user to a new screen is cognitively expensive ("out of sight, out of mind") and breaks flow, especially for short sub-tasks.
+
+Try, in roughly this order:
+
+1. **Bottom sheets** (`@gorhom/bottom-sheet` is already in the project) — for forms, pickers, confirmations, secondary actions
+2. **Contextual menus / action sheets** — for choices tied to a specific item
+3. **Inline expansion** — reveal details/forms in place rather than navigating away
+4. **Popovers / tooltips** — for small bits of info or quick actions
+5. **Progressive disclosure** — show more only when asked
+
+Only push a full screen when the task genuinely warrants taking over: deep multi-step flows, immersive content (post detail, chat, learn module), or destinations the user navigates to intentionally (tabs, profile).
+
+When in doubt, ask: "Is this a sub-task of what the user is currently doing, or a new destination?" Sub-tasks → layered. Destinations → screen.
+
 ## Internationalization
 
 The app supports multiple languages (currently en, es, hi, vi) and the list keeps expanding. Treat i18n as a hard requirement, not an afterthought.

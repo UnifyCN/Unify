@@ -10,7 +10,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const CAMPAIGN_DEFAULT = 'loblaws-100-may-2026';
 const PRIZE_LABEL = '$100 Loblaws Gift Card';
-const WINNER_DATE_LABEL = 'May 21, 2026';
+const WINNER_DATE_LABEL = 'June 1, 2026';
 
 function escapeHtml(str: string): string {
   return str

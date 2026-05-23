@@ -21,9 +21,13 @@ export const GIVEAWAY = {
    *  campaign — that would let users enter twice. */
   campaignId: 'loblaws-100-may-2026',
 
-  /** May 20, 2026, 11:59:59 PM America/Vancouver (PDT, UTC-7).
+  /** May 23, 2026, 12:00:00 AM America/Vancouver (PDT, UTC-7).
+   *  Banner stays hidden and the trigger rejects writes before this. */
+  startUtc: new Date('2026-05-23T07:00:00Z'),
+
+  /** May 31, 2026, 11:59:59 PM America/Vancouver (PDT, UTC-7).
    *  PDT is in effect because Canada observes DST from March to November. */
-  deadlineUtc: new Date('2026-05-21T06:59:59Z'),
+  deadlineUtc: new Date('2026-06-01T06:59:59Z'),
 
   /** Prize copy for display. Keep this in code (not i18n) for safety —
    *  marketing-approved exact wording. i18n strings reference this. */
@@ -42,7 +46,10 @@ export const GIVEAWAY = {
 } as const;
 
 export function isGiveawayActive(now: Date = new Date()): boolean {
-  return now.getTime() < GIVEAWAY.deadlineUtc.getTime();
+  const t = now.getTime();
+  return (
+    t >= GIVEAWAY.startUtc.getTime() && t < GIVEAWAY.deadlineUtc.getTime()
+  );
 }
 
 export function millisecondsUntilDeadline(now: Date = new Date()): number {

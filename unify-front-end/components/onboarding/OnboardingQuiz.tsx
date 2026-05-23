@@ -6,11 +6,15 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   ActivityIndicator,
   Alert,
   TextInput,
+  Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { logActivation } from '@/services/analytics/metaEvents';
+import { initMetaSDK } from '@/services/analytics/initMetaSDK';
+import { sendWelcomeEmail } from '@/services/onboarding/sendWelcomeEmail';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -37,10 +41,12 @@ import { requestStoreReview } from '@/utils/storeReview';
 import { useInviteCode } from '@/context/InviteCodeContext';
 import { InviteCodeField } from '@/components/referrals/InviteCodeField';
 import { isInviteCode } from '@/utils/inviteLink';
+import { updateFirstName } from '@/services/users/updateFirstName';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
   isRedo?: boolean;
+  prefilledName?: string | null;
 }
 
 const TOTAL_STEPS = 11;
@@ -62,6 +68,7 @@ const STEP_NAMES: Record<number, string> = {
 export default function OnboardingQuiz({
   onComplete,
   isRedo = false,
+  prefilledName = null,
 }: OnboardingQuizProps) {
   const { t } = useTranslation();
   const saveMutation = useSaveOnboardingProfile();
@@ -72,6 +79,7 @@ export default function OnboardingQuiz({
   const inviteCtx = useInviteCode();
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [firstName, setFirstName] = useState<string>(prefilledName ?? '');
 
   // Form state
   const [persona, setPersona] = useState<Persona | null>(null);
@@ -125,6 +133,13 @@ export default function OnboardingQuiz({
     const newErrors: Record<number, string> = {};
 
     switch (step) {
+      case 1: // First name
+        if (!firstName.trim()) {
+          newErrors[1] = t('quiz.errors.firstNameRequired');
+          setErrors(newErrors);
+          return false;
+        }
+        break;
       case 2: // Persona
         if (!persona) {
           newErrors[2] = t('quiz.errors.selectOption');
@@ -309,12 +324,55 @@ export default function OnboardingQuiz({
         extras: inviteExtras,
       });
 
+      // Persist first_name on public.users (separate from user_onboarding_profiles).
+      // Non-blocking failure: if this fails after profile save succeeded, the user
+      // is already onboarded; they can re-enter their name from Account Settings.
+      try {
+        const firstNameResult = await updateFirstName(firstName);
+        if (!firstNameResult.success) {
+          console.warn(
+            '[onboarding] updateFirstName failed but profile saved:',
+            firstNameResult.code,
+            firstNameResult.message
+          );
+        }
+      } catch (err) {
+        console.warn('[onboarding] updateFirstName threw:', err);
+      }
+
+      // Fire Meta activation event after profile persists. Deduped per user
+      // by SecureStore, so redo-onboarding won't double-fire. Non-blocking:
+      // an analytics failure must not trigger the "save failed" alert below.
+      logActivation(user.id).catch(err =>
+        console.warn('[meta] logActivation failed', err),
+      );
+
+      // Welcome email is gated server-side on welcome_email_sent_at, so
+      // redo-onboarding never re-sends. Non-blocking: a failure must not
+      // trigger the "save failed" alert below.
+      sendWelcomeEmail().catch(err =>
+        console.warn('[welcome] sendWelcomeEmail failed', err),
+      );
+
       trackOnboardingCompleted(persona);
 
       // Always clear the in-memory clipboard code regardless of redeem outcome
       // so it can't leak into a future flow (e.g. redo-onboarding) and trigger
       // an unintended re-redeem attempt.
       inviteCtx.clear();
+
+      // First-time iOS users see the system ATT dialog directly after
+      // onboarding. initMetaSDK persists the decision, so this is a one-shot
+      // per device. We await it so the user lands on the next screen after
+      // dismissing the dialog instead of seeing it pop over the home tab.
+      const showATTPrompt = Platform.OS === 'ios' && !isRedo;
+      if (showATTPrompt) {
+        try {
+          await initMetaSDK({ requestATT: true });
+        } catch (err) {
+          console.warn('[meta] initMetaSDK failed', err);
+        }
+      }
 
       // If redeem succeeded, route the user to the welcome moment instead of home.
       if (result.redeem?.success) {
@@ -342,6 +400,7 @@ export default function OnboardingQuiz({
           reason: result.redeem.reason,
         });
       }
+
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
@@ -380,7 +439,15 @@ export default function OnboardingQuiz({
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <WelcomeStep onNext={handleNext} isRedo={isRedo} />;
+        return (
+          <WelcomeStep
+            onNext={handleNext}
+            isRedo={isRedo}
+            firstName={firstName}
+            onChangeFirstName={setFirstName}
+            error={errors[1]}
+          />
+        );
       case 2:
         return (
           <SingleSelectQuestion
@@ -430,15 +497,19 @@ export default function OnboardingQuiz({
               error={errors[3]}
             />
             {referralSource === 'friends_family' ? (
-              <InviteCodeField
-                value={inviteCodeInput}
-                onChange={next => {
-                  setInviteCodeInput(next);
-                  // Once the user types, it's no longer "auto-filled."
-                  if (inviteCodeAutoFilled) setInviteCodeAutoFilled(false);
-                }}
-                autoFilled={inviteCodeAutoFilled}
-              />
+              <>
+                <InviteCodeField
+                  value={inviteCodeInput}
+                  onChange={next => {
+                    setInviteCodeInput(next);
+                    // Once the user types, it's no longer "auto-filled."
+                    if (inviteCodeAutoFilled) setInviteCodeAutoFilled(false);
+                  }}
+                  autoFilled={inviteCodeAutoFilled}
+                />
+                {/* Spacer so the OTP boxes can scroll well above the keyboard. */}
+                <View style={styles.inviteCodeBottomSpacer} />
+              </>
             ) : null}
           </View>
         );
@@ -695,7 +766,7 @@ export default function OnboardingQuiz({
       case 10:
         return <OutcomesStep />;
       case 11:
-        return <ThankYouStep isRedo={isRedo} />;
+        return <ThankYouStep isRedo={isRedo} firstName={firstName} />;
       default:
         return null;
     }
@@ -710,13 +781,16 @@ export default function OnboardingQuiz({
         totalSteps={TOTAL_STEPS}
         skipSafeArea={isRedo}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps='handled'
+        bottomOffset={120}
+        extraKeyboardSpace={120}
       >
         {renderStep()}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View
         style={[styles.navContainer, { paddingBottom: 20 + insets.bottom }]}
@@ -915,6 +989,9 @@ const styles = StyleSheet.create({
   },
   finalStepText: {
     fontWeight: '700',
+  },
+  inviteCodeBottomSpacer: {
+    height: 240,
   },
   dateInputContainer: {
     marginTop: 16,

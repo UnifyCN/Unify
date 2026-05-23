@@ -61,7 +61,7 @@
     "openProfileMenu": "Abrir menú de perfil"
   },
   "tabs": {
-    "home": "Inicio",
+    "social": "Social",
     "community": "Comunidad",
     "companion": "Asistente",
     "checklist": "Lista",
@@ -151,7 +151,6 @@
       "unableRetrieveEmail": "No se pudo obtener el correo de la sesión verificada",
       "failedSetup": "No se pudo completar la configuración de la cuenta",
       "successTitle": "Éxito",
-      "successMessage": "¡Correo verificado exitosamente!",
       "verificationFailed": "Verificación fallida. Por favor intenta de nuevo.",
       "verificationError": "Ocurrió un error durante la verificación.",
       "otpResent": "¡OTP reenviado exitosamente!",
@@ -202,7 +201,12 @@
     "successMessage": "¡Nombre de usuario actualizado exitosamente!",
     "failedUpdate": "Error al actualizar el nombre",
     "failedUpdateRetry": "Error al actualizar el nombre. Por favor intenta de nuevo.",
-    "validationError": "Solo se permiten letras, números y espacios."
+    "validationError": "Solo se permiten letras, números y espacios.",
+    "firstNameLabel": "Nombre",
+    "firstNamePlaceholder": "Tu nombre",
+    "firstNameHelper": "Se muestra al saludarte y en tu configuración.",
+    "usernameLabel": "Nombre de usuario",
+    "usernameHelper": "Tu @nombre público. Otros usuarios lo ven en las publicaciones."
   },
   "saved": {
     "title": "Guardado",
@@ -247,8 +251,15 @@
     "sendReport": "Enviar reporte"
   },
   "learn": {
-    "title": "¿Listo para aprender?",
     "subtitle": "Comienza con lecciones para entender los fundamentos de la cultura canadiense y cómo establecerte como recién llegado.",
+    "greeting": {
+      "morning": "Buenos días, {{name}}",
+      "afternoon": "Buenas tardes, {{name}}",
+      "evening": "Buenas noches, {{name}}",
+      "morningAnon": "Buenos días",
+      "afternoonAnon": "Buenas tardes",
+      "eveningAnon": "Buenas noches"
+    },
     "errorLoadingLessons": "Error al cargar las lecciones",
     "errorLoadingModules": "Error al cargar los módulos",
     "noLessonsToContinue": "No hay lecciones para continuar",
@@ -706,6 +717,10 @@
     "couldntGenerate": "No se pudo generar tu enlace de invitación. Desliza hacia abajo o vuelve a intentar.",
     "yourInviteCode": "Tu código de invitación",
     "inviteCodeHint": "Los amigos que toquen tu enlace de invitación se vincularán automáticamente a ti. También pueden escribir este código durante el registro.",
+    "theirInviteCode": "Su código de invitación",
+    "theirInviteCodeHeading": "¿Tienes su código de invitación?",
+    "theirInviteCodeHint": "Opcional. Te conecta con tu amigo.",
+    "theirInviteCodeAutoFilled": "Encontrado en tu portapapeles. Edítalo si lo necesitas.",
     "loadingInviteCode": "Cargando código de invitación",
     "friendCount": "{{count}} amigo se unió a Unify gracias a ti.",
     "friendCount_plural": "{{count}} amigos se unieron a Unify gracias a ti.",
@@ -816,8 +831,18 @@
     "yearLabel": "Año",
     "confirm": "Confirmar",
     "otherSpecify": "Otro (especificar)",
+    "otherSpecifyBelow": "Otro (especifica abajo)",
     "continue": "Continuar",
-    "selectMonthYear": "Selecciona mes y año"
+    "selectMonthYear": "Selecciona mes y año",
+    "locationQuestion": "¿En qué parte de Canadá vives?",
+    "city": "Ciudad",
+    "province": "Provincia",
+    "selectCity": "Selecciona tu ciudad",
+    "selectProvince": "Selecciona tu provincia",
+    "enterCity": "Ingresa tu ciudad",
+    "searchCities": "Buscar ciudades",
+    "searchProvinces": "Buscar provincias",
+    "autoFilled": "Autocompletado"
   },
   "loadingScreen": {
     "message": "Por favor espera mientras conectamos los puntos de tu viaje…"
@@ -858,7 +883,26 @@
       "specifyGoal": "Por favor especifica tu objetivo",
       "specifyInterest": "Por favor especifica tu interés",
       "signInRequired": "Por favor inicia sesión para continuar",
-      "saveFailed": "No se pudo guardar tu información de onboarding. Inténtalo de nuevo."
+      "saveFailed": "No se pudo guardar tu información de onboarding. Inténtalo de nuevo.",
+      "firstNameRequired": "Por favor, introduce tu nombre"
+    },
+    "welcome": {
+      "titleNew": "Bienvenido a Unify",
+      "subtitleNew": "Primero, ¿cómo te llamamos?",
+      "titleRedo": "Actualiza tu perfil",
+      "subtitleRedo": "Las cosas cambian — actualicemos tus respuestas para darte mejores recomendaciones y respuestas."
+    },
+    "firstName": {
+      "placeholder": "Tu nombre"
+    },
+    "thankYou": {
+      "titlePersonalized": "¡Bienvenido a Unify, {{name}}!",
+      "titleRedoStart": "Perfil ",
+      "titleRedoItalic": "actualizado",
+      "titleDefaultStart": "Tu camino en Canadá, ",
+      "titleDefaultItalic": "simplificado",
+      "bodyRedo": "Tus preferencias se actualizaron. Tu Lista y las respuestas del Companion reflejarán tus respuestas más recientes.",
+      "bodyDefault": "Ya puedes empezar a explorar Unify. ¡Seguiremos trabajando para hacer tu camino más fácil!"
     },
     "q": {
       "persona": "¿Qué describe mejor tu situación en Canadá?",
@@ -932,7 +976,7 @@
       "headline": "Gana un Loblaws de $100",
       "countdownPrefix": "Termina en",
       "enteredHeadline": "¡Estás dentro! ✓",
-      "enteredSubtext": "Ganador anunciado el 21 de mayo"
+      "enteredSubtext": "Ganador anunciado el 1 de junio"
     },
     "live": {
       "days": "Días",
@@ -946,7 +990,7 @@
       "rulesTitle": "Cómo funciona",
       "rule1": "Abierto a residentes de Canadá mayores de 18 años",
       "rule2": "Una participación por cuenta de Unify",
-      "rule3": "El ganador se sortea al azar el 21 de mayo",
+      "rule3": "El ganador se sortea al azar el 1 de junio",
       "rule4": "El premio se entrega como tarjeta de regalo digital por correo electrónico",
       "cta": "Participar ahora"
     },
@@ -973,7 +1017,7 @@
       "subtitle": "Te enviaremos un correo si ganas. ¡Buena suerte!",
       "subtitlePersonalized": "{{name}}, te enviaremos un correo si ganas. ¡Buena suerte!",
       "deadlineLabel": "Ganador anunciado el",
-      "deadlineDate": "21 de mayo",
+      "deadlineDate": "1 de junio",
       "cta": "Volver al inicio"
     },
     "errors": {
@@ -989,6 +1033,13 @@
       "skillAnswerIncorrect": "Esa respuesta no es correcta. Inténtalo de nuevo.",
       "consentRequired": "Por favor, marca la casilla para confirmar que aceptas.",
       "submitFailed": "No se pudo enviar tu participación. Por favor, intenta de nuevo."
+    }
+  },
+  "privacy": {
+    "settings": {
+      "sectionTitle": "Privacidad",
+      "personalizedAdsLabel": "Permitir rastreo de actividad",
+      "personalizedAdsHelp": "Nos permite compartir actividad anónima en la app con nuestros socios publicitarios para mostrarte anuncios más relevantes. Desactiva cuando quieras."
     }
   }
 }

@@ -3,6 +3,7 @@ import { AppState, AppStateStatus } from 'react-native';
 
 import {
   GIVEAWAY,
+  isGiveawayActive,
   millisecondsUntilDeadline,
 } from '@/constants/Giveaway';
 
@@ -28,7 +29,7 @@ function compute(now: number): GiveawayCountdown {
     0,
     GIVEAWAY.deadlineUtc.getTime() - now
   );
-  const isActive = remaining > 0;
+  const isActive = isGiveawayActive(new Date(now));
 
   const days = Math.floor(remaining / MS_PER_DAY);
   const hours = Math.floor((remaining % MS_PER_DAY) / MS_PER_HOUR);

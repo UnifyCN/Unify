@@ -28,6 +28,8 @@ import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { saveOnboardingProfile } from '@/services/onboarding/saveOnboardingProfile';
 import { unregisterPushToken } from '@/services/push/pushNotifications';
 import { useQueryClient } from '@tanstack/react-query';
+import * as SecureStore from 'expo-secure-store';
+import { Settings as FBSettings } from 'react-native-fbsdk-next';
 
 const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
 
@@ -49,6 +51,9 @@ export default function AccountSettingsPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState<
     boolean | null
   >(null);
+  const [personalizedAdsEnabled, setPersonalizedAdsEnabled] = useState<
+    boolean | null
+  >(null);
 
   // Track screen view on mount
   useEffect(() => {
@@ -61,6 +66,40 @@ export default function AccountSettingsPage() {
       setNotificationsEnabled(onboardingProfile.wants_reminders);
     }
   }, [onboardingProfile?.wants_reminders]);
+
+  // Sync the personalized ads toggle. Two keys keep concerns orthogonal:
+  //   meta_att_status        — OS source-of-truth, written only by initMetaSDK
+  //   personalized_ads_pref  — in-app user preference, written only by this toggle
+  // Default-ON semantics: unless the user has explicitly opted out in-app OR
+  // denied ATT at the OS level, show the toggle as ON. The Meta SDK still
+  // honors the OS ATT decision regardless of this UI state.
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    let cancelled = false;
+    (async () => {
+      const pref = await SecureStore.getItemAsync('personalized_ads_pref');
+      if (pref !== null) {
+        if (!cancelled) setPersonalizedAdsEnabled(pref === 'granted');
+        return;
+      }
+      const att = await SecureStore.getItemAsync('meta_att_status');
+      if (!cancelled) setPersonalizedAdsEnabled(att !== 'denied');
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const togglePersonalizedAds = async () => {
+    if (personalizedAdsEnabled === null) return;
+    const next = !personalizedAdsEnabled;
+    setPersonalizedAdsEnabled(next);
+    FBSettings.setAdvertiserTrackingEnabled(next);
+    await SecureStore.setItemAsync(
+      'personalized_ads_pref',
+      next ? 'granted' : 'denied',
+    );
+  };
 
   const onLogout = async () => {
     try {
@@ -232,7 +271,14 @@ export default function AccountSettingsPage() {
               onPress={() => router.push('/edit-name')}
               activeOpacity={0.7}
             >
-              <Text style={styles.userName}>{currentUser?.username || ''}</Text>
+              <View style={styles.nameStack}>
+                <Text style={styles.userName}>
+                  {currentUser?.firstName || currentUser?.username || ''}
+                </Text>
+                {currentUser?.firstName ? (
+                  <Text style={styles.userHandle}>@{currentUser.username}</Text>
+                ) : null}
+              </View>
               <Feather name='edit-3' size={20} color={Theme.black} />
             </TouchableOpacity>
             <Text style={styles.userEmail}>{currentUser?.email || ''}</Text>
@@ -322,6 +368,55 @@ export default function AccountSettingsPage() {
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
+
+          {/* Privacy Section — iOS-only (ATT is iOS-only) */}
+          {Platform.OS === 'ios' ? (
+            <>
+              <Text style={styles.sectionTitle}>
+                {t('privacy.settings.sectionTitle')}
+              </Text>
+              <View style={styles.settingsCard}>
+                <View style={[styles.row, styles.toggleRow]}>
+                  <View style={styles.rowLabelContainer}>
+                    <View style={styles.bookmarkIconContainer}>
+                      <Feather name='shield' size={24} color={Theme.black} />
+                    </View>
+                    <Text style={styles.rowText}>
+                      {t('privacy.settings.personalizedAdsLabel')}
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={
+                      personalizedAdsEnabled !== null
+                        ? togglePersonalizedAds
+                        : undefined
+                    }
+                    accessibilityRole='switch'
+                    accessibilityState={{
+                      checked: personalizedAdsEnabled ?? false,
+                    }}
+                    accessibilityLabel={t(
+                      'privacy.settings.personalizedAdsLabel',
+                    )}
+                    hitSlop={8}
+                    disabled={personalizedAdsEnabled === null}
+                    style={[
+                      styles.toggleTrack,
+                      personalizedAdsEnabled === null
+                        ? styles.toggleTrackOff
+                        : personalizedAdsEnabled
+                          ? styles.toggleTrackOn
+                          : styles.toggleTrackOff,
+                      personalizedAdsEnabled === null && { opacity: 0.5 },
+                    ]}
+                  >
+                    <View style={styles.toggleThumb} />
+                  </Pressable>
+                </View>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null}
 
           {/* Community Section — iOS-only (referrals are App Store only for now) */}
           {Platform.OS === 'ios' ? (
@@ -539,6 +634,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: Theme.black,
+  },
+  nameStack: {
+    flexDirection: 'column',
+  },
+  userHandle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
   userEmail: {
     fontSize: 14,

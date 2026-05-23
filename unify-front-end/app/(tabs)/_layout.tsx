@@ -6,12 +6,10 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { View, Text, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
-import HomeIcon from '@/components/icons/HomePageIcon';
 import LearnIcon from '@/components/icons/LearnPageIcon';
 import CommunityIcon from '@/components/icons/CommunityIcon';
-import ClickedHomeIcon from '@/components/icons/ClickedHomeIcon';
-import ClickedLearnIcon from '@/components/icons/ClickedLearnIcon';
 import CompanionIcon from '@/components/icons/CompanionIcon';
+import SocialIcon from '@/components/icons/SocialIcon';
 import { useAnalytics } from '@/utils/analytics';
 import ChecklistIcon from '@/components/icons/ChecklistIcon';
 import { useHapticsPreference } from '@/context/HapticsContext';
@@ -46,8 +44,8 @@ export default function TabLayout() {
 
   const getTabDisplayName = (routeName: string) => {
     switch (routeName) {
-      case 'index':
-        return t('tabs.home');
+      case 'Social':
+        return t('tabs.social');
       case 'Gather':
         return t('tabs.community');
       case 'companion':
@@ -65,8 +63,8 @@ export default function TabLayout() {
   // don't fragment by user language.
   const getTabAnalyticsLabel = (routeName: string) => {
     switch (routeName) {
-      case 'index':
-        return 'Home';
+      case 'Social':
+        return 'Social';
       case 'Gather':
         return 'Community';
       case 'companion':
@@ -85,12 +83,14 @@ export default function TabLayout() {
     if (path.startsWith('/companion')) return 'companion';
     if (path.startsWith('/Checklist')) return 'Checklist';
     if (path.startsWith('/Learn')) return 'Learn';
-    return 'index';
+    if (path.startsWith('/Social')) return 'Social';
+    return 'Learn';
   };
 
   return (
     <>
       <Tabs
+        initialRouteName='Learn'
         screenOptions={{
           tabBarActiveTintColor:
             Colors[colorScheme === 'light' ? 'light' : 'dark'].tint,
@@ -110,7 +110,7 @@ export default function TabLayout() {
         }}
         screenListeners={{
           tabPress: e => {
-            const routeName = e.target?.split('-')[0] || 'index';
+            const routeName = e.target?.split('-')[0] || 'Learn';
             const currentTab = getCurrentTabFromPath(pathname);
             const isTabSwitch = routeName !== currentTab;
 
@@ -136,40 +136,15 @@ export default function TabLayout() {
           },
         }}
       >
+        <Tabs.Screen name='index' options={{ href: null }} />
         <Tabs.Screen
-          name='index'
+          name='Learn'
           options={{
-            title: t('tabs.home'),
+            title: t('tabs.learn'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent={focused ? ClickedHomeIcon : HomeIcon}
-                title={t('tabs.home')}
-                focused={focused}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name='Gather'
-          options={{
-            title: t('tabs.community'),
-            tabBarIcon: ({ focused }) => (
-              <TabIcon
-                IconComponent={CommunityIcon}
-                title={t('tabs.community')}
-                focused={focused}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name='companion'
-          options={{
-            title: t('tabs.companion'),
-            tabBarIcon: ({ focused }) => (
-              <TabIcon
-                IconComponent={CompanionIcon}
-                title={t('tabs.companion')}
+                IconComponent={LearnIcon}
+                title={t('tabs.learn')}
                 focused={focused}
               />
             ),
@@ -189,13 +164,39 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name='Learn'
+          name='companion'
           options={{
-            title: t('tabs.learn'),
+            title: t('tabs.companion'),
             tabBarIcon: ({ focused }) => (
               <TabIcon
-                IconComponent={focused ? ClickedLearnIcon : LearnIcon}
-                title={t('tabs.learn')}
+                IconComponent={CompanionIcon}
+                title={t('tabs.companion')}
+                focused={focused}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='Gather'
+          options={{
+            title: t('tabs.community'),
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                IconComponent={CommunityIcon}
+                title={t('tabs.community')}
+                focused={focused}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name='Social'
+          options={{
+            title: t('tabs.social'),
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                IconComponent={SocialIcon}
+                title={t('tabs.social')}
                 focused={focused}
               />
             ),

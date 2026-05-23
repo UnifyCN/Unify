@@ -61,7 +61,7 @@
     "openProfileMenu": "Open profile menu"
   },
   "tabs": {
-    "home": "Home",
+    "social": "Social",
     "community": "Community",
     "companion": "Companion",
     "checklist": "Checklist",
@@ -151,7 +151,6 @@
       "unableRetrieveEmail": "Unable to retrieve email from verified session",
       "failedSetup": "Failed to complete account setup",
       "successTitle": "Success",
-      "successMessage": "Email verified successfully!",
       "verificationFailed": "Verification failed. Please try again.",
       "verificationError": "An error occurred during verification.",
       "otpResent": "OTP resent successfully!",
@@ -180,7 +179,7 @@
     "haptics": "Haptics",
     "redoOnboarding": "Redo Onboarding Quiz",
     "community": "Community",
-    "referAFriend": "Refer a friend",
+    "referAFriend": "Refer a Friend",
     "legal": "Legal",
     "privacyPolicy": "Privacy Policy",
     "communityGuidelines": "Community Guidelines",
@@ -202,7 +201,12 @@
     "successMessage": "Username updated successfully!",
     "failedUpdate": "Failed to update username",
     "failedUpdateRetry": "Failed to update username. Please try again.",
-    "validationError": "Only letters, numbers, and spaces allowed."
+    "validationError": "Only letters, numbers, and spaces allowed.",
+    "firstNameLabel": "Name",
+    "firstNamePlaceholder": "Your name",
+    "firstNameHelper": "Shown when we greet you and in your settings.",
+    "usernameLabel": "Username",
+    "usernameHelper": "Your public @handle. Other users see this on posts."
   },
   "saved": {
     "title": "Saved",
@@ -247,8 +251,15 @@
     "sendReport": "Send Report"
   },
   "learn": {
-    "title": "Ready to learn?",
     "subtitle": "Get started with lessons to understand the basics of Canadian culture and how to settle in as a newcomer.",
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}",
+      "morningAnon": "Good morning",
+      "afternoonAnon": "Good afternoon",
+      "eveningAnon": "Good evening"
+    },
     "errorLoadingLessons": "Error loading lessons",
     "errorLoadingModules": "Error loading modules",
     "noLessonsToContinue": "No lessons to continue",
@@ -698,7 +709,7 @@
     "errorMessage": "An error occurred while resetting your password"
   },
   "referrals": {
-    "title": "Refer a friend",
+    "title": "Refer a Friend",
     "inviteDesc": "Invite a friend to start their Canada journey with you.",
     "newcomersBenefit": "Newcomers do best when they have a friend already inside.",
     "inviteAFriend": "Invite a friend",
@@ -706,6 +717,10 @@
     "couldntGenerate": "Couldn't generate your invite link. Pull down or revisit to retry.",
     "yourInviteCode": "Your invite code",
     "inviteCodeHint": "Friends who tap your invite link are linked to you automatically. They can also type this code during signup if needed.",
+    "theirInviteCode": "Their invite code",
+    "theirInviteCodeHeading": "Got their invite code?",
+    "theirInviteCodeHint": "Optional. Links you with your friend.",
+    "theirInviteCodeAutoFilled": "Found in your clipboard. Edit if needed.",
     "loadingInviteCode": "Loading invite code",
     "friendCount": "{{count}} friend has joined Unify thanks to you.",
     "friendCount_plural": "{{count}} friends have joined Unify thanks to you.",
@@ -816,8 +831,18 @@
     "yearLabel": "Year",
     "confirm": "Confirm",
     "otherSpecify": "Other (specify)",
+    "otherSpecifyBelow": "Other (specify below)",
     "continue": "Continue",
-    "selectMonthYear": "Select month and year"
+    "selectMonthYear": "Select month and year",
+    "locationQuestion": "Where in Canada are you based?",
+    "city": "City",
+    "province": "Province",
+    "selectCity": "Select your city",
+    "selectProvince": "Select your province",
+    "enterCity": "Enter your city",
+    "searchCities": "Search cities",
+    "searchProvinces": "Search provinces",
+    "autoFilled": "Auto-filled"
   },
   "loadingScreen": {
     "message": "Please wait while we connect the dots for your journey…"
@@ -858,7 +883,26 @@
       "specifyGoal": "Please specify your goal",
       "specifyInterest": "Please specify your interest",
       "signInRequired": "Please sign in to continue",
-      "saveFailed": "Failed to save your onboarding information. Please try again."
+      "saveFailed": "Failed to save your onboarding information. Please try again.",
+      "firstNameRequired": "Please enter your first name"
+    },
+    "welcome": {
+      "titleNew": "Welcome to Unify",
+      "subtitleNew": "First, what should we call you?",
+      "titleRedo": "Update Your Profile",
+      "subtitleRedo": "Things change — let's update your answers so we can give you better recommendations and responses."
+    },
+    "firstName": {
+      "placeholder": "Your first name"
+    },
+    "thankYou": {
+      "titlePersonalized": "Welcome to Unify, {{name}}!",
+      "titleRedoStart": "Profile ",
+      "titleRedoItalic": "updated",
+      "titleDefaultStart": "Your journey to Canada, ",
+      "titleDefaultItalic": "simplified",
+      "bodyRedo": "Your preferences have been updated. Your Checklist and Companion responses will now reflect your latest answers.",
+      "bodyDefault": "You're all set to start exploring Unify. We'll keep working to make your journey easier!"
     },
     "q": {
       "persona": "What best describes your situation in Canada?",
@@ -932,7 +976,7 @@
       "headline": "Win $100 Loblaws",
       "countdownPrefix": "Ends in",
       "enteredHeadline": "You're entered ✓",
-      "enteredSubtext": "Winner announced May 21"
+      "enteredSubtext": "Winner announced June 1"
     },
     "live": {
       "days": "Days",
@@ -946,7 +990,7 @@
       "rulesTitle": "How it works",
       "rule1": "Open to Canadian residents 18+",
       "rule2": "One entry per Unify account",
-      "rule3": "Winner drawn at random on May 21",
+      "rule3": "Winner drawn at random on June 1",
       "rule4": "Prize delivered as a digital gift card via email",
       "cta": "Enter now"
     },
@@ -973,7 +1017,7 @@
       "subtitle": "We'll email you if you win. Good luck.",
       "subtitlePersonalized": "{{name}}, we'll email you if you win. Good luck.",
       "deadlineLabel": "Winner announced",
-      "deadlineDate": "May 21",
+      "deadlineDate": "June 1",
       "cta": "Back to home"
     },
     "errors": {
@@ -989,6 +1033,13 @@
       "skillAnswerIncorrect": "That's not quite right. Try again.",
       "consentRequired": "Please check the box to confirm you agree.",
       "submitFailed": "Couldn't submit your entry. Please try again."
+    }
+  },
+  "privacy": {
+    "settings": {
+      "sectionTitle": "Privacy",
+      "personalizedAdsLabel": "Allow Activity Tracking",
+      "personalizedAdsHelp": "Lets us share anonymous app activity with our advertising partners so you see more relevant ads. Turn off anytime."
     }
   }
 }
