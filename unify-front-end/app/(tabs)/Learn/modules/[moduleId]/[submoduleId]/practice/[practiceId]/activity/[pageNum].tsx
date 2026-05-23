@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
+import PracticeFeedbackModal from '@/components/learn/PracticeFeedbackModal';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
 import { useTranslation } from 'react-i18next';
 
@@ -83,6 +84,12 @@ export default function PracticeActivityPageScreen() {
   const [questionAnswers, setQuestionAnswers] = useState<{
     [key: string]: string | string[];
   }>({});
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackContext, setFeedbackContext] = useState({
+    questionText: '',
+    userAnswer: '',
+    expectedAnswer: '',
+  });
 
   const { updatePracticeProgress, completePractice } = usePracticeProgress();
 
@@ -97,7 +104,29 @@ export default function PracticeActivityPageScreen() {
     setIsSubmitted(false);
     setInputValues({});
     setQuestionAnswers({});
+    setShowFeedbackModal(false);
   }, [currentPage]);
+
+  const extractPlainText = useCallback((blocks: any[]): string => {
+    if (!blocks || !Array.isArray(blocks)) return '';
+    return blocks
+      .filter((b: any) => b._type === 'block' && b.children)
+      .map((b: any) =>
+        (b.children || []).map((c: any) => c.text || '').join('')
+      )
+      .join(' ')
+      .trim();
+  }, []);
+
+  const hasTextInputs = useMemo(() => {
+    if (!currentPageData?.instructions) return false;
+    return (currentPageData.instructions as any[]).some(
+      (block: any) =>
+        block._type === 'large_input_box' ||
+        block._type === 'mid_input_box' ||
+        block._type === 'small_input_box'
+    );
+  }, [currentPageData]);
 
   const isSequential = sortedPractices.length > 1;
   const progress = {
@@ -130,6 +159,19 @@ export default function PracticeActivityPageScreen() {
 
   const handleSubmit = () => {
     setIsSubmitted(true);
+
+    const userAnswerText = Object.values(inputValues).filter(Boolean).join('\n');
+    if (hasTextInputs && userAnswerText.trim().length > 0) {
+      const questionText = extractPlainText(
+        currentPageData?.instructions || []
+      );
+      const expectedAnswer = currentPageData?.answer_box?.content
+        ? extractPlainText(currentPageData.answer_box.content)
+        : '';
+
+      setFeedbackContext({ questionText, userAnswer: userAnswerText, expectedAnswer });
+      setShowFeedbackModal(true);
+    }
   };
 
   const handleNext = async () => {
@@ -439,6 +481,16 @@ export default function PracticeActivityPageScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <PracticeFeedbackModal
+        visible={showFeedbackModal}
+        questionText={feedbackContext.questionText}
+        userAnswer={feedbackContext.userAnswer}
+        expectedAnswer={feedbackContext.expectedAnswer}
+        practiceTitle={practice?.title}
+        accentColor={moduleData?.colorTheme?.hex}
+        onClose={() => setShowFeedbackModal(false)}
+      />
 
       <Modal
         visible={showExitModal}
