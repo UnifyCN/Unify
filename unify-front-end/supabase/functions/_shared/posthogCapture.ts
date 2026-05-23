@@ -60,20 +60,15 @@ function keepAlive(promise: Promise<unknown>): void {
  * Capture a PostHog `$ai_generation` event from an edge function.
  * This powers the LLM analytics dashboard (Generations view, cost tracking).
  *
- * Requires POSTHOG_API_KEY env var set in Supabase secrets.
+ * Requires POSTHOG_PROJECT_API_KEY env var (phc_...) set in Supabase secrets.
+ * /capture/ rejects Personal API Keys (phx_...) — those belong to query-API
+ * callers, not ingestion.
  */
 export function captureAiGeneration(
   distinctId: string,
   properties: AiGenerationProperties
 ): void {
-  // PostHog's /capture/ ingestion endpoint requires the Project API Key
-  // (phc_...), NOT a Personal API Key (phx_...). The two key types used to
-  // share the POSTHOG_API_KEY secret, and a personal key landed there during
-  // the interview-picker rollout — silently breaking ingestion. Read the
-  // dedicated project-key secret first; fall back to the legacy name during
-  // rollover so we don't break if both secrets aren't set yet.
-  const apiKey =
-    Deno.env.get('POSTHOG_PROJECT_API_KEY') ?? Deno.env.get('POSTHOG_API_KEY');
+  const apiKey = Deno.env.get('POSTHOG_PROJECT_API_KEY');
   if (!apiKey) {
     console.warn(
       'POSTHOG_PROJECT_API_KEY not set — skipping $ai_generation capture'
