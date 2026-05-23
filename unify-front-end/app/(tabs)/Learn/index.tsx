@@ -27,11 +27,19 @@ import {
 import TabHeader from '@/components/home/HomeHeader';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import AnnouncementModal from '@/components/common/AnnouncementModal';
+import { getTimeOfDayGreeting } from '@/utils/getTimeOfDayGreeting';
+import { useCurrentUser } from '@/context/UserContext';
 
 export default function Learn() {
   useProgressCache();
   const { trackScreen } = useAnalytics();
   const { t } = useTranslation();
+  const { currentUser } = useCurrentUser();
+  const bucket = getTimeOfDayGreeting();
+  const trimmedName = currentUser?.firstName?.trim();
+  const greeting = trimmedName
+    ? t(`learn.greeting.${bucket}`, { name: trimmedName })
+    : t(`learn.greeting.${bucket}Anon`);
   const isFocused = useIsFocused();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -103,7 +111,7 @@ export default function Learn() {
             />
           }
         >
-          <Text style={styles.pageTitle}>{t('learn.title')}</Text>
+          <Text style={styles.pageTitle}>{greeting}</Text>
           <Text style={styles.pageSubtitle}>
             {t('learn.subtitle')}
           </Text>

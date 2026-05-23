@@ -10,6 +10,7 @@ interface CurrentUser {
   id: string;
   email: string;
   username: string;
+  firstName: string | null;
   permissions: string;
   profilePictureUrl?: string;
   isPremium: boolean;
@@ -100,6 +101,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           id: userId,
           email: userEmail,
           username: effectiveUserInfo.username,
+          firstName: effectiveUserInfo.firstName ?? null,
           permissions: effectiveUserInfo.permissions,
           profilePictureUrl: effectiveUserInfo.profilePictureUrl,
           isPremium: effectiveUserInfo.isPremium,

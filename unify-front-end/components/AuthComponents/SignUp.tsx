@@ -176,7 +176,12 @@ export function SignUp({
       if (Platform.OS === 'android') {
         await GoogleSignin.hasPlayServices();
       }
-      await GoogleSignin.signIn();
+      const signInResult: any = await GoogleSignin.signIn();
+      const googleGivenName: string | null =
+        signInResult?.data?.user?.givenName ??
+        signInResult?.user?.givenName ??
+        null;
+
       const { idToken } = await GoogleSignin.getTokens();
       if (idToken) {
         const { data, error } = await supabase.auth.signInWithIdToken({
@@ -198,6 +203,7 @@ export function SignUp({
             await createUserIfNotExists(data.user.id, data.user.email, {
               privacyPolicyAcceptedAt: acceptedAt,
               communityGuidelinesAcceptedAt: acceptedAt,
+              firstName: googleGivenName,
             });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
@@ -276,6 +282,10 @@ export function SignUp({
         ],
       });
 
+      // Apple returns fullName ONLY on the very first sign-in for this Apple ID.
+      // If it's missing on subsequent attempts, we silently pass null.
+      const appleGivenName = credential.fullName?.givenName ?? null;
+
       if (credential.identityToken) {
         const { data, error } = await supabase.auth.signInWithIdToken({
           provider: 'apple',
@@ -297,6 +307,7 @@ export function SignUp({
             await createUserIfNotExists(data.user.id, data.user.email, {
               privacyPolicyAcceptedAt: acceptedAt,
               communityGuidelinesAcceptedAt: acceptedAt,
+              firstName: appleGivenName,
             });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);

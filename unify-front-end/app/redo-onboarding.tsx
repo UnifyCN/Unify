@@ -24,7 +24,11 @@ export default function RedoOnboardingScreen() {
   return (
     <View style={styles.container}>
       <BackHeader title='' onBack={() => router.back()} />
-      <OnboardingQuiz onComplete={handleComplete} isRedo />
+      <OnboardingQuiz
+        onComplete={handleComplete}
+        isRedo
+        prefilledName={currentUser?.firstName ?? null}
+      />
     </View>
   );
 }

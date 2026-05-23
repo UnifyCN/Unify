@@ -201,7 +201,12 @@
     "successMessage": "Đã cập nhật tên thành công!",
     "failedUpdate": "Cập nhật tên thất bại",
     "failedUpdateRetry": "Cập nhật tên thất bại. Vui lòng thử lại.",
-    "validationError": "Chỉ cho phép chữ cái, số và khoảng trắng."
+    "validationError": "Chỉ cho phép chữ cái, số và khoảng trắng.",
+    "firstNameLabel": "Tên",
+    "firstNamePlaceholder": "Tên của bạn",
+    "firstNameHelper": "Hiển thị khi chúng tôi chào bạn và trong cài đặt.",
+    "usernameLabel": "Tên người dùng",
+    "usernameHelper": "@tên công khai của bạn. Người khác thấy nó trên bài đăng."
   },
   "saved": {
     "title": "Đã lưu",
@@ -246,8 +251,15 @@
     "sendReport": "Gửi báo cáo"
   },
   "learn": {
-    "title": "Sẵn sàng học chưa?",
     "subtitle": "Bắt đầu với các bài học để hiểu những kiến thức cơ bản về văn hóa Canada và cách hòa nhập với tư cách là người mới.",
+    "greeting": {
+      "morning": "Chào buổi sáng, {{name}}",
+      "afternoon": "Chào buổi chiều, {{name}}",
+      "evening": "Chào buổi tối, {{name}}",
+      "morningAnon": "Chào buổi sáng",
+      "afternoonAnon": "Chào buổi chiều",
+      "eveningAnon": "Chào buổi tối"
+    },
     "errorLoadingLessons": "Lỗi tải bài học",
     "errorLoadingModules": "Lỗi tải mô-đun",
     "noLessonsToContinue": "Không có bài học nào để tiếp tục",
@@ -871,7 +883,26 @@
       "specifyGoal": "Vui lòng nêu rõ mục tiêu của bạn",
       "specifyInterest": "Vui lòng nêu rõ sở thích của bạn",
       "signInRequired": "Vui lòng đăng nhập để tiếp tục",
-      "saveFailed": "Không thể lưu thông tin đăng ký. Vui lòng thử lại."
+      "saveFailed": "Không thể lưu thông tin đăng ký. Vui lòng thử lại.",
+      "firstNameRequired": "Vui lòng nhập tên của bạn"
+    },
+    "welcome": {
+      "titleNew": "Chào mừng đến Unify",
+      "subtitleNew": "Đầu tiên, chúng tôi nên gọi bạn là gì?",
+      "titleRedo": "Cập nhật hồ sơ của bạn",
+      "subtitleRedo": "Mọi thứ thay đổi — hãy cập nhật câu trả lời của bạn để chúng tôi đưa ra gợi ý và phản hồi tốt hơn."
+    },
+    "firstName": {
+      "placeholder": "Tên của bạn"
+    },
+    "thankYou": {
+      "titlePersonalized": "Chào mừng đến Unify, {{name}}!",
+      "titleRedoStart": "Hồ sơ ",
+      "titleRedoItalic": "đã cập nhật",
+      "titleDefaultStart": "Hành trình đến Canada của bạn, ",
+      "titleDefaultItalic": "đơn giản hơn",
+      "bodyRedo": "Tuỳ chọn của bạn đã được cập nhật. Checklist và phản hồi từ Companion giờ sẽ phản ánh các câu trả lời mới nhất của bạn.",
+      "bodyDefault": "Bạn đã sẵn sàng khám phá Unify. Chúng tôi sẽ tiếp tục nỗ lực để hành trình của bạn dễ dàng hơn!"
     },
     "q": {
       "persona": "Điều gì mô tả tốt nhất tình huống của bạn ở Canada?",

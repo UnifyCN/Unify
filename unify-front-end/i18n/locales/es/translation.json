@@ -201,7 +201,12 @@
     "successMessage": "¡Nombre de usuario actualizado exitosamente!",
     "failedUpdate": "Error al actualizar el nombre",
     "failedUpdateRetry": "Error al actualizar el nombre. Por favor intenta de nuevo.",
-    "validationError": "Solo se permiten letras, números y espacios."
+    "validationError": "Solo se permiten letras, números y espacios.",
+    "firstNameLabel": "Nombre",
+    "firstNamePlaceholder": "Tu nombre",
+    "firstNameHelper": "Se muestra al saludarte y en tu configuración.",
+    "usernameLabel": "Nombre de usuario",
+    "usernameHelper": "Tu @nombre público. Otros usuarios lo ven en las publicaciones."
   },
   "saved": {
     "title": "Guardado",
@@ -246,8 +251,15 @@
     "sendReport": "Enviar reporte"
   },
   "learn": {
-    "title": "¿Listo para aprender?",
     "subtitle": "Comienza con lecciones para entender los fundamentos de la cultura canadiense y cómo establecerte como recién llegado.",
+    "greeting": {
+      "morning": "Buenos días, {{name}}",
+      "afternoon": "Buenas tardes, {{name}}",
+      "evening": "Buenas noches, {{name}}",
+      "morningAnon": "Buenos días",
+      "afternoonAnon": "Buenas tardes",
+      "eveningAnon": "Buenas noches"
+    },
     "errorLoadingLessons": "Error al cargar las lecciones",
     "errorLoadingModules": "Error al cargar los módulos",
     "noLessonsToContinue": "No hay lecciones para continuar",
@@ -871,7 +883,26 @@
       "specifyGoal": "Por favor especifica tu objetivo",
       "specifyInterest": "Por favor especifica tu interés",
       "signInRequired": "Por favor inicia sesión para continuar",
-      "saveFailed": "No se pudo guardar tu información de onboarding. Inténtalo de nuevo."
+      "saveFailed": "No se pudo guardar tu información de onboarding. Inténtalo de nuevo.",
+      "firstNameRequired": "Por favor, introduce tu nombre"
+    },
+    "welcome": {
+      "titleNew": "Bienvenido a Unify",
+      "subtitleNew": "Primero, ¿cómo te llamamos?",
+      "titleRedo": "Actualiza tu perfil",
+      "subtitleRedo": "Las cosas cambian — actualicemos tus respuestas para darte mejores recomendaciones y respuestas."
+    },
+    "firstName": {
+      "placeholder": "Tu nombre"
+    },
+    "thankYou": {
+      "titlePersonalized": "¡Bienvenido a Unify, {{name}}!",
+      "titleRedoStart": "Perfil ",
+      "titleRedoItalic": "actualizado",
+      "titleDefaultStart": "Tu camino en Canadá, ",
+      "titleDefaultItalic": "simplificado",
+      "bodyRedo": "Tus preferencias se actualizaron. Tu Lista y las respuestas del Companion reflejarán tus respuestas más recientes.",
+      "bodyDefault": "Ya puedes empezar a explorar Unify. ¡Seguiremos trabajando para hacer tu camino más fácil!"
     },
     "q": {
       "persona": "¿Qué describe mejor tu situación en Canadá?",

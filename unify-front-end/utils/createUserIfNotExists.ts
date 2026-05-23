@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { sanitizeFirstName } from './sanitizeFirstName';
 import { generateUsername } from './usernameGenerator';
 
 /**
@@ -17,6 +18,7 @@ export const createUserIfNotExists = async (
   options?: {
     privacyPolicyAcceptedAt?: string;
     communityGuidelinesAcceptedAt?: string;
+    firstName?: string | null;
   }
 ): Promise<void> => {
   // Validate required parameters
@@ -91,6 +93,10 @@ export const createUserIfNotExists = async (
     const username = await generateUsername();
     const timestamp = new Date().toISOString();
 
+    const sanitizedFirstName = options?.firstName
+      ? sanitizeFirstName(options.firstName)
+      : '';
+
     // Insert the new user record
     const { error: insertError } = await supabase.from('users').insert({
       id: userId,
@@ -99,6 +105,7 @@ export const createUserIfNotExists = async (
       permissions: 'user',
       created_at: timestamp,
       updated_at: timestamp,
+      ...(sanitizedFirstName && { first_name: sanitizedFirstName }),
       ...(options?.privacyPolicyAcceptedAt && {
         privacy_policy_accepted_at: options.privacyPolicyAcceptedAt,
       }),
