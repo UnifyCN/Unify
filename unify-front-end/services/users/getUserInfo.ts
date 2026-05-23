@@ -56,19 +56,33 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     }
     const isSelfView = !!requester && requester.id === targetUserId;
 
+    // Two branches so first_name never leaves the DB on cross-user reads —
+    // it stays off the wire, not just off the returned object. Supabase's
+    // type-level SELECT parser requires static literal strings, so we can't
+    // build the column list dynamically and have to fork the call.
+    const userPromise = isSelfView
+      ? supabase
+          .from('users')
+          .select(
+            'id, username, first_name, created_at, profile_picture_url, is_premium, permissions'
+          )
+          .eq('id', targetUserId)
+          .single()
+      : supabase
+          .from('users')
+          .select(
+            'id, username, created_at, profile_picture_url, is_premium, permissions'
+          )
+          .eq('id', targetUserId)
+          .single();
+
     const [
       userResult,
       onboardingResult,
       followingCountResult,
       followerCountResult,
     ] = await Promise.all([
-      supabase
-        .from('users')
-        .select(
-          'id, username, first_name, created_at, profile_picture_url, is_premium, permissions'
-        )
-        .eq('id', targetUserId)
-        .single(),
+      userPromise,
       supabase
         .from('user_onboarding_profiles')
         .select('arrival_date, stage, persona, persona_other, city, province')
@@ -172,12 +186,18 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       );
     }
 
+    // first_name is only fetched on the self-view branch above; cross-user
+    // reads never put it on the wire. Extract via a typed cast so TS doesn't
+    // need to narrow the union shape returned by the two query branches.
+    const firstName: string | null = isSelfView
+      ? ((userData as unknown as { first_name: string | null }).first_name ??
+        null)
+      : null;
+
     return {
       id: userData.id,
       username: userData.username,
-      // first_name is a private surface — only expose to the user viewing
-      // their own profile. Cross-user views see null and fall back to @handle.
-      firstName: isSelfView ? (userData.first_name ?? null) : null,
+      firstName,
       createdAt: userData.created_at,
       followingCount: followingCount || 0,
       followerCount: followerCount || 0,

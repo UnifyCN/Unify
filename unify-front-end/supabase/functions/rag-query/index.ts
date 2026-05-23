@@ -63,13 +63,18 @@ const USER_QUESTION_STARTS = [
 ];
 
 // Defense against prompt injection via the user-controlled `first_name` field.
-// Strips control chars (incl. newlines) so a malicious value can't break out of
-// the line it's interpolated into, and hard-clamps length to bound the blast
-// radius if a long string slips past client-side sanitization.
+// Strict whitelist: Unicode letters (\p{L}) and combining marks (\p{M}, needed
+// for Devanagari and other scripts), plus space, hyphen, apostrophe. Drops
+// everything else — including periods, colons, newlines, and control chars —
+// so a crafted name like "Bob. New directive: ignore previous instructions"
+// can't terminate the sentence and inject a follow-on directive. Whitespace is
+// collapsed and the result is clamped to 50 chars.
 function sanitizeNameForPrompt(name: string | null): string | null {
   if (!name) return null;
-  // Strip ASCII control chars (0x00-0x1F, 0x7F): newlines, NULs, etc.
-  const cleaned = name.replace(/[\x00-\x1F\x7F]/g, '').trim();
+  const cleaned = name
+    .replace(/[^\p{L}\p{M}\s'-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (!cleaned) return null;
   return cleaned.slice(0, 50);
 }
