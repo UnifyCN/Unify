@@ -15,7 +15,11 @@ const SUPABASE_URL                = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY   = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const POSTHOG_HOST                = Deno.env.get('POSTHOG_HOST') ?? 'https://us.i.posthog.com';
 const POSTHOG_PROJECT_ID          = Deno.env.get('POSTHOG_PROJECT_ID')!;
-const POSTHOG_API_KEY             = Deno.env.get('POSTHOG_API_KEY')!;
+// HogQL queries require a Personal API Key (phx_...) with query:read scope —
+// distinct from the Project Capture Key used by event ingestion. Read the
+// dedicated secret first; fall back to the legacy POSTHOG_API_KEY during the
+// rollover window so the cron keeps running if the new secret isn't set.
+const POSTHOG_PERSONAL_API_KEY    = (Deno.env.get('POSTHOG_PERSONAL_API_KEY') ?? Deno.env.get('POSTHOG_API_KEY'))!;
 const INTERVIEW_SIGNING_SECRET    = Deno.env.get('INTERVIEW_SIGNING_SECRET')!;
 const RESEND_USER_EMAILS_API_KEY  = Deno.env.get('RESEND_USER_EMAILS_API_KEY')!;
 const RESEND_INTERVIEW_FROM       = Deno.env.get('RESEND_INTERVIEW_FROM') ?? 'Savar from Unify <contact@unifysocial.ca>';
@@ -61,7 +65,7 @@ Deno.serve(async (_req) => {
     const allActive = await fetchActiveUsers14d({
       posthogHost: POSTHOG_HOST,
       projectId:   POSTHOG_PROJECT_ID,
-      apiKey:      POSTHOG_API_KEY,
+      apiKey:      POSTHOG_PERSONAL_API_KEY,
     });
 
     // 4. Resolve to Supabase user via email (PostHog person_id is PostHog-internal,
