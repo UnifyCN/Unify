@@ -33,3 +33,7 @@ amplifyconfiguration*
 
 # Un-ignore __tests__ (overrides root .gitignore which ignores it globally)
 !__tests__/
+
+# Deno lockfiles — generated as a side effect of `supabase functions deploy`.
+# Repo convention is not to track them (no edge function commits one today).
+deno.lock
