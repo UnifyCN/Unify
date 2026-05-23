@@ -971,6 +971,70 @@
       "exploreUnify": "Explore Unify"
     }
   },
+  "giveaway": {
+    "banner": {
+      "headline": "Win $100 Loblaws",
+      "countdownPrefix": "Ends in",
+      "enteredHeadline": "You're entered ✓",
+      "enteredSubtext": "Winner announced June 1"
+    },
+    "live": {
+      "days": "Days",
+      "hours": "Hrs",
+      "minutes": "Min",
+      "seconds": "Sec"
+    },
+    "welcome": {
+      "title": "$100 Loblaws Gift Card",
+      "subtitle": "Tell us one thing you wish you'd known when you first moved to Canada. One entry per account.",
+      "rulesTitle": "How it works",
+      "rule1": "Open to Canadian residents 18+",
+      "rule2": "One entry per Unify account",
+      "rule3": "Winner drawn at random on June 1",
+      "rule4": "Prize delivered as a digital gift card via email",
+      "cta": "Enter now"
+    },
+    "question": {
+      "title": "Your story",
+      "prompt": "What's one thing you wish someone had told you when you first moved to Canada?",
+      "placeholder": "Type your answer here...",
+      "charCount": "{{count}} / 500",
+      "cta": "Continue"
+    },
+    "details": {
+      "title": "Your details",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email (for gift card delivery)",
+      "phone": "Phone (optional)",
+      "skillQuestion": "Skill-testing question (required to win)",
+      "skillQuestionHelp": "Canadian contest law requires a math question.",
+      "consent": "I'm 18+, a Canadian resident, and agree to receive a confirmation email.",
+      "cta": "Submit entry"
+    },
+    "success": {
+      "title": "You're in!",
+      "subtitle": "We'll email you if you win. Good luck.",
+      "subtitlePersonalized": "{{name}}, we'll email you if you win. Good luck.",
+      "deadlineLabel": "Winner announced",
+      "deadlineDate": "June 1",
+      "cta": "Back to home"
+    },
+    "errors": {
+      "duplicate": "You've already entered. Only one entry per account.",
+      "expired": "This giveaway has ended.",
+      "filtered": "Please remove any inappropriate language from your answer.",
+      "shortAnswerRequired": "Please share your answer.",
+      "shortAnswerTooLong": "Answer is too long. Please keep it under 500 characters.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "skillAnswerRequired": "Please answer the skill-testing question.",
+      "skillAnswerIncorrect": "That's not quite right. Try again.",
+      "consentRequired": "Please check the box to confirm you agree.",
+      "submitFailed": "Couldn't submit your entry. Please try again."
+    }
+  },
   "privacy": {
     "settings": {
       "sectionTitle": "Privacy",

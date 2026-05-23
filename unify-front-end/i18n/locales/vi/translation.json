@@ -971,6 +971,70 @@
       "exploreUnify": "Khám phá Unify"
     }
   },
+  "giveaway": {
+    "banner": {
+      "headline": "Thắng $100 Loblaws",
+      "countdownPrefix": "Kết thúc trong",
+      "enteredHeadline": "Bạn đã tham gia ✓",
+      "enteredSubtext": "Người thắng được công bố ngày 1/6"
+    },
+    "live": {
+      "days": "Ngày",
+      "hours": "Giờ",
+      "minutes": "Phút",
+      "seconds": "Giây"
+    },
+    "welcome": {
+      "title": "Thẻ quà tặng Loblaws $100",
+      "subtitle": "Hãy chia sẻ một điều bạn ước có ai đó đã nói với bạn khi mới chuyển đến Canada. Mỗi tài khoản một lượt tham gia.",
+      "rulesTitle": "Cách thức",
+      "rule1": "Dành cho cư dân Canada từ 18 tuổi trở lên",
+      "rule2": "Mỗi tài khoản Unify chỉ một lượt",
+      "rule3": "Người thắng được rút ngẫu nhiên vào ngày 1/6",
+      "rule4": "Phần thưởng được gửi qua email dưới dạng thẻ quà tặng số",
+      "cta": "Tham gia ngay"
+    },
+    "question": {
+      "title": "Câu chuyện của bạn",
+      "prompt": "Điều gì bạn ước có ai đó đã nói với bạn khi mới chuyển đến Canada?",
+      "placeholder": "Nhập câu trả lời của bạn ở đây...",
+      "charCount": "{{count}} / 500",
+      "cta": "Tiếp tục"
+    },
+    "details": {
+      "title": "Thông tin của bạn",
+      "firstName": "Tên",
+      "lastName": "Họ",
+      "email": "Email (để nhận thẻ quà tặng)",
+      "phone": "Số điện thoại (không bắt buộc)",
+      "skillQuestion": "Câu hỏi kiểm tra kỹ năng (bắt buộc để thắng)",
+      "skillQuestionHelp": "Luật về cuộc thi của Canada yêu cầu một câu hỏi toán.",
+      "consent": "Tôi từ 18 tuổi trở lên, là cư dân Canada, và đồng ý nhận email xác nhận.",
+      "cta": "Gửi lượt tham gia"
+    },
+    "success": {
+      "title": "Bạn đã tham gia!",
+      "subtitle": "Chúng tôi sẽ gửi email cho bạn nếu bạn thắng. Chúc may mắn!",
+      "subtitlePersonalized": "{{name}}, chúng tôi sẽ gửi email cho bạn nếu bạn thắng. Chúc may mắn!",
+      "deadlineLabel": "Người thắng được công bố",
+      "deadlineDate": "1/6",
+      "cta": "Về Trang chủ"
+    },
+    "errors": {
+      "duplicate": "Bạn đã tham gia rồi. Mỗi tài khoản chỉ một lượt.",
+      "expired": "Chương trình đã kết thúc.",
+      "filtered": "Vui lòng xóa bất kỳ ngôn ngữ không phù hợp nào trong câu trả lời.",
+      "shortAnswerRequired": "Vui lòng chia sẻ câu trả lời của bạn.",
+      "shortAnswerTooLong": "Câu trả lời quá dài. Vui lòng giữ dưới 500 ký tự.",
+      "firstNameRequired": "Tên là bắt buộc.",
+      "lastNameRequired": "Họ là bắt buộc.",
+      "emailInvalid": "Vui lòng nhập một địa chỉ email hợp lệ.",
+      "skillAnswerRequired": "Vui lòng trả lời câu hỏi kiểm tra kỹ năng.",
+      "skillAnswerIncorrect": "Câu trả lời chưa đúng. Vui lòng thử lại.",
+      "consentRequired": "Vui lòng đánh dấu vào ô để xác nhận bạn đồng ý.",
+      "submitFailed": "Không thể gửi lượt tham gia. Vui lòng thử lại."
+    }
+  },
   "privacy": {
     "settings": {
       "sectionTitle": "Quyền riêng tư",

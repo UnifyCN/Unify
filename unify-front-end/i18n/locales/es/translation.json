@@ -971,6 +971,70 @@
       "exploreUnify": "Explorar Unify"
     }
   },
+  "giveaway": {
+    "banner": {
+      "headline": "Gana un Loblaws de $100",
+      "countdownPrefix": "Termina en",
+      "enteredHeadline": "¡Estás dentro! ✓",
+      "enteredSubtext": "Ganador anunciado el 1 de junio"
+    },
+    "live": {
+      "days": "Días",
+      "hours": "Hrs",
+      "minutes": "Min",
+      "seconds": "Seg"
+    },
+    "welcome": {
+      "title": "Tarjeta de regalo Loblaws de $100",
+      "subtitle": "Cuéntanos una cosa que te hubiera gustado saber cuando llegaste a Canadá. Una participación por cuenta.",
+      "rulesTitle": "Cómo funciona",
+      "rule1": "Abierto a residentes de Canadá mayores de 18 años",
+      "rule2": "Una participación por cuenta de Unify",
+      "rule3": "El ganador se sortea al azar el 1 de junio",
+      "rule4": "El premio se entrega como tarjeta de regalo digital por correo electrónico",
+      "cta": "Participar ahora"
+    },
+    "question": {
+      "title": "Tu historia",
+      "prompt": "¿Qué es algo que te hubiera gustado que alguien te dijera cuando llegaste a Canadá?",
+      "placeholder": "Escribe tu respuesta aquí...",
+      "charCount": "{{count}} / 500",
+      "cta": "Continuar"
+    },
+    "details": {
+      "title": "Tus datos",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "email": "Correo electrónico (para enviar la tarjeta)",
+      "phone": "Teléfono (opcional)",
+      "skillQuestion": "Pregunta de habilidad (obligatoria para ganar)",
+      "skillQuestionHelp": "La ley canadiense de concursos exige una pregunta matemática.",
+      "consent": "Tengo 18 años o más, soy residente de Canadá y acepto recibir un correo de confirmación.",
+      "cta": "Enviar participación"
+    },
+    "success": {
+      "title": "¡Estás participando!",
+      "subtitle": "Te enviaremos un correo si ganas. ¡Buena suerte!",
+      "subtitlePersonalized": "{{name}}, te enviaremos un correo si ganas. ¡Buena suerte!",
+      "deadlineLabel": "Ganador anunciado el",
+      "deadlineDate": "1 de junio",
+      "cta": "Volver al inicio"
+    },
+    "errors": {
+      "duplicate": "Ya participaste. Solo una participación por cuenta.",
+      "expired": "Este sorteo ha terminado.",
+      "filtered": "Por favor, retira cualquier lenguaje inapropiado de tu respuesta.",
+      "shortAnswerRequired": "Por favor, comparte tu respuesta.",
+      "shortAnswerTooLong": "Tu respuesta es demasiado larga. Por favor, mantenla en menos de 500 caracteres.",
+      "firstNameRequired": "El nombre es obligatorio.",
+      "lastNameRequired": "El apellido es obligatorio.",
+      "emailInvalid": "Por favor, ingresa un correo electrónico válido.",
+      "skillAnswerRequired": "Por favor, responde la pregunta de habilidad.",
+      "skillAnswerIncorrect": "Esa respuesta no es correcta. Inténtalo de nuevo.",
+      "consentRequired": "Por favor, marca la casilla para confirmar que aceptas.",
+      "submitFailed": "No se pudo enviar tu participación. Por favor, intenta de nuevo."
+    }
+  },
   "privacy": {
     "settings": {
       "sectionTitle": "Privacidad",

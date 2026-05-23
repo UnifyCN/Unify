@@ -29,6 +29,7 @@ import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import AnnouncementModal from '@/components/common/AnnouncementModal';
 import { getTimeOfDayGreeting } from '@/utils/getTimeOfDayGreeting';
 import { useCurrentUser } from '@/context/UserContext';
+import { GiveawayBanner } from '@/components/giveaway/GiveawayBanner';
 
 export default function Learn() {
   useProgressCache();
@@ -111,6 +112,7 @@ export default function Learn() {
             />
           }
         >
+          <GiveawayBanner />
           <Text style={styles.pageTitle}>{greeting}</Text>
           <Text style={styles.pageSubtitle}>
             {t('learn.subtitle')}

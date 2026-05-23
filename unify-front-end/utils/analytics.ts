@@ -133,6 +133,14 @@ export const AnalyticsEvents = {
   INVITE_GROUPS_JOINED_AT_SIGNUP: 'invite_groups_joined_at_signup',
   REFERRAL_AUTO_FOLLOW_COMPLETED: 'referral_auto_follow_completed',
 
+  // Giveaway (Loblaws $100 — May 2026)
+  GIVEAWAY_BANNER_SHOWN: 'giveaway_banner_shown',
+  GIVEAWAY_BANNER_DISMISSED: 'giveaway_banner_dismissed',
+  GIVEAWAY_BANNER_TAPPED: 'giveaway_banner_tapped',
+  GIVEAWAY_STEP_VIEWED: 'giveaway_step_viewed',
+  GIVEAWAY_ENTRY_SUBMITTED: 'giveaway_entry_submitted',
+  GIVEAWAY_ENTRY_FAILED: 'giveaway_entry_failed',
+
   // Errors
   MUTATION_FAILED: 'mutation_failed',
 } as const;
