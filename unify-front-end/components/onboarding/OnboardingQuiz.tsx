@@ -332,7 +332,8 @@ export default function OnboardingQuiz({
         if (!firstNameResult.success) {
           console.warn(
             '[onboarding] updateFirstName failed but profile saved:',
-            firstNameResult.error
+            firstNameResult.code,
+            firstNameResult.message
           );
         }
       } catch (err) {

@@ -27,14 +27,10 @@ export default function WelcomeStep({
       <View style={styles.content}>
         <UnifyLogo width={100} height={100} style={styles.logo} />
         <Text style={styles.title}>
-          {isRedo
-            ? 'Update Your Profile'
-            : t('quiz.welcome.titleNew')}
+          {t(isRedo ? 'quiz.welcome.titleRedo' : 'quiz.welcome.titleNew')}
         </Text>
         <Text style={styles.body}>
-          {isRedo
-            ? "Things change — let's update your answers so we can give you better recommendations and responses."
-            : t('quiz.welcome.subtitleNew')}
+          {t(isRedo ? 'quiz.welcome.subtitleRedo' : 'quiz.welcome.subtitleNew')}
         </Text>
         <TextInput
           ref={inputRef}

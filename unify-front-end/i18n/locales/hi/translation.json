@@ -888,13 +888,21 @@
     },
     "welcome": {
       "titleNew": "Unify में आपका स्वागत है",
-      "subtitleNew": "पहले, हम आपको क्या कहें?"
+      "subtitleNew": "पहले, हम आपको क्या कहें?",
+      "titleRedo": "अपनी प्रोफ़ाइल अपडेट करें",
+      "subtitleRedo": "चीज़ें बदलती हैं — आइए आपके जवाब अपडेट करें ताकि हम आपको बेहतर सुझाव और उत्तर दे सकें।"
     },
     "firstName": {
       "placeholder": "आपका पहला नाम"
     },
     "thankYou": {
-      "titlePersonalized": "Unify में आपका स्वागत है, {{name}}!"
+      "titlePersonalized": "Unify में आपका स्वागत है, {{name}}!",
+      "titleRedoStart": "प्रोफ़ाइल ",
+      "titleRedoItalic": "अपडेट हो गई",
+      "titleDefaultStart": "कनाडा तक की आपकी यात्रा, ",
+      "titleDefaultItalic": "आसान",
+      "bodyRedo": "आपकी प्राथमिकताएँ अपडेट कर दी गई हैं। आपकी Checklist और Companion के जवाब अब आपकी नवीनतम पसंद के अनुसार दिखेंगे।",
+      "bodyDefault": "अब आप Unify को एक्सप्लोर कर सकते हैं। हम आपकी यात्रा को आसान बनाने के लिए लगातार काम करते रहेंगे!"
     },
     "q": {
       "persona": "कनाडा में आपकी स्थिति को सबसे अच्छा क्या बताता है?",

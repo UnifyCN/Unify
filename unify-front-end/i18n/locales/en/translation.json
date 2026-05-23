@@ -888,13 +888,21 @@
     },
     "welcome": {
       "titleNew": "Welcome to Unify",
-      "subtitleNew": "First, what should we call you?"
+      "subtitleNew": "First, what should we call you?",
+      "titleRedo": "Update Your Profile",
+      "subtitleRedo": "Things change — let's update your answers so we can give you better recommendations and responses."
     },
     "firstName": {
       "placeholder": "Your first name"
     },
     "thankYou": {
-      "titlePersonalized": "Welcome to Unify, {{name}}!"
+      "titlePersonalized": "Welcome to Unify, {{name}}!",
+      "titleRedoStart": "Profile ",
+      "titleRedoItalic": "updated",
+      "titleDefaultStart": "Your journey to Canada, ",
+      "titleDefaultItalic": "simplified",
+      "bodyRedo": "Your preferences have been updated. Your Checklist and Companion responses will now reflect your latest answers.",
+      "bodyDefault": "You're all set to start exploring Unify. We'll keep working to make your journey easier!"
     },
     "q": {
       "persona": "What best describes your situation in Canada?",

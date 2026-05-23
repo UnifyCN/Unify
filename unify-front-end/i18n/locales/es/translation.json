@@ -888,13 +888,21 @@
     },
     "welcome": {
       "titleNew": "Bienvenido a Unify",
-      "subtitleNew": "Primero, ¿cómo te llamamos?"
+      "subtitleNew": "Primero, ¿cómo te llamamos?",
+      "titleRedo": "Actualiza tu perfil",
+      "subtitleRedo": "Las cosas cambian — actualicemos tus respuestas para darte mejores recomendaciones y respuestas."
     },
     "firstName": {
       "placeholder": "Tu nombre"
     },
     "thankYou": {
-      "titlePersonalized": "¡Bienvenido a Unify, {{name}}!"
+      "titlePersonalized": "¡Bienvenido a Unify, {{name}}!",
+      "titleRedoStart": "Perfil ",
+      "titleRedoItalic": "actualizado",
+      "titleDefaultStart": "Tu camino en Canadá, ",
+      "titleDefaultItalic": "simplificado",
+      "bodyRedo": "Tus preferencias se actualizaron. Tu Lista y las respuestas del Companion reflejarán tus respuestas más recientes.",
+      "bodyDefault": "Ya puedes empezar a explorar Unify. ¡Seguiremos trabajando para hacer tu camino más fácil!"
     },
     "q": {
       "persona": "¿Qué describe mejor tu situación en Canadá?",

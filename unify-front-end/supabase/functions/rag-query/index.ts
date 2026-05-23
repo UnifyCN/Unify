@@ -62,6 +62,18 @@ const USER_QUESTION_STARTS = [
   'who',
 ];
 
+// Defense against prompt injection via the user-controlled `first_name` field.
+// Strips control chars (incl. newlines) so a malicious value can't break out of
+// the line it's interpolated into, and hard-clamps length to bound the blast
+// radius if a long string slips past client-side sanitization.
+function sanitizeNameForPrompt(name: string | null): string | null {
+  if (!name) return null;
+  // Strip ASCII control chars (0x00-0x1F, 0x7F): newlines, NULs, etc.
+  const cleaned = name.replace(/[\x00-\x1F\x7F]/g, '').trim();
+  if (!cleaned) return null;
+  return cleaned.slice(0, 50);
+}
+
 function sanitizeSuggestedNextSteps(suggestions: string[]): string[] {
   if (!suggestions || suggestions.length === 0) return [];
 
@@ -698,7 +710,9 @@ Deno.serve(async (req: Request) => {
                 .select('first_name')
                 .eq('id', effectiveUserId)
                 .maybeSingle();
-              return (userRow?.first_name as string | null) ?? null;
+              return sanitizeNameForPrompt(
+                (userRow?.first_name as string | null) ?? null
+              );
             } catch (err) {
               console.warn(
                 '[rag-query] first_name lookup failed (non-fatal)',

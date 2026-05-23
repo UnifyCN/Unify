@@ -41,18 +41,20 @@ export function computeStage(arrivalDate: string | null): StageNumber {
 
 export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
   try {
-    let targetUserId = userId;
+    // Always resolve the requester so we can gate private fields (first_name)
+    // to self-views only. Defense-in-depth on top of RLS.
+    const {
+      data: { user: requester },
+    } = await supabase.auth.getUser();
 
-    // If no userId provided, get current user's ID
+    let targetUserId = userId;
     if (!targetUserId) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+      if (!requester) {
         throw new Error('User not authenticated');
       }
-      targetUserId = user.id;
+      targetUserId = requester.id;
     }
+    const isSelfView = !!requester && requester.id === targetUserId;
 
     const [
       userResult,
@@ -136,20 +138,14 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     const receivedStage = resolvedOnboarding.stage;
     const computedStage = computeStage(arrivalDate);
 
-    if (receivedStage !== null && receivedStage !== computedStage) {
+    if (receivedStage !== null && receivedStage !== computedStage && isSelfView) {
       // Best-effort persistence inside a fire-and-forget IIFE — must not block
-      // the outer profile fetch on auth lookup or DB write. The auth check
-      // ensures we only update the row for the currently-authenticated user
+      // the outer profile fetch on the DB write. The isSelfView check ensures
+      // we only update the row for the currently-authenticated user
       // (cross-user profile views would otherwise fire a guaranteed
       // RLS-denied UPDATE round-trip).
       void (async () => {
         try {
-          const {
-            data: { user: authUser },
-          } = await supabase.auth.getUser();
-
-          if (authUser?.id !== targetUserId) return;
-
           const { error } = await supabase
             .from('user_onboarding_profiles')
             .update({ stage: computedStage })
@@ -179,7 +175,9 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
     return {
       id: userData.id,
       username: userData.username,
-      firstName: userData.first_name ?? null,
+      // first_name is a private surface — only expose to the user viewing
+      // their own profile. Cross-user views see null and fall back to @handle.
+      firstName: isSelfView ? (userData.first_name ?? null) : null,
       createdAt: userData.created_at,
       followingCount: followingCount || 0,
       followerCount: followerCount || 0,

@@ -225,9 +225,10 @@ Deno.serve(async (req: Request) => {
 
   // Check which users have opted into notifications.
   // user_onboarding_profiles is keyed on `id` (= auth.users.id), there is no `user_id` column.
+  // first_name lives on the users table, fetched separately below.
   const { data: profiles, error: profilesError } = await supabase
     .from('user_onboarding_profiles')
-    .select('id, wants_reminders, first_name')
+    .select('id, wants_reminders')
     .in('id', userIds);
 
   if (profilesError) {
@@ -245,14 +246,27 @@ Deno.serve(async (req: Request) => {
       .map((p: { id: string }) => p.id)
   );
 
-  // Map user id -> first name (trimmed, only if non-empty) for push personalization
+  // Fetch first_name from users (separate table). Failure here is non-fatal —
+  // reminders still go out without personalization.
   const firstNameByUser = new Map<string, string>();
-  for (const p of (profiles ?? []) as Array<{
-    id: string;
-    first_name: string | null;
-  }>) {
-    const name = p.first_name?.trim();
-    if (name) firstNameByUser.set(p.id, name);
+  const { data: userRows, error: userRowsError } = await supabase
+    .from('users')
+    .select('id, first_name')
+    .in('id', userIds);
+
+  if (userRowsError) {
+    console.warn(
+      'send-learn-reminders: users query error (non-fatal)',
+      userRowsError
+    );
+  } else {
+    for (const u of (userRows ?? []) as Array<{
+      id: string;
+      first_name: string | null;
+    }>) {
+      const name = u.first_name?.trim();
+      if (name) firstNameByUser.set(u.id, name);
+    }
   }
 
   // Get push tokens for opted-in users

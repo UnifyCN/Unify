@@ -26,21 +26,24 @@ export default function ThankYouStep({
         <Text style={styles.headline}>
           {isRedo ? (
             <>
-              Profile <Text style={styles.headlineItalic}>updated</Text>
+              {t('quiz.thankYou.titleRedoStart')}
+              <Text style={styles.headlineItalic}>
+                {t('quiz.thankYou.titleRedoItalic')}
+              </Text>
             </>
           ) : trimmedName ? (
             t('quiz.thankYou.titlePersonalized', { name: trimmedName })
           ) : (
             <>
-              Your journey to Canada,{' '}
-              <Text style={styles.headlineItalic}>simplified</Text>
+              {t('quiz.thankYou.titleDefaultStart')}
+              <Text style={styles.headlineItalic}>
+                {t('quiz.thankYou.titleDefaultItalic')}
+              </Text>
             </>
           )}
         </Text>
         <Text style={styles.body}>
-          {isRedo
-            ? 'Your preferences have been updated. Your Checklist and Companion responses will now reflect your latest answers.'
-            : "You're all set to start exploring Unify. We'll keep working to make your journey easier!"}
+          {t(isRedo ? 'quiz.thankYou.bodyRedo' : 'quiz.thankYou.bodyDefault')}
         </Text>
       </View>
     </View>

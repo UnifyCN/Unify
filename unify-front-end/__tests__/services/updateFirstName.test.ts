@@ -35,15 +35,25 @@ describe('updateFirstName service', () => {
     expect(mocks.eqMock).toHaveBeenCalledWith('id', 'user-123');
   });
 
-  it('rejects when sanitized value is empty', async () => {
+  it('clears first_name to NULL when sanitized value is empty', async () => {
+    mocks.eqMock.mockResolvedValue({ error: null });
+
     const result = await updateFirstName('   🌸   ');
 
-    expect(result.success).toBe(false);
-    expect(result.error).toMatch(/required/i);
-    expect(mocks.fromMock).not.toHaveBeenCalled();
+    expect(result.success).toBe(true);
+    expect(mocks.updateMock).toHaveBeenCalledWith({ first_name: null });
   });
 
-  it('rejects when there is no authenticated user', async () => {
+  it('clears first_name to NULL on explicit empty string', async () => {
+    mocks.eqMock.mockResolvedValue({ error: null });
+
+    const result = await updateFirstName('');
+
+    expect(result.success).toBe(true);
+    expect(mocks.updateMock).toHaveBeenCalledWith({ first_name: null });
+  });
+
+  it('returns NOT_AUTHENTICATED when there is no auth user', async () => {
     (supabase.auth.getUser as jest.Mock).mockResolvedValue({
       data: { user: null },
     });
@@ -51,10 +61,12 @@ describe('updateFirstName service', () => {
     const result = await updateFirstName('Savar');
 
     expect(result.success).toBe(false);
-    expect(result.error).toMatch(/auth/i);
+    if (!result.success) {
+      expect(result.code).toBe('NOT_AUTHENTICATED');
+    }
   });
 
-  it('returns supabase error message when UPDATE fails', async () => {
+  it('returns DB_ERROR with message when UPDATE fails', async () => {
     mocks.eqMock.mockResolvedValue({
       error: { message: 'permission denied' },
     });
@@ -62,6 +74,9 @@ describe('updateFirstName service', () => {
     const result = await updateFirstName('Savar');
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe('permission denied');
+    if (!result.success) {
+      expect(result.code).toBe('DB_ERROR');
+      expect(result.message).toBe('permission denied');
+    }
   });
 });

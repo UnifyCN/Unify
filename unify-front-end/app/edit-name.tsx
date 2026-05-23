@@ -41,8 +41,12 @@ export default function EditNamePage() {
     setFirstNameError(null);
     setUsernameError(null);
 
-    const firstNameChanged = firstName.trim() !== (currentUser?.firstName ?? '');
-    const usernameChanged = username !== (currentUser?.username ?? '');
+    const normalizedFirstName = firstName.trim();
+    const normalizedUsername = username.trim();
+    const firstNameChanged =
+      normalizedFirstName !== (currentUser?.firstName ?? '');
+    const usernameChanged =
+      normalizedUsername !== (currentUser?.username ?? '');
 
     if (!firstNameChanged && !usernameChanged) {
       router.back();
@@ -55,16 +59,16 @@ export default function EditNamePage() {
 
     try {
       if (firstNameChanged) {
-        const result = await updateFirstName(firstName);
+        const result = await updateFirstName(normalizedFirstName);
         if (result.success) {
           firstNameSucceeded = true;
         } else {
-          setFirstNameError(result.error || t('editName.failedUpdate'));
+          setFirstNameError(t('editName.failedUpdate'));
         }
       }
 
       if (usernameChanged) {
-        const result = await updateUsername(username.trim());
+        const result = await updateUsername(normalizedUsername);
         if (result.success) {
           usernameSucceeded = true;
         } else {

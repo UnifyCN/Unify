@@ -888,13 +888,21 @@
     },
     "welcome": {
       "titleNew": "Chào mừng đến Unify",
-      "subtitleNew": "Đầu tiên, chúng tôi nên gọi bạn là gì?"
+      "subtitleNew": "Đầu tiên, chúng tôi nên gọi bạn là gì?",
+      "titleRedo": "Cập nhật hồ sơ của bạn",
+      "subtitleRedo": "Mọi thứ thay đổi — hãy cập nhật câu trả lời của bạn để chúng tôi đưa ra gợi ý và phản hồi tốt hơn."
     },
     "firstName": {
       "placeholder": "Tên của bạn"
     },
     "thankYou": {
-      "titlePersonalized": "Chào mừng đến Unify, {{name}}!"
+      "titlePersonalized": "Chào mừng đến Unify, {{name}}!",
+      "titleRedoStart": "Hồ sơ ",
+      "titleRedoItalic": "đã cập nhật",
+      "titleDefaultStart": "Hành trình đến Canada của bạn, ",
+      "titleDefaultItalic": "đơn giản hơn",
+      "bodyRedo": "Tuỳ chọn của bạn đã được cập nhật. Checklist và phản hồi từ Companion giờ sẽ phản ánh các câu trả lời mới nhất của bạn.",
+      "bodyDefault": "Bạn đã sẵn sàng khám phá Unify. Chúng tôi sẽ tiếp tục nỗ lực để hành trình của bạn dễ dàng hơn!"
     },
     "q": {
       "persona": "Điều gì mô tả tốt nhất tình huống của bạn ở Canada?",
