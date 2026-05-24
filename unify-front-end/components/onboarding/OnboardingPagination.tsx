@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface OnboardingPaginationProps {
   totalSteps: number;
@@ -10,10 +11,11 @@ export default function OnboardingPagination({
   totalSteps,
   currentStep,
 }: OnboardingPaginationProps) {
+  const { t } = useTranslation();
   return (
     <View
       style={styles.container}
-      accessibilityLabel={`Step ${currentStep + 1} of ${totalSteps}`}
+      accessibilityLabel={t('onboarding.stepOf', { current: currentStep + 1, total: totalSteps })}
       accessibilityRole='progressbar'
       accessibilityValue={{ min: 1, max: totalSteps, now: currentStep + 1 }}
     >

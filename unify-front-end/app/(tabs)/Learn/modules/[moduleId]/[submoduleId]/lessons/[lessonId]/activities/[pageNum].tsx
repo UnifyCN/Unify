@@ -9,6 +9,7 @@ import {
   Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
@@ -25,6 +26,7 @@ import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function ActivityPageScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { moduleId, submoduleId, lessonId, pageNum } = useLocalSearchParams<{
     moduleId: string;
@@ -291,7 +293,7 @@ export default function ActivityPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Loading activity...</Text>
+          <Text>{t('learn.lesson.loadingActivity')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -301,7 +303,7 @@ export default function ActivityPageScreen() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
-          <Text>Error loading activity page</Text>
+          <Text>{t('learn.lesson.errorLoadingActivity')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -313,7 +315,7 @@ export default function ActivityPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={submoduleData?.title || 'Submodule'}
+        submoduleTitle={submoduleData?.title || t('learn.lesson.submoduleFallback')}
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -387,7 +389,7 @@ export default function ActivityPageScreen() {
       {/* Navigation buttons - anchored at bottom */}
       <View style={styles.navigationContainer}>
         <TouchableOpacity style={styles.backBtn} onPress={handleBack}>
-          <Text style={styles.backBtnText}>Back</Text>
+          <Text style={styles.backBtnText}>{t('common.back')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -401,12 +403,12 @@ export default function ActivityPageScreen() {
         >
           <Text style={styles.nextBtnText}>
             {!isSubmitted
-              ? 'Submit'
+              ? t('common.submit')
               : currentPage < totalPages
-                ? 'Next'
+                ? t('common.next')
                 : quizzes && quizzes.length > 0
-                  ? `Take Quiz`
-                  : 'Next'}
+                  ? t('learn.lesson.takeQuiz')
+                  : t('common.next')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -421,11 +423,10 @@ export default function ActivityPageScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              Take a break from this activity?
+              {t('learn.lesson.exitActivityTitle')}
             </Text>
             <Text style={styles.modalDesc}>
-              No worries, your progress will be saved!{'\n'}
-              You can pick up right where you left off.
+              {t('learn.lesson.exitBody')}
             </Text>
 
             <TouchableOpacity
@@ -433,7 +434,7 @@ export default function ActivityPageScreen() {
               onPress={handleSaveAndLeave}
             >
               <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
+                {t('learn.lesson.exitSave')}
               </Text>
             </TouchableOpacity>
 
@@ -442,7 +443,7 @@ export default function ActivityPageScreen() {
               onPress={handleContinue}
             >
               <Text style={styles.modalSecondaryBtnText}>
-                Continue Activity
+                {t('learn.lesson.exitActivityContinue')}
               </Text>
             </TouchableOpacity>
           </View>

@@ -4,13 +4,32 @@ import {
   UserOnboardingProfile,
 } from '@/types/onboardingProfile';
 import { calculateUserStage, stageNumberToEnum } from '@/helpers/dateHelpers';
+import { redeemReferral, type RedeemResult } from '@/services/referrals/redeemReferral';
+
+export interface SaveOnboardingResult {
+  profile: UserOnboardingProfile;
+  /**
+   * Result of the redeem-referral call, only present when the caller passed an
+   * invite code. NEVER throws or blocks the save — a failed redeem still returns
+   * a valid `profile` so onboarding can complete.
+   */
+  redeem?: RedeemResult;
+}
+
+export interface SaveOnboardingExtras {
+  inviteCode?: { code: string; source: 'clipboard' | 'manual' } | null;
+}
 
 export const saveOnboardingProfile = async (
   userId: string,
-  data: OnboardingProfileInput
-): Promise<UserOnboardingProfile> => {
+  data: OnboardingProfileInput,
+  extras: SaveOnboardingExtras = {}
+): Promise<SaveOnboardingResult> => {
   try {
-    // Calculate stage if arrival_date is provided and onboarding is being completed
+    // Calculate stage if arrival_date is provided AND parses as a valid date AND
+    // onboarding is being completed. (Bug fix: previously stage was recomputed
+    // unconditionally outside the !isNaN guard, producing a bogus stage from an
+    // Invalid Date for malformed arrival_date input.)
     let calculatedStage: string | null = null;
     if (data.arrival_date && data.onboarding_completed) {
       const arrivalDate = new Date(data.arrival_date);
@@ -18,8 +37,6 @@ export const saveOnboardingProfile = async (
         const stageNumber = calculateUserStage(arrivalDate);
         calculatedStage = stageNumberToEnum(stageNumber);
       }
-      const stageNumber = calculateUserStage(arrivalDate);
-      calculatedStage = stageNumberToEnum(stageNumber);
     }
 
     // Prepare the data for Supabase (convert to snake_case)
@@ -41,6 +58,14 @@ export const saveOnboardingProfile = async (
       onboarding_completed: data.onboarding_completed ?? false,
     };
 
+    // Only include preferred_language if the caller passed it. Omitting it
+    // keeps Postgres' column default ('en') on first INSERT, and avoids
+    // clobbering an existing value on subsequent updates from callers that
+    // don't manage language (e.g. notification toggle).
+    if (data.preferred_language !== undefined) {
+      supabaseData.preferred_language = data.preferred_language;
+    }
+
     // Add stage to the data if it was calculated
     if (calculatedStage !== null) {
       supabaseData.stage = calculatedStage;
@@ -59,7 +84,7 @@ export const saveOnboardingProfile = async (
       throw new Error(`Failed to save onboarding profile: ${error.message}`);
     }
 
-    return {
+    const profile: UserOnboardingProfile = {
       id: result.id,
       persona: result.persona,
       persona_other: result.persona_other,
@@ -74,12 +99,32 @@ export const saveOnboardingProfile = async (
       learning_interests: result.learning_interests || [],
       learning_interests_other: result.learning_interests_other,
       hobbies: result.hobbies || [],
+      preferred_language: result.preferred_language || 'en',
       wants_reminders: result.wants_reminders ?? false,
       onboarding_completed: result.onboarding_completed ?? false,
       onboarding_completed_at: result.onboarding_completed_at,
       created_at: result.created_at,
       updated_at: result.updated_at,
     };
+
+    // Fire the redeem-referral edge function if the caller provided an invite code AND
+    // onboarding is being completed (we don't want stray redeems on partial saves).
+    // Failure NEVER blocks onboarding completion — we surface the result so the
+    // caller can decide to navigate, but the profile save is the source of truth.
+    let redeem: RedeemResult | undefined;
+    if (extras.inviteCode?.code && data.onboarding_completed) {
+      try {
+        redeem = await redeemReferral(
+          extras.inviteCode.code,
+          extras.inviteCode.source
+        );
+      } catch (err) {
+        console.error('saveOnboardingProfile: redeem failed (non-fatal)', err);
+        redeem = { success: false, reason: 'server_error' };
+      }
+    }
+
+    return { profile, redeem };
   } catch (error) {
     console.error('Error saving onboarding profile:', error);
     throw error;

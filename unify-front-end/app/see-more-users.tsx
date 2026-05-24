@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSearchUsers } from '@/hooks/users/useSearchUsers';
 import type { SearchUserResult } from '@/services/users/searchUsers';
@@ -14,6 +15,7 @@ import BackHeader from '@/components/BackHeader';
 import { Theme } from '@/constants/Theme';
 
 export default function SeeMoreUsersScreen() {
+  const { t } = useTranslation();
   const { q } = useLocalSearchParams<{ q: string }>();
   const router = useRouter();
   const searchQuery = q ?? '';
@@ -45,15 +47,15 @@ export default function SeeMoreUsersScreen() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Search' />
+      <BackHeader title={t('search.title')} />
 
       {isLoading ? (
         <View style={styles.centered}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       ) : !users?.length ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>No people found</Text>
+          <Text style={styles.emptyText}>{t('search.noPeopleFound')}</Text>
         </View>
       ) : (
         <FlatList

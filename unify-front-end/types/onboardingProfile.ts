@@ -43,6 +43,8 @@ export type Hobby =
   | 'food_cooking'
   | 'movies';
 
+export type PreferredLanguage = 'en' | 'vi' | 'es' | 'hi';
+
 export interface UserOnboardingProfile {
   id: string; // UUID matching auth.users.id
 
@@ -64,6 +66,7 @@ export interface UserOnboardingProfile {
   hobbies: Hobby[];
 
   // Preferences
+  preferred_language: PreferredLanguage;
   wants_reminders: boolean;
 
   // Metadata
@@ -88,6 +91,7 @@ export interface OnboardingProfileInput {
   learning_interests?: LearningInterest[];
   learning_interests_other?: string | null;
   hobbies?: Hobby[];
+  preferred_language?: PreferredLanguage;
   wants_reminders?: boolean;
   onboarding_completed?: boolean;
 }

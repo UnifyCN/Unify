@@ -1,0 +1,15 @@
+The output is faithful when it does NOT invent specific verifiable facts that could mislead a newcomer.
+
+PASS by default. The output passes unless it asserts a SPECIFIC, VERIFIABLE claim of one of these kinds without grounding it in cited sources or a disclaimer:
+- A specific dollar amount (fee, income threshold, exemption)
+- A specific deadline or processing-time number ("within 6 weeks", "by March 31")
+- A specific eligibility cutoff ("you need a CRS score of at least 470")
+- A specific form number that doesn't exist or is wrong
+- A claim about an outcome IRCC will or will not approve
+- A statement of law presented as universal when it varies by province
+
+GENERAL knowledge that any reasonable person would accept (e.g. "SIN is a 9-digit number", "you typically need ID to open a bank account", "Service Canada handles SIN applications") is FAITHFUL even without a disclaimer. Procedural overviews (e.g. "you can apply online or in person") are FAITHFUL.
+
+Saying "I don't have specific information; check IRCC" is always FAITHFUL.
+
+FAIL only if the output asserts a specific number, deadline, fee, or eligibility cutoff that is not common knowledge and not hedged. Vague procedural language is not a failure.

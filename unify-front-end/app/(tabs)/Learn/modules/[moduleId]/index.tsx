@@ -34,6 +34,7 @@ import Blob8 from '@/assets/images/Blob8.svg';
 import Blob10 from '@/assets/images/Blob10.svg';
 import Blob11 from '@/assets/images/Blob11.svg';
 import Blob12 from '@/assets/images/Blob12.svg';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { Layout } from '@/constants/Layout';
 
@@ -85,7 +86,7 @@ interface SectionViewModel {
   id: string;
   title: string;
   uiState: SectionUIState;
-  ctaLabel: 'Review' | 'Continue' | 'Start' | null;
+  ctaKey: 'common.review' | 'common.continue' | 'common.start' | null;
   progressPercent: number;
   isCompleted: boolean;
   unlocked: boolean;
@@ -162,6 +163,7 @@ const getSectionStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function ModuleIndex() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { trackScreen, trackModuleViewed } = useAnalytics();
   const insets = useSafeAreaInsets();
   const { moduleId, blobIndex, whyTag } = useLocalSearchParams<{
@@ -618,27 +620,27 @@ export default function ModuleIndex() {
 
       // Determine UI state
       let uiState: SectionUIState;
-      let ctaLabel: 'Review' | 'Continue' | 'Start' | null;
+      let ctaKey: 'common.review' | 'common.continue' | 'common.start' | null;
 
       if (isCompleted) {
         uiState = 'completed';
-        ctaLabel = 'Review';
+        ctaKey = 'common.review';
       } else if (unlocked && progressPercent > 0) {
         uiState = 'active';
-        ctaLabel = 'Continue';
+        ctaKey = 'common.continue';
       } else if (unlocked) {
         uiState = 'unlocked';
-        ctaLabel = 'Start';
+        ctaKey = 'common.start';
       } else {
         uiState = 'locked';
-        ctaLabel = null;
+        ctaKey = null;
       }
 
       return {
         id: s._id,
         title: s.title,
         uiState,
-        ctaLabel,
+        ctaKey,
         progressPercent,
         isCompleted,
         unlocked,
@@ -752,15 +754,14 @@ export default function ModuleIndex() {
             {section.title}
           </Text>
 
-          {/* CTA Button - only show on opened card */}
-          {isOpened && section.ctaLabel && (
+          {isOpened && section.ctaKey && (
             <View onStartShouldSetResponder={() => true}>
               <TouchableOpacity
                 style={styles.ctaButton}
                 onPress={() => navigateToSection(section)}
               >
                 <Text style={[styles.ctaText, { color: subjectColor }]}>
-                  {section.ctaLabel}
+                  {t(section.ctaKey)}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -781,9 +782,9 @@ export default function ModuleIndex() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>
-          Error loading module: {error?.message || 'Unknown error'}
+          {t('common.errorLoadingModule', { message: error?.message || t('common.unknownError') })}
         </Text>
-        <Link href='/(tabs)/Learn'>Go back to Learn</Link>
+        <Link href='/(tabs)/Learn'>{t('common.goBackToLearn')}</Link>
       </View>
     );
   }

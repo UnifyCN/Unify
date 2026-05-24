@@ -11,6 +11,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import LessonHeroCard from '../../../components/learn/LessonHeroCard';
 import CarouselDots from '../../../components/learn/CarouselDots';
@@ -28,12 +29,22 @@ import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import AnnouncementModal from '@/components/common/AnnouncementModal';
 import SegmentedControl from '@/components/learn/Resources/SegmentedControl';
 import ResourcesView from '@/components/learn/Resources/ResourcesView';
+import { getTimeOfDayGreeting } from '@/utils/getTimeOfDayGreeting';
+import { useCurrentUser } from '@/context/UserContext';
+import { GiveawayBanner } from '@/components/giveaway/GiveawayBanner';
 
 type LearnView = 'articles' | 'resources';
 
 export default function Learn() {
   useProgressCache();
   const { trackScreen } = useAnalytics();
+  const { t } = useTranslation();
+  const { currentUser } = useCurrentUser();
+  const bucket = getTimeOfDayGreeting();
+  const trimmedName = currentUser?.firstName?.trim();
+  const greeting = trimmedName
+    ? t(`learn.greeting.${bucket}`, { name: trimmedName })
+    : t(`learn.greeting.${bucket}Anon`);
   const isFocused = useIsFocused();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
@@ -117,10 +128,10 @@ export default function Learn() {
             />
           }
         >
-          <Text style={styles.pageTitle}>Ready to learn?</Text>
+          <GiveawayBanner />
+          <Text style={styles.pageTitle}>{greeting}</Text>
           <Text style={styles.pageSubtitle}>
-            Get started with lessons to understand the basics of Canadian
-            culture and how to settle in as a newcomer.
+            {t('learn.subtitle')}
           </Text>
 
           {/* In-progress lesson carousel */}
@@ -142,7 +153,7 @@ export default function Learn() {
             </>
           ) : lessonsError ? (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>Error loading lessons</Text>
+              <Text style={styles.errorText}>{t('learn.errorLoadingLessons')}</Text>
             </View>
           ) : inProgressLessons.length > 0 ? (
             <>
@@ -194,9 +205,9 @@ export default function Learn() {
             </>
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No lessons to continue</Text>
+              <Text style={styles.emptyText}>{t('learn.noLessonsToContinue')}</Text>
               <Text style={styles.emptySubtext}>
-                Start a lesson to see it here
+                {t('learn.startLessonToSeeHere')}
               </Text>
             </View>
           )}
@@ -204,7 +215,7 @@ export default function Learn() {
           {/* Continue Learning — in-progress modules */}
           {inProgressModules.length > 0 && (
             <>
-              <SectionHeader title='Continue Learning' style={{ marginTop: 15 }} />
+              <SectionHeader title={t('learn.continueLearning')} style={{ marginTop: 15 }} />
               <View style={styles.pathwaysGrid}>
                 {inProgressModules.map((module, index) => {
                   const blobIndex = index % 5;
@@ -212,7 +223,7 @@ export default function Learn() {
                     <PathwayCard
                       key={module._id}
                       title={module.title}
-                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
                       href={
                         `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
                       }
@@ -228,14 +239,9 @@ export default function Learn() {
             </>
           )}
 
-          {/* Recommended for You — scored modules.
-              U1: The title used to flash "Subjects" during load and flip to
-              "Recommended for You" once the personalize query resolved. Hide
-              the header entirely while loading so users don't see the flip;
-              the skeleton cards below already signal that content is coming. */}
           {!isLoading && (
             <SectionHeader
-              title={hasPersonalizedResults ? 'Recommended for You' : 'Subjects'}
+              title={hasPersonalizedResults ? t('learn.recommendedForYou') : t('learn.subjects')}
               style={{ marginTop: 15 }}
             />
           )}
@@ -246,7 +252,7 @@ export default function Learn() {
                 <PathwayCardSkeletonLoader />
               </>
             ) : error ? (
-              <Text style={styles.errorText}>Error loading modules</Text>
+              <Text style={styles.errorText}>{t('learn.errorLoadingModules')}</Text>
             ) : (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).length > 0 ? (
               (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).map((module, index) => {
                 const offset = inProgressModules.length;
@@ -255,7 +261,7 @@ export default function Learn() {
                   <PathwayCard
                     key={module._id}
                     title={module.title}
-                    modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                    modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
                     href={
                       `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}&whyTag=${encodeURIComponent(module.why_tag || '')}` as any
                     }
@@ -268,14 +274,14 @@ export default function Learn() {
                 );
               })
             ) : (
-              <Text style={styles.errorText}>No modules available</Text>
+              <Text style={styles.errorText}>{t('learn.noModulesAvailable')}</Text>
             )}
           </View>
 
           {/* Explore More — unscored + completed */}
           {hasPersonalizedResults && exploreModules.length > 0 && (
             <>
-              <SectionHeader title='Explore More' style={{ marginTop: 24 }} />
+              <SectionHeader title={t('learn.exploreMore')} style={{ marginTop: 24 }} />
               <View style={styles.pathwaysGrid}>
                 {exploreModules.map((module, index) => {
                   const offset = inProgressModules.length + recommendedModules.length;
@@ -284,7 +290,7 @@ export default function Learn() {
                     <PathwayCard
                       key={module._id}
                       title={module.title}
-                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
                       href={
                         `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
                       }
@@ -300,10 +306,9 @@ export default function Learn() {
             </>
           )}
 
-          {/* Completed modules */}
           {completedModules.length > 0 && (
             <>
-              <SectionHeader title='Completed' style={{ marginTop: 24 }} />
+              <SectionHeader title={t('common.completed')} style={{ marginTop: 24 }} />
               <View style={styles.pathwaysGrid}>
                 {completedModules.map((module, index) => {
                   const offset = inProgressModules.length + recommendedModules.length + exploreModules.length;
@@ -312,7 +317,7 @@ export default function Learn() {
                     <PathwayCard
                       key={module._id}
                       title={module.title}
-                      modulesLabel={`${module.submodules?.length || 0} section${(module.submodules?.length || 0) === 1 ? '' : 's'}`}
+                      modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
                       href={
                         `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
                       }
@@ -332,9 +337,9 @@ export default function Learn() {
       </View>
       <AnnouncementModal
         storageKey='announcement.learnHighlights.v1'
-        title='New: Highlight & Ask AI'
-        body="Long press any word or phrase in a lesson to highlight it or ask AI to explain it. Your highlights are saved under 'Saved from Learn' in your profile."
-        buttonLabel='Got it'
+        title={t('learn.announcementTitle')}
+        body={t('learn.announcementBody')}
+        buttonLabel={t('common.gotIt')}
       />
     </View>
   );

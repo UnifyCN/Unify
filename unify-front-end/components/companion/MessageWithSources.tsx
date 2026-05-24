@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 import { Message } from '@/helpers/companion/messageHelpers';
 import SourceViewer from './SourceViewer';
@@ -90,6 +91,7 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
   suggestedNextSteps,
   onSuggestionPress,
 }) => {
+  const { t } = useTranslation();
   const [showSources, setShowSources] = useState(false);
   const [selectedSource, setSelectedSource] = useState<{
     url: string;
@@ -150,7 +152,7 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
 
               return (
                 <Text style={styles.lastVerifiedText}>
-                  Sources last verified:{' '}
+                  {t('companion.sourcesVerified')}{' '}
                   {parsedLastVerified.toLocaleDateString('en-CA', {
                     year: 'numeric',
                     month: 'short',
@@ -164,7 +166,7 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
               onPress={() => setShowSources(!showSources)}
             >
               <Text style={styles.sourcesHeaderText}>
-                Sources ({item.sources.length})
+                {t('companion.sourcesCount', { count: item.sources.length })}
               </Text>
               <Ionicons
                 name={showSources ? 'chevron-up' : 'chevron-down'}
@@ -225,7 +227,7 @@ const MessageWithSourcesComponent: React.FC<MessageWithSourcesProps> = ({
           suggestedNextSteps.length > 0 &&
           onSuggestionPress && (
             <View style={styles.suggestionsContainer}>
-              <Text style={styles.suggestionsTitle}>Ask a follow-up:</Text>
+              <Text style={styles.suggestionsTitle}>{t('companion.askFollowUp')}</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}

@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import Like from '@/assets/images/Like.svg';
@@ -27,11 +28,25 @@ interface PostCommentItemProps {
   metadata?: {
     isLiked: boolean;
     likeCount: number;
-    // TODO: when replies to comments are implemented
-    // replyCount: number
   };
   metadataLoading?: boolean;
   postAuthorId?: string; // ID of the user who created the parent post
+
+  // Reply-thread props (only set when this comment renders as a top-level
+  // comment with a reply group). When `isReply` is true, these stay undefined
+  // because we never nest a second level — that's what enforces two-level
+  // flat threading at the type level.
+  replies?: PostCommentData[];
+  repliesMetadata?: Record<number, { isLiked: boolean; likeCount: number }>;
+  commentById?: Map<number, PostCommentData>;
+
+  // Direct-target metadata for the @mention prefix on a reply. Set only when
+  // `isReply` is true.
+  parentAuthorUsername?: string;
+  parentAuthorUserId?: string;
+
+  onReply?: (comment: PostCommentData) => void;
+  isReply?: boolean;
 }
 
 const PostCommentItem = memo(
@@ -40,9 +55,18 @@ const PostCommentItem = memo(
     metadata,
     metadataLoading,
     postAuthorId,
+    replies,
+    repliesMetadata,
+    commentById,
+    parentAuthorUsername,
+    parentAuthorUserId,
+    onReply,
+    isReply = false,
   }: PostCommentItemProps) => {
+    const { t } = useTranslation();
     const { currentUser } = useCurrentUser();
     const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+    const [repliesExpanded, setRepliesExpanded] = useState(false);
 
     // Hook for liking and unliking comments
     const likeCommentMutation = useMutateLikeComment();
@@ -51,7 +75,8 @@ const PostCommentItem = memo(
     const isAdmin = currentUser?.permissions === Permissions.ADMIN;
     const isPartner = currentUser?.permissions === Permissions.PARTNER;
     const ownsPost = postAuthorId && currentUser?.id === postAuthorId;
-    const canDelete = isAdmin || (isPartner && ownsPost);
+    const ownsComment = currentUser?.id === comment.user_id;
+    const canDelete = isAdmin || (isPartner && ownsPost) || ownsComment;
 
     const toggleLike = useCallback(
       (commentId: number, isLiked: boolean) => {
@@ -66,16 +91,16 @@ const PostCommentItem = memo(
 
     const handleDeleteComment = useCallback(() => {
       Alert.alert(
-        'Delete Comment',
-        'Are you sure you want to delete this comment? This action cannot be undone.',
+        t('home.deleteComment'),
+        t('home.deleteCommentConfirm'),
         [
           {
-            text: 'Cancel',
+            text: t('common.cancel'),
             style: 'cancel',
             onPress: () => setDeleteModalVisible(false),
           },
           {
-            text: 'Delete',
+            text: t('common.delete'),
             style: 'destructive',
             onPress: () => {
               deleteCommentMutation.mutate(
@@ -86,8 +111,8 @@ const PostCommentItem = memo(
                   },
                   onError: error => {
                     Alert.alert(
-                      'Error',
-                      error.message || 'Failed to delete comment'
+                      t('common.error'),
+                      error.message || t('home.failedDeleteComment')
                     );
                   },
                 }
@@ -96,24 +121,40 @@ const PostCommentItem = memo(
           },
         ]
       );
-    }, [comment.id, comment.post_id, deleteCommentMutation]);
+    }, [comment.id, comment.post_id, deleteCommentMutation, t]);
 
     // Use batch-loaded metadata
     const likeCount = metadata?.likeCount ?? 0;
     const isLiked = metadata?.isLiked;
 
+    const replyCount = replies?.length ?? 0;
+    const replyToggleLabel = repliesExpanded
+      ? t('home.hideReplies')
+      : t('home.viewReplies', { count: replyCount });
+
+    const avatarSize = isReply ? 32 : 40;
+
     return (
       <View>
-        <View style={styles.postContainer}>
+        <View
+          style={[styles.postContainer, isReply && styles.postContainerReply]}
+        >
           {/* Headshot */}
           <TouchableOpacity
-            style={styles.headshot}
+            style={[
+              styles.headshot,
+              {
+                width: avatarSize,
+                height: avatarSize,
+                borderRadius: avatarSize / 2,
+              },
+            ]}
             onPress={navigateToUserProfile}
           >
             <Avatar
               profilePictureUrl={comment.profilePictureUrl}
               username={comment.username}
-              size={40}
+              size={avatarSize}
             />
           </TouchableOpacity>
 
@@ -139,37 +180,96 @@ const PostCommentItem = memo(
             </View>
 
             {/* Description */}
-            <Text style={styles.description}>{comment.content}</Text>
+            <Text style={styles.description}>
+              {isReply &&
+                parentAuthorUsername &&
+                parentAuthorUserId &&
+                parentAuthorUserId !== currentUser?.id && (
+                  <Text
+                    style={styles.mention}
+                    onPress={() =>
+                      router.push(`/profile?userId=${parentAuthorUserId}`)
+                    }
+                  >
+                    @{parentAuthorUsername}{' '}
+                  </Text>
+                )}
+              {comment.content}
+            </Text>
 
             {/* Footer */}
             <View style={styles.footer}>
-              <>
-                <View style={styles.footerItem}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (isLiked !== undefined && !metadataLoading) {
-                        toggleLike(comment.id, isLiked);
-                      }
-                    }}
-                    disabled={metadataLoading}
-                  >
-                    {isLiked ? (
-                      <Like_Fill width={20} height={20} />
-                    ) : (
-                      <Like width={20} height={20} />
-                    )}
-                  </TouchableOpacity>
-                  {metadataLoading ? (
-                    <SkeletonLoader width={24} height={20} />
+              <View style={styles.footerItem}>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (isLiked !== undefined && !metadataLoading) {
+                      toggleLike(comment.id, isLiked);
+                    }
+                  }}
+                  disabled={metadataLoading}
+                >
+                  {isLiked ? (
+                    <Like_Fill width={20} height={20} />
                   ) : (
-                    <Text style={styles.footerText}>{likeCount}</Text>
+                    <Like width={20} height={20} />
                   )}
-                </View>
-              </>
+                </TouchableOpacity>
+                {metadataLoading ? (
+                  <SkeletonLoader width={24} height={20} />
+                ) : (
+                  <Text style={styles.footerText}>{likeCount}</Text>
+                )}
+              </View>
+              {!isReply && onReply && (
+                <TouchableOpacity
+                  onPress={() => onReply(comment)}
+                  style={styles.replyButton}
+                  hitSlop={6}
+                >
+                  <Text style={styles.replyButtonText}>{t('home.reply')}</Text>
+                </TouchableOpacity>
+              )}
             </View>
+
+            {!isReply && replyCount > 0 && (
+              <TouchableOpacity
+                onPress={() => setRepliesExpanded(prev => !prev)}
+                style={styles.repliesToggle}
+                hitSlop={6}
+              >
+                <Text style={styles.repliesToggleText}>{replyToggleLabel}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
-        <View style={styles.divider} />
+
+        {!isReply && replyCount > 0 && repliesExpanded && (
+          <View style={styles.repliesContainer}>
+            <View style={styles.connectorLine} />
+            {replies!.map(reply => {
+              const directParent =
+                reply.parent_comment_id != null
+                  ? commentById?.get(reply.parent_comment_id)
+                  : undefined;
+              return (
+                <PostCommentItem
+                  key={reply.id}
+                  comment={reply}
+                  metadata={repliesMetadata?.[reply.id]}
+                  metadataLoading={metadataLoading}
+                  postAuthorId={postAuthorId}
+                  commentById={commentById}
+                  parentAuthorUsername={directParent?.username}
+                  parentAuthorUserId={directParent?.user_id}
+                  onReply={onReply}
+                  isReply
+                />
+              );
+            })}
+          </View>
+        )}
+
+        {!isReply && <View style={styles.divider} />}
 
         {/* Delete Modal */}
         <Modal
@@ -199,14 +299,14 @@ const PostCommentItem = memo(
                     style={styles.optionIcon}
                   />
                   <Text style={[styles.modalOptionText, styles.deleteText]}>
-                    Delete Comment
+                    {t('home.deleteComment')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.modalOption}
                   onPress={() => setDeleteModalVisible(false)}
                 >
-                  <Text style={styles.modalOptionText}>Cancel</Text>
+                  <Text style={styles.modalOptionText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
               </Pressable>
             </View>
@@ -225,6 +325,10 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     gap: 12,
+  },
+  postContainerReply: {
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   postContent: {
     flex: 1,
@@ -283,6 +387,50 @@ const styles = StyleSheet.create({
   footerText: {
     marginLeft: 4,
     fontSize: 14,
+  },
+  replyButton: {
+    marginLeft: 20,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  replyButtonText: {
+    fontSize: 14,
+    color: Theme.textPostTime,
+    fontWeight: '500',
+  },
+  repliesToggle: {
+    marginTop: 10,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+  },
+  repliesToggleText: {
+    fontSize: 14,
+    color: Theme.textPostTime,
+    fontWeight: '500',
+  },
+  repliesContainer: {
+    marginLeft: 32,
+    paddingLeft: 20,
+    position: 'relative',
+  },
+  connectorLine: {
+    position: 'absolute',
+    left: 0,
+    // Anchor near the parent's footer area and hook into the first reply's
+    // avatar with a short L-shape. Don't span the full reply group — that
+    // pushes the curve to the bottom (wrong place) and looks orphaned.
+    top: -20,
+    width: 16,
+    height: 40,
+    borderLeftWidth: 1,
+    borderLeftColor: Theme.textInactiveTab,
+    borderBottomWidth: 1,
+    borderBottomColor: Theme.textInactiveTab,
+    borderBottomLeftRadius: 12,
+  },
+  mention: {
+    color: Theme.mentionBlue,
+    fontWeight: '500',
   },
   divider: {
     width: '100%',

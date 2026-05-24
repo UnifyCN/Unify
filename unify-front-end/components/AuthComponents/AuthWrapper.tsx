@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import i18n from '@/i18n';
 import { SignIn } from './SignIn';
 import { SignUp } from './SignUp';
 import WelcomeScreen from './WelcomeScreen';
@@ -55,7 +56,7 @@ async function updateUserLegalAcceptance(userId: string): Promise<void> {
 
   if (error) {
     console.error('Error updating legal acceptance:', error);
-    throw new Error('Failed to save your acceptance. Please try again.');
+    throw new Error(i18n.t('auth.legal.failedSaveAcceptance'));
   }
 }
 
@@ -118,14 +119,22 @@ export default function AuthWrapper({ children, onBackToOnboarding }: Props) {
   };
 
   const handleVerificationSuccess = () => {
+    // OTPConfirmation already persisted the acceptance via createUserIfNotExists.
+    // Seed the React Query cache directly with the timestamps we just wrote,
+    // otherwise the query returns stale null data from its initial fetch and
+    // the LegalConsentModal flashes for ~1 frame between OTP success and the
+    // background refetch completing.
+    if (session?.user?.id && legalAcceptedAt) {
+      queryClient.setQueryData<UserLegalStatus>(
+        ['userLegalStatus', session.user.id],
+        {
+          privacy_policy_accepted_at: legalAcceptedAt,
+          community_guidelines_accepted_at: legalAcceptedAt,
+        }
+      );
+    }
     setShowOTP(false);
     setShowSignUp(false);
-    // Invalidate legal status to refetch with new acceptance
-    if (session?.user?.id) {
-      queryClient.invalidateQueries({
-        queryKey: ['userLegalStatus', session.user.id],
-      });
-    }
   };
 
   const handleBackToSignUp = () => {

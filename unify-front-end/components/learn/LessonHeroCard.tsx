@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link, Href } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Theme } from '@/constants/Theme';
+import { useTranslation } from 'react-i18next';
 
 interface LessonHeroCardProps {
   moduleTitle?: string;
@@ -61,6 +62,7 @@ export default function LessonHeroCard({
   icon,
   href,
 }: LessonHeroCardProps) {
+  const { t } = useTranslation();
   const iconName = mapIconName(icon || 'account_balance');
 
   const cardContent = (
@@ -83,14 +85,18 @@ export default function LessonHeroCard({
                 colorHex ? { backgroundColor: colorHex } : null,
               ]}
             >
-              <Text style={styles.continueButtonText}>Continue</Text>
+              <Text style={styles.continueButtonText}>{t('learn.heroCard.continue')}</Text>
             </View>
           </View>
         )}
 
         <View style={styles.textContainer}>
           <Text style={styles.metaText}>
-            {moduleTitle} • Section {currentSection} out of {totalSections}
+            {t('learn.heroCard.sectionOf', {
+              module: moduleTitle,
+              current: currentSection,
+              total: totalSections,
+            })}
           </Text>
           <Text style={styles.title}>{submoduleTitle}</Text>
         </View>
@@ -104,7 +110,7 @@ export default function LessonHeroCard({
         <TouchableOpacity
           accessibilityRole='link'
           accessibilityLabel={
-            submoduleTitle ? `Resume ${submoduleTitle}` : 'Resume lesson'
+            submoduleTitle ? t('learn.heroCard.resumeSubmodule', { title: submoduleTitle }) : t('learn.heroCard.resumeLesson')
           }
         >
           {cardContent}
@@ -149,7 +155,7 @@ const styles = StyleSheet.create({
     top: 20,
     right: 20,
     zIndex: 2,
-    width: 101,
+    minWidth: 101,
     height: 36,
     borderRadius: 10,
   },

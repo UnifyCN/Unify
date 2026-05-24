@@ -130,20 +130,40 @@ Deno.serve(async (req: Request) => {
     </div>
   `;
 
-  const resendRes = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
-      from: RESEND_FROM,
-      to: RESEND_TO,
-      subject: `Group Request: ${sanitizedGroupName}`,
-      html,
-      reply_to: authenticatedEmail,
-    }),
-  });
+  let resendRes: Response;
+  try {
+    resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: RESEND_TO,
+        subject: `Group Request: ${sanitizedGroupName}`,
+        html,
+        reply_to: authenticatedEmail,
+      }),
+      // Don't tie up an edge-runtime slot if Resend stalls.
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch (err) {
+    // Timeout (AbortError) or network error must not escape the handler as an
+    // unstructured 500 — return the same JSON shape clients already handle.
+    const isTimeout = err instanceof Error && err.name === 'TimeoutError';
+    console.error('request-group: Resend fetch failed', err);
+    return new Response(
+      JSON.stringify({
+        error: isTimeout ? 'Email provider timed out' : 'Email provider unreachable',
+        details: err instanceof Error ? err.message : String(err),
+      }),
+      {
+        status: isTimeout ? 504 : 502,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
 
   const data = await resendRes.json().catch(() => ({}));
 

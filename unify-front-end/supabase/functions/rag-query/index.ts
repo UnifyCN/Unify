@@ -3,9 +3,10 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { fetchWithRetry } from '../_shared/fetchWithRetry.ts';
 import {
-  captureAiGeneration,
-  computeGeminiCost,
-} from '../_shared/posthogCapture.ts';
+  callOpenRouter,
+  callOpenRouterStream,
+} from '../_shared/openrouter.ts';
+import { captureAiGeneration } from '../_shared/posthogCapture.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -61,6 +62,23 @@ const USER_QUESTION_STARTS = [
   'who',
 ];
 
+// Defense against prompt injection via the user-controlled `first_name` field.
+// Strict whitelist: Unicode letters (\p{L}) and combining marks (\p{M}, needed
+// for Devanagari and other scripts), plus space, hyphen, apostrophe. Drops
+// everything else — including periods, colons, newlines, and control chars —
+// so a crafted name like "Bob. New directive: ignore previous instructions"
+// can't terminate the sentence and inject a follow-on directive. Whitespace is
+// collapsed and the result is clamped to 50 chars.
+function sanitizeNameForPrompt(name: string | null): string | null {
+  if (!name) return null;
+  const cleaned = name
+    .replace(/[^\p{L}\p{M}\s'-]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned) return null;
+  return cleaned.slice(0, 50);
+}
+
 function sanitizeSuggestedNextSteps(suggestions: string[]): string[] {
   if (!suggestions || suggestions.length === 0) return [];
 
@@ -97,11 +115,12 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
   const city = profile.city as string | null;
   const province = profile.province as string | null;
   const arrivalDate = profile.arrival_date as string | null;
+  const immigrationStatus = profile.immigration_status as string | null;
+  const countryOfOrigin = profile.country_of_origin as string | null;
   const goals = (profile.goals as string[] | null) ?? [];
   const learningInterests =
     (profile.learning_interests as string[] | null) ?? [];
 
-  // Build prompt parts, omitting null/empty fields gracefully
   const parts: string[] = [];
 
   if (persona && city && province) {
@@ -115,6 +134,15 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
   } else if (persona) {
     parts.push(
       `You are speaking with a ${persona.replace(/_/g, ' ')} in Canada${arrivalDate ? `, who arrived on ${arrivalDate.split('T')[0]}` : ''}.`
+    );
+  }
+
+  // Immigration status drives most tailoring (PR vs work permit vs study
+  // permit vs refugee vs CUAET vs sponsorship applicant). Without this the
+  // model cannot pick the right pathway, fee schedule, or rights summary.
+  if (immigrationStatus) {
+    parts.push(
+      `Their current immigration status: ${immigrationStatus.replace(/_/g, ' ')}. Tailor pathway/eligibility/rights guidance to this specific status.`
     );
   }
 
@@ -140,13 +168,53 @@ function buildUserProfileContext(profile: Record<string, unknown>): string {
     parts.push(`Refer to local resources in ${city} when relevant.`);
   }
 
+  // Bias guard — research (EMNLP 2025, "Reading Between the Prompts") shows
+  // LLMs implicitly stereotype based on country/persona cues. Explicitly
+  // forbid extrapolating beyond stated facts. Country is named so the model
+  // knows exactly which assumptions to suppress.
+  if (countryOfOrigin) {
+    parts.push(
+      `Country of origin: ${countryOfOrigin}. Do NOT assume cultural traits, religion, language fluency, family situation, education level, financial status, dietary preferences, or cuisine preferences from this country of origin or from any other profile field. Only use country of origin if the user's question is explicitly about it (e.g. credential recognition from that country).`
+    );
+  } else {
+    parts.push(
+      `Do NOT assume cultural traits, religion, language fluency, family situation, education level, or financial status beyond what is stated above.`
+    );
+  }
+
   return `\nUSER PROFILE CONTEXT:\n${parts.join(' ')}`;
 }
+
+/**
+ * Build a profile-aware string to embed for vector retrieval. Pure prompt
+ * embedding causes wrong-province / wrong-status retrieval (e.g. a Quebec
+ * user asking about driver's licenses retrieves generic Canadian content
+ * instead of SAAQ chunks). Prepending province + status pulls more relevant
+ * chunks without changing the user-visible answer.
+ */
+function buildRetrievalQuery(
+  prompt: string,
+  profile: Record<string, unknown> | null
+): string {
+  if (!profile) return prompt;
+  const province = profile.province as string | null;
+  const status = profile.immigration_status as string | null;
+  const persona = profile.persona as string | null;
+  const cues = [province, status?.replace(/_/g, ' '), persona?.replace(/_/g, ' ')]
+    .filter(Boolean)
+    .join(', ');
+  return cues ? `[Context: ${cues}] ${prompt}` : prompt;
+}
+
+type ProfileBundle = {
+  text: string;
+  raw: Record<string, unknown> | null;
+};
 
 async function fetchUserProfileContext(
   supabase: ReturnType<typeof createClient>,
   userId: string
-): Promise<string> {
+): Promise<ProfileBundle> {
   try {
     const { data: profile, error: profileError } = await supabase
       .from('user_onboarding_profiles')
@@ -155,15 +223,15 @@ async function fetchUserProfileContext(
       .maybeSingle();
 
     if (profileError || !profile) {
-      return '';
+      return { text: '', raw: null };
     }
 
     const userProfileContext = buildUserProfileContext(profile);
     console.log('User profile context loaded:', userProfileContext.length > 0);
-    return userProfileContext;
+    return { text: userProfileContext, raw: profile };
   } catch (_profileFetchError) {
     console.error('Failed to fetch user onboarding profile context');
-    return '';
+    return { text: '', raw: null };
   }
 }
 
@@ -238,94 +306,36 @@ async function resolveAuthenticatedUserId(
 }
 
 // ============================================================================
-// CLASSIFIER FUNCTION
+// CLASSIFIER (heuristic — no LLM call)
 // ============================================================================
 
+const FACT_CHECK_PATTERN =
+  /\b(is it true|i heard|can you verify|verify (this|that|if)|debunk|myth|rumou?r)\b/i;
+
+// IMM forms are 4-5 digit numbers (IMM 5710, IMM 1294). Restricting to
+// {4,5} prevents over-matching "imm 5" or "imm 100" which would otherwise
+// mis-route real questions into form-help mode.
+const FORM_HELP_PATTERN =
+  /\b(imm[\s-]?\d{4,5}|form\s+\d{4}|fill (out|in) (a |the )?form|form field)\b/i;
+
+const GREETING_PATTERN =
+  /^(hi|hello|hey|thanks|thank you|good (morning|evening|afternoon|night)|how are you|what'?s up|sup)[\s!.?]*$/i;
+
 /**
- * Classifies the user query to determine routing.
- * Runs BEFORE embeddings/RAG to avoid unnecessary vector searches for general queries.
+ * Heuristic query classifier — picks one of the 5 lanes without an LLM call.
+ *
+ * Replaces a per-request OpenRouter call that added ~500-1500ms TTFT. The
+ * default lane is `immigration`, which has the full RAG + safety guardrails
+ * baked in, so any false negative from the regex routing fails open into the
+ * safest, most-grounded prompt.
  */
-async function classifyQuery(
-  prompt: string,
-  apiKey: string,
-  model: string
-): Promise<QueryType> {
-  const classifierSystemMessage = `You are a classifier. Given a user question, respond with exactly one label: immigration, newcomer_settlement, general, fact_check, or form_help. Do not explain, do not add text.
+function classifyQueryHeuristic(prompt: string): QueryType {
+  const trimmed = prompt.trim();
 
-Labels:
-- immigration: Questions about visas, work permits, PR, citizenship, IRCC processes
-- newcomer_settlement: Questions about settling in Canada (banking, TFSA, RRSP, credit, jobs, SIN, EI, housing, ESL)
-- fact_check: User wants to verify a rumor or claim they heard (contains phrases like "I heard that", "Is it true that", "Can you verify", "myth", "rumor")
-- form_help: User needs help understanding or filling out an immigration form (IMM forms, specific form fields)
-- general: Everything else (jokes, weather, unrelated topics)
-
-Examples:
-- "How do I apply for a work permit?" → immigration
-- "Where can I find ESL classes in Toronto?" → newcomer_settlement  
-- "What's the weather like today?" → general
-- "Am I eligible for PR?" → immigration
-- "How do I open a bank account in Canada?" → newcomer_settlement
-- "What's a TFSA?" → newcomer_settlement
-- "How does RRSP work?" → newcomer_settlement
-- "How do I build credit in Canada?" → newcomer_settlement
-- "What is EI?" → newcomer_settlement
-- "How do I find a job in Canada?" → newcomer_settlement
-- "How do I get a SIN number?" → newcomer_settlement
-- "I heard that international students can work 40 hours now" → fact_check
-- "Is it true that PR holders can sponsor parents?" → fact_check
-- "Can you verify if PGWP is being extended?" → fact_check
-- "Help me fill out IMM5710" → form_help
-- "What does field 4a on IMM5257 mean?" → form_help
-- "I need help with my study permit application form" → form_help
-- "Tell me a joke" → general`;
-
-  try {
-    const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: `${classifierSystemMessage}\n\nUser question: ${prompt}`,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            maxOutputTokens: 15,
-            temperature: 0,
-          },
-        }),
-      },
-      { timeoutMs: 12000, retries: 1, retryDelayMs: 300 }
-    );
-
-    if (!response.ok) {
-      console.error('Classifier API error:', response.statusText);
-      return 'general'; // Fallback to general on error (safer)
-    }
-
-    const data = await response.json();
-    const result = data.candidates?.[0]?.content?.parts?.[0]?.text
-      ?.trim()
-      .toLowerCase();
-
-    console.log('Classifier result:', result);
-
-    if (result === 'immigration') return 'immigration';
-    if (result === 'newcomer_settlement') return 'newcomer_settlement';
-    if (result === 'fact_check') return 'fact_check';
-    if (result === 'form_help') return 'form_help';
-    return 'general';
-  } catch (error) {
-    console.error('Classifier error:', error);
-    return 'general'; // Fallback to general on error (safer)
-  }
+  if (GREETING_PATTERN.test(trimmed)) return 'general';
+  if (FACT_CHECK_PATTERN.test(trimmed)) return 'fact_check';
+  if (FORM_HELP_PATTERN.test(trimmed)) return 'form_help';
+  return 'immigration';
 }
 
 // ============================================================================
@@ -368,11 +378,23 @@ End with one actionable next step the user can take.
 
 Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
+PROVINCE-SPECIFIC AUTHORITIES (refer to the user's province when relevant):
+- Driver's licensing: Ontario→ServiceOntario / DriveTest (G1/G2/G), British Columbia→ICBC (Class 7L/7N/5), Quebec→SAAQ (Classes 5/6), Alberta→Service Alberta / Alberta Registries, Manitoba→Manitoba Public Insurance, Saskatchewan→SGI, Nova Scotia→Service Nova Scotia, New Brunswick→Service New Brunswick.
+- Health coverage: Ontario→OHIP, British Columbia→MSP, Quebec→RAMQ, Alberta→AHCIP, Manitoba→Manitoba Health, Saskatchewan→Saskatchewan Health, Nova Scotia→MSI, New Brunswick→Medicare NB.
+- Tenancy / housing: Ontario→Landlord and Tenant Board, British Columbia→Residential Tenancy Branch (BC RTA), Quebec→Tribunal administratif du logement, Alberta→Residential Tenancy Dispute Resolution Service.
+- Employment standards: each province has its own; Quebec→CNESST, Ontario→Ministry of Labour, BC→Employment Standards Branch.
+When the user is in Quebec, also surface Quebec-specific programs (CSQ, PEQ, francisation classes) when settlement-relevant.
+
+PROFESSIONAL CREDENTIAL RECOGNITION:
+Direct internationally-trained professionals to (a) the federal credential assessment service for their occupation (e.g. NNAS for nurses, MCC for physicians, ECA for engineers via WES/ICES/CES), AND (b) the provincial regulator in their province (e.g. CRNS in Saskatchewan, CNO in Ontario, BCCNM in BC for nurses). Mention bridging programs when known.
+
 CRITICAL GUARDRAILS:
-1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
-2. **NO PERSONAL DECISIONS**: For questions like "Am I eligible?" — explain general criteria but recommend they verify with IRCC or a licensed professional.
-3. **OFFICIAL SOURCES**: Recommend IRCC (ircc.canada.ca) for current information.
-4. **CITE SOURCES**: Only include sources when directly using knowledge base information.${SUGGESTIONS_INSTRUCTION}`;
+1. **PERSONAL ELIGIBILITY**: For "Am I eligible?" or "Will I get approved?" questions — explain the general criteria, then say to verify with IRCC or a licensed immigration professional. Do not give a yes/no.
+2. **STABLE PUBLIC FACTS**: Common public knowledge IS answerable directly — citizenship test format (20 multiple-choice questions, pass mark 15/20), CRS components and how points are calculated, Express Entry vs PNP basics, study/work permit work-hour rules, what a SIN is, what a TFSA is, etc. Do NOT dodge these by pointing to IRCC for the answer.
+3. **NEVER QUOTE FEES OR PROCESSING TIMES FROM MEMORY**: Specific dollar amounts (PGWP fee, study permit fee, citizenship fee) and processing-time numbers change frequently. ONLY cite a fee or processing time if it appears in the KB context above. Otherwise say "check current fees and processing times on canada.ca/ircc" without naming a number.
+4. **MANDATORY LAWYER/RCIC REFERRAL** for these topics: refugee/asylum claims, deportation/removal/inadmissibility, application denials, misrepresentation, criminality, sponsorship-application denials, overstay disclosure questions, judicial review. ALWAYS include the phrase "consult a licensed immigration lawyer or RCIC (Regulated Canadian Immigration Consultant)" in responses on these topics. Do NOT recommend specific lawyers or firms by name.
+5. **OFFICIAL SOURCES**: For changing/recent rules, point to IRCC (ircc.canada.ca). For provincial topics, point to the province-specific authority listed above.
+6. **CITE SOURCES**: Only include sources when directly using knowledge base information.${SUGGESTIONS_INSTRUCTION}`;
 }
 
 /**
@@ -393,13 +415,22 @@ End with one actionable next step the user can take.
 
 Do NOT use ## section headers like "Short Answer" or "Explanation" — just flow naturally from answer to context to next step. Do NOT include an "Important Notes" or disclaimer section — the app already shows a disclaimer.
 
-Note: You are answering from general knowledge (not the knowledge base). Mention that users should verify with official sources like IRCC.
+Note: You are answering from general knowledge (not the knowledge base). Mention that users should verify with official sources like IRCC for current rules.
+
+PROVINCE-SPECIFIC AUTHORITIES (refer to the user's province when relevant):
+- Driver's licensing: Ontario→ServiceOntario / DriveTest, British Columbia→ICBC, Quebec→SAAQ, Alberta→Service Alberta, Manitoba→MPI, Saskatchewan→SGI.
+- Health coverage: Ontario→OHIP, BC→MSP, Quebec→RAMQ, Alberta→AHCIP, Manitoba→Manitoba Health.
+- Tenancy: Ontario→Landlord and Tenant Board, BC→BC RTA / Residential Tenancy Branch, Quebec→Tribunal administratif du logement.
+
+PROFESSIONAL CREDENTIALS:
+Direct internationally-trained professionals to the federal assessment service for their occupation (NNAS for nurses, MCC for physicians, ECA via WES/ICES/CES for engineers) AND the provincial regulator in their province.
 
 CRITICAL GUARDRAILS:
-1. **NO LEGAL ADVICE**: Never make eligibility determinations. Use "generally," "typically," or "you may be eligible if..."
-2. **NO PERSONAL DECISIONS**: For questions like "Am I eligible?" — explain general criteria but recommend they verify with IRCC or a licensed professional.
-3. **OFFICIAL SOURCES**: Recommend IRCC (ircc.canada.ca) for current information.
-4. **USE GENERAL KNOWLEDGE**: Answer using general knowledge but note it should be verified with official sources.${SUGGESTIONS_INSTRUCTION}`;
+1. **PERSONAL ELIGIBILITY**: For "Am I eligible?" or "Will I get approved?" — explain general criteria, recommend verifying with IRCC or a licensed professional. No yes/no.
+2. **STABLE PUBLIC FACTS**: Citizenship test format (20 questions, pass mark 15/20), CRS components, study/work permit work-hour rules, what a SIN/TFSA is — answer directly. Do NOT dodge these.
+3. **NEVER QUOTE FEES OR PROCESSING TIMES FROM MEMORY**: Specific dollar amounts and processing times change. Without KB context, say "check current fees and processing times on canada.ca/ircc" instead of naming a number.
+4. **MANDATORY LAWYER/RCIC REFERRAL** for: refugee/asylum, deportation/removal/inadmissibility, application denials, misrepresentation, criminality, sponsorship denials, overstay disclosure, judicial review. Always include "consult a licensed immigration lawyer or RCIC".
+5. **OFFICIAL SOURCES**: Point to IRCC (ircc.canada.ca) for changing rules; province-specific authority for provincial topics.${SUGGESTIONS_INSTRUCTION}`;
 }
 
 /**
@@ -454,15 +485,17 @@ ${kbContext}
 CRITICAL: EDUCATIONAL ONLY - NEVER TELL THEM WHAT TO WRITE
 Your job is to EXPLAIN what questions mean and what information is being asked for. You are NOT providing legal advice or telling them how to answer.
 
-RESPONSE FORMAT:
+DETECT THE FORM FIRST:
+If the user's question mentions a form number (anything like "IMM 5710", "IMM5257", "IMM 1294", "form 5710"), proceed DIRECTLY to the field explanation. Do NOT ask which form they are working on. Only ask for the form number when the user has not mentioned one.
 
-## Which Form?
-If not specified, ask: "Which form are you working on? (e.g., IMM5710, IMM5257, IMM1294)"
+RESPONSE FORMAT:
 
 ## Field Explanation
 Explain what the field/question is asking for in simple terms. Use examples of the TYPE of information needed, not specific answers.
 
 Example: "This field asks for your travel history - list all countries you've visited in the past 10 years, including short trips."
+
+For the official wording and any sub-instructions, point the user to the IRCC instruction guide for that specific form (e.g. "IMM 5710 instruction guide" on canada.ca/ircc).
 
 ## Tips
 1-2 practical tips for filling out this section accurately.
@@ -554,7 +587,11 @@ Deno.serve(async (req: Request) => {
       conversationIdentifier,
       messages,
       userId: requestUserId,
+      eval_profile: evalProfile,
+      stream: streamRequested,
     } = await req.json();
+
+    const isStreaming = streamRequested === true;
 
     if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), {
@@ -563,19 +600,30 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const model = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
     const preprompt = Deno.env.get('GEMINI_PREPROMPT') || '';
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
-    if (!apiKey) {
-      throw new Error('Missing GEMINI_API_KEY');
+    if (!Deno.env.get('OPENROUTER_API_KEY')) {
+      throw new Error('Missing OPENROUTER_API_KEY');
     }
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Eval-mode bypass: skip auth/rate-limit/profile-fetch/usage-persist when
+    // the request comes from the regression eval harness. Gated by the
+    // x-eval-secret header matching the EVAL_BYPASS_SECRET env var (server-only
+    // secret set via Supabase Functions Secrets), so external callers cannot
+    // trigger this without knowing the secret. Decoupled from the service-role
+    // key so it works regardless of legacy JWT vs new sb_secret_ key format.
+    const evalBypassSecret = Deno.env.get('EVAL_BYPASS_SECRET');
+    const isEvalMode =
+      req.headers.get('x-eval-mode') === '1' &&
+      !!evalBypassSecret &&
+      req.headers.get('x-eval-secret') === evalBypassSecret;
+
     const authStartedAt = performance.now();
     const authPromise = resolveAuthenticatedUserId(
       req,
@@ -585,42 +633,47 @@ Deno.serve(async (req: Request) => {
       stageTimings.auth_ms = Math.round(performance.now() - authStartedAt);
       return userId;
     });
+    // Heuristic classifier — synchronous, no LLM call. Replaces a per-request
+    // OpenRouter classifier that added ~500-1500ms TTFT. Default lane is
+    // 'immigration', which has the safest prompt + RAG grounding, so any
+    // false negative fails open into the most-grounded path.
     const classifyStartedAt = performance.now();
-    const classifyPromise = classifyQuery(prompt.trim(), apiKey!, model).then(
-      queryType => {
-        stageTimings.classify_ms = Math.round(
-          performance.now() - classifyStartedAt
-        );
-        return queryType;
-      }
+    const queryType = classifyQueryHeuristic(prompt.trim());
+    stageTimings.classify_ms = Math.round(
+      performance.now() - classifyStartedAt
     );
 
     const authenticatedUserId = await authPromise;
 
     // Require authentication — reject unauthenticated requests to prevent
-    // abuse and uncontrolled API credit consumption.
-    if (!authenticatedUserId) {
+    // abuse and uncontrolled API credit consumption. Eval mode skips this.
+    if (!isEvalMode && !authenticatedUserId) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const effectiveUserId = authenticatedUserId;
+    const effectiveUserId = isEvalMode
+      ? 'eval-mode'
+      : authenticatedUserId!;
 
     // Atomic rate limit: check + increment in one RPC (fail-closed).
-    // Returns false if over the daily cap or on any DB error.
-    const DAILY_MESSAGE_LIMIT = 30;
-    const { data: allowed, error: quotaError } = await supabase.rpc(
-      'check_and_increment_chatbot_usage',
-      { p_user_id: effectiveUserId, p_daily_limit: DAILY_MESSAGE_LIMIT }
-    );
-
-    if (quotaError || allowed === false) {
-      return new Response(
-        JSON.stringify({ error: 'Daily message limit reached. Try again tomorrow.' }),
-        { status: 429, headers: { 'Content-Type': 'application/json' } }
+    // Returns false if over the daily cap or on any DB error. Skipped in eval
+    // mode so regression runs don't consume real users' daily quotas.
+    if (!isEvalMode) {
+      const DAILY_MESSAGE_LIMIT = 30;
+      const { data: allowed, error: quotaError } = await supabase.rpc(
+        'check_and_increment_chatbot_usage',
+        { p_user_id: effectiveUserId, p_daily_limit: DAILY_MESSAGE_LIMIT }
       );
+
+      if (quotaError || allowed === false) {
+        return new Response(
+          JSON.stringify({ error: 'Daily message limit reached. Try again tomorrow.' }),
+          { status: 429, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     if (
@@ -631,24 +684,50 @@ Deno.serve(async (req: Request) => {
       console.warn('Ignoring mismatched request userId and authenticated user');
     }
 
-    const profilePromise = effectiveUserId
+    const profilePromise: Promise<ProfileBundle> = isEvalMode
+      ? Promise.resolve({
+          text: evalProfile ? buildUserProfileContext(evalProfile) : '',
+          raw: evalProfile,
+        })
+      : effectiveUserId
       ? (async () => {
           const profileStartedAt = performance.now();
-          const userProfileContext = await fetchUserProfileContext(
+          const bundle = await fetchUserProfileContext(
             supabase,
             effectiveUserId
           );
           stageTimings.profile_ms = Math.round(
             performance.now() - profileStartedAt
           );
-          return userProfileContext;
+          return bundle;
         })()
-      : Promise.resolve('');
+      : Promise.resolve<ProfileBundle>({ text: '', raw: null });
 
-    // ========================================================================
-    // STEP 1: CLASSIFY THE QUERY (runs BEFORE embeddings to save costs)
-    // ========================================================================
-    const queryType = await classifyPromise;
+    // Fetch first_name to personalize the system prompt. Missing first_name is
+    // expected for existing users — we just skip the name directive. Failures
+    // are non-fatal: the Companion still works without a name.
+    const firstNamePromise: Promise<string | null> =
+      !isEvalMode && effectiveUserId
+        ? (async () => {
+            try {
+              const { data: userRow } = await supabase
+                .from('users')
+                .select('first_name')
+                .eq('id', effectiveUserId)
+                .maybeSingle();
+              return sanitizeNameForPrompt(
+                (userRow?.first_name as string | null) ?? null
+              );
+            } catch (err) {
+              console.warn(
+                '[rag-query] first_name lookup failed (non-fatal)',
+                err
+              );
+              return null;
+            }
+          })()
+        : Promise.resolve(null);
+
     console.log('Query classified as:', queryType);
 
     // Determine if we need RAG (knowledge base search)
@@ -680,7 +759,17 @@ Deno.serve(async (req: Request) => {
           'OPENAI_API_KEY is missing. Proceeding without KB retrieval for this request.'
         );
       } else {
-        // Generate embedding for user query
+        // Profile-aware retrieval: prepend province/status/persona to the
+        // embedding input so a Quebec user asking about driver's licenses
+        // pulls SAAQ chunks instead of generic Canadian content. Profile fetch
+        // ran in parallel with auth/classify; awaiting it here costs nothing.
+        const profileBundleForRetrieval = await profilePromise;
+        const retrievalQuery = buildRetrievalQuery(
+          prompt,
+          profileBundleForRetrieval.raw
+        );
+
+        // Generate embedding for profile-aware query
         const embeddingStartedAt = performance.now();
         const embeddingResponse = await fetchWithRetry(
           'https://api.openai.com/v1/embeddings',
@@ -692,7 +781,7 @@ Deno.serve(async (req: Request) => {
             },
             body: JSON.stringify({
               model: EMBEDDING_MODEL,
-              input: prompt,
+              input: retrievalQuery,
             }),
           },
           { timeoutMs: 15000, retries: 2, retryDelayMs: 400 }
@@ -809,8 +898,8 @@ Deno.serve(async (req: Request) => {
 
     const conversationHistory = recentMessages.map(
       (msg: { message: string; role: 'user' | 'assistant' }) => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.message }],
+        role: msg.role === 'user' ? ('user' as const) : ('assistant' as const),
+        content: msg.message,
       })
     );
 
@@ -839,97 +928,351 @@ Deno.serve(async (req: Request) => {
     }
 
     // Add preprompt if available
-    const userProfileContext = await profilePromise;
+    const userProfileBundle = await profilePromise;
+    const userFirstName = await firstNamePromise;
+    const nameDirective = userFirstName
+      ? `The user's first name is ${userFirstName}. Address them by name occasionally where it feels natural — not in every response, and never in formal/legal answers.\n\n`
+      : '';
     let fullSystemInstruction = preprompt
-      ? `${preprompt}\n\n${systemInstruction}`
-      : systemInstruction;
-    if (userProfileContext) {
-      fullSystemInstruction = `${fullSystemInstruction}\n\n${userProfileContext}`;
+      ? `${nameDirective}${preprompt}\n\n${systemInstruction}`
+      : `${nameDirective}${systemInstruction}`;
+    if (userProfileBundle.text) {
+      fullSystemInstruction = `${fullSystemInstruction}\n\n${userProfileBundle.text}`;
     }
 
     // ========================================================================
-    // STEP 5: BUILD REQUEST AND CALL GEMINI
+    // STEP 5: BUILD REQUEST AND CALL OPENROUTER
     // ========================================================================
-    const contents = [...conversationHistory];
-    contents.push({
-      role: 'user',
-      parts: [{ text: prompt }],
-    });
+    const messagesForLlm = [
+      { role: 'system' as const, content: fullSystemInstruction },
+      ...conversationHistory,
+      { role: 'user' as const, content: prompt },
+    ];
 
-    const requestBody = {
-      systemInstruction: {
-        parts: [{ text: fullSystemInstruction }],
-      },
-      contents: contents,
-      generationConfig: {
-        maxOutputTokens: 1200,
-      },
-    };
-
-    console.log('Gemini API Request Details:');
-    console.log('- Model:', model);
+    console.log('OpenRouter Request Details:');
     console.log('- Query type:', queryType);
     console.log('- Has good KB hits:', hasGoodKBHits);
+    console.log('- Streaming:', isStreaming);
 
-    const generationStartedAt = performance.now();
-    const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      },
-      { timeoutMs: 20000, retries: 2, retryDelayMs: 500 }
-    );
+    // ========================================================================
+    // STEP 5a: STREAMING BRANCH
+    // ========================================================================
+    // When the client opts in via `stream: true`, return a text/event-stream
+    // response. We emit:
+    //   event: metadata    — sources/queryType/disclaimer/lastVerified
+    //   event: token       — incremental delta from OpenRouter
+    //   event: complete    — final cleanAnswer + suggestions + token usage
+    //
+    // Token tracking, PostHog capture, and chatbot_usage persistence still
+    // run server-side at completion using the FINAL accumulated answer.
+    // The non-streaming path below is unchanged so the eval harness keeps
+    // working.
+    if (isStreaming) {
+      // Propagated into callOpenRouterStream and triggered when the client
+      // disconnects mid-stream. Without this, the upstream OpenRouter SSE
+      // keeps draining tokens that nobody sees — pure cost leak.
+      const upstreamAbort = new AbortController();
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.statusText}`);
+      const streamResult = await callOpenRouterStream({
+        messages: messagesForLlm,
+        maxTokens: 1200,
+        timeoutMs: 25000,
+        retries: 1,
+        retryDelayMs: 500,
+        appName: 'Unify — AI Companion',
+        signal: upstreamAbort.signal,
+      });
+
+      if (!streamResult.ok) {
+        if (streamResult.retryable) {
+          logStageTimings('error');
+          return new Response(
+            JSON.stringify({
+              error:
+                'AI Companion is busy right now. Please try again in a minute.',
+              code: 'ai_companion_busy',
+            }),
+            {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            }
+          );
+        }
+        console.error(
+          'OpenRouter streaming call failed:',
+          streamResult.message
+        );
+        throw new Error(streamResult.message);
+      }
+
+      const generationStartedAt = performance.now();
+      const encoder = new TextEncoder();
+
+      const sse = (event: string, payload: unknown): Uint8Array =>
+        encoder.encode(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
+
+      // Set true when controller.enqueue throws (client closed connection)
+      // OR when the ReadableStream `cancel` hook fires. Used to abort the
+      // upstream OpenRouter fetch and to skip post-stream PostHog capture
+      // and chatbot_usage persistence — we don't bill or analytics-log a
+      // half-consumed answer the user never saw.
+      let clientDisconnected = false;
+
+      const responseStream = new ReadableStream<Uint8Array>({
+        async start(controller) {
+          let accumulatedAnswer = '';
+          let finalUsage:
+            | {
+                promptTokens: number;
+                completionTokens: number;
+                totalTokens: number;
+                costUsd?: number;
+              }
+            | undefined;
+          let resolvedModel: string | undefined;
+          let resolvedProvider: string | undefined;
+
+          // controller.enqueue throws TypeError once the stream has been
+          // canceled (client disconnect, RN unmount). Catch, mark disconnected,
+          // abort upstream so OpenRouter stops draining tokens.
+          const safeEnqueue = (bytes: Uint8Array): boolean => {
+            try {
+              controller.enqueue(bytes);
+              return true;
+            } catch {
+              clientDisconnected = true;
+              upstreamAbort.abort();
+              return false;
+            }
+          };
+
+          try {
+            // Emit metadata first so the client can render sources / disclaimer
+            // alongside the empty bot bubble before any tokens arrive.
+            if (
+              !safeEnqueue(
+                sse('metadata', {
+                  sources: sources.length > 0 ? sources : undefined,
+                  queryType,
+                  disclaimer,
+                  lastVerified: lastVerified || undefined,
+                })
+              )
+            ) {
+              return;
+            }
+
+            for await (const chunk of streamResult.stream) {
+              if (clientDisconnected) break;
+              if (chunk.delta) {
+                accumulatedAnswer += chunk.delta;
+                if (!safeEnqueue(sse('token', { delta: chunk.delta }))) break;
+              }
+              if (chunk.usage) finalUsage = chunk.usage;
+              if (chunk.model) resolvedModel = chunk.model;
+              if (chunk.provider) resolvedProvider = chunk.provider;
+            }
+
+            // If the client dropped mid-stream, skip everything below: we
+            // don't bill, don't capture analytics, don't emit `complete`.
+            if (clientDisconnected) {
+              logStageTimings('error');
+              return;
+            }
+
+            stageTimings.generation_ms = Math.round(
+              performance.now() - generationStartedAt
+            );
+
+            const rawAnswer =
+              accumulatedAnswer || 'Sorry, I could not generate a response.';
+            const tokenUsage = {
+              prompt_tokens: finalUsage?.promptTokens ?? 0,
+              completion_tokens: finalUsage?.completionTokens ?? 0,
+              total_tokens: finalUsage?.totalTokens ?? 0,
+            };
+            const estimatedCostUsd = finalUsage?.costUsd;
+
+            // PostHog $ai_generation capture — same shape as non-streaming.
+            // $ai_input includes the full multi-turn conversation (last 10
+            // turns from conversationHistory + the current user prompt) so
+            // LLM trace UI and eval mining can reconstruct context. System
+            // prompt and RAG context are excluded — they're constants per
+            // queryType and would balloon event payload.
+            if (!isEvalMode) {
+              captureAiGeneration(effectiveUserId, {
+                $ai_model: resolvedModel ?? 'unknown',
+                $ai_provider: resolvedProvider ?? 'unknown',
+                $ai_input_tokens: tokenUsage.prompt_tokens,
+                $ai_output_tokens: tokenUsage.completion_tokens,
+                $ai_total_tokens: tokenUsage.total_tokens,
+                $ai_total_cost_usd: estimatedCostUsd,
+                $ai_trace_id: conversationIdentifier || undefined,
+                $ai_input: [
+                  ...conversationHistory,
+                  { role: 'user', content: prompt },
+                ],
+                $ai_output_choices: [
+                  { role: 'assistant', content: rawAnswer },
+                ],
+                feature: 'ai_companion',
+                query_type: queryType,
+                has_sources: sources.length > 0,
+                response_time_ms: stageTimings.generation_ms,
+              });
+            }
+
+            if (
+              !isEvalMode &&
+              effectiveUserId &&
+              tokenUsage.total_tokens > 0
+            ) {
+              scheduleBackgroundTask(
+                persistChatbotUsage(
+                  supabase,
+                  effectiveUserId,
+                  tokenUsage,
+                  estimatedCostUsd
+                )
+              );
+            }
+
+            const { cleanAnswer, suggestions } =
+              parseSuggestionsFromResponse(rawAnswer);
+
+            safeEnqueue(
+              sse('complete', {
+                cleanAnswer,
+                suggestedNextSteps:
+                  suggestions.length > 0 ? suggestions : undefined,
+                tokenUsage,
+                estimatedCostUsd,
+                model: resolvedModel,
+                provider: resolvedProvider,
+              })
+            );
+
+            logStageTimings('success');
+          } catch (streamErr) {
+            // Distinguish a real upstream/parse error from an abort triggered
+            // by client disconnect. AbortError is the expected control-flow
+            // signal when upstreamAbort.abort() fires from cancel/safeEnqueue.
+            const isAbort =
+              streamErr instanceof DOMException &&
+              streamErr.name === 'AbortError';
+            if (isAbort && clientDisconnected) {
+              logStageTimings('error');
+              return;
+            }
+            console.error('Streaming generation failed:', streamErr);
+            safeEnqueue(
+              sse('error', {
+                error:
+                  streamErr instanceof Error
+                    ? streamErr.message
+                    : 'Streaming failed',
+              })
+            );
+            logStageTimings('error');
+          } finally {
+            try {
+              controller.close();
+            } catch {
+              // already closed
+            }
+          }
+        },
+        // Fires when the consumer (Deno HTTP server / client connection)
+        // cancels the stream — e.g. RN client unmount, network drop. Abort
+        // the upstream OpenRouter fetch so we stop billing for tokens nobody
+        // will see. The for-await loop in start() exits via AbortError, then
+        // skips the post-stream PostHog/persist work via clientDisconnected.
+        cancel(_reason) {
+          clientDisconnected = true;
+          upstreamAbort.abort();
+        },
+      });
+
+      return new Response(responseStream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+          // Disable proxy buffering (nginx/cloudflare) so tokens flush immediately.
+          'x-accel-buffering': 'no',
+        },
+      });
     }
 
-    const geminiData = await response.json();
+    // ========================================================================
+    // STEP 5b: NON-STREAMING (eval harness + backwards-compat)
+    // ========================================================================
+    const generationStartedAt = performance.now();
+    const llmResult = await callOpenRouter({
+      messages: messagesForLlm,
+      maxTokens: 1200,
+      timeoutMs: 25000,
+      retries: 1,
+      retryDelayMs: 500,
+      appName: 'Unify — AI Companion',
+    });
     stageTimings.generation_ms = Math.round(
       performance.now() - generationStartedAt
     );
 
-    // Extract answer from Gemini response
-    let rawAnswer = 'Sorry, I could not generate a response.';
-    if (geminiData.candidates?.[0]?.content?.parts?.[0]) {
-      rawAnswer = geminiData.candidates[0].content.parts[0].text.trim();
+    if (!llmResult.ok) {
+      // Surface upstream rate-limit / capacity issues as a 503 with a
+      // user-friendly message instead of a generic 500. The client
+      // detects 503 from this function and shows a "busy, try again"
+      // toast rather than an opaque error.
+      if (llmResult.retryable) {
+        logStageTimings('error');
+        return new Response(
+          JSON.stringify({
+            error:
+              'AI Companion is busy right now. Please try again in a minute.',
+            code: 'ai_companion_busy',
+          }),
+          {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+      console.error('OpenRouter call failed:', llmResult.message);
+      throw new Error(llmResult.message);
     }
 
-    // Extract token usage from Gemini response
-    const usageMetadata = geminiData.usageMetadata;
-    const tokenUsage = usageMetadata
-      ? {
-          prompt_tokens: usageMetadata.promptTokenCount || 0,
-          completion_tokens: usageMetadata.candidatesTokenCount || 0,
-          total_tokens: usageMetadata.totalTokenCount || 0,
-        }
-      : undefined;
+    const rawAnswer = llmResult.content || 'Sorry, I could not generate a response.';
 
-    // Calculate estimated cost using shared pricing helper
-    let estimatedCostUsd: number | undefined;
-    if (tokenUsage) {
-      const cost = computeGeminiCost(
-        tokenUsage.prompt_tokens,
-        tokenUsage.completion_tokens,
-        model
-      );
-      estimatedCostUsd = cost.totalCost;
+    const tokenUsage = {
+      prompt_tokens: llmResult.usage.promptTokens,
+      completion_tokens: llmResult.usage.completionTokens,
+      total_tokens: llmResult.usage.totalTokens,
+    };
+    const estimatedCostUsd = llmResult.usage.costUsd;
 
-      // Send $ai_generation event to PostHog LLM analytics
-      captureAiGeneration(effectiveUserId || 'anonymous', {
-        $ai_model: model,
-        $ai_provider: 'google',
+    // Send $ai_generation event to PostHog LLM analytics. effectiveUserId is
+    // guaranteed non-null here — unauthenticated requests already 401'd above.
+    // Skipped in eval mode so regression runs don't pollute prod analytics.
+    if (!isEvalMode) {
+      captureAiGeneration(effectiveUserId, {
+        $ai_model: llmResult.model,
+        $ai_provider: llmResult.provider,
         $ai_input_tokens: tokenUsage.prompt_tokens,
         $ai_output_tokens: tokenUsage.completion_tokens,
         $ai_total_tokens: tokenUsage.total_tokens,
-        $ai_input_cost_usd: cost.inputCost,
-        $ai_output_cost_usd: cost.outputCost,
-        $ai_total_cost_usd: cost.totalCost,
+        $ai_total_cost_usd: estimatedCostUsd,
         $ai_trace_id: conversationIdentifier || undefined,
+        // Full multi-turn conversation for LLM trace UI + eval mining
+        // (last 10 turns + the current user prompt). Excludes the system
+        // prompt and RAG context — constants per queryType, would balloon
+        // event payload.
+        $ai_input: [
+          ...conversationHistory,
+          { role: 'user', content: prompt },
+        ],
+        $ai_output_choices: [{ role: 'assistant', content: rawAnswer }],
         // Custom properties for filtering
         feature: 'ai_companion',
         query_type: queryType,
@@ -939,7 +1282,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Store token usage outside the response critical path.
-    if (effectiveUserId && tokenUsage) {
+    if (!isEvalMode && effectiveUserId && tokenUsage.total_tokens > 0) {
       scheduleBackgroundTask(
         persistChatbotUsage(
           supabase,

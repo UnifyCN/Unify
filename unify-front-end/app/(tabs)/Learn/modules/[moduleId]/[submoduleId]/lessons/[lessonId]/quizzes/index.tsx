@@ -9,11 +9,13 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSanityLessonQuizzes } from '@/hooks/sanity/useSanityQuizzes';
 import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
 import { useCallback, useRef } from 'react';
 
 export default function QuizzesPage() {
+  const { t } = useTranslation();
   const { moduleId, submoduleId, lessonId } = useLocalSearchParams<{
     moduleId: string;
     submoduleId: string;
@@ -44,7 +46,7 @@ export default function QuizzesPage() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size='large' color='#3B82F6' />
-          <Text style={styles.loadingText}>Loading quizzes...</Text>
+          <Text style={styles.loadingText}>{t('learn.quiz.loadingQuizzes')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -55,7 +57,7 @@ export default function QuizzesPage() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            Error loading quizzes: {error.message}
+            {t('learn.quizzes.errorLoading', { message: error.message })}
           </Text>
         </View>
       </SafeAreaView>
@@ -66,15 +68,15 @@ export default function QuizzesPage() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No Quizzes Available</Text>
+          <Text style={styles.emptyTitle}>{t('learn.quiz.noQuizzesAvailable')}</Text>
           <Text style={styles.emptyText}>
-            This lesson doesn't have any quizzes yet.
+            {t('learn.quizzes.empty')}
           </Text>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Back to Lesson</Text>
+            <Text style={styles.backButtonText}>{t('learn.quiz.backToLesson')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -85,9 +87,9 @@ export default function QuizzesPage() {
     <SafeAreaView style={styles.safe}>
       <ScrollView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Quizzes</Text>
+          <Text style={styles.title}>{t('learn.quiz.quizzesTitle')}</Text>
           <Text style={styles.subtitle}>
-            Test your knowledge with these quizzes
+            {t('learn.quizzes.header')}
           </Text>
         </View>
 
@@ -117,7 +119,7 @@ export default function QuizzesPage() {
               }}
             >
               <View style={styles.quizHeader}>
-                <Text style={styles.quizNumber}>Quiz {quiz.order_number}</Text>
+                <Text style={styles.quizNumber}>{t('learn.quiz.quizPrefix', { number: quiz.order_number })}</Text>
                 <Text style={styles.quizTitle}>{quiz.title}</Text>
               </View>
 
@@ -126,7 +128,7 @@ export default function QuizzesPage() {
               )}
 
               <View style={styles.quizFooter}>
-                <Text style={styles.startQuiz}>Start Quiz →</Text>
+                <Text style={styles.startQuiz}>{t('learn.quiz.startQuiz')}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -137,7 +139,7 @@ export default function QuizzesPage() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.backButtonText}>Back to Lesson</Text>
+            <Text style={styles.backButtonText}>{t('learn.quiz.backToLesson')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

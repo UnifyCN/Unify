@@ -1,11 +1,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { callOpenRouter } from '../_shared/openrouter.ts';
 
 // ============================================================================
 // CONFIG
 // ============================================================================
-
-const GEMINI_MODEL = Deno.env.get('GEMINI_MODEL') || 'gemini-2.5-flash';
 
 const STAGE_DESCRIPTIONS: Record<string, string> = {
   '0': 'pre-arrival or just arrived (0-1 months)',
@@ -208,41 +207,24 @@ function parseGeminiTipResponse(rawText: string): GeneratedTip | null {
   }
 }
 
-async function callGemini(
-  prompt: string,
-  geminiApiKey: string
-): Promise<string | null> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
+async function callTipModel(prompt: string): Promise<string | null> {
+  const result = await callOpenRouter({
+    messages: [{ role: 'user', content: prompt }],
+    maxTokens: 300,
+    temperature: 0.8,
+    jsonMode: true,
+    timeoutMs: 20000,
+    retries: 1,
+    retryDelayMs: 500,
+    appName: 'Unify — get-daily-tip',
+  });
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 300, temperature: 0.8 },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      return null;
-    }
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || null;
-  } catch (error) {
-    console.error('Gemini call failed:', error);
+  if (!result.ok) {
+    console.error('OpenRouter call failed:', result.message);
     return null;
-  } finally {
-    clearTimeout(timeoutId);
   }
+
+  return result.content;
 }
 
 // ============================================================================
@@ -262,9 +244,8 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: 'Missing Supabase env vars' }, 500);
   }
 
-  const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-  if (!geminiApiKey) {
-    return jsonResponse({ error: 'Missing GEMINI_API_KEY' }, 500);
+  if (!Deno.env.get('OPENROUTER_API_KEY')) {
+    return jsonResponse({ error: 'Missing OPENROUTER_API_KEY' }, 500);
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
@@ -302,7 +283,66 @@ Deno.serve(async (req: Request) => {
 
     const userId = authData.user.id;
 
-    // 3. Check if today's tip already exists for this user
+    // 3. Check if today's tip already exists for this user.
+    // Race protection: two concurrent requests (e.g. pull-to-refresh + tab
+    // focus) would otherwise BOTH call Gemini and burn tokens. We solve this
+    // by inserting a `__pending__` placeholder before calling Gemini; the
+    // unique index on (user_id, date) makes that an atomic claim.
+    const PENDING = '__pending__';
+    // Gemini calls can take 20-30s in the worst case. The poll budget needs to
+    // outlive that, and the staleness threshold needs to be longer than the
+    // poll budget so we don't delete in-flight claims.
+    const POLL_INTERVAL_MS = 1000;
+    const POLL_ATTEMPTS = 45; // ~45s ceiling
+    const STALE_PENDING_MS = 180_000; // 3 min — definitely abandoned by then
+
+    const respondWithTip = (row: {
+      id: string;
+      persona: string;
+      stage: string;
+      date: string;
+      category: string;
+      title: string;
+      description: string;
+      tip_text: string;
+      source_refs: unknown;
+    }) =>
+      jsonResponse({
+        tip: {
+          id: row.id,
+          persona: row.persona,
+          stage: row.stage,
+          date: row.date,
+          category: row.category,
+          title: row.title,
+          description: row.description,
+          tip_text: row.tip_text,
+          source_refs: row.source_refs,
+        },
+      });
+
+    const pollForCompletion = async () => {
+      for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt++) {
+        await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+        const { data: row } = await supabase
+          .from('daily_tips')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('date', today)
+          .maybeSingle();
+        if (row && row.title !== PENDING) {
+          return respondWithTip(row);
+        }
+      }
+      return new Response(
+        JSON.stringify({ error: 'Tip generation in progress, retry shortly' }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, 'Retry-After': '5' },
+        }
+      );
+    };
+
     const { data: existingTip, error: fetchError } = await supabase
       .from('daily_tips')
       .select('*')
@@ -315,23 +355,53 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: 'Failed to fetch tip' }, 500);
     }
 
-    if (existingTip) {
-      return jsonResponse({
-        tip: {
-          id: existingTip.id,
-          persona: existingTip.persona,
-          stage: existingTip.stage,
-          date: existingTip.date,
-          category: existingTip.category,
-          title: existingTip.title,
-          description: existingTip.description,
-          tip_text: existingTip.tip_text,
-          source_refs: existingTip.source_refs,
-        },
-      });
+    if (existingTip && existingTip.title !== PENDING) {
+      return respondWithTip(existingTip);
     }
 
-    // 4. Generate a new tip via Gemini
+    if (existingTip && existingTip.title === PENDING) {
+      const ageMs =
+        Date.now() - new Date(existingTip.created_at).getTime();
+      if (ageMs > STALE_PENDING_MS) {
+        // Crashed previous run left a stale placeholder — clear it and re-claim.
+        await supabase.from('daily_tips').delete().eq('id', existingTip.id);
+      } else {
+        // Fresh placeholder from another in-flight request — poll for completion.
+        return await pollForCompletion();
+      }
+    }
+
+    // 4. Insert claim. ON CONFLICT (user_id, date) returns 23505.
+    const { data: claim, error: claimError } = await supabase
+      .from('daily_tips')
+      .insert({
+        user_id: userId,
+        persona,
+        stage,
+        date: today,
+        category: PENDING,
+        title: PENDING,
+        description: PENDING,
+        tip_text: PENDING,
+        source_refs: null,
+      })
+      .select('id')
+      .maybeSingle();
+
+    const claimErrorCode = (claimError as { code?: string } | null)?.code;
+    const isUniqueConflict = claimErrorCode === '23505';
+
+    if (claimError && !isUniqueConflict) {
+      console.error('Daily tip claim failed:', claimError);
+      return jsonResponse({ error: 'Failed to claim tip slot' }, 500);
+    }
+
+    if (isUniqueConflict || !claim) {
+      // Lost the claim race to another concurrent request. Poll for its result.
+      return await pollForCompletion();
+    }
+
+    // We won the claim — generate via Gemini.
     const userProfile: UserProfile = {
       persona,
       stage,
@@ -342,7 +412,7 @@ Deno.serve(async (req: Request) => {
       arrival_date: profile?.arrival_date || null,
     };
     const prompt = buildGeminiPrompt(userProfile, today);
-    let rawText = await callGemini(prompt, geminiApiKey);
+    let rawText = await callTipModel(prompt);
     let tip = rawText ? parseGeminiTipResponse(rawText) : null;
 
     // Retry once on failure
@@ -350,40 +420,36 @@ Deno.serve(async (req: Request) => {
       console.warn(
         `[${persona}/${stage}] First attempt failed, retrying once`
       );
-      rawText = await callGemini(prompt, geminiApiKey);
+      rawText = await callTipModel(prompt);
       tip = rawText ? parseGeminiTipResponse(rawText) : null;
     }
 
     if (!tip) {
+      // Roll back the claim so a future request can retry.
+      await supabase.from('daily_tips').delete().eq('id', claim!.id);
       return jsonResponse({ error: 'Failed to generate tip' }, 502);
     }
 
-    // 5. Upsert into daily_tips (per-user, per-day)
-    const { data: inserted, error: upsertError } = await supabase
+    // 5. Replace placeholder with the real content.
+    const { data: inserted, error: updateError } = await supabase
       .from('daily_tips')
-      .upsert(
-        {
-          user_id: userId,
-          persona,
-          stage,
-          date: today,
-          category: tip.category,
-          title: tip.title,
-          description: tip.description,
-          tip_text: tip.tip_text,
-          source_refs: null,
-        },
-        { onConflict: 'user_id,date' }
-      )
+      .update({
+        category: tip.category,
+        title: tip.title,
+        description: tip.description,
+        tip_text: tip.tip_text,
+        source_refs: null,
+      })
+      .eq('id', claim!.id)
       .select()
       .single();
 
-    if (upsertError) {
-      console.error('DB upsert error:', upsertError);
-      // Return the generated tip even if storage fails
+    if (updateError) {
+      console.error('DB update error:', updateError);
+      // Return the generated tip even if storage update failed.
       return jsonResponse({
         tip: {
-          id: `generated-${userId}-${today}`,
+          id: claim!.id,
           persona,
           stage,
           date: today,

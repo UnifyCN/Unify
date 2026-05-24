@@ -14,6 +14,7 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { getLessonProgressesBySubmodule } from '@/services/progress/progressService';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
@@ -120,6 +121,7 @@ const getLessonStyles = (
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SubmoduleMap() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { trackScreen, trackSubmoduleViewed, trackLessonStarted } =
     useAnalytics();
   const insets = useSafeAreaInsets();
@@ -219,7 +221,7 @@ export default function SubmoduleMap() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading submodule...</Text>
+          <Text style={styles.loadingText}>{t('learn.map.loadingSubmodule')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -230,7 +232,7 @@ export default function SubmoduleMap() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>
-            Error loading submodule: {error?.message || 'Unknown error'}
+            {t('learn.map.errorLoadingSubmodule', { message: error?.message || t('common.unknownError') })}
           </Text>
         </View>
       </SafeAreaView>
@@ -489,7 +491,7 @@ export default function SubmoduleMap() {
           </TouchableOpacity>
           <View style={styles.headerTitleCenter}>
             <Text style={styles.headerSubjectName}>
-              {moduleData?.title || 'Subject'}
+              {moduleData?.title || t('common.subject')}
             </Text>
           </View>
           <View style={styles.headerRightPlaceholder} />
@@ -498,11 +500,11 @@ export default function SubmoduleMap() {
         <View style={styles.headerSectionInfo}>
           {submoduleData?.order != null && (
             <Text style={styles.sectionNumber}>
-              Section {submoduleData.order}
+              {t('learn.module.section', { number: submoduleData.order })}
             </Text>
           )}
           <Text style={styles.sectionTitle}>
-            {submoduleData?.title || 'Submodule'}
+            {submoduleData?.title || ''}
           </Text>
           {submoduleData?.description && (
             <Text style={styles.sectionDescription} numberOfLines={3}>

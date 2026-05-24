@@ -29,6 +29,7 @@ import {
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } =
@@ -39,6 +40,7 @@ export default function QuizQuestionPage() {
       quizId: string;
       questionNum: string;
     }>();
+  const { t } = useTranslation();
   const { trackScreen, capture } = useAnalytics();
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
@@ -156,7 +158,7 @@ export default function QuizQuestionPage() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading question...</Text>
+        <Text style={styles.loadingText}>{t('learn.quiz.loadingQuestion')}</Text>
       </View>
     );
   }
@@ -164,7 +166,7 @@ export default function QuizQuestionPage() {
   if (error || !questions) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error loading question</Text>
+        <Text style={styles.errorText}>{t('learn.quiz.errorLoadingQuestion')}</Text>
       </View>
     );
   }
@@ -208,7 +210,7 @@ export default function QuizQuestionPage() {
   if (!currentQuestion) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Question not found</Text>
+        <Text style={styles.errorText}>{t('learn.quiz.questionNotFound')}</Text>
       </View>
     );
   }
@@ -645,7 +647,7 @@ export default function QuizQuestionPage() {
                         styles.matchingCheckButtonTextDisabled,
                     ]}
                   >
-                    Check
+                    {t('common.check')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -767,7 +769,7 @@ export default function QuizQuestionPage() {
       {/* Footer Buttons - anchored at bottom */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Text style={styles.backButtonText}>Back</Text>
+          <Text style={styles.backButtonText}>{t('common.back')}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[
@@ -807,10 +809,10 @@ export default function QuizQuestionPage() {
             ]}
           >
             {currentQuestion.question_type === 'matching'
-              ? 'Next'
+              ? t('common.next')
               : !hasSubmitted
-                ? 'Check'
-                : 'Next'}
+                ? t('common.check')
+                : t('common.next')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -824,10 +826,10 @@ export default function QuizQuestionPage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Take a break from this quiz?</Text>
+            <Text style={styles.modalTitle}>{t('learn.lesson.exitQuizTitle')}</Text>
             <Text style={styles.modalDesc}>
-              No worries, your progress will be saved!{'\n'}
-              You can pick up right where you left off.
+              {t('learn.lesson.exitBody1')}{'\n'}
+              {t('learn.lesson.exitBody2')}
             </Text>
 
             <TouchableOpacity
@@ -842,7 +844,7 @@ export default function QuizQuestionPage() {
               }}
             >
               <Text style={styles.modalPrimaryBtnText}>
-                Save progress & leave
+                {t('learn.lesson.exitSave')}
               </Text>
             </TouchableOpacity>
 
@@ -850,7 +852,7 @@ export default function QuizQuestionPage() {
               style={styles.modalSecondaryBtn}
               onPress={() => setShowExitModal(false)}
             >
-              <Text style={styles.modalSecondaryBtnText}>Continue Quiz</Text>
+              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitQuizContinue')}</Text>
             </TouchableOpacity>
           </View>
         </View>

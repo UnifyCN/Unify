@@ -17,12 +17,14 @@ import {
   Keyboard,
   ActivityIndicator,
   Platform,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { History, Plus } from 'lucide-react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useConversationMessages } from '@/hooks/companion/useConversationMessages';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
+import { useCompanionReviewPrompt } from '@/hooks/companion/useCompanionReviewPrompt';
 import { useSendMessage } from '@/hooks/companion/useSendMessage';
 import { useCurrentUser } from '@/context/UserContext';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -38,13 +40,16 @@ import { StarterPrompts } from '@/components/companion/StarterPrompts';
 import { Theme } from '@/constants/Theme';
 import { TAB_HEADER_METRICS } from '@/constants/TabHeader';
 import SendIcon from '@/components/icons/SendIcon.svg';
-import BlueDottedLine from '@/assets/images/blue-dotted.svg';
+import { AnimatedDottedBackground } from '@/components/companion/AnimatedDottedBackground';
 import CompanionHeader from '@/components/CompanionHeader';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarters';
+import { AICompanionBusyError } from '@/utils/gemini';
+import { useToast } from '@/context/ToastContext';
 
-const MESSAGE_LIMIT = 3;
+const MESSAGE_LIMIT = 6;
 const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 const dottedLineTopOffset = -windowHeight * 0.001;
@@ -72,13 +77,14 @@ const isSendButtonDisabled = (
 };
 
 export default function CompanionScreen() {
+  const { t } = useTranslation();
   const { data: personalization } = usePersonalizedStarters();
   const { conversationId } = useLocalSearchParams<{
     conversationId?: string;
   }>();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
+  const { showToast } = useToast();
   const { height: kbHeight, progress: kbProgress } =
     useReanimatedKeyboardAnimation();
   const bottomAnimatedStyle = useAnimatedStyle(() => {
@@ -119,10 +125,6 @@ export default function CompanionScreen() {
   // Local greeting message shown when user clicks "Ask Anything"
   const [greetingMessage, setGreetingMessage] = useState<Message | null>(null);
   const [optimisticMessages, setOptimisticMessages] = useState<Message[]>([]);
-  const emptyStateTopPadding = Math.max(
-    220,
-    (windowHeight - insets.top - insets.bottom) * 0.52
-  );
 
   // Fetch messages for the current conversation
   const { data: dbMessages, isLoading: isLoadingMessages } =
@@ -187,6 +189,10 @@ export default function CompanionScreen() {
   // Ref for the text input to handle focusing
   const inputRef = useRef<TextInput>(null);
   const previousMessageCountRef = useRef<number>(0);
+  // Tracks whether the user is currently pinned near the bottom of the list.
+  // While true, new content auto-scrolls into view; when the user scrolls up
+  // to read earlier messages, we stop fighting their gesture.
+  const isNearBottomRef = useRef<boolean>(true);
 
   const { data: usage } = useChatbotUsage();
   const { currentUser } = useCurrentUser();
@@ -197,6 +203,7 @@ export default function CompanionScreen() {
     isWaitingForBot,
     lastSuggestedNextSteps,
     lastVerified,
+    streamingBotMessage,
   } = useSendMessage({
     messages,
     currentConversationId,
@@ -205,6 +212,7 @@ export default function CompanionScreen() {
   });
 
   const messageCount = usage?.message_count ?? 0;
+  useCompanionReviewPrompt(usage?.message_count);
   const messagesLeft = getMessagesLeft(messageCount, MESSAGE_LIMIT);
   const canSend = canSendMessage(isPremium, messagesLeft);
   const sendButtonDisabled = isSendButtonDisabled(
@@ -212,9 +220,18 @@ export default function CompanionScreen() {
     isLoading,
     canSend
   );
+  // Render the in-flight streaming bot bubble at the bottom of the list while
+  // tokens are arriving. Once the message is persisted, useSendMessage clears
+  // streamingBotMessage and the saved copy from the React Query cache takes
+  // over — no flicker, no duplicate.
+  const displayMessages: Message[] = useMemo(
+    () =>
+      streamingBotMessage ? [...messages, streamingBotMessage] : messages,
+    [messages, streamingBotMessage]
+  );
   const showLoadingState =
-    messages.length === 0 && (isLoadingMessages || isLoading);
-  const showEmptyState = !showLoadingState && messages.length === 0;
+    displayMessages.length === 0 && (isLoadingMessages || isLoading);
+  const showEmptyState = !showLoadingState && displayMessages.length === 0;
 
   const resetDraftState = useCallback(() => {
     setOptimisticMessages([]);
@@ -232,23 +249,41 @@ export default function CompanionScreen() {
     }
     resetDraftState();
     previousMessageCountRef.current = 0;
+    isNearBottomRef.current = true;
   }, [conversationId, resetDraftState]);
 
-  // Scroll to end only when new messages are added (not when sources expand/collapse)
+  // Scroll to end only when new messages are added (not when sources expand/collapse).
+  // Skip while the user has scrolled up to read earlier messages, and use a
+  // non-animated scroll while a bot response is streaming so the auto-scroll
+  // doesn't fight a user gesture mid-stream.
   useEffect(() => {
-    const currentMessageCount = messages.length;
+    const currentMessageCount = displayMessages.length;
     const previousMessageCount = previousMessageCountRef.current;
 
-    // Only scroll if message count increased (new message added)
-    if (currentMessageCount > previousMessageCount && currentMessageCount > 0) {
-      // Use setTimeout to ensure the layout has updated
+    if (
+      currentMessageCount > previousMessageCount &&
+      currentMessageCount > 0 &&
+      isNearBottomRef.current
+    ) {
+      const animated = !streamingBotMessage;
       setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
+        flatListRef.current?.scrollToEnd({ animated });
       }, 100);
     }
 
     previousMessageCountRef.current = currentMessageCount;
-  }, [messages.length]);
+  }, [displayMessages.length, streamingBotMessage]);
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromBottom =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      isNearBottomRef.current = distanceFromBottom < 80;
+    },
+    []
+  );
 
   const handleSendMessage = useCallback(
     async (messageText?: string) => {
@@ -285,6 +320,9 @@ export default function CompanionScreen() {
         ) {
           setInputText(textToSend);
         }
+        if (error instanceof AICompanionBusyError) {
+          showToast(error.message);
+        }
       }
     },
     [
@@ -295,19 +333,28 @@ export default function CompanionScreen() {
       trackCompanionMessageSent,
       currentConversationId,
       setOptimisticMessages,
+      showToast,
     ]
   );
 
   // Handle starter prompt selection
-  const handleStarterPromptSelect = (prompt: string, mode?: string) => {
+  const handleStarterPromptSelect = (
+    prompt: string,
+    mode?: string,
+    isPersonalized?: boolean
+  ) => {
     // Track the starter prompt usage (empty prompt defaults to 'Ask Anything')
-    trackCompanionStarterPromptUsed(prompt || 'Ask Anything', mode);
+    trackCompanionStarterPromptUsed(
+      prompt || 'Ask Anything',
+      mode,
+      isPersonalized
+    );
 
     // "Ask Anything" - show bot greeting message
     if (prompt === '' && !mode) {
       const greeting: Message = {
         id: 'greeting-' + Date.now(),
-        text: 'Hey there, how can I help?',
+        text: t('companion.greeting'),
         isUser: false,
         timestamp: new Date(),
       };
@@ -321,7 +368,7 @@ export default function CompanionScreen() {
     if (mode === 'form_help') {
       const formGreeting: Message = {
         id: 'form-greeting-' + Date.now(),
-        text: 'Which form are you working on?',
+        text: t('companion.formGreeting'),
         isUser: false,
         timestamp: new Date(),
       };
@@ -355,9 +402,12 @@ export default function CompanionScreen() {
   const renderMessage = useCallback(
     ({ item, index }: { item: Message; index: number }) => {
       // Only show suggestions and lastVerified on the last bot message
-      const isLastMessage = index === messages.length - 1;
+      const isLastMessage = index === displayMessages.length - 1;
       const isLastBotMessage = isLastMessage && !item.isUser;
-      const showSuggestions = isLastBotMessage && lastSuggestedNextSteps;
+      // Suppress chips while a token stream is still mid-flight — only show
+      // suggestions on the *settled* final bot message.
+      const showSuggestions =
+        isLastBotMessage && !streamingBotMessage && lastSuggestedNextSteps;
 
       // Attach lastVerified to the last bot message for real-time display
       const displayItem =
@@ -374,7 +424,8 @@ export default function CompanionScreen() {
       );
     },
     [
-      messages.length,
+      displayMessages.length,
+      streamingBotMessage,
       lastSuggestedNextSteps,
       lastVerified,
       handleSuggestionClick,
@@ -393,6 +444,7 @@ export default function CompanionScreen() {
     setCurrentConversationId(null);
     resetDraftState();
     previousMessageCountRef.current = 0;
+    isNearBottomRef.current = true;
     Keyboard.dismiss();
     router.replace('/(tabs)/companion' as any);
   }, [resetDraftState, router]);
@@ -402,7 +454,7 @@ export default function CompanionScreen() {
       <View style={styles.contentWrapper}>
         {/* Header */}
         <CompanionHeader
-          title='AI Companion'
+          title={t('companion.title')}
           showBackButton={false}
           leftButton={
             <Pressable
@@ -411,7 +463,7 @@ export default function CompanionScreen() {
                 trackCompanionHistoryViewed();
               }}
               accessibilityRole='button'
-              accessibilityLabel='Open conversation history'
+              accessibilityLabel={t('companion.openHistory')}
               style={({ pressed }) => [
                 styles.headerButton,
                 pressed && styles.headerButtonPressed,
@@ -429,7 +481,7 @@ export default function CompanionScreen() {
             <Pressable
               onPress={handleNewChatPress}
               accessibilityRole='button'
-              accessibilityLabel='Start a new chat'
+              accessibilityLabel={t('companion.newChat')}
               style={({ pressed }) => [
                 styles.headerButton,
                 pressed && styles.headerButtonPressed,
@@ -445,30 +497,42 @@ export default function CompanionScreen() {
           }
         />
 
-        {/* Messages - takes up available space */}
+        {/* Messages - takes up available space. The FlatList is intentionally
+            NOT wrapped in a Pressable: wrapping a scrollable in a Pressable
+            creates a gesture-responder race with the list's scroll responder
+            (especially while programmatic scrolls or rapid state updates are
+            in flight), which can leave the list unscrollable. Keyboard
+            dismissal: keyboardDismissMode='interactive' handles smooth
+            drag-to-dismiss, keyboardShouldPersistTaps='handled' dismisses on
+            tap-outside-children. The tap-to-dismiss Pressable is only used
+            for the non-scrollable empty/loading states. */}
         {showLoadingState ? (
-          <View style={styles.emptyContainer}>
-            <ActivityIndicator size='large' color={Theme.surfaceBlue} />
-          </View>
-        ) : showEmptyState ? (
-          <View
-            style={[styles.emptyState, { paddingTop: emptyStateTopPadding }]}
-          >
-            <View style={styles.dottedLineContainer} pointerEvents='none'>
-              <BlueDottedLine
-                width={dottedLineWidth}
-                height={dottedLineHeight}
-              />
+          <Pressable style={styles.messagesArea} onPress={Keyboard.dismiss}>
+            <View style={styles.emptyContainer}>
+              <ActivityIndicator size='large' color={Theme.surfaceBlue} />
             </View>
-            <Text style={styles.heroTitle}>
-              I'm here to simplify your journey.
-            </Text>
-            <Text style={styles.heroSubtitle}>How can I help you?</Text>
-          </View>
+          </Pressable>
+        ) : showEmptyState ? (
+          <Pressable style={styles.messagesArea} onPress={Keyboard.dismiss}>
+            <View style={styles.emptyState}>
+              <View style={styles.dottedLineContainer} pointerEvents='none'>
+                <AnimatedDottedBackground
+                  width={dottedLineWidth}
+                  height={dottedLineHeight}
+                />
+              </View>
+              <Text style={styles.welcomeTitle}>
+                {t('companion.welcomeTitle')}
+              </Text>
+              <Text style={styles.welcomeCaption}>
+                {t('companion.welcomeCaption')}
+              </Text>
+            </View>
+          </Pressable>
         ) : (
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={displayMessages}
             renderItem={renderMessage}
             keyExtractor={keyExtractor}
             style={styles.messagesList}
@@ -476,6 +540,8 @@ export default function CompanionScreen() {
             ListFooterComponent={renderLoadingIndicator}
             keyboardShouldPersistTaps='handled'
             keyboardDismissMode='interactive'
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
             initialNumToRender={10}
             maxToRenderPerBatch={8}
             windowSize={7}
@@ -492,10 +558,15 @@ export default function CompanionScreen() {
         <View style={styles.bottomSection}>
           {/* Starter Prompts - Only show when no messages and no greeting */}
           {showEmptyState && (
-            <StarterPrompts
-              onPromptSelect={handleStarterPromptSelect}
-              personalizedStarters={personalization?.starters}
-            />
+            <>
+              <Text style={styles.startersLabel}>
+                {t('companion.tryOneOfThese')}
+              </Text>
+              <StarterPrompts
+                onPromptSelect={handleStarterPromptSelect}
+                personalizedStarters={personalization?.starters}
+              />
+            </>
           )}
 
           {/* Input */}
@@ -506,7 +577,7 @@ export default function CompanionScreen() {
               value={inputText}
               onChangeText={setInputText}
               placeholder={
-                canSend ? 'Type your message...' : 'Daily limit reached'
+                canSend ? t('companion.inputPlaceholder') : t('companion.dailyLimitReached')
               }
               placeholderTextColor='#999'
               multiline
@@ -536,7 +607,7 @@ export default function CompanionScreen() {
           {/* Disclaimer */}
           <View style={styles.disclaimerContainer}>
             <Text style={styles.disclaimerText}>
-              AI Companion can make mistakes, check important info.
+              {t('companion.disclaimer')}
             </Text>
           </View>
         </View>
@@ -562,10 +633,10 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+    justifyContent: 'flex-end',
+    alignItems: 'stretch',
+    paddingHorizontal: 18,
+    paddingBottom: 8,
   },
   dottedLineContainer: {
     position: 'absolute',
@@ -575,18 +646,28 @@ const styles = StyleSheet.create({
     left: -windowWidth * 0.65,
     opacity: 1,
   },
-  heroTitle: {
+  welcomeTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Theme.black,
-    lineHeight: 30,
+    lineHeight: 26,
   },
-  heroSubtitle: {
+  welcomeCaption: {
     fontSize: 20,
     fontWeight: '400',
     color: Theme.textInput,
+    lineHeight: 26,
     marginTop: 6,
-    lineHeight: 22,
+  },
+  startersLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Theme.textInput,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+  },
+  messagesArea: {
+    flex: 1,
   },
   messagesList: {
     flex: 1,

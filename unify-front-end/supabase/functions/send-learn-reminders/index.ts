@@ -223,11 +223,13 @@ Deno.serve(async (req: Request) => {
   // Collect unique user IDs and check preferences + tokens in bulk
   const userIds = [...new Set(toSend.map(s => s.candidate.user_id))];
 
-  // Check which users have opted into notifications
+  // Check which users have opted into notifications.
+  // user_onboarding_profiles is keyed on `id` (= auth.users.id), there is no `user_id` column.
+  // first_name lives on the users table, fetched separately below.
   const { data: profiles, error: profilesError } = await supabase
     .from('user_onboarding_profiles')
-    .select('user_id, wants_reminders')
-    .in('user_id', userIds);
+    .select('id, wants_reminders')
+    .in('id', userIds);
 
   if (profilesError) {
     console.error('send-learn-reminders: profiles query error', profilesError);
@@ -241,8 +243,31 @@ Deno.serve(async (req: Request) => {
   const optedInUsers = new Set(
     (profiles ?? [])
       .filter((p: { wants_reminders: boolean }) => p.wants_reminders === true)
-      .map((p: { user_id: string }) => p.user_id)
+      .map((p: { id: string }) => p.id)
   );
+
+  // Fetch first_name from users (separate table). Failure here is non-fatal —
+  // reminders still go out without personalization.
+  const firstNameByUser = new Map<string, string>();
+  const { data: userRows, error: userRowsError } = await supabase
+    .from('users')
+    .select('id, first_name')
+    .in('id', userIds);
+
+  if (userRowsError) {
+    console.warn(
+      'send-learn-reminders: users query error (non-fatal)',
+      userRowsError
+    );
+  } else {
+    for (const u of (userRows ?? []) as Array<{
+      id: string;
+      first_name: string | null;
+    }>) {
+      const name = u.first_name?.trim();
+      if (name) firstNameByUser.set(u.id, name);
+    }
+  }
 
   // Get push tokens for opted-in users
   const eligibleUserIds = userIds.filter(id => optedInUsers.has(id));
@@ -287,12 +312,19 @@ Deno.serve(async (req: Request) => {
     const tokens = tokensByUser.get(candidate.user_id);
     if (!tokens?.length) continue;
 
+    // Prefix body with first name when available so the push feels personal.
+    // Lowercase the first letter so "Pick up..." reads as "Alex, pick up..."
+    const firstName = firstNameByUser.get(candidate.user_id);
+    const body = firstName
+      ? `${firstName}, ${tier.body.charAt(0).toLowerCase()}${tier.body.slice(1)}`
+      : tier.body;
+
     for (const token of tokens) {
       messages.push({
         to: token,
         sound: 'default',
         title: tier.title,
-        body: tier.body,
+        body,
         data: {
           type: 'learn_reminder',
           lesson_id: candidate.sanity_lesson_id,

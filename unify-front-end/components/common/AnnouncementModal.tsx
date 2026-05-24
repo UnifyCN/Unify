@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 
 interface AnnouncementModalProps {
   storageKey: string;
@@ -14,9 +15,11 @@ export default function AnnouncementModal({
   storageKey,
   title,
   body,
-  buttonLabel = 'Got it',
+  buttonLabel,
   icon,
 }: AnnouncementModalProps) {
+  const { t } = useTranslation();
+  const resolvedButtonLabel = buttonLabel ?? t('common.gotIt');
   // null = loading, true = show, false = hide
   const [visible, setVisible] = useState<boolean | null>(null);
 
@@ -64,7 +67,7 @@ export default function AnnouncementModal({
                 <View style={styles.iconContainer}>{icon}</View>
               ) : (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>NEW</Text>
+                  <Text style={styles.badgeText}>{t('common.new')}</Text>
                 </View>
               )}
             </View>
@@ -80,7 +83,7 @@ export default function AnnouncementModal({
               onPress={dismiss}
               activeOpacity={0.85}
             >
-              <Text style={styles.buttonText}>{buttonLabel}</Text>
+              <Text style={styles.buttonText}>{resolvedButtonLabel}</Text>
             </TouchableOpacity>
           </View>
         </View>

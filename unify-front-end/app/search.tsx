@@ -31,6 +31,7 @@ import {
 } from '@/services/users/recentGroups';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 export const navigationOptions = {
@@ -38,6 +39,7 @@ export const navigationOptions = {
 };
 
 const SearchScreen = () => {
+  const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
@@ -188,7 +190,7 @@ const SearchScreen = () => {
     // user is typing but hasn't submitted yet — show the helper frame
     searchHistory = (
       <View style={{ marginTop: 10 }}>
-        <Text style={styles.recentSectionHeader}>RECENT SEARCHES</Text>
+        <Text style={styles.recentSectionHeader}>{t('search.recentSearches')}</Text>
         {recentSearches.map((recentSearch, index) => (
           <TouchableOpacity
             key={index}
@@ -232,7 +234,7 @@ const SearchScreen = () => {
   if (recentGroups.length > 0 && searchInput.trim().length === 0) {
     groupsHistory = (
       <View>
-        <Text style={styles.recentSectionHeader}>RECENTLY VIEWED GROUPS</Text>
+        <Text style={styles.recentSectionHeader}>{t('search.recentlyViewedGroups')}</Text>
         {recentGroups.map(group => (
           <View style={[styles.cardItem, { marginBottom: 20 }]} key={group.id}>
             <GroupCard group={group} onPress={() => groupPress(group)} />
@@ -244,7 +246,7 @@ const SearchScreen = () => {
 
   return (
     <View style={styles.searchContainer}>
-      <BackHeader title='Search' />
+      <BackHeader title={t('search.title')} />
 
       <View style={styles.searchInputContainer}>
         <Feather name='search' size={20} color={Theme.textInput} />
@@ -255,7 +257,7 @@ const SearchScreen = () => {
           }}
           style={styles.searchInput}
           //in figma says events and groups but this screen doesnt check events
-          placeholder='Search posts, groups, and people'
+          placeholder={t('search.placeholder')}
           onSubmitEditing={() => handleSend()}
           placeholderTextColor={Theme.textInput}
         />
@@ -273,7 +275,7 @@ const SearchScreen = () => {
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
             <ActivityIndicator size='small' color='#666' />
-            <Text style={{ marginTop: 8, color: '#666' }}>Loading...</Text>
+            <Text style={{ marginTop: 8, color: '#666' }}>{t('common.loading')}</Text>
           </View>
         ) : (
           <>
@@ -288,14 +290,14 @@ const SearchScreen = () => {
             style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           >
             <ActivityIndicator size='small' color='#666' />
-            <Text style={{ marginTop: 8, color: '#666' }}>Loading...</Text>
+            <Text style={{ marginTop: 8, color: '#666' }}>{t('common.loading')}</Text>
           </View>
         ) : (
           <>
             {searchQuery && foundUser && (
               <View>
                 <View style={[styles.postsHeader, { marginBottom: 12 }]}>
-                  <Text style={styles.resultHeaderText}>PEOPLE</Text>
+                  <Text style={styles.resultHeaderText}>{t('search.people')}</Text>
                   {filterUsers.length > 3 && (
                     <TouchableOpacity
                       onPress={() =>
@@ -325,7 +327,7 @@ const SearchScreen = () => {
               <View>
                 <View style={styles.postsHeader}>
                   <Text style={[styles.resultHeaderText, { marginTop: 8 }]}>
-                    POSTS
+                    {t('search.posts')}
                   </Text>
                   {postsToShow.length > 3 && (
                     <TouchableOpacity
@@ -352,7 +354,7 @@ const SearchScreen = () => {
             {searchQuery && foundGroup && (
               <View>
                 <View style={[styles.postsHeader, { marginBottom: 20 }]}>
-                  <Text style={styles.resultHeaderText}>GROUPS</Text>
+                  <Text style={styles.resultHeaderText}>{t('search.groups')}</Text>
                   {(filterGroups?.length ?? 0) > 3 && (
                     <TouchableOpacity
                       onPress={() =>
@@ -381,7 +383,7 @@ const SearchScreen = () => {
         {shouldShowEmptyState && (
           <View style={styles.emptyContainer}>
             <Feather name='search' size={48} color='#ccc' />
-            <Text style={styles.emptyText}>No search results found.</Text>
+            <Text style={styles.emptyText}>{t('search.noResults')}</Text>
           </View>
         )}
       </ScrollView>

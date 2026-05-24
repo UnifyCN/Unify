@@ -1,0 +1,9 @@
+The output is appropriately tailored to the user's profile.
+
+User profile: {{ profile_summary }}
+User question: "{{ prompt }}"
+Expected tailoring: {{ expected_tailoring }}
+
+PASS if the output reflects the expected tailoring — references the user's province, immigration status, or persona where those would change the correct answer.
+
+FAIL if the output ignores profile context that would meaningfully change the response (for example, gives Ontario-specific advice to a BC user, or permanent-resident advice to a study-permit holder).

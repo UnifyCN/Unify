@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, FlatList, StyleSheet, Text, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import GroupCard from '@/components/groups/GroupCard';
 import { Group } from '@/types/groups';
@@ -12,12 +13,9 @@ import { getUserJoinedGroups } from '@/services/groups/getUserJoinedGroups';
 import { Theme } from '@/constants/Theme';
 
 type GroupsTab = 'discover' | 'joined';
-const TAB_LABELS: Record<GroupsTab, string> = {
-  discover: 'Discover',
-  joined: 'Joined',
-};
 
 export default function MoreGroupsScreen() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<GroupsTab>('discover');
   const router = useRouter();
 
@@ -65,7 +63,7 @@ export default function MoreGroupsScreen() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Groups' />
+      <BackHeader title={t('groups.title')} />
 
       <View style={styles.tabsContainer}>
         {(['discover', 'joined'] as GroupsTab[]).map(tab => {
@@ -78,10 +76,10 @@ export default function MoreGroupsScreen() {
               style={styles.tabButton}
               accessibilityRole='tab'
               accessibilityState={{ selected: active }}
-              accessibilityLabel={`${TAB_LABELS[tab]} groups`}
+              accessibilityLabel={tab === 'discover' ? t('groups.discoverTabLabel') : t('groups.joinedTabLabel')}
             >
               <Text style={[styles.tabText, active && styles.tabTextActive]}>
-                {TAB_LABELS[tab]}
+                {tab === 'discover' ? t('groups.discover') : t('groups.joined')}
               </Text>
               <View
                 style={[
@@ -102,8 +100,8 @@ export default function MoreGroupsScreen() {
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
                 {activeTab === 'discover'
-                  ? 'No groups to discover right now.'
-                  : 'You have not joined any groups yet.'}
+                  ? t('groups.noGroupsDiscover')
+                  : t('groups.noGroupsJoined')}
               </Text>
             </View>
           ) : null

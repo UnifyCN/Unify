@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from '@/components/events/EventCard';
 import { SkeletonLoader } from './SkeletonLoader';
@@ -95,13 +96,14 @@ interface EventsCarouselProps {
 }
 
 export const EventsCarousel = ({
-  title = 'Gather Events',
+  title,
   titleStyle,
   showViewMore = true,
   maxEvents = 3,
   style,
   contentContainerStyle,
 }: EventsCarouselProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { data: events, isLoading } = useEvents();
 
@@ -124,7 +126,7 @@ export const EventsCarousel = ({
   return (
     <View style={style}>
       <HorizontalCarousel
-        title={title}
+        title={title ?? t('events.gatherEvents')}
         titleStyle={titleStyle}
         data={upcomingEvents}
         isLoading={isLoading}
@@ -137,7 +139,7 @@ export const EventsCarousel = ({
         renderEmptyState={() => (
           <EmptyFeedMessage
             icon={<Feather name='calendar' size={24} color='#B4B1B1' />}
-            message='No events available'
+            message={t('events.noEvents')}
             submessage={
               <Text
                 style={{
@@ -147,7 +149,7 @@ export const EventsCarousel = ({
                   lineHeight: 20,
                 }}
               >
-                Check back later for new events
+                {t('events.checkBackLater')}
               </Text>
             }
           />
@@ -166,11 +168,11 @@ export const EventsCarousel = ({
               />
               <View style={styles.viewMoreTextOverlay}>
                 <Text style={styles.viewMoreText}>
-                  View more events{' '}
+                  {t('events.viewMore')}{' '}
                   <Feather name='arrow-right' size={16} color={Theme.black} />
                 </Text>
                 <Text style={styles.viewMoreSubtext}>
-                  There's more to check out!
+                  {t('events.moreToCheckOut')}
                 </Text>
               </View>
             </View>

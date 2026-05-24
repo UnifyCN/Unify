@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, X } from 'lucide-react-native';
 import { Theme } from '@/constants/Theme';
@@ -23,6 +24,7 @@ const CompanionHeader = ({
   rightButton,
   showBackButton = true,
 }: CompanionHeaderProps) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const headerHeight = getTabHeaderHeight(insets.top);
@@ -49,7 +51,7 @@ const CompanionHeader = ({
       {showBackButton ? (
         <Pressable
           accessibilityRole='button'
-          accessibilityLabel='Go back'
+          accessibilityLabel={t('companion.goBack')}
           onPress={handleBack}
           style={({ pressed }) => [
             styles.actionButton,

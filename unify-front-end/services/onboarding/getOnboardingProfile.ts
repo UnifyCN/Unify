@@ -52,6 +52,7 @@ export const getOnboardingProfile = async (
       learning_interests: data.learning_interests || [],
       learning_interests_other: data.learning_interests_other,
       hobbies: data.hobbies || [],
+      preferred_language: data.preferred_language || 'en',
       wants_reminders: data.wants_reminders ?? false,
       onboarding_completed: data.onboarding_completed ?? false,
       onboarding_completed_at: data.onboarding_completed_at,

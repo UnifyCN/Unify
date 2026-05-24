@@ -1,15 +1,22 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { callGeminiAPI } from '@/utils/gemini';
+import {
+  AICompanionBusyError,
+  streamGeminiAPI,
+  StreamComplete,
+  StreamMetadata,
+} from '@/utils/gemini';
 import { useChatbotUsage } from '@/hooks/companion/useChatbotUsage';
 import { useCreateConversation } from '@/hooks/companion/useCreateConversation';
 import { useSaveMessage } from '@/hooks/companion/useSaveMessage';
 import {
   Message,
   formatMessagesForAPI,
-  parseRAGResponse,
+  sanitizeSuggestedNextSteps,
 } from '@/helpers/companion/messageHelpers';
 import { useAnalytics } from '@/utils/analytics';
+import { logCompanionFirstMessage } from '@/services/analytics/metaEvents';
+import { supabase } from '@/lib/supabase';
 
 type SendMessageError = Error & {
   messagePersisted?: boolean;
@@ -36,6 +43,11 @@ export const useSendMessage = ({
   const [lastVerified, setLastVerified] = useState<string | undefined>(
     undefined
   );
+  // In-flight bot message — appears in the UI as tokens stream in. Cleared
+  // once the final saved message lands in the React Query cache via
+  // useSaveMessage (which inserts an optimistic copy on mutate).
+  const [streamingBotMessage, setStreamingBotMessage] =
+    useState<Message | null>(null);
   const queryClient = useQueryClient();
   const { data: usage } = useChatbotUsage();
   const createConversation = useCreateConversation();
@@ -50,11 +62,11 @@ export const useSendMessage = ({
     setIsWaitingForBot(true);
     setLastSuggestedNextSteps(undefined);
     setLastVerified(undefined);
+    setStreamingBotMessage(null);
     let userMessagePersisted = false;
 
     try {
       let conversationIdToUse = currentConversationId;
-      const isNewConversation = !conversationIdToUse;
 
       // If no conversation exists yet, create a new one with title generated from first message
       if (!conversationIdToUse) {
@@ -80,6 +92,12 @@ export const useSendMessage = ({
           clientId: optimisticClientId,
         });
         userMessagePersisted = true;
+        // Fire Meta Companion-first-message event. Deduped per user in SecureStore.
+        const userId = (await supabase.auth.getSession()).data.session?.user
+          ?.id;
+        if (userId) {
+          await logCompanionFirstMessage(userId);
+        }
       } catch (error) {
         console.error('Failed to save user message:', error);
         // Continue anyway - message will be saved but might not show immediately
@@ -88,45 +106,112 @@ export const useSendMessage = ({
       // Format messages for RAG API (last 10 messages for context)
       const conversationMessages = formatMessagesForAPI(messages, messageText);
 
-      // Call the Gemini API through Supabase edge function with conversation context
+      // Stream the bot response. Tokens append to streamingBotMessage so the
+      // bubble grows in real time. The final cleanAnswer (from `complete`) is
+      // persisted via useSaveMessage.
       const apiStartTime = Date.now();
-      const response = await callGeminiAPI(
-        messageText,
-        conversationIdToUse,
-        conversationMessages
-      );
+      let metadata: StreamMetadata | undefined;
+      let completion: StreamComplete | undefined;
+      let streamFailure: Error | undefined;
+
+      const streamingBotId = `streaming-bot-${apiStartTime}`;
+
+      await new Promise<void>(resolve => {
+        let resolved = false;
+        const finishOnce = () => {
+          if (!resolved) {
+            resolved = true;
+            resolve();
+          }
+        };
+
+        streamGeminiAPI(
+          messageText,
+          conversationIdToUse!,
+          conversationMessages,
+          {
+            onMetadata: meta => {
+              metadata = meta;
+              // Hide the typing indicator — we now show the (empty) bot
+              // bubble that will fill with tokens.
+              setIsWaitingForBot(false);
+              setStreamingBotMessage({
+                id: streamingBotId,
+                text: '',
+                isUser: false,
+                timestamp: new Date(),
+                sources: meta.sources,
+                queryType: meta.queryType,
+                disclaimer: meta.disclaimer,
+                lastVerified: meta.lastVerified,
+              });
+              if (meta.lastVerified) setLastVerified(meta.lastVerified);
+            },
+            onToken: delta => {
+              setStreamingBotMessage(current => {
+                if (!current) {
+                  // Metadata never arrived (shouldn't happen) — synthesize.
+                  return {
+                    id: streamingBotId,
+                    text: delta,
+                    isUser: false,
+                    timestamp: new Date(),
+                  };
+                }
+                return { ...current, text: current.text + delta };
+              });
+            },
+            onComplete: c => {
+              completion = c;
+              finishOnce();
+            },
+            onError: err => {
+              streamFailure = err;
+              finishOnce();
+            },
+          }
+        ).catch(err => {
+          streamFailure =
+            err instanceof Error ? err : new Error(String(err));
+          finishOnce();
+        });
+      });
+
       const responseTimeMs = Date.now() - apiStartTime;
+
+      if (streamFailure) throw streamFailure;
+      if (!completion) throw new Error('Stream ended without completion');
 
       // Server incremented usage atomically during rag-query.
       // Invalidate the cache so the UI picks up the new count.
       queryClient.invalidateQueries({ queryKey: ['chatbot-usage'] });
 
-      // Parse the response (includes queryType, disclaimer, suggestedNextSteps, and tokenUsage)
-      const {
-        answer: botResponse,
-        sources,
-        queryType,
-        disclaimer,
-        suggestedNextSteps,
-        lastVerified: responseLastVerified,
-        tokenUsage,
-        estimatedCostUsd,
-      } = parseRAGResponse(response);
+      const sources = metadata?.sources ?? [];
+      const queryType = metadata?.queryType;
+      const sanitizedSuggestions = sanitizeSuggestedNextSteps(
+        completion.suggestedNextSteps
+      );
 
       // Track companion response with cost metrics
       trackCompanionResponseReceived({
         query_type: queryType || 'unknown',
         has_sources: sources.length > 0,
-        prompt_tokens: tokenUsage?.prompt_tokens,
-        completion_tokens: tokenUsage?.completion_tokens,
-        total_tokens: tokenUsage?.total_tokens,
-        estimated_cost_usd: estimatedCostUsd,
+        prompt_tokens: completion.tokenUsage?.prompt_tokens,
+        completion_tokens: completion.tokenUsage?.completion_tokens,
+        total_tokens: completion.tokenUsage?.total_tokens,
+        estimated_cost_usd: completion.estimatedCostUsd,
         response_time_ms: responseTimeMs,
       });
 
       // Store real-time-only fields for UI display (not persisted to DB)
-      setLastSuggestedNextSteps(suggestedNextSteps);
-      setLastVerified(responseLastVerified);
+      setLastSuggestedNextSteps(sanitizedSuggestions);
+
+      // Replace the in-flight streaming text with the canonical cleanAnswer
+      // (handles [SUGGESTIONS]: stripping). One last paint before we hand off
+      // to the persisted message in the RQ cache.
+      setStreamingBotMessage(current =>
+        current ? { ...current, text: completion!.cleanAnswer } : current
+      );
 
       // Save bot message to database
       // Note: queryType, disclaimer, and suggestedNextSteps are not persisted to DB
@@ -135,7 +220,7 @@ export const useSendMessage = ({
         await saveMessage.mutateAsync({
           conversationIdentifier: conversationIdToUse,
           role: 'assistant',
-          content: botResponse,
+          content: completion.cleanAnswer,
           sources: sources.length > 0 ? sources : undefined,
         });
       } catch (error) {
@@ -143,18 +228,26 @@ export const useSendMessage = ({
         // Continue anyway - message will be saved but might not show immediately
       }
 
-      // Messages will automatically refetch due to query invalidation in useSaveMessage hook
+      // The persisted (or RQ-optimistic) bot message now owns this bubble —
+      // drop our local copy to avoid a duplicate.
+      setStreamingBotMessage(null);
     } catch (error) {
       console.error('Gemini API error:', error);
       console.error(
         'Error details:',
         error instanceof Error ? error.message : String(error)
       );
+      // Drop any partial streaming bubble on failure.
+      setStreamingBotMessage(null);
       const sendError =
         error instanceof Error
           ? (error as SendMessageError)
           : (new Error(String(error)) as SendMessageError);
       sendError.messagePersisted = userMessagePersisted;
+      // Preserve the typed busy error so callers can match on instanceof.
+      if (error instanceof AICompanionBusyError) {
+        throw error;
+      }
       throw sendError;
     } finally {
       setIsLoading(false);
@@ -168,5 +261,6 @@ export const useSendMessage = ({
     isWaitingForBot,
     lastSuggestedNextSteps,
     lastVerified,
+    streamingBotMessage,
   };
 };

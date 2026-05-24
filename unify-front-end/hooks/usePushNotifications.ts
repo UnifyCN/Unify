@@ -7,6 +7,7 @@ import {
   registerForPushNotifications,
   addNotificationResponseListener,
 } from '@/services/push/pushNotifications';
+import { useAnalytics } from '@/utils/analytics';
 import type { Subscription } from 'expo-notifications';
 
 /**
@@ -23,6 +24,12 @@ export function usePushNotifications() {
   const { currentUser } = useCurrentUser();
   const router = useRouter();
   const responseListenerRef = useRef<Subscription>(null);
+  const {
+    trackPushPermissionPrompted,
+    trackPushPermissionGranted,
+    trackPushPermissionDenied,
+    trackNotificationOpened,
+  } = useAnalytics();
 
   // Clear badge count when app comes to foreground
   useEffect(() => {
@@ -42,21 +49,39 @@ export function usePushNotifications() {
     // Always register for push — social notifications always send.
     // Users control notification preferences via iOS/Android system settings.
     // The wants_reminders toggle only controls learn reminders (server-side).
-    registerForPushNotifications().catch(err => {
-      console.error('Push notification registration failed:', err);
-    });
+    registerForPushNotifications()
+      .then(result => {
+        if (result.permission === 'unsupported') return;
+        if (result.prompted) {
+          trackPushPermissionPrompted({ prompted_in: 'in_app' });
+          if (result.permission === 'granted') {
+            trackPushPermissionGranted({ prompted_in: 'in_app' });
+          } else {
+            trackPushPermissionDenied({ prompted_in: 'in_app' });
+          }
+        }
+      })
+      .catch(err => {
+        console.error('Push notification registration failed:', err);
+      });
 
     // Handle notification taps
     responseListenerRef.current = addNotificationResponseListener(response => {
       const data = response.notification.request.content.data;
+      const notificationType =
+        typeof data?.type === 'string' ? data.type : 'unknown';
+
+      let deepLinkTarget: string | null = null;
 
       // Navigate based on notification type (with circle_id validation)
       if (data?.type === 'circle_matched' && isValidCircleId(data?.circle_id)) {
+        deepLinkTarget = '/community-matching/circle';
         router.push(`/community-matching/circle/${data.circle_id}` as const);
       } else if (
         data?.type === 'circle_ending_soon' &&
         isValidCircleId(data?.circle_id)
       ) {
+        deepLinkTarget = '/community-matching/circle/chat';
         router.push(
           `/community-matching/circle/${data.circle_id}/chat` as const
         );
@@ -64,6 +89,7 @@ export function usePushNotifications() {
         data?.type === 'new_message' &&
         isValidCircleId(data?.circle_id)
       ) {
+        deepLinkTarget = '/community-matching/circle/chat';
         router.push(
           `/community-matching/circle/${data.circle_id}/chat` as const
         );
@@ -74,13 +100,15 @@ export function usePushNotifications() {
           data?.type === 'comment_reply') &&
         data?.post_id != null
       ) {
+        deepLinkTarget = '/post-details';
         router.push({
           pathname: '/post-details',
           params: { postId: String(data.post_id) },
         } as Href);
       } else if (data?.type === 'followed' && data?.actor_user_id != null) {
+        deepLinkTarget = '/profile';
         router.push({
-          pathname: '/profile/[userId]',
+          pathname: '/profile',
           params: { userId: String(data.actor_user_id) },
         } as Href);
       } else if (
@@ -89,6 +117,7 @@ export function usePushNotifications() {
         data?.submodule_id &&
         data?.module_id
       ) {
+        deepLinkTarget = '/(tabs)/Learn/lesson';
         router.push({
           pathname:
             '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]',
@@ -99,6 +128,8 @@ export function usePushNotifications() {
           },
         } as Href);
       }
+
+      trackNotificationOpened(notificationType, deepLinkTarget);
     });
 
     return () => {

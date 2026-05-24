@@ -7,6 +7,7 @@ import {
   StyleSheet,
   TextInput,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useConversations } from '@/hooks/companion/useConversations';
@@ -23,6 +24,7 @@ import NewChatIcon from '@/components/icons/NewChat.svg';
 import ChatListIcon from '@/components/icons/ChatListIcon.svg';
 
 export default function ConversationHistoryScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { data: conversations, isLoading } = useConversations();
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,7 +94,7 @@ export default function ConversationHistoryScreen() {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       ) : (
         <>
@@ -124,17 +126,17 @@ export default function ConversationHistoryScreen() {
                 onPress={handleNewChatPress}
               >
                 <NewChatIcon width={20} height={20} />
-                <Text style={styles.newChatText}>New chat</Text>
+                <Text style={styles.newChatText}>{t('companion.history.newChat')}</Text>
               </TouchableOpacity>
             }
             ListEmptyComponent={
               hasNoSearchResults ? (
                 <View style={styles.emptyMessageContainer}>
-                  <Text style={styles.emptyText}>No conversations found</Text>
+                  <Text style={styles.emptyText}>{t('companion.history.noConversationsFound')}</Text>
                 </View>
               ) : hasNoConversations ? (
                 <View style={styles.emptyMessageContainer}>
-                  <Text style={styles.emptyText}>No conversations yet</Text>
+                  <Text style={styles.emptyText}>{t('companion.history.noConversationsYet')}</Text>
                 </View>
               ) : null
             }

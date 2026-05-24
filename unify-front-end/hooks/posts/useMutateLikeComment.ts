@@ -1,8 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { likeComment, unlikeComment } from '@/services/posts/likeComment';
+import { useAnalytics } from '@/utils/analytics';
 
 export const useMutateLikeComment = () => {
   const queryClient = useQueryClient();
+  const { trackCommentLiked, trackCommentUnliked } = useAnalytics();
 
   return useMutation({
     mutationFn: async ({
@@ -35,6 +37,14 @@ export const useMutateLikeComment = () => {
         return await unlikeComment(commentId);
       } else {
         return await likeComment(commentId);
+      }
+    },
+    onSuccess: (_, { commentId, isLiked }) => {
+      // isLiked is the PRE-toggle state, so the new state is the inverse.
+      if (isLiked) {
+        trackCommentUnliked({ comment_id: String(commentId) });
+      } else {
+        trackCommentLiked({ comment_id: String(commentId) });
       }
     },
     onError: err => {

@@ -22,7 +22,7 @@ const unreadCountQueryKey = (userId: string | undefined) => [
 export function useCommunityNotifications() {
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
-  const subscriptionId = useId();
+  const instanceId = useId();
 
   const {
     data: notifications = [],
@@ -52,7 +52,7 @@ export function useCommunityNotifications() {
     }
 
     const channel = supabase
-      .channel(`community-notifications-${currentUser.id}-${subscriptionId}`)
+      .channel(`community-notifications-${currentUser.id}-${instanceId}`)
       .on(
         'postgres_changes',
         {
@@ -76,7 +76,7 @@ export function useCommunityNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, queryClient, subscriptionId]);
+  }, [currentUser, queryClient, instanceId]);
 
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
@@ -132,7 +132,7 @@ export function useCommunityNotifications() {
 export function useUnreadNotificationCount() {
   const { currentUser } = useCurrentUser();
   const queryClient = useQueryClient();
-  const subscriptionId = useId();
+  const instanceId = useId();
 
   const { data: unreadCount = 0 } = useQuery({
     queryKey: unreadCountQueryKey(currentUser?.id),
@@ -149,7 +149,7 @@ export function useUnreadNotificationCount() {
     }
 
     const channel = supabase
-      .channel(`community-notifications-count-${currentUser.id}-${subscriptionId}`)
+      .channel(`community-notifications-count-${currentUser.id}-${instanceId}`)
       .on(
         'postgres_changes',
         {
@@ -169,7 +169,7 @@ export function useUnreadNotificationCount() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser, queryClient, subscriptionId]);
+  }, [currentUser, queryClient, instanceId]);
 
   return unreadCount;
 }

@@ -16,7 +16,22 @@ interface CachedProgressData {
 class CachedProgressService {
   private cache: CachedProgressData = {};
   private lastFetch: number = 0;
+  private cachedUserId: string | null = null;
   private readonly CACHE_DURATION = 30 * 1000; // 30 seconds — fast enough for screen transitions
+
+  constructor() {
+    // Clear cache on any auth state change (sign-in, sign-out, token refresh
+    // with new user). Without this, account switches on shared/test devices
+    // briefly show the previous user's lesson progress.
+    progressClient.auth.onAuthStateChange((_event, session) => {
+      const nextUserId = session?.user?.id ?? null;
+      if (nextUserId !== this.cachedUserId) {
+        this.cache = {};
+        this.lastFetch = 0;
+        this.cachedUserId = nextUserId;
+      }
+    });
+  }
 
   async getProgressData(forceRefresh = false): Promise<CachedProgressData> {
     const now = Date.now();
@@ -62,6 +77,15 @@ class CachedProgressService {
       if (!user) {
         return {};
       }
+
+      // Belt-and-suspenders against a stale cache surviving an auth swap:
+      // if the auth listener hasn't run yet (e.g., race during sign-in),
+      // detect the user mismatch here and discard the previous user's data.
+      if (this.cachedUserId !== null && this.cachedUserId !== user.id) {
+        this.cache = {};
+        this.lastFetch = 0;
+      }
+      this.cachedUserId = user.id;
 
       // Fetch all lesson progress
       let lessonProgresses = null;

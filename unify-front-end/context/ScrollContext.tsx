@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, use } from 'react';
 import {
   Easing,
   type SharedValue,
@@ -7,12 +7,12 @@ import {
 } from 'react-native-reanimated';
 
 type ScrollContextTuple = [SharedValue<number>, () => void];
-// The inital value doesn't do anything since we pretty much always use useContext with the context provider
+// The inital value doesn't do anything since we pretty much always read this with `use` under the provider
 // but it's good for reader to understand the type, I suppose
 
 const ScrollContext = createContext<ScrollContextTuple>(null!);
 
-const useScrollContext = () => useContext(ScrollContext);
+const useScrollContext = () => use(ScrollContext);
 
 export const ScrollContextProvider: React.FC<React.PropsWithChildren> = ({
   children,
@@ -27,8 +27,8 @@ export const ScrollContextProvider: React.FC<React.PropsWithChildren> = ({
     });
   };
   return (
-    <ScrollContext.Provider value={[scrollValue, handleReset]}>
+    <ScrollContext value={[scrollValue, handleReset]}>
       {children}
-    </ScrollContext.Provider>
+    </ScrollContext>
   );
 };

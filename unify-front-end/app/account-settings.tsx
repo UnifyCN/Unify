@@ -7,8 +7,10 @@ import {
   Modal,
   Alert,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { LegalDocumentType } from '@/utils/legalUrls';
 import { supabase } from '@/lib/supabase';
 import BackHeader from '@/components/BackHeader';
@@ -20,24 +22,36 @@ import { ProfilePictureUpload } from '@/components/profile/ProfilePictureUpload'
 import { useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
 import { useHapticsPreference } from '@/context/HapticsContext';
+import { useLanguage } from '@/hooks/useLanguage';
+import { SUPPORTED_LANGUAGES, type SupportedLanguage } from '@/i18n';
 import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { saveOnboardingProfile } from '@/services/onboarding/saveOnboardingProfile';
 import { unregisterPushToken } from '@/services/push/pushNotifications';
 import { useQueryClient } from '@tanstack/react-query';
+import * as SecureStore from 'expo-secure-store';
+import { Settings as FBSettings } from 'react-native-fbsdk-next';
 
 const ACCOUNT_ROW_DANGER_COLOR = '#FF3B30';
 
 export default function AccountSettingsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { currentUser } = useCurrentUser();
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] =
     useState(false);
-  const { trackScreen } = useAnalytics();
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const { trackScreen, trackUserSignedOut, trackAccountDeleted } =
+    useAnalytics();
   const { hapticsEnabled, setHapticsEnabled } = useHapticsPreference();
+  const { currentLanguage, changeLanguage } = useLanguage();
   const { data: onboardingProfile } = useOnboardingProfile(currentUser?.id);
   const queryClient = useQueryClient();
   const [notificationsEnabled, setNotificationsEnabled] = useState<
+    boolean | null
+  >(null);
+  const [personalizedAdsEnabled, setPersonalizedAdsEnabled] = useState<
     boolean | null
   >(null);
 
@@ -53,6 +67,40 @@ export default function AccountSettingsPage() {
     }
   }, [onboardingProfile?.wants_reminders]);
 
+  // Sync the personalized ads toggle. Two keys keep concerns orthogonal:
+  //   meta_att_status        — OS source-of-truth, written only by initMetaSDK
+  //   personalized_ads_pref  — in-app user preference, written only by this toggle
+  // Default-ON semantics: unless the user has explicitly opted out in-app OR
+  // denied ATT at the OS level, show the toggle as ON. The Meta SDK still
+  // honors the OS ATT decision regardless of this UI state.
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    let cancelled = false;
+    (async () => {
+      const pref = await SecureStore.getItemAsync('personalized_ads_pref');
+      if (pref !== null) {
+        if (!cancelled) setPersonalizedAdsEnabled(pref === 'granted');
+        return;
+      }
+      const att = await SecureStore.getItemAsync('meta_att_status');
+      if (!cancelled) setPersonalizedAdsEnabled(att !== 'denied');
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const togglePersonalizedAds = async () => {
+    if (personalizedAdsEnabled === null) return;
+    const next = !personalizedAdsEnabled;
+    setPersonalizedAdsEnabled(next);
+    FBSettings.setAdvertiserTrackingEnabled(next);
+    await SecureStore.setItemAsync(
+      'personalized_ads_pref',
+      next ? 'granted' : 'denied',
+    );
+  };
+
   const onLogout = async () => {
     try {
       try {
@@ -61,7 +109,10 @@ export default function AccountSettingsPage() {
         console.error('Failed to unregister push token on logout:', e);
       }
       await supabase.auth.signOut();
-      // Let AuthWrapper handle the navigation
+      // Track only after signOut resolves successfully — otherwise a failed
+      // signOut would record a phantom user_signed_out.
+      // useAnalyticsIdentitySync handles posthog.reset() on session change.
+      trackUserSignedOut('manual');
     } catch (err) {
       console.error('Logout failed', err);
     }
@@ -88,6 +139,8 @@ export default function AccountSettingsPage() {
   };
 
   const deleteAccount = async () => {
+    if (isDeletingAccount) return;
+    setIsDeletingAccount(true);
     try {
       try {
         await unregisterPushToken();
@@ -96,20 +149,38 @@ export default function AccountSettingsPage() {
       }
       const { error } = await supabase.rpc('delete_user');
       if (error) throw error;
+      trackAccountDeleted();
       setDeleteAccountModalVisible(false);
       Alert.alert(
-        'Account deleted',
-        'Your Unify account has been permanently deleted.',
-        [{ text: 'OK', onPress: () => supabase.auth.signOut() }]
+        t('settings.accountDeleted'),
+        t('settings.accountDeletedMessage'),
+        [
+          {
+            text: t('common.ok'),
+            onPress: async () => {
+              try {
+                await supabase.auth.signOut();
+                trackUserSignedOut('account_deleted');
+              } catch (e) {
+                console.error(
+                  'Sign-out after account delete failed:',
+                  e
+                );
+              }
+            },
+          },
+        ]
       );
     } catch (err) {
       console.error('Delete account failed', err);
       Alert.alert(
-        'Could not delete account',
+        t('settings.couldNotDelete'),
         err instanceof Error
           ? err.message
-          : 'Something went wrong. Please try again.'
+          : t('settings.couldNotDelete')
       );
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -117,7 +188,7 @@ export default function AccountSettingsPage() {
   // and legal-document.tsx may not be included in the typed routes yet
   const legalRows = [
     {
-      title: 'Privacy Policy',
+      title: t('settings.privacyPolicy'),
       icon: 'file-text' as const,
       onPress: () =>
         router.push({
@@ -126,7 +197,7 @@ export default function AccountSettingsPage() {
         }),
     },
     {
-      title: 'Community Guidelines',
+      title: t('settings.communityGuidelines'),
       icon: 'users' as const,
       onPress: () =>
         router.push({
@@ -135,7 +206,7 @@ export default function AccountSettingsPage() {
         }),
     },
     {
-      title: 'Terms of Service',
+      title: t('settings.termsOfService'),
       icon: 'book-open' as const,
       onPress: () =>
         router.push({
@@ -147,12 +218,12 @@ export default function AccountSettingsPage() {
 
   const accountRows = [
     {
-      title: 'Log Out',
+      title: t('auth.logOut'),
       icon: 'log-out' as const,
       onPress: onLogout,
     },
     {
-      title: 'Delete account',
+      title: t('settings.deleteAccount'),
       icon: 'trash-2' as const,
       onPress: () => setDeleteAccountModalVisible(true),
     },
@@ -160,7 +231,7 @@ export default function AccountSettingsPage() {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='Settings' onBack={() => router.back()} />
+      <BackHeader title={t('settings.title')} onBack={() => router.back()} />
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
@@ -200,21 +271,28 @@ export default function AccountSettingsPage() {
               onPress={() => router.push('/edit-name')}
               activeOpacity={0.7}
             >
-              <Text style={styles.userName}>{currentUser?.username || ''}</Text>
+              <View style={styles.nameStack}>
+                <Text style={styles.userName}>
+                  {currentUser?.firstName || currentUser?.username || ''}
+                </Text>
+                {currentUser?.firstName ? (
+                  <Text style={styles.userHandle}>@{currentUser.username}</Text>
+                ) : null}
+              </View>
               <Feather name='edit-3' size={20} color={Theme.black} />
             </TouchableOpacity>
             <Text style={styles.userEmail}>{currentUser?.email || ''}</Text>
           </View>
         </View>
         <View style={styles.rowsContainer}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={styles.sectionTitle}>{t('settings.preferences')}</Text>
           <View style={styles.settingsCard}>
             <View style={[styles.row, styles.toggleRow]}>
               <View style={styles.rowLabelContainer}>
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name='bell' size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>Learning Reminders</Text>
+                <Text style={styles.rowText}>{t('settings.learningReminders')}</Text>
               </View>
               <Pressable
                 onPress={
@@ -224,7 +302,7 @@ export default function AccountSettingsPage() {
                 }
                 accessibilityRole='switch'
                 accessibilityState={{ checked: notificationsEnabled ?? false }}
-                accessibilityLabel='Learning Reminders'
+                accessibilityLabel={t('settings.learningReminders')}
                 hitSlop={8}
                 disabled={notificationsEnabled === null}
                 style={[
@@ -245,13 +323,13 @@ export default function AccountSettingsPage() {
                 <View style={styles.bookmarkIconContainer}>
                   <Feather name='zap' size={24} color={Theme.black} />
                 </View>
-                <Text style={styles.rowText}>Haptics</Text>
+                <Text style={styles.rowText}>{t('settings.haptics')}</Text>
               </View>
               <Pressable
                 onPress={toggleHaptics}
                 accessibilityRole='switch'
                 accessibilityState={{ checked: hapticsEnabled }}
-                accessibilityLabel='Haptics'
+                accessibilityLabel={t('settings.haptics')}
                 hitSlop={8}
                 style={[
                   styles.toggleTrack,
@@ -262,19 +340,107 @@ export default function AccountSettingsPage() {
               </Pressable>
             </View>
             <TouchableOpacity
+              style={[styles.row, styles.toggleRow]}
+              onPress={() => setLanguageModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.rowLabelContainer}>
+                <View style={styles.bookmarkIconContainer}>
+                  <Feather name='globe' size={24} color={Theme.black} />
+                </View>
+                <Text style={styles.rowText}>{t('language.title')}</Text>
+              </View>
+              <View style={styles.languageValueContainer}>
+                <Text style={styles.languageValueText}>
+                  {SUPPORTED_LANGUAGES[currentLanguage]}
+                </Text>
+                <Feather name='chevron-right' size={18} color='#8E8E93' />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={styles.row}
               onPress={() => router.push('/redo-onboarding' as any)}
             >
               <View style={styles.bookmarkIconContainer}>
                 <Feather name='refresh-cw' size={24} color={Theme.black} />
               </View>
-              <Text style={styles.rowText}>Redo Onboarding Quiz</Text>
+              <Text style={styles.rowText}>{t('settings.redoOnboarding')}</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
 
+          {/* Privacy Section — iOS-only (ATT is iOS-only) */}
+          {Platform.OS === 'ios' ? (
+            <>
+              <Text style={styles.sectionTitle}>
+                {t('privacy.settings.sectionTitle')}
+              </Text>
+              <View style={styles.settingsCard}>
+                <View style={[styles.row, styles.toggleRow]}>
+                  <View style={styles.rowLabelContainer}>
+                    <View style={styles.bookmarkIconContainer}>
+                      <Feather name='shield' size={24} color={Theme.black} />
+                    </View>
+                    <Text style={styles.rowText}>
+                      {t('privacy.settings.personalizedAdsLabel')}
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={
+                      personalizedAdsEnabled !== null
+                        ? togglePersonalizedAds
+                        : undefined
+                    }
+                    accessibilityRole='switch'
+                    accessibilityState={{
+                      checked: personalizedAdsEnabled ?? false,
+                    }}
+                    accessibilityLabel={t(
+                      'privacy.settings.personalizedAdsLabel',
+                    )}
+                    hitSlop={8}
+                    disabled={personalizedAdsEnabled === null}
+                    style={[
+                      styles.toggleTrack,
+                      personalizedAdsEnabled === null
+                        ? styles.toggleTrackOff
+                        : personalizedAdsEnabled
+                          ? styles.toggleTrackOn
+                          : styles.toggleTrackOff,
+                      personalizedAdsEnabled === null && { opacity: 0.5 },
+                    ]}
+                  >
+                    <View style={styles.toggleThumb} />
+                  </Pressable>
+                </View>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null}
+
+          {/* Community Section — iOS-only (referrals are App Store only for now) */}
+          {Platform.OS === 'ios' ? (
+            <>
+              <Text style={styles.sectionTitle}>{t('settings.community')}</Text>
+              <View style={styles.settingsCard}>
+                <TouchableOpacity
+                  style={styles.row}
+                  onPress={() => router.push('/refer-a-friend' as any)}
+                  accessibilityRole='button'
+                  accessibilityLabel={t('settings.referAFriend')}
+                >
+                  <View style={styles.bookmarkIconContainer}>
+                    <Feather name='gift' size={24} color={Theme.black} />
+                  </View>
+                  <Text style={styles.rowText}>{t('settings.referAFriend')}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null}
+
           {/* Legal Section */}
-          <Text style={styles.sectionTitle}>Legal</Text>
+          <Text style={styles.sectionTitle}>{t('settings.legal')}</Text>
           <View style={styles.settingsCard}>
             {legalRows.map((row, index) => (
               <TouchableOpacity
@@ -292,7 +458,7 @@ export default function AccountSettingsPage() {
           <View style={styles.divider} />
 
           {/* Account Section */}
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={styles.sectionTitle}>{t('settings.account')}</Text>
           <View style={styles.settingsCard}>
             {accountRows.map((row, index) => (
               <TouchableOpacity
@@ -314,38 +480,97 @@ export default function AccountSettingsPage() {
         </View>
       </ScrollView>
 
+      {/* Language selection modal */}
+      <Modal
+        animationType='fade'
+        transparent
+        visible={languageModalVisible}
+        onRequestClose={() => setLanguageModalVisible(false)}
+      >
+        <Pressable
+          style={styles.deleteModalOverlay}
+          onPress={() => setLanguageModalVisible(false)}
+        >
+          <View style={styles.languageModalCard}>
+            <Pressable onPress={e => e.stopPropagation()}>
+              <Text style={styles.languageModalTitle}>
+                {t('language.selectLanguage')}
+              </Text>
+              {(Object.entries(SUPPORTED_LANGUAGES) as [SupportedLanguage, string][]).map(
+                ([code, label]) => (
+                  <TouchableOpacity
+                    key={code}
+                    style={[
+                      styles.languageOption,
+                      currentLanguage === code && styles.languageOptionSelected,
+                    ]}
+                    onPress={async () => {
+                      await changeLanguage(code);
+                      setLanguageModalVisible(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.languageOptionText,
+                        currentLanguage === code && styles.languageOptionTextSelected,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                    {currentLanguage === code && (
+                      <Feather name='check' size={20} color={Theme.black} />
+                    )}
+                  </TouchableOpacity>
+                )
+              )}
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
       {/* Delete account confirmation modal */}
       <Modal
         animationType='fade'
         transparent
         visible={deleteAccountModalVisible}
-        onRequestClose={() => setDeleteAccountModalVisible(false)}
+        onRequestClose={() => {
+          if (!isDeletingAccount) setDeleteAccountModalVisible(false);
+        }}
       >
         <Pressable
           style={styles.deleteModalOverlay}
-          onPress={() => setDeleteAccountModalVisible(false)}
+          onPress={() => {
+            if (!isDeletingAccount) setDeleteAccountModalVisible(false);
+          }}
         >
           <View style={styles.deleteModalCard}>
             <Pressable onPress={e => e.stopPropagation()}>
               <Text style={styles.deleteModalTitle}>
-                Delete your Unify account?
+                {t('settings.deleteAccountTitle')}
               </Text>
               <Text style={styles.deleteModalMessage}>
-                You're requesting to delete your account. This includes all your
-                posts, comments, likes, and saves.
+                {t('settings.deleteAccountMessage')}
               </Text>
               <View style={styles.deleteModalButtons}>
                 <TouchableOpacity
                   style={styles.deleteModalCancel}
                   onPress={() => setDeleteAccountModalVisible(false)}
+                  disabled={isDeletingAccount}
                 >
-                  <Text style={styles.deleteModalCancelText}>Cancel</Text>
+                  <Text style={styles.deleteModalCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.deleteModalConfirm}
+                  style={[
+                    styles.deleteModalConfirm,
+                    isDeletingAccount && { opacity: 0.5 },
+                  ]}
                   onPress={deleteAccount}
+                  disabled={isDeletingAccount}
                 >
-                  <Text style={styles.deleteModalConfirmText}>Delete</Text>
+                  <Text style={styles.deleteModalConfirmText}>
+                    {isDeletingAccount ? t('settings.deleting') : t('common.delete')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </Pressable>
@@ -409,6 +634,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: Theme.black,
+  },
+  nameStack: {
+    flexDirection: 'column',
+  },
+  userHandle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
   userEmail: {
     fontSize: 14,
@@ -484,6 +717,48 @@ const styles = StyleSheet.create({
     color: Theme.textInput,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  languageValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  languageValueText: {
+    fontSize: 16,
+    color: '#8E8E93',
+  },
+  languageModalCard: {
+    backgroundColor: Theme.white,
+    borderRadius: 16,
+    padding: 8,
+    width: '100%',
+    maxWidth: 340,
+  },
+  languageModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Theme.black,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  languageOptionSelected: {
+    backgroundColor: '#F5F5F5',
+  },
+  languageOptionText: {
+    fontSize: 17,
+    color: '#333',
+  },
+  languageOptionTextSelected: {
+    fontWeight: '600',
+    color: Theme.black,
   },
   deleteModalOverlay: {
     flex: 1,

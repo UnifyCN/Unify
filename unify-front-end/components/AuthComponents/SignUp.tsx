@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import {
   View,
   Text,
@@ -8,6 +9,7 @@ import {
   Modal,
   Pressable,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckBox } from 'react-native-elements';
@@ -23,8 +25,9 @@ import { getUserInfo } from '@/services/users/getUserInfo';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import Google from '../../assets/images/Google.svg';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
-import { SubmitButton, SimpleTextField } from './Components';
+import { SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
+import { logAccountCreated } from '@/services/analytics/metaEvents';
 import LegalWebView from '@/components/LegalWebView';
 import { LEGAL_URLS, LEGAL_TITLES, LegalDocumentType } from '@/utils/legalUrls';
 
@@ -40,11 +43,13 @@ export function SignUp({
   onShowOTP?: (email: string, password: string, acceptedAt: string) => void;
   onBack?: () => void;
 }): React.JSX.Element {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const {
     trackSignUpStarted,
     trackSignUpCompleted,
     trackSignUpFailed,
+    trackSignInCompleted,
     trackGoogleSignInUsed,
     trackAppleSignInUsed,
   } = useAnalytics();
@@ -72,21 +77,19 @@ export function SignUp({
 
   const handleSignUp = async () => {
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
+      setErrorMessage(t('auth.passwordsDoNotMatch'));
       trackSignUpFailed('passwords_mismatch');
       return;
     }
 
     if (!isEmailValid) {
-      setErrorMessage('Please enter a valid email address');
+      setErrorMessage(t('auth.invalidEmail'));
       trackSignUpFailed('invalid_email');
       return;
     }
 
     if (!isChecked) {
-      setErrorMessage(
-        'Please accept the Terms of Service, Privacy Policy, and Community Guidelines'
-      );
+      setErrorMessage(t('auth.acceptTermsRequired'));
       trackSignUpFailed('terms_not_accepted');
       return;
     }
@@ -104,14 +107,14 @@ export function SignUp({
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') {
-        setErrorMessage('Failed to verify email availability');
+        setErrorMessage(t('auth.failedEmailCheck'));
         trackSignUpFailed('email_check_failed');
         setLoading(false);
         return;
       }
 
       if (existingUser) {
-        setErrorMessage('An account with this email already exists');
+        setErrorMessage(t('auth.emailAlreadyExists'));
         trackSignUpFailed('email_already_exists');
         setLoading(false);
         return;
@@ -129,12 +132,17 @@ export function SignUp({
         return;
       }
 
-      trackSignUpCompleted();
+      trackSignUpCompleted('email');
+      if (data?.user?.id) {
+        logAccountCreated(data.user.id).catch(err =>
+          console.warn('[meta] logAccountCreated failed', err),
+        );
+      }
       const acceptedAt = new Date().toISOString();
       onShowOTP?.(normalizedEmail, password, acceptedAt);
       return;
     } catch (error) {
-      setErrorMessage('An error occurred during sign up.');
+      setErrorMessage(t('auth.signUpError'));
       trackSignUpFailed('unknown_error');
       setLoading(false);
     }
@@ -154,6 +162,11 @@ export function SignUp({
 
   const handleGoogleSignIn = async () => {
     if (isExpoGo) return;
+    if (!isChecked) {
+      setErrorMessage(t('auth.acceptTermsRequired'));
+      trackSignUpFailed('terms_not_accepted');
+      return;
+    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -163,7 +176,12 @@ export function SignUp({
       if (Platform.OS === 'android') {
         await GoogleSignin.hasPlayServices();
       }
-      await GoogleSignin.signIn();
+      const signInResult: any = await GoogleSignin.signIn();
+      const googleGivenName: string | null =
+        signInResult?.data?.user?.givenName ??
+        signInResult?.user?.givenName ??
+        null;
+
       const { idToken } = await GoogleSignin.getTokens();
       if (idToken) {
         const { data, error } = await supabase.auth.signInWithIdToken({
@@ -177,32 +195,57 @@ export function SignUp({
         }
 
         if (data?.user?.id && data?.user?.email) {
+          const acceptedAt = new Date().toISOString();
           try {
-            await createUserIfNotExists(data.user.id, data.user.email);
+            // SignUp path: the checkbox gates form submission, so by the time
+            // we reach here the user has consented. Persist it now so the
+            // AuthWrapper backup gate doesn't re-prompt for the same consent.
+            await createUserIfNotExists(data.user.id, data.user.email, {
+              privacyPolicyAcceptedAt: acceptedAt,
+              communityGuidelinesAcceptedAt: acceptedAt,
+              firstName: googleGivenName,
+            });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
-              userCreationError?.message || 'Failed to complete sign-up setup'
+              userCreationError?.message || t('auth.failedSignUpSetup')
             );
             setLoading(false);
             return;
           }
 
+          // Seed the legal status cache so AuthWrapper doesn't flash the
+          // consent modal during the gap between session-set and the
+          // userLegalStatus query refetch landing.
+          queryClient.setQueryData(['userLegalStatus', data.user.id], {
+            privacy_policy_accepted_at: acceptedAt,
+            community_guidelines_accepted_at: acceptedAt,
+          });
+
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+          trackSignInCompleted('google');
+          if (
+            data.user.created_at &&
+            Date.now() - new Date(data.user.created_at).getTime() < 60_000
+          ) {
+            logAccountCreated(data.user.id).catch(err =>
+              console.warn('[meta] logAccountCreated failed', err),
+            );
+          }
         } else if (data?.user?.id && !data?.user?.email) {
-          setErrorMessage('Unable to retrieve email from Google account');
+          setErrorMessage(t('auth.googleNoEmail'));
           setLoading(false);
           return;
         } else if (!data?.user?.id) {
-          setErrorMessage('Unable to retrieve user information from Google');
+          setErrorMessage(t('auth.googleNoUser'));
           setLoading(false);
           return;
         }
       } else {
-        setErrorMessage('No Google idToken');
+        setErrorMessage(t('auth.googleNoToken'));
       }
     } catch (error: any) {
       if (error?.code === statusCodes.IN_PROGRESS) {
@@ -210,17 +253,22 @@ export function SignUp({
         return;
       }
       if (error?.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        setErrorMessage('Google Play Services not available');
+        setErrorMessage(t('auth.googlePlayNotAvailable'));
         setLoading(false);
         return;
       }
-      setErrorMessage(error?.message || 'Google sign-in failed');
+      setErrorMessage(error?.message || t('auth.googleSignInFailed'));
     }
     setLoading(false);
   };
 
   const handleAppleSignIn = async () => {
     if (isExpoGo) return;
+    if (!isChecked) {
+      setErrorMessage(t('auth.acceptTermsRequired'));
+      trackSignUpFailed('terms_not_accepted');
+      return;
+    }
 
     setLoading(true);
     setErrorMessage(null);
@@ -233,6 +281,10 @@ export function SignUp({
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
+
+      // Apple returns fullName ONLY on the very first sign-in for this Apple ID.
+      // If it's missing on subsequent attempts, we silently pass null.
+      const appleGivenName = credential.fullName?.givenName ?? null;
 
       if (credential.identityToken) {
         const { data, error } = await supabase.auth.signInWithIdToken({
@@ -247,39 +299,62 @@ export function SignUp({
         }
 
         if (data?.user?.id && data?.user?.email) {
+          const acceptedAt = new Date().toISOString();
           try {
-            await createUserIfNotExists(data.user.id, data.user.email);
+            // SignUp path: same as Google — the consent checkbox has already
+            // gated form submission, so persist the timestamp here so the
+            // post-auth AuthWrapper modal doesn't ask the user a second time.
+            await createUserIfNotExists(data.user.id, data.user.email, {
+              privacyPolicyAcceptedAt: acceptedAt,
+              communityGuidelinesAcceptedAt: acceptedAt,
+              firstName: appleGivenName,
+            });
           } catch (userCreationError: any) {
             console.error('Failed to create user record:', userCreationError);
             setErrorMessage(
-              userCreationError?.message || 'Failed to complete sign-up setup'
+              userCreationError?.message || t('auth.failedSignUpSetup')
             );
             setLoading(false);
             return;
           }
 
+          // Seed the legal status cache (see Google handler for rationale).
+          queryClient.setQueryData(['userLegalStatus', data.user.id], {
+            privacy_policy_accepted_at: acceptedAt,
+            community_guidelines_accepted_at: acceptedAt,
+          });
+
           await queryClient.ensureQueryData({
             queryKey: ['userInfo', data.user.id],
             queryFn: () => getUserInfo(data.user.id),
           });
+          trackSignInCompleted('apple');
+          if (
+            data.user.created_at &&
+            Date.now() - new Date(data.user.created_at).getTime() < 60_000
+          ) {
+            logAccountCreated(data.user.id).catch(err =>
+              console.warn('[meta] logAccountCreated failed', err),
+            );
+          }
         } else if (data?.user?.id && !data?.user?.email) {
-          setErrorMessage('Unable to retrieve email from Apple account');
+          setErrorMessage(t('auth.appleNoEmail'));
           setLoading(false);
           return;
         } else if (!data?.user?.id) {
-          setErrorMessage('Unable to retrieve user information from Apple');
+          setErrorMessage(t('auth.appleNoUser'));
           setLoading(false);
           return;
         }
       } else {
-        setErrorMessage('No Apple identity token received');
+        setErrorMessage(t('auth.appleNoToken'));
       }
     } catch (error: any) {
       if (error?.code === 'ERR_REQUEST_CANCELED') {
         setLoading(false);
         return;
       }
-      setErrorMessage(error?.message || 'Apple sign-up failed');
+      setErrorMessage(error?.message || t('auth.appleSignUpFailed'));
     }
     setLoading(false);
   };
@@ -303,11 +378,11 @@ export function SignUp({
         )}
 
         {/* Header */}
-        <Text style={styles.header}>Create account</Text>
+        <Text style={styles.header}>{t('auth.createAccount')}</Text>
         <View style={styles.subHeaderRow}>
-          <Text style={styles.subHeaderText}>Already have an account? </Text>
+          <Text style={styles.subHeaderText}>{t('auth.alreadyHaveAccount')}</Text>
           <Text style={styles.subHeaderLink} onPress={onSwitchToSignIn}>
-            Log In
+            {t('auth.logIn')}
           </Text>
         </View>
 
@@ -326,7 +401,7 @@ export function SignUp({
                 setEmail(text);
                 validateEmail(text);
               }}
-              placeholder='Email Address'
+              placeholder={t('auth.emailAddress')}
               placeholderTextColor='#999'
               style={[
                 styles.textField,
@@ -359,7 +434,7 @@ export function SignUp({
             <SimpleTextField
               value={password}
               onChangeText={setPassword}
-              placeholder='Password'
+              placeholder={t('auth.password')}
               placeholderTextColor='#999'
               style={[
                 styles.textField,
@@ -395,7 +470,7 @@ export function SignUp({
             <SimpleTextField
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              placeholder='Confirm Password'
+              placeholder={t('auth.confirmPassword')}
               placeholderTextColor='#999'
               style={[
                 styles.textField,
@@ -438,54 +513,65 @@ export function SignUp({
             wrapperStyle={styles.checkboxWrapper}
           />
           <Text style={styles.checkboxText}>
-            I agree to the{' '}
-            <Text
-              style={styles.checkboxLinkText}
-              onPress={() => setWebViewDoc('termsOfService')}
-              accessibilityRole='link'
-              accessibilityLabel='Open Terms of Service'
-            >
-              Terms of Service
-            </Text>
-            ,{' '}
-            <Text
-              style={styles.checkboxLinkText}
-              onPress={() => setWebViewDoc('privacyPolicy')}
-              accessibilityRole='link'
-              accessibilityLabel='Open Privacy Policy'
-            >
-              Privacy Policy
-            </Text>
-            {' & '}
-            <Text
-              style={styles.checkboxLinkText}
-              onPress={() => setWebViewDoc('communityGuidelines')}
-              accessibilityRole='link'
-              accessibilityLabel='Open Community Guidelines'
-            >
-              Community Guidelines
-            </Text>
+            <Trans
+              i18nKey='auth.legalSignUp'
+              components={{
+                terms: (
+                  <Text
+                    key='terms'
+                    style={styles.checkboxLinkText}
+                    onPress={() => setWebViewDoc('termsOfService')}
+                    accessibilityRole='link'
+                    accessibilityLabel={t('auth.accessibility.termsOfService')}
+                  />
+                ),
+                privacy: (
+                  <Text
+                    key='privacy'
+                    style={styles.checkboxLinkText}
+                    onPress={() => setWebViewDoc('privacyPolicy')}
+                    accessibilityRole='link'
+                    accessibilityLabel={t('auth.accessibility.privacyPolicy')}
+                  />
+                ),
+                guidelines: (
+                  <Text
+                    key='guidelines'
+                    style={styles.checkboxLinkText}
+                    onPress={() => setWebViewDoc('communityGuidelines')}
+                    accessibilityRole='link'
+                    accessibilityLabel={t('auth.accessibility.communityGuidelines')}
+                  />
+                ),
+              }}
+            />
           </Text>
         </View>
 
         {/* Sign Up button */}
-        <SubmitButton
-          disabled={!isFormValid}
-          loading={loading}
+        <TouchableOpacity
           onPress={handleSignUp}
+          disabled={!isFormValid || loading}
+          activeOpacity={0.8}
           style={[
             styles.signUpButton,
             !isFormValid && styles.signUpButtonDisabled,
           ]}
-          labelStyle={styles.signUpButtonText}
+          accessibilityRole='button'
+          accessibilityLabel={t('auth.signUp')}
+          accessibilityState={{ disabled: !isFormValid || loading }}
         >
-          Sign Up
-        </SubmitButton>
+          {loading ? (
+            <ActivityIndicator color='#fff' />
+          ) : (
+            <Text style={styles.signUpButtonText}>{t('auth.signUp')}</Text>
+          )}
+        </TouchableOpacity>
 
         {/* Or divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
+          <Text style={styles.dividerText}>{t('common.or')}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -494,7 +580,7 @@ export function SignUp({
           <TouchableOpacity
             style={styles.socialIconButton}
             onPress={handleGoogleSignIn}
-            accessibilityLabel='Sign up with Google'
+            accessibilityLabel={t('auth.signUpWithGoogle')}
             accessibilityRole='button'
           >
             <Google width={24 * S} height={24 * S} />
@@ -503,7 +589,7 @@ export function SignUp({
             <TouchableOpacity
               style={styles.socialIconButton}
               onPress={handleAppleSignIn}
-              accessibilityLabel='Sign up with Apple'
+              accessibilityLabel={t('auth.signUpWithApple')}
               accessibilityRole='button'
             >
               <Ionicons name='logo-apple' size={26 * S} color='#000' />

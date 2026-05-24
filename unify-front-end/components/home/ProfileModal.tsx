@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Feather } from '@expo/vector-icons';
 import { Avatar } from '@/components/Avatar';
 import BottomSheet from '@/components/common/BottomSheet';
@@ -41,6 +42,7 @@ const MenuRow = ({ icon, label, onPress, isLast = false }: MenuRowProps) => (
 
 export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { currentUser } = useCurrentUser();
   const { data: userInfo } = useUserInfo(currentUser?.id);
 
@@ -74,37 +76,44 @@ export default function ProfileModal({ visible, onClose }: ProfileModalProps) {
           username={currentUser.username}
           size={72}
         />
-        <Text style={styles.username}>@{currentUser.username}</Text>
+        {currentUser.firstName ? (
+          <>
+            <Text style={styles.displayName}>{currentUser.firstName}</Text>
+            <Text style={styles.handle}>@{currentUser.username}</Text>
+          </>
+        ) : (
+          <Text style={styles.username}>@{currentUser.username}</Text>
+        )}
         <Text style={styles.counts}>
-          {followerCount} followers{'  '}·{'  '}
-          {followingCount} following
+          {followerCount} {t('common.followers')}{'  '}·{'  '}
+          {followingCount} {t('common.following')}
         </Text>
       </View>
 
       <View style={styles.menuSection}>
         <MenuRow
           icon='user'
-          label='Profile'
+          label={t('profile.title')}
           onPress={() => navigate(`/profile?userId=${currentUser.id}`)}
         />
         <MenuRow
           icon='bookmark'
-          label='Saved'
+          label={t('profile.saved')}
           onPress={() => navigate('/saved')}
         />
         <MenuRow
           icon='book'
-          label='Saved from Learn'
+          label={t('profile.savedFromLearn')}
           onPress={() => navigate('/saved-lessons')}
         />
         <MenuRow
           icon='message-circle'
-          label='Give Feedback'
+          label={t('profile.giveFeedback')}
           onPress={handleFeedback}
         />
         <MenuRow
           icon='settings'
-          label='Settings'
+          label={t('profile.settings')}
           onPress={() => navigate('/account-settings')}
           isLast
         />
@@ -124,6 +133,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Theme.black,
     marginTop: 12,
+  },
+  displayName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Theme.black,
+    marginTop: 12,
+  },
+  handle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
   },
   counts: {
     fontSize: 14,

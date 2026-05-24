@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, use, useEffect, useState } from 'react';
+import { isAuthApiError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useUserInfo } from '@/hooks/users/useUserInfo';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,6 +10,7 @@ interface CurrentUser {
   id: string;
   email: string;
   username: string;
+  firstName: string | null;
   permissions: string;
   profilePictureUrl?: string;
   isPremium: boolean;
@@ -42,17 +44,32 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // Get user ID and email from auth
   useEffect(() => {
     const getAuthUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUserId(data.user.id);
-        setUserEmail(data.user.email || null);
-      } else {
-        setUserId(null);
-        setUserEmail(null);
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+          setUserId(data.user.id);
+          setUserEmail(data.user.email || null);
+        } else {
+          setUserId(null);
+          setUserEmail(null);
+        }
+      } catch (err) {
+        // Stale session in SecureStore (e.g. refresh token rotated, expired,
+        // or invalidated server-side). Clear it locally so subsequent calls
+        // return a clean null user and stop throwing on every app launch.
+        if (isAuthApiError(err) && err.code === 'refresh_token_not_found') {
+          await supabase.auth.signOut({ scope: 'local' });
+          setUserId(null);
+          setUserEmail(null);
+          return;
+        }
+        throw err;
       }
     };
 
-    getAuthUser();
+    getAuthUser().catch(err => {
+      console.error('[UserContext] Failed to load auth user:', err);
+    });
 
     // Listen for auth changes
     const {
@@ -84,6 +101,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           id: userId,
           email: userEmail,
           username: effectiveUserInfo.username,
+          firstName: effectiveUserInfo.firstName ?? null,
           permissions: effectiveUserInfo.permissions,
           profilePictureUrl: effectiveUserInfo.profilePictureUrl,
           isPremium: effectiveUserInfo.isPremium,
@@ -97,7 +115,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       : null;
 
   return (
-    <UserContext.Provider
+    <UserContext
       value={{
         currentUser,
         isLoading: isLoading || !userId,
@@ -105,12 +123,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </UserContext.Provider>
+    </UserContext>
   );
 }
 
 export function useCurrentUser() {
-  const context = useContext(UserContext);
+  const context = use(UserContext);
   if (context === undefined) {
     throw new Error('useCurrentUser must be used within a UserProvider');
   }

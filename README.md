@@ -1,4 +1,5 @@
 # Unify
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/UnifyCN/mobile-app)
 
 A mobile app helping newcomers settle in Canada — built by [Unify](https://unifysocial.ca/).
 
@@ -41,7 +42,7 @@ Structured educational modules (Sanity CMS) with lessons, quizzes, practice exer
 ### Additional Features
 - **Auth**: Email + OTP, Google OAuth, Apple Sign-In (iOS)
 - **Moderation**: Content keyword filter, post/user reporting (emails moderators via Resend), user blocking
-- **Push notifications**: Expo Notifications with community-circles channel
+- **Push notifications**: Expo Notifications with `social` (default), `circles`, and `learn` channels — published by `send-social-push`, `matchmake-circles`, and `send-learn-reminders` respectively
 - **Profile**: Avatar uploads (S3), follow/unfollow, user profiles
 - **Haptics**: Configurable haptic feedback on interactions
 - **Legal**: Consent modal linking to Notion-hosted documents

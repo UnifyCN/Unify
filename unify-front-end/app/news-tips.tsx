@@ -1,5 +1,6 @@
 import { StyleSheet, View, FlatList, Text } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import { NewsCard } from '@/components/home/NewsCard';
 import { NewsDetails } from '@/types/news';
@@ -9,6 +10,7 @@ import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import { Feather } from '@expo/vector-icons';
 
 const NewsTipsScreen = () => {
+  const { t } = useTranslation();
   const router = useRouter();
   const { data: news, isLoading } = useNews();
 
@@ -28,9 +30,9 @@ const NewsTipsScreen = () => {
   if (isLoading) {
     return (
       <View style={styles.container}>
-        <BackHeader title='News & Tips' />
+        <BackHeader title={t('news.title')} />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading news...</Text>
+          <Text style={styles.loadingText}>{t('news.loading')}</Text>
         </View>
       </View>
     );
@@ -39,11 +41,11 @@ const NewsTipsScreen = () => {
   if (!news || news.length === 0) {
     return (
       <View style={styles.container}>
-        <BackHeader title='News & Tips' />
+        <BackHeader title={t('news.title')} />
         <View style={styles.emptyContainer}>
           <EmptyFeedMessage
             icon={<Feather name='file-text' size={24} color='#B4B1B1' />}
-            message='No news available'
+            message={t('news.noNews')}
             submessage={
               <Text
                 style={{
@@ -53,7 +55,7 @@ const NewsTipsScreen = () => {
                   lineHeight: 20,
                 }}
               >
-                Check back later for new articles
+                {t('news.checkBackLater')}
               </Text>
             }
           />
@@ -64,7 +66,7 @@ const NewsTipsScreen = () => {
 
   return (
     <View style={styles.container}>
-      <BackHeader title='News & Tips' />
+      <BackHeader title={t('news.title')} />
       <FlatList
         data={news}
         renderItem={renderNewsCard}

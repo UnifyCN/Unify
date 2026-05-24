@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { SimpleTextField, SubmitButton, ViewContainer } from './Components';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ export default function ForgotPassword({
   onBack,
   onCodeSent,
 }: Readonly<ForgotPasswordProps>) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,7 @@ export default function ForgotPassword({
       } else {
         setMessage({
           type: 'success',
-          text: 'Check your email for a 6-digit code',
+          text: t('auth.checkEmailCode'),
         });
 
         if (codeSentTimerRef.current) {
@@ -66,9 +68,11 @@ export default function ForgotPassword({
       const messageWithFallback =
         error instanceof Error
           ? error.message
-          : String(error || 'An unknown error occurred');
+          : typeof error === 'string'
+            ? error
+            : t('auth.forgotPasswordError');
 
-      console.error('Password reset error:', messageWithFallback);
+      console.error('Password reset error:', error);
       setMessage({
         type: 'error',
         text: messageWithFallback,
@@ -80,16 +84,15 @@ export default function ForgotPassword({
 
   return (
     <ViewContainer style={styles.container}>
-      <BackHeader title='Reset Password' onBack={onBack} backIcon='x' />
+      <BackHeader title={t('auth.resetPassword')} onBack={onBack} backIcon='x' />
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          Enter your email address and we'll send you a code to reset your
-          password.
+          {t('auth.resetPasswordDesc')}
         </Text>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email Address</Text>
+          <Text style={styles.label}>{t('auth.emailAddress')}</Text>
           <View style={{ position: 'relative' }}>
             <SimpleTextField
               value={email}
@@ -97,7 +100,7 @@ export default function ForgotPassword({
                 setEmail(text);
                 validateEmail(text);
               }}
-              placeholder='Email address'
+              placeholder={t('auth.emailPlaceholder')}
               style={[
                 styles.textField,
                 message?.type === 'error' && { borderColor: '#f00' },
@@ -135,7 +138,7 @@ export default function ForgotPassword({
           style={styles.button}
           labelStyle={styles.buttonText}
         >
-          Send Reset Link
+          {t('auth.sendResetLink')}
         </SubmitButton>
       </View>
     </ViewContainer>

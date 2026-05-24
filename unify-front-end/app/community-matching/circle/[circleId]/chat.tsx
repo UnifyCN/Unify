@@ -41,6 +41,7 @@ import {
   normalizeAvatarSource,
   prefetchAvatarUrls,
 } from '@/services/s3/avatarUrlCache';
+import { useTranslation } from 'react-i18next';
 
 const GROUP_WINDOW_MS = 3 * 60 * 1000;
 
@@ -66,8 +67,8 @@ type CircleDateSeparatorItem = {
 
 type CircleChatListItem = CircleMessageListItem | CircleDateSeparatorItem;
 
-const formatMessageTime = (isoDate: string): string =>
-  new Date(isoDate).toLocaleTimeString([], {
+const formatMessageTime = (isoDate: string, locale: string): string =>
+  new Date(isoDate).toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: '2-digit',
   });
@@ -77,24 +78,29 @@ const isSameCalendarDay = (first: Date, second: Date): boolean =>
   first.getMonth() === second.getMonth() &&
   first.getDate() === second.getDate();
 
-const formatDateSeparatorLabel = (isoDate: string): string => {
+const formatDateSeparatorLabel = (
+  isoDate: string,
+  t: (key: string) => string,
+  locale: string
+): string => {
   const date = new Date(isoDate);
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
 
   if (isSameCalendarDay(date, now)) {
-    return 'Today';
+    return t('circles.today');
   }
 
   if (isSameCalendarDay(date, yesterday)) {
-    return 'Yesterday';
+    return t('circles.yesterday');
   }
 
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
 };
 
 export default function CircleChatScreen() {
+  const { t, i18n } = useTranslation();
   const { circleId } = useLocalSearchParams<{ circleId: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -266,7 +272,7 @@ export default function CircleChatScreen() {
                     id: payload.new.sender_user_id,
                     username:
                       memberLookup[payload.new.sender_user_id]?.user.username ||
-                      'Circle member',
+                      t('circles.memberFallback'),
                     profile_picture_url:
                       memberLookup[payload.new.sender_user_id]?.user
                         .profile_picture_url || null,
@@ -416,7 +422,7 @@ export default function CircleChatScreen() {
       console.error('Failed to send message', error);
       // Remove the optimistic message on failure
       setMessages(prev => prev.filter(m => m.id !== tempId));
-      Alert.alert('Message not sent', 'Please try again.');
+      Alert.alert(t('circles.messageNotSent'), t('common.tryAgain'));
     } finally {
       setIsSending(false);
     }
@@ -517,7 +523,7 @@ export default function CircleChatScreen() {
         items.push({
           type: 'date-separator',
           id: `date-${dateKey}-${index}`,
-          label: formatDateSeparatorLabel(message.created_at),
+          label: formatDateSeparatorLabel(message.created_at, t, i18n.language),
         });
       }
 
@@ -541,13 +547,13 @@ export default function CircleChatScreen() {
         isGroupEnd,
         showTimestamp,
         timestampLabel: showTimestamp
-          ? formatMessageTime(message.created_at)
+          ? formatMessageTime(message.created_at, i18n.language)
           : undefined,
       });
     });
 
     return items;
-  }, [currentUser?.id, messages]);
+  }, [currentUser?.id, messages, t, i18n.language]);
 
   const inputDisabled = circleExpired || membership?.left_at !== null;
 
@@ -594,21 +600,21 @@ export default function CircleChatScreen() {
                   </TouchableOpacity>
                 ))}
             </View>
-            <Text style={styles.presenceText}>{onlineMembers.size} online</Text>
+            <Text style={styles.presenceText}>{t('circles.online', { count: onlineMembers.size })}</Text>
           </View>
         )}
 
         {circleExpired && (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>
-              This circle has ended. Chat is read-only.
+              {t('circles.circleEndedReadOnly')}
             </Text>
           </View>
         )}
         {membership?.left_at && (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>
-              You left this circle. Messages are archived for reference.
+              {t('circles.youLeftReadOnly')}
             </Text>
           </View>
         )}
@@ -677,7 +683,7 @@ export default function CircleChatScreen() {
             >
               <TextInput
                 style={[styles.input, inputDisabled && styles.inputDisabled]}
-                placeholder='Message...'
+                placeholder={t('circles.messagePlaceholder')}
                 placeholderTextColor='#98A2B3'
                 value={text}
                 onChangeText={handleTextChange}
@@ -751,7 +757,7 @@ export default function CircleChatScreen() {
               </View>
 
               <View style={styles.commonGroundSection}>
-                <Text style={styles.commonGroundTitle}>Shared Journey</Text>
+                <Text style={styles.commonGroundTitle}>{t('circles.sharedJourney')}</Text>
                 <View style={styles.commonGroundItem}>
                   <Feather name='map-pin' size={16} color='#ff820b' />
                   <Text style={styles.commonGroundText}>
@@ -768,7 +774,7 @@ export default function CircleChatScreen() {
                   style={styles.viewProfileBtn}
                   onPress={viewFullProfile}
                 >
-                  <Text style={styles.viewProfileText}>View Profile</Text>
+                  <Text style={styles.viewProfileText}>{t('circles.viewProfile')}</Text>
                 </TouchableOpacity>
                 <View style={styles.modalFollowBtn}>
                   <FollowButton targetUserId={selectedMember.user_id} />

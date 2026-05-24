@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 type Props = { placeholder?: string; onFilterPress?: () => void };
 
 export default function SearchBar({
-  placeholder = 'Search',
+  placeholder,
   onFilterPress,
 }: Props) {
+  const { t } = useTranslation();
+  const displayPlaceholder = placeholder ?? t('common.search');
   return (
     <View style={styles.container}>
       <Feather name='search' size={18} color='#9f9d9d' />
-      <Text style={styles.placeholder}>{placeholder}</Text>
+      <Text style={styles.placeholder}>{displayPlaceholder}</Text>
       <View style={{ flex: 1 }} />
       <Pressable
         onPress={onFilterPress}

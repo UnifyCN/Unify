@@ -14,6 +14,7 @@ import { useOnboardingProfile } from '@/hooks/onboarding/useOnboardingProfile';
 import { getActiveCircleMembership } from '@/services/matching/circles';
 import { getCurrentWaitlistEntry } from '@/services/matching/waitlist';
 import { deriveTimeInCanadaFromArrivalDate } from '@/matching/pools';
+import { useTranslation } from 'react-i18next';
 import BackHeader from '@/components/BackHeader';
 import LoadingScreen from '@/components/LoadingScreen';
 
@@ -89,6 +90,7 @@ const featureStyles = StyleSheet.create({
 });
 
 export default function CommunityMatchingHome() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { currentUser } = useCurrentUser();
 
@@ -145,10 +147,9 @@ export default function CommunityMatchingHome() {
           <View style={styles.incompleteIconCircle}>
             <MaterialIcons name='person-add' size={32} color={COLORS.white} />
           </View>
-          <Text style={styles.incompleteTitle}>Complete your profile</Text>
+          <Text style={styles.incompleteTitle}>{t('circles.completeProfile')}</Text>
           <Text style={styles.incompleteBody}>
-            We use your background and experience to match you with the right
-            peers. Complete onboarding to unlock Unify Circles.
+            {t('circles.completeProfileBody')}
           </Text>
           <TouchableOpacity
             style={styles.primaryButton}
@@ -157,7 +158,7 @@ export default function CommunityMatchingHome() {
             }
             activeOpacity={0.8}
           >
-            <Text style={styles.primaryButtonText}>Complete onboarding</Text>
+            <Text style={styles.primaryButtonText}>{t('circles.completeOnboarding')}</Text>
             <Feather name='arrow-right' size={18} color={COLORS.white} />
           </TouchableOpacity>
         </View>
@@ -177,9 +178,9 @@ export default function CommunityMatchingHome() {
           <View style={styles.heroIconCircle}>
             <MaterialIcons name='group-add' size={34} color={COLORS.white} />
           </View>
-          <Text style={styles.heroTitle}>Unify Circles</Text>
+          <Text style={styles.heroTitle}>{t('circles.title')}</Text>
           <Text style={styles.heroSubtitle}>
-            Get matched with 3 newcomers for a 2-week group chat experience!
+            {t('circles.description')}
           </Text>
         </View>
 
@@ -188,20 +189,20 @@ export default function CommunityMatchingHome() {
           <FeatureItem
             icon='group-add'
             iconType='material'
-            title='Matching'
-            description='Get paired based on your own journey and background'
+            title={t('circles.matching')}
+            description={t('circles.matchingDesc')}
           />
           <FeatureItem
             icon='schedule'
             iconType='material'
-            title='2-Week Duration'
-            description='Fixed duration with icebreakers and prompts to guide your conversations'
+            title={t('circles.twoWeekDuration')}
+            description={t('circles.twoWeekDesc')}
           />
           <FeatureItem
             icon='chat-bubble'
             iconType='material'
-            title='Group Chat'
-            description='Connect and share experiences, and leave with new friends'
+            title={t('circles.groupChat')}
+            description={t('circles.groupChatDesc')}
           />
         </View>
       </ScrollView>
@@ -213,7 +214,7 @@ export default function CommunityMatchingHome() {
           onPress={() => router.push('/community-matching/onboarding' as const)}
           activeOpacity={0.8}
         >
-          <Text style={styles.primaryButtonText}>Start Matching</Text>
+          <Text style={styles.primaryButtonText}>{t('circles.startMatching')}</Text>
           <Feather name='arrow-right' size={18} color={COLORS.white} />
         </TouchableOpacity>
         <TouchableOpacity
@@ -221,7 +222,7 @@ export default function CommunityMatchingHome() {
           onPress={() => router.back()}
           activeOpacity={0.6}
         >
-          <Text style={styles.secondaryText}>Back to Community</Text>
+          <Text style={styles.secondaryText}>{t('circles.backToCommunity')}</Text>
         </TouchableOpacity>
       </View>
     </View>

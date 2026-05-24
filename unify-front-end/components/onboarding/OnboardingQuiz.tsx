@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   ActivityIndicator,
   Alert,
   TextInput,
+  Platform,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import { logActivation } from '@/services/analytics/metaEvents';
+import { initMetaSDK } from '@/services/analytics/initMetaSDK';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -29,13 +34,18 @@ import {
   LearningInterest,
   Hobby,
 } from '@/types/onboardingProfile';
-import { useAnalytics } from '@/utils/analytics';
+import { useAnalytics, AnalyticsEvents } from '@/utils/analytics';
 import { registerForPushNotifications } from '@/services/push/pushNotifications';
 import { requestStoreReview } from '@/utils/storeReview';
+import { useInviteCode } from '@/context/InviteCodeContext';
+import { InviteCodeField } from '@/components/referrals/InviteCodeField';
+import { isInviteCode } from '@/utils/inviteLink';
+import { updateFirstName } from '@/services/users/updateFirstName';
 
 interface OnboardingQuizProps {
   onComplete: () => void;
   isRedo?: boolean;
+  prefilledName?: string | null;
 }
 
 const TOTAL_STEPS = 11;
@@ -57,13 +67,18 @@ const STEP_NAMES: Record<number, string> = {
 export default function OnboardingQuiz({
   onComplete,
   isRedo = false,
+  prefilledName = null,
 }: OnboardingQuizProps) {
+  const { t } = useTranslation();
   const saveMutation = useSaveOnboardingProfile();
-  const { trackOnboardingStepCompleted, trackOnboardingCompleted } =
+  const { trackOnboardingStepCompleted, trackOnboardingCompleted, capture } =
     useAnalytics();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const inviteCtx = useInviteCode();
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [firstName, setFirstName] = useState<string>(prefilledName ?? '');
 
   // Form state
   const [persona, setPersona] = useState<Persona | null>(null);
@@ -89,6 +104,20 @@ export default function OnboardingQuiz({
   const [city, setCity] = useState<string | null>(null);
   const [province, setProvince] = useState<string | null>(null);
 
+  // Invite code state — pre-fills from clipboard context if present, also editable.
+  const [inviteCodeInput, setInviteCodeInput] = useState<string>('');
+  const [inviteCodeAutoFilled, setInviteCodeAutoFilled] = useState(false);
+
+  // When clipboard context detects a code, surface it in step 3.
+  useEffect(() => {
+    if (inviteCtx.code && inviteCtx.source === 'clipboard') {
+      setInviteCodeInput(inviteCtx.code);
+      setInviteCodeAutoFilled(true);
+      // Suggest the source so the user doesn't have to pick.
+      setReferralSource(prev => prev ?? 'friends_family');
+    }
+  }, [inviteCtx.code, inviteCtx.source]);
+
   // Validation errors
   const [errors, setErrors] = useState<Record<number, string>>({});
 
@@ -103,64 +132,71 @@ export default function OnboardingQuiz({
     const newErrors: Record<number, string> = {};
 
     switch (step) {
+      case 1: // First name
+        if (!firstName.trim()) {
+          newErrors[1] = t('quiz.errors.firstNameRequired');
+          setErrors(newErrors);
+          return false;
+        }
+        break;
       case 2: // Persona
         if (!persona) {
-          newErrors[2] = 'Please select an option';
+          newErrors[2] = t('quiz.errors.selectOption');
           setErrors(newErrors);
           return false;
         }
         if (persona === 'other' && !personaOther?.trim()) {
-          newErrors[2] = 'Please specify your situation';
+          newErrors[2] = t('quiz.errors.specifySituation');
           setErrors(newErrors);
           return false;
         }
         break;
       case 3: // Referral Source
         if (!referralSource) {
-          newErrors[3] = 'Please select an option';
+          newErrors[3] = t('quiz.errors.selectOption');
           setErrors(newErrors);
           return false;
         }
         if (referralSource === 'other' && !referralSourceOther?.trim()) {
-          newErrors[3] = 'Please specify how you heard about us';
+          newErrors[3] = t('quiz.errors.specifyReferral');
           setErrors(newErrors);
           return false;
         }
         break;
       case 4: // Arrival date
         if (!arrivalDate) {
-          newErrors[4] = 'Please select a month and year';
+          newErrors[4] = t('quiz.errors.selectMonthYear');
           setErrors(newErrors);
           return false;
         }
         break;
       case 5: // Location
         if (!city) {
-          newErrors[5] = 'Please select a city';
+          newErrors[5] = t('quiz.errors.selectCity');
           setErrors(newErrors);
           return false;
         }
         if (!province) {
-          newErrors[5] = 'Please select a province';
+          newErrors[5] = t('quiz.errors.selectProvince');
           setErrors(newErrors);
           return false;
         }
         break;
       case 6: // Goals
         if (goals.length === 0) {
-          newErrors[6] = 'Please select at least one option';
+          newErrors[6] = t('quiz.errors.selectAtLeastOne');
           setErrors(newErrors);
           return false;
         }
         if (goals.includes('something_else') && !goalsOther?.trim()) {
-          newErrors[6] = 'Please specify your goal';
+          newErrors[6] = t('quiz.errors.specifyGoal');
           setErrors(newErrors);
           return false;
         }
         break;
       case 7: // Learning Interests
         if (learningInterests.length === 0) {
-          newErrors[7] = 'Please select at least one option';
+          newErrors[7] = t('quiz.errors.selectAtLeastOne');
           setErrors(newErrors);
           return false;
         }
@@ -168,7 +204,7 @@ export default function OnboardingQuiz({
           learningInterests.includes('other') &&
           !learningInterestsOther?.trim()
         ) {
-          newErrors[7] = 'Please specify your interest';
+          newErrors[7] = t('quiz.errors.specifyInterest');
           setErrors(newErrors);
           return false;
         }
@@ -177,7 +213,7 @@ export default function OnboardingQuiz({
         break;
       case 9: // Reminders
         if (wantsReminders === null) {
-          newErrors[9] = 'Please select an option';
+          newErrors[9] = t('quiz.errors.selectOption');
           setErrors(newErrors);
           return false;
         }
@@ -237,7 +273,7 @@ export default function OnboardingQuiz({
 
     if (authError || !user) {
       console.error('No authenticated user found:', authError);
-      Alert.alert('Error', 'Please sign in to continue');
+      Alert.alert(t('common.error'), t('quiz.errors.signInRequired'));
       return;
     }
 
@@ -248,7 +284,25 @@ export default function OnboardingQuiz({
     const arrivalDate = buildArrivalDate();
 
     try {
-      await saveMutation.mutateAsync({
+      // Only attempt to redeem when the user actually selected friends_family AND
+      // the typed/auto-filled code passes the canonical validator (alphabet
+      // matches the SQL generator: A-Z minus I/O, digits 2-9). Use the shared
+      // isInviteCode helper rather than an inline regex to keep client + edge
+      // fn + DB in lockstep.
+      const trimmedCode = inviteCodeInput.trim().toUpperCase();
+      const inviteExtras =
+        referralSource === 'friends_family' && isInviteCode(trimmedCode)
+          ? {
+              inviteCode: {
+                code: trimmedCode,
+                source: inviteCodeAutoFilled
+                  ? ('clipboard' as const)
+                  : ('manual' as const),
+              },
+            }
+          : undefined;
+
+      const result = await saveMutation.mutateAsync({
         userId: user.id,
         data: {
           persona,
@@ -266,17 +320,85 @@ export default function OnboardingQuiz({
           wants_reminders: wantsReminders ?? false,
           onboarding_completed: true,
         },
+        extras: inviteExtras,
       });
 
+      // Persist first_name on public.users (separate from user_onboarding_profiles).
+      // Non-blocking failure: if this fails after profile save succeeded, the user
+      // is already onboarded; they can re-enter their name from Account Settings.
+      try {
+        const firstNameResult = await updateFirstName(firstName);
+        if (!firstNameResult.success) {
+          console.warn(
+            '[onboarding] updateFirstName failed but profile saved:',
+            firstNameResult.code,
+            firstNameResult.message
+          );
+        }
+      } catch (err) {
+        console.warn('[onboarding] updateFirstName threw:', err);
+      }
+
+      // Fire Meta activation event after profile persists. Deduped per user
+      // by SecureStore, so redo-onboarding won't double-fire. Non-blocking:
+      // an analytics failure must not trigger the "save failed" alert below.
+      logActivation(user.id).catch(err =>
+        console.warn('[meta] logActivation failed', err),
+      );
+
       trackOnboardingCompleted(persona);
+
+      // Always clear the in-memory clipboard code regardless of redeem outcome
+      // so it can't leak into a future flow (e.g. redo-onboarding) and trigger
+      // an unintended re-redeem attempt.
+      inviteCtx.clear();
+
+      // First-time iOS users see the system ATT dialog directly after
+      // onboarding. initMetaSDK persists the decision, so this is a one-shot
+      // per device. We await it so the user lands on the next screen after
+      // dismissing the dialog instead of seeing it pop over the home tab.
+      const showATTPrompt = Platform.OS === 'ios' && !isRedo;
+      if (showATTPrompt) {
+        try {
+          await initMetaSDK({ requestATT: true });
+        } catch (err) {
+          console.warn('[meta] initMetaSDK failed', err);
+        }
+      }
+
+      // If redeem succeeded, route the user to the welcome moment instead of home.
+      if (result.redeem?.success) {
+        // Send only non-PII attributes — the inviter↔invitee join lives server-side
+        // (via the referrals row) and shouldn't be re-emitted from the invitee's device.
+        capture(AnalyticsEvents.INVITE_REDEEMED, {
+          source: inviteExtras?.inviteCode.source ?? 'manual',
+        });
+        // Auto-follow happened server-side as part of redeem; emit a client-side
+        // signal so the referral funnel can include it without a server roundtrip.
+        // Defensive: don't let a missing inviter id throw and abort the redeem flow.
+        const inviterId = result.redeem.inviter?.id;
+        if (inviterId) {
+          capture(AnalyticsEvents.REFERRAL_AUTO_FOLLOW_COMPLETED, {
+            referrer_user_id: inviterId,
+          });
+        }
+        router.replace('/welcome-from-inviter' as any);
+        return; // do NOT call onComplete; welcome screen handles its own dismiss
+      }
+
+      // Redeem failed (or no code at all) — log and proceed to normal completion.
+      if (result.redeem && !result.redeem.success) {
+        capture(AnalyticsEvents.INVITE_REDEEM_FAILED, {
+          reason: result.redeem.reason,
+        });
+      }
+
       onComplete();
     } catch (error) {
       console.error('Error saving onboarding profile:', error);
-      Alert.alert(
-        'Error',
-        'Failed to save your onboarding information. Please try again.',
-        [{ text: 'OK' }]
-      );
+      Alert.alert(t('common.error'), t('quiz.errors.saveFailed'), [
+        { text: t('common.ok') },
+      ]);
     }
   };
 
@@ -309,25 +431,33 @@ export default function OnboardingQuiz({
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <WelcomeStep onNext={handleNext} isRedo={isRedo} />;
+        return (
+          <WelcomeStep
+            onNext={handleNext}
+            isRedo={isRedo}
+            firstName={firstName}
+            onChangeFirstName={setFirstName}
+            error={errors[1]}
+          />
+        );
       case 2:
         return (
           <SingleSelectQuestion
-            question='What best describes your situation in Canada?'
+            question={t('quiz.q.persona')}
             options={[
               {
                 value: 'international_student',
-                label: "I'm an international student",
+                label: t('quiz.options.persona.internationalStudent'),
               },
               {
                 value: 'skilled_worker',
-                label: "I'm a skilled worker / PR / immigrant",
+                label: t('quiz.options.persona.skilledWorker'),
               },
               {
                 value: 'refugee',
-                label: "I'm a refugee or protected person",
+                label: t('quiz.options.persona.refugee'),
               },
-              { value: 'other', label: 'Other', hasOther: true },
+              { value: 'other', label: t('quiz.options.persona.other'), hasOther: true },
             ]}
             selectedValue={persona}
             otherValue={personaOther}
@@ -339,30 +469,47 @@ export default function OnboardingQuiz({
         );
       case 3:
         return (
-          <SingleSelectQuestion
-            question='How did you hear about Unify?'
-            options={[
-              { value: 'facebook_instagram', label: 'Facebook / Instagram' },
-              { value: 'google_search', label: 'Google Search' },
-              { value: 'app_store', label: 'App Store' },
-              { value: 'friends_family', label: 'Friends / family' },
-              { value: 'news_article', label: 'News / article / blog' },
-              { value: 'tiktok', label: 'TikTok' },
-              { value: 'other', label: 'Other', hasOther: true },
-            ]}
-            selectedValue={referralSource}
-            otherValue={referralSourceOther}
-            onSelect={value => setReferralSource(value as ReferralSource)}
-            onOtherChange={setReferralSourceOther}
-            required
-            error={errors[3]}
-          />
+          <View>
+            <SingleSelectQuestion
+              question={t('quiz.q.referralSource')}
+              options={[
+                { value: 'facebook_instagram', label: t('quiz.options.referral.facebookInstagram') },
+                { value: 'google_search', label: t('quiz.options.referral.googleSearch') },
+                { value: 'app_store', label: t('quiz.options.referral.appStore') },
+                { value: 'friends_family', label: t('quiz.options.referral.friendsFamily') },
+                { value: 'news_article', label: t('quiz.options.referral.newsArticle') },
+                { value: 'tiktok', label: t('quiz.options.referral.tiktok') },
+                { value: 'other', label: t('quiz.options.referral.other'), hasOther: true },
+              ]}
+              selectedValue={referralSource}
+              otherValue={referralSourceOther}
+              onSelect={value => setReferralSource(value as ReferralSource)}
+              onOtherChange={setReferralSourceOther}
+              required
+              error={errors[3]}
+            />
+            {referralSource === 'friends_family' ? (
+              <>
+                <InviteCodeField
+                  value={inviteCodeInput}
+                  onChange={next => {
+                    setInviteCodeInput(next);
+                    // Once the user types, it's no longer "auto-filled."
+                    if (inviteCodeAutoFilled) setInviteCodeAutoFilled(false);
+                  }}
+                  autoFilled={inviteCodeAutoFilled}
+                />
+                {/* Spacer so the OTP boxes can scroll well above the keyboard. */}
+                <View style={styles.inviteCodeBottomSpacer} />
+              </>
+            ) : null}
+          </View>
         );
       case 4:
         return (
           <View style={styles.container}>
             <Text style={styles.question}>
-              When did you arrive, or when will you arrive in Canada?
+              {t('quiz.q.arrivalDate')}
             </Text>
 
             {errors[4] && <Text style={styles.errorText}>{errors[4]}</Text>}
@@ -388,26 +535,26 @@ export default function OnboardingQuiz({
       case 6:
         return (
           <FloatingTagSelect
-            question='What do you want to accomplish? (Select all that apply)'
+            question={t('quiz.q.goals')}
             options={[
               {
                 value: 'learn_something',
-                label: 'Learn something new',
+                label: t('quiz.options.goals.learnSomething'),
                 icon: 'book-open',
               },
               {
                 value: 'build_community',
-                label: 'Build community & friends',
+                label: t('quiz.options.goals.buildCommunity'),
                 icon: 'users',
               },
               {
                 value: 'quick_answers',
-                label: 'Quick answers',
+                label: t('quiz.options.goals.quickAnswers'),
                 icon: 'zap',
               },
               {
                 value: 'something_else',
-                label: 'Something else',
+                label: t('quiz.options.goals.somethingElse'),
                 icon: 'more-horizontal',
                 hasOther: true,
               },
@@ -423,43 +570,43 @@ export default function OnboardingQuiz({
       case 7:
         return (
           <FloatingTagSelect
-            question='Which topics interest you? (Select all that apply)'
+            question={t('quiz.q.interests')}
             options={[
               {
                 value: 'documents',
-                label: 'Documents & IDs',
+                label: t('quiz.options.interests.documents'),
                 icon: 'file-text',
               },
               {
                 value: 'employment',
-                label: 'Jobs & career',
+                label: t('quiz.options.interests.employment'),
                 icon: 'briefcase',
               },
               {
                 value: 'finance',
-                label: 'Money & banking',
+                label: t('quiz.options.interests.finance'),
                 icon: 'credit-card',
               },
-              { value: 'housing', label: 'Housing', icon: 'home' },
+              { value: 'housing', label: t('quiz.options.interests.housing'), icon: 'home' },
               {
                 value: 'pr_immigration',
-                label: 'PR & immigration',
+                label: t('quiz.options.interests.prImmigration'),
                 icon: 'globe',
               },
               {
                 value: 'healthcare',
-                label: 'Healthcare',
+                label: t('quiz.options.interests.healthcare'),
                 icon: 'heart',
               },
-              { value: 'family_kids', label: 'Family & kids', icon: 'users' },
+              { value: 'family_kids', label: t('quiz.options.interests.familyKids'), icon: 'users' },
               {
                 value: 'transit',
-                label: 'Transit',
+                label: t('quiz.options.interests.transit'),
                 icon: 'map-pin',
               },
               {
                 value: 'other',
-                label: 'Other',
+                label: t('quiz.options.interests.other'),
                 hasOther: true,
                 icon: 'more-horizontal',
               },
@@ -477,59 +624,59 @@ export default function OnboardingQuiz({
       case 8:
         return (
           <FloatingTagSelect
-            question='What are your hobbies? (Select all that apply)'
+            question={t('quiz.q.hobbies')}
             options={[
               {
                 value: 'career_growth',
-                label: 'Career growth',
+                label: t('quiz.options.hobbies.careerGrowth'),
                 icon: 'trending-up',
               },
               {
                 value: 'exploring_canada',
-                label: 'Explore Canada',
+                label: t('quiz.options.hobbies.exploringCanada'),
                 icon: 'map',
               },
               {
                 value: 'wellness',
-                label: 'Wellness & growth',
+                label: t('quiz.options.hobbies.wellness'),
                 icon: 'heart',
               },
               {
                 value: 'technology',
-                label: 'Tech & digital',
+                label: t('quiz.options.hobbies.technology'),
                 icon: 'cpu',
               },
               {
                 value: 'music',
-                label: 'Music & arts',
+                label: t('quiz.options.hobbies.music'),
                 icon: 'music',
               },
               {
                 value: 'fitness',
-                label: 'Fitness & sports',
+                label: t('quiz.options.hobbies.fitness'),
                 icon: 'activity',
               },
               {
                 value: 'personal_finance',
-                label: 'Personal finance',
+                label: t('quiz.options.hobbies.personalFinance'),
                 icon: 'dollar-sign',
               },
               {
                 value: 'family_parenting',
-                label: 'Family & parenting',
+                label: t('quiz.options.hobbies.familyParenting'),
                 icon: 'users',
               },
               {
                 value: 'education',
-                label: 'Education & learning',
+                label: t('quiz.options.hobbies.education'),
                 icon: 'book-open',
               },
               {
                 value: 'food_cooking',
-                label: 'Food & cooking',
+                label: t('quiz.options.hobbies.foodCooking'),
                 icon: 'coffee',
               },
-              { value: 'movies', label: 'Movies', icon: 'film' },
+              { value: 'movies', label: t('quiz.options.hobbies.movies'), icon: 'film' },
             ]}
             selectedValues={hobbies}
             otherValue={null}
@@ -542,12 +689,10 @@ export default function OnboardingQuiz({
         return (
           <View style={styles.container}>
             <Text style={styles.question}>
-              Want gentle reminders so you don't miss important steps?
+              {t('quiz.q.reminders')}
             </Text>
             <Text style={styles.subtitle}>
-              You'll always get notified about likes, comments, and follows.
-              This controls learning reminders — nudges about lessons you
-              started but haven't finished.
+              {t('quiz.reminders.subtitle')}
             </Text>
             {errors[9] && <Text style={styles.errorText}>{errors[9]}</Text>}
             <View style={styles.optionsContainer}>
@@ -575,7 +720,7 @@ export default function OnboardingQuiz({
                       wantsReminders === true && styles.optionTextSelected,
                     ]}
                   >
-                    Yes, send reminders
+                    {t('quiz.reminders.yes')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -603,7 +748,7 @@ export default function OnboardingQuiz({
                       wantsReminders === false && styles.optionTextSelected,
                     ]}
                   >
-                    No thanks
+                    {t('quiz.reminders.no')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -613,7 +758,7 @@ export default function OnboardingQuiz({
       case 10:
         return <OutcomesStep />;
       case 11:
-        return <ThankYouStep isRedo={isRedo} />;
+        return <ThankYouStep isRedo={isRedo} firstName={firstName} />;
       default:
         return null;
     }
@@ -628,13 +773,16 @@ export default function OnboardingQuiz({
         totalSteps={TOTAL_STEPS}
         skipSafeArea={isRedo}
       />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps='handled'
+        bottomOffset={120}
+        extraKeyboardSpace={120}
       >
         {renderStep()}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View
         style={[styles.navContainer, { paddingBottom: 20 + insets.bottom }]}
@@ -646,7 +794,7 @@ export default function OnboardingQuiz({
             disabled={isLoading}
           >
             <Feather name='chevron-left' size={24} color={Theme.black} />
-            <Text style={styles.navButtonText}>Back</Text>
+            <Text style={styles.navButtonText}>{t('common.back')}</Text>
           </TouchableOpacity>
         )}
         {currentStep < 10 && (
@@ -659,7 +807,7 @@ export default function OnboardingQuiz({
               <ActivityIndicator color={Theme.white} />
             ) : (
               <>
-                <Text style={styles.nextButtonText}>Next</Text>
+                <Text style={styles.nextButtonText}>{t('common.next')}</Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
             )}
@@ -680,7 +828,7 @@ export default function OnboardingQuiz({
             ) : (
               <>
                 <Text style={[styles.nextButtonText, styles.finalStepText]}>
-                  Continue
+                  {t('quiz.cta.continue')}
                 </Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
@@ -698,7 +846,7 @@ export default function OnboardingQuiz({
             ) : (
               <>
                 <Text style={styles.nextButtonText}>
-                  {isRedo ? 'Save Changes' : 'Explore Unify'}
+                  {isRedo ? t('quiz.cta.saveChanges') : t('quiz.cta.exploreUnify')}
                 </Text>
                 <Feather name='chevron-right' size={24} color={Theme.white} />
               </>
@@ -833,6 +981,9 @@ const styles = StyleSheet.create({
   },
   finalStepText: {
     fontWeight: '700',
+  },
+  inviteCodeBottomSpacer: {
+    height: 240,
   },
   dateInputContainer: {
     marginTop: 16,

@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Theme } from '@/constants/Theme';
 
 interface MonthPickerProps {
@@ -23,6 +24,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
   minimumDate = new Date(new Date().getFullYear() - 20, 0),
   maximumDate = new Date(new Date().getFullYear() + 10, 11),
 }) => {
+  const { t, i18n } = useTranslation();
   const [showPicker, setShowPicker] = useState(false);
   const [selectedYear, setSelectedYear] = useState(
     value?.getFullYear() ?? new Date().getFullYear()
@@ -31,20 +33,12 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
     value?.getMonth() ?? new Date().getMonth()
   );
 
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
+  const months = React.useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(i18n.language, { month: 'long' });
+    return Array.from({ length: 12 }, (_, m) =>
+      fmt.format(new Date(2020, m, 1))
+    );
+  }, [i18n.language]);
 
   const generateYears = () => {
     const startYear = minimumDate.getFullYear();
@@ -100,11 +94,11 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
       <TouchableOpacity style={styles.dateInput} onPress={handleOpenPicker}>
         <Text style={{ color: value ? Theme.black : Theme.textInput }}>
           {value
-            ? value.toLocaleDateString(undefined, {
+            ? value.toLocaleDateString(i18n.language, {
                 month: 'long',
                 year: 'numeric',
               })
-            : 'Select month and year'}
+            : t('onboarding.selectMonthYear')}
         </Text>
       </TouchableOpacity>
 
@@ -117,13 +111,13 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
         <View style={styles.modalOverlay}>
           <View style={styles.pickerContainer}>
             <View style={styles.header}>
-              <Text style={styles.headerText}>Select Month and Year</Text>
+              <Text style={styles.headerText}>{t('onboarding.monthPickerTitle')}</Text>
             </View>
 
             <View style={styles.scrollContainer}>
               {/* Month Selector */}
               <View style={styles.column}>
-                <Text style={styles.columnTitle}>Month</Text>
+                <Text style={styles.columnTitle}>{t('onboarding.monthLabel')}</Text>
                 <ScrollView ref={monthScrollRef} style={styles.scrollList}>
                   {months.map((month, index) => (
                     <TouchableOpacity
@@ -149,7 +143,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
 
               {/* Year Selector */}
               <View style={styles.column}>
-                <Text style={styles.columnTitle}>Year</Text>
+                <Text style={styles.columnTitle}>{t('onboarding.yearLabel')}</Text>
                 <ScrollView ref={yearScrollRef} style={styles.scrollList}>
                   {years.map(year => (
                     <TouchableOpacity
@@ -179,13 +173,13 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
                 style={[styles.button, styles.cancelButton]}
                 onPress={handleCancel}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.confirmButton]}
                 onPress={handleConfirm}
               >
-                <Text style={styles.confirmButtonText}>Confirm</Text>
+                <Text style={styles.confirmButtonText}>{t('onboarding.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
