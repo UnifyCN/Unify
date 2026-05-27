@@ -21,6 +21,7 @@ jest.mock('expo-tracking-transparency', () => ({
 import {
   initMetaSDK,
   promptATTForReturningUsers,
+  shouldPromptReturningUserATT,
 } from '@/services/analytics/initMetaSDK';
 
 const requestTracking =
@@ -99,6 +100,50 @@ describe('initMetaSDK', () => {
         expect(requestTracking).not.toHaveBeenCalled();
         expect(mockInitializeSDK).not.toHaveBeenCalled();
       }
+    });
+  });
+
+  describe('shouldPromptReturningUserATT', () => {
+    const ready = {
+      isIOS: true,
+      splashDone: true,
+      onboardingChecked: true,
+      wasOnboardedAtLaunch: true,
+      alreadyPrompted: false,
+    };
+
+    it('returns true only when every gate is satisfied', () => {
+      expect(shouldPromptReturningUserATT(ready)).toBe(true);
+    });
+
+    it('does not prompt off iOS', () => {
+      expect(shouldPromptReturningUserATT({ ...ready, isIOS: false })).toBe(
+        false,
+      );
+    });
+
+    it('waits for the splash to finish', () => {
+      expect(shouldPromptReturningUserATT({ ...ready, splashDone: false })).toBe(
+        false,
+      );
+    });
+
+    it('waits until the onboarding flag has been read', () => {
+      expect(
+        shouldPromptReturningUserATT({ ...ready, onboardingChecked: false }),
+      ).toBe(false);
+    });
+
+    it('skips users not already onboarded at launch (new users)', () => {
+      expect(
+        shouldPromptReturningUserATT({ ...ready, wasOnboardedAtLaunch: false }),
+      ).toBe(false);
+    });
+
+    it('never prompts twice in a session', () => {
+      expect(
+        shouldPromptReturningUserATT({ ...ready, alreadyPrompted: true }),
+      ).toBe(false);
     });
   });
 });

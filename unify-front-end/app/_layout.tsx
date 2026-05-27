@@ -29,6 +29,7 @@ import { useAnalytics } from '@/utils/analytics';
 import {
   initMetaSDK,
   promptATTForReturningUsers,
+  shouldPromptReturningUserATT,
 } from '@/services/analytics/initMetaSDK';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
@@ -109,10 +110,17 @@ export default function RootLayout() {
   // anyone who has already answered.
   const legacyATTPrompted = useRef(false);
   useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-    if (showAnimatedSplash || !onboardingChecked) return;
-    if (!wasOnboardedAtLaunch.current) return;
-    if (legacyATTPrompted.current) return;
+    if (
+      !shouldPromptReturningUserATT({
+        isIOS: Platform.OS === 'ios',
+        splashDone: !showAnimatedSplash,
+        onboardingChecked,
+        wasOnboardedAtLaunch: wasOnboardedAtLaunch.current,
+        alreadyPrompted: legacyATTPrompted.current,
+      })
+    ) {
+      return;
+    }
     legacyATTPrompted.current = true;
     promptATTForReturningUsers().catch(err =>
       console.warn('[meta] returning-user ATT prompt failed', err)
