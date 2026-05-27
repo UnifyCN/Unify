@@ -35,7 +35,7 @@ describe('app.config.js — Meta SDK plugin', () => {
     const config = require('../../app.config.js');
     const plugins: unknown[] = config.expo.plugins;
     const entry = plugins.find(
-      p => Array.isArray(p) && p[0] === 'react-native-fbsdk-next',
+      p => Array.isArray(p) && p[0] === 'react-native-fbsdk-next'
     ) as [string, Record<string, unknown>] | undefined;
     return entry?.[1];
   };
