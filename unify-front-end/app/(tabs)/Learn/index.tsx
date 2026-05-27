@@ -111,8 +111,9 @@ export default function Learn() {
         <SegmentedControl<LearnView>
           value={view}
           onChange={setView}
+          style={styles.segmentedControl}
           options={[
-            { value: 'articles', label: 'Articles' },
+            { value: 'articles', label: 'Lessons' },
             { value: 'resources', label: 'Resources' },
           ]}
         />
@@ -348,6 +349,7 @@ export default function Learn() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff' },
+  segmentedControl: { marginTop: 16 },
   scrollContent: { padding: 16, paddingBottom: 100 },
   pageTitle: {
     fontSize: 24,
