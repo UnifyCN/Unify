@@ -1041,12 +1041,5 @@
       "consentRequired": "Vui lòng đánh dấu vào ô để xác nhận bạn đồng ý.",
       "submitFailed": "Không thể gửi lượt tham gia. Vui lòng thử lại."
     }
-  },
-  "privacy": {
-    "settings": {
-      "sectionTitle": "Quyền riêng tư",
-      "personalizedAdsLabel": "Cho phép theo dõi hoạt động",
-      "personalizedAdsHelp": "Cho phép chúng tôi chia sẻ hoạt động ẩn danh trong ứng dụng với các đối tác quảng cáo để hiển thị quảng cáo phù hợp hơn. Tắt bất cứ lúc nào."
-    }
   }
 }
