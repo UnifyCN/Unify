@@ -354,9 +354,10 @@ export default function OnboardingQuiz({
       inviteCtx.clear();
 
       // First-time iOS users see the system ATT dialog directly after
-      // onboarding. initMetaSDK persists the decision, so this is a one-shot
-      // per device. We await it so the user lands on the next screen after
-      // dismissing the dialog instead of seeing it pop over the home tab.
+      // onboarding. iOS only presents it while the status is undetermined, so
+      // it's inherently one-shot per install. We await it so the user lands on
+      // the next screen after dismissing the dialog instead of seeing it pop
+      // over the home tab.
       const showATTPrompt = Platform.OS === 'ios' && !isRedo;
       if (showATTPrompt) {
         try {
