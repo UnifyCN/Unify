@@ -18,7 +18,10 @@ jest.mock('expo-tracking-transparency', () => ({
 
 // Imported after jest.mock() so the mocks are registered first.
 // eslint-disable-next-line import/first
-import { initMetaSDK } from '@/services/analytics/initMetaSDK';
+import {
+  initMetaSDK,
+  promptATTForReturningUsers,
+} from '@/services/analytics/initMetaSDK';
 
 const requestTracking =
   TrackingTransparency.requestTrackingPermissionsAsync as jest.Mock;
@@ -75,6 +78,27 @@ describe('initMetaSDK', () => {
       getTracking.mockResolvedValueOnce({ status: 'granted' });
       await initMetaSDK({ requestATT: false });
       expect(mockSetAdvertiserTrackingEnabled).toHaveBeenCalledWith(true);
+    });
+  });
+
+  describe('promptATTForReturningUsers', () => {
+    it('prompts when the user was never asked (undetermined)', async () => {
+      getTracking.mockResolvedValueOnce({ status: 'undetermined' });
+      requestTracking.mockResolvedValueOnce({ status: 'granted' });
+      await promptATTForReturningUsers();
+      expect(requestTracking).toHaveBeenCalledTimes(1);
+      expect(mockInitializeSDK).toHaveBeenCalledTimes(1);
+      expect(mockSetAdvertiserTrackingEnabled).toHaveBeenCalledWith(true);
+    });
+
+    it('does nothing when the user already answered', async () => {
+      for (const status of ['granted', 'denied', 'restricted'] as const) {
+        jest.clearAllMocks();
+        getTracking.mockResolvedValueOnce({ status });
+        await promptATTForReturningUsers();
+        expect(requestTracking).not.toHaveBeenCalled();
+        expect(mockInitializeSDK).not.toHaveBeenCalled();
+      }
     });
   });
 });

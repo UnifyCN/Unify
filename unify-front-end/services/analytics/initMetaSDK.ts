@@ -35,3 +35,18 @@ export async function initMetaSDK({
   Settings.initializeSDK();
   Settings.setAdvertiserTrackingEnabled(status === 'granted');
 }
+
+/**
+ * Prompt returning users for tracking permission — once.
+ *
+ * Users who finished onboarding before ATT was added were never asked, so their
+ * status sits at `undetermined` forever. This shows them the system dialog on a
+ * launch. iOS only presents it while the status is undetermined; once they
+ * answer, every future call is a no-op. New users are handled by the onboarding
+ * flow instead, so callers should only invoke this once onboarding is complete.
+ */
+export async function promptATTForReturningUsers(): Promise<void> {
+  const { status } = await TrackingTransparency.getTrackingPermissionsAsync();
+  if (status !== 'undetermined') return;
+  await initMetaSDK({ requestATT: true });
+}
