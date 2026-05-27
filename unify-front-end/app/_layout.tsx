@@ -96,9 +96,12 @@ export default function RootLayout() {
   // would only ever start during first-time onboarding (OnboardingQuiz). We read
   // the live OS tracking status and never prompt here — the one-time ATT dialog
   // is shown at the end of onboarding via initMetaSDK({ requestATT: true }).
+  // Held so the returning-user prompt below can await it, serializing the two
+  // advertiser-tracking writes so the startup write always lands first.
+  const metaInitPromise = useRef<Promise<void> | null>(null);
   useEffect(() => {
     if (Platform.OS === 'web') return;
-    initMetaSDK({ requestATT: false }).catch(err =>
+    metaInitPromise.current = initMetaSDK({ requestATT: false }).catch(err =>
       console.warn('[meta] startup initMetaSDK failed', err)
     );
   }, []);
@@ -122,9 +125,13 @@ export default function RootLayout() {
       return;
     }
     legacyATTPrompted.current = true;
-    promptATTForReturningUsers().catch(err =>
-      console.warn('[meta] returning-user ATT prompt failed', err)
-    );
+    // Wait for the startup init to settle first so its advertiser-tracking
+    // write can't land after the prompt's and clobber the fresh decision.
+    Promise.resolve(metaInitPromise.current)
+      .then(() => promptATTForReturningUsers())
+      .catch(err =>
+        console.warn('[meta] returning-user ATT prompt failed', err)
+      );
   }, [showAnimatedSplash, onboardingChecked]);
 
   useEffect(() => {
