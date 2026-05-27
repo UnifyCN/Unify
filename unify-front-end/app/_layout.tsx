@@ -1,6 +1,7 @@
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ScrollContextProvider } from '@/context/ScrollContext';
@@ -25,6 +26,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PreLoginOnboarding from '@/components/onboarding/PreLoginOnboarding';
 import { UserProvider, useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
+import { initMetaSDK } from '@/services/analytics/initMetaSDK';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
@@ -76,6 +78,18 @@ export default function RootLayout() {
     i18nReady
       .catch(e => console.error('Failed to initialize i18n:', e))
       .finally(() => setI18nLoaded(true));
+  }, []);
+
+  // Initialize the Meta (Facebook) SDK on every cold start so app events reach
+  // Events Manager. The SDK has isAutoInitEnabled:false, so without this it
+  // would only ever start during first-time onboarding (OnboardingQuiz). We
+  // reuse the persisted ATT decision and never prompt here — the one-time ATT
+  // dialog is shown at the end of onboarding via initMetaSDK({ requestATT: true }).
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    initMetaSDK({ requestATT: false }).catch(err =>
+      console.warn('[meta] startup initMetaSDK failed', err),
+    );
   }, []);
 
   useEffect(() => {
