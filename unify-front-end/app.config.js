@@ -25,7 +25,11 @@ const fbsdkPlugin = hasMetaConfig
           displayName: 'Unify',
           scheme: `fb${process.env.META_APP_ID}`,
           advertiserIDCollectionEnabled: true,
-          autoLogAppEventsEnabled: false,
+          // Auto-log standard app events (install, app launch) so Meta can
+          // attribute ad-driven installs. Required for campaign measurement and
+          // for events to surface in Events Manager. SDK init still happens in
+          // JS (see app/_layout.tsx) because isAutoInitEnabled stays false.
+          autoLogAppEventsEnabled: true,
           isAutoInitEnabled: false,
           iosUserTrackingPermission:
             'Allowing tracking helps us show you relevant ads and improve Unify for our community.',
@@ -39,7 +43,7 @@ module.exports = {
     name: 'Unify',
     slug: 'unify-front-end',
     owner: 'unifysocial',
-    version: '1.5.0',
+    version: '1.5.1',
     orientation: 'portrait',
     icon: './assets/images/icon.png',
     scheme: 'myapp',

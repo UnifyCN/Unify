@@ -1041,12 +1041,5 @@
       "consentRequired": "Por favor, marca la casilla para confirmar que aceptas.",
       "submitFailed": "No se pudo enviar tu participación. Por favor, intenta de nuevo."
     }
-  },
-  "privacy": {
-    "settings": {
-      "sectionTitle": "Privacidad",
-      "personalizedAdsLabel": "Permitir rastreo de actividad",
-      "personalizedAdsHelp": "Nos permite compartir actividad anónima en la app con nuestros socios publicitarios para mostrarte anuncios más relevantes. Desactiva cuando quieras."
-    }
   }
 }

@@ -1,6 +1,7 @@
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { ScrollContextProvider } from '@/context/ScrollContext';
@@ -25,6 +26,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import PreLoginOnboarding from '@/components/onboarding/PreLoginOnboarding';
 import { UserProvider, useCurrentUser } from '@/context/UserContext';
 import { useAnalytics } from '@/utils/analytics';
+import {
+  initMetaSDK,
+  promptATTForReturningUsers,
+  shouldPromptReturningUserATT,
+} from '@/services/analytics/initMetaSDK';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { HapticsProvider } from '@/context/HapticsContext';
 import { ToastProvider } from '@/context/ToastContext';
@@ -57,10 +63,17 @@ export default function RootLayout() {
 
   const isReady = loaded && onboardingChecked && i18nLoaded;
 
+  // Whether onboarding was already complete when the app launched. Captured at
+  // mount because `showOnboarding` flips to false mid-session when a NEW user
+  // finishes the pre-login intro — which would otherwise misfire the returning-
+  // user ATT prompt below before they reach the onboarding quiz.
+  const wasOnboardedAtLaunch = useRef(false);
+
   useEffect(() => {
     const checkOnboarding = async () => {
       try {
         const completed = await AsyncStorage.getItem('onboardingCompleted');
+        wasOnboardedAtLaunch.current = completed === 'true';
         setShowOnboarding(completed !== 'true');
       } catch (e) {
         console.error('Failed to read onboarding status:', e);
@@ -77,6 +90,49 @@ export default function RootLayout() {
       .catch(e => console.error('Failed to initialize i18n:', e))
       .finally(() => setI18nLoaded(true));
   }, []);
+
+  // Initialize the Meta (Facebook) SDK on every cold start so app events reach
+  // Events Manager. The SDK has isAutoInitEnabled:false, so without this it
+  // would only ever start during first-time onboarding (OnboardingQuiz). We read
+  // the live OS tracking status and never prompt here — the one-time ATT dialog
+  // is shown at the end of onboarding via initMetaSDK({ requestATT: true }).
+  // Held so the returning-user prompt below can await it, serializing the two
+  // advertiser-tracking writes so the startup write always lands first.
+  const metaInitPromise = useRef<Promise<void> | null>(null);
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    metaInitPromise.current = initMetaSDK({ requestATT: false }).catch(err =>
+      console.warn('[meta] startup initMetaSDK failed', err)
+    );
+  }, []);
+
+  // One-time ATT prompt for returning users who completed onboarding before ATT
+  // existed (never asked → status stays undetermined). Fires once the app is
+  // interactive (past the splash) and only for users already onboarded at launch,
+  // so it never collides with a new user's onboarding-quiz prompt. No-op for
+  // anyone who has already answered.
+  const legacyATTPrompted = useRef(false);
+  useEffect(() => {
+    if (
+      !shouldPromptReturningUserATT({
+        isIOS: Platform.OS === 'ios',
+        splashDone: !showAnimatedSplash,
+        onboardingChecked,
+        wasOnboardedAtLaunch: wasOnboardedAtLaunch.current,
+        alreadyPrompted: legacyATTPrompted.current,
+      })
+    ) {
+      return;
+    }
+    legacyATTPrompted.current = true;
+    // Wait for the startup init to settle first so its advertiser-tracking
+    // write can't land after the prompt's and clobber the fresh decision.
+    Promise.resolve(metaInitPromise.current)
+      .then(() => promptATTForReturningUsers())
+      .catch(err =>
+        console.warn('[meta] returning-user ATT prompt failed', err)
+      );
+  }, [showAnimatedSplash, onboardingChecked]);
 
   useEffect(() => {
     if (isReady) {
@@ -259,9 +315,9 @@ function useLanguageSyncFromSupabase() {
           });
       }
     } else if (remote && remote in SUPPORTED_LANGUAGES && remote !== local) {
-      setStoredLanguage(remote as SupportedLanguage, { source: 'server' }).catch(
-        e => console.error('Failed to sync language from supabase:', e)
-      );
+      setStoredLanguage(remote as SupportedLanguage, {
+        source: 'server',
+      }).catch(e => console.error('Failed to sync language from supabase:', e));
     }
   }, [currentUser?.id, profile, i18n.language]);
 }

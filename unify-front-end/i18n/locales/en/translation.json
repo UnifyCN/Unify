@@ -1041,12 +1041,5 @@
       "consentRequired": "Please check the box to confirm you agree.",
       "submitFailed": "Couldn't submit your entry. Please try again."
     }
-  },
-  "privacy": {
-    "settings": {
-      "sectionTitle": "Privacy",
-      "personalizedAdsLabel": "Allow Activity Tracking",
-      "personalizedAdsHelp": "Lets us share anonymous app activity with our advertising partners so you see more relevant ads. Turn off anytime."
-    }
   }
 }
