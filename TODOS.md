@@ -24,22 +24,13 @@
 **Depends on:** —
 
 ### i18n Extraction for Resources Copy
-**What:** When multi-language support lands, extract hardcoded copy from the Resources screens (disclosure card, category descriptions, partner CTAs, error toasts, "How Unify partnerships work" link text) to a strings file consumed by an i18n library. Includes the new directory copy: category labels/descriptions, partner taglines/About/highlights, and the 'Trusted services' header.
+**What:** Extract the hardcoded user-facing copy from the Resources directory into the locale files (`i18n/locales/{lang}/translation.json`): the "Trusted services" header + "Organizations that help you settle in Canada." subtitle, category labels/descriptions, partner taglines/About text/highlights, the detail-screen section headings ("About", "How they help newcomers"), the "Visit website" button, and the not-found message.
 **Why:** Newcomer audience strongly implies multi-language support will be on the roadmap. Newcomers in their first 6-12 months often have stronger comprehension in their native language than in English. Hardcoded copy in components becomes harder to extract once it's spread across files.
 **Pros:** Makes the feature ready for the broader i18n initiative without rework.
 **Cons:** Pure scope creep until i18n is actually committed to.
-**Context:** Surfaced during plan-eng-review of Referral Monetization (Resources tab). Flagged as code quality issue Q-3 — copy hardcoded in JSX. No i18n library currently in the project.
+**Context:** Copy is hardcoded in JSX. react-i18next is already in the project (the Learn screen and many others use `useTranslation()` / `t()`); this item is about extracting the new Resources directory strings into the existing locale files, in lockstep across all locales.
 **Effort:** S (human) → S (CC)
-**Depends on:** — (react-i18next is already in the project; this is an extraction of the new hardcoded Resources copy into locale files).
-
-### Intersection-based View Tracking for Partner Cards
-**What:** Switch the `resources_partner_card_viewed` PostHog event from on-render firing to intersection/scroll-based detection (only fire when a card is actually visible in the viewport, with debouncing).
-**Why:** At V1 scale (2 partners) on-render firing is fine. Once a category has 5+ partners, on-render fires events for cards the user never actually scrolls into view, polluting analytics with noise and inflating event counts in PostHog.
-**Pros:** Cleaner analytics, accurate "saw this partner" attribution. Lower PostHog event volume = lower cost.
-**Cons:** React Native intersection observation requires `onLayout` + scroll position math (no native API equivalent to web's IntersectionObserver). Implementation is non-trivial.
-**Context:** Surfaced during plan-eng-review of Referral Monetization (Resources tab). Flagged as performance watch zone for V2 when partner count grows.
-**Effort:** M (human) → S (CC)
-**Depends on:** Resources tab live in production with partner count ≥5 per category
+**Depends on:** —
 
 ### Multi-surface invite prompts (post-onboarding, post-checklist, Companion home)
 

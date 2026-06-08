@@ -128,10 +128,6 @@ export const AnalyticsEvents = {
   RESOURCES_CATEGORY_OPENED: 'resources_category_opened',
   RESOURCES_PARTNER_OPENED: 'resources_partner_opened',
   RESOURCES_PARTNER_WEBSITE_OPENED: 'resources_partner_website_opened',
-  RESOURCES_PARTNER_CARD_VIEWED: 'resources_partner_card_viewed',
-  RESOURCES_PARTNER_PROMO_COPIED: 'resources_partner_promo_copied',
-  RESOURCES_PARTNER_CTA_TAPPED: 'resources_partner_cta_tapped',
-  RESOURCES_PARTNER_CTA_FAILED: 'resources_partner_cta_failed',
 
   // Referrals (refer-a-friend)
   INVITE_CODE_GENERATED: 'invite_code_generated',
@@ -846,40 +842,6 @@ export function useAnalytics() {
           partner_slug: partnerSlug,
           category,
           partnership_type: partnershipType,
-        });
-      },
-      trackResourcesPartnerCardViewed: (
-        partnerSlug: string,
-        category: string,
-        position: number
-      ) => {
-        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_CARD_VIEWED, {
-          partner_slug: partnerSlug,
-          category,
-          position,
-        });
-      },
-      trackResourcesPartnerPromoCopied: (partnerSlug: string) => {
-        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_PROMO_COPIED, {
-          partner_slug: partnerSlug,
-        });
-      },
-      trackResourcesPartnerCtaTapped: (
-        partnerSlug: string,
-        category: string
-      ) => {
-        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_CTA_TAPPED, {
-          partner_slug: partnerSlug,
-          category,
-        });
-      },
-      trackResourcesPartnerCtaFailed: (
-        partnerSlug: string,
-        errorType: string
-      ) => {
-        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_CTA_FAILED, {
-          partner_slug: partnerSlug,
-          error_type: errorType,
         });
       },
 
