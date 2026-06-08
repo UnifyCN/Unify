@@ -111,6 +111,7 @@ module.exports = {
       '@react-native-google-signin/google-signin',
       'expo-secure-store',
       'expo-tracking-transparency',
+      'expo-web-browser',
       ...fbsdkPlugin,
     ],
     experiments: {
