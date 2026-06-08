@@ -87,3 +87,5 @@ DOCS/
 docs/
 tickets/
 __tests__/
+# Superpowers brainstorm mockups
+.superpowers/
