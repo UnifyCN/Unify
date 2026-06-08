@@ -3,100 +3,72 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useAnalytics } from '@/utils/analytics';
 import { getCategoriesWithPartners } from '@/constants/Partners';
 import type { PartnerCategory } from '@/types/partner';
-import DisclosureCard from './DisclosureCard';
-import CategoryListItem from './CategoryListItem';
+import CategoryTile from './CategoryTile';
 import CategoryDetail from './CategoryDetail';
 
 /**
  * Root view for the Resources tab inside Learn.
- *
- * Renders the category list by default. Tapping a category sets local
- * state and renders the category detail (V1 keeps navigation in-screen
- * rather than using router routes — see plan-eng-review for rationale).
+ * Category grid by default; tapping a category renders its detail in-screen.
+ * Tapping a partner pushes app/(tabs)/Learn/resources/[slug].
  */
 export default function ResourcesView() {
-  const [selectedCategory, setSelectedCategory] =
-    useState<PartnerCategory | null>(null);
-  const {
-    trackResourcesViewed,
-    trackResourcesCategoryOpened,
-  } = useAnalytics();
-
+  const [selectedCategory, setSelectedCategory] = useState<PartnerCategory | null>(null);
+  const { trackResourcesViewed, trackResourcesCategoryOpened } = useAnalytics();
   const categories = getCategoriesWithPartners();
 
-  // Fire view event once per mount.
   useEffect(() => {
     trackResourcesViewed('learn_tab');
   }, [trackResourcesViewed]);
 
   if (selectedCategory) {
     return (
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <CategoryDetail
-          category={selectedCategory}
-          onBack={() => setSelectedCategory(null)}
-        />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <CategoryDetail category={selectedCategory} onBack={() => setSelectedCategory(null)} />
       </ScrollView>
     );
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={styles.title}>Trusted services for newcomers</Text>
-      <Text style={styles.subtitle}>
-        Curated partners for the essentials you need in your first months in
-        Canada.
-      </Text>
-
-      <DisclosureCard />
+    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <Text style={styles.title}>Trusted services</Text>
+      <Text style={styles.subtitle}>Organizations that help you settle in Canada.</Text>
 
       {categories.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>We're vetting partners</Text>
+          <Text style={styles.emptyTitle}>We're adding partners</Text>
           <Text style={styles.emptyText}>
-            We're carefully selecting trusted partners for you. Check back soon.
+            We're carefully selecting trusted organizations for you. Check back soon.
           </Text>
         </View>
       ) : (
-        categories.map(({ category, partnerCount }) => (
-          <CategoryListItem
-            key={category}
-            category={category}
-            partnerCount={partnerCount}
-            onPress={() => {
-              trackResourcesCategoryOpened(category, partnerCount);
-              setSelectedCategory(category);
-            }}
-          />
-        ))
+        <View style={styles.grid}>
+          {categories.map(({ category, partnerCount }, index) => {
+            const isLoneTrailing =
+              index === categories.length - 1 && categories.length % 2 === 1;
+            return (
+              <CategoryTile
+                key={category}
+                category={category}
+                partnerCount={partnerCount}
+                wide={isLoneTrailing}
+                onPress={() => {
+                  trackResourcesCategoryOpened(category, partnerCount);
+                  setSelectedCategory(category);
+                }}
+              />
+            );
+          })}
+        </View>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 100,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#000',
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#575757',
-    marginBottom: 16,
-  },
+  scrollContent: { padding: 16, paddingBottom: 100 },
+  title: { fontSize: 24, fontWeight: '600', color: '#000', marginBottom: 6 },
+  subtitle: { fontSize: 14, lineHeight: 20, color: '#575757', marginBottom: 16 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   empty: {
     paddingVertical: 48,
     alignItems: 'center',
@@ -104,16 +76,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 24,
   },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#343232',
-    marginBottom: 6,
-  },
-  emptyText: {
-    fontSize: 13,
-    color: '#575757',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
+  emptyTitle: { fontSize: 16, fontWeight: '600', color: '#343232', marginBottom: 6 },
+  emptyText: { fontSize: 13, color: '#575757', textAlign: 'center', lineHeight: 18 },
 });

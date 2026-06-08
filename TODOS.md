@@ -24,13 +24,13 @@
 **Depends on:** —
 
 ### i18n Extraction for Resources Copy
-**What:** When multi-language support lands, extract hardcoded copy from the Resources screens (disclosure card, category descriptions, partner CTAs, error toasts, "How Unify partnerships work" link text) to a strings file consumed by an i18n library.
+**What:** When multi-language support lands, extract hardcoded copy from the Resources screens (disclosure card, category descriptions, partner CTAs, error toasts, "How Unify partnerships work" link text) to a strings file consumed by an i18n library. Includes the new directory copy: category labels/descriptions, partner taglines/About/highlights, and the 'Trusted services' header.
 **Why:** Newcomer audience strongly implies multi-language support will be on the roadmap. Newcomers in their first 6-12 months often have stronger comprehension in their native language than in English. Hardcoded copy in components becomes harder to extract once it's spread across files.
 **Pros:** Makes the feature ready for the broader i18n initiative without rework.
 **Cons:** Pure scope creep until i18n is actually committed to.
 **Context:** Surfaced during plan-eng-review of Referral Monetization (Resources tab). Flagged as code quality issue Q-3 — copy hardcoded in JSX. No i18n library currently in the project.
 **Effort:** S (human) → S (CC)
-**Depends on:** Project-level decision to add i18n (e.g., `i18n-js`, `react-i18next`, or Expo's localization solution)
+**Depends on:** — (react-i18next is already in the project; this is an extraction of the new hardcoded Resources copy into locale files).
 
 ### Intersection-based View Tracking for Partner Cards
 **What:** Switch the `resources_partner_card_viewed` PostHog event from on-render firing to intersection/scroll-based detection (only fire when a card is actually visible in the viewport, with debouncing).
