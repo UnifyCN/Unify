@@ -125,6 +125,8 @@ export const AnalyticsEvents = {
   // Resources (referral / monetization)
   RESOURCES_VIEWED: 'resources_viewed',
   RESOURCES_CATEGORY_OPENED: 'resources_category_opened',
+  RESOURCES_PARTNER_OPENED: 'resources_partner_opened',
+  RESOURCES_PARTNER_WEBSITE_OPENED: 'resources_partner_website_opened',
   RESOURCES_PARTNER_CARD_VIEWED: 'resources_partner_card_viewed',
   RESOURCES_PARTNER_PROMO_COPIED: 'resources_partner_promo_copied',
   RESOURCES_PARTNER_CTA_TAPPED: 'resources_partner_cta_tapped',
@@ -826,6 +828,23 @@ export function useAnalytics() {
         posthog?.capture(AnalyticsEvents.RESOURCES_CATEGORY_OPENED, {
           category,
           partner_count: partnerCount,
+        });
+      },
+      trackResourcesPartnerOpened: (partnerSlug: string, category: string) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_OPENED, {
+          partner_slug: partnerSlug,
+          category,
+        });
+      },
+      trackResourcesPartnerWebsiteOpened: (
+        partnerSlug: string,
+        category: string,
+        partnershipType: 'resource' | 'referral'
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_WEBSITE_OPENED, {
+          partner_slug: partnerSlug,
+          category,
+          partnership_type: partnershipType,
         });
       },
       trackResourcesPartnerCardViewed: (
