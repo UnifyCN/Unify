@@ -121,6 +121,32 @@ export const PARTNERS: Partner[] = [
     ],
     location: 'British Columbia',
     websiteUrl: 'https://iecbc.ca/',
+    programs: [
+      {
+        name: 'MentorConnect',
+        description:
+          'One-on-one, occupation-specific coaching that pairs job-ready newcomers with established local professionals.',
+        url: 'https://iecbc.ca/our-work/programs/mentorconnect/',
+      },
+      {
+        name: 'TalentConnect',
+        description:
+          'Connects BC employers with globally trained professionals through tailored hiring and networking opportunities.',
+        url: 'https://iecbc.ca/our-work/programs/talentconnect/',
+      },
+      {
+        name: 'ASCEND',
+        description:
+          'Online, self-paced learning to build the workplace soft skills Canadian employers look for (English & French).',
+        url: 'https://ascendemployment.com/participants/',
+      },
+      {
+        name: 'FAST',
+        description:
+          'Helps newcomers see how their experience and training meet Canadian standards, with career-prep streams by field.',
+        url: 'https://fastcanada.ca/',
+      },
+    ],
     displayOrder: 0,
     active: true,
   },

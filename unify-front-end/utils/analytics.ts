@@ -128,6 +128,7 @@ export const AnalyticsEvents = {
   RESOURCES_CATEGORY_OPENED: 'resources_category_opened',
   RESOURCES_PARTNER_OPENED: 'resources_partner_opened',
   RESOURCES_PARTNER_WEBSITE_OPENED: 'resources_partner_website_opened',
+  RESOURCES_PROGRAM_OPENED: 'resources_program_opened',
 
   // Referrals (refer-a-friend)
   INVITE_CODE_GENERATED: 'invite_code_generated',
@@ -842,6 +843,17 @@ export function useAnalytics() {
           partner_slug: partnerSlug,
           category,
           partnership_type: partnershipType,
+        });
+      },
+      trackResourcesProgramOpened: (
+        partnerSlug: string,
+        programName: string,
+        category: string
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PROGRAM_OPENED, {
+          partner_slug: partnerSlug,
+          program_name: programName,
+          category,
         });
       },
 

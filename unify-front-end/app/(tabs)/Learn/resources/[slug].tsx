@@ -19,6 +19,7 @@ import {
   PARTNER_CATEGORY_ICONS,
   PARTNER_CATEGORY_COLORS,
   PARTNER_CATEGORY_TINTS,
+  type PartnerProgram,
 } from '@/types/partner';
 import Monogram from '@/components/learn/Resources/Monogram';
 import { useAnalytics } from '@/utils/analytics';
@@ -27,8 +28,11 @@ export default function PartnerDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { trackResourcesPartnerOpened, trackResourcesPartnerWebsiteOpened } =
-    useAnalytics();
+  const {
+    trackResourcesPartnerOpened,
+    trackResourcesPartnerWebsiteOpened,
+    trackResourcesProgramOpened,
+  } = useAnalytics();
   const partner = slug ? getPartnerBySlug(slug) : undefined;
 
   useEffect(() => {
@@ -72,6 +76,18 @@ export default function PartnerDetailScreen() {
     );
     try {
       await WebBrowser.openBrowserAsync(partner.websiteUrl, {
+        controlsColor: color,
+        toolbarColor: '#FFFFFF',
+      });
+    } catch {
+      // In-app browser failed to open; nothing destructive to recover.
+    }
+  };
+
+  const handleOpenProgram = async (program: PartnerProgram) => {
+    trackResourcesProgramOpened(partner.slug, program.name, partner.category);
+    try {
+      await WebBrowser.openBrowserAsync(program.url, {
         controlsColor: color,
         toolbarColor: '#FFFFFF',
       });
@@ -133,6 +149,33 @@ export default function PartnerDetailScreen() {
                   </View>
                   <Text style={styles.hText}>{h}</Text>
                 </View>
+              ))}
+            </>
+          )}
+
+          {partner.programs && partner.programs.length > 0 && (
+            <>
+              <Text style={styles.sectionHead}>Programs</Text>
+              {partner.programs.map(program => (
+                <TouchableOpacity
+                  key={program.name}
+                  onPress={() => handleOpenProgram(program)}
+                  activeOpacity={0.75}
+                  style={styles.programCard}
+                  accessibilityRole='button'
+                  accessibilityLabel={`${program.name}, opens in browser`}
+                >
+                  <View style={styles.programText}>
+                    <Text style={styles.programName}>{program.name}</Text>
+                    <Text style={styles.programDesc}>{program.description}</Text>
+                  </View>
+                  <Feather
+                    name='external-link'
+                    size={16}
+                    color={color}
+                    style={styles.programIcon}
+                  />
+                </TouchableOpacity>
               ))}
             </>
           )}
@@ -203,6 +246,22 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   hText: { flex: 1, fontSize: 13.5, lineHeight: 19, color: '#3A3A3A' },
+  programCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#ECECEF',
+    borderRadius: 14,
+    paddingVertical: 13,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  programText: { flex: 1 },
+  programName: { fontSize: 14.5, fontWeight: '700', color: '#1F2937' },
+  programDesc: { fontSize: 12.5, lineHeight: 18, color: '#6B7280', marginTop: 3 },
+  programIcon: { marginTop: 1 },
   visit: {
     flexDirection: 'row',
     alignItems: 'center',

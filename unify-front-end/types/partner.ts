@@ -62,6 +62,16 @@ export const PARTNER_CATEGORY_TINTS: Record<PartnerCategory, string> = {
   immigration: '#FCEDEB',
 };
 
+/** A program/event a partner offers, surfaced on the detail screen. */
+export interface PartnerProgram {
+  /** Program name, e.g. "MentorConnect". */
+  name: string;
+  /** One-to-two line summary. */
+  description: string;
+  /** Link opened in an in-app browser. */
+  url: string;
+}
+
 export interface Partner {
   /** Stable kebab-case id (also used in routes + analytics). */
   slug: string;
@@ -83,6 +93,8 @@ export interface Partner {
   logo?: ImageSourcePropType;
   /** Optional hero photo; falls back to a category-tinted gradient when absent. */
   heroImage?: ImageSourcePropType;
+  /** Optional programs/events to showcase on the detail screen. */
+  programs?: PartnerProgram[];
   /** Lower numbers render first within a category. */
   displayOrder: number;
   /** Inactive partners are filtered out of all UI. */

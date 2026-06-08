@@ -76,4 +76,24 @@ describe('partner data', () => {
       .sort((a, b) => a.displayOrder - b.displayOrder);
     expect(active.find(p => p.slug === 'test-inactive')).toBeUndefined();
   });
+
+  it('any partner programs are well-formed (name, description, http(s) url)', () => {
+    for (const p of PARTNERS) {
+      for (const program of p.programs ?? []) {
+        expect(program.name).toBeTruthy();
+        expect(program.description.length).toBeGreaterThan(10);
+        expect(program.url).toMatch(/^https?:\/\/.+/);
+      }
+    }
+  });
+
+  it('IEC-BC showcases its 4 programs', () => {
+    const iecbc = getPartnerBySlug('iec-bc');
+    expect(iecbc?.programs?.map(pr => pr.name)).toEqual([
+      'MentorConnect',
+      'TalentConnect',
+      'ASCEND',
+      'FAST',
+    ]);
+  });
 });
