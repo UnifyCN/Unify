@@ -123,7 +123,7 @@ export const AnalyticsEvents = {
   TIP_VIEWED: 'tip_viewed',
   TIP_TAPPED: 'tip_tapped',
 
-  // Resources (referral / monetization)
+  // Resources (trusted-services directory)
   RESOURCES_VIEWED: 'resources_viewed',
   RESOURCES_CATEGORY_OPENED: 'resources_category_opened',
   RESOURCES_PARTNER_OPENED: 'resources_partner_opened',
@@ -814,7 +814,7 @@ export function useAnalytics() {
         });
       },
 
-      // Resources (referral / monetization)
+      // Resources (trusted-services directory)
       trackResourcesViewed: (source: string) => {
         posthog?.capture(AnalyticsEvents.RESOURCES_VIEWED, { source });
       },
