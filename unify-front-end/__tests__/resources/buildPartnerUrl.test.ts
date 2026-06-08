@@ -1,0 +1,30 @@
+import { buildPartnerUrl } from '@/utils/partners';
+import type { Partner } from '@/types/partner';
+
+const base: Partner = {
+  slug: 'anutio',
+  name: 'Anutio',
+  category: 'employment',
+  partnershipType: 'referral',
+  tagline: 't',
+  description: 'a description long enough',
+  highlights: ['a', 'b'],
+  location: 'Online',
+  websiteUrl: 'https://www.anutio.com/',
+  displayOrder: 0,
+  active: true,
+};
+
+describe('buildPartnerUrl', () => {
+  it('appends UTM params derived from websiteUrl', () => {
+    const url = buildPartnerUrl(base, 'learn_resources');
+    expect(url).toContain('utm_source=unify');
+    expect(url).toContain('utm_medium=learn_resources');
+    expect(url).toContain('utm_campaign=anutio');
+    expect(url.startsWith('https://www.anutio.com/')).toBe(true);
+  });
+
+  it('returns empty string when websiteUrl is missing', () => {
+    expect(buildPartnerUrl({ ...base, websiteUrl: undefined }, 'learn_resources')).toBe('');
+  });
+});
