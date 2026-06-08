@@ -21,6 +21,7 @@ describe('buildPartnerUrl', () => {
     expect(url).toContain('utm_source=unify');
     expect(url).toContain('utm_medium=learn_resources');
     expect(url).toContain('utm_campaign=anutio');
+    expect(url).toContain('ref=unify');
     expect(url.startsWith('https://www.anutio.com/')).toBe(true);
   });
 

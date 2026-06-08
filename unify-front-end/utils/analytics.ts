@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { usePostHog } from 'posthog-react-native';
+import type { PartnershipType } from '@/types/partner';
 
 // Event name constants for type safety and consistency
 export const AnalyticsEvents = {
@@ -839,7 +840,7 @@ export function useAnalytics() {
       trackResourcesPartnerWebsiteOpened: (
         partnerSlug: string,
         category: string,
-        partnershipType: 'resource' | 'referral'
+        partnershipType: PartnershipType
       ) => {
         posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_WEBSITE_OPENED, {
           partner_slug: partnerSlug,

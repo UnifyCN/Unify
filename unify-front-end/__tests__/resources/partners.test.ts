@@ -63,7 +63,17 @@ describe('partner data', () => {
     expect(getPartnerBySlug('does-not-exist')).toBeUndefined();
   });
 
-  it('getActivePartners excludes inactive partners', () => {
-    expect(getActivePartners().length).toBe(PARTNERS.filter(p => p.active).length);
+  it('getActivePartners returns every active partner and excludes inactive ones', () => {
+    // All current partners are active.
+    expect(getActivePartners()).toHaveLength(16);
+    // The filter must actually drop inactive partners, not just sort.
+    const withInactive = [
+      ...PARTNERS,
+      { ...PARTNERS[0], slug: 'test-inactive', active: false, displayOrder: 99 },
+    ];
+    const active = withInactive
+      .filter(p => p.active)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+    expect(active.find(p => p.slug === 'test-inactive')).toBeUndefined();
   });
 });
