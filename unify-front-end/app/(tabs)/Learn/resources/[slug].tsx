@@ -45,8 +45,13 @@ export default function PartnerDetailScreen() {
     return (
       <View style={[styles.notFound, { paddingTop: insets.top + 12 }]}>
         {screenOptions}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backFloat}>
-          <Feather name='chevron-left' size={22} color='#1A1A1A' />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={[styles.backFloat, { top: insets.top + 8 }]}
+          accessibilityRole='button'
+          accessibilityLabel='Back'
+        >
+          <Feather name='chevron-left' size={22} color='#FFFFFF' />
         </TouchableOpacity>
         <Text style={styles.notFoundText}>This resource is no longer available.</Text>
       </View>
@@ -121,8 +126,8 @@ export default function PartnerDetailScreen() {
           {partner.highlights.length > 0 && (
             <>
               <Text style={styles.sectionHead}>How they help newcomers</Text>
-              {partner.highlights.map((h, i) => (
-                <View key={i} style={styles.hRow}>
+              {partner.highlights.map(h => (
+                <View key={h} style={styles.hRow}>
                   <View style={[styles.hDot, { backgroundColor: tint }]}>
                     <Feather name='check' size={12} color={color} />
                   </View>

@@ -34,7 +34,9 @@ export default function CategoryTile({ category, partnerCount, wide, onPress }: 
         <MaterialCommunityIcons name={icon as any} size={20} color='#FFFFFF' />
       </View>
       <View style={wide ? styles.wideMeta : undefined}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label} numberOfLines={2}>
+          {label}
+        </Text>
         <Text style={styles.count}>{count}</Text>
       </View>
     </TouchableOpacity>

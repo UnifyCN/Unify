@@ -17,7 +17,7 @@ export default function Monogram({ name, category, size, source }: Props) {
 
   if (source) {
     return (
-      <View style={[styles.imageWrap, box]}>
+      <View style={[styles.imageWrap, box]} accessible={false} accessibilityElementsHidden importantForAccessibility='no-hide-descendants'>
         <Image source={source} style={{ width: size, height: size }} resizeMode='contain' />
       </View>
     );
@@ -26,6 +26,9 @@ export default function Monogram({ name, category, size, source }: Props) {
   return (
     <View
       style={[box, styles.mono, { backgroundColor: PARTNER_CATEGORY_COLORS[category] }]}
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility='no-hide-descendants'
     >
       <Text style={[styles.initials, { fontSize: Math.round(size * 0.38) }]}>
         {getInitials(name)}
