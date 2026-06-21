@@ -458,6 +458,7 @@
     "formGreeting": "I can help you fill out any form step by step. Which form do you need help with?",
     "inputPlaceholder": "Ask anything...",
     "dailyLimitReached": "Daily limit reached",
+    "dailyLimitReachedToast": "You've reached your daily message limit. Please try again tomorrow.",
     "disclaimer": "Companion can make mistakes. Verify important info.",
     "openHistory": "Open history",
     "newChat": "New chat",

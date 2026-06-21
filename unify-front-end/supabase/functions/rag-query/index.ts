@@ -581,6 +581,15 @@ Deno.serve(async (req: Request) => {
     );
   };
 
+  // Daily-quota bookkeeping. check_and_increment_chatbot_usage increments the
+  // count BEFORE generation; if generation then fails we must refund the slot
+  // so users aren't charged for a response they never saw. Declared in handler
+  // scope so the outer catch (below) can also trigger the refund. refundUsageOnce
+  // starts as a no-op and is assigned a real closure once the user is resolved.
+  let usageCounted = false;
+  let usageRefunded = false;
+  let refundUsageOnce: () => Promise<void> = async () => {};
+
   try {
     const {
       prompt,
@@ -658,11 +667,30 @@ Deno.serve(async (req: Request) => {
       ? 'eval-mode'
       : authenticatedUserId!;
 
+    // Refund the pre-generation message-count increment when a request that was
+    // counted ends up failing. Idempotent (guards on usageRefunded) and a no-op
+    // in eval mode / when nothing was counted. Best-effort: a failed refund is
+    // logged but never breaks the response path.
+    refundUsageOnce = async (): Promise<void> => {
+      if (!usageCounted || usageRefunded || isEvalMode) return;
+      usageRefunded = true;
+      try {
+        await supabase.rpc('refund_chatbot_message', {
+          p_user_id: effectiveUserId,
+        });
+      } catch (refundErr) {
+        console.error('Failed to refund chatbot message slot:', refundErr);
+      }
+    };
+
     // Atomic rate limit: check + increment in one RPC (fail-closed).
     // Returns false if over the daily cap or on any DB error. Skipped in eval
     // mode so regression runs don't consume real users' daily quotas.
+    // NOTE: keep DAILY_MESSAGE_LIMIT in sync with MESSAGE_LIMIT in
+    // app/(tabs)/companion/index.tsx — this server check is authoritative; the
+    // client constant only mirrors it for proactive UX gating.
     if (!isEvalMode) {
-      const DAILY_MESSAGE_LIMIT = 30;
+      const DAILY_MESSAGE_LIMIT = 6;
       const { data: allowed, error: quotaError } = await supabase.rpc(
         'check_and_increment_chatbot_usage',
         { p_user_id: effectiveUserId, p_daily_limit: DAILY_MESSAGE_LIMIT }
@@ -670,10 +698,15 @@ Deno.serve(async (req: Request) => {
 
       if (quotaError || allowed === false) {
         return new Response(
-          JSON.stringify({ error: 'Daily message limit reached. Try again tomorrow.' }),
+          JSON.stringify({
+            error: 'Daily message limit reached. Try again tomorrow.',
+            code: 'daily_limit_reached',
+          }),
           { status: 429, headers: { 'Content-Type': 'application/json' } }
         );
       }
+      // Slot consumed — eligible for refund if generation fails below.
+      usageCounted = true;
     }
 
     if (
@@ -984,6 +1017,9 @@ Deno.serve(async (req: Request) => {
       });
 
       if (!streamResult.ok) {
+        // Generation never started — refund the slot taken by the rate-limit
+        // check so a busy/failed upstream doesn't cost the user a message.
+        await refundUsageOnce();
         if (streamResult.retryable) {
           logStageTimings('error');
           return new Response(
@@ -1074,9 +1110,11 @@ Deno.serve(async (req: Request) => {
             }
 
             // If the client dropped mid-stream, skip everything below: we
-            // don't bill, don't capture analytics, don't emit `complete`.
+            // don't bill, don't capture analytics, don't emit `complete`, and
+            // we refund the slot so an abandoned response costs the user nothing.
             if (clientDisconnected) {
               logStageTimings('error');
+              await refundUsageOnce();
               return;
             }
 
@@ -1162,6 +1200,7 @@ Deno.serve(async (req: Request) => {
               streamErr.name === 'AbortError';
             if (isAbort && clientDisconnected) {
               logStageTimings('error');
+              await refundUsageOnce();
               return;
             }
             console.error('Streaming generation failed:', streamErr);
@@ -1174,6 +1213,8 @@ Deno.serve(async (req: Request) => {
               })
             );
             logStageTimings('error');
+            // Generation broke mid-stream — refund the slot.
+            await refundUsageOnce();
           } finally {
             try {
               controller.close();
@@ -1221,6 +1262,8 @@ Deno.serve(async (req: Request) => {
     );
 
     if (!llmResult.ok) {
+      // Generation failed — refund the slot taken by the rate-limit check.
+      await refundUsageOnce();
       // Surface upstream rate-limit / capacity issues as a 503 with a
       // user-friendly message instead of a generic 500. The client
       // detects 503 from this function and shows a "busy, try again"
@@ -1318,6 +1361,11 @@ Deno.serve(async (req: Request) => {
     );
   } catch (error: unknown) {
     logStageTimings('error');
+    // Any throw after the rate-limit check (embedding failure, non-retryable
+    // generation error, etc.) reaches here before a streaming Response is
+    // returned — refund the slot. No-op if nothing was counted or already
+    // refunded. In-stream failures are refunded inside the ReadableStream.
+    await refundUsageOnce();
     if (error instanceof Error) {
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,

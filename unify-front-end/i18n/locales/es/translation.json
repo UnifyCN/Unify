@@ -458,6 +458,7 @@
     "formGreeting": "Puedo ayudarte a completar cualquier formulario paso a paso. ¿Con qué formulario necesitas ayuda?",
     "inputPlaceholder": "Pregunta lo que sea...",
     "dailyLimitReached": "Límite diario alcanzado",
+    "dailyLimitReachedToast": "Has alcanzado tu límite diario de mensajes. Inténtalo de nuevo mañana.",
     "disclaimer": "El asistente puede cometer errores. Verifica la información importante.",
     "openHistory": "Abrir historial",
     "newChat": "Nueva conversación",

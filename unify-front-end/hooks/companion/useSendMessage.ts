@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   AICompanionBusyError,
+  AICompanionLimitError,
   streamGeminiAPI,
   StreamComplete,
   StreamMetadata,
@@ -244,8 +245,12 @@ export const useSendMessage = ({
           ? (error as SendMessageError)
           : (new Error(String(error)) as SendMessageError);
       sendError.messagePersisted = userMessagePersisted;
-      // Preserve the typed busy error so callers can match on instanceof.
-      if (error instanceof AICompanionBusyError) {
+      // Preserve typed errors (busy / daily-limit) so callers can match on
+      // instanceof and show the right toast.
+      if (
+        error instanceof AICompanionBusyError ||
+        error instanceof AICompanionLimitError
+      ) {
         throw error;
       }
       throw sendError;
