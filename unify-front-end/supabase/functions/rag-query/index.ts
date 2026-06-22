@@ -1122,6 +1122,16 @@ Deno.serve(async (req: Request) => {
               performance.now() - generationStartedAt
             );
 
+            // Empty completion: the stream finished but produced no content.
+            // Refund the daily slot so the user isn't charged a message for a
+            // non-answer — mirrors the non-streaming path, where callOpenRouter
+            // returns ok:false on an empty completion (which already refunds).
+            // Cost is still recorded below; we keep the graceful fallback reply
+            // so the conversation isn't left one-sided.
+            if (!accumulatedAnswer.trim()) {
+              await refundUsageOnce();
+            }
+
             const rawAnswer =
               accumulatedAnswer || 'Sorry, I could not generate a response.';
             const tokenUsage = {
