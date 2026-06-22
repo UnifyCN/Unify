@@ -8,27 +8,20 @@ import { supabase } from '@/lib/supabase';
 import { parseSSEStream } from '@/utils/sseParser';
 import { Source } from '@/helpers/companion/messageHelpers';
 import { QueryType, TokenUsage } from '@/types/chatbot';
+import { classifyRagQueryError } from '@/helpers/companion/ragQueryErrors';
+
+// Re-export the typed errors so existing `from '@/utils/gemini'` imports keep
+// working. The definitions live in a dependency-free module so the classifier
+// stays unit-testable.
+export {
+  AICompanionBusyError,
+  AICompanionLimitError,
+} from '@/helpers/companion/ragQueryErrors';
 
 interface ConversationMessage {
   message: string;
   role: 'user' | 'assistant';
 }
-
-/**
- * Error thrown when rag-query signals upstream rate-limit / capacity issues.
- * Callers can check `error.code === 'ai_companion_busy'` to surface a
- * friendly toast instead of a generic failure.
- */
-export class AICompanionBusyError extends Error {
-  readonly code = 'ai_companion_busy' as const;
-  constructor(message: string) {
-    super(message);
-    this.name = 'AICompanionBusyError';
-  }
-}
-
-const BUSY_FALLBACK_MESSAGE =
-  'AI Companion is busy right now. Please try again in a minute.';
 
 export interface StreamMetadata {
   sources?: Source[];
@@ -127,7 +120,8 @@ export const streamGeminiAPI = async (
     return;
   }
 
-  // Surface the busy 503 / ai_companion_busy in the same shape callers expect.
+  // Map non-OK responses to typed errors (busy 503, daily-limit 429) so callers
+  // can show the right friendly toast instead of a generic failure.
   if (!response.ok) {
     let bodyText = '';
     try {
@@ -135,27 +129,7 @@ export const streamGeminiAPI = async (
     } catch {
       // ignore
     }
-    let parsed: { error?: string; code?: string } | null = null;
-    if (bodyText) {
-      try {
-        parsed = JSON.parse(bodyText);
-      } catch {
-        // not JSON
-      }
-    }
-    if (parsed?.code === 'ai_companion_busy' || response.status === 503) {
-      callbacks.onError(
-        new AICompanionBusyError(parsed?.error ?? BUSY_FALLBACK_MESSAGE)
-      );
-      return;
-    }
-    callbacks.onError(
-      new Error(
-        bodyText
-          ? `rag-query ${response.status}: ${bodyText}`
-          : `rag-query ${response.status}`
-      )
-    );
+    callbacks.onError(classifyRagQueryError(response.status, bodyText));
     return;
   }
 

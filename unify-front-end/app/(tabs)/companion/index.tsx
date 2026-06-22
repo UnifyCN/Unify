@@ -46,9 +46,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { usePersonalizedStarters } from '@/hooks/companion/usePersonalizedStarters';
-import { AICompanionBusyError } from '@/utils/gemini';
+import { AICompanionBusyError, AICompanionLimitError } from '@/utils/gemini';
 import { useToast } from '@/context/ToastContext';
 
+// Daily message cap for non-premium users. This mirrors DAILY_MESSAGE_LIMIT in
+// supabase/functions/rag-query/index.ts, which is the authoritative server-side
+// check. This client constant only powers proactive UX (disabling the input);
+// keep the two in sync.
 const MESSAGE_LIMIT = 6;
 const OPTIMISTIC_MESSAGE_MATCH_WINDOW_MS = 5000;
 const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
@@ -321,7 +325,9 @@ export default function CompanionScreen() {
           setInputText(textToSend);
         }
         if (error instanceof AICompanionBusyError) {
-          showToast(error.message);
+          showToast(t('companion.busyToast'));
+        } else if (error instanceof AICompanionLimitError) {
+          showToast(t('companion.dailyLimitReachedToast'));
         }
       }
     },
@@ -334,6 +340,7 @@ export default function CompanionScreen() {
       currentConversationId,
       setOptimisticMessages,
       showToast,
+      t,
     ]
   );
 
