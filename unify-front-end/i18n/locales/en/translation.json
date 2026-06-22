@@ -459,6 +459,7 @@
     "inputPlaceholder": "Ask anything...",
     "dailyLimitReached": "Daily limit reached",
     "dailyLimitReachedToast": "You've reached your daily message limit. Please try again tomorrow.",
+    "busyToast": "AI Companion is busy right now. Please try again in a minute.",
     "disclaimer": "Companion can make mistakes. Verify important info.",
     "openHistory": "Open history",
     "newChat": "New chat",

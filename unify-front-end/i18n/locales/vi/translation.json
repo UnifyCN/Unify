@@ -459,6 +459,7 @@
     "inputPlaceholder": "Hỏi bất cứ điều gì...",
     "dailyLimitReached": "Đã đạt giới hạn hàng ngày",
     "dailyLimitReachedToast": "Bạn đã đạt giới hạn tin nhắn hàng ngày. Vui lòng thử lại vào ngày mai.",
+    "busyToast": "Trợ lý đang bận. Vui lòng thử lại sau một phút.",
     "disclaimer": "Trợ lý có thể mắc lỗi. Hãy xác minh thông tin quan trọng.",
     "openHistory": "Mở lịch sử",
     "newChat": "Cuộc trò chuyện mới",

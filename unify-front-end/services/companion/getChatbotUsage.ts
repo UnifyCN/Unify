@@ -9,7 +9,12 @@ const EMPTY_USAGE: ChatbotUsage = {
 export const getChatbotUsage = async (): Promise<ChatbotUsage> => {
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
+  // A real auth failure (network / token refresh) must propagate so React Query
+  // keeps the last known count and retries — not be masked as "no user → 0",
+  // which would re-open the daily-limit gate (same reasoning as the query below).
+  if (authError) throw authError;
   // Not signed in → no usage to report (Companion isn't usable anyway).
   if (!user) return EMPTY_USAGE;
 

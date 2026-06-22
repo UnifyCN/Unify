@@ -325,7 +325,7 @@ export default function CompanionScreen() {
           setInputText(textToSend);
         }
         if (error instanceof AICompanionBusyError) {
-          showToast(error.message);
+          showToast(t('companion.busyToast'));
         } else if (error instanceof AICompanionLimitError) {
           showToast(t('companion.dailyLimitReachedToast'));
         }
