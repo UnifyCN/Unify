@@ -57,6 +57,10 @@ export const AnalyticsEvents = {
   COMPANION_SUGGESTION_CLICKED: 'companion_suggestion_clicked',
   COMPANION_HISTORY_VIEWED: 'companion_history_viewed',
 
+  // In-lesson module discussions
+  DISCUSSION_POST_CREATED: 'discussion_post_created',
+  DISCUSSION_REPLY_CREATED: 'discussion_reply_created',
+
   // Learning
   MODULE_VIEWED: 'module_viewed',
   SUBMODULE_STARTED: 'submodule_started',
@@ -208,7 +212,22 @@ export interface ChecklistTaskProperties {
 }
 
 export interface ReportProperties {
-  report_type: 'post' | 'user';
+  report_type: 'post' | 'user' | 'discussion' | 'discussion_reply';
+}
+
+export interface DiscussionPostCreatedProperties {
+  module_id: string;
+  discussion_id?: string;
+  submodule_id?: string;
+  lesson_id?: string;
+  body_length: number;
+}
+
+export interface DiscussionReplyCreatedProperties {
+  module_id: string;
+  discussion_id: string;
+  reply_id?: string;
+  body_length: number;
 }
 
 export interface OnboardingStepProperties {
@@ -390,6 +409,20 @@ export function useAnalytics() {
       },
       trackCommentDeleted: (properties: CommentInteractionProperties) => {
         posthog?.capture(AnalyticsEvents.COMMENT_DELETED, { ...properties });
+      },
+      trackDiscussionPostCreated: (
+        properties: DiscussionPostCreatedProperties
+      ) => {
+        posthog?.capture(AnalyticsEvents.DISCUSSION_POST_CREATED, {
+          ...properties,
+        });
+      },
+      trackDiscussionReplyCreated: (
+        properties: DiscussionReplyCreatedProperties
+      ) => {
+        posthog?.capture(AnalyticsEvents.DISCUSSION_REPLY_CREATED, {
+          ...properties,
+        });
       },
       trackReplyPillTapped: (parentCommentId: string) => {
         posthog?.capture(AnalyticsEvents.REPLY_PILL_TAPPED, {
@@ -721,7 +754,9 @@ export function useAnalytics() {
       },
 
       // Reports
-      trackReportSubmitted: (reportType: 'post' | 'user') => {
+      trackReportSubmitted: (
+        reportType: ReportProperties['report_type']
+      ) => {
         posthog?.capture(AnalyticsEvents.REPORT_SUBMITTED, {
           report_type: reportType,
         });

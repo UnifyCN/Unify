@@ -1,5 +1,6 @@
 import { Settings } from 'react-native-fbsdk-next';
 import * as TrackingTransparency from 'expo-tracking-transparency';
+import { Platform } from 'react-native';
 
 export interface InitMetaSDKOptions {
   /**
@@ -28,11 +29,28 @@ export interface InitMetaSDKOptions {
 export async function initMetaSDK({
   requestATT,
 }: InitMetaSDKOptions): Promise<void> {
+  const hasMetaConfig =
+    !!process.env.META_APP_ID && !!process.env.META_CLIENT_TOKEN;
+
+  if (!hasMetaConfig) {
+    if (__DEV__) {
+      console.warn(
+        '[meta] Skipping Meta SDK initialization because META_APP_ID / META_CLIENT_TOKEN are not set.'
+      );
+    }
+    return;
+  }
+
   // Initialize synchronously FIRST so the SDK is ready to log events before the
   // awaited ATT read resolves. Otherwise an event fired in that window (the
   // native permission read is a round-trip) could hit an uninitialized SDK and
   // be dropped.
   Settings.initializeSDK();
+
+  if (Platform.OS !== 'ios') {
+    Settings.setAdvertiserTrackingEnabled(true);
+    return;
+  }
 
   const { status } = requestATT
     ? await TrackingTransparency.requestTrackingPermissionsAsync()
