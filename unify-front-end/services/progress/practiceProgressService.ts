@@ -152,18 +152,21 @@ export async function savePracticeAnswer(
     } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const { error } = await progressClient.from(ANSWERS_TABLE).upsert(
-      {
-        user_id: user.id,
-        sanity_practice_id: practiceId,
-        sanity_submodule_id: submoduleId,
-        sanity_module_id: moduleId,
-        item_key: itemKey,
-        answer,
-        is_submitted: isSubmitted,
-      },
-      { onConflict: 'user_id,sanity_practice_id,item_key' }
-    );
+    const payload: any = {
+      user_id: user.id,
+      sanity_practice_id: practiceId,
+      sanity_submodule_id: submoduleId,
+      sanity_module_id: moduleId,
+      item_key: itemKey,
+      answer,
+    };
+    // Only a real submit writes is_submitted, so an in-flight draft autosave can
+    // never downgrade an already-submitted row back to false.
+    if (isSubmitted) payload.is_submitted = true;
+
+    const { error } = await progressClient
+      .from(ANSWERS_TABLE)
+      .upsert(payload, { onConflict: 'user_id,sanity_practice_id,item_key' });
 
     if (error) {
       console.error('Error saving practice answer:', error);
@@ -176,7 +179,11 @@ export async function savePracticeAnswer(
 export interface RestoredPracticeAnswers {
   inputValues: Record<string, string>;
   questionAnswers: Record<string, string | string[]>;
+  /** true if ANY row in the practice was submitted (practice-wide) */
   isSubmitted: boolean;
+  /** item keys (prefix-stripped) whose row was submitted, so callers can scope
+   *  submitted state to the current page instead of using the aggregate flag */
+  submittedKeys: string[];
 }
 
 /** Loads previously-saved answers for a practice so a page can rehydrate on mount. */
@@ -187,6 +194,7 @@ export async function getPracticeAnswers(
     inputValues: {},
     questionAnswers: {},
     isSubmitted: false,
+    submittedKeys: [],
   };
   try {
     const {
@@ -207,12 +215,17 @@ export async function getPracticeAnswers(
 
     for (const row of data || []) {
       const key = row.item_key as string;
-      if (row.is_submitted) empty.isSubmitted = true;
+      const strippedKey = key.startsWith(PRACTICE_QUESTION_PREFIX)
+        ? key.slice(PRACTICE_QUESTION_PREFIX.length)
+        : key;
+      if (row.is_submitted) {
+        empty.isSubmitted = true;
+        empty.submittedKeys.push(strippedKey);
+      }
       if (key.startsWith(PRACTICE_QUESTION_PREFIX)) {
-        empty.questionAnswers[key.slice(PRACTICE_QUESTION_PREFIX.length)] =
-          row.answer as string | string[];
+        empty.questionAnswers[strippedKey] = row.answer as string | string[];
       } else {
-        empty.inputValues[key] = (row.answer ?? '') as string;
+        empty.inputValues[strippedKey] = (row.answer ?? '') as string;
       }
     }
     return empty;

@@ -147,6 +147,14 @@ export default function PracticeActivityPageScreen() {
         }
         return next;
       });
+      // Restore submitted state scoped to THIS page's items (not the practice-wide
+      // aggregate) so a previously-submitted page reopens locked, not editable.
+      if (
+        touchedRef.current.size === 0 &&
+        saved.submittedKeys.some(k => pageKeys.has(k))
+      ) {
+        setIsSubmitted(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -196,8 +204,11 @@ export default function PracticeActivityPageScreen() {
     touchedRef.current.add(fieldKey);
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
     if (!practiceId || !submoduleId || !moduleId) return;
-    if (saveTimers.current[fieldKey]) clearTimeout(saveTimers.current[fieldKey]);
-    saveTimers.current[fieldKey] = setTimeout(() => {
+    // Key timers by page + field so a pending save is never cancelled by the same
+    // field key on another page.
+    const timerKey = `${currentPage}:${fieldKey}`;
+    if (saveTimers.current[timerKey]) clearTimeout(saveTimers.current[timerKey]);
+    saveTimers.current[timerKey] = setTimeout(() => {
       savePracticeAnswer(
         practiceId,
         submoduleId,

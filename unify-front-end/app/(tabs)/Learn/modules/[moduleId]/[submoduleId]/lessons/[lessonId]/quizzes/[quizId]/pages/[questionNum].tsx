@@ -38,6 +38,31 @@ import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
+// Grade a single/multiple-choice answer for a given question. Module-level so it
+// can be used both in the render body and inside the attempt-resolution effect
+// (which flushes a selection made before the attempt id was ready).
+function gradeQuizAnswer(question: any, answer: string | string[]): boolean {
+  if (!question) return false;
+  if (question.question_type === 'multiple_choice_multiple') {
+    const correctIds = (
+      question.options?.filter((o: any) => o.is_correct) || []
+    ).map((o: any) => o._key);
+    const arr = Array.isArray(answer) ? answer : [];
+    return (
+      correctIds.length > 0 &&
+      correctIds.every((id: string) => arr.includes(id)) &&
+      arr.every((id: string) => correctIds.includes(id))
+    );
+  }
+  const correctAnswerId =
+    question.correct_answer?.value?.[0] || question.correct_answer?.value;
+  const single = Array.isArray(answer) ? answer[0] : answer;
+  return (
+    single === correctAnswerId ||
+    !!question.options?.find((o: any) => o._key === single)?.is_correct
+  );
+}
+
 export default function QuizQuestionPage() {
   const { moduleId, submoduleId, lessonId, quizId, questionNum } =
     useLocalSearchParams<{
@@ -84,6 +109,9 @@ export default function QuizQuestionPage() {
   // True once the user picks an answer on this question. Guards the async restore
   // from overwriting a fresh selection if getQuizResponses resolves after the tap.
   const answerTouchedRef = useRef(false);
+  // Holds a selection made before the attempt id resolved, so it still gets
+  // persisted once the attempt is ready (instead of being silently dropped).
+  const pendingAnswerRef = useRef<string | string[] | null>(null);
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -98,7 +126,23 @@ export default function QuizQuestionPage() {
       submoduleId,
       moduleId
     ).then(id => {
-      if (!cancelled) setAttemptId(id);
+      if (cancelled) return;
+      setAttemptId(id);
+      // Flush a selection the user made before the attempt id was ready.
+      const pending = pendingAnswerRef.current;
+      if (id && pending != null) {
+        const q = questions?.[currentQuestionIndex];
+        if (q?._key) {
+          submitQuizAnswer(
+            id,
+            q._key,
+            q.question_type,
+            pending,
+            gradeQuizAnswer(q, pending)
+          );
+        }
+        pendingAnswerRef.current = null;
+      }
     });
     return () => {
       cancelled = true;
@@ -294,39 +338,21 @@ export default function QuizQuestionPage() {
     );
   }
 
-  // Grade an answer with the same rules handleNext uses, so the persisted
-  // response records correctness without waiting for submission.
-  const gradeAnswer = (answer: string | string[]): boolean => {
-    if (currentQuestion.question_type === 'multiple_choice_multiple') {
-      const correctIds = (
-        currentQuestion.options?.filter((o: any) => o.is_correct) || []
-      ).map((o: any) => o._key);
-      const arr = Array.isArray(answer) ? answer : [];
-      return (
-        correctIds.length > 0 &&
-        correctIds.every((id: string) => arr.includes(id)) &&
-        arr.every((id: string) => correctIds.includes(id))
-      );
-    }
-    const correctAnswerId =
-      currentQuestion.correct_answer?.value?.[0] ||
-      currentQuestion.correct_answer?.value;
-    const single = Array.isArray(answer) ? answer[0] : answer;
-    return (
-      single === correctAnswerId ||
-      !!currentQuestion.options?.find((o: any) => o._key === single)?.is_correct
-    );
-  };
-
   // Persist the current selection against the in-progress attempt (fire-and-forget).
+  // If the attempt isn't ready yet, stash the answer so the resolution effect can
+  // flush it rather than dropping it.
   const persistSelection = (answer: string | string[]) => {
-    if (!attemptId || !currentQuestion?._key) return;
+    if (!currentQuestion?._key) return;
+    if (!attemptId) {
+      pendingAnswerRef.current = answer;
+      return;
+    }
     submitQuizAnswer(
       attemptId,
       currentQuestion._key,
       currentQuestion.question_type,
       answer,
-      gradeAnswer(answer)
+      gradeQuizAnswer(currentQuestion, answer)
     );
   };
 

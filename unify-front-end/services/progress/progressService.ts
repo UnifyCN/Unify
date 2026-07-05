@@ -579,23 +579,29 @@ export async function saveActivityInput(
     } = await progressClient.auth.getUser();
     if (!user) return;
 
-    const { error } = await progressClient.from('user_activity_inputs').upsert(
-      {
-        user_id: user.id,
-        sanity_lesson_id: lessonId,
-        sanity_submodule_id: submoduleId,
-        sanity_module_id: moduleId,
-        activity_page_key: pageKey,
-        input_field_key: fieldKey,
-        input_value: value,
-        is_submitted: isSubmitted,
-        submitted_at: isSubmitted ? new Date().toISOString() : null,
-      },
-      {
+    const payload: any = {
+      user_id: user.id,
+      sanity_lesson_id: lessonId,
+      sanity_submodule_id: submoduleId,
+      sanity_module_id: moduleId,
+      activity_page_key: pageKey,
+      input_field_key: fieldKey,
+      input_value: value,
+    };
+    // Only a real submit writes is_submitted, so an in-flight draft autosave can
+    // never downgrade an already-submitted row back to false (upsert leaves
+    // columns absent from the payload untouched on conflict).
+    if (isSubmitted) {
+      payload.is_submitted = true;
+      payload.submitted_at = new Date().toISOString();
+    }
+
+    const { error } = await progressClient
+      .from('user_activity_inputs')
+      .upsert(payload, {
         onConflict:
           'user_id,sanity_lesson_id,activity_page_key,input_field_key',
-      }
-    );
+      });
 
     if (error) {
       console.error('Error saving activity input:', error);

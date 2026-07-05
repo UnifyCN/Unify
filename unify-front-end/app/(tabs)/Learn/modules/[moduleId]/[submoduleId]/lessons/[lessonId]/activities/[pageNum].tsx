@@ -201,8 +201,11 @@ export default function ActivityPageScreen() {
     // on every keystroke.
     const pageKey = currentPageData?._key;
     if (!pageKey || !lessonId || !submoduleId || !moduleId) return;
-    if (saveTimers.current[fieldKey]) clearTimeout(saveTimers.current[fieldKey]);
-    saveTimers.current[fieldKey] = setTimeout(() => {
+    // Key timers by page + field so a pending save is never cancelled by the same
+    // field key on another page.
+    const timerKey = `${pageKey}:${fieldKey}`;
+    if (saveTimers.current[timerKey]) clearTimeout(saveTimers.current[timerKey]);
+    saveTimers.current[timerKey] = setTimeout(() => {
       saveActivityInput(
         lessonId,
         submoduleId,
