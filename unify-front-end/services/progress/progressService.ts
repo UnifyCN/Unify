@@ -159,6 +159,57 @@ export async function updateLessonProgress(
   }
 }
 
+/**
+ * Persists ONLY the resume position (current page/quiz/question) without touching
+ * progress_percent / completed_pages. `updateLessonProgress` conflates position with
+ * the progress bar, which is fine for reading pages (page index == cumulative index)
+ * but WRONG for activities/quizzes, where the within-section index is smaller than the
+ * cumulative one and would drag the bar backwards. Use this from activity/quiz pages so
+ * learnHref can resume the user to the exact spot without regressing their progress.
+ */
+export async function saveResumePosition(
+  lessonId: string,
+  submoduleId: string,
+  moduleId: string,
+  pageType: 'intro' | 'lesson' | 'activity' | 'quiz',
+  pageNumber: number,
+  quizId?: string,
+  questionNumber?: number
+): Promise<void> {
+  try {
+    if (!lessonId || !submoduleId || !moduleId) return;
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
+    if (!user) return;
+
+    const upsertData: any = {
+      user_id: user.id,
+      sanity_lesson_id: lessonId,
+      sanity_submodule_id: submoduleId,
+      sanity_module_id: moduleId,
+      is_in_progress: true,
+      current_page_type: pageType,
+      current_page_number: pageNumber,
+      last_accessed_at: new Date().toISOString(),
+    };
+    if (quizId) upsertData.current_quiz_id = quizId;
+    if (questionNumber) upsertData.current_question_number = questionNumber;
+
+    const { error } = await progressClient
+      .from('user_lesson_progress')
+      .upsert(upsertData, { onConflict: 'user_id,sanity_lesson_id' });
+
+    if (error) {
+      console.error('Error saving resume position:', error);
+    } else {
+      progressEventEmitter.emit();
+    }
+  } catch (error) {
+    console.error('Error in saveResumePosition:', error);
+  }
+}
+
 async function completeLesson(lessonId: string): Promise<void> {
   try {
     const {
@@ -275,7 +326,7 @@ async function completePage(
 // QUIZ PROGRESS SERVICE
 // =============================================
 
-async function startQuizAttempt(
+export async function startQuizAttempt(
   quizId: string,
   lessonId: string,
   submoduleId: string,
@@ -326,7 +377,101 @@ async function startQuizAttempt(
   }
 }
 
-async function submitQuizAnswer(
+/**
+ * Returns the id of the current *in-progress* (not-yet-completed) quiz attempt for
+ * this user+quiz, creating one if none exists. Used to resume a quiz so selections
+ * persist across question navigation and exit/re-entry within the same attempt.
+ */
+export async function getOrCreateInProgressQuizAttempt(
+  quizId: string,
+  lessonId: string,
+  submoduleId: string,
+  moduleId: string
+): Promise<string | null> {
+  try {
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
+    if (!user) return null;
+
+    const { data: existing, error: fetchError } = await progressClient
+      .from('user_quiz_attempts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('sanity_quiz_id', quizId)
+      .is('completed_at', null)
+      .order('attempt_number', { ascending: false })
+      .limit(1);
+
+    if (fetchError) {
+      console.error('Error fetching in-progress quiz attempt:', fetchError);
+      return null;
+    }
+
+    if (existing?.[0]?.id) return existing[0].id;
+
+    const created = await startQuizAttempt(
+      quizId,
+      lessonId,
+      submoduleId,
+      moduleId
+    );
+    if (created) return created;
+
+    // Creation may have lost a race to a concurrent mount (two question pages
+    // inserting attempt_number=1 → unique violation → startQuizAttempt returns
+    // null). Re-read once so we still land on the attempt the other mount created.
+    const { data: retry } = await progressClient
+      .from('user_quiz_attempts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('sanity_quiz_id', quizId)
+      .is('completed_at', null)
+      .order('attempt_number', { ascending: false })
+      .limit(1);
+
+    return retry?.[0]?.id ?? null;
+  } catch (error) {
+    console.error('Error in getOrCreateInProgressQuizAttempt:', error);
+    return null;
+  }
+}
+
+/** Loads saved answers for a quiz attempt, keyed by sanity question id. */
+export async function getQuizResponses(
+  attemptId: string
+): Promise<Record<string, any>> {
+  try {
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
+    if (!user) return {};
+
+    const { data, error } = await progressClient
+      .from('user_quiz_responses')
+      .select('sanity_question_id, user_answer')
+      .eq('user_id', user.id)
+      .eq('quiz_attempt_id', attemptId);
+
+    if (error) {
+      console.error('Error fetching quiz responses:', error);
+      return {};
+    }
+
+    const result: Record<string, any> = {};
+    for (const row of data || []) {
+      if (row?.sanity_question_id) {
+        result[row.sanity_question_id] = row.user_answer;
+      }
+    }
+    return result;
+  } catch (error) {
+    console.error('Error in getQuizResponses:', error);
+    return {};
+  }
+}
+
+export async function submitQuizAnswer(
   attemptId: string,
   questionId: string,
   questionType: string,
@@ -362,7 +507,28 @@ async function submitQuizAnswer(
   }
 }
 
-async function completeQuizAttempt(
+/**
+ * Closes an in-progress quiz attempt (sets completed_at) so the NEXT visit to the
+ * quiz starts a fresh attempt instead of resuming old answers. Kept separate from
+ * completeQuizAttempt so we don't have to fabricate a score just to close it.
+ */
+export async function markQuizAttemptComplete(attemptId: string): Promise<void> {
+  try {
+    if (!attemptId) return;
+    const { error } = await progressClient
+      .from('user_quiz_attempts')
+      .update({ completed_at: new Date().toISOString() })
+      .eq('id', attemptId)
+      .is('completed_at', null);
+    if (error) {
+      console.error('Error marking quiz attempt complete:', error);
+    }
+  } catch (error) {
+    console.error('Error in markQuizAttemptComplete:', error);
+  }
+}
+
+export async function completeQuizAttempt(
   attemptId: string,
   score: number,
   totalQuestions: number,
@@ -392,13 +558,20 @@ async function completeQuizAttempt(
 // ACTIVITY INPUT SERVICE
 // =============================================
 
-async function saveActivityInput(
+// Prefix used to distinguish embedded multiple-choice question answers (which can
+// be string | string[], stored JSON-encoded) from free-text inputs (plain string)
+// within the single user_activity_inputs.input_value text column. A given Sanity
+// block _key is only ever an input OR a question, never both.
+export const ACTIVITY_QUESTION_PREFIX = 'q::';
+
+export async function saveActivityInput(
   lessonId: string,
   submoduleId: string,
   moduleId: string,
   pageKey: string,
   fieldKey: string,
-  value: string
+  value: string,
+  isSubmitted = false
 ): Promise<void> {
   try {
     const {
@@ -415,8 +588,8 @@ async function saveActivityInput(
         activity_page_key: pageKey,
         input_field_key: fieldKey,
         input_value: value,
-        is_submitted: true,
-        submitted_at: new Date().toISOString(),
+        is_submitted: isSubmitted,
+        submitted_at: isSubmitted ? new Date().toISOString() : null,
       },
       {
         onConflict:
@@ -429,5 +602,74 @@ async function saveActivityInput(
     }
   } catch (error) {
     console.error('Error in saveActivityInput:', error);
+  }
+}
+
+export interface RestoredActivityInputs {
+  /** free-text inputs keyed by block _key */
+  inputValues: Record<string, string>;
+  /** embedded question answers keyed by block _key */
+  questionAnswers: Record<string, string | string[]>;
+  /** whether any saved row on this page was already submitted */
+  isSubmitted: boolean;
+}
+
+/**
+ * Loads previously-saved activity inputs/answers for a lesson, grouped by
+ * activity page key, so a page can rehydrate its state on mount.
+ * Returns {} when the user is signed out or nothing was saved.
+ */
+export async function getActivityInputsByPage(
+  lessonId: string
+): Promise<Record<string, RestoredActivityInputs>> {
+  try {
+    const {
+      data: { user },
+    } = await progressClient.auth.getUser();
+    if (!user) return {};
+
+    const { data, error } = await progressClient
+      .from('user_activity_inputs')
+      .select(
+        'activity_page_key, input_field_key, input_value, is_submitted'
+      )
+      .eq('user_id', user.id)
+      .eq('sanity_lesson_id', lessonId);
+
+    if (error) {
+      console.error('Error fetching activity inputs:', error);
+      return {};
+    }
+
+    const result: Record<string, RestoredActivityInputs> = {};
+    for (const row of data || []) {
+      const pageKey = row.activity_page_key as string;
+      if (!result[pageKey]) {
+        result[pageKey] = {
+          inputValues: {},
+          questionAnswers: {},
+          isSubmitted: false,
+        };
+      }
+      const bucket = result[pageKey];
+      if (row.is_submitted) bucket.isSubmitted = true;
+
+      const fieldKey = row.input_field_key as string;
+      const raw = (row.input_value ?? '') as string;
+      if (fieldKey.startsWith(ACTIVITY_QUESTION_PREFIX)) {
+        const blockKey = fieldKey.slice(ACTIVITY_QUESTION_PREFIX.length);
+        try {
+          bucket.questionAnswers[blockKey] = JSON.parse(raw);
+        } catch {
+          bucket.questionAnswers[blockKey] = raw;
+        }
+      } else {
+        bucket.inputValues[fieldKey] = raw;
+      }
+    }
+    return result;
+  } catch (error) {
+    console.error('Error in getActivityInputsByPage:', error);
+    return {};
   }
 }

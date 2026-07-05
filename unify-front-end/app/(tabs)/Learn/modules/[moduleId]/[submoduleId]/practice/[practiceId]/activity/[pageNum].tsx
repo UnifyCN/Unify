@@ -20,6 +20,11 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import PracticeFeedbackModal from '@/components/learn/PracticeFeedbackModal';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
+import {
+  savePracticeAnswer,
+  getPracticeAnswers,
+  PRACTICE_QUESTION_PREFIX,
+} from '@/services/progress/practiceProgressService';
 import { useTranslation } from 'react-i18next';
 
 export default function PracticeActivityPageScreen() {
@@ -100,12 +105,53 @@ export default function PracticeActivityPageScreen() {
     }, [practiceId, practice, currentPage, updatePracticeProgress])
   );
 
+  // Debounce timers for autosaving free-text inputs, keyed by field.
+  const saveTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {}
+  );
+  // Fields the user has edited on this page. Guards the async restore from
+  // clobbering fresh input if the fetch resolves after the user starts typing.
+  const touchedRef = React.useRef<Set<string>>(new Set());
+
+  // Hydrate previously-saved answers for this page so work survives Next/Back and
+  // exiting/re-entering the practice. Replaces the old unconditional state wipe.
   useEffect(() => {
+    let cancelled = false;
     setIsSubmitted(false);
     setInputValues({});
     setQuestionAnswers({});
     setShowFeedbackModal(false);
-  }, [currentPage]);
+    touchedRef.current = new Set();
+    if (!practiceId || !currentPageData) return;
+    getPracticeAnswers(practiceId).then(saved => {
+      if (cancelled) return;
+      // Keys are unique per block across the practice; filter to this page's blocks
+      // so we don't carry other pages' answers in local state. Only fill fields the
+      // user hasn't touched or already set.
+      const pageKeys = new Set(
+        ((currentPageData.instructions as any[]) || []).map((b: any) => b._key)
+      );
+      setInputValues(prev => {
+        const next = { ...prev };
+        for (const [k, v] of Object.entries(saved.inputValues)) {
+          if (pageKeys.has(k) && !touchedRef.current.has(k) && next[k] === undefined)
+            next[k] = v;
+        }
+        return next;
+      });
+      setQuestionAnswers(prev => {
+        const next = { ...prev };
+        for (const [k, v] of Object.entries(saved.questionAnswers)) {
+          if (pageKeys.has(k) && !touchedRef.current.has(k) && next[k] === undefined)
+            next[k] = v;
+        }
+        return next;
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPage, practiceId, currentPageData]);
 
   const extractPlainText = useCallback((blocks: any[]): string => {
     if (!blocks || !Array.isArray(blocks)) return '';
@@ -147,18 +193,66 @@ export default function PracticeActivityPageScreen() {
   };
 
   const handleInputChange = (fieldKey: string, value: string) => {
+    touchedRef.current.add(fieldKey);
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
+    if (!practiceId || !submoduleId || !moduleId) return;
+    if (saveTimers.current[fieldKey]) clearTimeout(saveTimers.current[fieldKey]);
+    saveTimers.current[fieldKey] = setTimeout(() => {
+      savePracticeAnswer(
+        practiceId,
+        submoduleId,
+        moduleId,
+        fieldKey,
+        value,
+        false
+      );
+    }, 600);
   };
 
   const handleQuestionAnswer = (
     questionKey: string,
     answer: string | string[]
   ) => {
+    touchedRef.current.add(questionKey);
     setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
+    if (!practiceId || !submoduleId || !moduleId) return;
+    savePracticeAnswer(
+      practiceId,
+      submoduleId,
+      moduleId,
+      `${PRACTICE_QUESTION_PREFIX}${questionKey}`,
+      answer,
+      false
+    );
   };
 
   const handleSubmit = () => {
     setIsSubmitted(true);
+    if (practiceId && submoduleId && moduleId) {
+      // Flush pending debounced saves and persist final values as submitted.
+      Object.values(saveTimers.current).forEach(clearTimeout);
+      saveTimers.current = {};
+      Object.entries(inputValues).forEach(([fieldKey, value]) => {
+        savePracticeAnswer(
+          practiceId,
+          submoduleId,
+          moduleId,
+          fieldKey,
+          value,
+          true
+        );
+      });
+      Object.entries(questionAnswers).forEach(([questionKey, answer]) => {
+        savePracticeAnswer(
+          practiceId,
+          submoduleId,
+          moduleId,
+          `${PRACTICE_QUESTION_PREFIX}${questionKey}`,
+          answer,
+          true
+        );
+      });
+    }
 
     const userAnswerText = Object.values(inputValues).filter(Boolean).join('\n');
     if (hasTextInputs && userAnswerText.trim().length > 0) {

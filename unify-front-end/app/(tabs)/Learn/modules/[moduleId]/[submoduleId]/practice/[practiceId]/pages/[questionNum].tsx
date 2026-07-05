@@ -19,6 +19,11 @@ import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { usePracticeProgress } from '@/hooks/progress/usePracticeProgress';
+import {
+  savePracticeAnswer,
+  getPracticeAnswers,
+  PRACTICE_QUESTION_PREFIX,
+} from '@/services/progress/practiceProgressService';
 import { useTranslation } from 'react-i18next';
 
 function goToSubmoduleIndex(moduleId: string, submoduleId: string) {
@@ -100,6 +105,9 @@ export default function PracticeQuizQuestionPage() {
   );
   const [showExitModal, setShowExitModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  // True once the user picks an answer on this question. Guards the async restore
+  // from overwriting a fresh selection if getPracticeAnswers resolves after the tap.
+  const answerTouchedRef = React.useRef(false);
 
   const { startPractice, updatePracticeProgress, completePractice } =
     usePracticeProgress();
@@ -132,7 +140,32 @@ export default function PracticeQuizQuestionPage() {
     setIncorrectLeftItems([]);
     setIncorrectRightIndices([]);
     setIsNavigating(false);
+    answerTouchedRef.current = false;
   }, [currentQuestionIndex]);
+
+  // Restore any previously-saved selection for this practice question so navigating
+  // back or re-entering keeps the answer. Matching questions are not restored.
+  const restoreQuestionId = questions[currentQuestionIndex]?._key;
+  const restoreQuestionType = questions[currentQuestionIndex]?.question_type;
+  useEffect(() => {
+    if (!practiceId || !restoreQuestionId) return;
+    let cancelled = false;
+    getPracticeAnswers(practiceId).then(saved => {
+      if (cancelled || answerTouchedRef.current) return;
+      const val = saved.questionAnswers[restoreQuestionId];
+      if (val === undefined || val === null) return;
+      if (restoreQuestionType === 'multiple_choice_multiple') {
+        setSelectedAnswers(Array.isArray(val) ? val : [val as string]);
+      } else if (restoreQuestionType !== 'matching') {
+        setSelectedAnswer(
+          Array.isArray(val) ? String(val[0] ?? '') : String(val)
+        );
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [practiceId, restoreQuestionId, restoreQuestionType]);
 
   const scrambledRightItems = useMemo(() => {
     const question = questions[currentQuestionIndex];
@@ -190,15 +223,30 @@ export default function PracticeQuizQuestionPage() {
 
   const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
+  const persistPracticeSelection = (answer: string | string[]) => {
+    if (!practiceId || !submoduleId || !moduleId || !currentQuestion?._key)
+      return;
+    savePracticeAnswer(
+      practiceId,
+      submoduleId,
+      moduleId,
+      `${PRACTICE_QUESTION_PREFIX}${currentQuestion._key}`,
+      answer,
+      false
+    );
+  };
+
   const handleAnswerSelect = (optionId: string) => {
+    answerTouchedRef.current = true;
     if (currentQuestion.question_type === 'multiple_choice_multiple') {
-      setSelectedAnswers(prev =>
-        prev.includes(optionId)
-          ? prev.filter(id => id !== optionId)
-          : [...prev, optionId]
-      );
+      const newAnswers = selectedAnswers.includes(optionId)
+        ? selectedAnswers.filter(id => id !== optionId)
+        : [...selectedAnswers, optionId];
+      setSelectedAnswers(newAnswers);
+      persistPracticeSelection(newAnswers);
     } else {
       setSelectedAnswer(optionId);
+      persistPracticeSelection(optionId);
     }
   };
 

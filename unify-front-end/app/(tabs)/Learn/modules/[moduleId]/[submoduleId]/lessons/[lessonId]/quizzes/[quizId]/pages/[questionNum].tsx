@@ -27,6 +27,13 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import {
+  getOrCreateInProgressQuizAttempt,
+  getQuizResponses,
+  submitQuizAnswer,
+  markQuizAttemptComplete,
+  saveResumePosition,
+} from '@/services/progress/progressService';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -71,11 +78,34 @@ export default function QuizQuestionPage() {
   );
   const [showExitModal, setShowExitModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  // Id of the current in-progress quiz attempt; answers are saved against it so
+  // selections survive Next/Back and exiting/re-entering the quiz.
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  // True once the user picks an answer on this question. Guards the async restore
+  // from overwriting a fresh selection if getQuizResponses resolves after the tap.
+  const answerTouchedRef = useRef(false);
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
 
-  // Reset selections when question changes
+  // Resolve (or create) the in-progress attempt once per quiz.
+  useEffect(() => {
+    if (!quizId || !lessonId || !submoduleId || !moduleId) return;
+    let cancelled = false;
+    getOrCreateInProgressQuizAttempt(
+      quizId,
+      lessonId,
+      submoduleId,
+      moduleId
+    ).then(id => {
+      if (!cancelled) setAttemptId(id);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [quizId, lessonId, submoduleId, moduleId]);
+
+  // Reset selections when question changes.
   useEffect(() => {
     setSelectedAnswer(null);
     setSelectedAnswers([]);
@@ -89,7 +119,35 @@ export default function QuizQuestionPage() {
     setIncorrectLeftItems([]);
     setIncorrectRightIndices([]);
     setIsNavigating(false);
+    answerTouchedRef.current = false;
   }, [currentQuestionIndex]);
+
+  // After the reset above, restore any previously-saved selection for this
+  // question (single/multiple choice) so navigating back or re-entering the quiz
+  // keeps the user's answer. Matching questions are progressive and not restored.
+  // Quiz questions are inline Sanity array items, so their stable id is `_key`
+  // (they have no `_id`). Used as sanity_question_id for saved responses.
+  const restoreQuestionId = questions?.[currentQuestionIndex]?._key;
+  const restoreQuestionType = questions?.[currentQuestionIndex]?.question_type;
+  useEffect(() => {
+    if (!attemptId || !restoreQuestionId) return;
+    let cancelled = false;
+    getQuizResponses(attemptId).then(responses => {
+      if (cancelled || answerTouchedRef.current) return;
+      const saved = responses[restoreQuestionId];
+      if (saved === undefined || saved === null) return;
+      if (restoreQuestionType === 'multiple_choice_multiple') {
+        setSelectedAnswers(Array.isArray(saved) ? saved : [saved]);
+      } else if (restoreQuestionType !== 'matching') {
+        setSelectedAnswer(
+          Array.isArray(saved) ? String(saved[0] ?? '') : String(saved)
+        );
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [attemptId, restoreQuestionId, restoreQuestionType]);
   const totalQuestions = questions?.length || 0;
   // Get current quiz data
   const currentQuiz = quizzes?.find(q => q._id === quizId);
@@ -152,7 +210,28 @@ export default function QuizQuestionPage() {
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }
-    }, [quizTitle, quizId, currentQuestionIndex, totalQuestions, trackScreen])
+      // Persist resume position so exit → re-enter lands back on this quiz question.
+      if (lessonId && submoduleId && moduleId && quizId) {
+        saveResumePosition(
+          lessonId,
+          submoduleId,
+          moduleId,
+          'quiz',
+          currentQuestionIndex + 1,
+          quizId,
+          currentQuestionIndex + 1
+        );
+      }
+    }, [
+      quizTitle,
+      quizId,
+      lessonId,
+      submoduleId,
+      moduleId,
+      currentQuestionIndex,
+      totalQuestions,
+      trackScreen,
+    ])
   );
 
   if (isLoading) {
@@ -215,21 +294,55 @@ export default function QuizQuestionPage() {
     );
   }
 
+  // Grade an answer with the same rules handleNext uses, so the persisted
+  // response records correctness without waiting for submission.
+  const gradeAnswer = (answer: string | string[]): boolean => {
+    if (currentQuestion.question_type === 'multiple_choice_multiple') {
+      const correctIds = (
+        currentQuestion.options?.filter((o: any) => o.is_correct) || []
+      ).map((o: any) => o._key);
+      const arr = Array.isArray(answer) ? answer : [];
+      return (
+        correctIds.length > 0 &&
+        correctIds.every((id: string) => arr.includes(id)) &&
+        arr.every((id: string) => correctIds.includes(id))
+      );
+    }
+    const correctAnswerId =
+      currentQuestion.correct_answer?.value?.[0] ||
+      currentQuestion.correct_answer?.value;
+    const single = Array.isArray(answer) ? answer[0] : answer;
+    return (
+      single === correctAnswerId ||
+      !!currentQuestion.options?.find((o: any) => o._key === single)?.is_correct
+    );
+  };
+
+  // Persist the current selection against the in-progress attempt (fire-and-forget).
+  const persistSelection = (answer: string | string[]) => {
+    if (!attemptId || !currentQuestion?._key) return;
+    submitQuizAnswer(
+      attemptId,
+      currentQuestion._key,
+      currentQuestion.question_type,
+      answer,
+      gradeAnswer(answer)
+    );
+  };
+
   const handleAnswerSelect = (optionId: string) => {
+    answerTouchedRef.current = true;
     if (currentQuestion.question_type === 'multiple_choice_multiple') {
       // Multiple selection logic
-      setSelectedAnswers(prev => {
-        if (prev.includes(optionId)) {
-          // Remove if already selected
-          return prev.filter(id => id !== optionId);
-        } else {
-          // Add if not selected
-          return [...prev, optionId];
-        }
-      });
+      const newAnswers = selectedAnswers.includes(optionId)
+        ? selectedAnswers.filter(id => id !== optionId)
+        : [...selectedAnswers, optionId];
+      setSelectedAnswers(newAnswers);
+      persistSelection(newAnswers);
     } else {
       // Single selection logic
       setSelectedAnswer(optionId);
+      persistSelection(optionId);
     }
   };
 
@@ -298,6 +411,8 @@ export default function QuizQuestionPage() {
 
         // Track quiz completion
         trackQuizCompletion();
+        // Close the attempt so a future visit starts fresh, not resumes old answers.
+        if (attemptId) markQuizAttemptComplete(attemptId);
 
         if (nextQuiz) {
           // Go to next quiz
@@ -422,6 +537,8 @@ export default function QuizQuestionPage() {
 
         // Track quiz completion
         trackQuizCompletion();
+        // Close the attempt so a future visit starts fresh, not resumes old answers.
+        if (attemptId) markQuizAttemptComplete(attemptId);
 
         if (nextQuiz) {
           // Go to next quiz
