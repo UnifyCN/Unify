@@ -30,6 +30,8 @@ import {
 } from '@/hooks/highlights/useHighlights';
 import SelectionActionBubble from '@/components/learn/SelectionActionBubble';
 import ExplainTermModal from '@/components/learn/ExplainTermModal';
+import LessonHelpSheet from '@/components/learn/LessonHelpSheet';
+import { getGroupByName } from '@/services/groups/getGroupByName';
 
 // Progress related imports
 import {
@@ -61,6 +63,8 @@ export default function LessonPageScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [askAIVisible, setAskAIVisible] = useState(false);
   const [askAITerm, setAskAITerm] = useState('');
+  const [helpSheetVisible, setHelpSheetVisible] = useState(false);
+  const [openingCommunity, setOpeningCommunity] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
 
@@ -374,6 +378,70 @@ export default function LessonPageScreen() {
     router,
   ]);
 
+  const lessonHelpContext = [
+    moduleData?.title,
+    submoduleData?.title,
+    lesson?.title,
+    currentPageData?.title,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const handleOpenLessonHelp = useCallback(() => {
+    setHelpSheetVisible(true);
+  }, []);
+
+  const handleAskAICompanion = useCallback(() => {
+    setHelpSheetVisible(false);
+    router.push({
+      pathname: '/(tabs)/companion' as any,
+      params: {
+        entryContext: lessonHelpContext,
+        entryPrompt: `Help me understand "${currentPageData?.title || lesson?.title || 'this lesson'}".`,
+      },
+    });
+  }, [currentPageData?.title, lesson?.title, lessonHelpContext, router]);
+
+  const handleOpenCommunityDiscussion = useCallback(async () => {
+    if (openingCommunity) return;
+
+    setOpeningCommunity(true);
+    try {
+      const possibleGroupNames = [
+        moduleData?.title,
+        submoduleData?.title,
+        'Documentation',
+      ].filter((name): name is string => !!name && name.trim().length > 0);
+
+      let communityGroup = null;
+      for (const groupName of possibleGroupNames) {
+        communityGroup = await getGroupByName(groupName);
+        if (communityGroup) break;
+      }
+
+      if (!communityGroup) {
+        Alert.alert(
+          'Discussion unavailable',
+          'We could not find a matching community group for this lesson.'
+        );
+        return;
+      }
+
+      setHelpSheetVisible(false);
+      router.push({
+        pathname: '/group-detail' as any,
+        params: { group: JSON.stringify(communityGroup) },
+      });
+    } catch (error) {
+      Alert.alert(
+        'Discussion unavailable',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+    } finally {
+      setOpeningCommunity(false);
+    }
+  }, [moduleData?.title, openingCommunity, router, submoduleData?.title]);
+
   if (loadingLesson) {
     return (
       <SafeAreaView style={styles.safe}>
@@ -404,6 +472,7 @@ export default function LessonPageScreen() {
           submoduleTitle={submoduleData?.title || 'Submodule'}
           submoduleOrder={submoduleData?.order || 1}
           onClose={() => setShowExitModal(true)}
+          onHelpPress={handleOpenLessonHelp}
           onBookmarkPress={handleBookmarkPress}
           isBookmarked={!!isLessonPageBookmarked}
           bookmarkLoading={saveLessonPageMutation.isPending}
@@ -429,6 +498,16 @@ export default function LessonPageScreen() {
             submoduleTitle: submoduleData?.title || '',
             pageNum: currentPage,
           }}
+        />
+
+        <LessonHelpSheet
+          visible={helpSheetVisible}
+          lessonContext={lessonHelpContext || 'This lesson'}
+          lessonTitle={lesson?.title || currentPageData?.title || 'this lesson'}
+          onClose={() => setHelpSheetVisible(false)}
+          onAskAI={handleAskAICompanion}
+          onOpenCommunity={handleOpenCommunityDiscussion}
+          communityLoading={openingCommunity}
         />
 
         {/* Navigation buttons - anchored at bottom */}

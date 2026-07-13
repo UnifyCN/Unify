@@ -20,6 +20,7 @@ interface SubmoduleProgressBarProps {
   submoduleTitle: string;
   submoduleOrder: number;
   onClose: () => void;
+  onHelpPress?: () => void;
   /** Lesson content pages only: bookmark control (same row as close). */
   onBookmarkPress?: () => void;
   isBookmarked?: boolean;
@@ -52,6 +53,7 @@ export default function SubmoduleProgressBar({
   submoduleTitle,
   submoduleOrder,
   onClose,
+  onHelpPress,
   onBookmarkPress,
   isBookmarked = false,
   bookmarkLoading = false,
@@ -86,7 +88,17 @@ export default function SubmoduleProgressBar({
           {t('learn.module.section', { number: submoduleOrder })}: {submoduleTitle}
         </Text>
 
-        <View style={styles.headerSide}>
+        <View style={styles.headerActions}>
+          {typeof onHelpPress === 'function' ? (
+            <TouchableOpacity
+              onPress={onHelpPress}
+              style={styles.helpButton}
+              accessibilityRole='button'
+              accessibilityLabel='Get help with this lesson'
+            >
+              <Feather name='help-circle' size={20} color='#878787' />
+            </TouchableOpacity>
+          ) : null}
           {showBookmark ? (
             <TouchableOpacity
               onPress={onBookmarkPress}
@@ -143,6 +155,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingTop: '2%',
+    minHeight: 72,
+    position: 'relative',
   },
   headerSide: {
     width: SIDE_WIDTH,
@@ -150,8 +164,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerActions: {
+    position: 'absolute',
+    right: 20,
+    minHeight: SIDE_WIDTH,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 2,
+  },
+  helpButton: {
+    width: SIDE_WIDTH,
+    height: SIDE_WIDTH,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EAE4DD',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   bookmarkButton: {
-    padding: 4,
+    width: SIDE_WIDTH,
+    height: SIDE_WIDTH,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EAE4DD',
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     flex: 1,
@@ -159,6 +199,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#343434',
     textAlign: 'center',
+    paddingHorizontal: 92,
   },
   progressBarContainer: {
     paddingHorizontal: 20,

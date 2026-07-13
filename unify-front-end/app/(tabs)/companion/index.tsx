@@ -83,8 +83,10 @@ const isSendButtonDisabled = (
 export default function CompanionScreen() {
   const { t } = useTranslation();
   const { data: personalization } = usePersonalizedStarters();
-  const { conversationId } = useLocalSearchParams<{
+  const { conversationId, entryContext, entryPrompt } = useLocalSearchParams<{
     conversationId?: string;
+    entryContext?: string;
+    entryPrompt?: string;
   }>();
   const router = useRouter();
   const tabBarHeight = useBottomTabBarHeight();
@@ -255,6 +257,28 @@ export default function CompanionScreen() {
     previousMessageCountRef.current = 0;
     isNearBottomRef.current = true;
   }, [conversationId, resetDraftState]);
+
+  useEffect(() => {
+    const contextText =
+      typeof entryContext === 'string' ? entryContext.trim() : '';
+    const promptText = typeof entryPrompt === 'string' ? entryPrompt.trim() : '';
+
+    if (!contextText && !promptText) return;
+
+    setGreetingMessage({
+      id: `lesson-entry-${Date.now()}`,
+      text: contextText
+        ? `You're asking about ${contextText}. I'll keep the answer specific to this lesson.`
+        : t('companion.greeting'),
+      isUser: false,
+      timestamp: new Date(),
+    });
+
+    if (promptText) {
+      setInputText(promptText);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [entryContext, entryPrompt, t]);
 
   // Scroll to end only when new messages are added (not when sources expand/collapse).
   // Skip while the user has scrolled up to read earlier messages, and use a
