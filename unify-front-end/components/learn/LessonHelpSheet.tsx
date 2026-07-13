@@ -52,7 +52,7 @@ export default function LessonHelpSheet({
               </View>
               <Text style={styles.title}>Get help with this lesson</Text>
               <Text style={styles.subtitle}>
-                Stay in context, or jump into the discussion board for this topic.
+                Stay in context, or jump into the lesson comments.
               </Text>
             </View>
 
@@ -84,20 +84,20 @@ export default function LessonHelpSheet({
                   {communityLoading ? (
                     <ActivityIndicator color='#fff' />
                   ) : (
-                    <Feather name='users' size={20} color='#fff' />
+                    <Feather name='message-circle' size={20} color='#fff' />
                   )}
                 </View>
                 <View style={styles.cardText}>
                   <View style={styles.cardTitleRow}>
-                    <Text style={styles.cardTitle}>Community Discussion</Text>
+                    <Text style={styles.cardTitle}>Comments</Text>
                     <View style={[styles.badge, styles.communityBadge]}>
-                      <Text style={[styles.badgeText, styles.communityBadgeText]}>
-                        Docs
-                      </Text>
+                        <Text style={[styles.badgeText, styles.communityBadgeText]}>
+                          Flat
+                        </Text>
                     </View>
                   </View>
                   <Text style={styles.cardSubtitle}>
-                    See how other learners asked about the same topic.
+                    See what the community is saying about this lesson.
                   </Text>
                 </View>
                 <Feather name='chevron-right' size={20} color='#8A827B' />

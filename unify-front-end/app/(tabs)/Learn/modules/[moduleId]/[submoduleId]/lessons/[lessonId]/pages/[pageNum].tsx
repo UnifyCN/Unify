@@ -31,7 +31,7 @@ import {
 import SelectionActionBubble from '@/components/learn/SelectionActionBubble';
 import ExplainTermModal from '@/components/learn/ExplainTermModal';
 import LessonHelpSheet from '@/components/learn/LessonHelpSheet';
-import { getGroupByName } from '@/services/groups/getGroupByName';
+import LessonCommentsSheet from '@/components/learn/LessonCommentsSheet';
 
 // Progress related imports
 import {
@@ -64,7 +64,7 @@ export default function LessonPageScreen() {
   const [askAIVisible, setAskAIVisible] = useState(false);
   const [askAITerm, setAskAITerm] = useState('');
   const [helpSheetVisible, setHelpSheetVisible] = useState(false);
-  const [openingCommunity, setOpeningCommunity] = useState(false);
+  const [commentsSheetVisible, setCommentsSheetVisible] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
 
@@ -402,45 +402,10 @@ export default function LessonPageScreen() {
     });
   }, [currentPageData?.title, lesson?.title, lessonHelpContext, router]);
 
-  const handleOpenCommunityDiscussion = useCallback(async () => {
-    if (openingCommunity) return;
-
-    setOpeningCommunity(true);
-    try {
-      const possibleGroupNames = [
-        moduleData?.title,
-        submoduleData?.title,
-        'Documentation',
-      ].filter((name): name is string => !!name && name.trim().length > 0);
-
-      let communityGroup = null;
-      for (const groupName of possibleGroupNames) {
-        communityGroup = await getGroupByName(groupName);
-        if (communityGroup) break;
-      }
-
-      if (!communityGroup) {
-        Alert.alert(
-          'Discussion unavailable',
-          'We could not find a matching community group for this lesson.'
-        );
-        return;
-      }
-
-      setHelpSheetVisible(false);
-      router.push({
-        pathname: '/group-detail' as any,
-        params: { group: JSON.stringify(communityGroup) },
-      });
-    } catch (error) {
-      Alert.alert(
-        'Discussion unavailable',
-        error instanceof Error ? error.message : 'Please try again.'
-      );
-    } finally {
-      setOpeningCommunity(false);
-    }
-  }, [moduleData?.title, openingCommunity, router, submoduleData?.title]);
+  const handleOpenCommunityDiscussion = useCallback(() => {
+    setHelpSheetVisible(false);
+    setCommentsSheetVisible(true);
+  }, []);
 
   if (loadingLesson) {
     return (
@@ -507,7 +472,17 @@ export default function LessonPageScreen() {
           onClose={() => setHelpSheetVisible(false)}
           onAskAI={handleAskAICompanion}
           onOpenCommunity={handleOpenCommunityDiscussion}
-          communityLoading={openingCommunity}
+          communityLoading={false}
+        />
+
+        <LessonCommentsSheet
+          visible={commentsSheetVisible}
+          lessonId={lessonId || ''}
+          moduleId={moduleId || ''}
+          submoduleId={submoduleId || ''}
+          pageNum={currentPage}
+          lessonContext={lessonHelpContext || 'This lesson'}
+          onClose={() => setCommentsSheetVisible(false)}
         />
 
         {/* Navigation buttons - anchored at bottom */}
