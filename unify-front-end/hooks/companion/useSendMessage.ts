@@ -16,8 +16,6 @@ import {
   sanitizeSuggestedNextSteps,
 } from '@/helpers/companion/messageHelpers';
 import { useAnalytics } from '@/utils/analytics';
-import { logCompanionFirstMessage } from '@/services/analytics/metaEvents';
-import { supabase } from '@/lib/supabase';
 
 type SendMessageError = Error & {
   messagePersisted?: boolean;
@@ -93,12 +91,6 @@ export const useSendMessage = ({
           clientId: optimisticClientId,
         });
         userMessagePersisted = true;
-        // Fire Meta Companion-first-message event. Deduped per user in SecureStore.
-        const userId = (await supabase.auth.getSession()).data.session?.user
-          ?.id;
-        if (userId) {
-          await logCompanionFirstMessage(userId);
-        }
       } catch (error) {
         console.error('Failed to save user message:', error);
         // Continue anyway - message will be saved but might not show immediately

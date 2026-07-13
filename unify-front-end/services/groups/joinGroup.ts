@@ -1,5 +1,4 @@
 import { supabase } from '@/lib/supabase';
-import { logGroupJoined } from '@/services/analytics/metaEvents';
 
 export const joinGroup = async (group_id: number) => {
   try {
@@ -16,8 +15,6 @@ export const joinGroup = async (group_id: number) => {
     if (error) {
       throw new Error('Failed to join group');
     }
-
-    await logGroupJoined(user.id);
 
     return data;
   } catch (err) {

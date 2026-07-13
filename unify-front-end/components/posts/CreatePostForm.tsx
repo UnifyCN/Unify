@@ -26,8 +26,6 @@ import { uploadPostImage } from '@/services/s3/uploadPostImage';
 import { Feather } from '@expo/vector-icons';
 import { isContentAllowed } from '@/utils/contentFilter';
 import { useAnalytics } from '@/utils/analytics';
-import { logFirstPostCreated } from '@/services/analytics/metaEvents';
-import { supabase } from '@/lib/supabase';
 
 type DestinationType = '4u' | 'group';
 
@@ -178,15 +176,6 @@ export default function CreatePostForm({
       {
         onSuccess: async (data: any) => {
           trackPostCreated(data?.id ? String(data.id) : undefined);
-          try {
-            const userId = (await supabase.auth.getSession()).data.session
-              ?.user?.id;
-            if (userId) {
-              await logFirstPostCreated(userId);
-            }
-          } catch (err) {
-            console.warn('[meta] logFirstPostCreated failed', err);
-          }
           const postedToGroup = destination === 'group' && selectedGroup;
           const toastMessage = postedToGroup
             ? t('posts.postedTo', { name: selectedGroup.name })

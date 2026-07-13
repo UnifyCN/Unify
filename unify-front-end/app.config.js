@@ -2,42 +2,6 @@ const path = require('path');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
-// fbsdk plugin requires appID at config-eval time. Drop the plugin when env
-// vars are missing (e.g. CI without secrets, local dev without .env) so the
-// config still evaluates. EAS production builds have META_APP_ID set as a
-// project secret so they include the plugin normally.
-const hasMetaConfig =
-  !!process.env.META_APP_ID && !!process.env.META_CLIENT_TOKEN;
-
-if (!hasMetaConfig) {
-  console.warn(
-    '[app.config.js] META_APP_ID / META_CLIENT_TOKEN not set — Meta SDK plugin disabled for this build.',
-  );
-}
-
-const fbsdkPlugin = hasMetaConfig
-  ? [
-      [
-        'react-native-fbsdk-next',
-        {
-          appID: process.env.META_APP_ID,
-          clientToken: process.env.META_CLIENT_TOKEN,
-          displayName: 'Unify',
-          scheme: `fb${process.env.META_APP_ID}`,
-          advertiserIDCollectionEnabled: true,
-          // Auto-log standard app events (install, app launch) so Meta can
-          // attribute ad-driven installs. Required for campaign measurement and
-          // for events to surface in Events Manager. SDK init still happens in
-          // JS (see app/_layout.tsx) because isAutoInitEnabled stays false.
-          autoLogAppEventsEnabled: true,
-          isAutoInitEnabled: false,
-          iosUserTrackingPermission:
-            'Allowing tracking helps us show you relevant ads and improve Unify for our community.',
-        },
-      ],
-    ]
-  : [];
-
 module.exports = {
   expo: {
     name: 'Unify',
@@ -115,7 +79,6 @@ module.exports = {
       '@react-native-google-signin/google-signin',
       'expo-secure-store',
       'expo-tracking-transparency',
-      ...fbsdkPlugin,
     ],
     experiments: {
       typedRoutes: true,

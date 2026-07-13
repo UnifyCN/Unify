@@ -85,7 +85,6 @@
     "react-native-draggable-flatlist": "^4.0.3",
     "react-native-elements": "^3.4.3",
     "react-native-enriched": "^0.6.1",
-    "react-native-fbsdk-next": "^13.4.3",
     "react-native-gesture-handler": "~2.30.0",
     "react-native-get-random-values": "~2.0.0",
     "react-native-keyboard-controller": "1.20.7",
