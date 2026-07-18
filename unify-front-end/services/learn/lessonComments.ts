@@ -1,5 +1,17 @@
 import { supabase } from '@/lib/supabase';
 
+const isMissingLessonCommentsTableError = (error: unknown): boolean => {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('lesson_comments') &&
+    (message.includes('does not exist') || message.includes('could not find the table'))
+  );
+};
+
 export type LessonCommentRow = {
   id: number;
   lesson_id: string;
@@ -94,7 +106,14 @@ export const createLessonComment = async ({
     )
     .single();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingLessonCommentsTableError(error)) {
+      throw new Error(
+        'Missing Supabase table public.lesson_comments. Apply the lesson comments migration before using discussion.'
+      );
+    }
+    throw new Error(error.message);
+  }
   return data as LessonCommentRow;
 };
 
@@ -117,7 +136,14 @@ export const getLessonCommentVoteSummary = async ({
     .select('comment_id, user_id')
     .in('comment_id', commentIds);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingLessonCommentsTableError(error)) {
+      throw new Error(
+        'Missing Supabase table public.lesson_comments. Apply the lesson comments migration before using discussion.'
+      );
+    }
+    throw new Error(error.message);
+  }
 
   const counts: Record<number, number> = {};
   const upvotedCommentIds = new Set<number>();
@@ -159,7 +185,14 @@ export const toggleLessonCommentUpvote = async ({
         { onConflict: 'comment_id,user_id' }
       );
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      if (isMissingLessonCommentsTableError(error)) {
+        throw new Error(
+          'Missing Supabase table public.lesson_comments. Apply the lesson comments migration before using discussion.'
+        );
+      }
+      throw new Error(error.message);
+    }
     return;
   }
 
@@ -169,5 +202,12 @@ export const toggleLessonCommentUpvote = async ({
     .eq('comment_id', commentId)
     .eq('user_id', user.id);
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingLessonCommentsTableError(error)) {
+      throw new Error(
+        'Missing Supabase table public.lesson_comments. Apply the lesson comments migration before using discussion.'
+      );
+    }
+    throw new Error(error.message);
+  }
 };

@@ -4,8 +4,8 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Alert,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
@@ -19,6 +19,7 @@ import { Avatar } from '@/components/Avatar';
 import { useSanityLesson } from '@/hooks/sanity/useSanityLessons';
 import { useSanityModule } from '@/hooks/sanity/useSanityModules';
 import { useSanitySubmoduleWithLessons } from '@/hooks/sanity/useSanitySubmodules';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   createLessonComment,
   getLessonCommentVoteSummary,
@@ -37,6 +38,7 @@ export default function LessonDiscussionScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { currentUser } = useCurrentUser();
+  const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState('');
 
   const { moduleId, submoduleId, lessonId, pageNum } = useLocalSearchParams<{
@@ -110,6 +112,12 @@ export default function LessonDiscussionScreen() {
         ],
       });
     },
+    onError: error => {
+      Alert.alert(
+        'Could not post comment',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+    },
   });
 
   const upvoteMutation = useMutation({
@@ -131,10 +139,16 @@ export default function LessonDiscussionScreen() {
   const uniqueCommenters = new Set(comments.map(comment => comment.user_id)).size;
   const discussionTitle = moduleData?.title || lesson?.title || 'Discussion';
   const submoduleTag = submoduleData?.title || 'Submodule';
-  const isComposerDisabled = !draft.trim() || createMutation.isPending;
+  const canSubmitComment =
+    !!draft.trim() &&
+    !createMutation.isPending &&
+    !!lessonId &&
+    !!moduleId &&
+    !!submoduleId &&
+    !!currentUser?.id;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <View style={[styles.safe, { paddingTop: insets.top }]}> 
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -247,10 +261,28 @@ export default function LessonDiscussionScreen() {
               <Pressable
                 style={[
                   styles.sendButton,
-                  isComposerDisabled && styles.sendButtonDisabled,
+                  !canSubmitComment && styles.sendButtonDisabled,
                 ]}
-                disabled={isComposerDisabled}
-                onPress={() => createMutation.mutate()}
+                disabled={!canSubmitComment}
+                onPress={() => {
+                  if (!currentUser?.id) {
+                    Alert.alert(
+                      'Sign in required',
+                      'You need to be signed in to post a comment.'
+                    );
+                    return;
+                  }
+
+                  if (!lessonId || !moduleId || !submoduleId) {
+                    Alert.alert(
+                      'Missing lesson context',
+                      'Please reopen the discussion from the lesson.'
+                    );
+                    return;
+                  }
+
+                  createMutation.mutate();
+                }}
               >
                 {createMutation.isPending ? (
                   <ActivityIndicator color='#fff' />
@@ -262,7 +294,7 @@ export default function LessonDiscussionScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -339,7 +371,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingTop: 12,
     paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#EAE4DD',
