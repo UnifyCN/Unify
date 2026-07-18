@@ -50,7 +50,7 @@ export default function LessonHelpSheet({
                   {lessonContext}
                 </Text>
               </View>
-              <Text style={styles.title}>Get help with this lesson</Text>
+              <Text style={styles.title}>{lessonTitle}</Text>
               <Text style={styles.subtitle}>
                 Stay in context, or jump into the lesson comments.
               </Text>
@@ -80,20 +80,22 @@ export default function LessonHelpSheet({
                 onPress={onOpenCommunity}
                 disabled={communityLoading}
               >
-                <View style={[styles.icon, styles.communityIcon]}>
-                  {communityLoading ? (
-                    <ActivityIndicator color='#fff' />
-                  ) : (
-                    <Feather name='message-circle' size={20} color='#fff' />
-                  )}
+                <View style={styles.communityIconWrap}>
+                  <View style={styles.communityIcon}>
+                    {communityLoading ? (
+                      <ActivityIndicator color='#fff' />
+                    ) : (
+                      <Feather name='users' size={23} color='#fff' />
+                    )}
+                  </View>
                 </View>
                 <View style={styles.cardText}>
                   <View style={styles.cardTitleRow}>
                     <Text style={styles.cardTitle}>Comments</Text>
                     <View style={[styles.badge, styles.communityBadge]}>
-                        <Text style={[styles.badgeText, styles.communityBadgeText]}>
-                          Flat
-                        </Text>
+                      <Text style={[styles.badgeText, styles.communityBadgeText]}>
+                        Flat
+                      </Text>
                     </View>
                   </View>
                   <Text style={styles.cardSubtitle}>
@@ -200,8 +202,24 @@ const styles = StyleSheet.create({
   aiIcon: {
     backgroundColor: '#0E8076',
   },
+  communityIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    overflow: 'visible',
+  },
   communityIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     backgroundColor: '#6B46C1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#6B46C1',
+    shadowOpacity: 0.22,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    elevation: 4,
   },
   cardText: {
     flex: 1,

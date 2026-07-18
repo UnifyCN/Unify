@@ -96,7 +96,15 @@ export default function SubmoduleProgressBar({
               accessibilityRole='button'
               accessibilityLabel='Get help with this lesson'
             >
-              <Feather name='help-circle' size={20} color='#878787' />
+              <LinearGradient
+                colors={['#2E87C6', '#6B46C1']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.helpButtonInner}
+              >
+                <Feather name='message-circle' size={19} color='#fff' />
+                <View style={styles.helpButtonDot} />
+              </LinearGradient>
             </TouchableOpacity>
           ) : null}
           {showBookmark ? (
@@ -177,11 +185,32 @@ const styles = StyleSheet.create({
     width: SIDE_WIDTH,
     height: SIDE_WIDTH,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#EAE4DD',
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  helpButtonInner: {
+    width: SIDE_WIDTH,
+    height: SIDE_WIDTH,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    shadowColor: '#6B46C1',
+    shadowOpacity: 0.24,
+    shadowOffset: { width: 0, height: 5 },
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  helpButtonDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+    backgroundColor: '#F59E0B',
+    borderWidth: 1.25,
+    borderColor: '#fff',
   },
   bookmarkButton: {
     width: SIDE_WIDTH,

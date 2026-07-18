@@ -31,7 +31,6 @@ import {
 import SelectionActionBubble from '@/components/learn/SelectionActionBubble';
 import ExplainTermModal from '@/components/learn/ExplainTermModal';
 import LessonHelpSheet from '@/components/learn/LessonHelpSheet';
-import LessonCommentsSheet from '@/components/learn/LessonCommentsSheet';
 
 // Progress related imports
 import {
@@ -64,7 +63,6 @@ export default function LessonPageScreen() {
   const [askAIVisible, setAskAIVisible] = useState(false);
   const [askAITerm, setAskAITerm] = useState('');
   const [helpSheetVisible, setHelpSheetVisible] = useState(false);
-  const [commentsSheetVisible, setCommentsSheetVisible] = useState(false);
 
   const currentPage = parseInt(pageNum || '1');
 
@@ -404,8 +402,17 @@ export default function LessonPageScreen() {
 
   const handleOpenCommunityDiscussion = useCallback(() => {
     setHelpSheetVisible(false);
-    setCommentsSheetVisible(true);
-  }, []);
+    router.push({
+      pathname:
+        '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/lessons/[lessonId]/discussion' as any,
+      params: {
+        moduleId,
+        submoduleId,
+        lessonId,
+        pageNum: currentPage.toString(),
+      },
+    });
+  }, [currentPage, lessonId, moduleId, router, submoduleId]);
 
   if (loadingLesson) {
     return (
@@ -473,16 +480,6 @@ export default function LessonPageScreen() {
           onAskAI={handleAskAICompanion}
           onOpenCommunity={handleOpenCommunityDiscussion}
           communityLoading={false}
-        />
-
-        <LessonCommentsSheet
-          visible={commentsSheetVisible}
-          lessonId={lessonId || ''}
-          moduleId={moduleId || ''}
-          submoduleId={submoduleId || ''}
-          pageNum={currentPage}
-          lessonContext={lessonHelpContext || 'This lesson'}
-          onClose={() => setCommentsSheetVisible(false)}
         />
 
         {/* Navigation buttons - anchored at bottom */}
