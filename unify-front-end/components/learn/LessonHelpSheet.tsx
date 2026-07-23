@@ -50,9 +50,9 @@ export default function LessonHelpSheet({
                   {lessonContext}
                 </Text>
               </View>
-              <Text style={styles.title}>{lessonTitle}</Text>
+              <Text style={styles.title}>Get help with this lesson</Text>
               <Text style={styles.subtitle}>
-                Stay in context, or jump into the lesson comments.
+                Stuck on something here? Ask instantly, or see how others worked through it.
               </Text>
             </View>
 
