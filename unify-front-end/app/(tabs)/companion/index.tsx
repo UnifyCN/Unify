@@ -215,6 +215,10 @@ export default function CompanionScreen() {
     currentConversationId,
     setCurrentConversationId,
     isPremium,
+    lessonContext:
+      typeof entryContext === 'string' && entryContext.trim()
+        ? entryContext.trim()
+        : undefined,
   });
 
   const messageCount = usage?.message_count ?? 0;

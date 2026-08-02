@@ -120,8 +120,8 @@ export default function LessonCommentsSheet({
           <View style={styles.composer}>
             <View style={styles.composerAvatar}>
               <Avatar
-                profilePictureUrl={currentUser?.profilePictureUrl ?? null}
-                username={currentUser?.username ?? currentUser?.name ?? 'You'}
+                profilePictureUrl={currentUser?.profilePictureUrl ?? undefined}
+                username={currentUser?.username || currentUser?.firstName || 'You'}
                 size={34}
               />
             </View>
@@ -156,8 +156,8 @@ function CommentRow({ item }: { item: LessonCommentRow }) {
   return (
     <View style={styles.row}>
       <Avatar
-        profilePictureUrl={item.users?.profile_picture_url ?? null}
-        username={username}
+        profilePictureUrl={item.users?.profile_picture_url ?? undefined}
+        username={String(username)}
         size={34}
       />
       <View style={styles.rowBody}>

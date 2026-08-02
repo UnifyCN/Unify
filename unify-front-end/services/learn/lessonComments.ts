@@ -8,7 +8,10 @@ const isMissingLessonCommentsTableError = (error: unknown): boolean => {
   const message = error.message.toLowerCase();
   return (
     message.includes('lesson_comments') &&
-    (message.includes('does not exist') || message.includes('could not find the table'))
+    (message.includes('does not exist') ||
+      message.includes('could not find the table') ||
+      message.includes('schema cache') ||
+      message.includes('relationship'))
   );
 };
 
@@ -21,6 +24,7 @@ export type LessonCommentRow = {
   user_id: string;
   content: string;
   created_at: string;
+  parent_id?: number | null;
   users?: {
     username: string;
     profile_picture_url: string | null;
@@ -51,14 +55,22 @@ export const getLessonComments = async ({
         user_id,
         content,
         created_at,
-        users!user_id(username, profile_picture_url)
+        parent_id
       `
     )
     .eq('lesson_id', lessonId)
     .eq('page_num', pageNum)
     .order('created_at', { ascending: false });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingLessonCommentsTableError(error)) {
+      throw new Error(
+        'The lesson comments table is not available yet in your Supabase project. Apply the lesson comments migration and retry.'
+      );
+    }
+    throw new Error(error.message);
+  }
+
   return (data ?? []) as LessonCommentRow[];
 };
 
@@ -68,12 +80,14 @@ export const createLessonComment = async ({
   submoduleId,
   pageNum,
   content,
+  parentId,
 }: {
   lessonId: string;
   moduleId: string;
   submoduleId: string;
   pageNum: number;
   content: string;
+  parentId?: number | null;
 }) => {
   const {
     data: { user },
@@ -90,6 +104,7 @@ export const createLessonComment = async ({
       page_num: pageNum,
       user_id: user.id,
       content,
+      parent_id: parentId ?? null,
     })
     .select(
       `
@@ -101,7 +116,7 @@ export const createLessonComment = async ({
         user_id,
         content,
         created_at,
-        users!user_id(username, profile_picture_url)
+        parent_id
       `
     )
     .single();

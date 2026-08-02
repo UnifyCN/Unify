@@ -7,6 +7,10 @@ import {
   callOpenRouterStream,
 } from '../_shared/openrouter.ts';
 import { captureAiGeneration } from '../_shared/posthogCapture.ts';
+import {
+  buildLessonContextBlock,
+  buildResponseLanguageDirective,
+} from '../_shared/companionPrompt.ts';
 
 // ============================================================================
 // CONSTANTS
@@ -598,6 +602,8 @@ Deno.serve(async (req: Request) => {
       userId: requestUserId,
       eval_profile: evalProfile,
       stream: streamRequested,
+      responseLanguage,
+      lessonContext,
     } = await req.json();
 
     const isStreaming = streamRequested === true;
@@ -971,6 +977,18 @@ Deno.serve(async (req: Request) => {
       : `${nameDirective}${systemInstruction}`;
     if (userProfileBundle.text) {
       fullSystemInstruction = `${fullSystemInstruction}\n\n${userProfileBundle.text}`;
+    }
+
+    const lessonContextBlock = buildLessonContextBlock(lessonContext);
+    if (lessonContextBlock) {
+      fullSystemInstruction = `${fullSystemInstruction}${lessonContextBlock}`;
+    }
+
+    const responseLanguageDirective = buildResponseLanguageDirective(
+      responseLanguage
+    );
+    if (responseLanguageDirective) {
+      fullSystemInstruction = `${fullSystemInstruction}${responseLanguageDirective}`;
     }
 
     // ========================================================================

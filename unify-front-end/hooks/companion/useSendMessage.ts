@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   AICompanionBusyError,
   AICompanionLimitError,
@@ -26,6 +27,7 @@ interface UseSendMessageParams {
   currentConversationId: string | null;
   setCurrentConversationId: (id: string | null) => void;
   isPremium: boolean;
+  lessonContext?: string;
 }
 
 export const useSendMessage = ({
@@ -33,6 +35,7 @@ export const useSendMessage = ({
   currentConversationId,
   setCurrentConversationId,
   isPremium,
+  lessonContext,
 }: UseSendMessageParams) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isWaitingForBot, setIsWaitingForBot] = useState(false);
@@ -52,6 +55,7 @@ export const useSendMessage = ({
   const createConversation = useCreateConversation();
   const saveMessage = useSaveMessage();
   const { trackCompanionResponseReceived } = useAnalytics();
+  const { i18n } = useTranslation();
 
   const sendMessage = async (
     messageText: string,
@@ -103,6 +107,13 @@ export const useSendMessage = ({
       // bubble grows in real time. The final cleanAnswer (from `complete`) is
       // persisted via useSaveMessage.
       const apiStartTime = Date.now();
+      const normalizedResponseLanguage = i18n.language
+        ? i18n.language.split('-')[0]
+        : undefined;
+      const responseLanguage =
+        normalizedResponseLanguage && normalizedResponseLanguage !== 'en'
+          ? normalizedResponseLanguage
+          : undefined;
       let metadata: StreamMetadata | undefined;
       let completion: StreamComplete | undefined;
       let streamFailure: Error | undefined;
@@ -162,6 +173,10 @@ export const useSendMessage = ({
               streamFailure = err;
               finishOnce();
             },
+          },
+          {
+            responseLanguage,
+            lessonContext,
           }
         ).catch(err => {
           streamFailure =

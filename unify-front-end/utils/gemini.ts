@@ -46,6 +46,11 @@ export interface StreamCallbacks {
   onError: (e: Error) => void;
 }
 
+export interface CompanionRequestOptions {
+  responseLanguage?: string;
+  lessonContext?: string;
+}
+
 type Extra = {
   supabaseUrl?: string;
   supabaseAnonKey?: string;
@@ -76,7 +81,8 @@ export const streamGeminiAPI = async (
   prompt: string,
   conversationIdentifier: string | undefined,
   messages: ConversationMessage[] | undefined,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  requestOptions?: CompanionRequestOptions
 ): Promise<void> => {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     callbacks.onError(
@@ -111,6 +117,8 @@ export const streamGeminiAPI = async (
         conversationIdentifier,
         messages: messages || [],
         stream: true,
+        responseLanguage: requestOptions?.responseLanguage,
+        lessonContext: requestOptions?.lessonContext,
       }),
     });
   } catch (err) {

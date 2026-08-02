@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -27,6 +27,7 @@ import {
   toggleLessonCommentUpvote,
   type LessonCommentRow,
 } from '@/services/learn/lessonComments';
+import { buildLessonCommentThreadTree } from '@/services/learn/lessonCommentThreads';
 import { formatSmartTime } from '@/utils/dateUtils';
 
 type DiscussionComment = LessonCommentRow & {
@@ -40,6 +41,8 @@ export default function LessonDiscussionScreen() {
   const { currentUser } = useCurrentUser();
   const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState('');
+  const [replyingTo, setReplyingTo] = useState<DiscussionComment | null>(null);
+  const inputRef = useRef<TextInput>(null);
 
   const { moduleId, submoduleId, lessonId, pageNum } = useLocalSearchParams<{
     moduleId: string;
@@ -100,9 +103,11 @@ export default function LessonDiscussionScreen() {
         submoduleId: submoduleId || '',
         pageNum: currentPageNum,
         content: draft.trim(),
+        parentId: replyingTo?.id ?? null,
       }),
     onSuccess: () => {
       setDraft('');
+      setReplyingTo(null);
       queryClient.invalidateQueries({
         queryKey: [
           'lesson-discussion-comments',
@@ -136,9 +141,14 @@ export default function LessonDiscussionScreen() {
   });
 
   const comments = commentsQuery.data ?? [];
+  const threadedComments = useMemo(
+    () => buildLessonCommentThreadTree(comments),
+    [comments]
+  );
   const uniqueCommenters = new Set(comments.map(comment => comment.user_id)).size;
   const discussionTitle = moduleData?.title || lesson?.title || 'Discussion';
-  const submoduleTag = submoduleData?.title || 'Submodule';
+  const submoduleTag = submoduleData?.title ?? 'Submodule';
+  const safeSubmoduleTag = submoduleTag || 'Submodule';
   const canSubmitComment =
     !!draft.trim() &&
     !createMutation.isPending &&
@@ -146,6 +156,11 @@ export default function LessonDiscussionScreen() {
     !!moduleId &&
     !!submoduleId &&
     !!currentUser?.id;
+
+  const handleReply = (comment: DiscussionComment) => {
+    setReplyingTo(comment);
+    setTimeout(() => inputRef.current?.focus(), 120);
+  };
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}> 
@@ -205,12 +220,12 @@ export default function LessonDiscussionScreen() {
           </View>
 
           <FlatList
-            data={comments}
+            data={threadedComments}
             keyExtractor={item => String(item.id)}
             renderItem={({ item }) => (
-              <DiscussionCommentCard
+              <DiscussionCommentThread
                 item={item}
-                submoduleTag={submoduleTag}
+                submoduleTag={safeSubmoduleTag}
                 onToggleUpvote={() =>
                   upvoteMutation.mutate({
                     commentId: item.id,
@@ -218,6 +233,7 @@ export default function LessonDiscussionScreen() {
                   })
                 }
                 isPending={upvoteMutation.isPending}
+                onReply={handleReply}
               />
             )}
             contentContainerStyle={styles.listContent}
@@ -240,23 +256,38 @@ export default function LessonDiscussionScreen() {
           />
 
           <View style={styles.composerWrap}>
+            {replyingTo ? (
+              <View style={styles.replyingToPill}>
+                <Feather name='corner-down-right' size={13} color='#6B46C1' />
+                <Text style={styles.replyingToText} numberOfLines={1}>
+                  Replying to {replyingTo.users?.username ?? 'Learner'}
+                </Text>
+                <Pressable onPress={() => setReplyingTo(null)}>
+                  <Feather name='x' size={13} color='#6B46C1' />
+                </Pressable>
+              </View>
+            ) : null}
             <View style={styles.composer}>
               <View style={styles.composerAvatar}>
                 <Avatar
-                  profilePictureUrl={currentUser?.profilePictureUrl ?? null}
-                  username={
-                    currentUser?.username ?? currentUser?.firstName ?? 'You'
-                  }
+                  profilePictureUrl={currentUser?.profilePictureUrl ?? undefined}
+                  username={currentUser?.username || currentUser?.firstName || 'You'}
                   size={34}
                 />
               </View>
               <TextInput
+                ref={inputRef}
                 style={styles.input}
-                placeholder={`Ask the ${moduleData?.title || 'community'} community...`}
+                placeholder={
+                  replyingTo
+                    ? `Reply to ${replyingTo.users?.username ?? 'them'}...`
+                    : `Ask the ${moduleData?.title || 'community'} community...`
+                }
                 placeholderTextColor='#8A827B'
                 value={draft}
                 onChangeText={setDraft}
                 multiline
+                autoFocus={!!replyingTo}
               />
               <Pressable
                 style={[
@@ -298,21 +329,66 @@ export default function LessonDiscussionScreen() {
   );
 }
 
+function DiscussionCommentThread({
+  item,
+  submoduleTag,
+  onToggleUpvote,
+  isPending,
+  onReply,
+}: {
+  item: DiscussionComment & { replies?: (DiscussionComment & { replies?: unknown[] })[] };
+  submoduleTag?: string | null;
+  onToggleUpvote: () => void;
+  isPending: boolean;
+  onReply: (comment: DiscussionComment) => void;
+}) {
+  return (
+    <View>
+      <DiscussionCommentCard
+        item={item}
+        submoduleTag={submoduleTag}
+        onToggleUpvote={onToggleUpvote}
+        isPending={isPending}
+        onReply={onReply}
+        depth={0}
+      />
+      {item.replies && item.replies.length > 0 ? (
+        <View style={styles.replyCluster}>
+          {item.replies.map(reply => (
+            <DiscussionCommentThread
+              key={reply.id}
+              item={reply as DiscussionComment & { replies?: (DiscussionComment & { replies?: unknown[] })[] }}
+              submoduleTag={submoduleTag}
+              onToggleUpvote={onToggleUpvote}
+              isPending={isPending}
+              onReply={onReply}
+            />
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 function DiscussionCommentCard({
   item,
   submoduleTag,
   onToggleUpvote,
   isPending,
+  onReply,
+  depth = 0,
 }: {
   item: DiscussionComment;
-  submoduleTag: string;
+  submoduleTag?: string | null;
   onToggleUpvote: () => void;
   isPending: boolean;
+  onReply: (comment: DiscussionComment) => void;
+  depth?: number;
 }) {
   const username = item.users?.username || 'Learner';
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, depth > 0 && styles.cardReply]}>
       <Pressable
         style={[styles.voteColumn, item.isUpvoted && styles.voteColumnActive]}
         onPress={onToggleUpvote}
@@ -332,8 +408,8 @@ function DiscussionCommentCard({
         <View style={styles.cardHeaderRow}>
           <View style={styles.userRow}>
             <Avatar
-              profilePictureUrl={item.users?.profile_picture_url ?? null}
-              username={username}
+              profilePictureUrl={item.users?.profile_picture_url ?? undefined}
+              username={String(username)}
               size={32}
             />
             <View style={styles.userMeta}>
@@ -341,7 +417,7 @@ function DiscussionCommentCard({
                 {username}
               </Text>
               <View style={styles.topicBadge}>
-                <Text style={styles.topicBadgeText}>{submoduleTag}</Text>
+                <Text style={styles.topicBadgeText}>{submoduleTag ?? 'Submodule'}</Text>
               </View>
             </View>
           </View>
@@ -349,6 +425,13 @@ function DiscussionCommentCard({
         </View>
 
         <Text style={styles.commentText}>{item.content}</Text>
+
+        <View style={styles.cardActions}>
+          <Pressable style={styles.replyButton} onPress={() => onReply(item)}>
+            <Feather name='corner-down-right' size={13} color='#6B46C1' />
+            <Text style={styles.replyButtonText}>Reply</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -485,27 +568,34 @@ const styles = StyleSheet.create({
   },
   card: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#EAE4DD',
-    padding: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  cardReply: {
+    marginLeft: 14,
+    borderColor: '#E5DDF8',
+    backgroundColor: '#FFFCFA',
   },
   voteColumn: {
-    width: 44,
-    borderRadius: 14,
+    width: 34,
+    borderRadius: 10,
     backgroundColor: '#F6F1FE',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    paddingVertical: 10,
+    gap: 2,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
   },
   voteColumnActive: {
     backgroundColor: '#E6DBF9',
   },
   voteCount: {
-    fontSize: 13,
+    fontSize: 11.5,
     color: '#6A635C',
     fontWeight: '800',
   },
@@ -536,31 +626,57 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   userName: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '800',
     color: '#1E1B19',
   },
   topicBadge: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 999,
     backgroundColor: '#EFE7FB',
   },
   topicBadgeText: {
-    fontSize: 11.5,
+    fontSize: 10.5,
     color: '#6B46C1',
     fontWeight: '800',
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#8A827B',
     fontWeight: '600',
   },
   commentText: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14.5,
+    lineHeight: 20,
     color: '#3E3731',
+  },
+  cardActions: {
+    marginTop: 8,
+    alignSelf: 'flex-start',
+  },
+  replyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: '#F4ECFF',
+  },
+  replyButtonText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#6B46C1',
+  },
+  replyCluster: {
+    marginLeft: 14,
+    marginTop: 8,
+    paddingLeft: 12,
+    borderLeftWidth: 2,
+    borderLeftColor: '#EAE4DD',
+    gap: 8,
   },
   loadingRow: {
     flexDirection: 'row',
@@ -599,6 +715,26 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#EAE4DD',
   },
+  replyingToPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: '#F4ECFF',
+    borderWidth: 1,
+    borderColor: '#E3D8FB',
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  replyingToText: {
+    fontSize: 11.5,
+    color: '#6B46C1',
+    fontWeight: '800',
+    flex: 1,
+    minWidth: 0,
+  },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -609,15 +745,15 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 46,
+    minHeight: 44,
     maxHeight: 120,
     borderWidth: 1,
     borderColor: '#EAE4DD',
-    borderRadius: 18,
+    borderRadius: 14,
     backgroundColor: '#FFFDFB',
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    fontSize: 14.5,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
     color: '#1E1B19',
   },
   sendButton: {
