@@ -247,6 +247,7 @@ export const PARTNERS: Partner[] = [
     // Affiliate link supplied by the partner; deliberately unlabelled in the
     // UI and opened by the standard Website button.
     website: 'https://www.immshaws.com/unify/',
+    ctaLabelKey: 'learn.resources.cta.bookAssessment',
     cost: 'paid',
     howToStart: 'Request a free assessment through the website, or contact them by phone, email or WhatsApp.',
     phone: '+1 672-867-6886',
@@ -308,6 +309,7 @@ export const PARTNERS: Partner[] = [
     ],
     serviceArea: 'Burnaby · 4 branches',
     website: 'https://bpl.bc.ca/',
+    ctaLabelKey: 'learn.resources.cta.joinLibrary',
     cost: 'mixed',
     eligibility: 'Membership is for people aged 13+ who live or own property in Burnaby, or live within the InterLINK area. A BC OneCard is available to BC residents outside InterLINK.',
     howToStart: 'Walk in to any branch and ask at the service desk, or call.',
@@ -345,6 +347,7 @@ export const PARTNERS: Partner[] = [
     ],
     serviceArea: 'Surrey · 10 branches',
     website: 'https://www.surreylibraries.ca/',
+    ctaLabelKey: 'learn.resources.cta.visitWelcomeCentre',
     cost: 'free',
     howToStart: 'Visit the Newcomer Welcome Centre at City Centre Branch, Level 4 — 604-590-7847 or newcomerwelcomecentre@surrey.ca.',
     phone: '604-598-7300',
@@ -682,6 +685,7 @@ export const PARTNERS: Partner[] = [
     ],
     serviceArea: 'SFU Burnaby campus',
     website: 'https://www.sfu.ca/students/iss.html',
+    ctaLabelKey: 'learn.resources.cta.bookAdvising',
     eligibility:
       'International students enrolled at SFU, including undergraduate, graduate and exchange students.',
     howToStart:
@@ -739,6 +743,7 @@ export const PARTNERS: Partner[] = [
     ],
     serviceArea: 'Burnaby',
     website: 'https://www.fraseric.ca/',
+    ctaLabelKey: 'learn.resources.cta.applyOnline',
     cost: 'paid',
     eligibility:
       'Applicants must be at least 17 years old by the last day of their first semester and submit all academic transcripts. Academic requirements vary by program and by country of origin.',
@@ -793,6 +798,7 @@ export const PARTNERS: Partner[] = [
     // Affiliate link supplied by the partner; deliberately unlabelled in the
     // UI and opened by the standard Website button.
     website: 'https://tugo.partnerlinks.io/68e8fsmokbc7',
+    ctaLabelKey: 'learn.resources.cta.getQuote',
     cost: 'paid',
     howToStart:
       'Start a quote online through a TuGo insurance partner, or call 1-855-929-8846.',

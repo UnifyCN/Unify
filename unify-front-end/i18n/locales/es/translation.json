@@ -485,7 +485,15 @@
       "website": "Sitio web",
       "callA11y": "Llamar a {{name}}",
       "emailA11y": "Enviar correo a {{name}}",
-      "directionsA11y": "Cómo llegar a {{name}}"
+      "directionsA11y": "Cómo llegar a {{name}}",
+      "cta": {
+        "getQuote": "Obtener una cotización",
+        "bookAssessment": "Reservar una evaluación gratuita",
+        "bookAdvising": "Reservar asesoría",
+        "applyOnline": "Solicitar en línea",
+        "joinLibrary": "Hazte miembro de la biblioteca",
+        "visitWelcomeCentre": "Visita el Centro de Bienvenida"
+      }
     }
   },
   "checklist": {

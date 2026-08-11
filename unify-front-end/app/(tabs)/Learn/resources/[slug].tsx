@@ -371,23 +371,55 @@ export default function PartnerDetailScreen() {
             </>
           )}
 
-          {/* Actions. Call is primary — on a phone it is the fastest route to
-              a human, and several partners publish no online intake at all. */}
+          {/* Actions. The primary button is whatever the partner actually
+              wants you to do — "Get a quote", "Apply online" — falling back to
+              "Visit website". Call takes the primary slot only when there is
+              no website to send you to. */}
           <View style={styles.actions}>
-            {partner.phone && (
+            {partner.website ? (
               <TouchableOpacity
-                onPress={() => openUrl(`tel:${partner.phone!.replace(/[^\d+]/g, '')}`)}
+                onPress={handleVisit}
                 activeOpacity={0.85}
                 style={[styles.actionPrimary, { backgroundColor: color }]}
                 accessibilityRole='button'
-                accessibilityLabel={t('learn.resources.callA11y', { name: partner.name })}
+                accessibilityLabel={t('learn.resources.visitWebsiteA11y', {
+                  name: partner.name,
+                })}
               >
-                <Feather name='phone' size={16} color='#FFFFFF' />
-                <Text style={styles.actionPrimaryText}>{t('learn.resources.call')}</Text>
+                <Feather name='external-link' size={16} color='#FFFFFF' />
+                <Text style={styles.actionPrimaryText}>
+                  {t(partner.ctaLabelKey ?? 'learn.resources.visitWebsite')}
+                </Text>
               </TouchableOpacity>
+            ) : (
+              partner.phone && (
+                <TouchableOpacity
+                  onPress={() => openUrl(`tel:${partner.phone!.replace(/[^\d+]/g, '')}`)}
+                  activeOpacity={0.85}
+                  style={[styles.actionPrimary, { backgroundColor: color }]}
+                  accessibilityRole='button'
+                  accessibilityLabel={t('learn.resources.callA11y', {
+                    name: partner.name,
+                  })}
+                >
+                  <Feather name='phone' size={16} color='#FFFFFF' />
+                  <Text style={styles.actionPrimaryText}>
+                    {t('learn.resources.call')}
+                  </Text>
+                </TouchableOpacity>
+              )
             )}
 
             <View style={styles.actionRow}>
+              {partner.website && partner.phone && (
+                <ActionButton
+                  icon='phone'
+                  label={t('learn.resources.call')}
+                  color={color}
+                  onPress={() => openUrl(`tel:${partner.phone!.replace(/[^\d+]/g, '')}`)}
+                  a11y={t('learn.resources.callA11y', { name: partner.name })}
+                />
+              )}
               {partner.email && (
                 <ActionButton
                   icon='mail'
@@ -404,15 +436,6 @@ export default function PartnerDetailScreen() {
                   color={color}
                   onPress={() => openUrl(mapsUrl(partner.address!))}
                   a11y={t('learn.resources.directionsA11y', { name: partner.name })}
-                />
-              )}
-              {partner.website && (
-                <ActionButton
-                  icon='external-link'
-                  label={t('learn.resources.website')}
-                  color={color}
-                  onPress={handleVisit}
-                  a11y={t('learn.resources.visitWebsiteA11y', { name: partner.name })}
                 />
               )}
             </View>

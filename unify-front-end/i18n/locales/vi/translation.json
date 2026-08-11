@@ -485,7 +485,15 @@
       "website": "Trang web",
       "callA11y": "Gọi {{name}}",
       "emailA11y": "Gửi email cho {{name}}",
-      "directionsA11y": "Chỉ đường đến {{name}}"
+      "directionsA11y": "Chỉ đường đến {{name}}",
+      "cta": {
+        "getQuote": "Nhận báo giá",
+        "bookAssessment": "Đặt lịch đánh giá miễn phí",
+        "bookAdvising": "Đặt lịch tư vấn",
+        "applyOnline": "Nộp đơn trực tuyến",
+        "joinLibrary": "Đăng ký thẻ thư viện",
+        "visitWelcomeCentre": "Đến Trung tâm Chào đón"
+      }
     }
   },
   "checklist": {

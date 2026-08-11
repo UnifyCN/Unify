@@ -485,7 +485,15 @@
       "website": "Website",
       "callA11y": "Call {{name}}",
       "emailA11y": "Email {{name}}",
-      "directionsA11y": "Directions to {{name}}"
+      "directionsA11y": "Directions to {{name}}",
+      "cta": {
+        "getQuote": "Get a quote",
+        "bookAssessment": "Book a free assessment",
+        "bookAdvising": "Book advising",
+        "applyOnline": "Apply online",
+        "joinLibrary": "Join the library",
+        "visitWelcomeCentre": "Visit the Welcome Centre"
+      }
     }
   },
   "checklist": {

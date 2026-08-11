@@ -177,6 +177,12 @@ export interface Partner {
   languages?: string[];
   /** Public website; opened in an in-app browser. Button hidden if absent. */
   website?: string;
+  /**
+   * i18n key for the primary button, when "Visit website" understates what the
+   * partner actually wants you to do ("Get a quote", "Apply online").
+   * Defaults to `learn.resources.visitWebsite`. Resolve with `t()`.
+   */
+  ctaLabelKey?: string;
   /** Optional brand logo; falls back to a monogram avatar when absent. */
   logo?: ImageSourcePropType;
   /** Optional hero photo; falls back to a category-tinted gradient when absent. */
