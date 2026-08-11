@@ -452,7 +452,28 @@
           "description": "Các tổ chức này điều phối dịch vụ trên toàn British Columbia. Họ làm việc với các cơ quan thay vì trực tiếp phục vụ cá nhân."
         }
       },
-      "lastVerifiedNote": "Xác minh lần cuối: tháng 8 năm 2026"
+      "cost": {
+        "free": "Miễn phí",
+        "paid": "Có phí",
+        "mixed": "Có lựa chọn miễn phí và có phí"
+      },
+      "howToGetHelp": "Cách nhận trợ giúp",
+      "whoItsFor": "Dành cho ai",
+      "variesByProgram": "Tùy theo chương trình — xem các chương trình ở trên.",
+      "howToStart": "Cách bắt đầu",
+      "phone": "Điện thoại",
+      "email": "Email",
+      "address": "Địa chỉ",
+      "hours": "Giờ làm việc",
+      "languages": "Ngôn ngữ",
+      "costLabel": "Chi phí",
+      "serves": "Phục vụ",
+      "call": "Gọi",
+      "directions": "Chỉ đường",
+      "website": "Trang web",
+      "callA11y": "Gọi {{name}}",
+      "emailA11y": "Gửi email cho {{name}}",
+      "directionsA11y": "Chỉ đường đến {{name}}"
     }
   },
   "checklist": {

@@ -78,6 +78,13 @@ export const PARTNER_CATEGORY_TINTS: Record<PartnerCategory, string> = {
 /** What a service costs the person using it. */
 export type Cost = 'free' | 'paid' | 'mixed';
 
+/** i18n keys — resolve with `t()` at render time, never render these directly. */
+export const COST_LABEL_KEYS: Record<Cost, string> = {
+  free: 'learn.resources.cost.free',
+  paid: 'learn.resources.cost.paid',
+  mixed: 'learn.resources.cost.mixed',
+};
+
 /**
  * A program a partner runs — a first-class record, not free text, so the
  * directory can later be re-cut by program instead of by org.
@@ -93,6 +100,13 @@ export interface PartnerProgram {
   /** Who the program is for. Omitted unless the partner states it. */
   eligibility?: string;
   cost?: Cost;
+  /**
+   * Which category this program belongs to, independent of its parent org.
+   * A large agency runs programs across several categories, so the org's own
+   * category is a poor proxy. Unset for now — this is the hook that lets the
+   * grid be re-cut by program later without re-modelling the data.
+   */
+  category?: PartnerCategory;
   /** Link opened in an in-app browser. */
   url?: string;
   /**

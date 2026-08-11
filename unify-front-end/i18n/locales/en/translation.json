@@ -452,7 +452,28 @@
           "description": "These organizations coordinate services across BC. They work with agencies rather than serving individuals directly."
         }
       },
-      "lastVerifiedNote": "Last verified: August 2026"
+      "cost": {
+        "free": "Free",
+        "paid": "Paid",
+        "mixed": "Free + paid options"
+      },
+      "howToGetHelp": "How to get help",
+      "whoItsFor": "Who it's for",
+      "variesByProgram": "Varies by program — see the programs above.",
+      "howToStart": "How to start",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address",
+      "hours": "Hours",
+      "languages": "Languages",
+      "costLabel": "Cost",
+      "serves": "Serves",
+      "call": "Call",
+      "directions": "Directions",
+      "website": "Website",
+      "callA11y": "Call {{name}}",
+      "emailA11y": "Email {{name}}",
+      "directionsA11y": "Directions to {{name}}"
     }
   },
   "checklist": {

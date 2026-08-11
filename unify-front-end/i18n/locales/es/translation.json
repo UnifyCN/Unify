@@ -452,7 +452,28 @@
           "description": "Estas organizaciones coordinan servicios en toda la Columbia Británica. Trabajan con agencias en lugar de atender directamente a las personas."
         }
       },
-      "lastVerifiedNote": "Última verificación: agosto de 2026"
+      "cost": {
+        "free": "Gratis",
+        "paid": "De pago",
+        "mixed": "Opciones gratuitas y de pago"
+      },
+      "howToGetHelp": "Cómo obtener ayuda",
+      "whoItsFor": "Para quién es",
+      "variesByProgram": "Varía según el programa: consulta los programas arriba.",
+      "howToStart": "Cómo empezar",
+      "phone": "Teléfono",
+      "email": "Correo electrónico",
+      "address": "Dirección",
+      "hours": "Horario",
+      "languages": "Idiomas",
+      "costLabel": "Costo",
+      "serves": "Atiende a",
+      "call": "Llamar",
+      "directions": "Cómo llegar",
+      "website": "Sitio web",
+      "callA11y": "Llamar a {{name}}",
+      "emailA11y": "Enviar correo a {{name}}",
+      "directionsA11y": "Cómo llegar a {{name}}"
     }
   },
   "checklist": {

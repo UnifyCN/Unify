@@ -34,7 +34,6 @@ export default function ResourcesView() {
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>{t('learn.resources.title')}</Text>
       <Text style={styles.subtitle}>{t('learn.resources.subtitle')}</Text>
-      <Text style={styles.lastVerified}>{t('learn.resources.lastVerifiedNote')}</Text>
 
       {categories.length === 0 ? (
         <View style={styles.empty}>
@@ -68,8 +67,7 @@ export default function ResourcesView() {
 const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
   title: { fontSize: 24, fontWeight: '600', color: '#000', marginBottom: 6 },
-  subtitle: { fontSize: 14, lineHeight: 20, color: '#575757', marginBottom: 4 },
-  lastVerified: { fontSize: 11.5, color: '#8A8A8E', marginBottom: 16 },
+  subtitle: { fontSize: 14, lineHeight: 20, color: '#575757', marginBottom: 16 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   empty: {
     paddingVertical: 48,
