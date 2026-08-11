@@ -427,27 +427,32 @@
       "opensInBrowser": "{{name}}, mở trong trình duyệt",
       "notFound": "Tài nguyên này không còn khả dụng.",
       "category": {
-        "newcomerServices": {
-          "label": "Dịch vụ cho người mới đến",
+        "gettingSettled": {
+          "label": "Bắt đầu ổn định",
           "description": "Các cơ quan và chương trình định cư giúp bạn ổn định cuộc sống."
         },
-        "employment": {
-          "label": "Việc làm và nghề nghiệp",
+        "findWork": {
+          "label": "Tìm việc làm",
           "description": "Bảng tin việc làm, cố vấn và hỗ trợ nghề nghiệp cho người mới đến."
         },
-        "libraries": {
-          "label": "Thư viện",
+        "immigrationHelp": {
+          "label": "Hỗ trợ di trú",
+          "description": "Chuyên viên được cấp phép về giấy phép, thường trú và quốc tịch."
+        },
+        "librariesLearning": {
+          "label": "Thư viện và học tập",
           "description": "Chương trình, không gian và tài nguyên miễn phí tại thư viện địa phương."
         },
-        "community": {
-          "label": "Cộng đồng và tổ chức phi lợi nhuận",
+        "communityBelonging": {
+          "label": "Cộng đồng và sự gắn kết",
           "description": "Các tổ chức phi lợi nhuận và trung tâm cộng đồng mở cho mọi người."
         },
-        "immigration": {
-          "label": "Di trú",
-          "description": "Chuyên viên được cấp phép về giấy phép, thường trú và quốc tịch."
+        "networksPlanning": {
+          "label": "Mạng lưới và bàn hoạch định",
+          "description": "Các tổ chức này điều phối dịch vụ trên toàn British Columbia. Họ làm việc với các cơ quan thay vì trực tiếp phục vụ cá nhân."
         }
-      }
+      },
+      "lastVerifiedNote": "Xác minh lần cuối: tháng 8 năm 2026"
     }
   },
   "checklist": {

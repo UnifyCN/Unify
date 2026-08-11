@@ -427,27 +427,32 @@
       "opensInBrowser": "{{name}}, se abre en el navegador",
       "notFound": "Este recurso ya no está disponible.",
       "category": {
-        "newcomerServices": {
-          "label": "Servicios para recién llegados",
+        "gettingSettled": {
+          "label": "Primeros pasos",
           "description": "Agencias y programas de asentamiento que te ayudan a establecerte."
         },
-        "employment": {
-          "label": "Empleo y carreras profesionales",
+        "findWork": {
+          "label": "Buscar trabajo",
           "description": "Bolsas de trabajo, mentoría y apoyo profesional para recién llegados."
         },
-        "libraries": {
-          "label": "Bibliotecas",
+        "immigrationHelp": {
+          "label": "Ayuda con inmigración",
+          "description": "Consultores autorizados para permisos, residencia permanente y ciudadanía."
+        },
+        "librariesLearning": {
+          "label": "Bibliotecas y aprendizaje",
           "description": "Programas, espacios y recursos gratuitos en tu biblioteca local."
         },
-        "community": {
-          "label": "Comunidad y organizaciones sin fines de lucro",
+        "communityBelonging": {
+          "label": "Comunidad y pertenencia",
           "description": "Organizaciones sin fines de lucro y centros comunitarios abiertos a todos."
         },
-        "immigration": {
-          "label": "Inmigración",
-          "description": "Consultores autorizados para permisos, residencia permanente y ciudadanía."
+        "networksPlanning": {
+          "label": "Redes y mesas de planificación",
+          "description": "Estas organizaciones coordinan servicios en toda la Columbia Británica. Trabajan con agencias en lugar de atender directamente a las personas."
         }
-      }
+      },
+      "lastVerifiedNote": "Última verificación: agosto de 2026"
     }
   },
   "checklist": {

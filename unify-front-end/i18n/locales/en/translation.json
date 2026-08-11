@@ -427,27 +427,32 @@
       "opensInBrowser": "{{name}}, opens in browser",
       "notFound": "This resource is no longer available.",
       "category": {
-        "newcomerServices": {
-          "label": "Newcomer Services",
+        "gettingSettled": {
+          "label": "Getting Settled",
           "description": "Settlement agencies and programs to help you find your footing."
         },
-        "employment": {
-          "label": "Employment & Careers",
+        "findWork": {
+          "label": "Find Work",
           "description": "Job boards, mentorship, and career support for newcomers."
         },
-        "libraries": {
-          "label": "Libraries",
+        "immigrationHelp": {
+          "label": "Immigration Help",
+          "description": "Licensed consultants for permits, PR, and citizenship."
+        },
+        "librariesLearning": {
+          "label": "Libraries & Learning",
           "description": "Free programs, spaces, and resources at your local library."
         },
-        "community": {
-          "label": "Community & Nonprofits",
+        "communityBelonging": {
+          "label": "Community & Belonging",
           "description": "Local nonprofits and community centres open to everyone."
         },
-        "immigration": {
-          "label": "Immigration",
-          "description": "Licensed consultants for permits, PR, and citizenship."
+        "networksPlanning": {
+          "label": "Networks & Planning Tables",
+          "description": "These organizations coordinate services across BC. They work with agencies rather than serving individuals directly."
         }
-      }
+      },
+      "lastVerifiedNote": "Last verified: August 2026"
     }
   },
   "checklist": {

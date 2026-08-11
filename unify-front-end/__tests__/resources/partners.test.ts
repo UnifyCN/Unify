@@ -9,10 +9,17 @@ import {
 import { CATEGORY_ORDER, type PartnerCategory } from '@/types/partner';
 
 describe('partner data', () => {
-  it('has 16 partners, all active, with unique slugs', () => {
-    expect(PARTNERS).toHaveLength(16);
+  it('has 15 partners, all active, with unique slugs', () => {
+    expect(PARTNERS).toHaveLength(15);
     expect(PARTNERS.every(p => p.active)).toBe(true);
-    expect(new Set(PARTNERS.map(p => p.slug)).size).toBe(16);
+    expect(new Set(PARTNERS.map(p => p.slug)).size).toBe(15);
+  });
+
+  // A category with a single org reads as an oversight in a directory shown
+  // to partner agencies, so this is a shipping rule, not a nicety.
+  it('no category ships with fewer than 2 partners', () => {
+    const thin = getCategoriesWithPartners().filter(c => c.partnerCount < 2);
+    expect(thin).toEqual([]);
   });
 
   it('every partner has required fields + a valid category', () => {
@@ -35,26 +42,28 @@ describe('partner data', () => {
   it('getCategoriesWithPartners returns categories in CATEGORY_ORDER with correct counts', () => {
     const cats = getCategoriesWithPartners();
     expect(cats.map(c => c.category)).toEqual([
-      'newcomerServices',
-      'employment',
-      'libraries',
-      'community',
-      'immigration',
+      'gettingSettled',
+      'findWork',
+      'immigrationHelp',
+      'librariesLearning',
+      'communityBelonging',
+      'networksPlanning',
     ]);
     const counts = Object.fromEntries(cats.map(c => [c.category, c.partnerCount]));
     expect(counts).toEqual({
-      newcomerServices: 5,
-      employment: 3,
-      libraries: 3,
-      community: 3,
-      immigration: 2,
+      gettingSettled: 3,
+      findWork: 2,
+      immigrationHelp: 2,
+      librariesLearning: 3,
+      communityBelonging: 3,
+      networksPlanning: 2,
     });
   });
 
   it('getPartnersByCategory returns only that category, sorted by displayOrder', () => {
-    const libs = getPartnersByCategory('libraries' as PartnerCategory);
+    const libs = getPartnersByCategory('librariesLearning' as PartnerCategory);
     expect(libs).toHaveLength(3);
-    expect(libs.every(p => p.category === 'libraries')).toBe(true);
+    expect(libs.every(p => p.category === 'librariesLearning')).toBe(true);
     const orders = libs.map(p => p.displayOrder);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
   });
@@ -66,8 +75,8 @@ describe('partner data', () => {
 
   it('getActivePartners returns every active partner, sorted by displayOrder', () => {
     const active = getActivePartners();
-    // All 16 current partners are active, so none are dropped today.
-    expect(active).toHaveLength(16);
+    // All 15 current partners are active, so none are dropped today.
+    expect(active).toHaveLength(15);
     expect(active.every(p => p.active)).toBe(true);
     const orders = active.map(p => p.displayOrder);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));

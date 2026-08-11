@@ -13,29 +13,29 @@ import { CATEGORY_ORDER } from '@/types/partner';
  * later merge into the Service Map `services` pipeline (DOCS/tickets/04-service-map.md).
  */
 export const PARTNERS: Partner[] = [
-  // ── Newcomer Services ───────────────────────────────────────────────
+  // ── Getting Settled ─────────────────────────────────────────────────────
   {
-    slug: 'amssa',
-    name: 'AMSSA',
-    category: 'newcomerServices',
+    slug: 'diversecity',
+    name: 'DIVERSEcity',
+    category: 'gettingSettled',
     partnershipType: 'resource',
-    tagline: "The backbone supporting BC's newcomer-serving agencies.",
+    tagline: 'Culturally safe programs across education, employment & wellbeing.',
     description:
-      'The Affiliation of Multicultural Societies and Service Agencies of BC is a provincial umbrella organization that strengthens the settlement and diversity sector — providing training, resources, e-learning, and advocacy for the agencies serving newcomers across BC.',
+      'DIVERSEcity Community Resources Society is a BC-registered charity (since 1978) that connects newcomers to culturally safe programs across education, employment, health, and wellbeing — the on-the-ground service arm for immigrant and refugee support in Greater Vancouver.',
     highlights: [
-      'Sector-wide training & e-learning',
-      'Resources for newcomer-serving agencies',
-      'Province-wide reach across BC',
+      'Culturally safe settlement programs',
+      'Education, employment & health support',
+      'Serving immigrants & refugees since 1978',
     ],
-    serviceArea: 'British Columbia',
-    website: 'https://www.amssa.org/',
+    serviceArea: 'Greater Vancouver',
+    website: 'https://www.dcrs.ca/',
     displayOrder: 0,
     active: true,
   },
   {
     slug: 'burnaby-neighbourhood-house',
     name: 'Burnaby Neighbourhood House',
-    category: 'newcomerServices',
+    category: 'gettingSettled',
     partnershipType: 'resource',
     tagline: 'Community programs, childcare, and newcomer support in Burnaby.',
     description:
@@ -51,27 +51,9 @@ export const PARTNERS: Partner[] = [
     active: true,
   },
   {
-    slug: 'diversecity',
-    name: 'DIVERSEcity',
-    category: 'newcomerServices',
-    partnershipType: 'resource',
-    tagline: 'Culturally safe programs across education, employment & wellbeing.',
-    description:
-      'DIVERSEcity Community Resources Society is a BC-registered charity (since 1978) that connects newcomers to culturally safe programs across education, employment, health, and wellbeing — the on-the-ground service arm for immigrant and refugee support in Greater Vancouver.',
-    highlights: [
-      'Culturally safe settlement programs',
-      'Education, employment & health support',
-      'Serving immigrants & refugees since 1978',
-    ],
-    serviceArea: 'Greater Vancouver',
-    website: 'https://www.dcrs.ca/',
-    displayOrder: 2,
-    active: true,
-  },
-  {
     slug: 'ymca-bc',
     name: 'YMCA BC',
-    category: 'newcomerServices',
+    category: 'gettingSettled',
     partnershipType: 'resource',
     tagline: 'Programs for families, children, and seniors across BC.',
     description:
@@ -83,33 +65,14 @@ export const PARTNERS: Partner[] = [
     ],
     serviceArea: 'British Columbia',
     website: 'https://www.ymcabc.ca/',
-    displayOrder: 3,
+    displayOrder: 2,
     active: true,
   },
-  {
-    slug: 'surrey-lip',
-    name: 'Surrey Local Immigration Partnership',
-    category: 'newcomerServices',
-    partnershipType: 'resource',
-    tagline: '30+ organizations coordinating newcomer integration in Surrey.',
-    description:
-      'An IRCC-funded, multi-stakeholder council that brings together 30+ community organizations to develop collaborative, research-driven strategies for newcomer integration in Surrey. Managed by DIVERSEcity, it also offers tools like a services map and a racism-reporting tool.',
-    highlights: [
-      'Coordinates 30+ local organizations',
-      'Services map for newcomers',
-      'Racism-reporting tool',
-    ],
-    serviceArea: 'Surrey',
-    website: 'https://www.surreylip.ca/',
-    displayOrder: 4,
-    active: true,
-  },
-
-  // ── Employment & Careers ────────────────────────────────────────────
+  // ── Find Work ───────────────────────────────────────────────────────────
   {
     slug: 'iec-bc',
     name: 'Immigrant Employment Council of BC',
-    category: 'employment',
+    category: 'findWork',
     partnershipType: 'resource',
     tagline: 'Helping BC employers hire and retain immigrant talent.',
     description:
@@ -153,7 +116,7 @@ export const PARTNERS: Partner[] = [
   {
     slug: 'newcomer-jobs-canada',
     name: 'Newcomer Jobs Canada',
-    category: 'employment',
+    category: 'findWork',
     partnershipType: 'resource',
     tagline: 'A job board built for newcomers to Canada.',
     description:
@@ -168,138 +131,11 @@ export const PARTNERS: Partner[] = [
     displayOrder: 1,
     active: true,
   },
-  {
-    slug: 'anutio',
-    name: 'Anutio',
-    category: 'employment',
-    partnershipType: 'referral',
-    tagline: 'AI-driven job matching, skill mapping, and on-demand learning.',
-    description:
-      'Anutio is an all-in-one career development platform that combines AI-driven job matching, skill mapping, and on-demand learning to help people develop their skills, grow, and find the right roles.',
-    highlights: ['AI-powered job matching', 'Skill mapping', 'On-demand learning'],
-    serviceArea: 'Online',
-    website: 'https://www.anutio.com/',
-    displayOrder: 2,
-    active: true,
-  },
-
-  // ── Libraries ───────────────────────────────────────────────────────
-  {
-    slug: 'burnaby-public-library',
-    name: 'Burnaby Public Library',
-    category: 'libraries',
-    partnershipType: 'resource',
-    tagline: 'Inclusive spaces to gather, learn, and play.',
-    description:
-      'Burnaby Public Library creates inclusive spaces where people can gather, learn, and play across four branches — free programs, resources, and places to connect.',
-    highlights: [
-      'Free programs & resources',
-      '4 branches across Burnaby',
-      'Welcoming spaces to learn',
-    ],
-    serviceArea: 'Burnaby · 4 branches',
-    website: 'https://bpl.bc.ca/',
-    displayOrder: 0,
-    active: true,
-  },
-  {
-    slug: 'surrey-libraries',
-    name: 'Surrey Libraries',
-    category: 'libraries',
-    partnershipType: 'resource',
-    tagline: 'Sparking curiosity and lifelong learning.',
-    description:
-      'Surrey Libraries connects people, sparks curiosity, and inspires lifelong learning to enhance the lives of Surrey residents across ten branches.',
-    highlights: [
-      'Free lifelong-learning programs',
-      '10 branches across Surrey',
-      'Connecting the community',
-    ],
-    serviceArea: 'Surrey · 10 branches',
-    website: 'https://www.surreylibraries.ca/',
-    displayOrder: 1,
-    active: true,
-  },
-  {
-    slug: 'vancouver-public-library',
-    name: 'Vancouver Public Library',
-    category: 'libraries',
-    partnershipType: 'resource',
-    tagline: 'Free places to discover, create, and share.',
-    description:
-      'Vancouver Public Library has served the lifelong learning, reading, and information needs of Vancouver residents for over 100 years across 21 branches — free places for everyone to discover, create, and share ideas and information.',
-    highlights: [
-      'Free for all residents',
-      '21 branches across Vancouver',
-      '100+ years serving the city',
-    ],
-    serviceArea: 'Vancouver · 21 branches',
-    website: 'https://www.vpl.ca/',
-    displayOrder: 2,
-    active: true,
-  },
-
-  // ── Community & Nonprofits ──────────────────────────────────────────
-  {
-    slug: 'big-brothers-big-sisters',
-    name: 'Big Brothers Big Sisters',
-    category: 'community',
-    partnershipType: 'resource',
-    tagline: 'Life-changing mentoring for young people.',
-    description:
-      'Big Brothers Big Sisters champions the health and wellbeing of youth by providing life-changing mentoring experiences, ensuring children and teens are supported by caring adult role models.',
-    highlights: [
-      '1:1 youth mentoring',
-      "Supporting children's wellbeing",
-      'Caring adult role models',
-    ],
-    serviceArea: 'Canada',
-    website: 'https://bigbrothersbigsisters.ca/',
-    displayOrder: 0,
-    active: true,
-  },
-  {
-    slug: 'united-way-bc',
-    name: 'United Way BC',
-    category: 'community',
-    partnershipType: 'resource',
-    tagline: 'Support for the people who need it most across BC.',
-    description:
-      "United Way BC serves over five million British Columbians, delivering resources and support where they're needed most — emergency response, children & youth, seniors, poverty, mental health, and food security.",
-    highlights: [
-      'Emergency & poverty support',
-      'Programs for children, youth & seniors',
-      'Mental health & food security',
-    ],
-    serviceArea: 'British Columbia',
-    website: 'https://uwbc.ca/',
-    displayOrder: 1,
-    active: true,
-  },
-  {
-    slug: 'trout-lake-community-centre',
-    name: 'Trout Lake Community Centre',
-    category: 'community',
-    partnershipType: 'resource',
-    tagline: '200+ programs for people of all ages.',
-    description:
-      'Trout Lake Community Centre offers more than 200 programs for people of all ages — a welcoming neighbourhood hub in East Vancouver run in partnership with the Vancouver Park Board.',
-    highlights: [
-      '200+ community programs',
-      'Activities for all ages',
-      'A neighbourhood gathering place',
-    ],
-    serviceArea: 'Vancouver',
-    website: 'https://troutlakecc.com/',
-    displayOrder: 2,
-    active: true,
-  },
-
-  // ── Immigration ─────────────────────────────────────────────────────
+  // ── Immigration Help ────────────────────────────────────────────────────
   {
     slug: 'canada-shaw-immigration',
     name: 'Canada Shaw Immigration Consultancy',
-    category: 'immigration',
+    category: 'immigrationHelp',
     partnershipType: 'referral',
     tagline: 'CICC-licensed firm for Express Entry, permits, and LMIA.',
     description:
@@ -317,7 +153,7 @@ export const PARTNERS: Partner[] = [
   {
     slug: 'global-connect-immigration',
     name: 'Global Connect Immigration',
-    category: 'immigration',
+    category: 'immigrationHelp',
     partnershipType: 'referral',
     tagline: 'Registered consultancy for PR, visas, and settlement.',
     description:
@@ -329,6 +165,153 @@ export const PARTNERS: Partner[] = [
     ],
     serviceArea: 'Surrey',
     website: 'https://globalconnectmigration.com/',
+    displayOrder: 1,
+    active: true,
+  },
+  // ── Libraries & Learning ────────────────────────────────────────────────
+  {
+    slug: 'burnaby-public-library',
+    name: 'Burnaby Public Library',
+    category: 'librariesLearning',
+    partnershipType: 'resource',
+    tagline: 'Inclusive spaces to gather, learn, and play.',
+    description:
+      'Burnaby Public Library creates inclusive spaces where people can gather, learn, and play across four branches — free programs, resources, and places to connect.',
+    highlights: [
+      'Free programs & resources',
+      '4 branches across Burnaby',
+      'Welcoming spaces to learn',
+    ],
+    serviceArea: 'Burnaby · 4 branches',
+    website: 'https://bpl.bc.ca/',
+    displayOrder: 0,
+    active: true,
+  },
+  {
+    slug: 'surrey-libraries',
+    name: 'Surrey Libraries',
+    category: 'librariesLearning',
+    partnershipType: 'resource',
+    tagline: 'Sparking curiosity and lifelong learning.',
+    description:
+      'Surrey Libraries connects people, sparks curiosity, and inspires lifelong learning to enhance the lives of Surrey residents across ten branches.',
+    highlights: [
+      'Free lifelong-learning programs',
+      '10 branches across Surrey',
+      'Connecting the community',
+    ],
+    serviceArea: 'Surrey · 10 branches',
+    website: 'https://www.surreylibraries.ca/',
+    displayOrder: 1,
+    active: true,
+  },
+  {
+    slug: 'vancouver-public-library',
+    name: 'Vancouver Public Library',
+    category: 'librariesLearning',
+    partnershipType: 'resource',
+    tagline: 'Free places to discover, create, and share.',
+    description:
+      'Vancouver Public Library has served the lifelong learning, reading, and information needs of Vancouver residents for over 100 years across 21 branches — free places for everyone to discover, create, and share ideas and information.',
+    highlights: [
+      'Free for all residents',
+      '21 branches across Vancouver',
+      '100+ years serving the city',
+    ],
+    serviceArea: 'Vancouver · 21 branches',
+    website: 'https://www.vpl.ca/',
+    displayOrder: 2,
+    active: true,
+  },
+  // ── Community & Belonging ───────────────────────────────────────────────
+  {
+    slug: 'big-brothers-big-sisters',
+    name: 'Big Brothers Big Sisters',
+    category: 'communityBelonging',
+    partnershipType: 'resource',
+    tagline: 'Life-changing mentoring for young people.',
+    description:
+      'Big Brothers Big Sisters champions the health and wellbeing of youth by providing life-changing mentoring experiences, ensuring children and teens are supported by caring adult role models.',
+    highlights: [
+      '1:1 youth mentoring',
+      "Supporting children's wellbeing",
+      'Caring adult role models',
+    ],
+    serviceArea: 'Canada',
+    website: 'https://bigbrothersbigsisters.ca/',
+    displayOrder: 0,
+    active: true,
+  },
+  {
+    slug: 'united-way-bc',
+    name: 'United Way BC',
+    category: 'communityBelonging',
+    partnershipType: 'resource',
+    tagline: 'Support for the people who need it most across BC.',
+    description:
+      "United Way BC serves over five million British Columbians, delivering resources and support where they're needed most — emergency response, children & youth, seniors, poverty, mental health, and food security.",
+    highlights: [
+      'Emergency & poverty support',
+      'Programs for children, youth & seniors',
+      'Mental health & food security',
+    ],
+    serviceArea: 'British Columbia',
+    website: 'https://uwbc.ca/',
+    displayOrder: 1,
+    active: true,
+  },
+  {
+    slug: 'trout-lake-community-centre',
+    name: 'Trout Lake Community Centre',
+    category: 'communityBelonging',
+    partnershipType: 'resource',
+    tagline: '200+ programs for people of all ages.',
+    description:
+      'Trout Lake Community Centre offers more than 200 programs for people of all ages — a welcoming neighbourhood hub in East Vancouver run in partnership with the Vancouver Park Board.',
+    highlights: [
+      '200+ community programs',
+      'Activities for all ages',
+      'A neighbourhood gathering place',
+    ],
+    serviceArea: 'Vancouver',
+    website: 'https://troutlakecc.com/',
+    displayOrder: 2,
+    active: true,
+  },
+  // ── Networks & Planning Tables ──────────────────────────────────────────
+  {
+    slug: 'amssa',
+    name: 'AMSSA',
+    category: 'networksPlanning',
+    partnershipType: 'resource',
+    tagline: "The backbone supporting BC's newcomer-serving agencies.",
+    description:
+      'The Affiliation of Multicultural Societies and Service Agencies of BC is a provincial umbrella organization that strengthens the settlement and diversity sector — providing training, resources, e-learning, and advocacy for the agencies serving newcomers across BC.',
+    highlights: [
+      'Sector-wide training & e-learning',
+      'Resources for newcomer-serving agencies',
+      'Province-wide reach across BC',
+    ],
+    serviceArea: 'British Columbia',
+    website: 'https://www.amssa.org/',
+    displayOrder: 0,
+    active: true,
+  },
+  {
+    slug: 'surrey-lip',
+    name: 'Surrey Local Immigration Partnership',
+    category: 'networksPlanning',
+    partnershipType: 'resource',
+    tagline: '30+ organizations coordinating newcomer integration in Surrey.',
+    description:
+      'An IRCC-funded, multi-stakeholder council that brings together 30+ community organizations to develop collaborative, research-driven strategies for newcomer integration in Surrey. Managed by DIVERSEcity, it also offers tools like a services map and a racism-reporting tool.',
+    highlights: [
+      'Coordinates 30+ local organizations',
+      'Services map for newcomers',
+      'Racism-reporting tool',
+    ],
+    serviceArea: 'Surrey',
+    website: 'https://www.surreylip.ca/',
     displayOrder: 1,
     active: true,
   },

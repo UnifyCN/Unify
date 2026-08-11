@@ -4,7 +4,7 @@ import type { Partner } from '@/types/partner';
 const base: Partner = {
   slug: 'anutio',
   name: 'Anutio',
-  category: 'employment',
+  category: 'findWork',
   partnershipType: 'referral',
   tagline: 't',
   description: 'a description long enough',
