@@ -334,9 +334,16 @@ export const PARTNERS: Partner[] = [
   },
 ];
 
+/**
+ * Active partners from an arbitrary list, sorted by displayOrder.
+ * Split out from `getActivePartners` so the filter is testable without an
+ * inactive partner in the shipped data.
+ */
+export const selectActivePartners = (partners: Partner[]): Partner[] =>
+  partners.filter(p => p.active).sort((a, b) => a.displayOrder - b.displayOrder);
+
 /** Active partners only, sorted by displayOrder. */
-export const getActivePartners = (): Partner[] =>
-  PARTNERS.filter(p => p.active).sort((a, b) => a.displayOrder - b.displayOrder);
+export const getActivePartners = (): Partner[] => selectActivePartners(PARTNERS);
 
 /** Active partners in a category, sorted by displayOrder. */
 export const getPartnersByCategory = (category: PartnerCategory): Partner[] =>

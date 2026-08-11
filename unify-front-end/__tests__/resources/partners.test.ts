@@ -1,5 +1,6 @@
 import {
   PARTNERS,
+  selectActivePartners,
   getActivePartners,
   getPartnersByCategory,
   getCategoriesWithPartners,
@@ -63,18 +64,25 @@ describe('partner data', () => {
     expect(getPartnerBySlug('does-not-exist')).toBeUndefined();
   });
 
-  it('getActivePartners returns every active partner and excludes inactive ones', () => {
-    // All current partners are active.
-    expect(getActivePartners()).toHaveLength(16);
-    // The filter must actually drop inactive partners, not just sort.
-    const withInactive = [
-      ...PARTNERS,
-      { ...PARTNERS[0], slug: 'test-inactive', active: false, displayOrder: 99 },
-    ];
-    const active = withInactive
-      .filter(p => p.active)
-      .sort((a, b) => a.displayOrder - b.displayOrder);
-    expect(active.find(p => p.slug === 'test-inactive')).toBeUndefined();
+  it('getActivePartners returns every active partner, sorted by displayOrder', () => {
+    const active = getActivePartners();
+    // All 16 current partners are active, so none are dropped today.
+    expect(active).toHaveLength(16);
+    expect(active.every(p => p.active)).toBe(true);
+    const orders = active.map(p => p.displayOrder);
+    expect(orders).toEqual([...orders].sort((a, b) => a - b));
+  });
+
+  it('selectActivePartners drops inactive partners and sorts the rest', () => {
+    // Every shipped partner is active, so feed the real filter a list that
+    // isn't — this exercises the helper instead of re-implementing it.
+    const inactive = { ...PARTNERS[0], slug: 'test-inactive', active: false };
+    const result = selectActivePartners([
+      inactive,
+      { ...PARTNERS[0], slug: 'b', active: true, displayOrder: 2 },
+      { ...PARTNERS[0], slug: 'a', active: true, displayOrder: 1 },
+    ]);
+    expect(result.map(p => p.slug)).toEqual(['a', 'b']);
   });
 
   it('any partner programs are well-formed (name, description, http(s) url)', () => {
