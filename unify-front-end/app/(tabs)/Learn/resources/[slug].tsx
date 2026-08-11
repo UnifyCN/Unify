@@ -13,9 +13,10 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { getPartnerBySlug } from '@/constants/Partners';
 import {
-  PARTNER_CATEGORY_LABELS,
+  PARTNER_CATEGORY_LABEL_KEYS,
   PARTNER_CATEGORY_ICONS,
   PARTNER_CATEGORY_COLORS,
   PARTNER_CATEGORY_TINTS,
@@ -28,6 +29,7 @@ export default function PartnerDetailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const {
     trackResourcesPartnerOpened,
     trackResourcesPartnerWebsiteOpened,
@@ -53,18 +55,18 @@ export default function PartnerDetailScreen() {
           onPress={() => router.back()}
           style={[styles.backFloat, { top: insets.top + 8 }]}
           accessibilityRole='button'
-          accessibilityLabel='Back'
+          accessibilityLabel={t('common.back')}
         >
           <Feather name='chevron-left' size={22} color='#FFFFFF' />
         </TouchableOpacity>
-        <Text style={styles.notFoundText}>This resource is no longer available.</Text>
+        <Text style={styles.notFoundText}>{t('learn.resources.notFound')}</Text>
       </View>
     );
   }
 
   const color = PARTNER_CATEGORY_COLORS[partner.category];
   const tint = PARTNER_CATEGORY_TINTS[partner.category];
-  const categoryLabel = PARTNER_CATEGORY_LABELS[partner.category];
+  const categoryLabel = t(PARTNER_CATEGORY_LABEL_KEYS[partner.category]);
   const categoryIcon = PARTNER_CATEGORY_ICONS[partner.category];
 
   const handleVisit = async () => {
@@ -114,7 +116,7 @@ export default function PartnerDetailScreen() {
           onPress={() => router.back()}
           style={[styles.backFloat, { top: insets.top + 8 }]}
           accessibilityRole='button'
-          accessibilityLabel='Back'
+          accessibilityLabel={t('common.back')}
         >
           <Feather name='chevron-left' size={22} color='#FFFFFF' />
         </TouchableOpacity>
@@ -136,12 +138,14 @@ export default function PartnerDetailScreen() {
           </View>
           <Text style={styles.location}>{partner.location}</Text>
 
-          <Text style={styles.sectionHead}>About</Text>
+          <Text style={styles.sectionHead}>{t('learn.resources.about')}</Text>
           <Text style={styles.about}>{partner.description}</Text>
 
           {partner.highlights.length > 0 && (
             <>
-              <Text style={styles.sectionHead}>How they help newcomers</Text>
+              <Text style={styles.sectionHead}>
+                {t('learn.resources.howTheyHelp')}
+              </Text>
               {partner.highlights.map(h => (
                 <View key={h} style={styles.hRow}>
                   <View style={[styles.hDot, { backgroundColor: tint }]}>
@@ -155,7 +159,7 @@ export default function PartnerDetailScreen() {
 
           {partner.programs && partner.programs.length > 0 && (
             <>
-              <Text style={styles.sectionHead}>Programs</Text>
+              <Text style={styles.sectionHead}>{t('learn.resources.programs')}</Text>
               {partner.programs.map(program => (
                 <TouchableOpacity
                   key={program.name}
@@ -163,7 +167,9 @@ export default function PartnerDetailScreen() {
                   activeOpacity={0.75}
                   style={styles.programCard}
                   accessibilityRole='button'
-                  accessibilityLabel={`${program.name}, opens in browser`}
+                  accessibilityLabel={t('learn.resources.opensInBrowser', {
+                    name: program.name,
+                  })}
                 >
                   <View style={styles.programText}>
                     <Text style={styles.programName}>{program.name}</Text>
@@ -186,9 +192,11 @@ export default function PartnerDetailScreen() {
               activeOpacity={0.85}
               style={styles.visit}
               accessibilityRole='button'
-              accessibilityLabel={`Visit ${partner.name} website`}
+              accessibilityLabel={t('learn.resources.visitWebsiteA11y', {
+                name: partner.name,
+              })}
             >
-              <Text style={styles.visitText}>Visit website</Text>
+              <Text style={styles.visitText}>{t('learn.resources.visitWebsite')}</Text>
               <Feather name='external-link' size={16} color='#FFFFFF' />
             </TouchableOpacity>
           )}

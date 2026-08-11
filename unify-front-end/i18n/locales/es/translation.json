@@ -405,6 +405,49 @@
       "remove": "Eliminar",
       "highlight": "Resaltar",
       "askAI": "Preguntar a IA"
+    },
+    "segment": {
+      "lessons": "Lecciones",
+      "resources": "Recursos"
+    },
+    "resources": {
+      "title": "Servicios de confianza",
+      "subtitle": "Organizaciones que te ayudan a establecerte en Canadá.",
+      "emptyTitle": "Estamos añadiendo socios",
+      "emptyText": "Estamos seleccionando cuidadosamente organizaciones de confianza para ti. Vuelve pronto.",
+      "orgCount": "{{count}} organización",
+      "orgCount_plural": "{{count}} organizaciones",
+      "backToCategories": "Volver a las categorías",
+      "noPartnersInCategory": "Aún no hay socios activos en esta categoría.",
+      "about": "Acerca de",
+      "howTheyHelp": "Cómo ayudan a los recién llegados",
+      "programs": "Programas",
+      "visitWebsite": "Visitar el sitio web",
+      "visitWebsiteA11y": "Visitar el sitio web de {{name}}",
+      "opensInBrowser": "{{name}}, se abre en el navegador",
+      "notFound": "Este recurso ya no está disponible.",
+      "category": {
+        "newcomerServices": {
+          "label": "Servicios para recién llegados",
+          "description": "Agencias y programas de asentamiento que te ayudan a establecerte."
+        },
+        "employment": {
+          "label": "Empleo y carreras profesionales",
+          "description": "Bolsas de trabajo, mentoría y apoyo profesional para recién llegados."
+        },
+        "libraries": {
+          "label": "Bibliotecas",
+          "description": "Programas, espacios y recursos gratuitos en tu biblioteca local."
+        },
+        "community": {
+          "label": "Comunidad y organizaciones sin fines de lucro",
+          "description": "Organizaciones sin fines de lucro y centros comunitarios abiertos a todos."
+        },
+        "immigration": {
+          "label": "Inmigración",
+          "description": "Consultores autorizados para permisos, residencia permanente y ciudadanía."
+        }
+      }
     }
   },
   "checklist": {

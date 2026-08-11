@@ -405,6 +405,49 @@
       "remove": "Remove",
       "highlight": "Highlight",
       "askAI": "Ask AI"
+    },
+    "segment": {
+      "lessons": "Lessons",
+      "resources": "Resources"
+    },
+    "resources": {
+      "title": "Trusted services",
+      "subtitle": "Organizations that help you settle in Canada.",
+      "emptyTitle": "We're adding partners",
+      "emptyText": "We're carefully selecting trusted organizations for you. Check back soon.",
+      "orgCount": "{{count}} org",
+      "orgCount_plural": "{{count}} orgs",
+      "backToCategories": "Back to categories",
+      "noPartnersInCategory": "No active partners in this category yet.",
+      "about": "About",
+      "howTheyHelp": "How they help newcomers",
+      "programs": "Programs",
+      "visitWebsite": "Visit website",
+      "visitWebsiteA11y": "Visit {{name}} website",
+      "opensInBrowser": "{{name}}, opens in browser",
+      "notFound": "This resource is no longer available.",
+      "category": {
+        "newcomerServices": {
+          "label": "Newcomer Services",
+          "description": "Settlement agencies and programs to help you find your footing."
+        },
+        "employment": {
+          "label": "Employment & Careers",
+          "description": "Job boards, mentorship, and career support for newcomers."
+        },
+        "libraries": {
+          "label": "Libraries",
+          "description": "Free programs, spaces, and resources at your local library."
+        },
+        "community": {
+          "label": "Community & Nonprofits",
+          "description": "Local nonprofits and community centres open to everyone."
+        },
+        "immigration": {
+          "label": "Immigration",
+          "description": "Licensed consultants for permits, PR, and citizenship."
+        }
+      }
     }
   },
   "checklist": {

@@ -113,8 +113,8 @@ export default function Learn() {
           onChange={setView}
           style={styles.segmentedControl}
           options={[
-            { value: 'articles', label: 'Lessons' },
-            { value: 'resources', label: 'Resources' },
+            { value: 'articles', label: t('learn.segment.lessons') },
+            { value: 'resources', label: t('learn.segment.resources') },
           ]}
         />
         {view === 'resources' ? (

@@ -18,21 +18,22 @@ export const CATEGORY_ORDER: PartnerCategory[] = [
   'immigration',
 ];
 
-export const PARTNER_CATEGORY_LABELS: Record<PartnerCategory, string> = {
-  newcomerServices: 'Newcomer Services',
-  employment: 'Employment & Careers',
-  libraries: 'Libraries',
-  community: 'Community & Nonprofits',
-  immigration: 'Immigration',
+/** i18n keys — resolve with `t()` at render time, never render these directly. */
+export const PARTNER_CATEGORY_LABEL_KEYS: Record<PartnerCategory, string> = {
+  newcomerServices: 'learn.resources.category.newcomerServices.label',
+  employment: 'learn.resources.category.employment.label',
+  libraries: 'learn.resources.category.libraries.label',
+  community: 'learn.resources.category.community.label',
+  immigration: 'learn.resources.category.immigration.label',
 };
 
-export const PARTNER_CATEGORY_DESCRIPTIONS: Record<PartnerCategory, string> = {
-  newcomerServices:
-    'Settlement agencies and programs to help you find your footing.',
-  employment: 'Job boards, mentorship, and career support for newcomers.',
-  libraries: 'Free programs, spaces, and resources at your local library.',
-  community: 'Local nonprofits and community centres open to everyone.',
-  immigration: 'Licensed consultants for permits, PR, and citizenship.',
+/** i18n keys — resolve with `t()` at render time, never render these directly. */
+export const PARTNER_CATEGORY_DESCRIPTION_KEYS: Record<PartnerCategory, string> = {
+  newcomerServices: 'learn.resources.category.newcomerServices.description',
+  employment: 'learn.resources.category.employment.description',
+  libraries: 'learn.resources.category.libraries.description',
+  community: 'learn.resources.category.community.description',
+  immigration: 'learn.resources.category.immigration.description',
 };
 
 /** MaterialCommunityIcons names. */

@@ -2,9 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import {
-  PARTNER_CATEGORY_LABELS,
-  PARTNER_CATEGORY_DESCRIPTIONS,
+  PARTNER_CATEGORY_LABEL_KEYS,
+  PARTNER_CATEGORY_DESCRIPTION_KEYS,
   type PartnerCategory,
 } from '@/types/partner';
 import { getPartnersByCategory } from '@/constants/Partners';
@@ -17,8 +18,9 @@ type Props = {
 
 export default function CategoryDetail({ category, onBack }: Props) {
   const router = useRouter();
-  const label = PARTNER_CATEGORY_LABELS[category];
-  const description = PARTNER_CATEGORY_DESCRIPTIONS[category];
+  const { t } = useTranslation();
+  const label = t(PARTNER_CATEGORY_LABEL_KEYS[category]);
+  const description = t(PARTNER_CATEGORY_DESCRIPTION_KEYS[category]);
   const partners = getPartnersByCategory(category);
 
   return (
@@ -28,10 +30,10 @@ export default function CategoryDetail({ category, onBack }: Props) {
         style={styles.backRow}
         activeOpacity={0.7}
         accessibilityRole='button'
-        accessibilityLabel='Back to categories'
+        accessibilityLabel={t('learn.resources.backToCategories')}
       >
         <Feather name='chevron-left' size={20} color='#343232' />
-        <Text style={styles.backText}>Resources</Text>
+        <Text style={styles.backText}>{t('learn.segment.resources')}</Text>
       </TouchableOpacity>
 
       <Text style={styles.title}>{label}</Text>
@@ -39,7 +41,9 @@ export default function CategoryDetail({ category, onBack }: Props) {
 
       {partners.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No active partners in this category yet.</Text>
+          <Text style={styles.emptyText}>
+            {t('learn.resources.noPartnersInCategory')}
+          </Text>
         </View>
       ) : (
         partners.map(partner => (

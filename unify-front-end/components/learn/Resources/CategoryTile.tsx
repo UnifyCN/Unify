@@ -1,8 +1,9 @@
 import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
-  PARTNER_CATEGORY_LABELS,
+  PARTNER_CATEGORY_LABEL_KEYS,
   PARTNER_CATEGORY_ICONS,
   PARTNER_CATEGORY_COLORS,
   type PartnerCategory,
@@ -17,10 +18,11 @@ type Props = {
 };
 
 export default function CategoryTile({ category, partnerCount, wide, onPress }: Props) {
-  const label = PARTNER_CATEGORY_LABELS[category];
+  const { t } = useTranslation();
+  const label = t(PARTNER_CATEGORY_LABEL_KEYS[category]);
   const color = PARTNER_CATEGORY_COLORS[category];
   const icon = PARTNER_CATEGORY_ICONS[category];
-  const count = `${partnerCount} org${partnerCount === 1 ? '' : 's'}`;
+  const count = t('learn.resources.orgCount', { count: partnerCount });
 
   return (
     <TouchableOpacity

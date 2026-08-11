@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { getCategoriesWithPartners } from '@/constants/Partners';
 import type { PartnerCategory } from '@/types/partner';
@@ -13,6 +14,7 @@ import CategoryDetail from './CategoryDetail';
  */
 export default function ResourcesView() {
   const [selectedCategory, setSelectedCategory] = useState<PartnerCategory | null>(null);
+  const { t } = useTranslation();
   const { trackResourcesViewed, trackResourcesCategoryOpened } = useAnalytics();
   const categories = getCategoriesWithPartners();
 
@@ -30,15 +32,13 @@ export default function ResourcesView() {
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>Trusted services</Text>
-      <Text style={styles.subtitle}>Organizations that help you settle in Canada.</Text>
+      <Text style={styles.title}>{t('learn.resources.title')}</Text>
+      <Text style={styles.subtitle}>{t('learn.resources.subtitle')}</Text>
 
       {categories.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>We're adding partners</Text>
-          <Text style={styles.emptyText}>
-            We're carefully selecting trusted organizations for you. Check back soon.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('learn.resources.emptyTitle')}</Text>
+          <Text style={styles.emptyText}>{t('learn.resources.emptyText')}</Text>
         </View>
       ) : (
         <View style={styles.grid}>

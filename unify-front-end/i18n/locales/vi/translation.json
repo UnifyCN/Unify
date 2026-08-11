@@ -405,6 +405,49 @@
       "remove": "Xóa",
       "highlight": "Tô sáng",
       "askAI": "Hỏi AI"
+    },
+    "segment": {
+      "lessons": "Bài học",
+      "resources": "Tài nguyên"
+    },
+    "resources": {
+      "title": "Dịch vụ đáng tin cậy",
+      "subtitle": "Các tổ chức giúp bạn định cư tại Canada.",
+      "emptyTitle": "Chúng tôi đang thêm đối tác",
+      "emptyText": "Chúng tôi đang chọn lọc các tổ chức đáng tin cậy cho bạn. Hãy quay lại sau.",
+      "orgCount": "{{count}} tổ chức",
+      "orgCount_plural": "{{count}} tổ chức",
+      "backToCategories": "Quay lại danh mục",
+      "noPartnersInCategory": "Chưa có đối tác hoạt động nào trong danh mục này.",
+      "about": "Giới thiệu",
+      "howTheyHelp": "Họ giúp người mới đến như thế nào",
+      "programs": "Chương trình",
+      "visitWebsite": "Truy cập trang web",
+      "visitWebsiteA11y": "Truy cập trang web của {{name}}",
+      "opensInBrowser": "{{name}}, mở trong trình duyệt",
+      "notFound": "Tài nguyên này không còn khả dụng.",
+      "category": {
+        "newcomerServices": {
+          "label": "Dịch vụ cho người mới đến",
+          "description": "Các cơ quan và chương trình định cư giúp bạn ổn định cuộc sống."
+        },
+        "employment": {
+          "label": "Việc làm và nghề nghiệp",
+          "description": "Bảng tin việc làm, cố vấn và hỗ trợ nghề nghiệp cho người mới đến."
+        },
+        "libraries": {
+          "label": "Thư viện",
+          "description": "Chương trình, không gian và tài nguyên miễn phí tại thư viện địa phương."
+        },
+        "community": {
+          "label": "Cộng đồng và tổ chức phi lợi nhuận",
+          "description": "Các tổ chức phi lợi nhuận và trung tâm cộng đồng mở cho mọi người."
+        },
+        "immigration": {
+          "label": "Di trú",
+          "description": "Chuyên viên được cấp phép về giấy phép, thường trú và quốc tịch."
+        }
+      }
     }
   },
   "checklist": {
