@@ -53,7 +53,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   half: { width: '48%', height: 104 },
-  wide: { width: '100%', flexDirection: 'row', alignItems: 'center', height: 76 },
+  // `tile` sets space-between for the vertical half-tiles; as a row that would
+  // shove the label block to the far right edge, so realign it beside the icon.
+  wide: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    height: 76,
+  },
   wideMeta: { marginLeft: 12 },
   iconChip: {
     width: 34,
