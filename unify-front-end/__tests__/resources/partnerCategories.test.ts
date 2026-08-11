@@ -25,9 +25,9 @@ describe('partner category metadata', () => {
     tints: PARTNER_CATEGORY_TINTS,
   };
 
-  it('CATEGORY_ORDER has all 6 categories, no duplicates', () => {
-    expect(CATEGORY_ORDER).toHaveLength(6);
-    expect(new Set(CATEGORY_ORDER).size).toBe(6);
+  it('CATEGORY_ORDER has all 9 categories, no duplicates', () => {
+    expect(CATEGORY_ORDER).toHaveLength(9);
+    expect(new Set(CATEGORY_ORDER).size).toBe(9);
   });
 
   it.each(Object.entries(maps))('every category has a %s entry', (_n, map) => {

@@ -9,17 +9,26 @@ import {
 import { CATEGORY_ORDER, type PartnerCategory } from '@/types/partner';
 
 describe('partner data', () => {
-  it('has 15 partners, all active, with unique slugs', () => {
-    expect(PARTNERS).toHaveLength(15);
+  it('has 20 partners, all active, with unique slugs', () => {
+    expect(PARTNERS).toHaveLength(20);
     expect(PARTNERS.every(p => p.active)).toBe(true);
-    expect(new Set(PARTNERS.map(p => p.slug)).size).toBe(15);
+    expect(new Set(PARTNERS.map(p => p.slug)).size).toBe(20);
   });
 
   // A category with a single org reads as an oversight in a directory shown
   // to partner agencies, so this is a shipping rule, not a nicety.
-  it('no category ships with fewer than 2 partners', () => {
-    const thin = getCategoriesWithPartners().filter(c => c.partnerCount < 2);
-    expect(thin).toEqual([]);
+  //
+  // Insurance and Money are deliberate exceptions: each launched with one
+  // named commercial partner (TuGo, Desjardins) rather than being held back.
+  // They are listed here so a third thin category fails the build instead of
+  // slipping in unnoticed.
+  const SINGLE_ORG_EXCEPTIONS: PartnerCategory[] = ['insurance', 'money'];
+
+  it('no category ships with fewer than 2 partners, except the known singles', () => {
+    const thin = getCategoriesWithPartners()
+      .filter(c => c.partnerCount < 2)
+      .map(c => c.category);
+    expect(thin.sort()).toEqual([...SINGLE_ORG_EXCEPTIONS].sort());
   });
 
   it('every partner has required fields + a valid category', () => {
@@ -48,6 +57,9 @@ describe('partner data', () => {
       'librariesLearning',
       'communityBelonging',
       'networksPlanning',
+      'internationalStudents',
+      'insurance',
+      'money',
     ]);
     const counts = Object.fromEntries(cats.map(c => [c.category, c.partnerCount]));
     expect(counts).toEqual({
@@ -56,7 +68,10 @@ describe('partner data', () => {
       immigrationHelp: 2,
       librariesLearning: 3,
       communityBelonging: 3,
-      networksPlanning: 2,
+      networksPlanning: 3,
+      internationalStudents: 2,
+      insurance: 1,
+      money: 1,
     });
   });
 
@@ -75,8 +90,8 @@ describe('partner data', () => {
 
   it('getActivePartners returns every active partner, sorted by displayOrder', () => {
     const active = getActivePartners();
-    // All 15 current partners are active, so none are dropped today.
-    expect(active).toHaveLength(15);
+    // All 20 current partners are active, so none are dropped today.
+    expect(active).toHaveLength(20);
     expect(active.every(p => p.active)).toBe(true);
     const orders = active.map(p => p.displayOrder);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));

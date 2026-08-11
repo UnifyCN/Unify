@@ -450,6 +450,18 @@
         "networksPlanning": {
           "label": "Networks & Planning Tables",
           "description": "These organizations coordinate services across BC. They work with agencies rather than serving individuals directly."
+        },
+        "internationalStudents": {
+          "label": "International Students",
+          "description": "Campus services for study-permit holders, who most settlement programs cannot serve."
+        },
+        "insurance": {
+          "label": "Insurance",
+          "description": "Travel, visitor, and health coverage for you and visiting family."
+        },
+        "money": {
+          "label": "Money & Banking",
+          "description": "Bank accounts, credit, and financial guidance for newcomers."
         }
       },
       "cost": {

@@ -450,6 +450,18 @@
         "networksPlanning": {
           "label": "Redes y mesas de planificación",
           "description": "Estas organizaciones coordinan servicios en toda la Columbia Británica. Trabajan con agencias en lugar de atender directamente a las personas."
+        },
+        "internationalStudents": {
+          "label": "Estudiantes internacionales",
+          "description": "Servicios universitarios para titulares de permisos de estudio, a quienes la mayoría de los programas de asentamiento no puede atender."
+        },
+        "insurance": {
+          "label": "Seguros",
+          "description": "Cobertura de viaje, de visitante y de salud para ti y para tus familiares de visita."
+        },
+        "money": {
+          "label": "Dinero y banca",
+          "description": "Cuentas bancarias, crédito y orientación financiera para recién llegados."
         }
       },
       "cost": {

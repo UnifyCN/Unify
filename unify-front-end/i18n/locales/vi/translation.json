@@ -450,6 +450,18 @@
         "networksPlanning": {
           "label": "Mạng lưới và bàn hoạch định",
           "description": "Các tổ chức này điều phối dịch vụ trên toàn British Columbia. Họ làm việc với các cơ quan thay vì trực tiếp phục vụ cá nhân."
+        },
+        "internationalStudents": {
+          "label": "Du học sinh",
+          "description": "Dịch vụ trong trường cho người có giấy phép du học, nhóm mà hầu hết chương trình định cư không phục vụ được."
+        },
+        "insurance": {
+          "label": "Bảo hiểm",
+          "description": "Bảo hiểm du lịch, khách thăm và sức khỏe cho bạn và gia đình đến thăm."
+        },
+        "money": {
+          "label": "Tiền và ngân hàng",
+          "description": "Tài khoản ngân hàng, tín dụng và hướng dẫn tài chính cho người mới đến."
         }
       },
       "cost": {

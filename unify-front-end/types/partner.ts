@@ -6,7 +6,10 @@ export type PartnerCategory =
   | 'immigrationHelp'
   | 'librariesLearning'
   | 'communityBelonging'
-  | 'networksPlanning';
+  | 'networksPlanning'
+  | 'internationalStudents'
+  | 'insurance'
+  | 'money';
 
 export type PartnershipType = 'resource' | 'referral';
 
@@ -18,6 +21,9 @@ export const CATEGORY_ORDER: PartnerCategory[] = [
   'librariesLearning',
   'communityBelonging',
   'networksPlanning',
+  'internationalStudents',
+  'insurance',
+  'money',
 ];
 
 /** i18n keys — resolve with `t()` at render time, never render these directly. */
@@ -28,6 +34,9 @@ export const PARTNER_CATEGORY_LABEL_KEYS: Record<PartnerCategory, string> = {
   librariesLearning: 'learn.resources.category.librariesLearning.label',
   communityBelonging: 'learn.resources.category.communityBelonging.label',
   networksPlanning: 'learn.resources.category.networksPlanning.label',
+  internationalStudents: 'learn.resources.category.internationalStudents.label',
+  insurance: 'learn.resources.category.insurance.label',
+  money: 'learn.resources.category.money.label',
 };
 
 /** i18n keys — resolve with `t()` at render time, never render these directly. */
@@ -38,6 +47,9 @@ export const PARTNER_CATEGORY_DESCRIPTION_KEYS: Record<PartnerCategory, string> 
   librariesLearning: 'learn.resources.category.librariesLearning.description',
   communityBelonging: 'learn.resources.category.communityBelonging.description',
   networksPlanning: 'learn.resources.category.networksPlanning.description',
+  internationalStudents: 'learn.resources.category.internationalStudents.description',
+  insurance: 'learn.resources.category.insurance.description',
+  money: 'learn.resources.category.money.description',
 };
 
 /** MaterialCommunityIcons names. */
@@ -48,13 +60,17 @@ export const PARTNER_CATEGORY_ICONS: Record<PartnerCategory, string> = {
   librariesLearning: 'book-open-variant',
   communityBelonging: 'hand-heart-outline',
   networksPlanning: 'sitemap',
+  internationalStudents: 'school-outline',
+  insurance: 'shield-check-outline',
+  money: 'bank-outline',
 };
 
 /**
  * Accent color per category (tiles, monograms, pills, highlight checks).
  * The first five carry over from the previous taxonomy. Networks & Planning
  * Tables takes a muted slate — it coordinates services rather than delivering
- * them, so it reads as distinct from the direct-service categories.
+ * them, so it reads as distinct from the direct-service categories. The
+ * remaining three take hues not already in use so no two tiles read as a pair.
  */
 export const PARTNER_CATEGORY_COLORS: Record<PartnerCategory, string> = {
   gettingSettled: '#2DB39A',
@@ -63,6 +79,9 @@ export const PARTNER_CATEGORY_COLORS: Record<PartnerCategory, string> = {
   librariesLearning: '#7C6CD6',
   communityBelonging: '#F68B26',
   networksPlanning: '#5B6B8A',
+  internationalStudents: '#C25D8F',
+  insurance: '#3E9B63',
+  money: '#C8941F',
 };
 
 /** Soft tint per category (pill backgrounds, gradient fallback). */
@@ -73,6 +92,9 @@ export const PARTNER_CATEGORY_TINTS: Record<PartnerCategory, string> = {
   librariesLearning: '#EFEDFB',
   communityBelonging: '#FDF1E4',
   networksPlanning: '#EDEFF4',
+  internationalStudents: '#FAEDF3',
+  insurance: '#EAF6EF',
+  money: '#FBF3E3',
 };
 
 /** What a service costs the person using it. */

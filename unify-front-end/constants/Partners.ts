@@ -244,7 +244,9 @@ export const PARTNERS: Partner[] = [
       'Bilingual English / 中文',
     ],
     serviceArea: 'Richmond',
-    website: 'https://canadashaws.ca/',
+    // Affiliate link supplied by the partner; deliberately unlabelled in the
+    // UI and opened by the standard Website button.
+    website: 'https://www.immshaws.com/unify/',
     cost: 'paid',
     howToStart: 'Request a free assessment through the website, or contact them by phone, email or WhatsApp.',
     phone: '+1 672-867-6886',
@@ -622,6 +624,263 @@ export const PARTNERS: Partner[] = [
       },
     ],
     displayOrder: 1,
+    active: true,
+  },
+  {
+    slug: 'delta-lip',
+    name: 'Delta Local Immigration Partnership',
+    category: 'networksPlanning',
+    partnershipType: 'resource',
+    tagline: 'Coordinates newcomer services across Delta.',
+    description:
+      'The Delta Local Immigration Partnership is an IRCC-funded partnership table bringing local organizations together to make Delta more welcoming for newcomers. It states that it does not provide direct services to individuals.',
+    highlights: [
+      'Coordinates local newcomer services in Delta',
+      'Youth and immigrant advisory tables',
+      'Publishes the Delta Services Map',
+    ],
+    serviceArea: 'Delta',
+    website: 'https://deltalip.ca/',
+    howToStart:
+      'Use the contact form on their website, or apply to join an advisory table. Delta LIP works with agencies, not individuals.',
+    programs: [
+      {
+        name: 'Delta Services Map',
+        description: 'An online map of services available to newcomers in Delta.',
+        url: 'https://deltalip.ca/delta-services-map/',
+      },
+      {
+        name: 'Delta Youth Newcomer Advisory Table (DYNAT)',
+        description:
+          'Brings together young people who want to make Delta more welcoming for newcomer youth.',
+        eligibility:
+          'Youth aged 16 to 25 who want to make Delta a more welcoming and inclusive place for newcomer youth.',
+      },
+      {
+        name: 'Immigrant Advisory Table',
+        description:
+          'A volunteer roundtable with members representing a diversity of backgrounds and experiences.',
+        eligibility: 'Applicants must be at least 26 years old.',
+      },
+    ],
+    displayOrder: 2,
+    active: true,
+  },
+  // ── International Students ──────────────────────────────────────────────
+  {
+    slug: 'sfu-international',
+    name: 'SFU International Services for Students',
+    category: 'internationalStudents',
+    partnershipType: 'resource',
+    tagline: 'Advising, orientation, and newcomer support for SFU students.',
+    description:
+      "Simon Fraser University's International Services for Students supports international students with non-academic advising, orientation, and career programming, plus dedicated support for students who identify as refugees or newcomers.",
+    highlights: [
+      'Non-academic advising for international students',
+      'Orientation and career programming',
+      'Dedicated refugee and newcomer support',
+    ],
+    serviceArea: 'SFU Burnaby campus',
+    website: 'https://www.sfu.ca/students/iss.html',
+    eligibility:
+      'International students enrolled at SFU, including undergraduate, graduate and exchange students.',
+    howToStart:
+      'Drop in (in person or virtual), book an appointment, or email iss_office@sfu.ca.',
+    phone: '+1 778-782-4232',
+    email: 'iss_office@sfu.ca',
+    address: 'MBC 1200 – 8888 University Drive, Burnaby, BC V5A 1S6',
+    hours: 'Mon–Fri 9:00am–4:00pm (closed 12:00–1:00pm)',
+    programs: [
+      {
+        name: 'International and Newcomer Student Advising',
+        description:
+          'Non-academic advising for international undergraduate, graduate and exchange students.',
+        eligibility:
+          'International students, including undergraduate, graduate and exchange students.',
+        url: 'https://www.sfu.ca/students/isap.html',
+      },
+      {
+        name: 'Refugee and Newcomer Programs',
+        description:
+          'Support for students who identify as refugees or newcomers, including the World University Service of Canada Student Refugee Program.',
+        eligibility: 'SFU students who identify as refugees or newcomers.',
+        url: 'https://www.sfu.ca/students/iss/refugee-and-newcomer-program.html',
+      },
+      {
+        name: 'International Student Orientation Series',
+        description:
+          'A multi-part series for all new international students beginning studies at SFU.',
+        eligibility: 'New international students starting at SFU.',
+        url: 'https://www.sfu.ca/students/isap/programs/intlorientation.html',
+      },
+      {
+        name: 'International Student Career Week',
+        description:
+          'A week-long series of career activities designed for international students.',
+        eligibility: 'International undergraduate and graduate students.',
+        url: 'https://www.sfu.ca/students/isap/programs/IntlCareerWeek.html',
+      },
+    ],
+    displayOrder: 0,
+    active: true,
+  },
+  {
+    slug: 'fraser-international-college',
+    name: 'Fraser International College',
+    category: 'internationalStudents',
+    partnershipType: 'resource',
+    tagline: 'Pathway college programs leading into SFU degrees.',
+    description:
+      "Fraser International College is a private pathway college on SFU's Burnaby campus, offering foundation and first-year programs that lead into Simon Fraser University degrees. All programs are tuition-based.",
+    highlights: [
+      'University transfer pathway into SFU',
+      'Foundation and first-year university programs',
+      'Located on the SFU Burnaby campus',
+    ],
+    serviceArea: 'Burnaby',
+    website: 'https://www.fraseric.ca/',
+    cost: 'paid',
+    eligibility:
+      'Applicants must be at least 17 years old by the last day of their first semester and submit all academic transcripts. Academic requirements vary by program and by country of origin.',
+    howToStart:
+      'Apply online through the FIC student portal, email info@fraseric.ca, or apply through a listed education agent.',
+    phone: '(778) 782-5011',
+    email: 'info@fraseric.ca',
+    address: '8999 Nelson Way, Burnaby, BC V5A 4B5',
+    programs: [
+      {
+        name: 'Foundation Program (UTP Stage I)',
+        description: 'Pre-university program taken over two terms.',
+        eligibility:
+          'Successful completion of Year 11 or equivalent, with benchmarks depending on the chosen program.',
+        cost: 'paid',
+        url: 'https://www.fraseric.ca/admissions/fees/',
+      },
+      {
+        name: 'International Year One (UTP Stage II)',
+        description: 'First-year university credit programme leading into an SFU degree.',
+        eligibility:
+          'Generally Year 12 completion or equivalent; requirements vary by country system and program.',
+        cost: 'paid',
+        url: 'https://www.fraseric.ca/admissions/fees/',
+      },
+      {
+        name: 'Associate of Arts Degree',
+        description: 'Two-year associate degree taken at FIC.',
+        eligibility: 'Generally Year 12 completion or equivalent.',
+        cost: 'paid',
+        url: 'https://www.fraseric.ca/admissions/fees/',
+      },
+    ],
+    displayOrder: 1,
+    active: true,
+  },
+  // ── Insurance ───────────────────────────────────────────────────────────
+  {
+    slug: 'tugo',
+    name: 'TuGo',
+    category: 'insurance',
+    partnershipType: 'referral',
+    tagline: 'Travel and visitor insurance, including cover during the health-plan wait.',
+    description:
+      'TuGo is a Canadian-owned travel insurance provider with its head office in Richmond, BC. Its Visitors to Canada plans cover emergency medical costs for family visiting from abroad and for people waiting for a provincial health plan to take effect.',
+    highlights: [
+      'Emergency medical cover for visitors to Canada',
+      'Coverage options for pre-existing conditions',
+      'Canadian-owned, head office in Richmond, BC',
+    ],
+    serviceArea: 'Canada and worldwide',
+    // Affiliate link supplied by the partner; deliberately unlabelled in the
+    // UI and opened by the standard Website button.
+    website: 'https://tugo.partnerlinks.io/68e8fsmokbc7',
+    cost: 'paid',
+    howToStart:
+      'Start a quote online through a TuGo insurance partner, or call 1-855-929-8846.',
+    phone: '1-855-929-8846',
+    email: 'info@tugo.com',
+    address: '1200–6081 No. 3 Road, Richmond, BC V6Y 2B2',
+    hours: 'Mon–Fri 6:00am–5:00pm PST · Sat 7:00am–4:00pm PST · Sun closed',
+    languages: ['English', 'French'],
+    programs: [
+      {
+        name: 'Visitors to Canada Insurance',
+        description:
+          'Emergency medical protection for visitors, with options covering pre-existing conditions.',
+        eligibility:
+          'For people visiting family or friends, travelling in Canada, or waiting for a provincial health plan to take effect.',
+        cost: 'paid',
+      },
+      {
+        name: 'Basic Visitors to Canada Insurance',
+        description: 'Lower-cost emergency medical coverage for visitors on a budget.',
+        cost: 'paid',
+      },
+      {
+        name: 'Trip Cancellation & Trip Interruption Insurance',
+        description:
+          'Covers costs if a trip is cancelled before departure or disrupted during travel.',
+        cost: 'paid',
+      },
+      {
+        name: '24/7 Emergency Medical Assistance',
+        description:
+          'Round-the-clock emergency medical assistance and claims support on 1-800-663-0399.',
+      },
+    ],
+    displayOrder: 0,
+    active: true,
+  },
+  // ── Money & Banking ─────────────────────────────────────────────────────
+  {
+    slug: 'desjardins',
+    name: 'Desjardins',
+    category: 'money',
+    partnershipType: 'referral',
+    tagline: 'Newcomer banking, credit building, and free legal help.',
+    description:
+      "Desjardins is Canada's largest cooperative financial group. Its newcomer offer includes a chequing account with no monthly plan fee during an eligibility period, no-annual-fee credit cards to help build Canadian credit history, and a free legal assistance service. Its branch network is in Quebec and Ontario.",
+    highlights: [
+      'No monthly plan fee during the newcomer period',
+      'Credit cards to build Canadian credit history',
+      'Free legal assistance service for two years',
+    ],
+    serviceArea: 'Quebec and Ontario',
+    website: 'https://www.desjardins.com/ca/personal/you-are/newcomers-canada/',
+    cost: 'mixed',
+    eligibility:
+      'The newcomer account offer is for people aged 25 and over who are permanent residents, or temporary residents with a work permit valid for more than 8 months, who have lived in Canada 3 years or less and are not already Desjardins members. Separate offers cover ages 18–24 and full-time students aged 25–30.',
+    howToStart:
+      'Open an account online in about 15 minutes, or apply from abroad and confirm your identity at a service location on arrival.',
+    phone: '1-877-435-6098',
+    hours: 'Legal assistance: file opening 24/7 · advisors Mon–Fri 9:00am–8:00pm, Sat 9:00am–5:00pm',
+    languages: ['English', 'French'],
+    programs: [
+      {
+        name: 'Newcomers chequing account (Unlimited plan)',
+        description:
+          'Chequing account with the monthly Unlimited plan fee waived during the eligibility period.',
+        eligibility:
+          'Aged 25+, permanent resident or temporary resident with a work permit valid more than 8 months, in Canada 3 years or less, and not already a Desjardins member.',
+        cost: 'mixed',
+      },
+      {
+        name: 'Free legal assistance service',
+        description:
+          'Legal assistance included with the newcomer offer for two years, covering everyday matters.',
+        cost: 'free',
+      },
+      {
+        name: 'International money transfers',
+        description: 'International money transfers of up to $25,000 per day.',
+      },
+      {
+        name: 'Youth and student accounts',
+        description: 'Account offers for younger newcomers and full-time students.',
+        eligibility: 'Ages 18–24, or 25–30 if a full-time student.',
+        cost: 'mixed',
+      },
+    ],
+    displayOrder: 0,
     active: true,
   },
 ];
