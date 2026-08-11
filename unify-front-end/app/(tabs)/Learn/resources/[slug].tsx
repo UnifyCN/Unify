@@ -70,14 +70,14 @@ export default function PartnerDetailScreen() {
   const categoryIcon = PARTNER_CATEGORY_ICONS[partner.category];
 
   const handleVisit = async () => {
-    if (!partner.websiteUrl) return;
+    if (!partner.website) return;
     trackResourcesPartnerWebsiteOpened(
       partner.slug,
       partner.category,
       partner.partnershipType
     );
     try {
-      await WebBrowser.openBrowserAsync(partner.websiteUrl, {
+      await WebBrowser.openBrowserAsync(partner.website, {
         controlsColor: color,
         toolbarColor: '#FFFFFF',
       });
@@ -87,6 +87,7 @@ export default function PartnerDetailScreen() {
   };
 
   const handleOpenProgram = async (program: PartnerProgram) => {
+    if (!program.url) return;
     trackResourcesProgramOpened(partner.slug, program.name, partner.category);
     try {
       await WebBrowser.openBrowserAsync(program.url, {
@@ -136,7 +137,7 @@ export default function PartnerDetailScreen() {
             <MaterialCommunityIcons name={categoryIcon as any} size={13} color={color} />
             <Text style={[styles.pillText, { color }]}>{categoryLabel}</Text>
           </View>
-          <Text style={styles.location}>{partner.location}</Text>
+          <Text style={styles.location}>{partner.serviceArea}</Text>
 
           <Text style={styles.sectionHead}>{t('learn.resources.about')}</Text>
           <Text style={styles.about}>{partner.description}</Text>
@@ -160,33 +161,48 @@ export default function PartnerDetailScreen() {
           {partner.programs && partner.programs.length > 0 && (
             <>
               <Text style={styles.sectionHead}>{t('learn.resources.programs')}</Text>
-              {partner.programs.map(program => (
-                <TouchableOpacity
-                  key={program.name}
-                  onPress={() => handleOpenProgram(program)}
-                  activeOpacity={0.75}
-                  style={styles.programCard}
-                  accessibilityRole='button'
-                  accessibilityLabel={t('learn.resources.opensInBrowser', {
-                    name: program.name,
-                  })}
-                >
-                  <View style={styles.programText}>
-                    <Text style={styles.programName}>{program.name}</Text>
-                    <Text style={styles.programDesc}>{program.description}</Text>
+              {partner.programs.map(program => {
+                const body = (
+                  <>
+                    <View style={styles.programText}>
+                      <Text style={styles.programName}>{program.name}</Text>
+                      <Text style={styles.programDesc}>{program.description}</Text>
+                    </View>
+                    {program.url && (
+                      <Feather
+                        name='external-link'
+                        size={16}
+                        color={color}
+                        style={styles.programIcon}
+                      />
+                    )}
+                  </>
+                );
+                // Not every partner publishes a page per program; without a
+                // link the card is information, not a tap target.
+                return program.url ? (
+                  <TouchableOpacity
+                    key={program.name}
+                    onPress={() => handleOpenProgram(program)}
+                    activeOpacity={0.75}
+                    style={styles.programCard}
+                    accessibilityRole='button'
+                    accessibilityLabel={t('learn.resources.opensInBrowser', {
+                      name: program.name,
+                    })}
+                  >
+                    {body}
+                  </TouchableOpacity>
+                ) : (
+                  <View key={program.name} style={styles.programCard}>
+                    {body}
                   </View>
-                  <Feather
-                    name='external-link'
-                    size={16}
-                    color={color}
-                    style={styles.programIcon}
-                  />
-                </TouchableOpacity>
-              ))}
+                );
+              })}
             </>
           )}
 
-          {partner.websiteUrl && (
+          {partner.website && (
             <TouchableOpacity
               onPress={handleVisit}
               activeOpacity={0.85}

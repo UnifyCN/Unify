@@ -23,8 +23,8 @@ export function buildPartnerUrl(
   partner: Partner,
   source: PartnerCtaSource
 ): string {
-  if (!partner.websiteUrl) return '';
-  const url = new URL(partner.websiteUrl);
+  if (!partner.website) return '';
+  const url = new URL(partner.website);
   url.searchParams.set('utm_source', 'unify');
   url.searchParams.set('utm_medium', source);
   url.searchParams.set('utm_campaign', partner.slug);

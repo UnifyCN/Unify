@@ -63,14 +63,31 @@ export const PARTNER_CATEGORY_TINTS: Record<PartnerCategory, string> = {
   immigration: '#FCEDEB',
 };
 
-/** A program/event a partner offers, surfaced on the detail screen. */
+/** What a service costs the person using it. */
+export type Cost = 'free' | 'paid' | 'mixed';
+
+/**
+ * A program a partner runs — a first-class record, not free text, so the
+ * directory can later be re-cut by program instead of by org.
+ *
+ * Every field beyond `name` is optional: partner sites vary in what they
+ * publish, and an unknown value must stay absent rather than be guessed.
+ */
 export interface PartnerProgram {
   /** Program name, e.g. "MentorConnect". */
   name: string;
   /** One-to-two line summary. */
   description: string;
+  /** Who the program is for. Omitted unless the partner states it. */
+  eligibility?: string;
+  cost?: Cost;
   /** Link opened in an in-app browser. */
-  url: string;
+  url?: string;
+  /**
+   * ISO date (YYYY-MM-DD). Set ONLY when a human confirmed this record by
+   * phone or email — never from web research. Not surfaced in the UI yet.
+   */
+  lastVerified?: string;
 }
 
 export interface Partner {
@@ -86,16 +103,44 @@ export interface Partner {
   description: string;
   /** 2–4 "how they help newcomers" bullets. */
   highlights: string[];
-  /** City/region (+ optional branch count), e.g. "Vancouver · 21 branches". */
-  location: string;
+  /** Area served, e.g. "Greater Vancouver", "Surrey", "British Columbia". */
+  serviceArea: string;
+
+  // --- "How to get help" — every field optional; render only when populated.
+  // An absent value means "the partner does not publish this", NOT "free" or
+  // "open to everyone". Never infer these.
+
+  cost?: Cost;
+  /**
+   * Who qualifies. Many BC settlement services are IRCC-funded and limited to
+   * permanent residents and protected persons, which excludes international
+   * students and most temporary workers. Routing someone to a service they
+   * are ineligible for is this feature's main failure mode, so this is set
+   * only from an explicit statement by the partner.
+   */
+  eligibility?: string;
+  /** How to make first contact: walk in, call, email, online form, referral. */
+  howToStart?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  hours?: string;
+  /** Languages of service. Omitted when unstated; never assumed to be English. */
+  languages?: string[];
   /** Public website; opened in an in-app browser. Button hidden if absent. */
-  websiteUrl?: string;
+  website?: string;
   /** Optional brand logo; falls back to a monogram avatar when absent. */
   logo?: ImageSourcePropType;
   /** Optional hero photo; falls back to a category-tinted gradient when absent. */
   heroImage?: ImageSourcePropType;
-  /** Optional programs/events to showcase on the detail screen. */
+  /** Programs this partner runs, shown on the detail screen. */
   programs?: PartnerProgram[];
+  /**
+   * ISO date (YYYY-MM-DD). Set ONLY when a human confirmed this record by
+   * phone or email — never from web research. Not surfaced in the UI yet;
+   * the "Last verified" badge is deliberately deferred.
+   */
+  lastVerified?: string;
   /** Lower numbers render first within a category. */
   displayOrder: number;
   /** Inactive partners are filtered out of all UI. */

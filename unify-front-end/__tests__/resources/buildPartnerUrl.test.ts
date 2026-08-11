@@ -9,14 +9,14 @@ const base: Partner = {
   tagline: 't',
   description: 'a description long enough',
   highlights: ['a', 'b'],
-  location: 'Online',
-  websiteUrl: 'https://www.anutio.com/',
+  serviceArea: 'Online',
+  website: 'https://www.anutio.com/',
   displayOrder: 0,
   active: true,
 };
 
 describe('buildPartnerUrl', () => {
-  it('appends UTM params derived from websiteUrl', () => {
+  it('appends UTM params derived from website', () => {
     const url = buildPartnerUrl(base, 'learn_resources');
     expect(url).toContain('utm_source=unify');
     expect(url).toContain('utm_medium=learn_resources');
@@ -25,7 +25,7 @@ describe('buildPartnerUrl', () => {
     expect(url.startsWith('https://www.anutio.com/')).toBe(true);
   });
 
-  it('returns empty string when websiteUrl is missing', () => {
-    expect(buildPartnerUrl({ ...base, websiteUrl: undefined }, 'learn_resources')).toBe('');
+  it('returns empty string when website is missing', () => {
+    expect(buildPartnerUrl({ ...base, website: undefined }, 'learn_resources')).toBe('');
   });
 });

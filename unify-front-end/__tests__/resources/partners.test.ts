@@ -21,14 +21,14 @@ describe('partner data', () => {
       expect(p.tagline).toBeTruthy();
       expect(p.description.length).toBeGreaterThan(20);
       expect(p.highlights.length).toBeGreaterThanOrEqual(2);
-      expect(p.location).toBeTruthy();
+      expect(p.serviceArea).toBeTruthy();
       expect(CATEGORY_ORDER).toContain(p.category);
     }
   });
 
-  it('every websiteUrl is a valid http(s) URL', () => {
+  it('every website is a valid http(s) URL', () => {
     for (const p of PARTNERS) {
-      if (p.websiteUrl) expect(p.websiteUrl).toMatch(/^https?:\/\/.+/);
+      if (p.website) expect(p.website).toMatch(/^https?:\/\/.+/);
     }
   });
 
@@ -90,7 +90,8 @@ describe('partner data', () => {
       for (const program of p.programs ?? []) {
         expect(program.name).toBeTruthy();
         expect(program.description.length).toBeGreaterThan(10);
-        expect(program.url).toMatch(/^https?:\/\/.+/);
+        // url is optional — not every partner publishes a page per program.
+        if (program.url) expect(program.url).toMatch(/^https?:\/\/.+/);
       }
     }
   });
