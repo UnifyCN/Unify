@@ -34,6 +34,8 @@ export default function SegmentedControl<T extends string>({
             activeOpacity={0.85}
             onPress={() => onChange(option.value)}
             style={[styles.segment, isActive && styles.segmentActive]}
+            accessibilityRole='button'
+            accessibilityState={{ selected: isActive }}
           >
             <Text
               style={[styles.label, isActive && styles.labelActive]}
