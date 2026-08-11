@@ -458,6 +458,8 @@
     "formGreeting": "Tôi có thể giúp bạn điền bất kỳ biểu mẫu nào từng bước. Bạn cần trợ giúp biểu mẫu nào?",
     "inputPlaceholder": "Hỏi bất cứ điều gì...",
     "dailyLimitReached": "Đã đạt giới hạn hàng ngày",
+    "dailyLimitReachedToast": "Bạn đã đạt giới hạn tin nhắn hàng ngày. Vui lòng thử lại vào ngày mai.",
+    "busyToast": "Trợ lý đang bận. Vui lòng thử lại sau một phút.",
     "disclaimer": "Trợ lý có thể mắc lỗi. Hãy xác minh thông tin quan trọng.",
     "openHistory": "Mở lịch sử",
     "newChat": "Cuộc trò chuyện mới",
@@ -1040,13 +1042,6 @@
       "skillAnswerIncorrect": "Câu trả lời chưa đúng. Vui lòng thử lại.",
       "consentRequired": "Vui lòng đánh dấu vào ô để xác nhận bạn đồng ý.",
       "submitFailed": "Không thể gửi lượt tham gia. Vui lòng thử lại."
-    }
-  },
-  "privacy": {
-    "settings": {
-      "sectionTitle": "Quyền riêng tư",
-      "personalizedAdsLabel": "Cho phép theo dõi hoạt động",
-      "personalizedAdsHelp": "Cho phép chúng tôi chia sẻ hoạt động ẩn danh trong ứng dụng với các đối tác quảng cáo để hiển thị quảng cáo phù hợp hơn. Tắt bất cứ lúc nào."
     }
   }
 }

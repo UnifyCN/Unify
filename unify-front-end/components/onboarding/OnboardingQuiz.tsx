@@ -12,8 +12,6 @@ import {
   Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
-import { logActivation } from '@/services/analytics/metaEvents';
-import { initMetaSDK } from '@/services/analytics/initMetaSDK';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Theme } from '@/constants/Theme';
@@ -339,32 +337,12 @@ export default function OnboardingQuiz({
         console.warn('[onboarding] updateFirstName threw:', err);
       }
 
-      // Fire Meta activation event after profile persists. Deduped per user
-      // by SecureStore, so redo-onboarding won't double-fire. Non-blocking:
-      // an analytics failure must not trigger the "save failed" alert below.
-      logActivation(user.id).catch(err =>
-        console.warn('[meta] logActivation failed', err),
-      );
-
       trackOnboardingCompleted(persona);
 
       // Always clear the in-memory clipboard code regardless of redeem outcome
       // so it can't leak into a future flow (e.g. redo-onboarding) and trigger
       // an unintended re-redeem attempt.
       inviteCtx.clear();
-
-      // First-time iOS users see the system ATT dialog directly after
-      // onboarding. initMetaSDK persists the decision, so this is a one-shot
-      // per device. We await it so the user lands on the next screen after
-      // dismissing the dialog instead of seeing it pop over the home tab.
-      const showATTPrompt = Platform.OS === 'ios' && !isRedo;
-      if (showATTPrompt) {
-        try {
-          await initMetaSDK({ requestATT: true });
-        } catch (err) {
-          console.warn('[meta] initMetaSDK failed', err);
-        }
-      }
 
       // If redeem succeeded, route the user to the welcome moment instead of home.
       if (result.redeem?.success) {

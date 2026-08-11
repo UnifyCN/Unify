@@ -27,7 +27,6 @@ import { getUserInfo } from '@/services/users/getUserInfo';
 import { createUserIfNotExists } from '../../utils/createUserIfNotExists';
 import { SimpleTextField } from './Components';
 import { useAnalytics } from '@/utils/analytics';
-import { logAccountCreated } from '@/services/analytics/metaEvents';
 import OTPPasswordReset from './OTPPasswordReset';
 import { LEGAL_URLS } from '@/utils/legalUrls';
 
@@ -160,14 +159,6 @@ export function SignIn({
             queryFn: () => getUserInfo(data.user.id),
           });
           trackSignInCompleted('google');
-          if (
-            data.user.created_at &&
-            Date.now() - new Date(data.user.created_at).getTime() < 60_000
-          ) {
-            logAccountCreated(data.user.id).catch(err =>
-              console.warn('[meta] logAccountCreated failed', err),
-            );
-          }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.googleNoEmail'));
           setLoading(false);
@@ -239,14 +230,6 @@ export function SignIn({
             queryFn: () => getUserInfo(data.user.id),
           });
           trackSignInCompleted('apple');
-          if (
-            data.user.created_at &&
-            Date.now() - new Date(data.user.created_at).getTime() < 60_000
-          ) {
-            logAccountCreated(data.user.id).catch(err =>
-              console.warn('[meta] logAccountCreated failed', err),
-            );
-          }
         } else if (data?.user?.id && !data?.user?.email) {
           setErrorMessage(t('auth.appleNoEmail'));
           setLoading(false);

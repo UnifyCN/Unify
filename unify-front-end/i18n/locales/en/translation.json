@@ -458,6 +458,8 @@
     "formGreeting": "I can help you fill out any form step by step. Which form do you need help with?",
     "inputPlaceholder": "Ask anything...",
     "dailyLimitReached": "Daily limit reached",
+    "dailyLimitReachedToast": "You've reached your daily message limit. Please try again tomorrow.",
+    "busyToast": "AI Companion is busy right now. Please try again in a minute.",
     "disclaimer": "Companion can make mistakes. Verify important info.",
     "openHistory": "Open history",
     "newChat": "New chat",
@@ -1040,13 +1042,6 @@
       "skillAnswerIncorrect": "That's not quite right. Try again.",
       "consentRequired": "Please check the box to confirm you agree.",
       "submitFailed": "Couldn't submit your entry. Please try again."
-    }
-  },
-  "privacy": {
-    "settings": {
-      "sectionTitle": "Privacy",
-      "personalizedAdsLabel": "Allow Activity Tracking",
-      "personalizedAdsHelp": "Lets us share anonymous app activity with our advertising partners so you see more relevant ads. Turn off anytime."
     }
   }
 }

@@ -458,6 +458,8 @@
     "formGreeting": "Puedo ayudarte a completar cualquier formulario paso a paso. ¿Con qué formulario necesitas ayuda?",
     "inputPlaceholder": "Pregunta lo que sea...",
     "dailyLimitReached": "Límite diario alcanzado",
+    "dailyLimitReachedToast": "Has alcanzado tu límite diario de mensajes. Inténtalo de nuevo mañana.",
+    "busyToast": "El asistente está ocupado en este momento. Inténtalo de nuevo en un minuto.",
     "disclaimer": "El asistente puede cometer errores. Verifica la información importante.",
     "openHistory": "Abrir historial",
     "newChat": "Nueva conversación",
@@ -1040,13 +1042,6 @@
       "skillAnswerIncorrect": "Esa respuesta no es correcta. Inténtalo de nuevo.",
       "consentRequired": "Por favor, marca la casilla para confirmar que aceptas.",
       "submitFailed": "No se pudo enviar tu participación. Por favor, intenta de nuevo."
-    }
-  },
-  "privacy": {
-    "settings": {
-      "sectionTitle": "Privacidad",
-      "personalizedAdsLabel": "Permitir rastreo de actividad",
-      "personalizedAdsHelp": "Nos permite compartir actividad anónima en la app con nuestros socios publicitarios para mostrarte anuncios más relevantes. Desactiva cuando quieras."
     }
   }
 }

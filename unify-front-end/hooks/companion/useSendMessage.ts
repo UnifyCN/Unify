@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   AICompanionBusyError,
+  AICompanionLimitError,
   streamGeminiAPI,
   StreamComplete,
   StreamMetadata,
@@ -15,8 +16,6 @@ import {
   sanitizeSuggestedNextSteps,
 } from '@/helpers/companion/messageHelpers';
 import { useAnalytics } from '@/utils/analytics';
-import { logCompanionFirstMessage } from '@/services/analytics/metaEvents';
-import { supabase } from '@/lib/supabase';
 
 type SendMessageError = Error & {
   messagePersisted?: boolean;
@@ -92,12 +91,6 @@ export const useSendMessage = ({
           clientId: optimisticClientId,
         });
         userMessagePersisted = true;
-        // Fire Meta Companion-first-message event. Deduped per user in SecureStore.
-        const userId = (await supabase.auth.getSession()).data.session?.user
-          ?.id;
-        if (userId) {
-          await logCompanionFirstMessage(userId);
-        }
       } catch (error) {
         console.error('Failed to save user message:', error);
         // Continue anyway - message will be saved but might not show immediately
@@ -244,8 +237,12 @@ export const useSendMessage = ({
           ? (error as SendMessageError)
           : (new Error(String(error)) as SendMessageError);
       sendError.messagePersisted = userMessagePersisted;
-      // Preserve the typed busy error so callers can match on instanceof.
-      if (error instanceof AICompanionBusyError) {
+      // Preserve typed errors (busy / daily-limit) so callers can match on
+      // instanceof and show the right toast.
+      if (
+        error instanceof AICompanionBusyError ||
+        error instanceof AICompanionLimitError
+      ) {
         throw error;
       }
       throw sendError;

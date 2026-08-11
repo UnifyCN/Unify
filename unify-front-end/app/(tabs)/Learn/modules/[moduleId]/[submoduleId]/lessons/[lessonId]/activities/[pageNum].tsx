@@ -22,6 +22,12 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import {
+  saveActivityInput,
+  getActivityInputsByPage,
+  saveResumePosition,
+  ACTIVITY_QUESTION_PREFIX,
+} from '@/services/progress/progressService';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -57,12 +63,49 @@ export default function ActivityPageScreen() {
     submoduleId || ''
   );
 
-  // Reset state when page changes
+  // Debounce timers for autosaving free-text inputs, keyed by field.
+  const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  // Fields the user has edited on this page. Guards the async restore below from
+  // clobbering fresh input if the fetch resolves after the user starts typing.
+  const touchedRef = useRef<Set<string>>(new Set());
+
+  // Hydrate any previously-saved inputs/answers for this page so the user's work
+  // survives Next/Back and exiting/re-entering the lesson. Replaces the old effect
+  // that unconditionally wiped state to {} on every page change.
   useEffect(() => {
+    let cancelled = false;
     setIsSubmitted(false);
     setInputValues({});
     setQuestionAnswers({});
-  }, [currentPage]);
+    touchedRef.current = new Set();
+    const pageKey = lesson?.activity_pages?.[currentPage - 1]?._key;
+    if (!lessonId || !pageKey) return;
+    getActivityInputsByPage(lessonId).then(byPage => {
+      if (cancelled) return;
+      const saved = byPage[pageKey];
+      if (!saved) return;
+      // Only fill fields the user hasn't touched or already set (avoids a slow
+      // fetch overwriting input typed during the load).
+      setInputValues(prev => {
+        const next = { ...prev };
+        for (const [k, v] of Object.entries(saved.inputValues)) {
+          if (!touchedRef.current.has(k) && next[k] === undefined) next[k] = v;
+        }
+        return next;
+      });
+      setQuestionAnswers(prev => {
+        const next = { ...prev };
+        for (const [k, v] of Object.entries(saved.questionAnswers)) {
+          if (!touchedRef.current.has(k) && next[k] === undefined) next[k] = v;
+        }
+        return next;
+      });
+      if (touchedRef.current.size === 0) setIsSubmitted(saved.isSubmitted);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPage, lessonId, lesson?.activity_pages]);
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -100,7 +143,25 @@ export default function ActivityPageScreen() {
         lastTrackedRef.current = now;
         lastTrackedPageRef.current = pageKey;
       }
-    }, [lessonTitle, lessonId, currentPage, totalPages, trackScreen])
+      // Persist resume position so exit → re-enter lands back on this activity page.
+      if (lessonId && submoduleId && moduleId) {
+        saveResumePosition(
+          lessonId,
+          submoduleId,
+          moduleId,
+          'activity',
+          currentPage
+        );
+      }
+    }, [
+      lessonTitle,
+      lessonId,
+      submoduleId,
+      moduleId,
+      currentPage,
+      totalPages,
+      trackScreen,
+    ])
   );
 
   // Helper functions for sequential navigation
@@ -134,25 +195,79 @@ export default function ActivityPageScreen() {
   };
 
   const handleInputChange = (fieldKey: string, value: string) => {
+    touchedRef.current.add(fieldKey);
     setInputValues(prev => ({ ...prev, [fieldKey]: value }));
+    // Debounced autosave of free-text so it survives navigation without a write
+    // on every keystroke.
+    const pageKey = currentPageData?._key;
+    if (!pageKey || !lessonId || !submoduleId || !moduleId) return;
+    // Key timers by page + field so a pending save is never cancelled by the same
+    // field key on another page.
+    const timerKey = `${pageKey}:${fieldKey}`;
+    if (saveTimers.current[timerKey]) clearTimeout(saveTimers.current[timerKey]);
+    saveTimers.current[timerKey] = setTimeout(() => {
+      saveActivityInput(
+        lessonId,
+        submoduleId,
+        moduleId,
+        pageKey,
+        fieldKey,
+        value,
+        false
+      );
+    }, 600);
   };
 
   const handleQuestionAnswer = (
     questionKey: string,
     answer: string | string[]
   ) => {
+    touchedRef.current.add(questionKey);
     setQuestionAnswers(prev => ({ ...prev, [questionKey]: answer }));
+    // Selections are cheap and discrete — persist immediately.
+    const pageKey = currentPageData?._key;
+    if (!pageKey || !lessonId || !submoduleId || !moduleId) return;
+    saveActivityInput(
+      lessonId,
+      submoduleId,
+      moduleId,
+      pageKey,
+      `${ACTIVITY_QUESTION_PREFIX}${questionKey}`,
+      JSON.stringify(answer),
+      false
+    );
   };
 
   const handleSubmit = async () => {
     setIsSubmitted(true);
-    if (moduleId && submoduleId && lessonId && currentPageData?._key) {
-      trackActivityCompleted(
-        moduleId,
-        submoduleId,
-        lessonId,
-        currentPageData._key
-      );
+    const pageKey = currentPageData?._key;
+    if (moduleId && submoduleId && lessonId && pageKey) {
+      // Flush any pending debounced saves and persist final values as submitted.
+      Object.values(saveTimers.current).forEach(clearTimeout);
+      saveTimers.current = {};
+      Object.entries(inputValues).forEach(([fieldKey, value]) => {
+        saveActivityInput(
+          lessonId,
+          submoduleId,
+          moduleId,
+          pageKey,
+          fieldKey,
+          value,
+          true
+        );
+      });
+      Object.entries(questionAnswers).forEach(([questionKey, answer]) => {
+        saveActivityInput(
+          lessonId,
+          submoduleId,
+          moduleId,
+          pageKey,
+          `${ACTIVITY_QUESTION_PREFIX}${questionKey}`,
+          JSON.stringify(answer),
+          true
+        );
+      });
+      trackActivityCompleted(moduleId, submoduleId, lessonId, pageKey);
     }
   };
 
