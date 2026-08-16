@@ -1,26 +1,9 @@
-# Backend Database Schema
+# Unify shared backend
 
-This folder contains the database schema for the Unify app.
+The web and mobile applications use one shared Supabase database. Its canonical database tooling lives in [`supabase/`](supabase/README.md).
 
-## Files
+The files under `src/database/` are incomplete historical schemas. They are frozen by checksum and must not be run or edited.
 
-- `schema.sql` - Complete database schema for Supabase PostgreSQL
-- `dummydata.sql` - Sample data for testing (optional)
+The canonical baseline is still being reconstructed from production. Do not use the Supabase Dashboard SQL Editor, `db push`, or `migration repair` until [`supabase/BASELINE_STATUS.md`](supabase/BASELINE_STATUS.md) marks the baseline ready.
 
-## Usage
-
-The frontend connects directly to Supabase, so this schema is used to set up the database tables in your Supabase project.
-
-## Database Setup
-
-1. Go to your Supabase project dashboard
-2. Navigate to the SQL Editor
-3. Copy and paste the contents of `schema.sql`
-4. Run the SQL to create all tables
-
-This schema includes:
-- Users and authentication
-- Posts and social features
-- Learning modules and progress tracking
-- Events and groups
-- All necessary relationships and constraints
+Edge Functions are outside this directory's ownership and remain unchanged in their existing repositories.

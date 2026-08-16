@@ -35,6 +35,7 @@ npx expo start --web    # Web browser
 ### Environment Configuration
 
 Create a `.env` file (or set via Supabase dashboard):
+
 ```
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -42,45 +43,41 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 
 ### Key Scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm start` | Start Expo dev server |
-| `npm run ios` | Run on iOS |
-| `npm run android` | Run on Android |
-| `npm run web` | Run on web |
-| `npm run lint` | Run ESLint |
-| `npx tsc --noEmit` | TypeScript check |
+| Script             | Description           |
+| ------------------ | --------------------- |
+| `npm start`        | Start Expo dev server |
+| `npm run ios`      | Run on iOS            |
+| `npm run android`  | Run on Android        |
+| `npm run web`      | Run on web            |
+| `npm run lint`     | Run ESLint            |
+| `npx tsc --noEmit` | TypeScript check      |
 
 ## Backend Setup (Supabase)
 
 ### Using Supabase Cloud
 
-1. Create a project at https://supabase.com
-2. Get your `SUPABASE_URL` and `SUPABASE_ANON_KEY`
-3. Run migrations in `unify-back-end/src/database/`
+The web and mobile applications use one existing shared Supabase project. Get the public URL and client key from the approved environment configuration; do not create or link an independent production database.
+
+All database schema and migration work belongs in `unify-back-end/supabase/`. Read its `BASELINE_STATUS.md` before making a database change.
 
 ### Local Development
 
 ```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Start local Supabase
 cd unify-back-end
-supabase start
+npm ci
 
-# Push schema
-supabase db push
+# Validate the database ownership and migration policy.
+npm test
+npm run db:validate
 ```
+
+Local database startup/reset instructions will be enabled after the production-derived baseline is replayable. The project CLI is pinned in `unify-back-end/package-lock.json`; do not install an unrelated global version.
 
 ## Database Schema
 
-The main schema is in `unify-back-end/src/database/schema.sql`:
+The canonical schema will be replayed from `unify-back-end/supabase/migrations/` once the production-derived baseline is marked ready. Files under `unify-back-end/src/database/` are frozen historical references and must not be executed.
 
-```bash
-# Apply schema to Supabase
-psql -h db.YOUR_PROJECT.supabase.co -U postgres -f schema.sql
-```
+There is intentionally no direct `psql`, Dashboard SQL Editor, migration-repair, or production-push setup command. Production database changes require the protected shared-backend workflow.
 
 ## Deployment
 
@@ -101,6 +98,7 @@ eas build --platform android
 ### CI/CD
 
 GitHub Actions automatically runs on push to `main` and PRs:
+
 - TypeScript check
 - iOS/Android build
 - See `.github/workflows/ci.yml`
@@ -113,9 +111,10 @@ Unify/
 │   ├── app/            # Screens (Expo Router)
 │   ├── services/       # API calls
 │   ├── components/    # UI components
-│   └── supabase/      # Edge functions
-├── unify-back-end/     # Backend (Supabase)
-│   └── src/database/  # SQL schemas
+│   └── supabase/      # Edge functions and frozen legacy migrations
+├── unify-back-end/     # Shared database owner
+│   ├── supabase/      # Canonical migrations, policy, config, and DB tests
+│   └── src/database/  # Frozen legacy SQL; do not add or edit
 ├── .github/workflows/  # CI/CD
 └── DOCS/              # This documentation
 ```
@@ -123,16 +122,19 @@ Unify/
 ## Troubleshooting
 
 ### Metro Bundler Issues
+
 ```bash
 npx expo start --clear
 ```
 
 ### Reset Cache
+
 ```bash
 npx expo start --reset-cache
 ```
 
 ### TypeScript Errors
+
 ```bash
 npx tsc --noEmit
 ```

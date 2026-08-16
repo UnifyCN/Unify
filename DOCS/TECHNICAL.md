@@ -5,6 +5,7 @@
 ## Architecture Overview
 
 Unify is a **monorepo** containing:
+
 - `unify-front-end/` - React Native app (Expo)
 - `unify-back-end/` - Backend services (Supabase)
 - `.github/workflows/` - CI/CD pipelines
@@ -14,6 +15,7 @@ Unify is a **monorepo** containing:
 ## Frontend (`unify-front-end/`)
 
 ### Tech Stack
+
 - **Framework**: React Native with Expo (SDK 52)
 - **Navigation**: Expo Router (file-based routing)
 - **Language**: TypeScript
@@ -52,7 +54,7 @@ unify-front-end/
 │   └── ...
 ├── supabase/
 │   ├── functions/       # Edge functions (server-side)
-│   └── migrations/      # Database migrations
+│   └── migrations/      # Frozen legacy SQL; do not add or edit
 ├── context/             # React Context providers
 ├── hooks/               # Custom React hooks
 ├── lib/                 # Supabase client config
@@ -62,15 +64,15 @@ unify-front-end/
 
 ### Key Screens
 
-| Screen | Route | Description |
-|--------|-------|-------------|
-| Home Feed | `(tabs)/index.tsx` | Main social feed |
-| Learn | `(tabs)/Learn/` | Educational modules |
-| Gather | `(tabs)/Gather/` | Community groups |
-| Companion | `(tabs)/companion/` | AI chatbot |
-| Profile | `profile.tsx` | User profile |
-| Events | `events.tsx` | Event listings |
-| Onboarding | `onboarding.tsx` | New user flow |
+| Screen     | Route               | Description         |
+| ---------- | ------------------- | ------------------- |
+| Home Feed  | `(tabs)/index.tsx`  | Main social feed    |
+| Learn      | `(tabs)/Learn/`     | Educational modules |
+| Gather     | `(tabs)/Gather/`    | Community groups    |
+| Companion  | `(tabs)/companion/` | AI chatbot          |
+| Profile    | `profile.tsx`       | User profile        |
+| Events     | `events.tsx`        | Event listings      |
+| Onboarding | `onboarding.tsx`    | New user flow       |
 
 ### Services Overview
 
@@ -91,6 +93,7 @@ Each service handles specific API operations:
 ## Backend (`unify-back-end/`)
 
 ### Tech Stack
+
 - **Database**: PostgreSQL (via Supabase)
 - **Auth**: Supabase Auth
 - **Storage**: Supabase Storage (S3)
@@ -100,35 +103,40 @@ Each service handles specific API operations:
 
 Core tables:
 
-| Table | Purpose |
-|-------|---------|
-| `users` | User profiles (extends auth.users) |
-| `posts` | Social posts |
-| `post_likes` | Post like relationships |
-| `post_comments` | Comments on posts |
-| `groups` | Community groups |
-| `group_members` | Group membership |
-| `mainTopics` | Learning module topics |
-| `subTopics` | Sub-topics within modules |
-| `lessons` | Individual lessons |
-| `lessonProgress` | User's lesson progress |
-| `quizzes` | Quiz questions |
-| `events` | Community events |
-| `chatbotUsage` | AI chat rate limiting |
-| `userFollowers` | Follower relationships |
+| Table            | Purpose                            |
+| ---------------- | ---------------------------------- |
+| `users`          | User profiles (extends auth.users) |
+| `posts`          | Social posts                       |
+| `post_likes`     | Post like relationships            |
+| `post_comments`  | Comments on posts                  |
+| `groups`         | Community groups                   |
+| `group_members`  | Group membership                   |
+| `mainTopics`     | Learning module topics             |
+| `subTopics`      | Sub-topics within modules          |
+| `lessons`        | Individual lessons                 |
+| `lessonProgress` | User's lesson progress             |
+| `quizzes`        | Quiz questions                     |
+| `events`         | Community events                   |
+| `chatbotUsage`   | AI chat rate limiting              |
+| `userFollowers`  | Follower relationships             |
 
 ### Database Functions (Triggers)
 
 - `update_post_like_count` - Auto-updates post like count
-- `update_comment_like_count` - Auto-updates comment like count  
+- `update_comment_like_count` - Auto-updates comment like count
 - `update_group_member_count` - Auto-updates group member count
 
 ### RLS Policies
 
-Row Level Security is enabled on all tables with policies for:
+Row Level Security protects application tables with policies for:
+
 - Users can read/write their own data
 - Public content is readable by all
 - Premium features restricted by `is_premium` flag
+
+Production currently has two service-role-only crawler tables without RLS:
+`crawl_sources` and `crawl_logs`. They are tracked for a separate security
+review because enabling RLS without matching crawler policies could break jobs.
 
 ---
 
@@ -137,16 +145,17 @@ Row Level Security is enabled on all tables with policies for:
 ### Environment Variables
 
 Required in Supabase:
+
 - `SUPABASE_URL` - Project URL
 - `SUPABASE_ANON_KEY` - Anonymous key
 - AI API keys (OpenAI, etc.) - stored in Edge Functions
 
-### Supabase Config (`supabase/config.toml`)
+### Supabase configuration
 
-- Auth configuration
-- Database settings
-- Storage buckets
-- Edge function settings
+- `unify-back-end/supabase/config.toml` owns database migrations, seed behavior,
+  and the local PostgreSQL version. It intentionally disables the Edge runtime.
+- The existing frontend Supabase configuration remains responsible for Edge
+  Functions and is outside the shared-database migration workflow.
 
 ### Expo Config (`app.json`)
 
@@ -161,10 +170,12 @@ Required in Supabase:
 ### Workflow: `.github/workflows/ci.yml`
 
 **Triggers:**
+
 - Push to `main`
 - Pull requests to `main`
 
 **Jobs:**
+
 1. **Front-end CI**
    - Checkout code
    - Setup Node.js 18
@@ -179,6 +190,7 @@ Required in Supabase:
 ## Development Setup
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 - Expo CLI: `npm install -g @expo/cli`
@@ -196,20 +208,27 @@ cd unify-front-end
 npm install
 npx expo start
 
-# Backend (Supabase local)
+# Shared database policy
 cd ../unify-back-end
-supabase start
+npm ci
+npm test
+npm run db:validate
 ```
+
+The local Supabase database is not started until the production-derived baseline is marked replayable.
 
 ### Database Migrations
 
 ```bash
-# Apply migrations
-supabase db push
+# Validate the shared database policy
+cd unify-back-end
+node scripts/validate-shared-database.mjs
 
-# Create new migration
-supabase migration new migration_name
+# Create a migration only after the production-derived baseline is active
+npm run db:new -- migration_name
 ```
+
+`unify-back-end/supabase/` is the sole database migration owner for both web and mobile. Direct production pushes, migration repair, linked resets, and Dashboard SQL changes are not part of the developer workflow. Edge Functions remain in their existing repositories and are outside this database ownership rule.
 
 ---
 
@@ -217,7 +236,8 @@ supabase migration new migration_name
 
 - **Auth**: Supabase Auth (email/password, OAuth)
 - **API Keys**: Stored in Edge Functions, never exposed to client
-- **RLS**: Row Level Security on all tables
+- **RLS**: Row Level Security on application tables, with the two crawler
+  exceptions tracked above
 - **Storage**: Bucket policies restrict file access
 - **Input Validation**: Server-side validation in Edge Functions
 

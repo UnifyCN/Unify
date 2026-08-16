@@ -1,0 +1,59 @@
+name: Shared Database Policy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  policy:
+    name: Shared Database Policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: unify-back-end/package-lock.json
+
+      - name: Install shared backend tooling
+        working-directory: unify-back-end
+        run: npm ci
+
+      - name: Test database policy validator
+        working-directory: unify-back-end
+        run: npm test
+
+      - name: Validate canonical database layout
+        working-directory: unify-back-end
+        run: npm run db:validate
+
+      - name: Reject edits to frozen legacy SQL
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          changed_files="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- \
+            unify-front-end/supabase/migrations \
+            unify-back-end/src/database)"
+          if [ -n "$changed_files" ]; then
+            echo "Legacy database SQL is frozen. Change unify-back-end/supabase instead."
+            echo "$changed_files"
+            exit 1
+          fi
