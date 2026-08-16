@@ -2,49 +2,120 @@ name: Full Stack CI Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: 22
+  DENO_VERSION: 2.7.14
 
 jobs:
-  front-end:
-    name: Front End CI Pipeline
+  frontend:
+    name: Frontend Quality and Native Export
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Use Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
-
-      - name: Cache node modules
-        uses: actions/cache@v4
-        with:
-          path: unify-front-end/node_modules
-          key: ${{ runner.os }}-node22-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node22-npm-
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: unify-front-end/package-lock.json
 
       - name: Install dependencies
         working-directory: unify-front-end
-        run: npm install
+        run: npm ci
+
+      - name: Run lint
+        working-directory: unify-front-end
+        run: npm run lint
+
+      - name: Check translation parity
+        working-directory: unify-front-end
+        run: npm run check-i18n
 
       - name: Run TypeScript
         working-directory: unify-front-end
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
-      - name: Build the project (Native platforms only)
+      - name: Run unit tests
+        working-directory: unify-front-end
+        run: npm run test:ci
+
+      - name: Export native bundles
         working-directory: unify-front-end
         env:
           CI: true
         run: npx expo export --platform ios --platform android
 
-      - name: Deploy
-        working-directory: unify-front-end
-        run: npm run deploy
+  edge-function-tests:
+    name: Edge Function Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+
+      - name: Run Edge Function unit tests
+        run: >-
+          deno test
+          unify-front-end/supabase/functions/_shared/interview/*.test.ts
+
+  backend-dependencies:
+    name: Backend Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Use Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: unify-back-end/package-lock.json
+
+      - name: Install dependencies from lockfile
+        working-directory: unify-back-end
+        run: npm ci
+
+  required:
+    name: Front End CI Pipeline
+    if: ${{ always() }}
+    needs:
+      - frontend
+      - edge-function-tests
+      - backend-dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Require every CI job to pass
+        env:
+          FRONTEND: ${{ needs.frontend.result }}
+          EDGE_FUNCTION_TESTS: ${{ needs.edge-function-tests.result }}
+          BACKEND_DEPENDENCIES: ${{ needs.backend-dependencies.result }}
+        run: |
+          test "$FRONTEND" = "success"
+          test "$EDGE_FUNCTION_TESTS" = "success"
+          test "$BACKEND_DEPENDENCIES" = "success"
