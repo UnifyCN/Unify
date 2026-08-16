@@ -153,6 +153,21 @@ test("rejects legacy SQL files missing from the frozen manifest", () => {
   );
 });
 
+test("rejects nested legacy SQL files missing from the frozen manifest", () => {
+  const fixture = createFixture();
+  write(
+    fixture.repositoryRoot,
+    "unify-back-end/src/database/functions/untracked.sql",
+    "select 1;\n",
+  );
+
+  const errors = validateSharedDatabase(fixture);
+
+  assert.ok(
+    errors.some((error) => error.includes("untracked legacy database file")),
+  );
+});
+
 test("rejects Edge Function source inside the database-only owner", () => {
   const fixture = createFixture();
   write(
@@ -278,6 +293,9 @@ test("rejects unsafe production database commands in automation", () => {
     ["supabase", "migration", "up", "--linked"].join(" "),
     ["supabase", "db", "reset", "--db-url", "$DATABASE_URL"].join(" "),
     'supabase "db" "reset" --linked',
+    ["supabase", "db", "reset"].join(" "),
+    ["supabase", "migration", "up"].join(" "),
+    ["supabase", "link", "--project-ref", "production"].join(" "),
   ];
 
   for (const [index, command] of unsafeCommands.entries()) {
@@ -345,6 +363,48 @@ test("rejects production subcommands invoked through environment wrappers", () =
   );
 });
 
+test("rejects a linked project followed by an unqualified database reset", () => {
+  const fixture = createFixture();
+  write(
+    fixture.repositoryRoot,
+    ".github/workflows/linked-reset.yml",
+    "steps:\n  - run: supabase link --project-ref production\n  - run: supabase db reset\n",
+  );
+
+  const errors = validateSharedDatabase(fixture);
+
+  assert.ok(
+    errors.some((error) =>
+      error.includes("unsafe production database command"),
+    ),
+  );
+});
+
+test("evaluates local flags per shell command", () => {
+  for (const [path, run] of [
+    [
+      ".github/workflows/mixed-lines.yml",
+      "|\n      supabase db reset --linked\n      supabase status --local",
+    ],
+    [
+      ".github/workflows/mixed-operators.yml",
+      "supabase migration up --linked; supabase status --local",
+    ],
+  ]) {
+    const fixture = createFixture();
+    write(fixture.repositoryRoot, path, `steps:\n  - run: ${run}\n`);
+
+    const errors = validateSharedDatabase(fixture);
+
+    assert.ok(
+      errors.some((error) =>
+        error.includes("unsafe production database command"),
+      ),
+      `expected ${path} to be rejected`,
+    );
+  }
+});
+
 test("allows explicitly local database automation", () => {
   const fixture = createFixture();
   write(
@@ -379,6 +439,15 @@ test("does not accept required config values from the wrong TOML section", () =>
   const errors = validateSharedDatabase(fixture);
 
   assert.ok(errors.some((error) => error.includes("enabled migrations")));
+});
+
+test("rejects a non-object baseline state without throwing", () => {
+  const fixture = createFixture();
+  write(fixture.databaseRoot, "policy/baseline-state.json", "null\n");
+
+  const errors = validateSharedDatabase(fixture);
+
+  assert.ok(errors.some((error) => error.includes("must be a JSON object")));
 });
 
 test("requires exact production migration names once the baseline is ready", () => {
@@ -470,6 +539,34 @@ test("requires a comment-only seed during foundation phase", () => {
 
   assert.ok(
     errors.some((error) =>
+      error.includes("foundation seed must be comment-only"),
+    ),
+  );
+});
+
+test("accepts block comments in the foundation seed", () => {
+  const fixture = createFixture();
+  write(fixture.databaseRoot, "seed.sql", "/* Intentionally empty. */\n");
+  write(
+    fixture.databaseRoot,
+    "policy/baseline-state.json",
+    `${JSON.stringify(
+      {
+        schemaVersion: 1,
+        phase: "foundation",
+        productionLedgerCount: 1,
+        canonicalMigrationCount: 0,
+        baselineVersion: null,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+
+  const errors = validateSharedDatabase(fixture);
+
+  assert.ok(
+    !errors.some((error) =>
       error.includes("foundation seed must be comment-only"),
     ),
   );

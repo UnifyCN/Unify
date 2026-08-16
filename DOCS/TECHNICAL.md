@@ -135,8 +135,8 @@ Row Level Security protects application tables with policies for:
 - Premium features restricted by `is_premium` flag
 
 Production currently has two service-role-only crawler tables without RLS:
-`crawl_sources` and `crawl_logs`. They are tracked for a separate security
-review because enabling RLS without matching crawler policies could break jobs.
+`crawl_sources` and `crawl_logs`. They require a separate security review before
+any RLS change because policies must remain compatible with crawler jobs.
 
 ---
 

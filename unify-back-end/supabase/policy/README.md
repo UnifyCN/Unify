@@ -13,3 +13,8 @@ These files describe the shared production database without containing productio
 - `remote_only`: no one-to-one repository source exists; production is the only authority.
 
 The mapping is historical provenance, not permission to replay the legacy SQL.
+
+The legacy freeze has no CI bypass. After a reviewed baseline is active, any
+archive or deletion requires two separate owner-reviewed changes: first update
+the policy and guard without touching legacy SQL, then change the legacy files
+in a later PR under the approved replacement policy.

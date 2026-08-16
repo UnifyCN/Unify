@@ -36,7 +36,7 @@ npx expo start --web    # Web browser
 
 Create a `.env` file (or set via Supabase dashboard):
 
-```
+```dotenv
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
@@ -71,7 +71,7 @@ npm test
 npm run db:validate
 ```
 
-Local database startup/reset instructions will be enabled after the production-derived baseline is replayable. The project CLI is pinned in `unify-back-end/package-lock.json`; do not install an unrelated global version.
+Local database startup/reset instructions will be enabled after the production-derived baseline is replayable. The Supabase CLI version is pinned in `unify-back-end/package.json` and locked in `unify-back-end/package-lock.json`; do not install an unrelated global version.
 
 ## Database Schema
 

@@ -80,13 +80,24 @@ function automationCommands(path, repositoryRoot, errors) {
   return contents.replace(/\\(?:\r\n|\r|\n)[ \t]*/g, " ").split(/\r?\n|\r/);
 }
 
-function normalizeShellCommand(command) {
+function normalizeShellCommands(command) {
+  const withExplicitSeparators = command
+    .replace(/\\(?:\r\n|\r|\n)[ \t]*/g, " ")
+    .replace(/\r\n|\r|\n/g, " ; ");
   try {
-    return parseShell(command)
-      .map((token) => (typeof token === "string" ? token : ";"))
-      .join(" ");
+    const commands = [[]];
+    for (const token of parseShell(withExplicitSeparators)) {
+      if (typeof token === "string") commands.at(-1).push(token);
+      else if (commands.at(-1).length > 0) commands.push([]);
+    }
+    return commands
+      .filter((tokens) => tokens.length > 0)
+      .map((tokens) => tokens.join(" "));
   } catch {
-    return command.replace(/["']/g, "");
+    return withExplicitSeparators
+      .split(/[;&|]+/)
+      .map((segment) => segment.replace(/["']/g, "").trim())
+      .filter(Boolean);
   }
 }
 
@@ -196,10 +207,12 @@ function validateNoUnsafeDatabaseAutomation(repositoryRoot, errors) {
   const sqlClientName = ["ps", "ql"].join("");
   const subcommand = (...tokens) =>
     new RegExp(`\\b${tokens.join("\\s+")}\\b`, "i");
-  const remoteFlag = /--(?:linked|db-url|project-ref)\b/i;
+  const explicitlyLocal = /--local\b/i;
   const alwaysUnsafe = [
     subcommand("db", "push"),
     subcommand("migration", "repair"),
+    /\bsupabase\s+link\b/i,
+    /\blink\b.*--project-ref\b/i,
     new RegExp(`\\b${sqlClientName}\\b`, "i"),
   ];
   const remotelyUnsafe = [
@@ -210,14 +223,14 @@ function validateNoUnsafeDatabaseAutomation(repositoryRoot, errors) {
   for (const path of new Set(candidatePaths)) {
     if (!statSync(path).isFile()) continue;
     const commands = automationCommands(path, repositoryRoot, errors);
-    const hasUnsafeCommand = commands.some((command) => {
-      const normalized = normalizeShellCommand(command);
-      return (
-        alwaysUnsafe.some((pattern) => pattern.test(normalized)) ||
-        (remoteFlag.test(normalized) &&
-          remotelyUnsafe.some((pattern) => pattern.test(normalized)))
+    const hasUnsafeCommand = commands
+      .flatMap(normalizeShellCommands)
+      .some(
+        (normalized) =>
+          alwaysUnsafe.some((pattern) => pattern.test(normalized)) ||
+          (!explicitlyLocal.test(normalized) &&
+            remotelyUnsafe.some((pattern) => pattern.test(normalized))),
       );
-    });
     if (hasUnsafeCommand) {
       errors.push(
         `unsafe production database command in ${relative(repositoryRoot, path)}`,
@@ -381,6 +394,10 @@ function validateBaselineState(databaseRoot, errors) {
     errors.push("baseline state must be valid JSON");
     return null;
   }
+  if (!state || typeof state !== "object" || Array.isArray(state)) {
+    errors.push("baseline state must be a JSON object");
+    return null;
+  }
 
   if (state.schemaVersion !== 1) {
     errors.push("baseline state schemaVersion must be 1");
@@ -527,9 +544,9 @@ function validateLegacyManifest(repositoryRoot, databaseRoot, errors) {
   }
 
   const legacySqlPaths = LEGACY_SQL_DIRECTORIES.flatMap((repositoryPath) =>
-    listSqlFiles(join(repositoryRoot, repositoryPath)).map((path) =>
-      relative(repositoryRoot, path),
-    ),
+    listFilesRecursively(join(repositoryRoot, repositoryPath))
+      .filter((path) => path.endsWith(".sql") && statSync(path).isFile())
+      .map((path) => relative(repositoryRoot, path)),
   );
 
   for (const repositoryPath of legacySqlPaths) {
@@ -576,12 +593,7 @@ export function validateSharedDatabase({ databaseRoot, repositoryRoot }) {
   validateLedgerMigrationNames(databaseRoot, state, ledger.rows, errors);
   const seedPath = join(databaseRoot, "seed.sql");
   if (state?.phase === "foundation" && existsSync(seedPath)) {
-    const seedContents = readFileSync(seedPath, "utf8");
-    const executableSeedLines = seedContents
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line && !line.startsWith("--"));
-    if (executableSeedLines.length > 0) {
+    if (!isCommentOnlySql(readFileSync(seedPath, "utf8"))) {
       errors.push("foundation seed must be comment-only");
     }
   }
