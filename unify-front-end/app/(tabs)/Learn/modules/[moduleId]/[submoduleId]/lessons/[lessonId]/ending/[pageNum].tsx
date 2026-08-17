@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -146,8 +147,9 @@ export default function EndingPageScreen() {
     const totalAllPages = getLessonTotalPages(lesson, quizzes);
 
     setIsSaving(true);
+    let didSave = false;
     try {
-      await saveLessonCompletion(
+      didSave = await saveLessonCompletion(
         lessonId || '',
         submoduleId || '',
         moduleId || '',
@@ -157,9 +159,14 @@ export default function EndingPageScreen() {
       setIsSaving(false);
     }
 
+    if (!didSave) {
+      Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+      return;
+    }
+
     // Navigate: either back to submodule index (last lesson) or to next lesson
     if (isLastLesson()) {
-      router.replace({
+      router.dismissTo({
         pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
         params: { moduleId, submoduleId, justCompletedLearn: '1' },
       });
@@ -353,11 +360,10 @@ export default function EndingPageScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {t('learn.lesson.exitTitle')}
-            </Text>
+            <Text style={styles.modalTitle}>{t('learn.lesson.exitTitle')}</Text>
             <Text style={styles.modalDesc}>
-              {t('learn.lesson.exitBody1')}{'\n'}
+              {t('learn.lesson.exitBody1')}
+              {'\n'}
               {t('learn.lesson.exitBody2')}
             </Text>
 
@@ -374,7 +380,9 @@ export default function EndingPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitContinue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('learn.lesson.exitContinue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -455,7 +463,9 @@ export default function EndingPageScreen() {
                   ]}
                   onPress={handleSubmitReview}
                 >
-                  <Text style={styles.reviewSubmitText}>{t('common.submit')}</Text>
+                  <Text style={styles.reviewSubmitText}>
+                    {t('common.submit')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

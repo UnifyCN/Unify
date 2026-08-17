@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   ScrollView,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityQuizQuestions } from '@/hooks/sanity/useSanityQuizzes';
@@ -281,7 +282,9 @@ export default function QuizQuestionPage() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>{t('learn.quiz.loadingQuestion')}</Text>
+        <Text style={styles.loadingText}>
+          {t('learn.quiz.loadingQuestion')}
+        </Text>
       </View>
     );
   }
@@ -289,7 +292,9 @@ export default function QuizQuestionPage() {
   if (error || !questions) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{t('learn.quiz.errorLoadingQuestion')}</Text>
+        <Text style={styles.errorText}>
+          {t('learn.quiz.errorLoadingQuestion')}
+        </Text>
       </View>
     );
   }
@@ -466,12 +471,16 @@ export default function QuizQuestionPage() {
           } else {
             // No ending pages, save this lesson as completed
             const totalPages = calculateTotalLessonPages();
-            await saveLessonCompletion(
+            const didSave = await saveLessonCompletion(
               lessonId || '',
               submoduleId || '',
               moduleId || '',
               totalPages
             );
+            if (!didSave) {
+              Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+              return;
+            }
 
             // Check if this is the last lesson
             const currentIndex = getCurrentLessonIndex();
@@ -479,7 +488,7 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              router.replace({
+              router.dismissTo({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                 params: { moduleId, submoduleId, justCompletedLearn: '1' },
@@ -592,12 +601,16 @@ export default function QuizQuestionPage() {
           } else {
             // No ending pages, save this lesson as completed
             const totalPages = calculateTotalLessonPages();
-            await saveLessonCompletion(
+            const didSave = await saveLessonCompletion(
               lessonId || '',
               submoduleId || '',
               moduleId || '',
               totalPages
             );
+            if (!didSave) {
+              Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+              return;
+            }
 
             // Check if this is the last lesson
             const currentIndex = getCurrentLessonIndex();
@@ -605,7 +618,7 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              router.replace({
+              router.dismissTo({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                 params: { moduleId, submoduleId, justCompletedLearn: '1' },
@@ -969,9 +982,12 @@ export default function QuizQuestionPage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('learn.lesson.exitQuizTitle')}</Text>
+            <Text style={styles.modalTitle}>
+              {t('learn.lesson.exitQuizTitle')}
+            </Text>
             <Text style={styles.modalDesc}>
-              {t('learn.lesson.exitBody1')}{'\n'}
+              {t('learn.lesson.exitBody1')}
+              {'\n'}
               {t('learn.lesson.exitBody2')}
             </Text>
 
@@ -995,7 +1011,9 @@ export default function QuizQuestionPage() {
               style={styles.modalSecondaryBtn}
               onPress={() => setShowExitModal(false)}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitQuizContinue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('learn.lesson.exitQuizContinue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

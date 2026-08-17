@@ -36,7 +36,7 @@ export async function getTasksBySubmodule(
     return Array.isArray(result) ? result : [];
   } catch (error) {
     console.error('Error fetching tasks by submodule from Sanity:', error);
-    return [];
+    throw error;
   }
 }
 

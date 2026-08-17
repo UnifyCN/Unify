@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -204,7 +205,8 @@ export default function ActivityPageScreen() {
     // Key timers by page + field so a pending save is never cancelled by the same
     // field key on another page.
     const timerKey = `${pageKey}:${fieldKey}`;
-    if (saveTimers.current[timerKey]) clearTimeout(saveTimers.current[timerKey]);
+    if (saveTimers.current[timerKey])
+      clearTimeout(saveTimers.current[timerKey]);
     saveTimers.current[timerKey] = setTimeout(() => {
       saveActivityInput(
         lessonId,
@@ -310,8 +312,9 @@ export default function ActivityPageScreen() {
         } else {
           // No ending pages, save this lesson as completed before navigating
           setIsSaving(true);
+          let didSave = false;
           try {
-            await saveLessonCompletion(
+            didSave = await saveLessonCompletion(
               lessonId || '',
               submoduleId || '',
               moduleId || '',
@@ -321,13 +324,18 @@ export default function ActivityPageScreen() {
             setIsSaving(false);
           }
 
+          if (!didSave) {
+            Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+            return;
+          }
+
           // Check if this is the last lesson
           const currentIndex = getCurrentLessonIndex();
           const isLastLesson =
             currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
           if (isLastLesson) {
-            router.replace({
+            router.dismissTo({
               pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
               params: { moduleId, submoduleId, justCompletedLearn: '1' },
             });
@@ -429,7 +437,9 @@ export default function ActivityPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={submoduleData?.title || t('learn.lesson.submoduleFallback')}
+        submoduleTitle={
+          submoduleData?.title || t('learn.lesson.submoduleFallback')
+        }
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -539,9 +549,7 @@ export default function ActivityPageScreen() {
             <Text style={styles.modalTitle}>
               {t('learn.lesson.exitActivityTitle')}
             </Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.lesson.exitBody')}
-            </Text>
+            <Text style={styles.modalDesc}>{t('learn.lesson.exitBody')}</Text>
 
             <TouchableOpacity
               style={styles.modalPrimaryBtn}

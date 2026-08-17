@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -50,7 +51,7 @@ export default function PracticeActivityPageScreen() {
     };
 
     if (justCompletedPractice) {
-      router.replace(destination);
+      router.dismissTo(destination);
     } else {
       router.push(destination);
     }
@@ -118,9 +119,9 @@ export default function PracticeActivityPageScreen() {
   );
 
   // Debounce timers for autosaving free-text inputs, keyed by field.
-  const saveTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>(
-    {}
-  );
+  const saveTimers = React.useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
   // Fields the user has edited on this page. Guards the async restore from
   // clobbering fresh input if the fetch resolves after the user starts typing.
   const touchedRef = React.useRef<Set<string>>(new Set());
@@ -146,7 +147,11 @@ export default function PracticeActivityPageScreen() {
       setInputValues(prev => {
         const next = { ...prev };
         for (const [k, v] of Object.entries(saved.inputValues)) {
-          if (pageKeys.has(k) && !touchedRef.current.has(k) && next[k] === undefined)
+          if (
+            pageKeys.has(k) &&
+            !touchedRef.current.has(k) &&
+            next[k] === undefined
+          )
             next[k] = v;
         }
         return next;
@@ -154,7 +159,11 @@ export default function PracticeActivityPageScreen() {
       setQuestionAnswers(prev => {
         const next = { ...prev };
         for (const [k, v] of Object.entries(saved.questionAnswers)) {
-          if (pageKeys.has(k) && !touchedRef.current.has(k) && next[k] === undefined)
+          if (
+            pageKeys.has(k) &&
+            !touchedRef.current.has(k) &&
+            next[k] === undefined
+          )
             next[k] = v;
         }
         return next;
@@ -219,7 +228,8 @@ export default function PracticeActivityPageScreen() {
     // Key timers by page + field so a pending save is never cancelled by the same
     // field key on another page.
     const timerKey = `${currentPage}:${fieldKey}`;
-    if (saveTimers.current[timerKey]) clearTimeout(saveTimers.current[timerKey]);
+    if (saveTimers.current[timerKey])
+      clearTimeout(saveTimers.current[timerKey]);
     saveTimers.current[timerKey] = setTimeout(() => {
       savePracticeAnswer(
         practiceId,
@@ -277,7 +287,9 @@ export default function PracticeActivityPageScreen() {
       });
     }
 
-    const userAnswerText = Object.values(inputValues).filter(Boolean).join('\n');
+    const userAnswerText = Object.values(inputValues)
+      .filter(Boolean)
+      .join('\n');
     if (hasTextInputs && userAnswerText.trim().length > 0) {
       const questionText = extractPlainText(
         currentPageData?.instructions || []
@@ -286,7 +298,11 @@ export default function PracticeActivityPageScreen() {
         ? extractPlainText(currentPageData.answer_box.content)
         : '';
 
-      setFeedbackContext({ questionText, userAnswer: userAnswerText, expectedAnswer });
+      setFeedbackContext({
+        questionText,
+        userAnswer: userAnswerText,
+        expectedAnswer,
+      });
       setShowFeedbackModal(true);
     }
   };
@@ -306,7 +322,11 @@ export default function PracticeActivityPageScreen() {
         },
       });
     } else {
-      await completePractice(practiceId!);
+      const didSave = await completePractice(practiceId!);
+      if (!didSave) {
+        Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+        return;
+      }
       if (nextPractice) {
         router.replace({
           pathname:
@@ -381,7 +401,9 @@ export default function PracticeActivityPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={practice.title || submoduleData?.title || t('learn.practice.fallback')}
+        submoduleTitle={
+          practice.title || submoduleData?.title || t('learn.practice.fallback')
+        }
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -620,9 +642,7 @@ export default function PracticeActivityPageScreen() {
             <Text style={styles.modalTitle}>
               {t('learn.practice.exitTitle')}
             </Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.practice.exitBody')}
-            </Text>
+            <Text style={styles.modalDesc}>{t('learn.practice.exitBody')}</Text>
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
               onPress={handleSaveAndLeave}

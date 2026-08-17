@@ -34,13 +34,17 @@ export async function getPracticeProgress(
 
 /** Get all practice progress for a submodule (for progress % on submodule index) */
 export async function getPracticeProgressBySubmodule(
-  submoduleId: string
+  submoduleId: string,
+  throwOnError = false
 ): Promise<UserPracticeProgress[]> {
   try {
     const {
       data: { user },
     } = await progressClient.auth.getUser();
-    if (!user) return [];
+    if (!user) {
+      if (throwOnError) throw new Error('No authenticated user');
+      return [];
+    }
 
     const { data, error } = await progressClient
       .from(TABLE)
@@ -50,12 +54,14 @@ export async function getPracticeProgressBySubmodule(
 
     if (error) {
       console.error('Error fetching practice progress by submodule:', error);
+      if (throwOnError) throw error;
       return [];
     }
 
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Error in getPracticeProgressBySubmodule:', error);
+    if (throwOnError) throw error;
     return [];
   }
 }
@@ -235,14 +241,14 @@ export async function getPracticeAnswers(
   }
 }
 
-export async function completePractice(practiceId: string): Promise<void> {
+export async function completePractice(practiceId: string): Promise<boolean> {
   try {
     const {
       data: { user },
     } = await progressClient.auth.getUser();
-    if (!user) return;
+    if (!user) return false;
 
-    const { error } = await progressClient
+    const { data, error } = await progressClient
       .from(TABLE)
       .update({
         is_completed: true,
@@ -251,14 +257,18 @@ export async function completePractice(practiceId: string): Promise<void> {
         last_accessed_at: new Date().toISOString(),
       })
       .eq('user_id', user.id)
-      .eq('sanity_practice_id', practiceId);
+      .eq('sanity_practice_id', practiceId)
+      .select('id');
 
-    if (error) {
+    if (error || !data?.length) {
       console.error('Error completing practice:', error);
+      return false;
     } else {
       progressEventEmitter.emit();
+      return true;
     }
   } catch (error) {
     console.error('Error in completePractice:', error);
+    return false;
   }
 }

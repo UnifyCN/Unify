@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -93,7 +94,7 @@ export default function TaskPageScreen() {
     };
 
     if (justCompletedTasks) {
-      router.replace(destination);
+      router.dismissTo(destination);
     } else {
       router.push(destination);
     }
@@ -124,7 +125,11 @@ export default function TaskPageScreen() {
     if (!taskId) return;
     setIsSaving(true);
     try {
-      await completeTask(taskId);
+      const didSave = await completeTask(taskId);
+      if (!didSave) {
+        Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+        return;
+      }
       if (nextTask) {
         router.push({
           pathname:
@@ -206,7 +211,11 @@ export default function TaskPageScreen() {
           disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
-            {isSaving ? t('learn.tasks.savingProgress') : nextTask ? t('common.next') : t('learn.pathwayCard.done')}
+            {isSaving
+              ? t('learn.tasks.savingProgress')
+              : nextTask
+                ? t('common.next')
+                : t('learn.pathwayCard.done')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -220,9 +229,7 @@ export default function TaskPageScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('learn.tasks.leaveTitle')}</Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.tasks.leaveBody')}
-            </Text>
+            <Text style={styles.modalDesc}>{t('learn.tasks.leaveBody')}</Text>
 
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
@@ -237,7 +244,9 @@ export default function TaskPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('common.continue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('common.continue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

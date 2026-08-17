@@ -82,7 +82,7 @@ export async function getPracticesBySubmodule(
     return Array.isArray(result) ? result : [];
   } catch (error) {
     console.error('Error fetching practices by submodule from Sanity:', error);
-    return [];
+    throw error;
   }
 }
 

@@ -251,8 +251,9 @@ export default function LessonPageScreen() {
           } else {
             // No ending pages, save this lesson as completed before navigating
             setIsSaving(true);
+            let didSave = false;
             try {
-              await saveLessonCompletion(
+              didSave = await saveLessonCompletion(
                 lessonId || '',
                 submoduleId || '',
                 moduleId || '',
@@ -262,9 +263,14 @@ export default function LessonPageScreen() {
               setIsSaving(false);
             }
 
+            if (!didSave) {
+              Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+              return;
+            }
+
             // Check if this is the last lesson
             if (isLastLesson()) {
-              router.replace({
+              router.dismissTo({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
                 params: { moduleId, submoduleId, justCompletedLearn: '1' },
@@ -346,9 +352,8 @@ export default function LessonPageScreen() {
       {
         onSuccess: () => {
           if (!wasSaved) {
-            showToast(
-              t('learn.lesson.savedToast'),
-              () => router.push('/saved-lessons' as any)
+            showToast(t('learn.lesson.savedToast'), () =>
+              router.push('/saved-lessons' as any)
             );
           }
         },
@@ -463,7 +468,8 @@ export default function LessonPageScreen() {
                 {t('learn.lesson.exitTitle')}
               </Text>
               <Text style={styles.modalDesc}>
-                {t('learn.lesson.exitBody1')}{'\n'}
+                {t('learn.lesson.exitBody1')}
+                {'\n'}
                 {t('learn.lesson.exitBody2')}
               </Text>
 
@@ -561,7 +567,10 @@ function LessonPageContent({
           clearSelection();
         },
         onError: () => {
-          Alert.alert(t('learn.lesson.errorTitle'), t('learn.lesson.failedSaveHighlight'));
+          Alert.alert(
+            t('learn.lesson.errorTitle'),
+            t('learn.lesson.failedSaveHighlight')
+          );
         },
       }
     );
@@ -583,7 +592,10 @@ function LessonPageContent({
         clearSelection();
       },
       onError: () => {
-        Alert.alert(t('learn.lesson.errorTitle'), t('learn.lesson.failedRemoveHighlight'));
+        Alert.alert(
+          t('learn.lesson.errorTitle'),
+          t('learn.lesson.failedRemoveHighlight')
+        );
       },
     });
   }, [

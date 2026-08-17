@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -39,7 +40,7 @@ function goToSubmoduleIndex(
   };
 
   if (justCompletedPractice) {
-    router.replace(destination);
+    router.dismissTo(destination);
   } else {
     router.push(destination);
   }
@@ -316,7 +317,12 @@ export default function PracticeQuizQuestionPage() {
       if (!allDone) return;
       if (isLastQuestion) {
         setIsNavigating(true);
-        await completePractice(practiceId!);
+        const didSave = await completePractice(practiceId!);
+        if (!didSave) {
+          setIsNavigating(false);
+          Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+          return;
+        }
         if (nextPractice) {
           router.replace({
             pathname:
@@ -371,7 +377,12 @@ export default function PracticeQuizQuestionPage() {
     }
     if (isLastQuestion) {
       setIsNavigating(true);
-      await completePractice(practiceId!);
+      const didSave = await completePractice(practiceId!);
+      if (!didSave) {
+        setIsNavigating(false);
+        Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+        return;
+      }
       if (nextPractice) {
         router.replace({
           pathname:
@@ -445,7 +456,9 @@ export default function PracticeQuizQuestionPage() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={quizTitle || submoduleData?.title || t('learn.practice.fallback')}
+        submoduleTitle={
+          quizTitle || submoduleData?.title || t('learn.practice.fallback')
+        }
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -696,10 +709,10 @@ export default function PracticeQuizQuestionPage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('learn.practice.exitTitle')}</Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.practice.exitBody')}
+            <Text style={styles.modalTitle}>
+              {t('learn.practice.exitTitle')}
             </Text>
+            <Text style={styles.modalDesc}>{t('learn.practice.exitBody')}</Text>
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
               onPress={() => {
@@ -715,7 +728,9 @@ export default function PracticeQuizQuestionPage() {
               style={styles.modalSecondaryBtn}
               onPress={() => setShowExitModal(false)}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitQuizContinue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('learn.lesson.exitQuizContinue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
