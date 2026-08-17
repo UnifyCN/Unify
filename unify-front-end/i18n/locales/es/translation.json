@@ -405,6 +405,95 @@
       "remove": "Eliminar",
       "highlight": "Resaltar",
       "askAI": "Preguntar a IA"
+    },
+    "segment": {
+      "lessons": "Lecciones",
+      "resources": "Recursos"
+    },
+    "resources": {
+      "title": "Servicios de confianza",
+      "subtitle": "Organizaciones que te ayudan a establecerte en Canadá.",
+      "emptyTitle": "Estamos añadiendo socios",
+      "emptyText": "Estamos seleccionando cuidadosamente organizaciones de confianza para ti. Vuelve pronto.",
+      "orgCount": "{{count}} organización",
+      "orgCount_plural": "{{count}} organizaciones",
+      "backToCategories": "Volver a las categorías",
+      "noPartnersInCategory": "Aún no hay socios activos en esta categoría.",
+      "about": "Acerca de",
+      "howTheyHelp": "Cómo ayudan a los recién llegados",
+      "programs": "Programas",
+      "visitWebsite": "Visitar el sitio web",
+      "visitWebsiteA11y": "Visitar el sitio web de {{name}}",
+      "opensInBrowser": "{{name}}, se abre en el navegador",
+      "notFound": "Este recurso ya no está disponible.",
+      "category": {
+        "gettingSettled": {
+          "label": "Primeros pasos",
+          "description": "Agencias y programas de asentamiento que te ayudan a establecerte."
+        },
+        "findWork": {
+          "label": "Buscar trabajo",
+          "description": "Bolsas de trabajo, mentoría y apoyo profesional para recién llegados."
+        },
+        "immigrationHelp": {
+          "label": "Ayuda con inmigración",
+          "description": "Consultores autorizados para permisos, residencia permanente y ciudadanía."
+        },
+        "librariesLearning": {
+          "label": "Bibliotecas y aprendizaje",
+          "description": "Programas, espacios y recursos gratuitos en tu biblioteca local."
+        },
+        "communityBelonging": {
+          "label": "Comunidad y pertenencia",
+          "description": "Organizaciones sin fines de lucro y centros comunitarios abiertos a todos."
+        },
+        "networksPlanning": {
+          "label": "Redes y mesas de planificación",
+          "description": "Estas organizaciones coordinan servicios en toda la Columbia Británica. Trabajan con agencias en lugar de atender directamente a las personas."
+        },
+        "internationalStudents": {
+          "label": "Estudiantes internacionales",
+          "description": "Servicios universitarios para titulares de permisos de estudio, a quienes la mayoría de los programas de asentamiento no puede atender."
+        },
+        "insurance": {
+          "label": "Seguros",
+          "description": "Cobertura de viaje, de visitante y de salud para ti y para tus familiares de visita."
+        },
+        "money": {
+          "label": "Dinero y banca",
+          "description": "Cuentas bancarias, crédito y orientación financiera para recién llegados."
+        }
+      },
+      "cost": {
+        "free": "Gratis",
+        "paid": "De pago",
+        "mixed": "Opciones gratuitas y de pago"
+      },
+      "howToGetHelp": "Cómo obtener ayuda",
+      "whoItsFor": "Para quién es",
+      "variesByProgram": "Varía según el programa: consulta los programas arriba.",
+      "howToStart": "Cómo empezar",
+      "phone": "Teléfono",
+      "email": "Correo electrónico",
+      "address": "Dirección",
+      "hours": "Horario",
+      "languages": "Idiomas",
+      "costLabel": "Costo",
+      "serves": "Atiende a",
+      "call": "Llamar",
+      "directions": "Cómo llegar",
+      "website": "Sitio web",
+      "callA11y": "Llamar a {{name}}",
+      "emailA11y": "Enviar correo a {{name}}",
+      "directionsA11y": "Cómo llegar a {{name}}",
+      "cta": {
+        "getQuote": "Obtener una cotización",
+        "bookAssessment": "Reservar una evaluación gratuita",
+        "bookAdvising": "Reservar asesoría",
+        "applyOnline": "Solicitar en línea",
+        "joinLibrary": "Hazte miembro de la biblioteca",
+        "visitWelcomeCentre": "Visita el Centro de Bienvenida"
+      }
     }
   },
   "checklist": {

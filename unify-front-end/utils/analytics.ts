@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { usePostHog } from 'posthog-react-native';
+import type { PartnershipType } from '@/types/partner';
 
 // Event name constants for type safety and consistency
 export const AnalyticsEvents = {
@@ -121,6 +122,13 @@ export const AnalyticsEvents = {
   // Daily Tips
   TIP_VIEWED: 'tip_viewed',
   TIP_TAPPED: 'tip_tapped',
+
+  // Resources (trusted-services directory)
+  RESOURCES_VIEWED: 'resources_viewed',
+  RESOURCES_CATEGORY_OPENED: 'resources_category_opened',
+  RESOURCES_PARTNER_OPENED: 'resources_partner_opened',
+  RESOURCES_PARTNER_WEBSITE_OPENED: 'resources_partner_website_opened',
+  RESOURCES_PROGRAM_OPENED: 'resources_program_opened',
 
   // Referrals (refer-a-friend)
   INVITE_CODE_GENERATED: 'invite_code_generated',
@@ -803,6 +811,48 @@ export function useAnalytics() {
       trackTipTapped: (tipId: string, category: string) => {
         posthog?.capture(AnalyticsEvents.TIP_TAPPED, {
           tip_id: tipId,
+          category,
+        });
+      },
+
+      // Resources (trusted-services directory)
+      trackResourcesViewed: (source: string) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_VIEWED, { source });
+      },
+      trackResourcesCategoryOpened: (
+        category: string,
+        partnerCount: number
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_CATEGORY_OPENED, {
+          category,
+          partner_count: partnerCount,
+        });
+      },
+      trackResourcesPartnerOpened: (partnerSlug: string, category: string) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_OPENED, {
+          partner_slug: partnerSlug,
+          category,
+        });
+      },
+      trackResourcesPartnerWebsiteOpened: (
+        partnerSlug: string,
+        category: string,
+        partnershipType: PartnershipType
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_WEBSITE_OPENED, {
+          partner_slug: partnerSlug,
+          category,
+          partnership_type: partnershipType,
+        });
+      },
+      trackResourcesProgramOpened: (
+        partnerSlug: string,
+        programId: string,
+        category: string
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PROGRAM_OPENED, {
+          partner_slug: partnerSlug,
+          program_id: programId,
           category,
         });
       },

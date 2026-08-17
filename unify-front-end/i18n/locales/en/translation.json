@@ -405,6 +405,95 @@
       "remove": "Remove",
       "highlight": "Highlight",
       "askAI": "Ask AI"
+    },
+    "segment": {
+      "lessons": "Lessons",
+      "resources": "Resources"
+    },
+    "resources": {
+      "title": "Trusted services",
+      "subtitle": "Organizations that help you settle in Canada.",
+      "emptyTitle": "We're adding partners",
+      "emptyText": "We're carefully selecting trusted organizations for you. Check back soon.",
+      "orgCount": "{{count}} org",
+      "orgCount_plural": "{{count}} orgs",
+      "backToCategories": "Back to categories",
+      "noPartnersInCategory": "No active partners in this category yet.",
+      "about": "About",
+      "howTheyHelp": "How they help newcomers",
+      "programs": "Programs",
+      "visitWebsite": "Visit website",
+      "visitWebsiteA11y": "Visit {{name}} website",
+      "opensInBrowser": "{{name}}, opens in browser",
+      "notFound": "This resource is no longer available.",
+      "category": {
+        "gettingSettled": {
+          "label": "Getting Settled",
+          "description": "Settlement agencies and programs to help you find your footing."
+        },
+        "findWork": {
+          "label": "Find Work",
+          "description": "Job boards, mentorship, and career support for newcomers."
+        },
+        "immigrationHelp": {
+          "label": "Immigration Help",
+          "description": "Licensed consultants for permits, PR, and citizenship."
+        },
+        "librariesLearning": {
+          "label": "Libraries & Learning",
+          "description": "Free programs, spaces, and resources at your local library."
+        },
+        "communityBelonging": {
+          "label": "Community & Belonging",
+          "description": "Local nonprofits and community centres open to everyone."
+        },
+        "networksPlanning": {
+          "label": "Networks & Planning Tables",
+          "description": "These organizations coordinate services across BC. They work with agencies rather than serving individuals directly."
+        },
+        "internationalStudents": {
+          "label": "International Students",
+          "description": "Campus services for study-permit holders, who most settlement programs cannot serve."
+        },
+        "insurance": {
+          "label": "Insurance",
+          "description": "Travel, visitor, and health coverage for you and visiting family."
+        },
+        "money": {
+          "label": "Money & Banking",
+          "description": "Bank accounts, credit, and financial guidance for newcomers."
+        }
+      },
+      "cost": {
+        "free": "Free",
+        "paid": "Paid",
+        "mixed": "Free + paid options"
+      },
+      "howToGetHelp": "How to get help",
+      "whoItsFor": "Who it's for",
+      "variesByProgram": "Varies by program — see the programs above.",
+      "howToStart": "How to start",
+      "phone": "Phone",
+      "email": "Email",
+      "address": "Address",
+      "hours": "Hours",
+      "languages": "Languages",
+      "costLabel": "Cost",
+      "serves": "Serves",
+      "call": "Call",
+      "directions": "Directions",
+      "website": "Website",
+      "callA11y": "Call {{name}}",
+      "emailA11y": "Email {{name}}",
+      "directionsA11y": "Directions to {{name}}",
+      "cta": {
+        "getQuote": "Get a quote",
+        "bookAssessment": "Book a free assessment",
+        "bookAdvising": "Book advising",
+        "applyOnline": "Apply online",
+        "joinLibrary": "Join the library",
+        "visitWelcomeCentre": "Visit the Welcome Centre"
+      }
     }
   },
   "checklist": {

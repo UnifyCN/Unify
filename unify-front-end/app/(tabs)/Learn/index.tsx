@@ -27,9 +27,13 @@ import {
 import TabHeader from '@/components/home/HomeHeader';
 import { useProgressCache } from '@/hooks/progress/useProgressCache';
 import AnnouncementModal from '@/components/common/AnnouncementModal';
+import SegmentedControl from '@/components/learn/Resources/SegmentedControl';
+import ResourcesView from '@/components/learn/Resources/ResourcesView';
 import { getTimeOfDayGreeting } from '@/utils/getTimeOfDayGreeting';
 import { useCurrentUser } from '@/context/UserContext';
 import { GiveawayBanner } from '@/components/giveaway/GiveawayBanner';
+
+type LearnView = 'articles' | 'resources';
 
 export default function Learn() {
   useProgressCache();
@@ -44,6 +48,7 @@ export default function Learn() {
   const isFocused = useIsFocused();
   const [heroIndex, setHeroIndex] = React.useState(0);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [view, setView] = React.useState<LearnView>('articles');
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
 
@@ -103,7 +108,19 @@ export default function Learn() {
       <TabHeader variant='minimal' />
       <View style={styles.container}>
         <StatusBar style='dark' />
-        <ScrollView
+        <SegmentedControl<LearnView>
+          value={view}
+          onChange={setView}
+          style={styles.segmentedControl}
+          options={[
+            { value: 'articles', label: t('learn.segment.lessons') },
+            { value: 'resources', label: t('learn.segment.resources') },
+          ]}
+        />
+        {view === 'resources' ? (
+          <ResourcesView />
+        ) : (
+          <ScrollView
           contentContainerStyle={styles.scrollContent}
           refreshControl={
             <RefreshControl
@@ -316,7 +333,8 @@ export default function Learn() {
               </View>
             </>
           )}
-        </ScrollView>
+          </ScrollView>
+        )}
       </View>
       <AnnouncementModal
         storageKey='announcement.learnHighlights.v1'
@@ -331,6 +349,7 @@ export default function Learn() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff' },
+  segmentedControl: { marginTop: 16 },
   scrollContent: { padding: 16, paddingBottom: 100 },
   pageTitle: {
     fontSize: 24,
