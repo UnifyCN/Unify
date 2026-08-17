@@ -21,6 +21,8 @@ import {
   stageNumberToStageSlug,
   normalizePersonaSlug,
 } from '@/helpers/dateHelpers';
+import { useSanityLanguage } from '@/hooks/sanity/useSanityLanguage';
+import type { SanityLanguage } from '@/services/sanity/i18n';
 
 interface UseChecklistTasksParams {
   currentStage: number | null;
@@ -32,14 +34,15 @@ async function fetchChecklistTasks(
   userId: string,
   currentStage: number,
   normalizedPersona: string,
-  stageChanged: boolean
+  stageChanged: boolean,
+  language: SanityLanguage
 ): Promise<UserTaskWithDetails[]> {
   const stageSlug = stageNumberToStageSlug(currentStage);
   const merged = await getChecklistWithUserProgress(
     userId,
     normalizedPersona,
     stageSlug,
-    { stageChanged }
+    { stageChanged, language }
   );
   try {
     const orders = await getChecklistTaskOrders(userId);
@@ -56,6 +59,7 @@ export const useChecklistTasks = ({
   persona,
 }: UseChecklistTasksParams) => {
   const queryClient = useQueryClient();
+  const language = useSanityLanguage();
   const [userId, setUserId] = useState<string | null>(null);
   const [cacheChecked, setCacheChecked] = useState(false);
 
@@ -89,9 +93,10 @@ export const useChecklistTasks = ({
       userId,
       currentStage,
       normalizedPersona,
-      stageChanged
+      stageChanged,
+      language
     );
-  }, [userId, currentStage, normalizedPersona, stageChanged]);
+  }, [userId, currentStage, normalizedPersona, stageChanged, language]);
 
   const storageKey = useMemo(() => {
     if (!queryKey) {
@@ -101,9 +106,17 @@ export const useChecklistTasks = ({
       userId!,
       currentStage!,
       normalizedPersona!,
-      stageChanged
+      stageChanged,
+      language
     );
-  }, [queryKey, userId, currentStage, normalizedPersona, stageChanged]);
+  }, [
+    queryKey,
+    userId,
+    currentStage,
+    normalizedPersona,
+    stageChanged,
+    language,
+  ]);
 
   // Hydrate React Query from memory (sync) then AsyncStorage before network fetch.
   useEffect(() => {
@@ -146,7 +159,8 @@ export const useChecklistTasks = ({
         userId!,
         currentStage!,
         normalizedPersona!,
-        stageChanged
+        stageChanged,
+        language
       ),
     enabled:
       cacheChecked &&
@@ -201,16 +215,17 @@ export const useChecklistTasks = ({
 
   const tasks = query.data ?? [];
 
-  const waitingForAuth =
-    Boolean(persona && currentStage !== null && userId === null);
+  const waitingForAuth = Boolean(
+    persona && currentStage !== null && userId === null
+  );
 
   const isLoading =
     waitingForAuth ||
     Boolean(
       queryKey &&
-        normalizedPersona &&
-        currentStage !== null &&
-        (!cacheChecked || (query.isPending && query.data === undefined))
+      normalizedPersona &&
+      currentStage !== null &&
+      (!cacheChecked || (query.isPending && query.data === undefined))
     );
 
   return {

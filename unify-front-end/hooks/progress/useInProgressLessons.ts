@@ -1,8 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { sanityClient } from '@/sanity-custom';
 import { progressEventEmitter } from '@/utils/progressEventEmitter';
 import { getLessonTotalPages } from '@/utils/submoduleProgress';
+import { useSanityLanguage } from '@/hooks/sanity/useSanityLanguage';
+import {
+  BASE_LANGUAGE_FILTER,
+  i18nOverlay,
+  mergeI18nOverlay,
+} from '@/services/sanity/i18n';
 
 interface ContinueLesson {
   id: string;
@@ -31,6 +37,7 @@ interface LessonProgressRow {
 }
 
 export function useInProgressLessons() {
+  const language = useSanityLanguage();
   const [lessons, setLessons] = useState<ContinueLesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,14 +75,16 @@ export function useInProgressLessons() {
       }
 
       // Fetch modules/submodules/lessons with compact page counts from Sanity
-      const modulesQuery = `*[_type == "module"] {
+      const modulesQuery = `*[_type == "module" && ${BASE_LANGUAGE_FILTER}] {
           _id,
           title,
-          "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
+          ${i18nOverlay('title')},
+          "submodules": *[_type == "submodule" && references(^._id) && ${BASE_LANGUAGE_FILTER}] | order(order) {
             _id,
             title,
             order,
-            "lessons": *[_type == "lesson" && references(^._id)] | order(order) {
+            ${i18nOverlay('title')},
+            "lessons": *[_type == "lesson" && references(^._id) && ${BASE_LANGUAGE_FILTER}] | order(order) {
               _id,
               title,
               description,
@@ -83,7 +92,8 @@ export function useInProgressLessons() {
               "lesson_page_count": count(pages),
               "activity_page_count": count(activity_pages),
               "ending_page_count": count(ending_pages),
-              "quizzes": *[_type == "quiz" && references(^._id)] | order(order_number) {
+              ${i18nOverlay('title, description')},
+              "quizzes": *[_type == "quiz" && references(^._id) && ${BASE_LANGUAGE_FILTER}] | order(order_number) {
                 _id,
                 "question_count": count(questions)
               }
@@ -91,7 +101,18 @@ export function useInProgressLessons() {
           }
         }`;
 
-      const modulesData = await sanityClient.fetch(modulesQuery);
+      const rawModules = await sanityClient.fetch(modulesQuery, {
+        lang: language,
+      });
+      const modulesData = (rawModules ?? []).map((module: any) => ({
+        ...mergeI18nOverlay(module),
+        submodules: (module.submodules ?? []).map((submodule: any) => ({
+          ...mergeI18nOverlay(submodule),
+          lessons: (submodule.lessons ?? []).map((lesson: any) =>
+            mergeI18nOverlay(lesson)
+          ),
+        })),
+      }));
 
       const progressRows = (lessonProgresses || []) as LessonProgressRow[];
 
@@ -181,16 +202,10 @@ export function useInProgressLessons() {
     }
   };
 
-  // Track if this is the first mount
-  const isFirstMount = useRef(true);
-
-  // Fetch on mount (first time only)
+  // Fetch on mount and whenever the content language changes.
   useEffect(() => {
-    if (isFirstMount.current) {
-      fetchInProgressLessons();
-      isFirstMount.current = false;
-    }
-  }, []);
+    fetchInProgressLessons();
+  }, [language]);
 
   // Subscribe to progress update events
   useEffect(() => {
@@ -200,7 +215,7 @@ export function useInProgressLessons() {
     });
 
     return unsubscribe;
-  }, []);
+  }, [language]);
 
   return {
     lessons,

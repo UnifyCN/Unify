@@ -1,5 +1,11 @@
 import { sanityClient } from '../../sanity-custom';
 import { SanityChecklistItem } from '@/types/checklist';
+import {
+  i18nOverlay,
+  mergeI18nOverlay,
+  type SanityLanguage,
+  type WithI18n,
+} from './i18n';
 
 /**
  * GROQ: checklist items where user's persona is in item's personas array
@@ -8,6 +14,7 @@ import { SanityChecklistItem } from '@/types/checklist';
  */
 const CHECKLIST_QUERY = `*[
   _type == "checklist"
+  && (language == "en" || !defined(language))
   && $persona in personas
   && stage == $stage
 ] | order(class asc, class_order asc) {
@@ -19,12 +26,16 @@ const CHECKLIST_QUERY = `*[
   class,
   class_order,
   link_tab,
+  ${i18nOverlay('title, description, longer_description')},
   "module": module-> { _id, title },
   "submodule": submodule-> { _id, title, "moduleId": module._ref }
 }`;
 
-const CACHE_KEY = (persona: string, stageSlug: string) =>
-  `checklist:${persona}:${stageSlug}`;
+const CACHE_KEY = (
+  persona: string,
+  stageSlug: string,
+  language: SanityLanguage
+) => `checklist:${persona}:${stageSlug}:${language}`;
 const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 let cache: {
@@ -36,9 +47,10 @@ let cache: {
 export async function getChecklistByPersonaAndStage(
   persona: string,
   stageSlug: string,
-  options?: { skipCache?: boolean }
+  options?: { skipCache?: boolean; language?: SanityLanguage }
 ): Promise<SanityChecklistItem[]> {
-  const key = CACHE_KEY(persona, stageSlug);
+  const language = options?.language ?? 'en';
+  const key = CACHE_KEY(persona, stageSlug, language);
   const now = Date.now();
 
   if (
@@ -50,11 +62,15 @@ export async function getChecklistByPersonaAndStage(
   }
 
   try {
-    const result = await sanityClient.fetch(CHECKLIST_QUERY, {
-      persona,
-      stage: stageSlug,
-    });
-    const data = Array.isArray(result) ? result : [];
+    const result = await sanityClient.fetch<WithI18n<SanityChecklistItem>[]>(
+      CHECKLIST_QUERY,
+      {
+        persona,
+        stage: stageSlug,
+        lang: language,
+      }
+    );
+    const data = Array.isArray(result) ? result.map(mergeI18nOverlay) : [];
     cache = { key, data, ts: now };
     return data;
   } catch (error) {

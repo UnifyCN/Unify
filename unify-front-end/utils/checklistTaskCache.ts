@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserTaskWithDetails } from '@/types/checklist';
+import type { SanityLanguage } from '@/services/sanity/i18n';
 
 const STORAGE_PREFIX = '@checklist_tasks_v1';
 
@@ -7,11 +8,12 @@ export function buildChecklistCacheStorageKey(
   userId: string,
   stage: number,
   personaSlug: string,
-  stageChanged: boolean
+  stageChanged: boolean,
+  language: SanityLanguage
 ): string {
   return `${STORAGE_PREFIX}:${userId}:${stage}:${personaSlug}:${
     stageChanged ? '1' : '0'
-  }`;
+  }:${language}`;
 }
 
 const memory = new Map<string, UserTaskWithDetails[]>();
