@@ -2,10 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { shouldShowEnglishContentNotice } from '@/utils/resourcesLanguage';
 
 /** Clarifies that organization-provided directory content is not localized yet. */
 export default function ContentLanguageNotice() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  if (!shouldShowEnglishContentNotice(i18n.resolvedLanguage ?? i18n.language)) {
+    return null;
+  }
 
   return (
     <View style={styles.notice} accessibilityRole='text'>

@@ -26,12 +26,13 @@ import {
   COST_LABEL_KEYS,
   type Partner,
   type PartnerProgram,
+  type ResourceLinkTarget,
 } from '@/types/partner';
 import Monogram from '@/components/learn/Resources/Monogram';
 import ContentLanguageNotice from '@/components/learn/Resources/ContentLanguageNotice';
 import { useAnalytics } from '@/utils/analytics';
 import { buildPartnerUrl } from '@/utils/partners';
-import { openResourceLink } from '@/utils/openResourceLink';
+import { launchResourceLink } from '@/utils/openResourceLink';
 
 function mapsUrl(address: string) {
   const q = encodeURIComponent(address);
@@ -123,8 +124,9 @@ export default function PartnerDetailScreen() {
   const { t } = useTranslation();
   const {
     trackResourcesPartnerOpened,
-    trackResourcesPartnerWebsiteOpened,
-    trackResourcesProgramOpened,
+    trackResourcesPartnerWebsiteClicked,
+    trackResourcesProgramClicked,
+    trackResourcesLinkFailed,
   } = useAnalytics();
   const partner = slug ? getPartnerBySlug(slug) : undefined;
 
@@ -181,44 +183,59 @@ export default function PartnerDetailScreen() {
       t('learn.resources.openErrorMessage')
     );
 
-  const handleExternalOpen = async (url: string) => {
-    const opened = await openResourceLink(
-      () => url,
-      nextUrl => Linking.openURL(nextUrl)
-    );
-    if (!opened) showOpenError();
+  const handleExternalOpen = async (
+    url: string,
+    target: ResourceLinkTarget
+  ) => {
+    const launched = await launchResourceLink({
+      buildUrl: () => new URL(url).toString(),
+      launch: nextUrl => Linking.openURL(nextUrl),
+      onFailure: reason =>
+        trackResourcesLinkFailed(partner.slug, target, reason),
+    });
+    if (!launched) showOpenError();
   };
 
   const handleVisit = async () => {
     if (!partner.website) return;
-    const opened = await openResourceLink(
-      () => buildPartnerUrl(partner, 'learn_resources'),
-      url =>
+    const launched = await launchResourceLink({
+      buildUrl: () => buildPartnerUrl(partner, 'learn_resources'),
+      onIntent: () =>
+        trackResourcesPartnerWebsiteClicked(
+          partner.slug,
+          partner.partnershipType
+        ),
+      launch: url =>
         WebBrowser.openBrowserAsync(url, {
           controlsColor: color,
           toolbarColor: '#FFFFFF',
         }),
-      () =>
-        trackResourcesPartnerWebsiteOpened(
-          partner.slug,
-          partner.partnershipType
-        )
-    );
-    if (!opened) showOpenError();
+      onFailure: reason =>
+        trackResourcesLinkFailed(partner.slug, 'partner_website', reason),
+    });
+    if (!launched) showOpenError();
   };
 
   const handleOpenProgram = async (program: PartnerProgram) => {
     if (!program.url) return;
-    const opened = await openResourceLink(
-      () => program.url!,
-      url =>
+    const launched = await launchResourceLink({
+      buildUrl: () => new URL(program.url!).toString(),
+      onIntent: () =>
+        trackResourcesProgramClicked(partner.slug, program.id, program.name),
+      launch: url =>
         WebBrowser.openBrowserAsync(url, {
           controlsColor: color,
           toolbarColor: '#FFFFFF',
         }),
-      () => trackResourcesProgramOpened(partner.slug, program.name)
-    );
-    if (!opened) showOpenError();
+      onFailure: reason =>
+        trackResourcesLinkFailed(
+          partner.slug,
+          'program',
+          reason,
+          program.id
+        ),
+    });
+    if (!launched) showOpenError();
   };
 
   return (
@@ -451,7 +468,9 @@ export default function PartnerDetailScreen() {
             ) : (
               partner.phone && (
                 <TouchableOpacity
-                  onPress={() => handleExternalOpen(phoneUrl(partner.phone!))}
+                  onPress={() =>
+                    handleExternalOpen(phoneUrl(partner.phone!), 'phone')
+                  }
                   activeOpacity={0.85}
                   style={[styles.actionPrimary, { backgroundColor: color }]}
                   accessibilityRole='button'
@@ -473,7 +492,9 @@ export default function PartnerDetailScreen() {
                   icon='phone'
                   label={t('learn.resources.call')}
                   color={color}
-                  onPress={() => handleExternalOpen(phoneUrl(partner.phone!))}
+                  onPress={() =>
+                    handleExternalOpen(phoneUrl(partner.phone!), 'phone')
+                  }
                   a11y={t('learn.resources.callA11y', { name: partner.name })}
                 />
               )}
@@ -482,7 +503,9 @@ export default function PartnerDetailScreen() {
                   icon='mail'
                   label={t('learn.resources.email')}
                   color={color}
-                  onPress={() => handleExternalOpen(`mailto:${partner.email}`)}
+                  onPress={() =>
+                    handleExternalOpen(`mailto:${partner.email}`, 'email')
+                  }
                   a11y={t('learn.resources.emailA11y', { name: partner.name })}
                 />
               )}
@@ -491,7 +514,9 @@ export default function PartnerDetailScreen() {
                   icon='navigation'
                   label={t('learn.resources.directions')}
                   color={color}
-                  onPress={() => handleExternalOpen(mapsUrl(partner.address!))}
+                  onPress={() =>
+                    handleExternalOpen(mapsUrl(partner.address!), 'directions')
+                  }
                   a11y={t('learn.resources.directionsA11y', {
                     name: partner.name,
                   })}

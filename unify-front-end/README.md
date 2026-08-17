@@ -48,3 +48,22 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Resources analytics contract
+
+Web and mobile must use the same event names and property meanings:
+
+| Event | Properties | Meaning |
+| --- | --- | --- |
+| `resources_viewed` | none | Directory rendered. |
+| `resources_category_opened` | `category` | Category selected. |
+| `resources_partner_opened` | `slug`, `category`, `partnership_type` | Partner detail rendered. |
+| `resources_partner_website_clicked` | `slug`, `partnership_type` | Valid website CTA clicked, before platform navigation. |
+| `resources_program_clicked` | `slug`, `program_id`; optional `program_name` | Valid program link clicked, before platform navigation. |
+| `resources_link_failed` | `slug`, `target`, `reason`; optional `program_id` | URL validation or platform navigation failed. |
+
+`program_id` is immutable identity; `program_name` is display context only.
+`target` is `partner_website`, `program`, `phone`, `email`, or `directions`.
+`reason` is `invalid_url` or `launch_failed`. There is deliberately no website
+or program `opened` event because native browser promises resolve differently
+across platforms.

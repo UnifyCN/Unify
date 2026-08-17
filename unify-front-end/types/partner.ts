@@ -13,6 +13,15 @@ export type PartnerCategory =
 
 export type PartnershipType = 'resource' | 'referral';
 
+export type ResourceLinkTarget =
+  | 'partner_website'
+  | 'program'
+  | 'phone'
+  | 'email'
+  | 'directions';
+
+export type ResourceLinkFailureReason = 'invalid_url' | 'launch_failed';
+
 /** Fixed display order for the category grid. */
 export const CATEGORY_ORDER: PartnerCategory[] = [
   'gettingSettled',
