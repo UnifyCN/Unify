@@ -816,44 +816,38 @@ export function useAnalytics() {
       },
 
       // Resources (trusted-services directory)
-      trackResourcesViewed: (source: string) => {
-        posthog?.capture(AnalyticsEvents.RESOURCES_VIEWED, { source });
+      trackResourcesViewed: () => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_VIEWED);
       },
-      trackResourcesCategoryOpened: (
-        category: string,
-        partnerCount: number
-      ) => {
+      trackResourcesCategoryOpened: (category: string) => {
         posthog?.capture(AnalyticsEvents.RESOURCES_CATEGORY_OPENED, {
           category,
-          partner_count: partnerCount,
         });
       },
-      trackResourcesPartnerOpened: (partnerSlug: string, category: string) => {
-        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_OPENED, {
-          partner_slug: partnerSlug,
-          category,
-        });
-      },
-      trackResourcesPartnerWebsiteOpened: (
-        partnerSlug: string,
+      trackResourcesPartnerOpened: (
+        slug: string,
         category: string,
         partnershipType: PartnershipType
       ) => {
-        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_WEBSITE_OPENED, {
-          partner_slug: partnerSlug,
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_OPENED, {
+          slug,
           category,
           partnership_type: partnershipType,
         });
       },
-      trackResourcesProgramOpened: (
-        partnerSlug: string,
-        programId: string,
-        category: string
+      trackResourcesPartnerWebsiteOpened: (
+        slug: string,
+        partnershipType: PartnershipType
       ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_WEBSITE_OPENED, {
+          slug,
+          partnership_type: partnershipType,
+        });
+      },
+      trackResourcesProgramOpened: (slug: string, programName: string) => {
         posthog?.capture(AnalyticsEvents.RESOURCES_PROGRAM_OPENED, {
-          partner_slug: partnerSlug,
-          program_id: programId,
-          category,
+          slug,
+          program_name: programName,
         });
       },
 

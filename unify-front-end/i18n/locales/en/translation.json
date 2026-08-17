@@ -413,6 +413,7 @@
     "resources": {
       "title": "Trusted services",
       "subtitle": "Organizations that help you settle in Canada.",
+      "contentLanguageNotice": "Details provided by organizations are currently available in English only.",
       "emptyTitle": "We're adding partners",
       "emptyText": "We're carefully selecting trusted organizations for you. Check back soon.",
       "orgCount": "{{count}} org",
@@ -426,6 +427,8 @@
       "visitWebsiteA11y": "Visit {{name}} website",
       "opensInBrowser": "{{name}}, opens in browser",
       "notFound": "This resource is no longer available.",
+      "openErrorTitle": "Couldn't open the link",
+      "openErrorMessage": "Please try again later.",
       "category": {
         "gettingSettled": {
           "label": "Getting Settled",

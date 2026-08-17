@@ -6,6 +6,7 @@ import { getCategoriesWithPartners } from '@/constants/Partners';
 import type { PartnerCategory } from '@/types/partner';
 import CategoryTile from './CategoryTile';
 import CategoryDetail from './CategoryDetail';
+import ContentLanguageNotice from './ContentLanguageNotice';
 
 /**
  * Root view for the Resources tab inside Learn.
@@ -20,7 +21,7 @@ export default function ResourcesView() {
   const categories = getCategoriesWithPartners();
 
   useEffect(() => {
-    trackResourcesViewed('learn_tab');
+    trackResourcesViewed();
   }, [trackResourcesViewed]);
 
   if (selectedCategory) {
@@ -46,6 +47,7 @@ export default function ResourcesView() {
     >
       <Text style={styles.title}>{t('learn.resources.title')}</Text>
       <Text style={styles.subtitle}>{t('learn.resources.subtitle')}</Text>
+      <ContentLanguageNotice />
 
       {categories.length === 0 ? (
         <View style={styles.empty}>
@@ -66,7 +68,7 @@ export default function ResourcesView() {
                 partnerCount={partnerCount}
                 wide={isLoneTrailing}
                 onPress={() => {
-                  trackResourcesCategoryOpened(category, partnerCount);
+                  trackResourcesCategoryOpened(category);
                   setSelectedCategory(category);
                 }}
               />
@@ -91,6 +93,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginTop: 16,
   },
   empty: {
     paddingVertical: 48,

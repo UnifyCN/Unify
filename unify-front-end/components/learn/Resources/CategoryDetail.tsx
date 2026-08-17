@@ -31,6 +31,7 @@ export default function CategoryDetail({ category, onBack }: Props) {
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityLabel={t('learn.resources.backToCategories')}
+        hitSlop={8}
       >
         <Feather name='chevron-left' size={20} color='#343232' />
         <Text style={styles.backText}>{t('learn.segment.resources')}</Text>
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    paddingVertical: 4,
+    minHeight: 44,
   },
   backText: {
     fontSize: 15,

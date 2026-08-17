@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Linking,
   Platform,
+  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
@@ -27,17 +28,10 @@ import {
   type PartnerProgram,
 } from '@/types/partner';
 import Monogram from '@/components/learn/Resources/Monogram';
+import ContentLanguageNotice from '@/components/learn/Resources/ContentLanguageNotice';
 import { useAnalytics } from '@/utils/analytics';
 import { buildPartnerUrl } from '@/utils/partners';
-
-/** Opens tel:/mailto:/maps links, ignoring handlers the device lacks. */
-async function openUrl(url: string) {
-  try {
-    await Linking.openURL(url);
-  } catch {
-    // No handler for this scheme (e.g. tel: on a tablet); nothing to recover.
-  }
-}
+import { openResourceLink } from '@/utils/openResourceLink';
 
 function mapsUrl(address: string) {
   const q = encodeURIComponent(address);
@@ -135,7 +129,13 @@ export default function PartnerDetailScreen() {
   const partner = slug ? getPartnerBySlug(slug) : undefined;
 
   useEffect(() => {
-    if (partner) trackResourcesPartnerOpened(partner.slug, partner.category);
+    if (partner) {
+      trackResourcesPartnerOpened(
+        partner.slug,
+        partner.category,
+        partner.partnershipType
+      );
+    }
   }, [partner, trackResourcesPartnerOpened]);
 
   const screenOptions = (
@@ -175,37 +175,50 @@ export default function PartnerDetailScreen() {
   const categoryLabel = t(PARTNER_CATEGORY_LABEL_KEYS[partner.category]);
   const categoryIcon = PARTNER_CATEGORY_ICONS[partner.category];
 
+  const showOpenError = () =>
+    Alert.alert(
+      t('learn.resources.openErrorTitle'),
+      t('learn.resources.openErrorMessage')
+    );
+
+  const handleExternalOpen = async (url: string) => {
+    const opened = await openResourceLink(
+      () => url,
+      nextUrl => Linking.openURL(nextUrl)
+    );
+    if (!opened) showOpenError();
+  };
+
   const handleVisit = async () => {
     if (!partner.website) return;
-    trackResourcesPartnerWebsiteOpened(
-      partner.slug,
-      partner.category,
-      partner.partnershipType
-    );
-    try {
-      await WebBrowser.openBrowserAsync(
-        buildPartnerUrl(partner, 'learn_resources'),
-        {
+    const opened = await openResourceLink(
+      () => buildPartnerUrl(partner, 'learn_resources'),
+      url =>
+        WebBrowser.openBrowserAsync(url, {
           controlsColor: color,
           toolbarColor: '#FFFFFF',
-        }
-      );
-    } catch {
-      // In-app browser failed to open; nothing destructive to recover.
-    }
+        }),
+      () =>
+        trackResourcesPartnerWebsiteOpened(
+          partner.slug,
+          partner.partnershipType
+        )
+    );
+    if (!opened) showOpenError();
   };
 
   const handleOpenProgram = async (program: PartnerProgram) => {
     if (!program.url) return;
-    trackResourcesProgramOpened(partner.slug, program.id, partner.category);
-    try {
-      await WebBrowser.openBrowserAsync(program.url, {
-        controlsColor: color,
-        toolbarColor: '#FFFFFF',
-      });
-    } catch {
-      // In-app browser failed to open; nothing destructive to recover.
-    }
+    const opened = await openResourceLink(
+      () => program.url!,
+      url =>
+        WebBrowser.openBrowserAsync(url, {
+          controlsColor: color,
+          toolbarColor: '#FFFFFF',
+        }),
+      () => trackResourcesProgramOpened(partner.slug, program.name)
+    );
+    if (!opened) showOpenError();
   };
 
   return (
@@ -254,6 +267,9 @@ export default function PartnerDetailScreen() {
               color={color}
             />
             <Text style={[styles.pillText, { color }]}>{categoryLabel}</Text>
+          </View>
+          <View style={styles.languageNotice}>
+            <ContentLanguageNotice />
           </View>
 
           <Text style={styles.sectionHead}>{t('learn.resources.about')}</Text>
@@ -435,7 +451,7 @@ export default function PartnerDetailScreen() {
             ) : (
               partner.phone && (
                 <TouchableOpacity
-                  onPress={() => openUrl(phoneUrl(partner.phone!))}
+                  onPress={() => handleExternalOpen(phoneUrl(partner.phone!))}
                   activeOpacity={0.85}
                   style={[styles.actionPrimary, { backgroundColor: color }]}
                   accessibilityRole='button'
@@ -457,7 +473,7 @@ export default function PartnerDetailScreen() {
                   icon='phone'
                   label={t('learn.resources.call')}
                   color={color}
-                  onPress={() => openUrl(phoneUrl(partner.phone!))}
+                  onPress={() => handleExternalOpen(phoneUrl(partner.phone!))}
                   a11y={t('learn.resources.callA11y', { name: partner.name })}
                 />
               )}
@@ -466,7 +482,7 @@ export default function PartnerDetailScreen() {
                   icon='mail'
                   label={t('learn.resources.email')}
                   color={color}
-                  onPress={() => openUrl(`mailto:${partner.email}`)}
+                  onPress={() => handleExternalOpen(`mailto:${partner.email}`)}
                   a11y={t('learn.resources.emailA11y', { name: partner.name })}
                 />
               )}
@@ -475,7 +491,7 @@ export default function PartnerDetailScreen() {
                   icon='navigation'
                   label={t('learn.resources.directions')}
                   color={color}
-                  onPress={() => openUrl(mapsUrl(partner.address!))}
+                  onPress={() => handleExternalOpen(mapsUrl(partner.address!))}
                   a11y={t('learn.resources.directionsA11y', {
                     name: partner.name,
                   })}
@@ -495,8 +511,8 @@ const styles = StyleSheet.create({
   backFloat: {
     position: 'absolute',
     left: 14,
-    width: 34,
-    height: 34,
+    width: 44,
+    height: 44,
     borderRadius: 999,
     backgroundColor: 'rgba(0,0,0,0.32)',
     alignItems: 'center',
@@ -521,6 +537,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   pillText: { fontSize: 11, fontWeight: '700' },
+  languageNotice: { marginTop: 12 },
   sectionHead: {
     fontSize: 13,
     fontWeight: '800',
@@ -628,6 +645,7 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 14,
     paddingVertical: 14,
+    minHeight: 44,
   },
   actionPrimaryText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   actionRow: { flexDirection: 'row', gap: 8 },
@@ -641,6 +659,7 @@ const styles = StyleSheet.create({
     borderColor: '#ECECEF',
     borderRadius: 12,
     paddingVertical: 11,
+    minHeight: 44,
   },
   actionSecondaryText: { fontSize: 13, fontWeight: '700' },
   notFound: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 16 },

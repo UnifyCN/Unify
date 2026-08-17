@@ -1035,9 +1035,16 @@ export const getActivePartners = (): Partner[] =>
 export const getPartnersByCategory = (category: PartnerCategory): Partner[] =>
   getActivePartners().filter(p => p.category === category);
 
-/** A single partner by slug (any active state), for the detail route. */
+/** Selects an active partner by slug from an arbitrary directory. */
+export const selectActivePartnerBySlug = (
+  partners: Partner[],
+  slug: string
+): Partner | undefined =>
+  selectActivePartners(partners).find(p => p.slug === slug);
+
+/** A single active partner by slug for the detail route. */
 export const getPartnerBySlug = (slug: string): Partner | undefined =>
-  PARTNERS.find(p => p.slug === slug);
+  selectActivePartnerBySlug(PARTNERS, slug);
 
 /**
  * Categories that have ≥1 active partner, in CATEGORY_ORDER, with counts.

@@ -413,6 +413,7 @@
     "resources": {
       "title": "Dịch vụ đáng tin cậy",
       "subtitle": "Các tổ chức giúp bạn định cư tại Canada.",
+      "contentLanguageNotice": "Thông tin chi tiết do các tổ chức cung cấp hiện chỉ có bằng tiếng Anh.",
       "emptyTitle": "Chúng tôi đang thêm đối tác",
       "emptyText": "Chúng tôi đang chọn lọc các tổ chức đáng tin cậy cho bạn. Hãy quay lại sau.",
       "orgCount": "{{count}} tổ chức",
@@ -426,6 +427,8 @@
       "visitWebsiteA11y": "Truy cập trang web của {{name}}",
       "opensInBrowser": "{{name}}, mở trong trình duyệt",
       "notFound": "Tài nguyên này không còn khả dụng.",
+      "openErrorTitle": "Không thể mở liên kết",
+      "openErrorMessage": "Vui lòng thử lại sau.",
       "category": {
         "gettingSettled": {
           "label": "Bắt đầu ổn định",

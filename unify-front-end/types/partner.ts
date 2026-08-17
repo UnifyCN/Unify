@@ -77,15 +77,15 @@ export const PARTNER_CATEGORY_ICONS: Record<PartnerCategory, string> = {
  * remaining three take hues not already in use so no two tiles read as a pair.
  */
 export const PARTNER_CATEGORY_COLORS: Record<PartnerCategory, string> = {
-  gettingSettled: '#2DB39A',
-  findWork: '#3B82C4',
-  immigrationHelp: '#E5685A',
-  librariesLearning: '#7C6CD6',
-  communityBelonging: '#F68B26',
-  networksPlanning: '#5B6B8A',
-  internationalStudents: '#C25D8F',
-  insurance: '#3E9B63',
-  money: '#C8941F',
+  gettingSettled: '#167A69',
+  findWork: '#2563A5',
+  immigrationHelp: '#B8463B',
+  librariesLearning: '#6352B5',
+  communityBelonging: '#A64F00',
+  networksPlanning: '#465570',
+  internationalStudents: '#963F6D',
+  insurance: '#287447',
+  money: '#7D5A0B',
 };
 
 /** Soft tint per category (pill backgrounds, gradient fallback). */

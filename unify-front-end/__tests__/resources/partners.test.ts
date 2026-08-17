@@ -5,6 +5,7 @@ import {
   getPartnersByCategory,
   getCategoriesWithPartners,
   getPartnerBySlug,
+  selectActivePartnerBySlug,
 } from '@/constants/Partners';
 import { CATEGORY_ORDER, type PartnerCategory } from '@/types/partner';
 
@@ -88,6 +89,13 @@ describe('partner data', () => {
   it('getPartnerBySlug resolves a known slug and returns undefined otherwise', () => {
     expect(getPartnerBySlug('diversecity')?.name).toBe('DIVERSEcity');
     expect(getPartnerBySlug('does-not-exist')).toBeUndefined();
+  });
+
+  it('does not resolve inactive partners by slug', () => {
+    const inactive = { ...PARTNERS[0], active: false };
+    expect(
+      selectActivePartnerBySlug([inactive], inactive.slug)
+    ).toBeUndefined();
   });
 
   it('getActivePartners returns every active partner, sorted by displayOrder', () => {

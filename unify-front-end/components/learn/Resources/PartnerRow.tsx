@@ -58,6 +58,7 @@ export default function PartnerRow({ partner, onPress }: Props) {
 
 const styles = StyleSheet.create({
   row: {
+    minHeight: 60,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,

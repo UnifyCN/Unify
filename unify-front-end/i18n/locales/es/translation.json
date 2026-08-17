@@ -413,6 +413,7 @@
     "resources": {
       "title": "Servicios de confianza",
       "subtitle": "Organizaciones que te ayudan a establecerte en Canadá.",
+      "contentLanguageNotice": "Los detalles proporcionados por las organizaciones están disponibles actualmente solo en inglés.",
       "emptyTitle": "Estamos añadiendo socios",
       "emptyText": "Estamos seleccionando cuidadosamente organizaciones de confianza para ti. Vuelve pronto.",
       "orgCount": "{{count}} organización",
@@ -426,6 +427,8 @@
       "visitWebsiteA11y": "Visitar el sitio web de {{name}}",
       "opensInBrowser": "{{name}}, se abre en el navegador",
       "notFound": "Este recurso ya no está disponible.",
+      "openErrorTitle": "No se pudo abrir el enlace",
+      "openErrorMessage": "Inténtalo de nuevo más tarde.",
       "category": {
         "gettingSettled": {
           "label": "Primeros pasos",
