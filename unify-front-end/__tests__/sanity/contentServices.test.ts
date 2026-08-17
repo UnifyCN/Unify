@@ -6,11 +6,14 @@ import { sanityClient } from '@/sanity-custom';
 import { getModuleWithSubmodules } from '@/services/sanity/modules';
 import { getSubmoduleWithLessons } from '@/services/sanity/submodules';
 import { getPracticesBySubmodule } from '@/services/sanity/practices';
-import { getLessonQuizzes } from '@/services/sanity/quizzes';
+import { getLessonQuizzes, getQuizQuestions } from '@/services/sanity/quizzes';
 import { getTaskById } from '@/services/sanity/tasks';
 import { getChecklistByPersonaAndStage } from '@/services/sanity/checklist';
 
 const mockFetch = sanityClient.fetch as jest.Mock;
+
+type NotAny<T> = 0 extends 1 & T ? never : T;
+type QuizQuestionResult = Awaited<ReturnType<typeof getQuizQuestions>>[number];
 
 describe('translated Sanity service contracts', () => {
   beforeEach(() => mockFetch.mockReset());
@@ -161,6 +164,44 @@ describe('translated Sanity service contracts', () => {
     });
   });
 
+  it('returns a typed translated question shape from the question service', async () => {
+    mockFetch.mockResolvedValue({
+      questions: [
+        {
+          _key: 'question-1',
+          question_type: 'multiple_choice_single',
+          question_text: [],
+          order_number: 1,
+          options: [
+            {
+              _key: 'option-a',
+              text: [],
+              value: 'a',
+              is_correct: true,
+            },
+          ],
+        },
+      ],
+      i18n: {
+        questions: [
+          {
+            _key: 'question-1',
+            question_text: [],
+            options: [{ _key: 'option-a', text: [] }],
+          },
+        ],
+      },
+    });
+
+    const questions = await getQuizQuestions('quiz-base', 'es');
+    const typedQuestion: NotAny<QuizQuestionResult> = questions[0];
+    expect(typedQuestion).toMatchObject({
+      _key: 'question-1',
+      question_type: 'multiple_choice_single',
+      options: [{ _key: 'option-a', value: 'a', is_correct: true }],
+    });
+  });
+
   it('overlays task and checklist text while retaining persistence ids', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -196,5 +237,28 @@ describe('translated Sanity service contracts', () => {
       _id: 'checklist-base',
       title: 'قائمة',
     });
+  });
+
+  it('rejects a failed forced checklist refresh even after an empty success', async () => {
+    mockFetch
+      .mockResolvedValueOnce([])
+      .mockRejectedValueOnce(new Error('network unavailable'));
+    const consoleSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    await expect(
+      getChecklistByPersonaAndStage('other', 'years_3_plus', {
+        language: 'vi',
+      })
+    ).resolves.toEqual([]);
+    await expect(
+      getChecklistByPersonaAndStage('other', 'years_3_plus', {
+        language: 'vi',
+        skipCache: true,
+      })
+    ).rejects.toThrow('network unavailable');
+
+    consoleSpy.mockRestore();
   });
 });

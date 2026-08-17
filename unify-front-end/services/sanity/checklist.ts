@@ -75,8 +75,10 @@ export async function getChecklistByPersonaAndStage(
     return data;
   } catch (error) {
     console.error('Error fetching checklist from Sanity:', error);
-    if (cache?.key === key) return cache.data;
-    return [];
+    if (!options?.skipCache && cache?.key === key) return cache.data;
+    // A transport/query failure is not a legitimate empty checklist. Reject so
+    // React Query retains hydrated same-language data and does not persist `[]`.
+    throw error;
   }
 }
 
