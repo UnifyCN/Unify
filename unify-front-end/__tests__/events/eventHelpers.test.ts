@@ -1,9 +1,12 @@
 import {
+  getEventsWindowEnd,
   getEventsForDateFilter,
   getPastEventsSorted,
   getPresentEventGenres,
   getSafeEventExternalUrl,
   getUpcomingEventsSorted,
+  handoffEventExternalUrl,
+  openEventExternalUrl,
 } from '@/helpers/eventHelpers';
 import { Event, EventGenre } from '@/types/events';
 
@@ -39,13 +42,22 @@ const events = [
   makeEvent(5, '2026-05-15T12:00:00Z'),
   makeEvent(6, '2026-06-01T12:00:00Z'),
   makeEvent(7, 'not-a-date'),
+  makeEvent(8, '2026-05-15T11:59:59.999Z'),
+  makeEvent(9, '2026-05-15T12:00:00.001Z'),
 ];
 
 describe('event date behavior', () => {
   it('matches web: upcoming is soonest-first and inside a strict four-month window', () => {
     expect(getUpcomingEventsSorted(events, now).map(event => event.id)).toEqual(
-      [4, 3]
+      [4, 3, 8]
     );
+  });
+
+  it('uses strict boundaries: exact-now and exact-window-end are not Upcoming', () => {
+    const ids = getUpcomingEventsSorted(events, now).map(event => event.id);
+    expect(ids).not.toContain(2);
+    expect(ids).not.toContain(5);
+    expect(ids).not.toContain(9);
   });
 
   it('retains mobile Past and sorts it newest-first', () => {
@@ -54,10 +66,31 @@ describe('event date behavior', () => {
     ]);
   });
 
-  it('retains mobile All while excluding exact-now and far-future rows', () => {
+  it('makes All truly unbounded and deterministic across every valid date', () => {
     expect(
       getEventsForDateFilter(events, 'All', now).map(event => event.id)
-    ).toEqual([4, 3, 1]);
+    ).toEqual([2, 4, 3, 8, 5, 9, 6, 1]);
+  });
+
+  it('breaks equal-date ties by id rather than input order', () => {
+    const tied = [
+      makeEvent(11, '2026-02-01T12:00:00Z'),
+      makeEvent(10, '2026-02-01T12:00:00Z'),
+    ];
+    expect(
+      getEventsForDateFilter(tied, 'All', now).map(event => event.id)
+    ).toEqual([10, 11]);
+  });
+
+  it('uses UTC month overflow semantics for Oct 31 without device-timezone drift', () => {
+    expect(
+      getEventsWindowEnd(new Date('2026-10-31T08:30:00.000Z')).toISOString()
+    ).toBe('2027-03-03T08:30:00.000Z');
+  });
+
+  it('keeps the UTC instant stable across the Pacific DST boundary', () => {
+    const end = getEventsWindowEnd(new Date('2026-11-01T08:30:00.000Z'));
+    expect(end.toISOString()).toBe('2027-03-01T08:30:00.000Z');
   });
 });
 
@@ -84,6 +117,61 @@ describe('event genre and link helpers', () => {
       'http://example.com/event'
     );
     expect(getSafeEventExternalUrl('javascript:alert(1)')).toBeNull();
+    expect(getSafeEventExternalUrl('ftp://example.com/event')).toBeNull();
+    expect(getSafeEventExternalUrl('https://?event=1')).toBeNull();
+    expect(getSafeEventExternalUrl('https:// example.com/event')).toBeNull();
     expect(getSafeEventExternalUrl(null)).toBeNull();
+  });
+
+  it('only reports opened after the platform accepts the URL handoff', async () => {
+    const openUrl = jest.fn().mockResolvedValue(undefined);
+
+    await expect(
+      openEventExternalUrl('https://example.com/event', openUrl)
+    ).resolves.toBe('opened');
+    expect(openUrl).toHaveBeenCalledWith('https://example.com/event');
+  });
+
+  it('distinguishes invalid URLs and platform open failures', async () => {
+    const openUrl = jest.fn().mockRejectedValue(new Error('no handler'));
+
+    await expect(
+      openEventExternalUrl('javascript:alert(1)', openUrl)
+    ).resolves.toBe('invalid');
+    expect(openUrl).not.toHaveBeenCalled();
+
+    await expect(
+      openEventExternalUrl('https://example.com/event', openUrl)
+    ).resolves.toBe('failed');
+  });
+
+  it('records analytics only after a successful platform handoff', async () => {
+    const onOpened = jest.fn();
+    const onFailure = jest.fn();
+
+    await handoffEventExternalUrl({
+      value: 'https://example.com/event',
+      openUrl: jest.fn().mockResolvedValue(undefined),
+      onOpened,
+      onFailure,
+    });
+
+    expect(onOpened).toHaveBeenCalledTimes(1);
+    expect(onFailure).not.toHaveBeenCalled();
+  });
+
+  it('requests user feedback instead of analytics when opening fails', async () => {
+    const onOpened = jest.fn();
+    const onFailure = jest.fn();
+
+    await handoffEventExternalUrl({
+      value: 'https://example.com/event',
+      openUrl: jest.fn().mockRejectedValue(new Error('no handler')),
+      onOpened,
+      onFailure,
+    });
+
+    expect(onOpened).not.toHaveBeenCalled();
+    expect(onFailure).toHaveBeenCalledWith('failed');
   });
 });

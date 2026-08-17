@@ -704,6 +704,7 @@
     "viewDetails": "Xem chi tiết sự kiện",
     "aboutEvent": "Về sự kiện",
     "noEventDescription": "Chưa có mô tả cho sự kiện này.",
+    "linkOpenFailed": "Không thể mở liên kết sự kiện. Vui lòng thử lại.",
     "filterByCategory": "Lọc sự kiện theo danh mục",
     "genre": {
       "employment": "Việc làm",

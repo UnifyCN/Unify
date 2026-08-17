@@ -7,6 +7,7 @@ import {
   ScrollView,
   Linking,
   Share,
+  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +19,10 @@ import { useEffect, useMemo } from 'react';
 import { useAnalytics } from '@/utils/analytics';
 import BackHeader from '@/components/BackHeader';
 import { useEvents } from '@/hooks/events/useEvents';
-import { getSafeEventExternalUrl } from '@/helpers/eventHelpers';
+import {
+  getSafeEventExternalUrl,
+  handoffEventExternalUrl,
+} from '@/helpers/eventHelpers';
 
 const EventDetailScreen = () => {
   const { t } = useTranslation();
@@ -75,11 +79,15 @@ const EventDetailScreen = () => {
 
   const safeExternalLink = getSafeEventExternalUrl(eventData.externalLink);
 
-  const handleExternalLink = () => {
-    if (safeExternalLink) {
-      trackEventExternalLinkClicked(eventData.id.toString(), eventData.title);
-      Linking.openURL(safeExternalLink);
-    }
+  const handleExternalLink = async () => {
+    await handoffEventExternalUrl({
+      value: safeExternalLink,
+      openUrl: url => Linking.openURL(url),
+      onOpened: () =>
+        trackEventExternalLinkClicked(eventData.id.toString(), eventData.title),
+      onFailure: () =>
+        Alert.alert(t('common.error'), t('events.linkOpenFailed')),
+    });
   };
 
   // Using react native built in share

@@ -62,7 +62,6 @@ export const formatEventTime = (dateString: string) => {
   return date.toLocaleTimeString(i18n.language, {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true,
     timeZone: EVENT_TIME_ZONE,
   });
 };

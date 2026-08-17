@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   },
   genreTagItem: {
     justifyContent: 'center',
-    minHeight: 32,
+    minHeight: 44,
     paddingHorizontal: 12,
     borderRadius: 16,
     backgroundColor: Theme.surfaceTextInput,

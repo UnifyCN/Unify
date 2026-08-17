@@ -35,7 +35,7 @@ const EventCard = memo(
     });
 
     const formatCardTime = (dateString: string): string =>
-      formatEventTime(dateString).toLowerCase();
+      formatEventTime(dateString);
 
     const formatCardTimeRange = (): string => {
       if (event.eventEndDatetime) {
