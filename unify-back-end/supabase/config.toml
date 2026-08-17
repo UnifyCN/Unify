@@ -1,0 +1,19 @@
+project_id = "unify-shared-database"
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.migrations]
+enabled = true
+schema_paths = []
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+# This directory owns the shared database only. Edge Functions remain in their
+# existing repositories and are intentionally excluded from this local project.
+[edge_runtime]
+enabled = false

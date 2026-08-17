@@ -1,1 +1,7 @@
 * @UnifyCN/leads @UnifyCN/app-coords
+
+# One reviewed owner for the database shared by web and mobile.
+/unify-back-end/supabase/ @UnifyCN/leads @UnifyCN/app-coords
+/unify-back-end/scripts/validate-shared-database* @UnifyCN/leads @UnifyCN/app-coords
+/unify-back-end/src/database/ @UnifyCN/leads @UnifyCN/app-coords
+/unify-front-end/supabase/migrations/ @UnifyCN/leads @UnifyCN/app-coords

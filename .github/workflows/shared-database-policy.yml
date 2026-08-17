@@ -1,0 +1,77 @@
+name: Shared Database Policy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  policy:
+    name: Shared Database Policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Use Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: unify-back-end/package-lock.json
+
+      - name: Install shared backend tooling
+        working-directory: unify-back-end
+        run: npm ci
+
+      - name: Test database policy validator
+        working-directory: unify-back-end
+        run: npm test
+
+      - name: Validate canonical database layout
+        working-directory: unify-back-end
+        run: npm run db:validate
+
+      - name: Reject edits to frozen legacy SQL
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          zero_sha="0000000000000000000000000000000000000000"
+          if [ "$BASE_SHA" = "$zero_sha" ] || \
+             ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "Base commit $BASE_SHA is unavailable; cannot verify the legacy SQL freeze."
+            exit 1
+          fi
+          if ! git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
+            echo "Head commit $HEAD_SHA is unavailable; cannot verify the legacy SQL freeze."
+            exit 1
+          fi
+          case "$EVENT_NAME" in
+            pull_request) comparison_range="$BASE_SHA...$HEAD_SHA" ;;
+            push) comparison_range="$BASE_SHA..$HEAD_SHA" ;;
+            *) echo "Unsupported event $EVENT_NAME"; exit 1 ;;
+          esac
+          changed_files="$(git diff --name-only "$comparison_range" -- \
+            unify-front-end/supabase/migrations \
+            unify-back-end/src/database)"
+          if [ -n "$changed_files" ]; then
+            echo "Legacy database SQL is frozen. Change unify-back-end/supabase instead."
+            echo "$changed_files"
+            exit 1
+          fi

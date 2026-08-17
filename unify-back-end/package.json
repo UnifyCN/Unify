@@ -6,8 +6,10 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "supabase": "supabase"
+    "test": "npm run db:validate:test",
+    "db:validate": "node scripts/validate-shared-database.mjs",
+    "db:validate:test": "node --test scripts/validate-shared-database.test.mjs",
+    "db:new": "supabase migration new"
   },
   "keywords": [],
   "author": "",
@@ -27,8 +29,11 @@
     "@types/node": "^22.10.5",
     "@types/pg": "^8.11.10",
     "nodemon": "^3.1.10",
-    "supabase": "^2.12.1",
+    "shell-quote": "1.10.0",
+    "smol-toml": "1.8.0",
+    "supabase": "2.114.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "yaml": "2.9.0"
   }
 }

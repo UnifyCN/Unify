@@ -1,0 +1,4 @@
+-- Intentionally empty during baseline reconstruction.
+--
+-- Future seed data must be deterministic and limited to local/test reference
+-- data. Never copy production rows, auth identities, secrets, or cron state.
