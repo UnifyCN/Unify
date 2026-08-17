@@ -150,11 +150,16 @@ export default function SubmoduleIndex() {
   } = useSanitySubmoduleWithLessons(submoduleId || '');
   const { data: moduleData, isLoading: isModuleLoading } =
     useSanityModuleWithSubmodules(moduleId || '');
-  const { data: practices, isLoading: isPracticesLoading } =
-    useSanityPractices(submoduleId || '');
-  const { data: tasks, isLoading: isTasksLoading } = useSanityTasks(
-    submoduleId || ''
-  );
+  const {
+    data: practices,
+    isLoading: isPracticesLoading,
+    isError: isPracticesError,
+  } = useSanityPractices(submoduleId || '');
+  const {
+    data: tasks,
+    isLoading: isTasksLoading,
+    isError: isTasksError,
+  } = useSanityTasks(submoduleId || '');
   const { getPracticeProgressBySubmodule } = usePracticeProgress();
   const { getTaskProgressBySubmodule } = useTaskProgress();
 
@@ -382,7 +387,18 @@ export default function SubmoduleIndex() {
   useEffect(() => {
     if (!isCompletionTransition || !moduleId) return;
     if (isTasksLoading || isPracticesLoading || isModuleLoading) return;
-    if (tasks === undefined || practices === undefined) return;
+    if (
+      isTasksError ||
+      isPracticesError ||
+      tasks === undefined ||
+      practices === undefined
+    ) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId },
+      });
+      return;
+    }
 
     if (!moduleData?.submodules) {
       router.replace({
@@ -423,7 +439,9 @@ export default function SubmoduleIndex() {
     router.replace('/(tabs)/Learn');
   }, [
     isModuleLoading,
+    isPracticesError,
     isPracticesLoading,
+    isTasksError,
     isTasksLoading,
     isCompletionTransition,
     justCompletedLearn,
