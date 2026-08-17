@@ -7,10 +7,9 @@ export type EventDateFilter = 'All' | 'Upcoming' | 'Past';
 
 export const getEventsWindowEnd = (from: Date): Date => {
   const end = new Date(from);
-  // Mirror web's Date#setMonth overflow semantics (for example Oct 31 + four
-  // months becomes Mar 3) in UTC so a device timezone or DST transition cannot
-  // change the actual discovery-window instant.
-  end.setUTCMonth(end.getUTCMonth() + EVENTS_WINDOW_MONTHS);
+  // Keep this semantically equivalent to web's local-calendar Date#setMonth
+  // behavior, including end-of-month overflow and DST offset changes.
+  end.setMonth(end.getMonth() + EVENTS_WINDOW_MONTHS);
   return end;
 };
 

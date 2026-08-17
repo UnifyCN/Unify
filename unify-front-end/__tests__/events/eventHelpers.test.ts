@@ -10,6 +10,14 @@ import {
 } from '@/helpers/eventHelpers';
 import { Event, EventGenre } from '@/types/events';
 
+const originalTimeZone = process.env.TZ;
+process.env.TZ = 'America/Vancouver';
+
+afterAll(() => {
+  if (originalTimeZone === undefined) delete process.env.TZ;
+  else process.env.TZ = originalTimeZone;
+});
+
 const makeEvent = (
   id: number,
   eventDatetime: string,
@@ -39,12 +47,18 @@ const events = [
   makeEvent(2, '2026-01-15T12:00:00Z'),
   makeEvent(3, '2026-04-01T12:00:00Z'),
   makeEvent(4, '2026-02-01T12:00:00Z'),
-  makeEvent(5, '2026-05-15T12:00:00Z'),
+  makeEvent(5, '2026-05-15T11:00:00Z'),
   makeEvent(6, '2026-06-01T12:00:00Z'),
   makeEvent(7, 'not-a-date'),
-  makeEvent(8, '2026-05-15T11:59:59.999Z'),
-  makeEvent(9, '2026-05-15T12:00:00.001Z'),
+  makeEvent(8, '2026-05-15T10:59:59.999Z'),
+  makeEvent(9, '2026-05-15T11:00:00.001Z'),
 ];
+
+const webWindowEnd = (from: Date): Date => {
+  const end = new Date(from);
+  end.setMonth(end.getMonth() + 4);
+  return end;
+};
 
 describe('event date behavior', () => {
   it('matches web: upcoming is soonest-first and inside a strict four-month window', () => {
@@ -82,15 +96,20 @@ describe('event date behavior', () => {
     ).toEqual([10, 11]);
   });
 
-  it('uses UTC month overflow semantics for Oct 31 without device-timezone drift', () => {
-    expect(
-      getEventsWindowEnd(new Date('2026-10-31T08:30:00.000Z')).toISOString()
-    ).toBe('2027-03-03T08:30:00.000Z');
+  it('matches web local-month overflow semantics for Oct 31', () => {
+    const from = new Date('2026-10-31T07:30:00.000Z');
+    const actual = getEventsWindowEnd(from);
+
+    expect(actual).toEqual(webWindowEnd(from));
+    expect(actual.toISOString()).toBe('2027-03-03T08:30:00.000Z');
   });
 
-  it('keeps the UTC instant stable across the Pacific DST boundary', () => {
-    const end = getEventsWindowEnd(new Date('2026-11-01T08:30:00.000Z'));
-    expect(end.toISOString()).toBe('2027-03-01T08:30:00.000Z');
+  it('matches web when local-calendar arithmetic crosses Pacific DST', () => {
+    const from = new Date('2026-11-01T07:30:00.000Z');
+    const actual = getEventsWindowEnd(from);
+
+    expect(actual).toEqual(webWindowEnd(from));
+    expect(actual.toISOString()).toBe('2027-03-01T08:30:00.000Z');
   });
 });
 
