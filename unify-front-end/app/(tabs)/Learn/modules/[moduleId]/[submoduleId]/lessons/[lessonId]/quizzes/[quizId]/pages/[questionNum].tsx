@@ -542,12 +542,11 @@ export default function QuizQuestionPage() {
         const correctAnswerId =
           currentQuestion.correct_answer?.value?.[0] ||
           currentQuestion.correct_answer?.value;
-        isAnswerCorrect = Boolean(
+        isAnswerCorrect =
           selectedAnswer === correctAnswerId ||
           currentQuestion.options?.find(
             (opt: any) => opt._key === selectedAnswer
-          )?.is_correct
-        );
+          )?.is_correct;
       }
 
       setIsCorrect(isAnswerCorrect);

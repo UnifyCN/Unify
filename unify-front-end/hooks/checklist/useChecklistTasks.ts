@@ -168,7 +168,10 @@ export const useChecklistTasks = ({
       !!userId &&
       currentStage !== null &&
       !!normalizedPersona,
-    staleTime: Infinity,
+    // Hydrated cache renders immediately, then revalidates for newly published
+    // Sanity translations. Disk/memory entries separately expire after 10 min.
+    staleTime: 0,
+    refetchOnMount: true,
     gcTime: 1000 * 60 * 60 * 24 * 7,
   });
 

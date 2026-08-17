@@ -146,7 +146,6 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
     queryFn: () => getAllModulesWithSubmodules(language),
     staleTime: 15 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    placeholderData: keepPreviousData,
   });
 
   // Always fetch personalized ranking

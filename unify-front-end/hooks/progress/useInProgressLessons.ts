@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { progressClient } from '@/services/progress/progressClient';
 import { sanityClient } from '@/sanity-custom';
 import { progressEventEmitter } from '@/utils/progressEventEmitter';
@@ -41,8 +41,11 @@ export function useInProgressLessons() {
   const [lessons, setLessons] = useState<ContinueLesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestSequence = useRef(0);
 
-  const fetchInProgressLessons = async () => {
+  const fetchInProgressLessons = useCallback(async () => {
+    const requestId = ++requestSequence.current;
+    const isLatestRequest = () => requestId === requestSequence.current;
     try {
       setIsLoading(true);
       setError(null);
@@ -52,8 +55,7 @@ export function useInProgressLessons() {
         data: { user },
       } = await progressClient.auth.getUser();
       if (!user) {
-        setLessons([]);
-        setIsLoading(false);
+        if (isLatestRequest()) setLessons([]);
         return;
       }
 
@@ -68,9 +70,10 @@ export function useInProgressLessons() {
           .order('last_accessed_at', { ascending: false });
 
       if (lessonError) {
-        console.error('Error fetching lesson progress:', lessonError);
-        setError('Failed to fetch lessons');
-        setIsLoading(false);
+        if (isLatestRequest()) {
+          console.error('Error fetching lesson progress:', lessonError);
+          setError('Failed to fetch lessons');
+        }
         return;
       }
 
@@ -193,29 +196,34 @@ export function useInProgressLessons() {
         return new Date(bAccess).getTime() - new Date(aAccess).getTime();
       });
 
-      setLessons(inProgressLessons);
+      if (isLatestRequest()) setLessons(inProgressLessons);
     } catch (error) {
-      console.error('Error fetching in-progress lessons:', error);
-      setError('Failed to load lessons');
+      if (isLatestRequest()) {
+        console.error('Error fetching in-progress lessons:', error);
+        setError('Failed to load lessons');
+      }
     } finally {
-      setIsLoading(false);
+      if (isLatestRequest()) setIsLoading(false);
     }
-  };
+  }, [language]);
 
   // Fetch on mount and whenever the content language changes.
   useEffect(() => {
-    fetchInProgressLessons();
-  }, [language]);
+    void fetchInProgressLessons();
+    return () => {
+      requestSequence.current += 1;
+    };
+  }, [fetchInProgressLessons]);
 
   // Subscribe to progress update events
   useEffect(() => {
     const unsubscribe = progressEventEmitter.subscribe(() => {
       // Only refetch when progress is logged to the database
-      fetchInProgressLessons();
+      void fetchInProgressLessons();
     });
 
     return unsubscribe;
-  }, [language]);
+  }, [fetchInProgressLessons]);
 
   return {
     lessons,

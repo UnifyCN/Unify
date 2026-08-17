@@ -1,5 +1,5 @@
 import { sanityClient } from '../../sanity-custom';
-import { SanityQuiz, SanityQuizQuestion } from '../../types/sanity';
+import { SanityQuiz } from '../../types/sanity';
 import {
   BASE_LANGUAGE_FILTER,
   i18nOverlay,
@@ -51,7 +51,7 @@ export async function getLessonQuizzes(
 export async function getQuizQuestions(
   quizId: string,
   language: SanityLanguage = 'en'
-): Promise<SanityQuizQuestion[]> {
+): Promise<any[]> {
   try {
     const query = `*[_type == "quiz" && _id == $quizId && ${BASE_LANGUAGE_FILTER}][0] {
       ${QUESTION_FIELDS},
