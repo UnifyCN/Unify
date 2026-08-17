@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAnalytics } from '@/utils/analytics';
 import { getCategoriesWithPartners } from '@/constants/Partners';
+import { RESOURCE_THEME } from '@/constants/ResourceTheme';
 import type { PartnerCategory } from '@/types/partner';
 import CategoryTile from './CategoryTile';
 import CategoryDetail from './CategoryDetail';
@@ -82,11 +83,16 @@ export default function ResourcesView() {
 
 const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
-  title: { fontSize: 24, fontWeight: '600', color: '#000', marginBottom: 6 },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: RESOURCE_THEME.textHeading,
+    marginBottom: 6,
+  },
   subtitle: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#575757',
+    color: RESOURCE_THEME.textSecondary,
     marginBottom: 16,
   },
   grid: {
@@ -98,19 +104,19 @@ const styles = StyleSheet.create({
   empty: {
     paddingVertical: 48,
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: RESOURCE_THEME.surfaceSubtle,
     borderRadius: 12,
     paddingHorizontal: 24,
   },
   emptyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#343232',
+    color: RESOURCE_THEME.textStrong,
     marginBottom: 6,
   },
   emptyText: {
     fontSize: 13,
-    color: '#575757',
+    color: RESOURCE_THEME.textSecondary,
     textAlign: 'center',
     lineHeight: 18,
   },

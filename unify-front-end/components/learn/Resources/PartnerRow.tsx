@@ -3,6 +3,7 @@ import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { COST_LABEL_KEYS, type Partner } from '@/types/partner';
+import { RESOURCE_THEME } from '@/constants/ResourceTheme';
 import Monogram from './Monogram';
 
 type Props = {
@@ -39,7 +40,11 @@ export default function PartnerRow({ partner, onPress }: Props) {
         </Text>
         <View style={styles.chips}>
           <View style={styles.chip}>
-            <Feather name='map-pin' size={10} color='#6B7280' />
+            <Feather
+              name='map-pin'
+              size={10}
+              color={RESOURCE_THEME.textLabel}
+            />
             <Text style={styles.chipText} numberOfLines={1}>
               {partner.serviceArea}
             </Text>
@@ -67,17 +72,21 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ECECEF',
   },
   body: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '700', color: '#1F2937' },
-  tagline: { fontSize: 12, color: '#8A8A8E', marginTop: 2 },
+  name: { fontSize: 15, fontWeight: '700', color: RESOURCE_THEME.textStrong },
+  tagline: { fontSize: 12, color: RESOURCE_THEME.textMuted, marginTop: 2 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: RESOURCE_THEME.surfaceChip,
     borderRadius: 999,
     paddingVertical: 3,
     paddingHorizontal: 8,
   },
-  chipText: { fontSize: 10.5, fontWeight: '600', color: '#6B7280' },
+  chipText: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: RESOURCE_THEME.textLabel,
+  },
 });

@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.30)',
+    backgroundColor: 'rgba(0,0,0,0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   count: {
-    color: 'rgba(255,255,255,0.88)',
+    color: '#FFFFFF',
     fontSize: 11.5,
     fontWeight: '600',
     marginTop: 2,

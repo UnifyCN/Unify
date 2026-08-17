@@ -9,6 +9,7 @@ import {
   type PartnerCategory,
 } from '@/types/partner';
 import { getPartnersByCategory } from '@/constants/Partners';
+import { RESOURCE_THEME } from '@/constants/ResourceTheme';
 import PartnerRow from './PartnerRow';
 
 type Props = {
@@ -33,7 +34,11 @@ export default function CategoryDetail({ category, onBack }: Props) {
         accessibilityLabel={t('learn.resources.backToCategories')}
         hitSlop={8}
       >
-        <Feather name='chevron-left' size={20} color='#343232' />
+        <Feather
+          name='chevron-left'
+          size={20}
+          color={RESOURCE_THEME.textStrong}
+        />
         <Text style={styles.backText}>{t('learn.segment.resources')}</Text>
       </TouchableOpacity>
 
@@ -72,16 +77,21 @@ const styles = StyleSheet.create({
   backText: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#343232',
+    color: RESOURCE_THEME.textStrong,
     marginLeft: 4,
   },
-  title: { fontSize: 24, fontWeight: '600', color: '#000', marginBottom: 6 },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: RESOURCE_THEME.textHeading,
+    marginBottom: 6,
+  },
   description: {
     fontSize: 14,
     lineHeight: 20,
-    color: '#575757',
+    color: RESOURCE_THEME.textSecondary,
     marginBottom: 12,
   },
   empty: { paddingVertical: 32, alignItems: 'center' },
-  emptyText: { fontSize: 14, color: '#878787' },
+  emptyText: { fontSize: 14, color: RESOURCE_THEME.textMuted },
 });

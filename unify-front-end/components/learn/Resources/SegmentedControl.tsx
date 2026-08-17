@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ViewStyle,
 } from 'react-native';
+import { RESOURCE_THEME } from '@/constants/ResourceTheme';
 
 type Props<T extends string> = {
   value: T;
@@ -53,7 +54,7 @@ export default function SegmentedControl<T extends string>({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#F2F2F2',
+    backgroundColor: RESOURCE_THEME.surfaceSegment,
     borderRadius: 999,
     padding: 4,
     marginHorizontal: 16,
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   segmentActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: RESOURCE_THEME.surface,
     shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 4,
@@ -77,10 +78,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#878787',
+    color: RESOURCE_THEME.textMuted,
   },
   labelActive: {
-    color: '#000000',
+    color: RESOURCE_THEME.textHeading,
     fontWeight: '600',
   },
 });

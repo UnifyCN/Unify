@@ -18,6 +18,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { getPartnerBySlug } from '@/constants/Partners';
+import { RESOURCE_THEME } from '@/constants/ResourceTheme';
 import {
   PARTNER_CATEGORY_LABEL_KEYS,
   PARTNER_CATEGORY_ICONS,
@@ -64,7 +65,7 @@ function DetailRow({
       <Feather
         name={icon}
         size={14}
-        color='#9CA3AF'
+        color={RESOURCE_THEME.textLabel}
         style={styles.detailIcon}
       />
       <View style={styles.detailBody}>
@@ -531,7 +532,7 @@ export default function PartnerDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#FFFFFF' },
+  root: { flex: 1, backgroundColor: RESOURCE_THEME.surface },
   hero: { width: '100%', height: 180 },
   backFloat: {
     position: 'absolute',
@@ -539,7 +540,8 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.32)',
+    // Keeps the white back glyph visible even over the lightest hero image.
+    backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -548,7 +550,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#161616',
+    color: RESOURCE_THEME.textHeading,
     letterSpacing: -0.4,
   },
   pill: {
@@ -566,13 +568,17 @@ const styles = StyleSheet.create({
   sectionHead: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#161616',
+    color: RESOURCE_THEME.textHeading,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     marginTop: 20,
     marginBottom: 8,
   },
-  about: { fontSize: 14, lineHeight: 21, color: '#444' },
+  about: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: RESOURCE_THEME.textBody,
+  },
   hRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -587,14 +593,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 1,
   },
-  hText: { flex: 1, fontSize: 13.5, lineHeight: 19, color: '#3A3A3A' },
+  hText: {
+    flex: 1,
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: RESOURCE_THEME.textBody,
+  },
   programCard: {
     flexDirection: 'row',
     // Top-aligned: cards vary in height once eligibility and cost render, and
     // a centred icon floats away from the title it belongs to.
     alignItems: 'flex-start',
     gap: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: RESOURCE_THEME.surface,
     borderWidth: 1,
     borderColor: '#ECECEF',
     borderRadius: 14,
@@ -603,11 +614,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   programText: { flex: 1 },
-  programName: { fontSize: 14.5, fontWeight: '700', color: '#1F2937' },
+  programName: {
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: RESOURCE_THEME.textStrong,
+  },
   programDesc: {
     fontSize: 12.5,
     lineHeight: 18,
-    color: '#6B7280',
+    color: RESOURCE_THEME.textLabel,
     marginTop: 3,
   },
   programIcon: { marginTop: 1 },
@@ -628,12 +643,16 @@ const styles = StyleSheet.create({
   programEligHead: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#6B7280',
+    color: RESOURCE_THEME.textLabel,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
     marginBottom: 2,
   },
-  programEligText: { fontSize: 12, lineHeight: 17, color: '#4B5563' },
+  programEligText: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: RESOURCE_THEME.textDetail,
+  },
 
   eligibility: { borderRadius: 12, padding: 12, marginBottom: 14 },
   eligibilityHead: {
@@ -643,7 +662,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginBottom: 4,
   },
-  eligibilityText: { fontSize: 13, lineHeight: 19, color: '#374151' },
+  eligibilityText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: RESOURCE_THEME.textDetail,
+  },
 
   detailRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   detailIcon: { marginTop: 2 },
@@ -651,14 +674,14 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#9CA3AF',
+    color: RESOURCE_THEME.textLabel,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   detailValue: {
     fontSize: 13.5,
     lineHeight: 19,
-    color: '#374151',
+    color: RESOURCE_THEME.textDetail,
     marginTop: 1,
   },
 
@@ -687,11 +710,15 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   actionSecondaryText: { fontSize: 13, fontWeight: '700' },
-  notFound: { flex: 1, backgroundColor: '#FFFFFF', paddingHorizontal: 16 },
+  notFound: {
+    flex: 1,
+    backgroundColor: RESOURCE_THEME.surface,
+    paddingHorizontal: 16,
+  },
   notFoundText: {
     marginTop: 80,
     textAlign: 'center',
-    color: '#8A8A8E',
+    color: RESOURCE_THEME.textMuted,
     fontSize: 14,
   },
 });
