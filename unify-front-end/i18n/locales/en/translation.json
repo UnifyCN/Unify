@@ -703,7 +703,20 @@
     "hostedBy": "Hosted by",
     "viewDetails": "View Event Details",
     "aboutEvent": "About Event",
-    "noEventDescription": "No description available for this event."
+    "noEventDescription": "No description available for this event.",
+    "filterByCategory": "Filter events by category",
+    "genre": {
+      "employment": "Employment",
+      "language": "Language",
+      "housing": "Housing",
+      "finance": "Finance",
+      "documentation": "Documents",
+      "health": "Health",
+      "family": "Family",
+      "education": "Education",
+      "socials": "Social",
+      "uncategorized": "Other"
+    }
   },
   "resetPassword": {
     "title": "Reset Password",

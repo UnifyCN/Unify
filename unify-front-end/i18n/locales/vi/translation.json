@@ -703,7 +703,20 @@
     "hostedBy": "Tổ chức bởi",
     "viewDetails": "Xem chi tiết sự kiện",
     "aboutEvent": "Về sự kiện",
-    "noEventDescription": "Chưa có mô tả cho sự kiện này."
+    "noEventDescription": "Chưa có mô tả cho sự kiện này.",
+    "filterByCategory": "Lọc sự kiện theo danh mục",
+    "genre": {
+      "employment": "Việc làm",
+      "language": "Ngôn ngữ",
+      "housing": "Nhà ở",
+      "finance": "Tài chính",
+      "documentation": "Giấy tờ",
+      "health": "Sức khỏe",
+      "family": "Gia đình",
+      "education": "Giáo dục",
+      "socials": "Giao lưu",
+      "uncategorized": "Khác"
+    }
   },
   "resetPassword": {
     "title": "Đặt lại mật khẩu",

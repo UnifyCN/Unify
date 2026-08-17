@@ -18,6 +18,7 @@ import { useEffect, useMemo } from 'react';
 import { useAnalytics } from '@/utils/analytics';
 import BackHeader from '@/components/BackHeader';
 import { useEvents } from '@/hooks/events/useEvents';
+import { getSafeEventExternalUrl } from '@/helpers/eventHelpers';
 
 const EventDetailScreen = () => {
   const { t } = useTranslation();
@@ -72,10 +73,12 @@ const EventDetailScreen = () => {
 
   if (!eventData) return null;
 
+  const safeExternalLink = getSafeEventExternalUrl(eventData.externalLink);
+
   const handleExternalLink = () => {
-    if (eventData.externalLink) {
+    if (safeExternalLink) {
       trackEventExternalLinkClicked(eventData.id.toString(), eventData.title);
-      Linking.openURL(eventData.externalLink);
+      Linking.openURL(safeExternalLink);
     }
   };
 
@@ -83,17 +86,17 @@ const EventDetailScreen = () => {
   const handleShare = async () => {
     try {
       trackEventShared(eventData.id.toString(), eventData.title);
-      const shareMessage = [
+      const shareParts = [
         `Check out this event: ${eventData.title}`,
         `📅 ${formatEventDate(eventData.eventDatetime)}`,
         `📍 ${eventData.location}`,
-        `🔗 ${eventData.externalLink}`,
-      ].join('\n\n');
+      ];
+      if (safeExternalLink) shareParts.push(`🔗 ${safeExternalLink}`);
 
       await Share.share({
-        message: shareMessage,
+        message: shareParts.join('\n\n'),
         title: 'Unify Gather',
-        url: eventData.externalLink,
+        ...(safeExternalLink ? { url: safeExternalLink } : {}),
       });
     } catch (error) {
       if (
@@ -147,16 +150,14 @@ const EventDetailScreen = () => {
           />
           <Text style={styles.metadataText}>
             {formatEventDate(eventData.eventDatetime)}
-            {eventData.eventEndDatetime && (
-              <Text style={styles.metadataSecondary}>
-                {' '}
-                ·{' '}
-                {formatEventTimeRange(
-                  eventData.eventDatetime,
-                  eventData.eventEndDatetime
-                )}
-              </Text>
-            )}
+            <Text style={styles.metadataSecondary}>
+              {' '}
+              ·{' '}
+              {formatEventTimeRange(
+                eventData.eventDatetime,
+                eventData.eventEndDatetime
+              )}
+            </Text>
           </Text>
         </View>
 
@@ -193,7 +194,7 @@ const EventDetailScreen = () => {
         )}
 
         {/* CTA Button - View Event Details (now placed after metadata, before About) */}
-        {eventData.externalLink && (
+        {safeExternalLink && (
           <TouchableOpacity
             onPress={handleExternalLink}
             style={styles.ctaButton}
@@ -208,9 +209,7 @@ const EventDetailScreen = () => {
         {eventData.description ? (
           <Text style={styles.aboutText}>{eventData.description}</Text>
         ) : (
-          <Text style={styles.aboutText}>
-            {t('events.noEventDescription')}
-          </Text>
+          <Text style={styles.aboutText}>{t('events.noEventDescription')}</Text>
         )}
       </ScrollView>
     </View>

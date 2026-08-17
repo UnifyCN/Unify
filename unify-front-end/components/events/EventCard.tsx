@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { formatTime } from '@/helpers/dateHelpers';
+import { useTranslation } from 'react-i18next';
+import { EVENT_TIME_ZONE, formatEventTime } from '@/helpers/dateHelpers';
 import { Event } from '@/types/events';
 import { Theme } from '@/constants/Theme';
 import {
@@ -19,21 +20,24 @@ interface EventCardProps {
 
 const EventCard = memo(
   ({ event, width = EVENT_CARD_WIDTH, height, onPress }: EventCardProps) => {
+    const { i18n } = useTranslation();
     const cardHeight = height ?? getEventCardHeight(width);
     const imageHeight = getEventCardImageHeight(width);
 
     const eventDate = new Date(event.eventDatetime);
-    const dateDay = eventDate.toLocaleDateString('en-US', {
+    const dateDay = eventDate.toLocaleDateString(i18n.language, {
       day: 'numeric',
+      timeZone: EVENT_TIME_ZONE,
     });
-    const dateMonth = eventDate.toLocaleDateString('en-US', {
+    const dateMonth = eventDate.toLocaleDateString(i18n.language, {
       month: 'short',
+      timeZone: EVENT_TIME_ZONE,
     });
 
     const formatCardTime = (dateString: string): string =>
-      formatTime(dateString).toLowerCase();
+      formatEventTime(dateString).toLowerCase();
 
-    const formatEventTime = (): string => {
+    const formatCardTimeRange = (): string => {
       if (event.eventEndDatetime) {
         return `${formatCardTime(event.eventDatetime)} - ${formatCardTime(event.eventEndDatetime)}`;
       }
@@ -65,7 +69,7 @@ const EventCard = memo(
           </Text>
           <View style={styles.eventDetailRow}>
             <Feather name='calendar' size={18} color='#9B9797' />
-            <Text style={styles.eventDetailText}>{formatEventTime()}</Text>
+            <Text style={styles.eventDetailText}>{formatCardTimeRange()}</Text>
           </View>
           <View style={styles.eventDetailRow}>
             <Feather name='map-pin' size={18} color='#9B9797' />
@@ -78,6 +82,8 @@ const EventCard = memo(
     );
   }
 );
+
+EventCard.displayName = 'EventCard';
 
 const styles = StyleSheet.create({
   eventCard: {

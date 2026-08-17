@@ -1,5 +1,8 @@
 import i18n from '@/i18n';
 
+/** Events in the shared table are BC-based and store exact UTC instants. */
+export const EVENT_TIME_ZONE = 'America/Vancouver';
+
 // Helpers below intentionally read from the i18n singleton (i18n.t / i18n.language)
 // rather than taking a TFunction param. Components that render strings produced by
 // these helpers should call useTranslation() so they re-render on language change —
@@ -50,14 +53,28 @@ export const formatEventDate = (dateString: string) => {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
+    timeZone: EVENT_TIME_ZONE,
   });
 };
 
-export const formatEventTimeRange = (startDate: string, endDate: string) => {
+export const formatEventTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString(i18n.language, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: EVENT_TIME_ZONE,
+  });
+};
+
+export const formatEventTimeRange = (
+  startDate: string,
+  endDate?: string | null
+) => {
   if (!endDate) {
-    return formatTime(startDate);
+    return formatEventTime(startDate);
   }
-  return `${formatTime(startDate)} - ${formatTime(endDate)} PST`;
+  return `${formatEventTime(startDate)} - ${formatEventTime(endDate)}`;
 };
 
 export const calculateUserStage = (givenTime: Date): number => {

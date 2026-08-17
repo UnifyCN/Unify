@@ -703,7 +703,20 @@
     "hostedBy": "Organizado por",
     "viewDetails": "Ver detalles del evento",
     "aboutEvent": "Sobre el evento",
-    "noEventDescription": "No hay descripción disponible para este evento."
+    "noEventDescription": "No hay descripción disponible para este evento.",
+    "filterByCategory": "Filtrar eventos por categoría",
+    "genre": {
+      "employment": "Empleo",
+      "language": "Idioma",
+      "housing": "Vivienda",
+      "finance": "Finanzas",
+      "documentation": "Documentos",
+      "health": "Salud",
+      "family": "Familia",
+      "education": "Educación",
+      "socials": "Social",
+      "uncategorized": "Otros"
+    }
   },
   "resetPassword": {
     "title": "Restablecer contraseña",
