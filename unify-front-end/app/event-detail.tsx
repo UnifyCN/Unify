@@ -95,15 +95,19 @@ const EventDetailScreen = () => {
     try {
       trackEventShared(eventData.id.toString(), eventData.title);
       const shareParts = [
-        `Check out this event: ${eventData.title}`,
-        `📅 ${formatEventDate(eventData.eventDatetime)}`,
-        `📍 ${eventData.location}`,
+        t('events.shareMessage', { title: eventData.title }),
+        t('events.shareDate', {
+          date: formatEventDate(eventData.eventDatetime),
+        }),
+        t('events.shareLocation', { location: eventData.location }),
       ];
-      if (safeExternalLink) shareParts.push(`🔗 ${safeExternalLink}`);
+      if (safeExternalLink) {
+        shareParts.push(t('events.shareLink', { url: safeExternalLink }));
+      }
 
       await Share.share({
         message: shareParts.join('\n\n'),
-        title: 'Unify Gather',
+        title: t('events.shareDialogTitle'),
         ...(safeExternalLink ? { url: safeExternalLink } : {}),
       });
     } catch (error) {

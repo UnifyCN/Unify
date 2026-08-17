@@ -705,6 +705,11 @@
     "aboutEvent": "About Event",
     "noEventDescription": "No description available for this event.",
     "linkOpenFailed": "Couldn't open the event link. Please try again.",
+    "shareMessage": "Check out this event: {{title}}",
+    "shareDate": "📅 {{date}}",
+    "shareLocation": "📍 {{location}}",
+    "shareLink": "🔗 {{url}}",
+    "shareDialogTitle": "Unify Gather",
     "filterByCategory": "Filter events by category",
     "genre": {
       "employment": "Employment",
