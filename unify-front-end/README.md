@@ -59,10 +59,11 @@ Web and mobile must use the same event names and property meanings:
 | `resources_category_opened` | `category` | Category selected. |
 | `resources_partner_opened` | `slug`, `category`, `partnership_type` | Partner detail rendered. |
 | `resources_partner_website_clicked` | `slug`, `partnership_type` | Valid website CTA clicked, before platform navigation. |
-| `resources_program_clicked` | `slug`, `program_id`; optional `program_name` | Valid program link clicked, before platform navigation. |
+| `resources_program_clicked` | `slug`, `program_id` | Valid program link clicked, before platform navigation. |
 | `resources_link_failed` | `slug`, `target`, `reason`; optional `program_id` | URL validation or platform navigation failed. |
 
-`program_id` is immutable identity; `program_name` is display context only.
+`program_id` is immutable identity. Dashboards resolve display labels from the
+partner catalog instead of capturing mutable program names.
 `target` is `partner_website`, `program`, `phone`, `email`, or `directions`.
 `reason` is `invalid_url` or `launch_failed`. There is deliberately no website
 or program `opened` event because native browser promises resolve differently

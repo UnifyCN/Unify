@@ -849,15 +849,10 @@ export function useAnalytics() {
           partnership_type: partnershipType,
         });
       },
-      trackResourcesProgramClicked: (
-        slug: string,
-        programId: string,
-        programName?: string
-      ) => {
+      trackResourcesProgramClicked: (slug: string, programId: string) => {
         posthog?.capture(AnalyticsEvents.RESOURCES_PROGRAM_CLICKED, {
           slug,
           program_id: programId,
-          ...(programName && { program_name: programName }),
         });
       },
       trackResourcesLinkFailed: (

@@ -221,7 +221,7 @@ export default function PartnerDetailScreen() {
     const launched = await launchResourceLink({
       buildUrl: () => new URL(program.url!).toString(),
       onIntent: () =>
-        trackResourcesProgramClicked(partner.slug, program.id, program.name),
+        trackResourcesProgramClicked(partner.slug, program.id),
       launch: url =>
         WebBrowser.openBrowserAsync(url, {
           controlsColor: color,
