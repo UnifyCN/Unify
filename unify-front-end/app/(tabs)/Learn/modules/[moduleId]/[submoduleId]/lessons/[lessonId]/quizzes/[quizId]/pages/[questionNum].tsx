@@ -542,11 +542,13 @@ export default function QuizQuestionPage() {
         const correctAnswerId =
           currentQuestion.correct_answer?.value?.[0] ||
           currentQuestion.correct_answer?.value;
-        isAnswerCorrect =
+        // `options` and a matching option are both optional in Sanity. Coerce
+        // the resulting boolean | undefined to the boolean UI state contract.
+        isAnswerCorrect = Boolean(
           selectedAnswer === correctAnswerId ||
-          currentQuestion.options?.find(
-            (opt: any) => opt._key === selectedAnswer
-          )?.is_correct;
+            currentQuestion.options?.find(opt => opt._key === selectedAnswer)
+              ?.is_correct
+        );
       }
 
       setIsCorrect(isAnswerCorrect);

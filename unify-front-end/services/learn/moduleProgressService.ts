@@ -108,9 +108,9 @@ export async function maybeMarkModuleCompleted(
 
     // Fetch every lesson _id under this module via Sanity. `references()` walks
     // the module → submodule → lesson graph implicitly by nesting.
-    const query = `*[_type == "module" && _id == $moduleId][0] {
-      "lessonIds": *[_type == "submodule" && references(^._id)][] {
-        "ids": *[_type == "lesson" && references(^._id)]._id
+    const query = `*[_type == "module" && _id == $moduleId && (language == "en" || !defined(language))][0] {
+      "lessonIds": *[_type == "submodule" && references(^._id) && (language == "en" || !defined(language))][] {
+        "ids": *[_type == "lesson" && references(^._id) && (language == "en" || !defined(language))]._id
       }.ids[]
     }`;
     const result = await sanityClient.fetch(query, { moduleId });
@@ -143,6 +143,9 @@ export async function maybeMarkModuleCompleted(
       await upsertModuleProgress(moduleId, 'completed');
     }
   } catch (err) {
-    console.error('[moduleProgressService] maybeMarkModuleCompleted error', err);
+    console.error(
+      '[moduleProgressService] maybeMarkModuleCompleted error',
+      err
+    );
   }
 }
