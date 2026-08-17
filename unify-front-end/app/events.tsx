@@ -6,6 +6,7 @@ import {
   FlatList,
   TextInput,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -14,11 +15,15 @@ import { Feather } from '@expo/vector-icons';
 import { useEvents } from '@/hooks/events/useEvents';
 import EventCard from '@/components/events/EventCard';
 import { useMemo, useState } from 'react';
-import { Event } from '@/types/events';
+import { Event, EventGenre } from '@/types/events';
 import { Theme } from '@/constants/Theme';
 import EmptyFeedMessage from '@/components/profile/EmptyFeedMessage';
 import BackHeader from '@/components/BackHeader';
-import { getUpcomingEventsSorted } from '@/helpers/eventHelpers';
+import {
+  EventDateFilter,
+  getEventsForDateFilter,
+  getPresentEventGenres,
+} from '@/helpers/eventHelpers';
 
 const EVENTS_LIST_CARD_HEIGHT = 228;
 
@@ -28,8 +33,8 @@ const EventsScreen = () => {
   const { data: events, isLoading, error } = useEvents();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTag, setSelectedTag] = useState<string>('Upcoming');
-  // const [selectedGenre, setSelectedGenre] = useState<string>('All Events');
+  const [selectedTag, setSelectedTag] = useState<EventDateFilter>('Upcoming');
+  const [selectedGenre, setSelectedGenre] = useState<EventGenre | null>(null);
 
   const tags = ['All', 'Upcoming', 'Past'] as const;
   const tagLabels: Record<string, string> = {
@@ -37,48 +42,38 @@ const EventsScreen = () => {
     Upcoming: t('events.upcoming'),
     Past: t('events.past'),
   };
-  // const genreTags = [
-  //   'All Events',
-  //   'Socials',
-  //   'Finance',
-  //   'Employment',
-  //   'Housing',
-  //   'Documentation',
-  //   'Uncategorized',
-  // ];
-
-  const selectTag = (tag: string) => {
+  const selectTag = (tag: EventDateFilter) => {
     setSelectedTag(tag);
   };
 
-  const handleFilterEvents = useMemo(() => {
-    const now = Date.now();
+  const { filteredEvents, presentGenres, activeGenre, genreCounts } =
+    useMemo(() => {
+      const searchedEvents =
+        events?.filter(event =>
+          event.title.toLowerCase().includes(searchQuery.toLowerCase())
+        ) ?? [];
 
-    const baseEvents =
-      events?.filter(event =>
-        event.title.toLowerCase().includes(searchQuery.toLowerCase())
-      ) ?? [];
-
-    const upcomingEvents = getUpcomingEventsSorted(baseEvents);
-
-    const pastEvents = baseEvents
-      .filter(event => new Date(event.eventDatetime).getTime() < now)
-      .sort(
-        (a, b) =>
-          new Date(b.eventDatetime).getTime() -
-          new Date(a.eventDatetime).getTime()
+      const dateFilteredEvents = getEventsForDateFilter(
+        searchedEvents,
+        selectedTag
       );
+      const genres = getPresentEventGenres(dateFilteredEvents);
+      const effectiveGenre =
+        selectedGenre && genres.includes(selectedGenre) ? selectedGenre : null;
+      const counts = new Map<EventGenre, number>();
+      dateFilteredEvents.forEach(event => {
+        counts.set(event.genre, (counts.get(event.genre) ?? 0) + 1);
+      });
 
-    switch (selectedTag) {
-      case 'Upcoming':
-        return upcomingEvents;
-      case 'Past':
-        return pastEvents;
-      case 'All':
-      default:
-        return [...upcomingEvents, ...pastEvents];
-    }
-  }, [events, selectedTag, searchQuery]); // , selectedGenre
+      return {
+        filteredEvents: effectiveGenre
+          ? dateFilteredEvents.filter(event => event.genre === effectiveGenre)
+          : dateFilteredEvents,
+        presentGenres: genres,
+        activeGenre: effectiveGenre,
+        genreCounts: counts,
+      };
+    }, [events, searchQuery, selectedGenre, selectedTag]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <View style={styles.eventItem}>
@@ -175,40 +170,62 @@ const EventsScreen = () => {
         ))}
       </View>
 
-      {/* Genre Tags Section - Commented out for now */}
-      {/* 
-      <View style={styles.genreTagsWrapper}>
+      {presentGenres.length >= 2 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.genreTagsContainer}
           contentContainerStyle={styles.genreTagsContent}
+          accessibilityRole='none'
+          accessibilityLabel={t('events.filterByCategory')}
         >
-          {genreTags.map(genre => (
-            <TouchableOpacity
-              key={genre}
+          <Pressable
+            accessibilityRole='button'
+            accessibilityState={{ selected: activeGenre === null }}
+            style={({ pressed }) => [
+              styles.genreTagItem,
+              activeGenre === null && styles.genreTagItemSelected,
+              pressed && styles.genreTagItemPressed,
+            ]}
+            onPress={() => setSelectedGenre(null)}
+          >
+            <Text
               style={[
+                styles.genreTagText,
+                activeGenre === null && styles.genreTagTextSelected,
+              ]}
+            >
+              {t('events.all')}
+            </Text>
+          </Pressable>
+          {presentGenres.map(genre => (
+            <Pressable
+              key={genre}
+              accessibilityRole='button'
+              accessibilityState={{ selected: activeGenre === genre }}
+              style={({ pressed }) => [
                 styles.genreTagItem,
-                selectedGenre === genre && styles.genreTagItemSelected,
+                activeGenre === genre && styles.genreTagItemSelected,
+                pressed && styles.genreTagItemPressed,
               ]}
               onPress={() => setSelectedGenre(genre)}
             >
               <Text
                 style={[
                   styles.genreTagText,
-                  selectedGenre === genre && styles.genreTagTextSelected,
+                  activeGenre === genre && styles.genreTagTextSelected,
                 ]}
               >
-                {genre}
+                {t(`events.genre.${genre.toLowerCase()}`)}{' '}
+                {genreCounts.get(genre)}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
-      </View>
-      */}
+      )}
 
       <FlatList
-        data={handleFilterEvents}
+        data={filteredEvents}
         renderItem={renderEvent}
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.eventsList}
@@ -347,41 +364,35 @@ const styles = StyleSheet.create({
   tagTextSelected: {
     color: Theme.white,
   },
-  // genreTagsWrapper: {
-  //   marginTop: 16,
-  //   marginBottom: 0,
-  //   backgroundColor: Theme.white,
-  //   paddingBottom: 10,
-  // },
-  // genreTagsContainer: {
-  //   maxHeight: 60,
-  // },
-  // genreTagsContent: {
-  //   paddingHorizontal: 20,
-  //   alignItems: 'center',
-  //   height: 60,
-  // },
-  // genreTagItem: {
-  //   alignItems: 'center',
-  //   justifyContent: 'center',
-  //   paddingHorizontal: 8,
-  //   height: 50,
-  //   marginRight: 12,
-  // },
-  // genreTagItemSelected: {
-  //   borderBottomWidth: 2,
-  //   borderColor: Theme.primaryGatherRed,
-  // },
-  // genreTagText: {
-  //   fontSize: 14,
-  //   fontWeight: '500',
-  //   color: Theme.textInactiveTab,
-  //   textAlign: 'center',
-  // },
-  // genreTagTextSelected: {
-  //   fontWeight: '600',
-  //   color: Theme.black,
-  // },
+  genreTagsContainer: {
+    flexGrow: 0,
+    marginBottom: 16,
+  },
+  genreTagsContent: {
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  genreTagItem: {
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: Theme.surfaceTextInput,
+  },
+  genreTagItemSelected: {
+    backgroundColor: Theme.black,
+  },
+  genreTagItemPressed: {
+    opacity: 0.72,
+  },
+  genreTagText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Theme.textAlternateGray,
+  },
+  genreTagTextSelected: {
+    color: Theme.white,
+  },
 });
 
 export default EventsScreen;
