@@ -84,11 +84,19 @@ export default function TaskPageScreen() {
     ])
   );
 
-  const goToSubmoduleIndex = () => {
-    router.push({
+  const goToSubmoduleIndex = (justCompletedTasks = false) => {
+    const destination = {
       pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-      params: { moduleId, submoduleId },
-    });
+      params: justCompletedTasks
+        ? { moduleId, submoduleId, justCompletedTasks: '1' }
+        : { moduleId, submoduleId },
+    };
+
+    if (justCompletedTasks) {
+      router.replace(destination);
+    } else {
+      router.push(destination);
+    }
   };
 
   const handleSaveAndLeave = () => {
@@ -124,7 +132,7 @@ export default function TaskPageScreen() {
           params: { moduleId, submoduleId, taskId: nextTask._id },
         });
       } else {
-        goToSubmoduleIndex();
+        goToSubmoduleIndex(true);
       }
     } finally {
       setIsSaving(false);

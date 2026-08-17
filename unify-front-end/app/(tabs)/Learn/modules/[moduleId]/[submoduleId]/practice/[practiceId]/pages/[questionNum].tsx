@@ -26,11 +26,23 @@ import {
 } from '@/services/progress/practiceProgressService';
 import { useTranslation } from 'react-i18next';
 
-function goToSubmoduleIndex(moduleId: string, submoduleId: string) {
-  router.push({
+function goToSubmoduleIndex(
+  moduleId: string,
+  submoduleId: string,
+  justCompletedPractice = false
+) {
+  const destination = {
     pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-    params: { moduleId, submoduleId },
-  });
+    params: justCompletedPractice
+      ? { moduleId, submoduleId, justCompletedPractice: '1' }
+      : { moduleId, submoduleId },
+  };
+
+  if (justCompletedPractice) {
+    router.replace(destination);
+  } else {
+    router.push(destination);
+  }
 }
 
 export default function PracticeQuizQuestionPage() {
@@ -312,7 +324,7 @@ export default function PracticeQuizQuestionPage() {
             params: { moduleId, submoduleId, practiceId: nextPractice._id },
           });
         } else {
-          goToSubmoduleIndex(moduleId!, submoduleId!);
+          goToSubmoduleIndex(moduleId!, submoduleId!, true);
         }
       } else {
         setIsNavigating(true);
@@ -367,7 +379,7 @@ export default function PracticeQuizQuestionPage() {
           params: { moduleId, submoduleId, practiceId: nextPractice._id },
         });
       } else {
-        goToSubmoduleIndex(moduleId!, submoduleId!);
+        goToSubmoduleIndex(moduleId!, submoduleId!, true);
       }
     } else {
       setIsNavigating(true);

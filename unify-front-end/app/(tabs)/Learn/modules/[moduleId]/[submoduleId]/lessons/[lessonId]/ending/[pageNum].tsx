@@ -159,9 +159,9 @@ export default function EndingPageScreen() {
 
     // Navigate: either back to submodule index (last lesson) or to next lesson
     if (isLastLesson()) {
-      router.push({
+      router.replace({
         pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-        params: { moduleId, submoduleId },
+        params: { moduleId, submoduleId, justCompletedLearn: '1' },
       });
     } else {
       const nextLesson = getNextLesson();

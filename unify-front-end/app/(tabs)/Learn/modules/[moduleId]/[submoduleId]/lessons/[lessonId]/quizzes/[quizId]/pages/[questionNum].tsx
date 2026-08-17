@@ -479,10 +479,10 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              router.push({
+              router.replace({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                params: { moduleId, submoduleId },
+                params: { moduleId, submoduleId, justCompletedLearn: '1' },
               });
             } else {
               // Go to next lesson
@@ -605,10 +605,10 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              router.push({
+              router.replace({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                params: { moduleId, submoduleId },
+                params: { moduleId, submoduleId, justCompletedLearn: '1' },
               });
             } else {
               // Go to next lesson

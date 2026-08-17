@@ -37,11 +37,23 @@ export default function PracticeActivityPageScreen() {
     pageNum: string;
   }>();
 
-  const goToSubmoduleIndex = () => {
-    router.push({
+  const goToSubmoduleIndex = (justCompletedPractice = false) => {
+    const destination = {
       pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-      params: { moduleId: moduleId!, submoduleId: submoduleId! },
-    });
+      params: justCompletedPractice
+        ? {
+            moduleId: moduleId!,
+            submoduleId: submoduleId!,
+            justCompletedPractice: '1',
+          }
+        : { moduleId: moduleId!, submoduleId: submoduleId! },
+    };
+
+    if (justCompletedPractice) {
+      router.replace(destination);
+    } else {
+      router.push(destination);
+    }
   };
 
   const currentPage = parseInt(pageNum || '1');
@@ -302,7 +314,7 @@ export default function PracticeActivityPageScreen() {
           params: { moduleId, submoduleId, practiceId: nextPractice._id },
         });
       } else {
-        goToSubmoduleIndex();
+        goToSubmoduleIndex(true);
       }
     }
   };

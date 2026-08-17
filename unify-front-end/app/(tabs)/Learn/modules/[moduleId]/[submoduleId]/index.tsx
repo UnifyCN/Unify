@@ -1,4 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+} from 'react';
 import {
   View,
   Text,
@@ -113,10 +118,24 @@ export default function SubmoduleIndex() {
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { moduleId, submoduleId } = useLocalSearchParams<{
+  const {
+    moduleId,
+    submoduleId,
+    justCompletedLearn,
+    justCompletedTasks,
+    justCompletedPractice,
+  } = useLocalSearchParams<{
     moduleId: string;
     submoduleId: string;
+    justCompletedLearn?: string;
+    justCompletedTasks?: string;
+    justCompletedPractice?: string;
   }>();
+
+  const isCompletionTransition =
+    justCompletedLearn === '1' ||
+    justCompletedTasks === '1' ||
+    justCompletedPractice === '1';
 
   const [learnProgressPercent, setLearnProgressPercent] = useState(0);
   const [practiceProgressPercent, setPracticeProgressPercent] = useState(0);
@@ -129,9 +148,13 @@ export default function SubmoduleIndex() {
     isLoading,
     error,
   } = useSanitySubmoduleWithLessons(submoduleId || '');
-  const { data: moduleData } = useSanityModuleWithSubmodules(moduleId || '');
-  const { data: practices } = useSanityPractices(submoduleId || '');
-  const { data: tasks } = useSanityTasks(submoduleId || '');
+  const { data: moduleData, isLoading: isModuleLoading } =
+    useSanityModuleWithSubmodules(moduleId || '');
+  const { data: practices, isLoading: isPracticesLoading } =
+    useSanityPractices(submoduleId || '');
+  const { data: tasks, isLoading: isTasksLoading } = useSanityTasks(
+    submoduleId || ''
+  );
   const { getPracticeProgressBySubmodule } = usePracticeProgress();
   const { getTaskProgressBySubmodule } = useTaskProgress();
 
@@ -339,6 +362,80 @@ export default function SubmoduleIndex() {
       : []),
   ];
 
+  const requestedNextSectionId =
+    justCompletedLearn === '1'
+      ? (sections.find(section => section.id !== 'learn')?.id ?? null)
+      : justCompletedTasks === '1'
+        ? (sections.find(section => section.id === 'practice')?.id ?? null)
+        : null;
+
+  const highlightedSectionId =
+    requestedNextSectionId ??
+    sections.find(section => section.progressPercent < 100)?.id ??
+    sections[0]?.id ??
+    null;
+
+  useLayoutEffect(() => {
+    setOpenedCardId(highlightedSectionId);
+  }, [highlightedSectionId]);
+
+  useEffect(() => {
+    if (!isCompletionTransition || !moduleId) return;
+    if (isTasksLoading || isPracticesLoading || isModuleLoading) return;
+    if (tasks === undefined || practices === undefined) return;
+
+    if (!moduleData?.submodules) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId },
+      });
+      return;
+    }
+
+    const hasNextSectionContent =
+      (justCompletedLearn === '1' &&
+        (tasks.length > 0 || practices.length > 0)) ||
+      (justCompletedTasks === '1' && practices.length > 0);
+    if (hasNextSectionContent) return;
+
+    const currentSubmoduleIndex = moduleData.submodules.findIndex(
+      submodule => submodule._id === submoduleId
+    );
+    if (currentSubmoduleIndex === -1) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId },
+      });
+      return;
+    }
+
+    const nextSubmoduleId =
+      moduleData.submodules[currentSubmoduleIndex + 1]?._id;
+
+    if (nextSubmoduleId) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId, highlightSubmoduleId: nextSubmoduleId },
+      });
+      return;
+    }
+
+    router.replace('/(tabs)/Learn');
+  }, [
+    isModuleLoading,
+    isPracticesLoading,
+    isTasksLoading,
+    isCompletionTransition,
+    justCompletedLearn,
+    justCompletedTasks,
+    moduleData?.submodules,
+    moduleId,
+    practices,
+    router,
+    submoduleId,
+    tasks,
+  ]);
+
   const handleCardTap = (section: SubmoduleSectionViewModel) => {
     if (openedCardId === section.id) {
       section.onPress();
@@ -468,7 +565,14 @@ export default function SubmoduleIndex() {
     );
   };
 
-  if (isLoading) {
+  if (
+    isLoading ||
+    (isCompletionTransition &&
+      (isTasksLoading ||
+        isPracticesLoading ||
+        isModuleLoading ||
+        requestedNextSectionId === null))
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>

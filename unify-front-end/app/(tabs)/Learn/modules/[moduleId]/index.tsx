@@ -166,11 +166,13 @@ export default function ModuleIndex() {
   const { t } = useTranslation();
   const { trackScreen, trackModuleViewed } = useAnalytics();
   const insets = useSafeAreaInsets();
-  const { moduleId, blobIndex, whyTag } = useLocalSearchParams<{
-    moduleId: string;
-    blobIndex?: string;
-    whyTag?: string;
-  }>();
+  const { moduleId, blobIndex, whyTag, highlightSubmoduleId } =
+    useLocalSearchParams<{
+      moduleId: string;
+      blobIndex?: string;
+      whyTag?: string;
+      highlightSubmoduleId?: string;
+    }>();
 
   // U2: Strip whitespace and require non-empty content before we render the
   // "Why this?" banner — otherwise an empty or whitespace-only personalization
@@ -569,6 +571,15 @@ export default function ModuleIndex() {
     if (!moduleData?.submodules || moduleData.submodules.length === 0)
       return null;
 
+    if (
+      highlightSubmoduleId &&
+      moduleData.submodules.some(
+        submodule => submodule._id === highlightSubmoduleId
+      )
+    ) {
+      return highlightSubmoduleId;
+    }
+
     // Find the first unlocked section that is not completed
     for (let i = 0; i < moduleData.submodules.length; i++) {
       const submodule = moduleData.submodules[i];
@@ -586,7 +597,7 @@ export default function ModuleIndex() {
 
     // If all sections are completed, highlight the first one
     return moduleData.submodules[0]._id;
-  }, [moduleData?.submodules, submoduleProgresses]);
+  }, [highlightSubmoduleId, moduleData?.submodules, submoduleProgresses]);
 
   // Initialize openedCardId to the highlighted section when data is ready
   useEffect(() => {

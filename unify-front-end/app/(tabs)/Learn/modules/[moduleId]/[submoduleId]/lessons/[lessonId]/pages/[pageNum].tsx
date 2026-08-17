@@ -249,26 +249,25 @@ export default function LessonPageScreen() {
               params: { moduleId, submoduleId, lessonId, pageNum: '1' },
             });
           } else {
-            // No ending pages, save this lesson as completed (in background)
+            // No ending pages, save this lesson as completed before navigating
             setIsSaving(true);
-
-            // Save in background - don't block navigation
-            saveLessonCompletion(
-              lessonId || '',
-              submoduleId || '',
-              moduleId || '',
-              lessonTotalPages
-            ).finally(() => {
+            try {
+              await saveLessonCompletion(
+                lessonId || '',
+                submoduleId || '',
+                moduleId || '',
+                lessonTotalPages
+              );
+            } finally {
               setIsSaving(false);
-            });
+            }
 
-            // Navigate immediately
             // Check if this is the last lesson
             if (isLastLesson()) {
-              router.push({
+              router.replace({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                params: { moduleId, submoduleId },
+                params: { moduleId, submoduleId, justCompletedLearn: '1' },
               });
             } else {
               // Go to next lesson
