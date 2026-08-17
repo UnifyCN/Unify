@@ -135,8 +135,8 @@ Row Level Security protects application tables with policies for:
 - Premium features restricted by `is_premium` flag
 
 Production currently has two service-role-only crawler tables without RLS:
-`crawl_sources` and `crawl_logs`. They require a separate security review before
-any RLS change because policies must remain compatible with crawler jobs.
+`crawl_sources` and `crawl_logs`. Their required separate security review is
+recorded in the [shared database baseline status](../unify-back-end/supabase/BASELINE_STATUS.md#production-state-requiring-explicit-review); any RLS policy must remain compatible with crawler jobs.
 
 ---
 
