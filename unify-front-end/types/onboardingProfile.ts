@@ -43,7 +43,11 @@ export type Hobby =
   | 'food_cooking'
   | 'movies';
 
-export type PreferredLanguage = 'en' | 'vi' | 'es' | 'hi';
+/**
+ * Values another shared-database client may persist. Mobile UI locales remain
+ * the narrower `SupportedLanguage` union until their translations ship.
+ */
+export type PreferredLanguage = 'en' | 'vi' | 'es' | 'hi' | 'ar' | 'fr-CA';
 
 export interface UserOnboardingProfile {
   id: string; // UUID matching auth.users.id

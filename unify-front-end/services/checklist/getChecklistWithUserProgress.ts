@@ -5,11 +5,15 @@ import {
   UserTaskWithDetails,
   sanityChecklistItemToTaskDetails,
 } from '@/types/checklist';
-import { CHECKLIST_PRIORITY_ORDER, normalizeChecklistPriority } from '@/utils/checklistOrder';
+import {
+  CHECKLIST_PRIORITY_ORDER,
+  normalizeChecklistPriority,
+} from '@/utils/checklistOrder';
 import { getChecklistByPersonaAndStage } from '@/services/sanity/checklist';
 import { getUserTasks } from './getUserTasks';
 import { deleteUserTasks } from './deleteUserTasks';
 import { getCustomChecklistTasks } from './customChecklistTasks';
+import type { SanityLanguage } from '@/services/sanity/i18n';
 
 function mergeChecklistWithUserTasks(
   items: SanityChecklistItem[],
@@ -67,7 +71,7 @@ export async function getChecklistWithUserProgress(
   userId: string,
   persona: string,
   stageSlug: string,
-  options: { stageChanged?: boolean }
+  options: { stageChanged?: boolean; language?: SanityLanguage }
 ): Promise<UserTaskWithDetails[]> {
   if (options.stageChanged) {
     await deleteUserTasks(userId);
@@ -75,6 +79,7 @@ export async function getChecklistWithUserProgress(
 
   const items = await getChecklistByPersonaAndStage(persona, stageSlug, {
     skipCache: true,
+    language: options.language,
   });
 
   const rows = items.length > 0 ? await getUserTasks(userId) : [];
@@ -85,12 +90,12 @@ export async function getChecklistWithUserProgress(
 
   // Interleave custom tasks into correct priority positions
   const allTasks = [...sanityTasks, ...customTasks];
-  const priorityIndex = new Map(
-    CHECKLIST_PRIORITY_ORDER.map((p, i) => [p, i])
-  );
+  const priorityIndex = new Map(CHECKLIST_PRIORITY_ORDER.map((p, i) => [p, i]));
   allTasks.sort((a, b) => {
-    const aIdx = priorityIndex.get(normalizeChecklistPriority(a.task.priority)) ?? 99;
-    const bIdx = priorityIndex.get(normalizeChecklistPriority(b.task.priority)) ?? 99;
+    const aIdx =
+      priorityIndex.get(normalizeChecklistPriority(a.task.priority)) ?? 99;
+    const bIdx =
+      priorityIndex.get(normalizeChecklistPriority(b.task.priority)) ?? 99;
     return aIdx - bIdx;
   });
 

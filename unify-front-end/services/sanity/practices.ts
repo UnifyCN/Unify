@@ -1,5 +1,12 @@
 import { sanityClient } from '../../sanity-custom';
 import { SanityPractice } from '../../types/sanity';
+import {
+  BASE_LANGUAGE_FILTER,
+  i18nOverlay,
+  mergeI18nOverlay,
+  type SanityLanguage,
+  type WithI18n,
+} from './i18n';
 
 /** Sanity IDs: alphanumeric, hyphens, underscores; 1–128 chars to prevent GROQ injection. */
 function isValidSanityId(id: string): boolean {
@@ -11,15 +18,7 @@ function isValidSanityId(id: string): boolean {
   );
 }
 
-const PRACTICE_BY_SUBMODULE_QUERY = `*[_type == "practice" && submodule._ref == $submoduleId] | order(order_number asc) {
-  _id,
-  _type,
-  title,
-  description,
-  practice_type,
-  order_number,
-  "submodule": submodule-> { _id, title },
-  questions[] {
+const QUESTION_FIELDS = `questions[] | order(order_number asc) {
     _key,
     question_type,
     question_text,
@@ -28,17 +27,34 @@ const PRACTICE_BY_SUBMODULE_QUERY = `*[_type == "practice" && submodule._ref == 
     correct_answer { value, explanation, points },
     order_number,
     answer_box { content, showAfterSubmit }
-  },
-  pages[] {
+  }`;
+
+const PAGE_FIELDS = `pages[] | order(order asc) {
     _key,
     title,
     order,
-    instructions[],
+    instructions[] {
+      ...,
+      options[] { _key, text, value, is_correct, explanation },
+      matching_pairs[] { _key, left_item, right_item, explanation }
+    },
     answer_box { title, content, showAfterSubmit }
-  }
+  }`;
+
+const PRACTICE_BY_SUBMODULE_QUERY = `*[_type == "practice" && submodule._ref == $submoduleId && ${BASE_LANGUAGE_FILTER}] | order(order_number asc) {
+  _id,
+  _type,
+  title,
+  description,
+  practice_type,
+  order_number,
+  "submodule": submodule-> { _id, title },
+  ${QUESTION_FIELDS},
+  ${PAGE_FIELDS},
+  ${i18nOverlay(`title, description, ${QUESTION_FIELDS}, ${PAGE_FIELDS}`)}
 }`;
 
-const PRACTICE_BY_ID_QUERY = `*[_type == "practice" && _id == $practiceId][0] {
+const PRACTICE_BY_ID_QUERY = `*[_type == "practice" && _id == $practiceId && ${BASE_LANGUAGE_FILTER}][0] {
   _id,
   _type,
   title,
@@ -46,27 +62,14 @@ const PRACTICE_BY_ID_QUERY = `*[_type == "practice" && _id == $practiceId][0] {
   practice_type,
   order_number,
   "submodule": submodule-> { _id, title },
-  questions[] {
-    _key,
-    question_type,
-    question_text,
-    options[] { _key, text, value, is_correct, explanation },
-    matching_pairs[] { _key, left_item, right_item, explanation },
-    correct_answer { value, explanation, points },
-    order_number,
-    answer_box { content, showAfterSubmit }
-  },
-  pages[] {
-    _key,
-    title,
-    order,
-    instructions[],
-    answer_box { title, content, showAfterSubmit }
-  }
+  ${QUESTION_FIELDS},
+  ${PAGE_FIELDS},
+  ${i18nOverlay(`title, description, ${QUESTION_FIELDS}, ${PAGE_FIELDS}`)}
 }`;
 
 export async function getPracticesBySubmodule(
-  submoduleId: string
+  submoduleId: string,
+  language: SanityLanguage = 'en'
 ): Promise<SanityPractice[]> {
   if (!isValidSanityId(submoduleId)) {
     console.warn(
@@ -76,10 +79,14 @@ export async function getPracticesBySubmodule(
     return [];
   }
   try {
-    const result = await sanityClient.fetch(PRACTICE_BY_SUBMODULE_QUERY, {
-      submoduleId,
-    });
-    return Array.isArray(result) ? result : [];
+    const result = await sanityClient.fetch<WithI18n<SanityPractice>[]>(
+      PRACTICE_BY_SUBMODULE_QUERY,
+      {
+        submoduleId,
+        lang: language,
+      }
+    );
+    return Array.isArray(result) ? result.map(mergeI18nOverlay) : [];
   } catch (error) {
     console.error('Error fetching practices by submodule from Sanity:', error);
     throw error;
@@ -87,7 +94,8 @@ export async function getPracticesBySubmodule(
 }
 
 export async function getPracticeById(
-  practiceId: string
+  practiceId: string,
+  language: SanityLanguage = 'en'
 ): Promise<SanityPractice | null> {
   if (!isValidSanityId(practiceId)) {
     console.warn(
@@ -97,10 +105,14 @@ export async function getPracticeById(
     return null;
   }
   try {
-    const result = await sanityClient.fetch(PRACTICE_BY_ID_QUERY, {
-      practiceId,
-    });
-    return result && !Array.isArray(result) ? result : null;
+    const result = await sanityClient.fetch<WithI18n<SanityPractice> | null>(
+      PRACTICE_BY_ID_QUERY,
+      {
+        practiceId,
+        lang: language,
+      }
+    );
+    return result && !Array.isArray(result) ? mergeI18nOverlay(result) : null;
   } catch (error) {
     console.error('Error fetching practice by ID from Sanity:', error);
     return null;

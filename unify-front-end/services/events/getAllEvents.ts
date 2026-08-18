@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import { Event } from '@/types/events';
+import {
+  EVENT_COLUMNS,
+  EventRow,
+  mapEventRow,
+} from '@/services/events/eventContract';
 
 export const getAllEvents = async (): Promise<Event[]> => {
   try {
@@ -12,33 +17,14 @@ export const getAllEvents = async (): Promise<Event[]> => {
 
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select(EVENT_COLUMNS)
       .order('event_datetime', { ascending: false });
 
     if (error) {
       throw new Error('Failed to fetch events');
     }
 
-    // Map the database columns to the Event interface with camelCase
-    return (
-      data?.map(event => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        eventDatetime: event.event_datetime,
-        eventEndDatetime: event.event_end_datetime,
-        location: event.location,
-        address: event.address,
-        hostedBy: event.hosted_by,
-        eventType: event.event_type,
-        genre: event.genre,
-        coverPhotoUrl: event.cover_photo_url,
-        externalLink: event.external_link,
-        maxAttendees: event.max_attendees,
-        createdAt: event.created_at,
-        updatedAt: event.updated_at,
-      })) || []
-    );
+    return ((data ?? []) as unknown as EventRow[]).map(mapEventRow);
   } catch (error) {
     console.error('Error fetching events:', error);
     throw error;
