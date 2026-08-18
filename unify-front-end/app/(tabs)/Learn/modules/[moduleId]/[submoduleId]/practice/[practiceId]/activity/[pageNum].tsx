@@ -108,6 +108,8 @@ export default function PracticeActivityPageScreen() {
     [key: string]: string | string[];
   }>({});
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const isCompletingRef = React.useRef(false);
   const [feedbackContext, setFeedbackContext] = useState({
     questionText: '',
     userAnswer: '',
@@ -313,6 +315,8 @@ export default function PracticeActivityPageScreen() {
   };
 
   const handleNext = async () => {
+    if (isCompletingRef.current) return;
+
     if (currentPage < totalPages) {
       const nextPage = currentPage + 1;
       await updatePracticeProgress(practiceId!, nextPage);
@@ -327,19 +331,26 @@ export default function PracticeActivityPageScreen() {
         },
       });
     } else {
-      const didSave = await completePractice(practiceId!);
-      if (!didSave) {
-        Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
-        return;
-      }
-      if (nextPractice) {
-        router.replace({
-          pathname:
-            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
-          params: { moduleId, submoduleId, practiceId: nextPractice._id },
-        });
-      } else {
-        goToSubmoduleIndex(true);
+      isCompletingRef.current = true;
+      setIsCompleting(true);
+      try {
+        const didSave = await completePractice(practiceId!);
+        if (!didSave) {
+          Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+          return;
+        }
+        if (nextPractice) {
+          router.replace({
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
+            params: { moduleId, submoduleId, practiceId: nextPractice._id },
+          });
+        } else {
+          goToSubmoduleIndex(true);
+        }
+      } finally {
+        isCompletingRef.current = false;
+        setIsCompleting(false);
       }
     }
   };
@@ -618,8 +629,10 @@ export default function PracticeActivityPageScreen() {
           style={[
             styles.nextBtn,
             { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+            isCompleting && { opacity: 0.6 },
           ]}
           onPress={isSubmitted ? handleNext : handleSubmit}
+          disabled={isCompleting}
         >
           <Text style={styles.nextBtnText}>
             {!isSubmitted

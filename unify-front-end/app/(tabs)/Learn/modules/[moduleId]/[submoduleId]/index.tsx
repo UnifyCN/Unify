@@ -151,7 +151,12 @@ export default function SubmoduleIndex() {
   const [isPracticeProgressLoading, setIsPracticeProgressLoading] =
     useState(true);
   const [isTaskProgressLoading, setIsTaskProgressLoading] = useState(true);
-  const [hasProgressLoadError, setHasProgressLoadError] = useState(false);
+  const [hasLearnProgressLoadError, setHasLearnProgressLoadError] =
+    useState(false);
+  const [hasPracticeProgressLoadError, setHasPracticeProgressLoadError] =
+    useState(false);
+  const [hasTaskProgressLoadError, setHasTaskProgressLoadError] =
+    useState(false);
   const [isResolvingLearnHref, setIsResolvingLearnHref] = useState(false);
   const [openedCardId, setOpenedCardId] = useState<string | null>('learn');
 
@@ -185,6 +190,7 @@ export default function SubmoduleIndex() {
       if (!moduleId || !submoduleId) return;
       let cancelled = false;
       setIsLearnProgressLoading(true);
+      setHasLearnProgressLoadError(false);
       // Always force-refresh so the progress bar reflects page-level saves
       cachedProgressService
         .refreshProgress()
@@ -200,7 +206,7 @@ export default function SubmoduleIndex() {
           }
         })
         .catch(() => {
-          if (!cancelled) setHasProgressLoadError(true);
+          if (!cancelled) setHasLearnProgressLoadError(true);
         })
         .finally(() => {
           if (!cancelled) setIsLearnProgressLoading(false);
@@ -216,6 +222,7 @@ export default function SubmoduleIndex() {
       if (!submoduleId) return;
       let cancelled = false;
       setIsPracticeProgressLoading(true);
+      setHasPracticeProgressLoadError(false);
       const total = practices?.length ?? 0;
       if (total === 0) {
         setPracticeProgressPercent(0);
@@ -230,7 +237,7 @@ export default function SubmoduleIndex() {
           setPracticeProgressPercent(Math.min(100, Math.max(0, p)));
         })
         .catch(() => {
-          if (!cancelled) setHasProgressLoadError(true);
+          if (!cancelled) setHasPracticeProgressLoadError(true);
         })
         .finally(() => {
           if (!cancelled) setIsPracticeProgressLoading(false);
@@ -251,6 +258,7 @@ export default function SubmoduleIndex() {
       if (!submoduleId) return;
       let cancelled = false;
       setIsTaskProgressLoading(true);
+      setHasTaskProgressLoadError(false);
       const total = tasks?.length ?? 0;
       if (total === 0) {
         setTaskProgressPercent(0);
@@ -265,7 +273,7 @@ export default function SubmoduleIndex() {
           setTaskProgressPercent(Math.min(100, Math.max(0, p)));
         })
         .catch(() => {
-          if (!cancelled) setHasProgressLoadError(true);
+          if (!cancelled) setHasTaskProgressLoadError(true);
         })
         .finally(() => {
           if (!cancelled) setIsTaskProgressLoading(false);
@@ -444,7 +452,9 @@ export default function SubmoduleIndex() {
     if (
       isTasksError ||
       isPracticesError ||
-      hasProgressLoadError ||
+      hasLearnProgressLoadError ||
+      hasPracticeProgressLoadError ||
+      hasTaskProgressLoadError ||
       tasks === undefined ||
       practices === undefined
     ) {
@@ -499,7 +509,9 @@ export default function SubmoduleIndex() {
     isTasksError,
     isTasksLoading,
     isCompletionTransition,
-    hasProgressLoadError,
+    hasLearnProgressLoadError,
+    hasPracticeProgressLoadError,
+    hasTaskProgressLoadError,
     completedSectionId,
     moduleData?.submodules,
     moduleId,
