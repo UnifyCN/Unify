@@ -1,4 +1,9 @@
-import React, { useState, useCallback } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+} from 'react';
 import {
   View,
   Text,
@@ -21,6 +26,11 @@ import { useTaskProgress } from '@/hooks/progress/useTaskProgress';
 import { useSanityPractices } from '@/hooks/sanity/useSanityPractices';
 import { useSanityTasks } from '@/hooks/sanity/useSanityTasks';
 import { getLearnHref } from '@/utils/learnHref';
+import {
+  getCompletedSectionId,
+  getNextIncompleteSectionId,
+  LearnSectionId,
+} from '@/utils/learnCompletionNavigation';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Layout } from '@/constants/Layout';
@@ -34,7 +44,7 @@ const LINE_WIDTH = 2;
 type SectionUIState = 'completed' | 'active' | 'unlocked' | 'locked';
 
 interface SubmoduleSectionViewModel {
-  id: string;
+  id: LearnSectionId;
   title: string;
   description: string;
   iconName: keyof typeof Feather.glyphMap;
@@ -113,14 +123,40 @@ export default function SubmoduleIndex() {
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { moduleId, submoduleId } = useLocalSearchParams<{
+  const {
+    moduleId,
+    submoduleId,
+    justCompletedLearn,
+    justCompletedTasks,
+    justCompletedPractice,
+  } = useLocalSearchParams<{
     moduleId: string;
     submoduleId: string;
+    justCompletedLearn?: string;
+    justCompletedTasks?: string;
+    justCompletedPractice?: string;
   }>();
+
+  const completedSectionId = getCompletedSectionId({
+    justCompletedLearn,
+    justCompletedTasks,
+    justCompletedPractice,
+  });
+  const isCompletionTransition = completedSectionId !== null;
 
   const [learnProgressPercent, setLearnProgressPercent] = useState(0);
   const [practiceProgressPercent, setPracticeProgressPercent] = useState(0);
   const [taskProgressPercent, setTaskProgressPercent] = useState(0);
+  const [isLearnProgressLoading, setIsLearnProgressLoading] = useState(true);
+  const [isPracticeProgressLoading, setIsPracticeProgressLoading] =
+    useState(true);
+  const [isTaskProgressLoading, setIsTaskProgressLoading] = useState(true);
+  const [hasLearnProgressLoadError, setHasLearnProgressLoadError] =
+    useState(false);
+  const [hasPracticeProgressLoadError, setHasPracticeProgressLoadError] =
+    useState(false);
+  const [hasTaskProgressLoadError, setHasTaskProgressLoadError] =
+    useState(false);
   const [isResolvingLearnHref, setIsResolvingLearnHref] = useState(false);
   const [openedCardId, setOpenedCardId] = useState<string | null>('learn');
 
@@ -129,9 +165,18 @@ export default function SubmoduleIndex() {
     isLoading,
     error,
   } = useSanitySubmoduleWithLessons(submoduleId || '');
-  const { data: moduleData } = useSanityModuleWithSubmodules(moduleId || '');
-  const { data: practices } = useSanityPractices(submoduleId || '');
-  const { data: tasks } = useSanityTasks(submoduleId || '');
+  const { data: moduleData, isLoading: isModuleLoading } =
+    useSanityModuleWithSubmodules(moduleId || '');
+  const {
+    data: practices,
+    isLoading: isPracticesLoading,
+    isError: isPracticesError,
+  } = useSanityPractices(submoduleId || '');
+  const {
+    data: tasks,
+    isLoading: isTasksLoading,
+    isError: isTasksError,
+  } = useSanityTasks(submoduleId || '');
   const { getPracticeProgressBySubmodule } = usePracticeProgress();
   const { getTaskProgressBySubmodule } = useTaskProgress();
 
@@ -144,10 +189,14 @@ export default function SubmoduleIndex() {
     useCallback(() => {
       if (!moduleId || !submoduleId) return;
       let cancelled = false;
+      setIsLearnProgressLoading(true);
+      setHasLearnProgressLoadError(false);
       // Always force-refresh so the progress bar reflects page-level saves
       cachedProgressService
         .refreshProgress()
-        .then(() => cachedProgressService.getSubmoduleProgress(moduleId, submoduleId))
+        .then(() =>
+          cachedProgressService.getSubmoduleProgress(moduleId, submoduleId)
+        )
         .then(progress => {
           if (!cancelled && progress?.progress_percent != null) {
             const p = Number(progress.progress_percent);
@@ -156,7 +205,12 @@ export default function SubmoduleIndex() {
             );
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          if (!cancelled) setHasLearnProgressLoadError(true);
+        })
+        .finally(() => {
+          if (!cancelled) setIsLearnProgressLoading(false);
+        });
       return () => {
         cancelled = true;
       };
@@ -167,42 +221,72 @@ export default function SubmoduleIndex() {
     useCallback(() => {
       if (!submoduleId) return;
       let cancelled = false;
+      setIsPracticeProgressLoading(true);
+      setHasPracticeProgressLoadError(false);
       const total = practices?.length ?? 0;
       if (total === 0) {
         setPracticeProgressPercent(0);
+        setIsPracticeProgressLoading(false);
         return undefined;
       }
-      getPracticeProgressBySubmodule(submoduleId).then(rows => {
-        if (cancelled) return;
-        const completed = (rows || []).filter(r => r.is_completed).length;
-        const p = total > 0 ? Math.round((completed / total) * 100) : 0;
-        setPracticeProgressPercent(Math.min(100, Math.max(0, p)));
-      });
+      getPracticeProgressBySubmodule(submoduleId, isCompletionTransition)
+        .then(rows => {
+          if (cancelled) return;
+          const completed = (rows || []).filter(r => r.is_completed).length;
+          const p = total > 0 ? Math.round((completed / total) * 100) : 0;
+          setPracticeProgressPercent(Math.min(100, Math.max(0, p)));
+        })
+        .catch(() => {
+          if (!cancelled) setHasPracticeProgressLoadError(true);
+        })
+        .finally(() => {
+          if (!cancelled) setIsPracticeProgressLoading(false);
+        });
       return () => {
         cancelled = true;
       };
-    }, [submoduleId, practices?.length, getPracticeProgressBySubmodule])
+    }, [
+      submoduleId,
+      practices?.length,
+      getPracticeProgressBySubmodule,
+      isCompletionTransition,
+    ])
   );
 
   useFocusEffect(
     useCallback(() => {
       if (!submoduleId) return;
       let cancelled = false;
+      setIsTaskProgressLoading(true);
+      setHasTaskProgressLoadError(false);
       const total = tasks?.length ?? 0;
       if (total === 0) {
         setTaskProgressPercent(0);
+        setIsTaskProgressLoading(false);
         return undefined;
       }
-      getTaskProgressBySubmodule(submoduleId).then(rows => {
-        if (cancelled) return;
-        const completed = (rows || []).filter(r => r.is_completed).length;
-        const p = total > 0 ? Math.round((completed / total) * 100) : 0;
-        setTaskProgressPercent(Math.min(100, Math.max(0, p)));
-      });
+      getTaskProgressBySubmodule(submoduleId, isCompletionTransition)
+        .then(rows => {
+          if (cancelled) return;
+          const completed = (rows || []).filter(r => r.is_completed).length;
+          const p = total > 0 ? Math.round((completed / total) * 100) : 0;
+          setTaskProgressPercent(Math.min(100, Math.max(0, p)));
+        })
+        .catch(() => {
+          if (!cancelled) setHasTaskProgressLoadError(true);
+        })
+        .finally(() => {
+          if (!cancelled) setIsTaskProgressLoading(false);
+        });
       return () => {
         cancelled = true;
       };
-    }, [submoduleId, tasks?.length, getTaskProgressBySubmodule])
+    }, [
+      submoduleId,
+      tasks?.length,
+      getTaskProgressBySubmodule,
+      isCompletionTransition,
+    ])
   );
 
   const handleLearnPress = async () => {
@@ -339,6 +423,105 @@ export default function SubmoduleIndex() {
       : []),
   ];
 
+  const requestedNextSectionId = getNextIncompleteSectionId(
+    sections,
+    completedSectionId
+  );
+
+  const highlightedSectionId =
+    requestedNextSectionId ??
+    sections.find(section => section.progressPercent < 100)?.id ??
+    sections[0]?.id ??
+    null;
+
+  useLayoutEffect(() => {
+    setOpenedCardId(highlightedSectionId);
+  }, [highlightedSectionId]);
+
+  useEffect(() => {
+    if (!isCompletionTransition || !moduleId) return;
+    if (
+      isTasksLoading ||
+      isPracticesLoading ||
+      isModuleLoading ||
+      isLearnProgressLoading ||
+      isPracticeProgressLoading ||
+      isTaskProgressLoading
+    )
+      return;
+    if (
+      isTasksError ||
+      isPracticesError ||
+      hasLearnProgressLoadError ||
+      hasPracticeProgressLoadError ||
+      hasTaskProgressLoadError ||
+      tasks === undefined ||
+      practices === undefined
+    ) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId },
+      });
+      return;
+    }
+
+    if (!moduleData?.submodules) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId },
+      });
+      return;
+    }
+
+    const hasNextSectionContent = requestedNextSectionId !== null;
+    if (hasNextSectionContent) return;
+
+    const currentSubmoduleIndex = moduleData.submodules.findIndex(
+      submodule => submodule._id === submoduleId
+    );
+    if (currentSubmoduleIndex === -1) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId },
+      });
+      return;
+    }
+
+    const nextSubmoduleId =
+      moduleData.submodules[currentSubmoduleIndex + 1]?._id;
+
+    if (nextSubmoduleId) {
+      router.replace({
+        pathname: '/(tabs)/Learn/modules/[moduleId]' as any,
+        params: { moduleId, highlightSubmoduleId: nextSubmoduleId },
+      });
+      return;
+    }
+
+    router.replace('/(tabs)/Learn');
+  }, [
+    isModuleLoading,
+    isLearnProgressLoading,
+    isPracticeProgressLoading,
+    isPracticesError,
+    isPracticesLoading,
+    isTaskProgressLoading,
+    isTasksError,
+    isTasksLoading,
+    isCompletionTransition,
+    hasLearnProgressLoadError,
+    hasPracticeProgressLoadError,
+    hasTaskProgressLoadError,
+    completedSectionId,
+    moduleData?.submodules,
+    moduleId,
+    practices,
+    requestedNextSectionId,
+    router,
+    submoduleId,
+    tasks,
+  ]);
+
   const handleCardTap = (section: SubmoduleSectionViewModel) => {
     if (openedCardId === section.id) {
       section.onPress();
@@ -366,7 +549,9 @@ export default function SubmoduleIndex() {
       section.progressPercent >= 100
         ? t('common.completed')
         : section.progressPercent > 0
-          ? t('learn.submodule.percentComplete', { percent: Math.round(section.progressPercent) })
+          ? t('learn.submodule.percentComplete', {
+              percent: Math.round(section.progressPercent),
+            })
           : null;
     const ctaLabel =
       section.progressPercent >= 100
@@ -468,7 +653,17 @@ export default function SubmoduleIndex() {
     );
   };
 
-  if (isLoading) {
+  if (
+    isLoading ||
+    (isCompletionTransition &&
+      (isTasksLoading ||
+        isPracticesLoading ||
+        isModuleLoading ||
+        isLearnProgressLoading ||
+        isPracticeProgressLoading ||
+        isTaskProgressLoading ||
+        requestedNextSectionId === null))
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loadingContainer}>

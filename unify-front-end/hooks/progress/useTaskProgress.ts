@@ -16,8 +16,8 @@ export function useTaskProgress() {
   );
 
   const fetchProgressBySubmodule = useCallback(
-    (submoduleId: string): Promise<UserTaskProgress[]> =>
-      getTaskProgressBySubmodule(submoduleId),
+    (submoduleId: string, throwOnError = false): Promise<UserTaskProgress[]> =>
+      getTaskProgressBySubmodule(submoduleId, throwOnError),
     []
   );
 
@@ -29,7 +29,7 @@ export function useTaskProgress() {
   );
 
   const complete = useCallback(async (taskId: string) => {
-    await completeTask(taskId);
+    return completeTask(taskId);
   }, []);
 
   const updateLastAccessed = useCallback(async (taskId: string) => {

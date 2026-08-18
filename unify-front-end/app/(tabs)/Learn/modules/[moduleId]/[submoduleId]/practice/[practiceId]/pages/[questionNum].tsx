@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -25,12 +26,25 @@ import {
   PRACTICE_QUESTION_PREFIX,
 } from '@/services/progress/practiceProgressService';
 import { useTranslation } from 'react-i18next';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 
-function goToSubmoduleIndex(moduleId: string, submoduleId: string) {
-  router.push({
+function goToSubmoduleIndex(
+  moduleId: string,
+  submoduleId: string,
+  justCompletedPractice = false
+) {
+  const destination = {
     pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-    params: { moduleId, submoduleId },
-  });
+    params: justCompletedPractice
+      ? { moduleId, submoduleId, justCompletedPractice: '1' }
+      : { moduleId, submoduleId },
+  };
+
+  if (justCompletedPractice) {
+    router.dismissTo(destination);
+  } else {
+    router.push(destination);
+  }
 }
 
 export default function PracticeQuizQuestionPage() {
@@ -48,7 +62,11 @@ export default function PracticeQuizQuestionPage() {
     isLoading,
     error,
   } = useSanityPractice(practiceId || '');
-  const { data: practices } = useSanityPractices(submoduleId || '');
+  const {
+    data: practices,
+    isLoading: practicesLoading,
+    error: practicesError,
+  } = useSanityPractices(submoduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
   );
@@ -199,14 +217,19 @@ export default function PracticeQuizQuestionPage() {
         : 0,
   };
 
-  if (isLoading) {
+  if (isLoading || practicesLoading) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
   }
-  if (error || !practice) {
+  if (
+    error ||
+    practicesError ||
+    !practice ||
+    !hasLoadedContentItem(practices, practiceId)
+  ) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{t('learn.practice.failedToLoad')}</Text>
@@ -304,7 +327,12 @@ export default function PracticeQuizQuestionPage() {
       if (!allDone) return;
       if (isLastQuestion) {
         setIsNavigating(true);
-        await completePractice(practiceId!);
+        const didSave = await completePractice(practiceId!);
+        if (!didSave) {
+          setIsNavigating(false);
+          Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+          return;
+        }
         if (nextPractice) {
           router.replace({
             pathname:
@@ -312,7 +340,7 @@ export default function PracticeQuizQuestionPage() {
             params: { moduleId, submoduleId, practiceId: nextPractice._id },
           });
         } else {
-          goToSubmoduleIndex(moduleId!, submoduleId!);
+          goToSubmoduleIndex(moduleId!, submoduleId!, true);
         }
       } else {
         setIsNavigating(true);
@@ -359,7 +387,12 @@ export default function PracticeQuizQuestionPage() {
     }
     if (isLastQuestion) {
       setIsNavigating(true);
-      await completePractice(practiceId!);
+      const didSave = await completePractice(practiceId!);
+      if (!didSave) {
+        setIsNavigating(false);
+        Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+        return;
+      }
       if (nextPractice) {
         router.replace({
           pathname:
@@ -367,7 +400,7 @@ export default function PracticeQuizQuestionPage() {
           params: { moduleId, submoduleId, practiceId: nextPractice._id },
         });
       } else {
-        goToSubmoduleIndex(moduleId!, submoduleId!);
+        goToSubmoduleIndex(moduleId!, submoduleId!, true);
       }
     } else {
       setIsNavigating(true);
@@ -433,7 +466,9 @@ export default function PracticeQuizQuestionPage() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={quizTitle || submoduleData?.title || t('learn.practice.fallback')}
+        submoduleTitle={
+          quizTitle || submoduleData?.title || t('learn.practice.fallback')
+        }
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -684,10 +719,10 @@ export default function PracticeQuizQuestionPage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('learn.practice.exitTitle')}</Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.practice.exitBody')}
+            <Text style={styles.modalTitle}>
+              {t('learn.practice.exitTitle')}
             </Text>
+            <Text style={styles.modalDesc}>{t('learn.practice.exitBody')}</Text>
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
               onPress={() => {
@@ -703,7 +738,9 @@ export default function PracticeQuizQuestionPage() {
               style={styles.modalSecondaryBtn}
               onPress={() => setShowExitModal(false)}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitQuizContinue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('learn.lesson.exitQuizContinue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -34,13 +34,17 @@ export async function getTaskProgress(
 
 /** Get all task progress for a submodule (for progress % on submodule index) */
 export async function getTaskProgressBySubmodule(
-  submoduleId: string
+  submoduleId: string,
+  throwOnError = false
 ): Promise<UserTaskProgress[]> {
   try {
     const {
       data: { user },
     } = await progressClient.auth.getUser();
-    if (!user) return [];
+    if (!user) {
+      if (throwOnError) throw new Error('No authenticated user');
+      return [];
+    }
 
     const { data, error } = await progressClient
       .from(TABLE)
@@ -50,12 +54,14 @@ export async function getTaskProgressBySubmodule(
 
     if (error) {
       console.error('Error fetching task progress by submodule:', error);
+      if (throwOnError) throw error;
       return [];
     }
 
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Error in getTaskProgressBySubmodule:', error);
+    if (throwOnError) throw error;
     return [];
   }
 }
@@ -96,14 +102,14 @@ export async function startTask(
   }
 }
 
-export async function completeTask(taskId: string): Promise<void> {
+export async function completeTask(taskId: string): Promise<boolean> {
   try {
     const {
       data: { user },
     } = await progressClient.auth.getUser();
-    if (!user) return;
+    if (!user) return false;
 
-    const { error } = await progressClient
+    const { data, error } = await progressClient
       .from(TABLE)
       .update({
         is_completed: true,
@@ -112,15 +118,19 @@ export async function completeTask(taskId: string): Promise<void> {
         last_accessed_at: new Date().toISOString(),
       })
       .eq('user_id', user.id)
-      .eq('sanity_task_id', taskId);
+      .eq('sanity_task_id', taskId)
+      .select('id');
 
-    if (error) {
+    if (error || !data?.length) {
       console.error('Error completing task:', error);
+      return false;
     } else {
       progressEventEmitter.emit();
+      return true;
     }
   } catch (error) {
     console.error('Error in completeTask:', error);
+    return false;
   }
 }
 

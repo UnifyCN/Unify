@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import {
   saveActivityInput,
   getActivityInputsByPage,
@@ -59,9 +61,11 @@ export default function ActivityPageScreen() {
     isLoading: quizzesLoading,
     error: quizzesError,
   } = useSanityLessonQuizzes(lessonId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(
-    submoduleId || ''
-  );
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Debounce timers for autosaving free-text inputs, keyed by field.
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -204,7 +208,8 @@ export default function ActivityPageScreen() {
     // Key timers by page + field so a pending save is never cancelled by the same
     // field key on another page.
     const timerKey = `${pageKey}:${fieldKey}`;
-    if (saveTimers.current[timerKey]) clearTimeout(saveTimers.current[timerKey]);
+    if (saveTimers.current[timerKey])
+      clearTimeout(saveTimers.current[timerKey]);
     saveTimers.current[timerKey] = setTimeout(() => {
       saveActivityInput(
         lessonId,
@@ -308,29 +313,34 @@ export default function ActivityPageScreen() {
             params: { moduleId, submoduleId, lessonId, pageNum: '1' },
           });
         } else {
-          // No ending pages, save this lesson as completed (in background)
+          // No ending pages, save this lesson as completed before navigating
           setIsSaving(true);
-
-          // Save in background - don't block navigation
-          saveLessonCompletion(
-            lessonId || '',
-            submoduleId || '',
-            moduleId || '',
-            lessonTotalPages
-          ).finally(() => {
+          let didSave = false;
+          try {
+            didSave = await saveLessonCompletion(
+              lessonId || '',
+              submoduleId || '',
+              moduleId || '',
+              lessonTotalPages
+            );
+          } finally {
             setIsSaving(false);
-          });
+          }
 
-          // Navigate immediately
+          if (!didSave) {
+            Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+            return;
+          }
+
           // Check if this is the last lesson
           const currentIndex = getCurrentLessonIndex();
           const isLastLesson =
             currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
           if (isLastLesson) {
-            router.push({
+            router.dismissTo({
               pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-              params: { moduleId, submoduleId },
+              params: { moduleId, submoduleId, justCompletedLearn: '1' },
             });
           } else {
             // Go to next lesson
@@ -404,7 +414,7 @@ export default function ActivityPageScreen() {
     }
   };
 
-  if (loadingLesson) {
+  if (loadingLesson || quizzesLoading || submoduleLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -414,7 +424,13 @@ export default function ActivityPageScreen() {
     );
   }
 
-  if (!lesson || !currentPageData) {
+  if (
+    !lesson ||
+    !currentPageData ||
+    quizzesError ||
+    submoduleError ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -430,7 +446,9 @@ export default function ActivityPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={submoduleData?.title || t('learn.lesson.submoduleFallback')}
+        submoduleTitle={
+          submoduleData?.title || t('learn.lesson.submoduleFallback')
+        }
         submoduleOrder={submoduleData?.order || 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -540,9 +558,7 @@ export default function ActivityPageScreen() {
             <Text style={styles.modalTitle}>
               {t('learn.lesson.exitActivityTitle')}
             </Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.lesson.exitBody')}
-            </Text>
+            <Text style={styles.modalDesc}>{t('learn.lesson.exitBody')}</Text>
 
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
