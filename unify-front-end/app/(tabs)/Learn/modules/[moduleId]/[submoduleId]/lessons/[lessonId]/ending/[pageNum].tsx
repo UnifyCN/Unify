@@ -33,6 +33,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -58,11 +59,17 @@ export default function EndingPageScreen() {
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
     lessonId || ''
   );
-  const { data: quizzes } = useSanityLessonQuizzes(lessonId || '');
+  const {
+    data: quizzes,
+    isLoading: quizzesLoading,
+    error: quizzesError,
+  } = useSanityLessonQuizzes(lessonId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(
-    submoduleId || ''
-  );
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -283,7 +290,7 @@ export default function EndingPageScreen() {
     void completeLessonAndNavigate();
   };
 
-  if (loadingLesson) {
+  if (loadingLesson || quizzesLoading || submoduleLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -293,7 +300,13 @@ export default function EndingPageScreen() {
     );
   }
 
-  if (!lesson || !currentPageData) {
+  if (
+    !lesson ||
+    !currentPageData ||
+    quizzesError ||
+    submoduleError ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>

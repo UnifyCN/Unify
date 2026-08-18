@@ -23,6 +23,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import {
   saveActivityInput,
   getActivityInputsByPage,
@@ -60,9 +61,11 @@ export default function ActivityPageScreen() {
     isLoading: quizzesLoading,
     error: quizzesError,
   } = useSanityLessonQuizzes(lessonId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(
-    submoduleId || ''
-  );
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Debounce timers for autosaving free-text inputs, keyed by field.
   const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -411,7 +414,7 @@ export default function ActivityPageScreen() {
     }
   };
 
-  if (loadingLesson) {
+  if (loadingLesson || quizzesLoading || submoduleLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -421,7 +424,13 @@ export default function ActivityPageScreen() {
     );
   }
 
-  if (!lesson || !currentPageData) {
+  if (
+    !lesson ||
+    !currentPageData ||
+    quizzesError ||
+    submoduleError ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>

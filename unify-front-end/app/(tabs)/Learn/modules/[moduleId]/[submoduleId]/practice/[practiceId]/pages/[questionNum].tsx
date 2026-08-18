@@ -26,6 +26,7 @@ import {
   PRACTICE_QUESTION_PREFIX,
 } from '@/services/progress/practiceProgressService';
 import { useTranslation } from 'react-i18next';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 
 function goToSubmoduleIndex(
   moduleId: string,
@@ -61,7 +62,11 @@ export default function PracticeQuizQuestionPage() {
     isLoading,
     error,
   } = useSanityPractice(practiceId || '');
-  const { data: practices } = useSanityPractices(submoduleId || '');
+  const {
+    data: practices,
+    isLoading: practicesLoading,
+    error: practicesError,
+  } = useSanityPractices(submoduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
   );
@@ -212,14 +217,19 @@ export default function PracticeQuizQuestionPage() {
         : 0,
   };
 
-  if (isLoading) {
+  if (isLoading || practicesLoading) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>{t('common.loading')}</Text>
       </View>
     );
   }
-  if (error || !practice) {
+  if (
+    error ||
+    practicesError ||
+    !practice ||
+    !hasLoadedContentItem(practices, practiceId)
+  ) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{t('learn.practice.failedToLoad')}</Text>

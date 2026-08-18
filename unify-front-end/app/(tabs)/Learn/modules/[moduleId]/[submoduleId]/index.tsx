@@ -26,6 +26,11 @@ import { useTaskProgress } from '@/hooks/progress/useTaskProgress';
 import { useSanityPractices } from '@/hooks/sanity/useSanityPractices';
 import { useSanityTasks } from '@/hooks/sanity/useSanityTasks';
 import { getLearnHref } from '@/utils/learnHref';
+import {
+  getCompletedSectionId,
+  getNextIncompleteSectionId,
+  LearnSectionId,
+} from '@/utils/learnCompletionNavigation';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Layout } from '@/constants/Layout';
@@ -39,7 +44,7 @@ const LINE_WIDTH = 2;
 type SectionUIState = 'completed' | 'active' | 'unlocked' | 'locked';
 
 interface SubmoduleSectionViewModel {
-  id: string;
+  id: LearnSectionId;
   title: string;
   description: string;
   iconName: keyof typeof Feather.glyphMap;
@@ -132,10 +137,12 @@ export default function SubmoduleIndex() {
     justCompletedPractice?: string;
   }>();
 
-  const isCompletionTransition =
-    justCompletedLearn === '1' ||
-    justCompletedTasks === '1' ||
-    justCompletedPractice === '1';
+  const completedSectionId = getCompletedSectionId({
+    justCompletedLearn,
+    justCompletedTasks,
+    justCompletedPractice,
+  });
+  const isCompletionTransition = completedSectionId !== null;
 
   const [learnProgressPercent, setLearnProgressPercent] = useState(0);
   const [practiceProgressPercent, setPracticeProgressPercent] = useState(0);
@@ -408,17 +415,10 @@ export default function SubmoduleIndex() {
       : []),
   ];
 
-  const requestedNextSectionId =
-    justCompletedLearn === '1'
-      ? (sections.find(
-          section => section.id !== 'learn' && section.progressPercent < 100
-        )?.id ?? null)
-      : justCompletedTasks === '1'
-        ? (sections.find(
-            section =>
-              section.id === 'practice' && section.progressPercent < 100
-          )?.id ?? null)
-        : null;
+  const requestedNextSectionId = getNextIncompleteSectionId(
+    sections,
+    completedSectionId
+  );
 
   const highlightedSectionId =
     requestedNextSectionId ??
@@ -500,8 +500,7 @@ export default function SubmoduleIndex() {
     isTasksLoading,
     isCompletionTransition,
     hasProgressLoadError,
-    justCompletedLearn,
-    justCompletedTasks,
+    completedSectionId,
     moduleData?.submodules,
     moduleId,
     practices,

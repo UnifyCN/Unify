@@ -37,6 +37,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress'; // static
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import { useToast } from '@/context/ToastContext';
 import { useLessonPageSaved } from '@/hooks/learn/useLessonPageSaved';
 import { useMutateSaveLessonPage } from '@/hooks/learn/useMutateSaveLessonPage';
@@ -78,9 +79,11 @@ export default function LessonPageScreen() {
     isLoading: quizzesLoading,
     error: quizzesError,
   } = useSanityLessonQuizzes(lessonId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(
-    submoduleId || ''
-  );
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Progress tracking
   const { saveLessonCompletion, saveCurrentPage } = useLessonProgress();
@@ -378,7 +381,7 @@ export default function LessonPageScreen() {
     router,
   ]);
 
-  if (loadingLesson) {
+  if (loadingLesson || quizzesLoading || submoduleLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -388,7 +391,13 @@ export default function LessonPageScreen() {
     );
   }
 
-  if (!lesson || !currentPageData) {
+  if (
+    !lesson ||
+    !currentPageData ||
+    quizzesError ||
+    submoduleError ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>

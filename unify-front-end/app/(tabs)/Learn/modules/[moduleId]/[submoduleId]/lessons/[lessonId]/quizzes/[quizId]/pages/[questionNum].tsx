@@ -28,6 +28,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import {
   getOrCreateInProgressQuizAttempt,
   getQuizResponses,
@@ -77,9 +78,21 @@ export default function QuizQuestionPage() {
   const { trackScreen, capture } = useAnalytics();
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
-  const { data: quizzes } = useSanityLessonQuizzes(lessonId);
-  const { data: lesson } = useSanityLesson(lessonId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId);
+  const {
+    data: quizzes,
+    isLoading: quizzesLoading,
+    error: quizzesError,
+  } = useSanityLessonQuizzes(lessonId);
+  const {
+    data: lesson,
+    isLoading: lessonLoading,
+    error: lessonError,
+  } = useSanityLesson(lessonId || '');
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId);
   const { data: moduleData } = useSanityModule(moduleId || '');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
@@ -279,7 +292,7 @@ export default function QuizQuestionPage() {
     ])
   );
 
-  if (isLoading) {
+  if (isLoading || quizzesLoading || lessonLoading || submoduleLoading) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>
@@ -289,7 +302,16 @@ export default function QuizQuestionPage() {
     );
   }
 
-  if (error || !questions) {
+  if (
+    error ||
+    quizzesError ||
+    lessonError ||
+    submoduleError ||
+    !questions ||
+    !lesson ||
+    !hasLoadedContentItem(quizzes, quizId) ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>
@@ -478,6 +500,7 @@ export default function QuizQuestionPage() {
               totalPages
             );
             if (!didSave) {
+              setIsNavigating(false);
               Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
               return;
             }
@@ -608,6 +631,7 @@ export default function QuizQuestionPage() {
               totalPages
             );
             if (!didSave) {
+              setIsNavigating(false);
               Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
               return;
             }

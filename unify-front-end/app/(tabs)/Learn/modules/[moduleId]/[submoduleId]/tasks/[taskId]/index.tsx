@@ -19,6 +19,7 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { useTaskProgress } from '@/hooks/progress/useTaskProgress';
 import { useTranslation } from 'react-i18next';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 
 export default function TaskPageScreen() {
   const { t } = useTranslation();
@@ -32,7 +33,11 @@ export default function TaskPageScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const { data: task, isLoading } = useSanityTask(taskId || '');
-  const { data: tasks } = useSanityTasks(submoduleId || '');
+  const {
+    data: tasks,
+    isLoading: tasksLoading,
+    error: tasksError,
+  } = useSanityTasks(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
@@ -144,7 +149,7 @@ export default function TaskPageScreen() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || tasksLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -158,7 +163,7 @@ export default function TaskPageScreen() {
     );
   }
 
-  if (!task) {
+  if (!task || tasksError || !hasLoadedContentItem(tasks, taskId)) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>

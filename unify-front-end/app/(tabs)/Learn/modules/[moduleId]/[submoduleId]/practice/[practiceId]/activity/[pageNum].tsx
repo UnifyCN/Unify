@@ -27,6 +27,7 @@ import {
   PRACTICE_QUESTION_PREFIX,
 } from '@/services/progress/practiceProgressService';
 import { useTranslation } from 'react-i18next';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 
 export default function PracticeActivityPageScreen() {
   const { t } = useTranslation();
@@ -63,7 +64,11 @@ export default function PracticeActivityPageScreen() {
     isLoading,
     error,
   } = useSanityPractice(practiceId || '');
-  const { data: practices } = useSanityPractices(submoduleId || '');
+  const {
+    data: practices,
+    isLoading: practicesLoading,
+    error: practicesError,
+  } = useSanityPractices(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
@@ -366,7 +371,7 @@ export default function PracticeActivityPageScreen() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || practicesLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -376,7 +381,12 @@ export default function PracticeActivityPageScreen() {
     );
   }
 
-  if (error || !practice) {
+  if (
+    error ||
+    practicesError ||
+    !practice ||
+    !hasLoadedContentItem(practices, practiceId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
