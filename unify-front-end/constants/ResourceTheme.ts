@@ -3,20 +3,45 @@
  *
  * Keep text colors here so every foreground/background pair can be covered by
  * the contrast regression suite instead of drifting inside component styles.
+ *
+ * Values come from the Resources redesign (Figma 8129:32045). Three of them are
+ * darkened a step from the Figma swatch so they clear WCAG AA on their own
+ * background — each is marked below with the Figma value it replaces.
  */
 export const RESOURCE_THEME = {
+  // --- Surfaces
   surface: '#FFFFFF',
   surfaceSubtle: '#F8F9FA',
-  surfaceSegment: '#F2F2F2',
+  /** Segmented-control track. */
+  surfaceSegment: '#F1EFEB',
+  /** Search field fill. */
+  surfaceSearch: '#F4F2EE',
   surfaceChip: '#F3F4F6',
   surfaceNotice: '#F2F4F7',
-  textHeading: '#161616',
+  /** Hairline around a category card on white. */
+  cardBorder: '#E7E4DE',
+
+  // --- Text
+  textHeading: '#1A1815',
+  /** Category-card title. */
+  textCard: '#23211D',
   textStrong: '#1F2937',
   textBody: '#3A3A3A',
   textDetail: '#374151',
-  textSecondary: '#575757',
+  textSecondary: '#6F6C64',
   textMuted: '#626269',
+  /** Card org count. Figma #8B8880 → 3.54:1 on white, below AA. */
+  textCount: '#79766F',
+  /** Search placeholder + leading icon. Figma #747474 → 4.18:1, below AA. */
+  textPlaceholder: '#6E6E6E',
+  textSegmentActive: '#1C1A17',
+  /** Inactive segment label. Figma #7A776F → 3.89:1 on the track, below AA. */
+  textSegmentInactive: '#6F6D65',
   textLabel: '#5F6672',
   textNotice: '#46505E',
+
+  // --- Accents
+  /** Inline link ("How we choose these"). */
+  link: '#0F766E',
   iconNotice: '#465570',
 } as const;

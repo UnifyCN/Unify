@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   CATEGORY_ORDER,
   PARTNER_CATEGORY_LABEL_KEYS,
@@ -5,6 +7,7 @@ import {
   PARTNER_CATEGORY_ICONS,
   PARTNER_CATEGORY_COLORS,
   PARTNER_CATEGORY_TINTS,
+  PARTNER_CATEGORY_ICON_TINTS,
   type PartnerCategory,
 } from '@/types/partner';
 import en from '@/i18n/locales/en/translation.json';
@@ -44,6 +47,7 @@ describe('partner category metadata', () => {
     icons: PARTNER_CATEGORY_ICONS,
     colors: PARTNER_CATEGORY_COLORS,
     tints: PARTNER_CATEGORY_TINTS,
+    iconTints: PARTNER_CATEGORY_ICON_TINTS,
   };
 
   it('CATEGORY_ORDER has all 9 categories, no duplicates', () => {
@@ -106,9 +110,26 @@ describe('partner category metadata', () => {
     ['muted text on white', RESOURCE_THEME.textMuted, RESOURCE_THEME.surface],
     [
       'inactive segment text',
-      RESOURCE_THEME.textMuted,
+      RESOURCE_THEME.textSegmentInactive,
       RESOURCE_THEME.surfaceSegment,
     ],
+    [
+      'active segment text',
+      RESOURCE_THEME.textSegmentActive,
+      RESOURCE_THEME.surface,
+    ],
+    ['card title on white', RESOURCE_THEME.textCard, RESOURCE_THEME.surface],
+    [
+      'card org count on white',
+      RESOURCE_THEME.textCount,
+      RESOURCE_THEME.surface,
+    ],
+    [
+      'search placeholder on the search field',
+      RESOURCE_THEME.textPlaceholder,
+      RESOURCE_THEME.surfaceSearch,
+    ],
+    ['inline link on white', RESOURCE_THEME.link, RESOURCE_THEME.surface],
     ['detail label on white', RESOURCE_THEME.textLabel, RESOURCE_THEME.surface],
     ['detail text on white', RESOURCE_THEME.textDetail, RESOURCE_THEME.surface],
     [
@@ -136,6 +157,35 @@ describe('partner category metadata', () => {
         contrastRatio(
           RESOURCE_THEME.textDetail,
           PARTNER_CATEGORY_TINTS[category]
+        )
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
+
+describe('category grid icons', () => {
+  const ICON_DIR = path.join(__dirname, '../../assets/icons/resources');
+
+  /** Last `fill="#rrggbb"` in the file — the glyph path, not the mask rect. */
+  function glyphFill(category: PartnerCategory): string {
+    const svg = fs.readFileSync(path.join(ICON_DIR, `${category}.svg`), 'utf8');
+    const fills = [...svg.matchAll(/fill="(#[0-9A-Fa-f]{6})"/g)].map(m => m[1]);
+    expect(fills.length).toBeGreaterThan(0);
+    return fills[fills.length - 1];
+  }
+
+  it('ships one SVG per category', () => {
+    for (const category of CATEGORY_ORDER) {
+      expect(fs.existsSync(path.join(ICON_DIR, `${category}.svg`))).toBe(true);
+    }
+  });
+
+  it('every glyph meets WCAG AA contrast on its icon-chip tint', () => {
+    for (const category of CATEGORY_ORDER) {
+      expect(
+        contrastRatio(
+          glyphFill(category),
+          PARTNER_CATEGORY_ICON_TINTS[category]
         )
       ).toBeGreaterThanOrEqual(4.5);
     }

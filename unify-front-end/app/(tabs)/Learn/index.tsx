@@ -52,8 +52,7 @@ export default function Learn() {
   const { width } = useWindowDimensions();
   const sliderRef = React.useRef<ScrollView>(null);
 
-  const { modules, isLoading, error, refetch } =
-    usePersonalizedModules();
+  const { modules, isLoading, error, refetch } = usePersonalizedModules();
 
   const {
     lessons: inProgressLessons,
@@ -97,10 +96,14 @@ export default function Learn() {
   }, [refreshLessons, refetch]);
 
   // Split modules into four sections
-  const inProgressModules = modules?.filter(m => m.progress === 'in_progress') ?? [];
-  const recommendedModules = modules?.filter(m => m.progress === 'not_started' && m.score > 0) ?? [];
-  const exploreModules = modules?.filter(m => m.progress === 'not_started' && m.score === 0) ?? [];
-  const completedModules = modules?.filter(m => m.progress === 'completed') ?? [];
+  const inProgressModules =
+    modules?.filter(m => m.progress === 'in_progress') ?? [];
+  const recommendedModules =
+    modules?.filter(m => m.progress === 'not_started' && m.score > 0) ?? [];
+  const exploreModules =
+    modules?.filter(m => m.progress === 'not_started' && m.score === 0) ?? [];
+  const completedModules =
+    modules?.filter(m => m.progress === 'completed') ?? [];
   const hasPersonalizedResults = recommendedModules.length > 0;
 
   return (
@@ -121,179 +124,179 @@ export default function Learn() {
           <ResourcesView />
         ) : (
           <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={isFocused && refreshing}
-              onRefresh={onRefresh}
-            />
-          }
-        >
-          <GiveawayBanner />
-          <Text style={styles.pageTitle}>{greeting}</Text>
-          <Text style={styles.pageSubtitle}>
-            {t('learn.subtitle')}
-          </Text>
+            contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={isFocused && refreshing}
+                onRefresh={onRefresh}
+              />
+            }
+          >
+            <GiveawayBanner />
+            <Text style={styles.pageTitle}>{greeting}</Text>
+            <Text style={styles.pageSubtitle}>{t('learn.subtitle')}</Text>
 
-          {/* In-progress lesson carousel */}
-          {lessonsLoading ? (
-            <>
-              <View style={[styles.heroWrapper, { width }]}>
-                <View
-                  style={{
-                    width,
-                    paddingRight: 30,
-                    paddingVertical: 10,
-                    paddingLeft: 1,
-                  }}
-                >
-                  <CurrentLessonSkeletonLoader />
+            {/* In-progress lesson carousel */}
+            {lessonsLoading ? (
+              <>
+                <View style={[styles.heroWrapper, { width }]}>
+                  <View
+                    style={{
+                      width,
+                      paddingRight: 30,
+                      paddingVertical: 10,
+                      paddingLeft: 1,
+                    }}
+                  >
+                    <CurrentLessonSkeletonLoader />
+                  </View>
                 </View>
+                <CarouselDotsSkeletonLoader />
+              </>
+            ) : lessonsError ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>
+                  {t('learn.errorLoadingLessons')}
+                </Text>
               </View>
-              <CarouselDotsSkeletonLoader />
-            </>
-          ) : lessonsError ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{t('learn.errorLoadingLessons')}</Text>
-            </View>
-          ) : inProgressLessons.length > 0 ? (
-            <>
-              <View style={[styles.heroWrapper, { width }]}>
-                <ScrollView
-                  ref={sliderRef}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  onMomentumScrollEnd={onMomentumEnd}
-                >
-                  {inProgressLessons.map((lesson, i) => {
-                    const module = modules?.find(
-                      m => m._id === lesson.moduleId
-                    );
-                    const submoduleCount = module?.submodules?.length || 0;
+            ) : inProgressLessons.length > 0 ? (
+              <>
+                <View style={[styles.heroWrapper, { width }]}>
+                  <ScrollView
+                    ref={sliderRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onMomentumScrollEnd={onMomentumEnd}
+                  >
+                    {inProgressLessons.map((lesson, i) => {
+                      const module = modules?.find(
+                        m => m._id === lesson.moduleId
+                      );
+                      const submoduleCount = module?.submodules?.length || 0;
 
+                      return (
+                        <View
+                          key={lesson.id}
+                          style={{
+                            width,
+                            paddingRight: 30,
+                            paddingVertical: 10,
+                            paddingLeft: 1,
+                          }}
+                        >
+                          <LessonHeroCard
+                            moduleTitle={lesson.moduleTitle}
+                            submoduleTitle={lesson.submoduleTitle}
+                            currentPage={lesson.currentPage || 1}
+                            totalPages={lesson.totalPages || 8}
+                            currentSection={lesson.currentSection || 1}
+                            totalSections={lesson.totalSections || 1}
+                            colorHex={module?.colorTheme?.hex}
+                            icon={module?.icon}
+                            href={lesson.href as any}
+                          />
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+                <CarouselDots
+                  total={inProgressLessons.length}
+                  activeIndex={heroIndex}
+                  onDotPress={handleDotPress}
+                />
+              </>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  {t('learn.noLessonsToContinue')}
+                </Text>
+                <Text style={styles.emptySubtext}>
+                  {t('learn.startLessonToSeeHere')}
+                </Text>
+              </View>
+            )}
+
+            {/* Continue Learning — in-progress modules */}
+            {inProgressModules.length > 0 && (
+              <>
+                <SectionHeader
+                  title={t('learn.continueLearning')}
+                  style={{ marginTop: 15 }}
+                />
+                <View style={styles.pathwaysGrid}>
+                  {inProgressModules.map((module, index) => {
+                    const blobIndex = index % 5;
                     return (
-                      <View
-                        key={lesson.id}
-                        style={{
-                          width,
-                          paddingRight: 30,
-                          paddingVertical: 10,
-                          paddingLeft: 1,
-                        }}
-                      >
-                        <LessonHeroCard
-                          moduleTitle={lesson.moduleTitle}
-                          submoduleTitle={lesson.submoduleTitle}
-                          currentPage={lesson.currentPage || 1}
-                          totalPages={lesson.totalPages || 8}
-                          currentSection={lesson.currentSection || 1}
-                          totalSections={lesson.totalSections || 1}
-                          colorHex={module?.colorTheme?.hex}
-                          icon={module?.icon}
-                          href={lesson.href as any}
-                        />
-                      </View>
+                      <PathwayCard
+                        key={module._id}
+                        title={module.title}
+                        modulesLabel={t('learn.sectionCount', {
+                          count: module.submodules?.length || 0,
+                        })}
+                        href={
+                          `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                        }
+                        colorTheme={module.colorTheme?.hex}
+                        icon={module.icon}
+                        index={index}
+                        moduleId={module._id}
+                        progress={module.progress}
+                      />
                     );
                   })}
-                </ScrollView>
-              </View>
-              <CarouselDots
-                total={inProgressLessons.length}
-                activeIndex={heroIndex}
-                onDotPress={handleDotPress}
-              />
-            </>
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('learn.noLessonsToContinue')}</Text>
-              <Text style={styles.emptySubtext}>
-                {t('learn.startLessonToSeeHere')}
-              </Text>
-            </View>
-          )}
-
-          {/* Continue Learning — in-progress modules */}
-          {inProgressModules.length > 0 && (
-            <>
-              <SectionHeader title={t('learn.continueLearning')} style={{ marginTop: 15 }} />
-              <View style={styles.pathwaysGrid}>
-                {inProgressModules.map((module, index) => {
-                  const blobIndex = index % 5;
-                  return (
-                    <PathwayCard
-                      key={module._id}
-                      title={module.title}
-                      modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
-                      href={
-                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
-                      }
-                      colorTheme={module.colorTheme?.hex}
-                      icon={module.icon}
-                      index={index}
-                      moduleId={module._id}
-                      progress={module.progress}
-                    />
-                  );
-                })}
-              </View>
-            </>
-          )}
-
-          {!isLoading && (
-            <SectionHeader
-              title={hasPersonalizedResults ? t('learn.recommendedForYou') : t('learn.subjects')}
-              style={{ marginTop: 15 }}
-            />
-          )}
-          <View style={styles.pathwaysGrid}>
-            {isLoading ? (
-              <>
-                <PathwayCardSkeletonLoader />
-                <PathwayCardSkeletonLoader />
+                </View>
               </>
-            ) : error ? (
-              <Text style={styles.errorText}>{t('learn.errorLoadingModules')}</Text>
-            ) : (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).length > 0 ? (
-              (hasPersonalizedResults ? recommendedModules : (modules ?? []).filter(m => m.progress !== 'in_progress' && m.progress !== 'completed')).map((module, index) => {
-                const offset = inProgressModules.length;
-                const blobIndex = (offset + index) % 5;
-                return (
-                  <PathwayCard
-                    key={module._id}
-                    title={module.title}
-                    modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
-                    href={
-                      `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}&whyTag=${encodeURIComponent(module.why_tag || '')}` as any
-                    }
-                    colorTheme={module.colorTheme?.hex}
-                    icon={module.icon}
-                    index={offset + index}
-                    moduleId={module._id}
-                    progress={module.progress}
-                  />
-                );
-              })
-            ) : (
-              <Text style={styles.errorText}>{t('learn.noModulesAvailable')}</Text>
             )}
-          </View>
 
-          {/* Explore More — unscored + completed */}
-          {hasPersonalizedResults && exploreModules.length > 0 && (
-            <>
-              <SectionHeader title={t('learn.exploreMore')} style={{ marginTop: 24 }} />
-              <View style={styles.pathwaysGrid}>
-                {exploreModules.map((module, index) => {
-                  const offset = inProgressModules.length + recommendedModules.length;
+            {!isLoading && (
+              <SectionHeader
+                title={
+                  hasPersonalizedResults
+                    ? t('learn.recommendedForYou')
+                    : t('learn.subjects')
+                }
+                style={{ marginTop: 15 }}
+              />
+            )}
+            <View style={styles.pathwaysGrid}>
+              {isLoading ? (
+                <>
+                  <PathwayCardSkeletonLoader />
+                  <PathwayCardSkeletonLoader />
+                </>
+              ) : error ? (
+                <Text style={styles.errorText}>
+                  {t('learn.errorLoadingModules')}
+                </Text>
+              ) : (hasPersonalizedResults
+                  ? recommendedModules
+                  : (modules ?? []).filter(
+                      m =>
+                        m.progress !== 'in_progress' &&
+                        m.progress !== 'completed'
+                    )
+                ).length > 0 ? (
+                (hasPersonalizedResults
+                  ? recommendedModules
+                  : (modules ?? []).filter(
+                      m =>
+                        m.progress !== 'in_progress' &&
+                        m.progress !== 'completed'
+                    )
+                ).map((module, index) => {
+                  const offset = inProgressModules.length;
                   const blobIndex = (offset + index) % 5;
                   return (
                     <PathwayCard
                       key={module._id}
                       title={module.title}
-                      modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
+                      modulesLabel={t('learn.sectionCount', {
+                        count: module.submodules?.length || 0,
+                      })}
                       href={
-                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}&whyTag=${encodeURIComponent(module.why_tag || '')}` as any
                       }
                       colorTheme={module.colorTheme?.hex}
                       icon={module.icon}
@@ -302,37 +305,82 @@ export default function Learn() {
                       progress={module.progress}
                     />
                   );
-                })}
-              </View>
-            </>
-          )}
+                })
+              ) : (
+                <Text style={styles.errorText}>
+                  {t('learn.noModulesAvailable')}
+                </Text>
+              )}
+            </View>
 
-          {completedModules.length > 0 && (
-            <>
-              <SectionHeader title={t('common.completed')} style={{ marginTop: 24 }} />
-              <View style={styles.pathwaysGrid}>
-                {completedModules.map((module, index) => {
-                  const offset = inProgressModules.length + recommendedModules.length + exploreModules.length;
-                  const blobIndex = (offset + index) % 5;
-                  return (
-                    <PathwayCard
-                      key={module._id}
-                      title={module.title}
-                      modulesLabel={t('learn.sectionCount', { count: module.submodules?.length || 0 })}
-                      href={
-                        `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
-                      }
-                      colorTheme={module.colorTheme?.hex}
-                      icon={module.icon}
-                      index={offset + index}
-                      moduleId={module._id}
-                      progress={module.progress}
-                    />
-                  );
-                })}
-              </View>
-            </>
-          )}
+            {/* Explore More — unscored + completed */}
+            {hasPersonalizedResults && exploreModules.length > 0 && (
+              <>
+                <SectionHeader
+                  title={t('learn.exploreMore')}
+                  style={{ marginTop: 24 }}
+                />
+                <View style={styles.pathwaysGrid}>
+                  {exploreModules.map((module, index) => {
+                    const offset =
+                      inProgressModules.length + recommendedModules.length;
+                    const blobIndex = (offset + index) % 5;
+                    return (
+                      <PathwayCard
+                        key={module._id}
+                        title={module.title}
+                        modulesLabel={t('learn.sectionCount', {
+                          count: module.submodules?.length || 0,
+                        })}
+                        href={
+                          `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                        }
+                        colorTheme={module.colorTheme?.hex}
+                        icon={module.icon}
+                        index={offset + index}
+                        moduleId={module._id}
+                        progress={module.progress}
+                      />
+                    );
+                  })}
+                </View>
+              </>
+            )}
+
+            {completedModules.length > 0 && (
+              <>
+                <SectionHeader
+                  title={t('common.completed')}
+                  style={{ marginTop: 24 }}
+                />
+                <View style={styles.pathwaysGrid}>
+                  {completedModules.map((module, index) => {
+                    const offset =
+                      inProgressModules.length +
+                      recommendedModules.length +
+                      exploreModules.length;
+                    const blobIndex = (offset + index) % 5;
+                    return (
+                      <PathwayCard
+                        key={module._id}
+                        title={module.title}
+                        modulesLabel={t('learn.sectionCount', {
+                          count: module.submodules?.length || 0,
+                        })}
+                        href={
+                          `/(tabs)/Learn/modules/${module._id}?blobIndex=${blobIndex}` as any
+                        }
+                        colorTheme={module.colorTheme?.hex}
+                        icon={module.icon}
+                        index={offset + index}
+                        moduleId={module._id}
+                        progress={module.progress}
+                      />
+                    );
+                  })}
+                </View>
+              </>
+            )}
           </ScrollView>
         )}
       </View>
@@ -349,7 +397,8 @@ export default function Learn() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff' },
-  segmentedControl: { marginTop: 16 },
+  // Gutter matches the Resources content padding (Figma 8129:32571, px-20).
+  segmentedControl: { marginTop: 16, marginHorizontal: 20, marginBottom: 12 },
   scrollContent: { padding: 16, paddingBottom: 100 },
   pageTitle: {
     fontSize: 24,
