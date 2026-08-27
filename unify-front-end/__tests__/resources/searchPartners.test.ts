@@ -8,7 +8,7 @@ const labelFor = (category: PartnerCategory) =>
     immigrationHelp: 'Immigration Help',
     librariesLearning: 'Libraries & Learning',
     communityBelonging: 'Community & Belonging',
-    networksPlanning: 'Networks & Planning Tables',
+    networksPlanning: 'Network & Planning',
     internationalStudents: 'International Students',
     insurance: 'Insurance',
     money: 'Money & Banking',
