@@ -130,6 +130,11 @@ describe('partner category metadata', () => {
       RESOURCE_THEME.surfaceSearch,
     ],
     ['inline link on white', RESOURCE_THEME.link, RESOURCE_THEME.surface],
+    [
+      'page subtitle on white',
+      RESOURCE_THEME.textSubtitle,
+      RESOURCE_THEME.surface,
+    ],
     ['detail label on white', RESOURCE_THEME.textLabel, RESOURCE_THEME.surface],
     ['detail text on white', RESOURCE_THEME.textDetail, RESOURCE_THEME.surface],
     [

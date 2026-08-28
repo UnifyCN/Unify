@@ -29,6 +29,8 @@ export const RESOURCE_THEME = {
   textBody: '#3A3A3A',
   textDetail: '#374151',
   textSecondary: '#6F6C64',
+  /** Page subtitle. Same value as the Lessons subtitle in the Learn tab. */
+  textSubtitle: '#000000',
   textMuted: '#626269',
   /** Card org count. Figma #8B8880 → 3.54:1 on white, below AA. */
   textCount: '#79766F',

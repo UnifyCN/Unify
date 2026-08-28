@@ -102,9 +102,8 @@ export default function ResourcesView() {
         keyboardShouldPersistTaps='handled'
         keyboardDismissMode='on-drag'
       >
-        <Text style={styles.title} accessibilityRole='header'>
-          {t('learn.resources.title')}
-        </Text>
+        {/* No page title: the active segment above already reads "Resources",
+            and repeating it as an H1 cost ~32pt above the first card. */}
         <Text style={styles.subtitle}>{t('learn.resources.subtitle')}</Text>
         {/* Figma breaks the line before the link; a Touchable rather than a
             nested <Text onPress> so the tap target clears 44pt. */}
@@ -192,18 +191,12 @@ export default function ResourcesView() {
 
 const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
-  title: {
-    // Matches the Lessons greeting: same tab, same slot, same role.
-    fontSize: 24,
-    fontWeight: '600',
-    color: RESOURCE_THEME.textHeading,
-    marginBottom: 3,
-  },
   subtitle: {
+    // Matches the Lessons page subtitle so the two views read as one screen.
+    fontSize: 16,
     fontWeight: '400',
-    fontSize: 14,
-    lineHeight: 18.9,
-    color: RESOURCE_THEME.textSecondary,
+    lineHeight: 20,
+    color: RESOURCE_THEME.textSubtitle,
   },
   link: {
     color: RESOURCE_THEME.link,
