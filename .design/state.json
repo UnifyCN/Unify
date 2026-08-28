@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "route": "focused",
+  "job_kind": "redesign",
+  "surface": "native",
+  "constraint_mode": "existing-system",
+  "phase": "build",
+  "gates": {
+    "contract": "approved",
+    "direction": "approved",
+    "ship": "pending"
+  },
+  "artifacts": {
+    "design_contract": "DESIGN.md",
+    "references": ".design/references.json",
+    "decisions": ".design/decisions.md",
+    "selected_experiment": ".design/experiments/r3/spacing-bench.html",
+    "latest_evidence": [
+      ".design/evidence/resources-landing-2026-08-28.png"
+    ],
+    "latest_review": null
+  },
+  "open_decisions": [
+    {
+      "id": "lessons-subtitle-parity",
+      "question": "Does the Lessons view adopt the same subtitle treatment, or keep its 24pt greeting over 16pt copy?",
+      "blocking": false,
+      "status": "open"
+    },
+    {
+      "id": "zero-result-search-analytics",
+      "question": "Should search queries that return nothing be tracked, to reveal which organizations are missing?",
+      "blocking": false,
+      "status": "open"
+    }
+  ],
+  "blockers": []
+}
