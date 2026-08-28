@@ -37,7 +37,6 @@ import {
   FunnelSans_400Regular,
   FunnelSans_500Medium,
   FunnelSans_600SemiBold,
-  FunnelSans_700Bold,
 } from '@expo-google-fonts/funnel-sans';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -49,7 +48,6 @@ export default function RootLayout() {
     FunnelSans_400Regular,
     FunnelSans_500Medium,
     FunnelSans_600SemiBold,
-    FunnelSans_700Bold,
   });
 
   const [onboardingChecked, setOnboardingChecked] = useState(false);

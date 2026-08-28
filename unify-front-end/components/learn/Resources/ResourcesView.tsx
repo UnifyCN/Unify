@@ -193,14 +193,14 @@ export default function ResourcesView() {
 const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
   title: {
-    fontFamily: 'FunnelSans_700Bold',
+    // Matches the Lessons greeting: same tab, same slot, same role.
     fontSize: 24,
-    letterSpacing: -0.3,
+    fontWeight: '600',
     color: RESOURCE_THEME.textHeading,
     marginBottom: 3,
   },
   subtitle: {
-    fontFamily: 'FunnelSans_400Regular',
+    fontWeight: '400',
     fontSize: 14,
     lineHeight: 18.9,
     color: RESOURCE_THEME.textSecondary,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   gridRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   gridFiller: { flex: 1 },
   resultCount: {
-    fontFamily: 'FunnelSans_500Medium',
+    fontWeight: '500',
     fontSize: 12,
     color: RESOURCE_THEME.textCount,
     marginBottom: 4,
@@ -226,13 +226,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   emptyTitle: {
-    fontFamily: 'FunnelSans_700Bold',
+    fontWeight: '700',
     fontSize: 16,
     color: RESOURCE_THEME.textHeading,
     marginBottom: 6,
   },
   emptyText: {
-    fontFamily: 'FunnelSans_400Regular',
+    fontWeight: '400',
     fontSize: 13,
     color: RESOURCE_THEME.textSecondary,
     textAlign: 'center',

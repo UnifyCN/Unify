@@ -62,14 +62,14 @@ const styles = StyleSheet.create({
     backgroundColor: RESOURCE_THEME.surface,
     borderWidth: 1,
     borderColor: RESOURCE_THEME.cardBorder,
-    borderRadius: 15,
+    borderRadius: 20,
     padding: 13,
-    // Figma's `drop-shadow(0 1px 1px rgba(30,25,15,0.04))`.
-    shadowColor: '#1E190F',
-    shadowOpacity: 0.04,
-    shadowRadius: 1,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
+    // Shared with PathwayCard so both Learn card families cast the same shadow.
+    shadowColor: '#575757',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
   iconChip: {
     width: 32,
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   label: {
     marginTop: 8,
-    fontFamily: 'FunnelSans_700Bold',
+    fontWeight: '700',
     fontSize: 13.5,
     lineHeight: 16.9,
     // Two lines reserved regardless of wrapping, so tiles in a row match.
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   },
   count: {
     marginTop: 8,
-    fontFamily: 'FunnelSans_500Medium',
+    fontWeight: '500',
     fontSize: 11.5,
     color: RESOURCE_THEME.textCount,
   },

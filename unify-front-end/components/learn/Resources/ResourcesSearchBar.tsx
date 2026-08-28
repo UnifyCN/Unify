@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontFamily: 'FunnelSans_400Regular',
+    fontWeight: '400',
     fontSize: 13.5,
     color: RESOURCE_THEME.textHeading,
     // RN gives Android inputs vertical padding and a baseline offset that

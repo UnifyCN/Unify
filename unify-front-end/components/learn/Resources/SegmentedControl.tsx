@@ -79,12 +79,12 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   label: {
-    fontFamily: 'FunnelSans_600SemiBold',
     fontSize: 14,
+    fontWeight: '600',
     color: RESOURCE_THEME.textSegmentInactive,
   },
   labelActive: {
-    fontFamily: 'FunnelSans_700Bold',
+    fontWeight: '700',
     color: RESOURCE_THEME.textSegmentActive,
   },
 });

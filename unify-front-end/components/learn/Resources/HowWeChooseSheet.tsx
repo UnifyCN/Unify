@@ -56,14 +56,14 @@ export default function HowWeChooseSheet({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   content: { paddingTop: 4, paddingBottom: 32 },
   title: {
-    fontFamily: 'FunnelSans_700Bold',
+    fontWeight: '700',
     fontSize: 20,
     letterSpacing: -0.3,
     color: RESOURCE_THEME.textHeading,
     marginBottom: 8,
   },
   intro: {
-    fontFamily: 'FunnelSans_400Regular',
+    fontWeight: '400',
     fontSize: 14,
     lineHeight: 20,
     color: RESOURCE_THEME.textSecondary,
@@ -79,14 +79,14 @@ const styles = StyleSheet.create({
   },
   bulletText: {
     flex: 1,
-    fontFamily: 'FunnelSans_400Regular',
+    fontWeight: '400',
     fontSize: 14,
     lineHeight: 20,
     color: RESOURCE_THEME.textBody,
   },
   footnote: {
     marginTop: 6,
-    fontFamily: 'FunnelSans_400Regular',
+    fontWeight: '400',
     fontSize: 12.5,
     lineHeight: 18,
     color: RESOURCE_THEME.textSecondary,
