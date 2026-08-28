@@ -397,8 +397,8 @@ export default function Learn() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   container: { flex: 1, backgroundColor: '#fff' },
-  // Gutter matches the Resources content padding (Figma 8129:32571, px-20).
-  segmentedControl: { marginTop: 16, marginHorizontal: 20, marginBottom: 12 },
+  // Gutter matches the 16pt body padding shared by both views under it.
+  segmentedControl: { marginTop: 16, marginHorizontal: 16, marginBottom: 12 },
   scrollContent: { padding: 16, paddingBottom: 100 },
   pageTitle: {
     fontSize: 24,

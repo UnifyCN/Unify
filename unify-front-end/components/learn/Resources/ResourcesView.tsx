@@ -191,7 +191,7 @@ export default function ResourcesView() {
 }
 
 const styles = StyleSheet.create({
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 100 },
+  scrollContent: { padding: 16, paddingBottom: 100 },
   title: {
     fontFamily: 'FunnelSans_700Bold',
     fontSize: 24,
