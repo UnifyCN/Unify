@@ -111,6 +111,7 @@ export default function ResourcesView() {
         {/* Figma breaks the line before the link; a Touchable rather than a
             nested <Text onPress> so the tap target clears 44pt. */}
         <TouchableOpacity
+          style={styles.linkButton}
           onPress={() => setHowWeChooseVisible(true)}
           hitSlop={{ top: 10, bottom: 12, left: 8, right: 8 }}
           accessibilityRole='button'
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: RESOURCE_THEME.textHeading,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   subtitle: {
     // Matches the Lessons page subtitle so the two views read as one screen.
@@ -212,7 +213,11 @@ const styles = StyleSheet.create({
     color: RESOURCE_THEME.link,
     textDecorationLine: 'underline',
   },
-  searchWrapper: { marginTop: 12, marginBottom: 12 },
+  // Gaps widen as the relationship weakens: 8 holds the heading to its own
+  // supporting line, 6 lifts the link clear of the paragraph it explains, 18
+  // closes the block before the input.
+  linkButton: { marginTop: 6 },
+  searchWrapper: { marginTop: 18, marginBottom: 12 },
   gridRow: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   gridFiller: { flex: 1 },
   resultCount: {
