@@ -102,8 +102,11 @@ export default function ResourcesView() {
         keyboardShouldPersistTaps='handled'
         keyboardDismissMode='on-drag'
       >
-        {/* No page title: the active segment above already reads "Resources",
-            and repeating it as an H1 cost ~32pt above the first card. */}
+        {/* Heading asks the question rather than repeating the segment label
+            above it, which is why the old "Resources" H1 came out. */}
+        <Text style={styles.heading} accessibilityRole='header'>
+          {t('learn.resources.heading')}
+        </Text>
         <Text style={styles.subtitle}>{t('learn.resources.subtitle')}</Text>
         {/* Figma breaks the line before the link; a Touchable rather than a
             nested <Text onPress> so the tap target clears 44pt. */}
@@ -191,6 +194,13 @@ export default function ResourcesView() {
 
 const styles = StyleSheet.create({
   scrollContent: { padding: 16, paddingBottom: 100 },
+  heading: {
+    // Same size and weight as the Lessons greeting it sits opposite.
+    fontSize: 24,
+    fontWeight: '600',
+    color: RESOURCE_THEME.textHeading,
+    marginBottom: 6,
+  },
   subtitle: {
     // Matches the Lessons page subtitle so the two views read as one screen.
     fontSize: 16,
