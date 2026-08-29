@@ -1,9 +1,9 @@
 # DESIGN.md — Resources directory (Learn tab)
 
 > Status: current
-> Last updated: 2026-08-28
-> Scope of this contract: the Resources landing screen. The category detail and
-> partner detail screens are not yet redesigned.
+> Last updated: 2026-08-30
+> Scope of this contract: the Resources landing screen and the category detail
+> screen. The partner detail screen is not yet redesigned.
 
 ## Job
 
@@ -23,10 +23,11 @@ the screen.
 ## Scope
 
 **In:** The landing screen — segmented toggle, header block, search, category
-grid, and the "How we choose these" sheet.
+grid, and the "How we choose these" sheet. The category detail screen — back
+nav, title block, and the partner list.
 
-**Out:** Category detail, partner detail (`[slug].tsx`), the partner data model,
-and the Lessons view. Lessons is only touched where the two views must align.
+**Out:** Partner detail (`[slug].tsx`), the partner data model, and the Lessons
+view. Lessons is only touched where the two views must align.
 
 ## Source constraints
 
@@ -58,6 +59,14 @@ and the Lessons view. Lessons is only touched where the two views must align.
 - **Search:** inline client-side filter, not a route. It never goes in the nav,
   where the same pill navigates to global search on Social.
 - **Trust link:** its own line under the supporting copy, opening a bottom sheet.
+- **Partner card:** the same card as a category tile — white fill, 1pt `#E7E4DE`
+  border, radius 20, the shared Learn shadow. A partner list is a list of cards,
+  not divided rows, so the two Resources screens use one card language.
+- **Cost chip:** colour-carrying. Free and mixed take their own pair; paid takes
+  the neutral of the service-area chip beside it, leaving "Free" as the only chip
+  in a row that draws the eye.
+- **Category detail title:** 24/600, the landing heading's size and weight, not
+  the spec's 24/700.
 
 See `.design/decisions.md` for rejected options and why.
 
@@ -78,12 +87,15 @@ card titles, 11.5/500 counts.
 
 **Colour:** `RESOURCE_THEME` is the single source. Nine category tints pair with
 a darker glyph of the same hue; the contrast suite reads each glyph fill out of
-its SVG so the pair cannot drift.
+its SVG so the pair cannot drift. Cost is the one other field that carries
+colour, through `COST_CHIP`.
 
 **Spacing and density:** 16pt gutter, 10pt grid gap, two columns. Card labels
 reserve two lines so a wrapping title does not make its row taller.
 
-**Iconography:** One committed SVG per category at 20pt inside a 32pt chip.
+**Iconography:** One committed SVG per category at 20pt inside a 32pt chip. Every
+other glyph is Feather — unlike the category set, each one the spec asks for has
+a Feather equivalent.
 
 **Motion:** None beyond the bottom sheet's existing spring and pan-to-dismiss.
 
@@ -95,7 +107,9 @@ reserve two lines so a wrapping title does not make its row taller.
 - No matches: empty state echoing the query.
 - No partners at all: "We're adding partners" empty state.
 - Non-English locale: `ContentLanguageNotice` appears above the search field.
-- Category tapped: detail renders in place, not pushed.
+- Category tapped: detail renders in place, not pushed. Back nav returns to the
+  grid and reads "Resources", the segment it returns to.
+- Category with no active partners: "No active partners" empty state.
 - Partner tapped: pushes `app/(tabs)/Learn/resources/[slug]`.
 
 ## Responsive and accessibility
@@ -109,7 +123,10 @@ reserve two lines so a wrapping title does not make its row taller.
 
 ## Tokens and components
 
-- `constants/ResourceTheme.ts` — surfaces, text, accents
+- `constants/ResourceTheme.ts` — surfaces, text, accents, `COST_CHIP`
+- `components/learn/Resources/PartnerRow.tsx` — the partner card. It renders in
+  the category detail list **and** in the landing screen's search results, so it
+  carries its own bottom margin and any change lands on both.
 - `types/partner.ts` — category order, labels, colours, tints
 - `components/common/BottomSheet.tsx` — the sheet (**not** `@gorhom/bottom-sheet`,
   which is not installed despite what CLAUDE.md says)
@@ -127,7 +144,9 @@ reserve two lines so a wrapping title does not make its row taller.
 - [x] Search filters name, tagline, service area, programs, highlights, category
 - [x] Empty, no-result, and non-English states render
 - [x] All four locales in parity
-- [x] Contrast suite passes for every token pair and every category glyph
+- [x] Contrast suite passes for every token pair, every category glyph, and all
+      three cost chips
+- [x] Partner cards render in both the category list and the search results
 - [ ] Verified on Android
 - [ ] Verified at the largest Dynamic Type setting
 

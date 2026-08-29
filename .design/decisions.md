@@ -80,3 +80,63 @@ it in the copy group it explains; 18pt closes the block before the input.
 
 **Implementation note:** the gap sits on the TouchableOpacity wrapper
 (`styles.linkButton`), not on the Text, because the link shares `styles.subtitle`.
+
+## R4 — Category detail screen (Figma 8129:32881)
+
+**Date:** 2026-08-30
+**Decision:** Build the node as drawn, with four corrections carried forward from
+the landing screen and one addition.
+
+**The change that matters** is the partner row. It was a hairline-divided list
+row; it is now a card — white fill, 1pt `#E7E4DE`, the shared Learn shadow. The
+node draws radius 16; shipped at 20, matching the category tile the list sits one
+tap behind. A partner list is a list of cards, not divided rows.
+
+**Corrections carried forward:**
+- **Funnel Sans and Nunito Sans → the system face.** The node sets the title,
+  description, tagline and chips in Funnel Sans and the card name in Nunito Sans
+  ExtraBold. Same correction as the landing screen; same reason.
+- **20pt gutter → 16pt.** `CategoryDetail` renders inside `ResourcesView`'s
+  padding, so it inherits this rather than setting it.
+- **Title 24/700 → 24/600.** The landing heading's weight, so the two Resources
+  screens read as one.
+- **Material Symbols → Feather.** Unlike the category glyphs, every icon this
+  node asks for (`location_on`, `chevron_right`, `arrow_back_ios_new`) has a
+  Feather equivalent, so no new committed SVGs.
+
+**Addition — the cost chip carries colour.** Free takes `#0F766E` on `#E6F7F4`,
+mixed `#9A6318` on `#FDF1E2`, both straight from the node. All three pairs clear
+WCAG AA unaltered, which is a first for this feature — the landing screen needed
+three swatches darkened.
+
+**`paid` is ours.** The node draws free and mixed only. Paid takes the neutral of
+the service-area chip beside it (`#6F6C64` on `#F4F2EE`, 4.69:1), which leaves
+"Free" as the only chip in a row that draws the eye. Cost is the field a newcomer
+scans a directory for, and "free" is the answer that changes what they do next.
+
+**Rejected:**
+- **A third hue for `paid`** — colour-codes all three states, but then every row
+  carries two coloured chips and nothing stands out. Colour should mark the
+  exception, not the enumeration.
+- **The node's flatter shadow** (`0 1px 1px rgba(30,25,15,0.04)`) — the tiles one
+  tap back use PathwayCard's, and two shadow depths inside one feature read as an
+  error rather than a hierarchy.
+
+**Copy change:** `learn.resources.cost.mixed` shortened from "Free + paid options"
+to "Free + paid" in all four locales, so the chip fits beside the service area
+instead of wrapping the row. It also appears on the partner detail screen, where
+the shorter form reads no worse. Parity holds at 971.
+
+**Blast radius:** `PartnerRow` renders in the category list **and** in the landing
+screen's search results. Both were verified on an iPhone 17 Pro; the search
+results are where all three cost chips appear together.
+
+**Not fixed here — two data gaps the node exposes:**
+- The node draws "Free" on DIVERSEcity and Burnaby Neighbourhood House. Neither
+  carries an org-level `cost`; the value sits on their programs. `types/partner.ts`
+  states that an absent value means the partner does not publish one, and must
+  never be inferred — routing someone to a service they cannot afford or qualify
+  for is this feature's main failure mode. The cards ship without a cost chip.
+- The node draws real partner logos. No partner in `constants/Partners.ts` has a
+  `logo`, so every card falls back to a monogram. That is an asset task, not a
+  design one.

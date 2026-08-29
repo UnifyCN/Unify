@@ -16,7 +16,9 @@
     "decisions": ".design/decisions.md",
     "selected_experiment": ".design/experiments/r3/spacing-bench.html",
     "latest_evidence": [
-      ".design/evidence/resources-landing-2026-08-28.png"
+      ".design/evidence/resources-landing-2026-08-28.png",
+      ".design/evidence/resources-category-detail-2026-08-30.png",
+      ".design/evidence/resources-search-results-2026-08-30.png"
     ],
     "latest_review": null
   },
