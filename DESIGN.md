@@ -117,8 +117,9 @@ a Feather equivalent.
 - Every `RESOURCE_THEME` foreground/background pair clears AA, enforced by test.
   Three swatches ship a step darker than Figma for this reason.
 - The segmented control is 37pt with `hitSlop` to clear 44pt.
-- The trust link is a `TouchableOpacity`, not a nested `Text onPress`, so its
-  target clears 44pt.
+- The trust link and the category-detail back nav are `TouchableOpacity` sized to
+  their label and grown to 44pt with `hitSlop`. A 44pt `minHeight` would centre
+  the label and leave dead space above it.
 - Heading carries `accessibilityRole='header'`; tiles announce label + count.
 
 ## Tokens and components

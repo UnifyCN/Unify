@@ -140,3 +140,10 @@ results are where all three cost chips appear together.
 - The node draws real partner logos. No partner in `constants/Partners.ts` has a
   `logo`, so every card falls back to a monogram. That is an asset task, not a
   design one.
+
+**Correction after review (2026-08-30):** the back nav shipped with
+`minHeight: 44`, which centred its label and left ~14pt of dead space between the
+segmented control and the label — Savar flagged it on device. It now sizes to its
+label with `paddingVertical: 2` and reaches 44pt through `hitSlop`, the pattern
+the landing screen's trust link already uses. The label now starts the same
+distance below the segmented control as the landing heading does.

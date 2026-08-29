@@ -32,7 +32,7 @@ export default function CategoryDetail({ category, onBack }: Props) {
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityLabel={t('learn.resources.backToCategories')}
-        hitSlop={8}
+        hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
       >
         <Feather
           name='chevron-left'
@@ -72,9 +72,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    // The 44pt touch target already leaves ~13pt under the label, which is
-    // the 12pt gap the spec draws between the back nav and the title.
-    minHeight: 44,
+    // Sized to the label and grown to 44pt with hitSlop, the same way the
+    // landing screen's trust link is. A 44pt minHeight would centre the label
+    // and drop ~14pt of dead space between it and the segmented control.
+    paddingVertical: 2,
+    marginBottom: 8,
   },
   backText: {
     fontSize: 14,
