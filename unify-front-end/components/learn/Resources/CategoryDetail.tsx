@@ -36,8 +36,8 @@ export default function CategoryDetail({ category, onBack }: Props) {
       >
         <Feather
           name='chevron-left'
-          size={20}
-          color={RESOURCE_THEME.textStrong}
+          size={18}
+          color={RESOURCE_THEME.textSecondary}
         />
         <Text style={styles.backText}>{t('learn.segment.resources')}</Text>
       </TouchableOpacity>
@@ -71,24 +71,28 @@ const styles = StyleSheet.create({
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    alignSelf: 'flex-start',
+    // The 44pt touch target already leaves ~13pt under the label, which is
+    // the 12pt gap the spec draws between the back nav and the title.
     minHeight: 44,
   },
   backText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: RESOURCE_THEME.textStrong,
+    fontSize: 14,
+    fontWeight: '600',
+    color: RESOURCE_THEME.textSecondary,
     marginLeft: 4,
   },
   title: {
+    // Same size and weight as the landing heading one tap back, rather than
+    // the spec's 24/700, so the two Resources screens read as one.
     fontSize: 24,
     fontWeight: '600',
     color: RESOURCE_THEME.textHeading,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 19,
     color: RESOURCE_THEME.textSecondary,
     marginBottom: 12,
   },
