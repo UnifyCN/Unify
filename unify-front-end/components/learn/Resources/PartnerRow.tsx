@@ -3,7 +3,7 @@ import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { COST_LABEL_KEYS, type Partner } from '@/types/partner';
-import { RESOURCE_THEME } from '@/constants/ResourceTheme';
+import { COST_CHIP, RESOURCE_THEME } from '@/constants/ResourceTheme';
 import Monogram from './Monogram';
 
 type Props = {
@@ -11,15 +11,23 @@ type Props = {
   onPress: () => void;
 };
 
+/**
+ * One organization in a partner list (Figma 8132:33064).
+ *
+ * Renders in two places — a category's partner list and the landing screen's
+ * search results — so it carries its own bottom margin rather than relying on
+ * a divider from either parent.
+ */
 export default function PartnerRow({ partner, onPress }: Props) {
   const { t } = useTranslation();
   const costLabel = partner.cost ? t(COST_LABEL_KEYS[partner.cost]) : null;
+  const costChip = partner.cost ? COST_CHIP[partner.cost] : null;
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
+      activeOpacity={0.85}
       onPress={onPress}
-      style={styles.row}
+      style={styles.card}
       accessibilityRole='button'
       accessibilityLabel={[partner.name, partner.serviceArea, costLabel]
         .filter(Boolean)
@@ -28,7 +36,7 @@ export default function PartnerRow({ partner, onPress }: Props) {
       <Monogram
         name={partner.name}
         category={partner.category}
-        size={38}
+        size={44}
         source={partner.logo}
       />
       <View style={styles.body}>
@@ -42,51 +50,77 @@ export default function PartnerRow({ partner, onPress }: Props) {
           <View style={styles.chip}>
             <Feather
               name='map-pin'
-              size={10}
-              color={RESOURCE_THEME.textLabel}
+              size={13}
+              color={RESOURCE_THEME.textSecondary}
             />
             <Text style={styles.chipText} numberOfLines={1}>
               {partner.serviceArea}
             </Text>
           </View>
-          {costLabel && (
-            <View style={styles.chip}>
-              <Text style={styles.chipText}>{costLabel}</Text>
+          {costLabel && costChip && (
+            <View style={[styles.chip, { backgroundColor: costChip.background }]}>
+              <Text
+                style={[styles.chipText, { color: costChip.text }]}
+                numberOfLines={1}
+              >
+                {costLabel}
+              </Text>
             </View>
           )}
         </View>
       </View>
-      <Feather name='chevron-right' size={20} color='#C9C9D1' />
+      {/* Stretched so the chevron centres on the whole card, not on the logo,
+          which sits at the top of a card whose height varies with wrapping. */}
+      <View style={styles.chevronWrap}>
+        <Feather name='chevron-right' size={20} color='#C4C1BA' />
+      </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    minHeight: 60,
+  card: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 12,
-    paddingVertical: 11,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ECECEF',
+    backgroundColor: RESOURCE_THEME.surface,
+    borderWidth: 1,
+    borderColor: RESOURCE_THEME.cardBorder,
+    // 20 rather than the spec's 16, matching the category tiles this list
+    // sits one tap behind.
+    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 15,
+    marginBottom: 12,
+    // Shared with CategoryTile and PathwayCard so every Learn card family
+    // casts the same shadow.
+    shadowColor: '#575757',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
-  body: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '700', color: RESOURCE_THEME.textStrong },
-  tagline: { fontSize: 12, color: RESOURCE_THEME.textMuted, marginTop: 2 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
+  body: { flex: 1, gap: 5 },
+  name: { fontSize: 15, fontWeight: '800', color: RESOURCE_THEME.textCard },
+  tagline: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: RESOURCE_THEME.textSecondary,
+  },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: RESOURCE_THEME.surfaceChip,
+    backgroundColor: RESOURCE_THEME.surfaceChipNeutral,
     borderRadius: 999,
-    paddingVertical: 3,
-    paddingHorizontal: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
   },
   chipText: {
-    fontSize: 10.5,
+    fontSize: 11,
     fontWeight: '600',
-    color: RESOURCE_THEME.textLabel,
+    color: RESOURCE_THEME.textSecondary,
   },
+  chevronWrap: { alignSelf: 'stretch', justifyContent: 'center' },
 });

@@ -470,7 +470,7 @@
       "cost": {
         "free": "Free",
         "paid": "Paid",
-        "mixed": "Free + paid options"
+        "mixed": "Free + paid"
       },
       "howToGetHelp": "How to get help",
       "whoItsFor": "Who it's for",

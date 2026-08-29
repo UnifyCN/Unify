@@ -1,3 +1,5 @@
+import type { Cost } from '@/types/partner';
+
 /**
  * Shared semantic colors for the Resources directory.
  *
@@ -17,6 +19,8 @@ export const RESOURCE_THEME = {
   /** Search field fill. */
   surfaceSearch: '#F4F2EE',
   surfaceChip: '#F3F4F6',
+  /** Service-area chip on a partner card. */
+  surfaceChipNeutral: '#F4F2EE',
   surfaceNotice: '#F2F4F7',
   /** Hairline around a category card on white. */
   cardBorder: '#E7E4DE',
@@ -47,3 +51,22 @@ export const RESOURCE_THEME = {
   link: '#0F766E',
   iconNotice: '#465570',
 } as const;
+
+/**
+ * Cost chip on a partner card (Figma 8132:33073 / 8132:33078 / 8132:33130).
+ *
+ * Cost is the field a newcomer scans a directory row for, so free and mixed
+ * carry colour. Paid takes the same neutral as the service-area chip beside it,
+ * which leaves "Free" as the only chip in the row that draws the eye.
+ *
+ * Figma specifies free and mixed only; paid is ours. All three pairs clear
+ * WCAG AA unaltered and are covered by the contrast regression suite.
+ */
+export const COST_CHIP: Record<Cost, { background: string; text: string }> = {
+  free: { background: '#E6F7F4', text: RESOURCE_THEME.link },
+  mixed: { background: '#FDF1E2', text: '#9A6318' },
+  paid: {
+    background: RESOURCE_THEME.surfaceChipNeutral,
+    text: RESOURCE_THEME.textSecondary,
+  },
+};

@@ -8,10 +8,12 @@ import {
   PARTNER_CATEGORY_COLORS,
   PARTNER_CATEGORY_TINTS,
   PARTNER_CATEGORY_ICON_TINTS,
+  COST_LABEL_KEYS,
+  type Cost,
   type PartnerCategory,
 } from '@/types/partner';
 import en from '@/i18n/locales/en/translation.json';
-import { RESOURCE_THEME } from '@/constants/ResourceTheme';
+import { COST_CHIP, RESOURCE_THEME } from '@/constants/ResourceTheme';
 
 /** Walks a dotted i18n key against the EN baseline; undefined when absent. */
 function resolveKey(key: string): unknown {
@@ -152,8 +154,27 @@ describe('partner category metadata', () => {
       RESOURCE_THEME.textNotice,
       RESOURCE_THEME.surfaceNotice,
     ],
+    [
+      'service-area chip on a partner card',
+      RESOURCE_THEME.textSecondary,
+      RESOURCE_THEME.surfaceChipNeutral,
+    ],
   ])('%s meets WCAG AA contrast', (_name, foreground, background) => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('every cost has a chip whose pair meets WCAG AA contrast', () => {
+    for (const cost of Object.keys(COST_LABEL_KEYS) as Cost[]) {
+      const chip = COST_CHIP[cost];
+      expect(chip).toBeTruthy();
+      expect(chip.background).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(chip.text).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      // Compared as an object so a failure names the offending cost.
+      expect({
+        cost,
+        meetsAA: contrastRatio(chip.text, chip.background) >= 4.5,
+      }).toEqual({ cost, meetsAA: true });
+    }
   });
 
   it('detail body copy meets WCAG AA contrast on every category tint', () => {

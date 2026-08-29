@@ -470,7 +470,7 @@
       "cost": {
         "free": "Miễn phí",
         "paid": "Có phí",
-        "mixed": "Có lựa chọn miễn phí và có phí"
+        "mixed": "Miễn phí và có phí"
       },
       "howToGetHelp": "Cách nhận trợ giúp",
       "whoItsFor": "Dành cho ai",
