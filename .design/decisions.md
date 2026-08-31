@@ -147,3 +147,61 @@ segmented control and the label — Savar flagged it on device. It now sizes to 
 label with `paddingVertical: 2` and reaches 44pt through `hitSlop`, the pattern
 the landing screen's trust link already uses. The label now starts the same
 distance below the segmented control as the landing heading does.
+
+## R5 — Partner logos as square symbol marks
+
+**Date:** 2026-09-01
+**Decision:** Ship each partner's symbol, not its horizontal wordmark lockup.
+17 of 20 partners now carry a logo; 3 keep the monogram.
+
+**Why the wordmark fails.** The card gives the logo a 44pt square box. Measured
+against the assets each organization actually publishes, 13 of 20 are horizontal
+lockups between 2.7:1 and 7.5:1. With `contentFit: 'contain'` those render 6 to
+16pt tall — a grey smudge, not a logo. Only YMCA BC filled the box, and only
+because its lockup happens to be stacked.
+
+Re-reading the Figma node settled it: the designer used squarish marks on all
+three cards. The card prints the organization name in text beside the logo, so
+the mark has to be recognisable, not legible.
+
+**Sourcing.** Every one of the 20 has a symbol somewhere, but only 8 publish it
+as a standalone file. Five were isolated from a lockup — DIVERSEcity, Surrey
+LIP, Surrey Libraries and Desjardins by clipping the SVG viewBox, Delta LIP by
+cropping the raster. Two came from another domain: YMCA BC publishes no clean Y,
+so the mark comes from YMCA Canada, and SFU's comes from sfu.ca rather than the
+ISS page.
+
+**Three are genuinely wordmark-only** and keep the monogram: IEC-BC, Fraser
+International College, AMSSA. None of the three owns a pictorial element. Their
+own site icons are centre-crops of the wordmark — IEC-BC's reads "NEC BC".
+
+**Normalisation.** 256px, covering the 44pt card and the 62pt partner detail at
+@3x. Transparent padding is trimmed so every mark fills its box. Four are left
+untrimmed because the coloured ground is part of the mark: SFU, Desjardins, TuGo
+and Trout Lake. `Monogram` drops its `#F2F2F2` plate for the same reason — a
+plate here would double the two that carry their own.
+
+**Rejected:**
+- **Widening the logo box** to fit horizontal lockups — a 4:1 mark still renders
+  short, and it breaks from the node for no gain.
+- **Keeping SVG as SVG.** Metro's transformer makes `.svg` a component, so it
+  would need a second path through `Monogram` and a union type. At 44 and 62pt a
+  256px PNG is indistinguishable, and brand SVGs (22-55KB, gradients and clip
+  paths) are a real `react-native-svg` risk that our 9 hand-made glyphs are not.
+
+**Traps caught by inspection, not by metadata** — each of these has a plausible
+filename and correct dimensions, and each is wrong:
+- Delta LIP's site icon is the Karbon theme's demo favicon: a black square with
+  a white "K". Trout Lake's is the web agency's "RB" monogram.
+- `Temp-Delta-LIP-Insta-Logo-3-1.png` is a photograph of three people.
+- Desjardins' colour PNG symbol is a hollow hexagon whose interior is white — it
+  would have vanished on the white card. Their header SVG is all-white knockout.
+- Global Connect's `gcm_logo_square.png` is 512x422 and stacked; VPL's
+  `vpl-logo-white-blocks-200x200.png` is 200x60 and entirely white.
+
+**Open, pending Savar seeing them on device:**
+- Trout Lake ships with its `#EFF5F9` ground. A knocked-out version is generated.
+- Burnaby Neighbourhood House ships cropped to its illustration. Trimming made
+  the crop 2.1:1, so it renders smaller than its neighbours; the uncropped icon
+  fills the box but buries its wordmark. Neither is good.
+
