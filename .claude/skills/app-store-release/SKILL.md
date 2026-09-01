@@ -145,8 +145,12 @@ languages exist.
 ### 4a. Build
 
 ```bash
-npx eas-cli@latest build --platform ios --profile production
+npx eas-cli@latest build --platform ios --profile production --non-interactive \
+  --message "<version> — <what shipped>"
 ```
+
+Note the build id it prints. Step 4b needs it, and `git rev-parse HEAD` now, so
+Step 4c tags the right commit.
 
 Takes roughly 15–25 minutes. Secrets come from the EAS `production`
 environment, **not** from local `.env` — `.env` is never uploaded. The
@@ -159,15 +163,19 @@ resolves to an empty string in the shipped app with no error.
 ### 4b. Submit to App Store Connect
 
 ```bash
-npx eas-cli@latest submit --platform ios --profile production --latest --non-interactive
+npx eas-cli@latest submit --platform ios --profile production \
+  --id <buildId from 4a> --non-interactive
 ```
+
+Pass `--id`, not `--latest`. `--latest` submits whatever build is newest when
+the command runs, which is not necessarily the one you just made.
 
 This uploads to TestFlight only. It does **not** create a store version and
 does **not** submit for review.
 
-`eas.json` already carries `ascAppId` and `appleTeamId`. Drop
-`--non-interactive` if the `EXPO_ASC_*` variables are not exported in the
-current shell — see the App Store Connect API key section below.
+Nothing needs to be exported. `eas.json` carries `ascAppId` and `appleTeamId`,
+and EAS supplies its own App Store Connect key from its servers — see the App
+Store Connect API key section below.
 
 **Do not trust the submit spinner.** `eas submit` prints `- Submitting` while
 the job is still sitting untouched in Expo's queue. On the 1.6.0 submission it
@@ -200,13 +208,23 @@ GET /v1/builds?filter[app]=6754875762&limit=3&sort=-uploadedDate
 ### 4c. Tag and cut the GitHub release
 
 Do this **after** the upload succeeds, so a failed build never leaves a dangling
-release. Tag the exact commit that was built:
+release.
+
+**Name the built commit explicitly.** A build takes 15–25 minutes, and anyone
+merging to `main` in that window moves `HEAD`. A bare `git tag` would then point
+at code that never shipped, and the release would misrepresent the binary:
 
 ```bash
-git tag -a vX.Y.Z -m "iOS App Version X.Y.Z"
+BUILT=$(npx eas-cli@latest build:view <buildId> --json | node -pe \
+  "JSON.parse(require('fs').readFileSync(0)).gitCommitHash")
+
+git tag -a vX.Y.Z "$BUILT" -m "iOS App Version X.Y.Z"
 git push origin vX.Y.Z
 gh release create vX.Y.Z --title "iOS App Version X.Y.Z" --notes "<notes>"
 ```
+
+Reading the commit back off the build record, rather than trusting your shell,
+is what makes this correct.
 
 Notes should list user-visible changes from `git log <lastTag>..HEAD`, and name
 the EAS build number for traceability.
@@ -302,15 +320,10 @@ export EXPO_ASC_ISSUER_ID=<ISSUER-UUID>
 — they are useless without the `.p8` — but do not commit them anyway. Keep all
 three in a password manager and export them from your shell profile.
 
-Alternatively upload the key to EAS once with
-`npx eas-cli@latest credentials --platform ios` → production → App Store
-Connect API Key, and every machine submits without the variables.
-
-Step 4b then runs unattended:
-
-```bash
-npx eas-cli@latest submit --platform ios --profile production --latest --non-interactive
-```
+EAS already holds a submission key of its own, so Step 4b runs unattended
+without any of this. If you ever need a different key on the EAS side, upload
+it once with `npx eas-cli@latest credentials --platform ios` → production →
+App Store Connect API Key.
 
 **What the key still does not do.** `eas submit` uploads to TestFlight and
 stops there. Creating the store version, writing "What's New", and submitting
