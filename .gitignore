@@ -87,3 +87,8 @@ DOCS/
 docs/
 tickets/
 __tests__/
+# Agent worktrees
+.claude/worktrees/
+
+# App Store Connect API keys — never commit
+*.p8
