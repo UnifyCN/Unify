@@ -79,7 +79,7 @@ async function get(path, token) {
 
 const token = mintToken();
 
-// 1. Prove the key works and read the team id off the key's own record.
+// 1. Prove the key works before doing anything else.
 let teamId = null;
 try {
   const me = await get('/v1/users?limit=1', token);
@@ -105,6 +105,18 @@ if (!app) {
 const ascAppId = app.id;
 const { name, sku, primaryLocale } = app.attributes;
 
+// 2b. The Apple Team ID is not on the app record. It is the `seedId` of the
+// matching Developer-portal bundle id.
+try {
+  const bundles = await get(
+    `/v1/bundleIds?filter[identifier]=${encodeURIComponent(BUNDLE_ID)}&limit=1&fields[bundleIds]=identifier,seedId`,
+    token,
+  );
+  teamId = bundles.data?.[0]?.attributes?.seedId ?? null;
+} catch {
+  // App Manager cannot always read Developer-portal resources.
+}
+
 // 3. Current App Store versions, newest first.
 const versions = await get(
   `/v1/apps/${ascAppId}/appStoreVersions?limit=5&fields[appStoreVersions]=versionString,appStoreState,createdDate`,
@@ -117,6 +129,7 @@ console.log(`bundle id       ${BUNDLE_ID}`);
 console.log(`ascAppId        ${ascAppId}`);
 console.log(`sku             ${sku}`);
 console.log(`primary locale  ${primaryLocale}`);
+console.log(`appleTeamId     ${teamId ?? "(not readable with this key role)"}`);
 console.log('');
 console.log('App Store versions:');
 for (const v of versions.data ?? []) {

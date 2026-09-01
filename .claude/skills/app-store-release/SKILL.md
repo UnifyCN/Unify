@@ -24,6 +24,9 @@ the repo root.
 | Build number | Managed by EAS (`appVersionSource: "remote"`, `autoIncrement: "buildNumber"`). Never hand-edit. |
 | Runtime version | `exposdk:55.0.0` |
 | EAS project | `3772d4d9-79dd-4848-9691-bae1b19eefb8`, owner `unifysocial` |
+| Bundle id | `com.anonymous.unifyfrontend` |
+| App Store app | `Unify - Canada Newcomer Guide`, `ascAppId` `6754875762`, Apple Team `BA3JQQ8HVQ` |
+| Listing localizations | `en-CA`, `en-US` — both need "What's New". The 4 in-app locales (en/es/hi/vi) are unrelated to the store listing. |
 | Update channel | `production` (build profile `production` → channel `production`) |
 | Tag format | `vX.Y.Z` |
 | GitHub release title | `iOS App Version X.Y.Z` |
@@ -156,15 +159,15 @@ resolves to an empty string in the shipped app with no error.
 ### 4b. Submit to App Store Connect
 
 ```bash
-npx eas-cli@latest submit --platform ios --profile production --latest
+npx eas-cli@latest submit --platform ios --profile production --latest --non-interactive
 ```
 
 This uploads to TestFlight only. It does **not** create a store version and
 does **not** submit for review.
 
-`eas.json` currently has `submit.production` empty, so this prompts for Apple
-credentials interactively. Once the App Store Connect API key is set up (see
-the section below), add `--non-interactive` and it runs unattended.
+`eas.json` already carries `ascAppId` and `appleTeamId`. Drop
+`--non-interactive` if the `EXPO_ASC_*` variables are not exported in the
+current shell — see the App Store Connect API key section below.
 
 ### 4c. Tag and cut the GitHub release
 
@@ -185,8 +188,8 @@ the EAS build number for traceability.
 1. Open App Store Connect → Unify.
 2. Wait for the build to finish processing under **TestFlight** (5–30 min).
 3. Create a new **iOS App version** `X.Y.Z` and attach that build.
-4. Write **What's New**. Fill it for **every** listing localization the app has
-   — check which ones exist rather than assuming English only.
+4. Write **What's New** for both listing localizations, `en-CA` and `en-US`.
+   Re-run `asc-setup.mjs` to confirm the list has not grown.
 5. Update screenshots only if UI in the screenshots changed.
 6. Promotional text / description / keywords live in the vault note
    `20 Areas/Unify/App/Apple App Store Information`. Promotional text can be
@@ -241,28 +244,35 @@ accepts the key, then prints the app's `ascAppId`, the current App Store
 versions and their states, and every listing localization that needs a
 "What's New" entry. It ends with the exact JSON block for `eas.json`.
 
-**5. Register the key with EAS** so builds submit without a prompt:
-
-```bash
-cd unify-front-end
-npx eas-cli@latest credentials --platform ios
-# -> production -> App Store Connect API Key -> add the key
-```
-
-**6. Fill in `eas.json`** with the values the script printed:
+**5. `eas.json` is already filled in** with the values the script resolved:
 
 ```json
 "submit": {
   "production": {
-    "ios": {
-      "ascAppId": "<from asc-setup.mjs>",
-      "appleTeamId": "<10-character team id>"
-    }
+    "ios": { "ascAppId": "6754875762", "appleTeamId": "BA3JQQ8HVQ" }
   }
 }
 ```
 
-After this, Step 4b runs unattended:
+**6. Point EAS at the key** for a non-interactive submit. Export these three
+variables in the shell that runs the submit — they keep the key on disk and out
+of the repo, and they work in CI too:
+
+```bash
+export EXPO_ASC_API_KEY_PATH=~/.appstoreconnect/private_keys/AuthKey_<KEYID>.p8
+export EXPO_ASC_KEY_ID=<KEYID>
+export EXPO_ASC_ISSUER_ID=<ISSUER-UUID>
+```
+
+**This repo is public.** The Key ID and Issuer ID are identifiers, not secrets
+— they are useless without the `.p8` — but do not commit them anyway. Keep all
+three in a password manager and export them from your shell profile.
+
+Alternatively upload the key to EAS once with
+`npx eas-cli@latest credentials --platform ios` → production → App Store
+Connect API Key, and every machine submits without the variables.
+
+Step 4b then runs unattended:
 
 ```bash
 npx eas-cli@latest submit --platform ios --profile production --latest --non-interactive
