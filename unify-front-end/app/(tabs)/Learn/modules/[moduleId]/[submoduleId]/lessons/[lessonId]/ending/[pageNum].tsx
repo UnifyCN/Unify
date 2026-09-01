@@ -9,6 +9,7 @@ import {
   Modal,
   TextInput,
   TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +33,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import { useAnalytics } from '@/utils/analytics';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -57,11 +59,17 @@ export default function EndingPageScreen() {
   const { data: lesson, isLoading: loadingLesson } = useSanityLesson(
     lessonId || ''
   );
-  const { data: quizzes } = useSanityLessonQuizzes(lessonId || '');
+  const {
+    data: quizzes,
+    isLoading: quizzesLoading,
+    error: quizzesError,
+  } = useSanityLessonQuizzes(lessonId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(
-    submoduleId || ''
-  );
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Progress tracking
   const { saveLessonCompletion } = useLessonProgress();
@@ -146,8 +154,9 @@ export default function EndingPageScreen() {
     const totalAllPages = getLessonTotalPages(lesson, quizzes);
 
     setIsSaving(true);
+    let didSave = false;
     try {
-      await saveLessonCompletion(
+      didSave = await saveLessonCompletion(
         lessonId || '',
         submoduleId || '',
         moduleId || '',
@@ -157,11 +166,16 @@ export default function EndingPageScreen() {
       setIsSaving(false);
     }
 
+    if (!didSave) {
+      Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+      return;
+    }
+
     // Navigate: either back to submodule index (last lesson) or to next lesson
     if (isLastLesson()) {
-      router.push({
+      router.dismissTo({
         pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-        params: { moduleId, submoduleId },
+        params: { moduleId, submoduleId, justCompletedLearn: '1' },
       });
     } else {
       const nextLesson = getNextLesson();
@@ -276,7 +290,7 @@ export default function EndingPageScreen() {
     void completeLessonAndNavigate();
   };
 
-  if (loadingLesson) {
+  if (loadingLesson || quizzesLoading || submoduleLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -286,7 +300,13 @@ export default function EndingPageScreen() {
     );
   }
 
-  if (!lesson || !currentPageData) {
+  if (
+    !lesson ||
+    !currentPageData ||
+    quizzesError ||
+    submoduleError ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -353,11 +373,10 @@ export default function EndingPageScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {t('learn.lesson.exitTitle')}
-            </Text>
+            <Text style={styles.modalTitle}>{t('learn.lesson.exitTitle')}</Text>
             <Text style={styles.modalDesc}>
-              {t('learn.lesson.exitBody1')}{'\n'}
+              {t('learn.lesson.exitBody1')}
+              {'\n'}
               {t('learn.lesson.exitBody2')}
             </Text>
 
@@ -374,7 +393,9 @@ export default function EndingPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitContinue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('learn.lesson.exitContinue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -455,7 +476,9 @@ export default function EndingPageScreen() {
                   ]}
                   onPress={handleSubmitReview}
                 >
-                  <Text style={styles.reviewSubmitText}>{t('common.submit')}</Text>
+                  <Text style={styles.reviewSubmitText}>
+                    {t('common.submit')}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

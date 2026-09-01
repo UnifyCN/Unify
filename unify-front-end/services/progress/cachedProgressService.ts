@@ -113,11 +113,11 @@ class CachedProgressService {
       // Fetch all modules with submodules and lessons from Sanity
       let modulesData = null;
       try {
-        const sanityQuery = `*[_type == "module"] {
+        const sanityQuery = `*[_type == "module" && (language == "en" || !defined(language))] {
           _id,
-          "submodules": *[_type == "submodule" && references(^._id)] | order(order) {
+          "submodules": *[_type == "submodule" && references(^._id) && (language == "en" || !defined(language))] | order(order) {
             _id,
-            "lessons": *[_type == "lesson" && references(^._id)] | order(order) {
+            "lessons": *[_type == "lesson" && references(^._id) && (language == "en" || !defined(language))] | order(order) {
               _id
             }
           }

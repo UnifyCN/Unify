@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   ScrollView,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSanityQuizQuestions } from '@/hooks/sanity/useSanityQuizzes';
@@ -27,6 +28,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress';
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import {
   getOrCreateInProgressQuizAttempt,
   getQuizResponses,
@@ -76,9 +78,21 @@ export default function QuizQuestionPage() {
   const { trackScreen, capture } = useAnalytics();
   const currentQuestionIndex = parseInt(questionNum || '1') - 1;
   const { data: questions, isLoading, error } = useSanityQuizQuestions(quizId);
-  const { data: quizzes } = useSanityLessonQuizzes(lessonId);
-  const { data: lesson } = useSanityLesson(lessonId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(submoduleId);
+  const {
+    data: quizzes,
+    isLoading: quizzesLoading,
+    error: quizzesError,
+  } = useSanityLessonQuizzes(lessonId);
+  const {
+    data: lesson,
+    isLoading: lessonLoading,
+    error: lessonError,
+  } = useSanityLesson(lessonId || '');
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId);
   const { data: moduleData } = useSanityModule(moduleId || '');
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
@@ -278,18 +292,31 @@ export default function QuizQuestionPage() {
     ])
   );
 
-  if (isLoading) {
+  if (isLoading || quizzesLoading || lessonLoading || submoduleLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>{t('learn.quiz.loadingQuestion')}</Text>
+        <Text style={styles.loadingText}>
+          {t('learn.quiz.loadingQuestion')}
+        </Text>
       </View>
     );
   }
 
-  if (error || !questions) {
+  if (
+    error ||
+    quizzesError ||
+    lessonError ||
+    submoduleError ||
+    !questions ||
+    !lesson ||
+    !hasLoadedContentItem(quizzes, quizId) ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{t('learn.quiz.errorLoadingQuestion')}</Text>
+        <Text style={styles.errorText}>
+          {t('learn.quiz.errorLoadingQuestion')}
+        </Text>
       </View>
     );
   }
@@ -466,12 +493,17 @@ export default function QuizQuestionPage() {
           } else {
             // No ending pages, save this lesson as completed
             const totalPages = calculateTotalLessonPages();
-            await saveLessonCompletion(
+            const didSave = await saveLessonCompletion(
               lessonId || '',
               submoduleId || '',
               moduleId || '',
               totalPages
             );
+            if (!didSave) {
+              setIsNavigating(false);
+              Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+              return;
+            }
 
             // Check if this is the last lesson
             const currentIndex = getCurrentLessonIndex();
@@ -479,10 +511,10 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              router.push({
+              router.dismissTo({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                params: { moduleId, submoduleId },
+                params: { moduleId, submoduleId, justCompletedLearn: '1' },
               });
             } else {
               // Go to next lesson
@@ -542,11 +574,13 @@ export default function QuizQuestionPage() {
         const correctAnswerId =
           currentQuestion.correct_answer?.value?.[0] ||
           currentQuestion.correct_answer?.value;
-        isAnswerCorrect =
+        // `options` and a matching option are both optional in Sanity. Coerce
+        // the resulting boolean | undefined to the boolean UI state contract.
+        isAnswerCorrect = Boolean(
           selectedAnswer === correctAnswerId ||
-          currentQuestion.options?.find(
-            (opt: any) => opt._key === selectedAnswer
-          )?.is_correct;
+            currentQuestion.options?.find(opt => opt._key === selectedAnswer)
+              ?.is_correct
+        );
       }
 
       setIsCorrect(isAnswerCorrect);
@@ -592,12 +626,17 @@ export default function QuizQuestionPage() {
           } else {
             // No ending pages, save this lesson as completed
             const totalPages = calculateTotalLessonPages();
-            await saveLessonCompletion(
+            const didSave = await saveLessonCompletion(
               lessonId || '',
               submoduleId || '',
               moduleId || '',
               totalPages
             );
+            if (!didSave) {
+              setIsNavigating(false);
+              Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+              return;
+            }
 
             // Check if this is the last lesson
             const currentIndex = getCurrentLessonIndex();
@@ -605,10 +644,10 @@ export default function QuizQuestionPage() {
               currentIndex === (submoduleData?.lessons?.length || 0) - 1;
 
             if (isLastLesson) {
-              router.push({
+              router.dismissTo({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                params: { moduleId, submoduleId },
+                params: { moduleId, submoduleId, justCompletedLearn: '1' },
               });
             } else {
               // Go to next lesson
@@ -969,9 +1008,12 @@ export default function QuizQuestionPage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('learn.lesson.exitQuizTitle')}</Text>
+            <Text style={styles.modalTitle}>
+              {t('learn.lesson.exitQuizTitle')}
+            </Text>
             <Text style={styles.modalDesc}>
-              {t('learn.lesson.exitBody1')}{'\n'}
+              {t('learn.lesson.exitBody1')}
+              {'\n'}
               {t('learn.lesson.exitBody2')}
             </Text>
 
@@ -995,7 +1037,9 @@ export default function QuizQuestionPage() {
               style={styles.modalSecondaryBtn}
               onPress={() => setShowExitModal(false)}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('learn.lesson.exitQuizContinue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('learn.lesson.exitQuizContinue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

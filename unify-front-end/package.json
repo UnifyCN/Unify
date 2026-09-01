@@ -44,6 +44,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "@react-navigation/native": "^7.0.0",
+    "@sanity/client": "7.22.0",
     "@supabase/supabase-js": "^2.50.4",
     "@tanstack/react-query": "^5.83.0",
     "dayjs": "^1.11.19",

@@ -37,6 +37,7 @@ import {
   getLessonTotalPages,
 } from '@/utils/submoduleProgress'; // static
 import { useLessonProgress } from '@/hooks/progress/useLessonProgress';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 import { useToast } from '@/context/ToastContext';
 import { useLessonPageSaved } from '@/hooks/learn/useLessonPageSaved';
 import { useMutateSaveLessonPage } from '@/hooks/learn/useMutateSaveLessonPage';
@@ -78,9 +79,11 @@ export default function LessonPageScreen() {
     isLoading: quizzesLoading,
     error: quizzesError,
   } = useSanityLessonQuizzes(lessonId || '');
-  const { data: submoduleData } = useSanitySubmoduleWithLessons(
-    submoduleId || ''
-  );
+  const {
+    data: submoduleData,
+    isLoading: submoduleLoading,
+    error: submoduleError,
+  } = useSanitySubmoduleWithLessons(submoduleId || '');
 
   // Progress tracking
   const { saveLessonCompletion, saveCurrentPage } = useLessonProgress();
@@ -249,26 +252,31 @@ export default function LessonPageScreen() {
               params: { moduleId, submoduleId, lessonId, pageNum: '1' },
             });
           } else {
-            // No ending pages, save this lesson as completed (in background)
+            // No ending pages, save this lesson as completed before navigating
             setIsSaving(true);
-
-            // Save in background - don't block navigation
-            saveLessonCompletion(
-              lessonId || '',
-              submoduleId || '',
-              moduleId || '',
-              lessonTotalPages
-            ).finally(() => {
+            let didSave = false;
+            try {
+              didSave = await saveLessonCompletion(
+                lessonId || '',
+                submoduleId || '',
+                moduleId || '',
+                lessonTotalPages
+              );
+            } finally {
               setIsSaving(false);
-            });
+            }
 
-            // Navigate immediately
+            if (!didSave) {
+              Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+              return;
+            }
+
             // Check if this is the last lesson
             if (isLastLesson()) {
-              router.push({
+              router.dismissTo({
                 pathname:
                   '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-                params: { moduleId, submoduleId },
+                params: { moduleId, submoduleId, justCompletedLearn: '1' },
               });
             } else {
               // Go to next lesson
@@ -347,9 +355,8 @@ export default function LessonPageScreen() {
       {
         onSuccess: () => {
           if (!wasSaved) {
-            showToast(
-              t('learn.lesson.savedToast'),
-              () => router.push('/saved-lessons' as any)
+            showToast(t('learn.lesson.savedToast'), () =>
+              router.push('/saved-lessons' as any)
             );
           }
         },
@@ -374,7 +381,7 @@ export default function LessonPageScreen() {
     router,
   ]);
 
-  if (loadingLesson) {
+  if (loadingLesson || quizzesLoading || submoduleLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -384,7 +391,13 @@ export default function LessonPageScreen() {
     );
   }
 
-  if (!lesson || !currentPageData) {
+  if (
+    !lesson ||
+    !currentPageData ||
+    quizzesError ||
+    submoduleError ||
+    !hasLoadedContentItem(submoduleData?.lessons, lessonId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -464,7 +477,8 @@ export default function LessonPageScreen() {
                 {t('learn.lesson.exitTitle')}
               </Text>
               <Text style={styles.modalDesc}>
-                {t('learn.lesson.exitBody1')}{'\n'}
+                {t('learn.lesson.exitBody1')}
+                {'\n'}
                 {t('learn.lesson.exitBody2')}
               </Text>
 
@@ -562,7 +576,10 @@ function LessonPageContent({
           clearSelection();
         },
         onError: () => {
-          Alert.alert(t('learn.lesson.errorTitle'), t('learn.lesson.failedSaveHighlight'));
+          Alert.alert(
+            t('learn.lesson.errorTitle'),
+            t('learn.lesson.failedSaveHighlight')
+          );
         },
       }
     );
@@ -584,7 +601,10 @@ function LessonPageContent({
         clearSelection();
       },
       onError: () => {
-        Alert.alert(t('learn.lesson.errorTitle'), t('learn.lesson.failedRemoveHighlight'));
+        Alert.alert(
+          t('learn.lesson.errorTitle'),
+          t('learn.lesson.failedRemoveHighlight')
+        );
       },
     });
   }, [

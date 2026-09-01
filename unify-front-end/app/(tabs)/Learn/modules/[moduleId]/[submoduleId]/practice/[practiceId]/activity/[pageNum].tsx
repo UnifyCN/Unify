@@ -7,6 +7,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -26,6 +27,7 @@ import {
   PRACTICE_QUESTION_PREFIX,
 } from '@/services/progress/practiceProgressService';
 import { useTranslation } from 'react-i18next';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 
 export default function PracticeActivityPageScreen() {
   const { t } = useTranslation();
@@ -37,11 +39,23 @@ export default function PracticeActivityPageScreen() {
     pageNum: string;
   }>();
 
-  const goToSubmoduleIndex = () => {
-    router.push({
+  const goToSubmoduleIndex = (justCompletedPractice = false) => {
+    const destination = {
       pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-      params: { moduleId: moduleId!, submoduleId: submoduleId! },
-    });
+      params: justCompletedPractice
+        ? {
+            moduleId: moduleId!,
+            submoduleId: submoduleId!,
+            justCompletedPractice: '1',
+          }
+        : { moduleId: moduleId!, submoduleId: submoduleId! },
+    };
+
+    if (justCompletedPractice) {
+      router.dismissTo(destination);
+    } else {
+      router.push(destination);
+    }
   };
 
   const currentPage = parseInt(pageNum || '1');
@@ -50,7 +64,11 @@ export default function PracticeActivityPageScreen() {
     isLoading,
     error,
   } = useSanityPractice(practiceId || '');
-  const { data: practices } = useSanityPractices(submoduleId || '');
+  const {
+    data: practices,
+    isLoading: practicesLoading,
+    error: practicesError,
+  } = useSanityPractices(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
@@ -90,6 +108,8 @@ export default function PracticeActivityPageScreen() {
     [key: string]: string | string[];
   }>({});
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const isCompletingRef = React.useRef(false);
   const [feedbackContext, setFeedbackContext] = useState({
     questionText: '',
     userAnswer: '',
@@ -106,9 +126,9 @@ export default function PracticeActivityPageScreen() {
   );
 
   // Debounce timers for autosaving free-text inputs, keyed by field.
-  const saveTimers = React.useRef<Record<string, ReturnType<typeof setTimeout>>>(
-    {}
-  );
+  const saveTimers = React.useRef<
+    Record<string, ReturnType<typeof setTimeout>>
+  >({});
   // Fields the user has edited on this page. Guards the async restore from
   // clobbering fresh input if the fetch resolves after the user starts typing.
   const touchedRef = React.useRef<Set<string>>(new Set());
@@ -134,7 +154,11 @@ export default function PracticeActivityPageScreen() {
       setInputValues(prev => {
         const next = { ...prev };
         for (const [k, v] of Object.entries(saved.inputValues)) {
-          if (pageKeys.has(k) && !touchedRef.current.has(k) && next[k] === undefined)
+          if (
+            pageKeys.has(k) &&
+            !touchedRef.current.has(k) &&
+            next[k] === undefined
+          )
             next[k] = v;
         }
         return next;
@@ -142,7 +166,11 @@ export default function PracticeActivityPageScreen() {
       setQuestionAnswers(prev => {
         const next = { ...prev };
         for (const [k, v] of Object.entries(saved.questionAnswers)) {
-          if (pageKeys.has(k) && !touchedRef.current.has(k) && next[k] === undefined)
+          if (
+            pageKeys.has(k) &&
+            !touchedRef.current.has(k) &&
+            next[k] === undefined
+          )
             next[k] = v;
         }
         return next;
@@ -207,7 +235,8 @@ export default function PracticeActivityPageScreen() {
     // Key timers by page + field so a pending save is never cancelled by the same
     // field key on another page.
     const timerKey = `${currentPage}:${fieldKey}`;
-    if (saveTimers.current[timerKey]) clearTimeout(saveTimers.current[timerKey]);
+    if (saveTimers.current[timerKey])
+      clearTimeout(saveTimers.current[timerKey]);
     saveTimers.current[timerKey] = setTimeout(() => {
       savePracticeAnswer(
         practiceId,
@@ -265,7 +294,9 @@ export default function PracticeActivityPageScreen() {
       });
     }
 
-    const userAnswerText = Object.values(inputValues).filter(Boolean).join('\n');
+    const userAnswerText = Object.values(inputValues)
+      .filter(Boolean)
+      .join('\n');
     if (hasTextInputs && userAnswerText.trim().length > 0) {
       const questionText = extractPlainText(
         currentPageData?.instructions || []
@@ -274,12 +305,18 @@ export default function PracticeActivityPageScreen() {
         ? extractPlainText(currentPageData.answer_box.content)
         : '';
 
-      setFeedbackContext({ questionText, userAnswer: userAnswerText, expectedAnswer });
+      setFeedbackContext({
+        questionText,
+        userAnswer: userAnswerText,
+        expectedAnswer,
+      });
       setShowFeedbackModal(true);
     }
   };
 
   const handleNext = async () => {
+    if (isCompletingRef.current) return;
+
     if (currentPage < totalPages) {
       const nextPage = currentPage + 1;
       await updatePracticeProgress(practiceId!, nextPage);
@@ -294,15 +331,26 @@ export default function PracticeActivityPageScreen() {
         },
       });
     } else {
-      await completePractice(practiceId!);
-      if (nextPractice) {
-        router.replace({
-          pathname:
-            '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
-          params: { moduleId, submoduleId, practiceId: nextPractice._id },
-        });
-      } else {
-        goToSubmoduleIndex();
+      isCompletingRef.current = true;
+      setIsCompleting(true);
+      try {
+        const didSave = await completePractice(practiceId!);
+        if (!didSave) {
+          Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+          return;
+        }
+        if (nextPractice) {
+          router.replace({
+            pathname:
+              '/(tabs)/Learn/modules/[moduleId]/[submoduleId]/practice/[practiceId]' as any,
+            params: { moduleId, submoduleId, practiceId: nextPractice._id },
+          });
+        } else {
+          goToSubmoduleIndex(true);
+        }
+      } finally {
+        isCompletingRef.current = false;
+        setIsCompleting(false);
       }
     }
   };
@@ -334,7 +382,7 @@ export default function PracticeActivityPageScreen() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || practicesLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -344,7 +392,12 @@ export default function PracticeActivityPageScreen() {
     );
   }
 
-  if (error || !practice) {
+  if (
+    error ||
+    practicesError ||
+    !practice ||
+    !hasLoadedContentItem(practices, practiceId)
+  ) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -369,7 +422,9 @@ export default function PracticeActivityPageScreen() {
       <SubmoduleProgressBar
         currentProgress={progress.currentPage}
         totalPages={progress.totalPages}
-        submoduleTitle={practice.title || submoduleData?.title || t('learn.practice.fallback')}
+        submoduleTitle={
+          practice.title || submoduleData?.title || t('learn.practice.fallback')
+        }
         submoduleOrder={submoduleData?.order ?? 1}
         onClose={() => setShowExitModal(true)}
         colorHex={moduleData?.colorTheme?.hex}
@@ -574,8 +629,10 @@ export default function PracticeActivityPageScreen() {
           style={[
             styles.nextBtn,
             { backgroundColor: moduleData?.colorTheme?.hex || '#575757' },
+            isCompleting && { opacity: 0.6 },
           ]}
           onPress={isSubmitted ? handleNext : handleSubmit}
+          disabled={isCompleting}
         >
           <Text style={styles.nextBtnText}>
             {!isSubmitted
@@ -608,9 +665,7 @@ export default function PracticeActivityPageScreen() {
             <Text style={styles.modalTitle}>
               {t('learn.practice.exitTitle')}
             </Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.practice.exitBody')}
-            </Text>
+            <Text style={styles.modalDesc}>{t('learn.practice.exitBody')}</Text>
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
               onPress={handleSaveAndLeave}

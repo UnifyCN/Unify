@@ -795,7 +795,26 @@
     "hostedBy": "Organizado por",
     "viewDetails": "Ver detalles del evento",
     "aboutEvent": "Sobre el evento",
-    "noEventDescription": "No hay descripción disponible para este evento."
+    "noEventDescription": "No hay descripción disponible para este evento.",
+    "linkOpenFailed": "No se pudo abrir el enlace del evento. Inténtalo de nuevo.",
+    "shareMessage": "Mira este evento: {{title}}",
+    "shareDate": "📅 {{date}}",
+    "shareLocation": "📍 {{location}}",
+    "shareLink": "🔗 {{url}}",
+    "shareDialogTitle": "Unify Gather",
+    "filterByCategory": "Filtrar eventos por categoría",
+    "genre": {
+      "employment": "Empleo",
+      "language": "Idioma",
+      "housing": "Vivienda",
+      "finance": "Finanzas",
+      "documentation": "Documentos",
+      "health": "Salud",
+      "family": "Familia",
+      "education": "Educación",
+      "socials": "Social",
+      "uncategorized": "Otros"
+    }
   },
   "resetPassword": {
     "title": "Restablecer contraseña",
