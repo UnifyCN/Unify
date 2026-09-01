@@ -405,6 +405,98 @@
       "remove": "Xóa",
       "highlight": "Tô sáng",
       "askAI": "Hỏi AI"
+    },
+    "segment": {
+      "lessons": "Bài học",
+      "resources": "Tài nguyên"
+    },
+    "resources": {
+      "title": "Dịch vụ đáng tin cậy",
+      "subtitle": "Các tổ chức giúp bạn định cư tại Canada.",
+      "contentLanguageNotice": "Thông tin chi tiết do các tổ chức cung cấp hiện chỉ có bằng tiếng Anh.",
+      "emptyTitle": "Chúng tôi đang thêm đối tác",
+      "emptyText": "Chúng tôi đang chọn lọc các tổ chức đáng tin cậy cho bạn. Hãy quay lại sau.",
+      "orgCount": "{{count}} tổ chức",
+      "orgCount_plural": "{{count}} tổ chức",
+      "backToCategories": "Quay lại danh mục",
+      "noPartnersInCategory": "Chưa có đối tác hoạt động nào trong danh mục này.",
+      "about": "Giới thiệu",
+      "howTheyHelp": "Họ giúp người mới đến như thế nào",
+      "programs": "Chương trình",
+      "visitWebsite": "Truy cập trang web",
+      "visitWebsiteA11y": "Truy cập trang web của {{name}}",
+      "opensInBrowser": "{{name}}, mở trong trình duyệt",
+      "notFound": "Tài nguyên này không còn khả dụng.",
+      "openErrorTitle": "Không thể mở liên kết",
+      "openErrorMessage": "Vui lòng thử lại sau.",
+      "category": {
+        "gettingSettled": {
+          "label": "Bắt đầu ổn định",
+          "description": "Các cơ quan và chương trình định cư giúp bạn ổn định cuộc sống."
+        },
+        "findWork": {
+          "label": "Tìm việc làm",
+          "description": "Bảng tin việc làm, cố vấn và hỗ trợ nghề nghiệp cho người mới đến."
+        },
+        "immigrationHelp": {
+          "label": "Hỗ trợ di trú",
+          "description": "Chuyên viên được cấp phép về giấy phép, thường trú và quốc tịch."
+        },
+        "librariesLearning": {
+          "label": "Thư viện và học tập",
+          "description": "Chương trình, không gian và tài nguyên miễn phí tại thư viện địa phương."
+        },
+        "communityBelonging": {
+          "label": "Cộng đồng và sự gắn kết",
+          "description": "Các tổ chức phi lợi nhuận và trung tâm cộng đồng mở cho mọi người."
+        },
+        "networksPlanning": {
+          "label": "Mạng lưới và bàn hoạch định",
+          "description": "Các tổ chức này điều phối dịch vụ trên toàn British Columbia. Họ làm việc với các cơ quan thay vì trực tiếp phục vụ cá nhân."
+        },
+        "internationalStudents": {
+          "label": "Du học sinh",
+          "description": "Dịch vụ trong trường cho người có giấy phép du học, nhóm mà hầu hết chương trình định cư không phục vụ được."
+        },
+        "insurance": {
+          "label": "Bảo hiểm",
+          "description": "Bảo hiểm du lịch, khách thăm và sức khỏe cho bạn và gia đình đến thăm."
+        },
+        "money": {
+          "label": "Tiền và ngân hàng",
+          "description": "Tài khoản ngân hàng, tín dụng và hướng dẫn tài chính cho người mới đến."
+        }
+      },
+      "cost": {
+        "free": "Miễn phí",
+        "paid": "Có phí",
+        "mixed": "Có lựa chọn miễn phí và có phí"
+      },
+      "howToGetHelp": "Cách nhận trợ giúp",
+      "whoItsFor": "Dành cho ai",
+      "variesByProgram": "Tùy theo chương trình — xem các chương trình ở trên.",
+      "howToStart": "Cách bắt đầu",
+      "phone": "Điện thoại",
+      "email": "Email",
+      "address": "Địa chỉ",
+      "hours": "Giờ làm việc",
+      "languages": "Ngôn ngữ",
+      "costLabel": "Chi phí",
+      "serves": "Phục vụ",
+      "call": "Gọi",
+      "directions": "Chỉ đường",
+      "website": "Trang web",
+      "callA11y": "Gọi {{name}}",
+      "emailA11y": "Gửi email cho {{name}}",
+      "directionsA11y": "Chỉ đường đến {{name}}",
+      "cta": {
+        "getQuote": "Nhận báo giá",
+        "bookAssessment": "Đặt lịch đánh giá miễn phí",
+        "bookAdvising": "Đặt lịch tư vấn",
+        "applyOnline": "Nộp đơn trực tuyến",
+        "joinLibrary": "Đăng ký thẻ thư viện",
+        "visitWelcomeCentre": "Đến Trung tâm Chào đón"
+      }
     }
   },
   "checklist": {

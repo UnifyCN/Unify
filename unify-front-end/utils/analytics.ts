@@ -1,5 +1,10 @@
 import { useMemo } from 'react';
 import { usePostHog } from 'posthog-react-native';
+import type {
+  PartnershipType,
+  ResourceLinkFailureReason,
+  ResourceLinkTarget,
+} from '@/types/partner';
 
 // Event name constants for type safety and consistency
 export const AnalyticsEvents = {
@@ -121,6 +126,14 @@ export const AnalyticsEvents = {
   // Daily Tips
   TIP_VIEWED: 'tip_viewed',
   TIP_TAPPED: 'tip_tapped',
+
+  // Resources (trusted-services directory)
+  RESOURCES_VIEWED: 'resources_viewed',
+  RESOURCES_CATEGORY_OPENED: 'resources_category_opened',
+  RESOURCES_PARTNER_OPENED: 'resources_partner_opened',
+  RESOURCES_PARTNER_WEBSITE_CLICKED: 'resources_partner_website_clicked',
+  RESOURCES_PROGRAM_CLICKED: 'resources_program_clicked',
+  RESOURCES_LINK_FAILED: 'resources_link_failed',
 
   // Referrals (refer-a-friend)
   INVITE_CODE_GENERATED: 'invite_code_generated',
@@ -804,6 +817,55 @@ export function useAnalytics() {
         posthog?.capture(AnalyticsEvents.TIP_TAPPED, {
           tip_id: tipId,
           category,
+        });
+      },
+
+      // Resources (trusted-services directory)
+      trackResourcesViewed: () => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_VIEWED);
+      },
+      trackResourcesCategoryOpened: (category: string) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_CATEGORY_OPENED, {
+          category,
+        });
+      },
+      trackResourcesPartnerOpened: (
+        slug: string,
+        category: string,
+        partnershipType: PartnershipType
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_OPENED, {
+          slug,
+          category,
+          partnership_type: partnershipType,
+        });
+      },
+      trackResourcesPartnerWebsiteClicked: (
+        slug: string,
+        partnershipType: PartnershipType
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PARTNER_WEBSITE_CLICKED, {
+          slug,
+          partnership_type: partnershipType,
+        });
+      },
+      trackResourcesProgramClicked: (slug: string, programId: string) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_PROGRAM_CLICKED, {
+          slug,
+          program_id: programId,
+        });
+      },
+      trackResourcesLinkFailed: (
+        slug: string,
+        target: ResourceLinkTarget,
+        reason: ResourceLinkFailureReason,
+        programId?: string
+      ) => {
+        posthog?.capture(AnalyticsEvents.RESOURCES_LINK_FAILED, {
+          slug,
+          target,
+          reason,
+          ...(programId && { program_id: programId }),
         });
       },
 
