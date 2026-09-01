@@ -169,6 +169,34 @@ does **not** submit for review.
 `--non-interactive` if the `EXPO_ASC_*` variables are not exported in the
 current shell — see the App Store Connect API key section below.
 
+**Do not trust the submit spinner.** `eas submit` prints `- Submitting` while
+the job is still sitting untouched in Expo's queue. On the 1.6.0 submission it
+showed that for 23 minutes while the record had not been touched since creation.
+The real status is in the EAS GraphQL API — check `updatedAt` against
+`createdAt`, not just the status string:
+
+```bash
+node -e "
+const st=require(require('os').homedir()+'/.expo/state.json');
+fetch('https://api.expo.dev/graphql',{method:'POST',
+  headers:{'Content-Type':'application/json','expo-session':st.auth.sessionSecret},
+  body:JSON.stringify({query:'query(\$id:ID!){submissions{byId(submissionId:\$id){status error{message} logsUrl createdAt updatedAt}}}',
+  variables:{id:'<submissionId>'}})}).then(r=>r.json()).then(j=>console.log(JSON.stringify(j,null,2)));"
+```
+
+`IN_QUEUE` with `updatedAt` ≈ `createdAt` means nothing has started — that is
+queue wait, not a hang, and there is nothing to fix. Cancelling only puts you
+at the back of the same queue.
+
+To see whether Apple has actually received the binary, query App Store Connect
+directly (`processingState` goes `PROCESSING` → `VALID`); the build does not
+appear at all until Apple starts on it:
+
+```
+GET /v1/builds?filter[app]=6754875762&limit=3&sort=-uploadedDate
+    &fields[builds]=version,processingState,uploadedDate
+```
+
 ### 4c. Tag and cut the GitHub release
 
 Do this **after** the upload succeeds, so a failed build never leaves a dangling
@@ -254,9 +282,15 @@ versions and their states, and every listing localization that needs a
 }
 ```
 
-**6. Point EAS at the key** for a non-interactive submit. Export these three
-variables in the shell that runs the submit — they keep the key on disk and out
-of the repo, and they work in CI too:
+**6. `eas submit` does not need your key.** EAS holds its own App Store Connect
+API key server-side from earlier submissions (`Key Source: EAS servers`) and
+uses it regardless of what you export. Confirmed on the 1.6.0 submission, which
+used key `969S25J88B`, not the one set up above.
+
+Your key is what makes the **App Store Connect REST API** usable — reading the
+`ascAppId`, the Apple Team ID, listing localizations, and build processing
+state, none of which the CLI exposes — and it is the prerequisite for
+automating Step 4d. To use it, export:
 
 ```bash
 export EXPO_ASC_API_KEY_PATH=~/.appstoreconnect/private_keys/AuthKey_<KEYID>.p8
