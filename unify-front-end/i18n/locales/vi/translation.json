@@ -411,18 +411,22 @@
       "resources": "Tài nguyên"
     },
     "resources": {
-      "title": "Dịch vụ đáng tin cậy",
-      "subtitle": "Các tổ chức giúp bạn định cư tại Canada.",
+      "heading": "Tôi có thể tìm trợ giúp ở đâu?",
+      "subtitle": "Các tổ chức đáng tin cậy giúp bạn ổn định cuộc sống tại Canada.",
       "contentLanguageNotice": "Thông tin chi tiết do các tổ chức cung cấp hiện chỉ có bằng tiếng Anh.",
       "emptyTitle": "Chúng tôi đang thêm đối tác",
       "emptyText": "Chúng tôi đang chọn lọc các tổ chức đáng tin cậy cho bạn. Hãy quay lại sau.",
       "orgCount": "{{count}} tổ chức",
       "orgCount_plural": "{{count}} tổ chức",
+      "categoryTileA11y": "{{label}}, {{orgs}}",
       "backToCategories": "Quay lại danh mục",
       "noPartnersInCategory": "Chưa có đối tác hoạt động nào trong danh mục này.",
       "about": "Giới thiệu",
-      "howTheyHelp": "Họ giúp người mới đến như thế nào",
-      "programs": "Chương trình",
+      "programsCount": "Chương trình · {{count}}",
+      "showMorePrograms": "Xem thêm {{count}} chương trình",
+      "showMorePrograms_plural": "Xem thêm {{count}} chương trình",
+      "showFewerPrograms": "Thu gọn chương trình",
+      "contact": "Liên hệ",
       "visitWebsite": "Truy cập trang web",
       "visitWebsiteA11y": "Truy cập trang web của {{name}}",
       "opensInBrowser": "{{name}}, mở trong trình duyệt",
@@ -451,7 +455,7 @@
           "description": "Các tổ chức phi lợi nhuận và trung tâm cộng đồng mở cho mọi người."
         },
         "networksPlanning": {
-          "label": "Mạng lưới và bàn hoạch định",
+          "label": "Mạng lưới & hoạch định",
           "description": "Các tổ chức này điều phối dịch vụ trên toàn British Columbia. Họ làm việc với các cơ quan thay vì trực tiếp phục vụ cá nhân."
         },
         "internationalStudents": {
@@ -470,7 +474,7 @@
       "cost": {
         "free": "Miễn phí",
         "paid": "Có phí",
-        "mixed": "Có lựa chọn miễn phí và có phí"
+        "mixed": "Miễn phí và có phí"
       },
       "howToGetHelp": "Cách nhận trợ giúp",
       "whoItsFor": "Dành cho ai",
@@ -483,6 +487,7 @@
       "languages": "Ngôn ngữ",
       "costLabel": "Chi phí",
       "serves": "Phục vụ",
+      "map": "Bản đồ",
       "call": "Gọi",
       "directions": "Chỉ đường",
       "website": "Trang web",
@@ -496,6 +501,24 @@
         "applyOnline": "Nộp đơn trực tuyến",
         "joinLibrary": "Đăng ký thẻ thư viện",
         "visitWelcomeCentre": "Đến Trung tâm Chào đón"
+      },
+      "searchPlaceholder": "Tìm dịch vụ hoặc tổ chức",
+      "clearSearch": "Xóa nội dung tìm",
+      "searchResultCount": "{{count}} kết quả",
+      "searchResultCount_plural": "{{count}} kết quả",
+      "noSearchResultsTitle": "Không có kết quả phù hợp",
+      "noSearchResultsText": "Không có gì khớp với \"{{query}}\". Hãy thử một từ ngắn hơn, hoặc xóa nội dung tìm để xem theo danh mục.",
+      "howWeChoose": {
+        "link": "Cách chúng tôi chọn",
+        "title": "Cách chúng tôi chọn",
+        "intro": "Unify liệt kê các tổ chức giúp người mới đến ổn định cuộc sống tại British Columbia. Đây là những điều chúng tôi kiểm tra trước khi đưa một tổ chức vào danh sách.",
+        "criteria": {
+          "serves": "Họ phục vụ trực tiếp người mới đến, và chúng tôi nêu rõ khu vực họ phụ trách.",
+          "published": "Dịch vụ, giờ làm việc và thông tin liên hệ do chính tổ chức đó công bố.",
+          "eligibility": "Chúng tôi ghi rõ ai đủ điều kiện. Nhiều chương trình định cư chỉ dành cho thường trú nhân và người được bảo vệ, và chúng tôi nói rõ điều đó ngay từ đầu.",
+          "reviewed": "Chúng tôi kiểm tra lại danh sách theo thời gian và loại bỏ những tổ chức đã đóng cửa hoặc ngừng phục vụ người mới đến."
+        },
+        "footnote": "Danh mục này là điểm khởi đầu, không phải tư vấn pháp lý hay tài chính. Hãy xác nhận thông tin với tổ chức trước khi đến. Để báo một mục còn thiếu hoặc đã lỗi thời, hãy gửi email tới contact@unifysocial.ca."
       }
     }
   },

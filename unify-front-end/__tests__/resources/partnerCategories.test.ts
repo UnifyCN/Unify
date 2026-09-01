@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   CATEGORY_ORDER,
   PARTNER_CATEGORY_LABEL_KEYS,
@@ -5,10 +7,13 @@ import {
   PARTNER_CATEGORY_ICONS,
   PARTNER_CATEGORY_COLORS,
   PARTNER_CATEGORY_TINTS,
+  PARTNER_CATEGORY_ICON_TINTS,
+  COST_LABEL_KEYS,
+  type Cost,
   type PartnerCategory,
 } from '@/types/partner';
 import en from '@/i18n/locales/en/translation.json';
-import { RESOURCE_THEME } from '@/constants/ResourceTheme';
+import { COST_CHIP, RESOURCE_THEME } from '@/constants/ResourceTheme';
 
 /** Walks a dotted i18n key against the EN baseline; undefined when absent. */
 function resolveKey(key: string): unknown {
@@ -44,6 +49,7 @@ describe('partner category metadata', () => {
     icons: PARTNER_CATEGORY_ICONS,
     colors: PARTNER_CATEGORY_COLORS,
     tints: PARTNER_CATEGORY_TINTS,
+    iconTints: PARTNER_CATEGORY_ICON_TINTS,
   };
 
   it('CATEGORY_ORDER has all 9 categories, no duplicates', () => {
@@ -106,11 +112,38 @@ describe('partner category metadata', () => {
     ['muted text on white', RESOURCE_THEME.textMuted, RESOURCE_THEME.surface],
     [
       'inactive segment text',
-      RESOURCE_THEME.textMuted,
+      RESOURCE_THEME.textSegmentInactive,
       RESOURCE_THEME.surfaceSegment,
+    ],
+    [
+      'active segment text',
+      RESOURCE_THEME.textSegmentActive,
+      RESOURCE_THEME.surface,
+    ],
+    ['card title on white', RESOURCE_THEME.textCard, RESOURCE_THEME.surface],
+    [
+      'card org count on white',
+      RESOURCE_THEME.textCount,
+      RESOURCE_THEME.surface,
+    ],
+    [
+      'search placeholder on the search field',
+      RESOURCE_THEME.textPlaceholder,
+      RESOURCE_THEME.surfaceSearch,
+    ],
+    ['inline link on white', RESOURCE_THEME.link, RESOURCE_THEME.surface],
+    [
+      'page subtitle on white',
+      RESOURCE_THEME.textSubtitle,
+      RESOURCE_THEME.surface,
     ],
     ['detail label on white', RESOURCE_THEME.textLabel, RESOURCE_THEME.surface],
     ['detail text on white', RESOURCE_THEME.textDetail, RESOURCE_THEME.surface],
+    [
+      'partner detail body + contact values on white',
+      RESOURCE_THEME.textDetailWarm,
+      RESOURCE_THEME.surface,
+    ],
     [
       'chip label on subtle surface',
       RESOURCE_THEME.textLabel,
@@ -126,8 +159,27 @@ describe('partner category metadata', () => {
       RESOURCE_THEME.textNotice,
       RESOURCE_THEME.surfaceNotice,
     ],
+    [
+      'service-area chip on a partner card',
+      RESOURCE_THEME.textSecondary,
+      RESOURCE_THEME.surfaceChipNeutral,
+    ],
   ])('%s meets WCAG AA contrast', (_name, foreground, background) => {
     expect(contrastRatio(foreground, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('every cost has a chip whose pair meets WCAG AA contrast', () => {
+    for (const cost of Object.keys(COST_LABEL_KEYS) as Cost[]) {
+      const chip = COST_CHIP[cost];
+      expect(chip).toBeTruthy();
+      expect(chip.background).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      expect(chip.text).toMatch(/^#[0-9A-Fa-f]{6}$/);
+      // Compared as an object so a failure names the offending cost.
+      expect({
+        cost,
+        meetsAA: contrastRatio(chip.text, chip.background) >= 4.5,
+      }).toEqual({ cost, meetsAA: true });
+    }
   });
 
   it('detail body copy meets WCAG AA contrast on every category tint', () => {
@@ -138,6 +190,52 @@ describe('partner category metadata', () => {
           PARTNER_CATEGORY_TINTS[category]
         )
       ).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
+
+describe('category grid icons', () => {
+  const ICON_DIR = path.join(__dirname, '../../assets/icons/resources');
+
+  /**
+   * Every painted fill in the file — the glyph paths, not the mask.
+   *
+   * Figma exports each icon as an alpha `<mask>` holding a bounding rect, then
+   * the glyph. The mask rect is never painted, so it is dropped by element
+   * rather than by position: keying on "the last fill" happened to work only
+   * because the exporter emits the mask first, and would silently start
+   * checking the wrong colour if that order changed or a glyph gained a second
+   * tone.
+   */
+  function glyphFills(category: PartnerCategory): string[] {
+    const svg = fs.readFileSync(path.join(ICON_DIR, `${category}.svg`), 'utf8');
+    const painted = svg.replace(/<mask\b[\s\S]*?<\/mask>/g, '');
+    const fills = [
+      ...new Set(
+        [...painted.matchAll(/fill="(#[0-9A-Fa-f]{6})"/g)].map(m => m[1])
+      ),
+    ];
+    expect(fills.length).toBeGreaterThan(0);
+    return fills;
+  }
+
+  it('ships one SVG per category', () => {
+    for (const category of CATEGORY_ORDER) {
+      expect(fs.existsSync(path.join(ICON_DIR, `${category}.svg`))).toBe(true);
+    }
+  });
+
+  it('every glyph meets WCAG AA contrast on its icon-chip tint', () => {
+    for (const category of CATEGORY_ORDER) {
+      for (const fill of glyphFills(category)) {
+        // Compared as an object so a failure names the offending icon and tone.
+        expect({
+          category,
+          fill,
+          meetsAA:
+            contrastRatio(fill, PARTNER_CATEGORY_ICON_TINTS[category]) >= 4.5,
+        }).toEqual({ category, fill, meetsAA: true });
+      }
     }
   });
 });

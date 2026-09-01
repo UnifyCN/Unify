@@ -411,18 +411,22 @@
       "resources": "Resources"
     },
     "resources": {
-      "title": "Trusted services",
-      "subtitle": "Organizations that help you settle in Canada.",
+      "heading": "Where can I get help?",
+      "subtitle": "Trusted organizations to help you settle in Canada.",
       "contentLanguageNotice": "Details provided by organizations are currently available in English only.",
       "emptyTitle": "We're adding partners",
       "emptyText": "We're carefully selecting trusted organizations for you. Check back soon.",
-      "orgCount": "{{count}} org",
-      "orgCount_plural": "{{count}} orgs",
+      "orgCount": "{{count}} organization",
+      "orgCount_plural": "{{count}} organizations",
+      "categoryTileA11y": "{{label}}, {{orgs}}",
       "backToCategories": "Back to categories",
       "noPartnersInCategory": "No active partners in this category yet.",
       "about": "About",
-      "howTheyHelp": "How they help newcomers",
-      "programs": "Programs",
+      "programsCount": "Programs · {{count}}",
+      "showMorePrograms": "Show {{count}} more program",
+      "showMorePrograms_plural": "Show {{count}} more programs",
+      "showFewerPrograms": "Show fewer programs",
+      "contact": "Contact",
       "visitWebsite": "Visit website",
       "visitWebsiteA11y": "Visit {{name}} website",
       "opensInBrowser": "{{name}}, opens in browser",
@@ -451,7 +455,7 @@
           "description": "Local nonprofits and community centres open to everyone."
         },
         "networksPlanning": {
-          "label": "Networks & Planning Tables",
+          "label": "Network & Planning",
           "description": "These organizations coordinate services across BC. They work with agencies rather than serving individuals directly."
         },
         "internationalStudents": {
@@ -470,7 +474,7 @@
       "cost": {
         "free": "Free",
         "paid": "Paid",
-        "mixed": "Free + paid options"
+        "mixed": "Free + paid"
       },
       "howToGetHelp": "How to get help",
       "whoItsFor": "Who it's for",
@@ -483,6 +487,7 @@
       "languages": "Languages",
       "costLabel": "Cost",
       "serves": "Serves",
+      "map": "Map",
       "call": "Call",
       "directions": "Directions",
       "website": "Website",
@@ -496,6 +501,24 @@
         "applyOnline": "Apply online",
         "joinLibrary": "Join the library",
         "visitWelcomeCentre": "Visit the Welcome Centre"
+      },
+      "searchPlaceholder": "Search services or organizations",
+      "clearSearch": "Clear search",
+      "searchResultCount": "{{count}} result",
+      "searchResultCount_plural": "{{count}} results",
+      "noSearchResultsTitle": "No matches",
+      "noSearchResultsText": "Nothing here matches \"{{query}}\". Try a shorter word, or clear the search to browse by category.",
+      "howWeChoose": {
+        "link": "How we choose these",
+        "title": "How we choose these",
+        "intro": "Unify lists organizations that help newcomers settle in British Columbia. Here is what we check before one goes on the list.",
+        "criteria": {
+          "serves": "They serve newcomers directly, and we name the area they cover.",
+          "published": "Their services, hours, and contact details are published by the organization itself.",
+          "eligibility": "We record who qualifies. Many settlement programs are open only to permanent residents and protected persons, so we say that up front.",
+          "reviewed": "We check the list again over time and remove organizations that close or stop serving newcomers."
+        },
+        "footnote": "This directory is a starting point, not legal or financial advice. Confirm the details with the organization before you visit. To report a missing or out-of-date listing, email contact@unifysocial.ca."
       }
     }
   },

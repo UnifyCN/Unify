@@ -411,18 +411,22 @@
       "resources": "Recursos"
     },
     "resources": {
-      "title": "Servicios de confianza",
-      "subtitle": "Organizaciones que te ayudan a establecerte en Canadá.",
+      "heading": "¿Dónde puedo conseguir ayuda?",
+      "subtitle": "Organizaciones de confianza que te ayudan a establecerte en Canadá.",
       "contentLanguageNotice": "Los detalles proporcionados por las organizaciones están disponibles actualmente solo en inglés.",
       "emptyTitle": "Estamos añadiendo socios",
       "emptyText": "Estamos seleccionando cuidadosamente organizaciones de confianza para ti. Vuelve pronto.",
       "orgCount": "{{count}} organización",
       "orgCount_plural": "{{count}} organizaciones",
+      "categoryTileA11y": "{{label}}, {{orgs}}",
       "backToCategories": "Volver a las categorías",
       "noPartnersInCategory": "Aún no hay socios activos en esta categoría.",
       "about": "Acerca de",
-      "howTheyHelp": "Cómo ayudan a los recién llegados",
-      "programs": "Programas",
+      "programsCount": "Programas · {{count}}",
+      "showMorePrograms": "Ver {{count}} programa más",
+      "showMorePrograms_plural": "Ver {{count}} programas más",
+      "showFewerPrograms": "Ver menos programas",
+      "contact": "Contacto",
       "visitWebsite": "Visitar el sitio web",
       "visitWebsiteA11y": "Visitar el sitio web de {{name}}",
       "opensInBrowser": "{{name}}, se abre en el navegador",
@@ -451,7 +455,7 @@
           "description": "Organizaciones sin fines de lucro y centros comunitarios abiertos a todos."
         },
         "networksPlanning": {
-          "label": "Redes y mesas de planificación",
+          "label": "Redes y planificación",
           "description": "Estas organizaciones coordinan servicios en toda la Columbia Británica. Trabajan con agencias en lugar de atender directamente a las personas."
         },
         "internationalStudents": {
@@ -470,7 +474,7 @@
       "cost": {
         "free": "Gratis",
         "paid": "De pago",
-        "mixed": "Opciones gratuitas y de pago"
+        "mixed": "Gratis y de pago"
       },
       "howToGetHelp": "Cómo obtener ayuda",
       "whoItsFor": "Para quién es",
@@ -483,6 +487,7 @@
       "languages": "Idiomas",
       "costLabel": "Costo",
       "serves": "Atiende a",
+      "map": "Mapa",
       "call": "Llamar",
       "directions": "Cómo llegar",
       "website": "Sitio web",
@@ -496,6 +501,24 @@
         "applyOnline": "Solicitar en línea",
         "joinLibrary": "Hazte miembro de la biblioteca",
         "visitWelcomeCentre": "Visita el Centro de Bienvenida"
+      },
+      "searchPlaceholder": "Busca servicios u organizaciones",
+      "clearSearch": "Borrar la búsqueda",
+      "searchResultCount": "{{count}} resultado",
+      "searchResultCount_plural": "{{count}} resultados",
+      "noSearchResultsTitle": "Sin coincidencias",
+      "noSearchResultsText": "Nada coincide con «{{query}}». Prueba con una palabra más corta o borra la búsqueda para ver las categorías.",
+      "howWeChoose": {
+        "link": "Cómo las elegimos",
+        "title": "Cómo las elegimos",
+        "intro": "Unify incluye organizaciones que ayudan a las personas recién llegadas a establecerse en Columbia Británica. Esto es lo que revisamos antes de agregar una.",
+        "criteria": {
+          "serves": "Atienden directamente a personas recién llegadas, e indicamos la zona que cubren.",
+          "published": "La propia organización publica sus servicios, su horario y sus datos de contacto.",
+          "eligibility": "Anotamos quién califica. Muchos programas de asentamiento solo están abiertos a residentes permanentes y personas protegidas, y lo decimos desde el principio.",
+          "reviewed": "Revisamos la lista con el tiempo y quitamos las organizaciones que cierran o dejan de atender a personas recién llegadas."
+        },
+        "footnote": "Este directorio es un punto de partida, no es asesoría legal ni financiera. Confirma los datos con la organización antes de ir. Para informar de un dato faltante o desactualizado, escribe a contact@unifysocial.ca."
       }
     }
   },

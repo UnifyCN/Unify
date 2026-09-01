@@ -53,7 +53,9 @@ export default function Monogram({ name, category, size, source }: Props) {
 
 const styles = StyleSheet.create({
   imageWrap: {
-    backgroundColor: '#F2F2F2',
+    // No fill: partner marks ship as transparent PNGs and sit directly on the
+    // card. A tinted plate is part of some marks (SFU, Desjardins) and must
+    // not be doubled by one here.
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

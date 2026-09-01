@@ -1,95 +1,101 @@
 import React from 'react';
 import { Text, TouchableOpacity, View, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import {
   PARTNER_CATEGORY_LABEL_KEYS,
-  PARTNER_CATEGORY_ICONS,
-  PARTNER_CATEGORY_COLORS,
+  PARTNER_CATEGORY_ICON_TINTS,
   type PartnerCategory,
 } from '@/types/partner';
+import { RESOURCE_THEME } from '@/constants/ResourceTheme';
+import CategoryIcon from './CategoryIcon';
 
 type Props = {
   category: PartnerCategory;
   partnerCount: number;
-  /** Full-width tile (used for a lone trailing odd tile). */
-  wide?: boolean;
   onPress: () => void;
 };
 
+/**
+ * One cell of the two-column category grid (Figma 8129:32586).
+ *
+ * The label reserves two lines whether or not it wraps, so a wrapping title
+ * ("Community & Belonging") does not make its row taller than its neighbour.
+ */
 export default function CategoryTile({
   category,
   partnerCount,
-  wide,
   onPress,
 }: Props) {
   const { t } = useTranslation();
   const label = t(PARTNER_CATEGORY_LABEL_KEYS[category]);
-  const color = PARTNER_CATEGORY_COLORS[category];
-  const icon = PARTNER_CATEGORY_ICONS[category];
   const count = t('learn.resources.orgCount', { count: partnerCount });
 
   return (
     <TouchableOpacity
       activeOpacity={0.85}
       onPress={onPress}
-      style={[
-        styles.tile,
-        { backgroundColor: color },
-        wide ? styles.wide : styles.half,
-      ]}
+      style={styles.tile}
       accessibilityRole='button'
-      accessibilityLabel={`${label}, ${count}`}
+      // `orgs`, not `count` — `count` is i18next's plural selector, and the
+      // already-pluralized org count is being interpolated as text here.
+      accessibilityLabel={t('learn.resources.categoryTileA11y', {
+        label,
+        orgs: count,
+      })}
     >
-      <View style={styles.iconChip}>
-        <MaterialCommunityIcons name={icon as any} size={20} color='#FFFFFF' />
+      <View
+        style={[
+          styles.iconChip,
+          { backgroundColor: PARTNER_CATEGORY_ICON_TINTS[category] },
+        ]}
+      >
+        <CategoryIcon category={category} size={20} />
       </View>
-      <View style={wide ? styles.wideMeta : undefined}>
-        <Text style={styles.label} numberOfLines={2}>
-          {label}
-        </Text>
-        <Text style={styles.count}>{count}</Text>
-      </View>
+      <Text style={styles.label} numberOfLines={2}>
+        {label}
+      </Text>
+      <Text style={styles.count} numberOfLines={1}>
+        {count}
+      </Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   tile: {
-    borderRadius: 18,
-    padding: 14,
-    marginBottom: 12,
-    justifyContent: 'space-between',
+    flex: 1,
+    backgroundColor: RESOURCE_THEME.surface,
+    borderWidth: 1,
+    borderColor: RESOURCE_THEME.cardBorder,
+    borderRadius: 20,
+    padding: 13,
+    // Shared with PathwayCard so both Learn card families cast the same shadow.
+    shadowColor: '#575757',
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
   },
-  half: { width: '48%', height: 104 },
-  // `tile` sets space-between for the vertical half-tiles; as a row that would
-  // shove the label block to the far right edge, so realign it beside the icon.
-  wide: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    height: 76,
-  },
-  wideMeta: { marginLeft: 12 },
   iconChip: {
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     borderRadius: 10,
-    backgroundColor: 'rgba(0,0,0,0.16)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
+    marginTop: 8,
+    fontWeight: '700',
+    fontSize: 13.5,
+    lineHeight: 16.9,
+    // Two lines reserved regardless of wrapping, so tiles in a row match.
+    minHeight: 33.8,
+    color: RESOURCE_THEME.textCard,
   },
   count: {
-    color: '#FFFFFF',
+    marginTop: 8,
+    fontWeight: '500',
     fontSize: 11.5,
-    fontWeight: '600',
-    marginTop: 2,
+    color: RESOURCE_THEME.textCount,
   },
 });

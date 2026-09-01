@@ -17,7 +17,10 @@ type Props<T extends string> = {
 
 /**
  * Two-or-more-option toggle. Used at the top of Learn to switch between
- * Articles (existing CMS-driven content) and Resources (partner directory).
+ * Lessons (existing CMS-driven content) and Resources (partner directory).
+ *
+ * Figma 8129:32563 draws a 37pt segment; `hitSlop` lifts the tap target back
+ * over the 44pt minimum without making the pill taller than the design.
  */
 export default function SegmentedControl<T extends string>({
   value,
@@ -35,6 +38,7 @@ export default function SegmentedControl<T extends string>({
             activeOpacity={0.85}
             onPress={() => onChange(option.value)}
             style={[styles.segment, isActive && styles.segmentActive]}
+            hitSlop={{ top: 6, bottom: 6 }}
             accessibilityRole='button'
             accessibilityState={{ selected: isActive }}
           >
@@ -57,31 +61,30 @@ const styles = StyleSheet.create({
     backgroundColor: RESOURCE_THEME.surfaceSegment,
     borderRadius: 999,
     padding: 4,
-    marginHorizontal: 16,
-    marginBottom: 8,
   },
   segment: {
     flex: 1,
-    minHeight: 44,
+    paddingVertical: 9,
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
   segmentActive: {
     backgroundColor: RESOURCE_THEME.surface,
+    // Figma's `drop-shadow(0 1px 1.5px rgba(0,0,0,0.08))`.
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 1.5,
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
   label: {
     fontSize: 14,
-    fontWeight: '500',
-    color: RESOURCE_THEME.textMuted,
+    fontWeight: '600',
+    color: RESOURCE_THEME.textSegmentInactive,
   },
   labelActive: {
-    color: RESOURCE_THEME.textHeading,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: RESOURCE_THEME.textSegmentActive,
   },
 });

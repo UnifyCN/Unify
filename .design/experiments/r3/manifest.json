@@ -1,0 +1,19 @@
+{
+  "round": 3,
+  "decision": "What vertical rhythm should the Resources header block use?",
+  "primary_axis": "vertical rhythm and grouping",
+  "invariants": [
+    "same copy",
+    "same type sizes and colours",
+    "402pt viewport",
+    "six cards above the fold in every option"
+  ],
+  "options": [
+    { "id": "S1", "artifact": "spacing-bench.html", "bet": "Shipped: 6/0/12/12", "benefit": "Shortest band", "cost": "Subtitle and link touch", "risk": "Trust link never tapped" },
+    { "id": "S2", "artifact": "spacing-bench.html", "bet": "Two groups: 10/2/16/12", "benefit": "Heading reads as its own unit", "cost": "2pt is a hairline", "risk": "Too subtle to fix the defect" },
+    { "id": "S3", "artifact": "spacing-bench.html", "bet": "Stepped: 8/6/18/12", "benefit": "Gaps widen as relationships weaken", "cost": "14pt taller", "risk": "None material" },
+    { "id": "S4", "artifact": "spacing-bench.html", "bet": "Open: 12/8/22/14", "benefit": "Editorial room", "cost": "26pt taller", "risk": "Sparse next to Lessons" },
+    { "id": "S5", "artifact": "spacing-bench.html", "bet": "Link with search: 8/14/10/12", "benefit": "Link gains presence", "cost": "Groups a sheet trigger with an input", "risk": "Implies the link filters" }
+  ],
+  "selected": "S3"
+}

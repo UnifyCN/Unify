@@ -30,6 +30,7 @@ export default function ContentLanguageNotice() {
 
 const styles = StyleSheet.create({
   notice: {
+    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 9,

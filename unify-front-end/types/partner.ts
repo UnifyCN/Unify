@@ -110,6 +110,27 @@ export const PARTNER_CATEGORY_TINTS: Record<PartnerCategory, string> = {
   money: '#FBF3E3',
 };
 
+/**
+ * Icon-chip fill behind a category glyph on the Resources grid (Figma
+ * 8129:32045). Pairs with `assets/icons/resources/<category>.svg`, whose glyph
+ * fill is a darker tone of the same hue; the contrast suite reads that fill
+ * straight out of the SVG so the pair cannot drift apart silently.
+ *
+ * Distinct from PARTNER_CATEGORY_TINTS, which backs body copy on the partner
+ * detail screen and therefore has to stay light enough for #374151 text.
+ */
+export const PARTNER_CATEGORY_ICON_TINTS: Record<PartnerCategory, string> = {
+  gettingSettled: '#B4E3D4',
+  findWork: '#B5D9EC',
+  immigrationHelp: '#F8CEC8',
+  librariesLearning: '#D1C5EF',
+  communityBelonging: '#F1D4BD',
+  networksPlanning: '#CBD9ED',
+  internationalStudents: '#EDC6DA',
+  insurance: '#EEDEBD',
+  money: '#B4E3B5',
+};
+
 /** What a service costs the person using it. */
 export type Cost = 'free' | 'paid' | 'mixed';
 
@@ -206,8 +227,6 @@ export interface Partner {
     | 'learn.resources.cta.visitWelcomeCentre';
   /** Optional brand logo; falls back to a monogram avatar when absent. */
   logo?: ImageSourcePropType;
-  /** Optional hero photo; falls back to a category-tinted gradient when absent. */
-  heroImage?: ImageSourcePropType;
   /** Programs this partner runs, shown on the detail screen. */
   programs?: PartnerProgram[];
   /**

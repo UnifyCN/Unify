@@ -10,10 +10,15 @@ import {
 import { CATEGORY_ORDER, type PartnerCategory } from '@/types/partner';
 
 describe('partner data', () => {
-  it('has 20 partners, all active, with unique slugs', () => {
+  it('has 20 partners with unique slugs, and only the held one inactive', () => {
     expect(PARTNERS).toHaveLength(20);
-    expect(PARTNERS.every(p => p.active)).toBe(true);
     expect(new Set(PARTNERS.map(p => p.slug)).size).toBe(20);
+    // Named rather than counted, so a second listing cannot go dark unnoticed.
+    // global-connect-immigration is held because its published RCIC number is
+    // the placeholder R123456 — see .design/state.json.
+    expect(PARTNERS.filter(p => !p.active).map(p => p.slug)).toEqual([
+      'global-connect-immigration',
+    ]);
   });
 
   // A category with a single org reads as an oversight in a directory shown
@@ -21,9 +26,19 @@ describe('partner data', () => {
   //
   // Insurance and Money are deliberate exceptions: each launched with one
   // named commercial partner (TuGo, Desjardins) rather than being held back.
-  // They are listed here so a third thin category fails the build instead of
+  // They are listed here so a thin category fails the build instead of
   // slipping in unnoticed.
-  const SINGLE_ORG_EXCEPTIONS: PartnerCategory[] = ['insurance', 'money'];
+  //
+  // Immigration Help is a TEMPORARY exception. It has two listings, but
+  // global-connect-immigration is held inactive pending verification, leaving
+  // one. Remove it from this list once that listing is verified or replaced —
+  // the category should not ship thin for long, because a single paid
+  // consultancy reads as an endorsement.
+  const SINGLE_ORG_EXCEPTIONS: PartnerCategory[] = [
+    'immigrationHelp',
+    'insurance',
+    'money',
+  ];
 
   it('no category ships with fewer than 2 partners, except the known singles', () => {
     const thin = getCategoriesWithPartners()
@@ -68,7 +83,8 @@ describe('partner data', () => {
     expect(counts).toEqual({
       gettingSettled: 3,
       findWork: 2,
-      immigrationHelp: 2,
+      // 1, not 2, while global-connect-immigration is held inactive.
+      immigrationHelp: 1,
       librariesLearning: 3,
       communityBelonging: 3,
       networksPlanning: 3,
@@ -100,8 +116,8 @@ describe('partner data', () => {
 
   it('getActivePartners returns every active partner, sorted by displayOrder', () => {
     const active = getActivePartners();
-    // All 20 current partners are active, so none are dropped today.
-    expect(active).toHaveLength(20);
+    // 19 of 20: global-connect-immigration is held inactive.
+    expect(active).toHaveLength(19);
     expect(active.every(p => p.active)).toBe(true);
     const orders = active.map(p => p.displayOrder);
     expect(orders).toEqual([...orders].sort((a, b) => a - b));
@@ -134,13 +150,34 @@ describe('partner data', () => {
     }
   });
 
-  it('IEC-BC showcases its 4 programs', () => {
+  it('program IDs are namespaced by their partner slug', () => {
+    // The detail screen reports program.id to analytics. Namespacing keeps two
+    // partners running a same-named program from colliding in the funnel.
+    for (const p of PARTNERS) {
+      for (const program of p.programs ?? []) {
+        expect(program.id.startsWith(`${p.slug}-`)).toBe(true);
+      }
+    }
+  });
+
+  it('every partner lists programs, except the documented exceptions', () => {
+    // The detail screen leads with Programs, so a partner without any renders
+    // About straight into Contact. That is allowed but should stay deliberate.
+    const NO_PROGRAMS = new Set(['newcomer-jobs-canada']);
+    for (const p of PARTNERS.filter(x => x.active)) {
+      const count = p.programs?.length ?? 0;
+      expect({ slug: p.slug, hasPrograms: count > 0 }).toEqual({
+        slug: p.slug,
+        hasPrograms: !NO_PROGRAMS.has(p.slug),
+      });
+    }
+  });
+
+  it('IEC-BC leads with the two programs a newcomer can join', () => {
     const iecbc = getPartnerBySlug('iec-bc');
-    expect(iecbc?.programs?.map(pr => pr.name)).toEqual([
-      'MentorConnect',
+    expect(iecbc?.programs?.slice(0, 2).map(pr => pr.name)).toEqual([
       'TalentConnect',
-      'ASCEND',
-      'FAST',
+      'MentorConnect',
     ]);
   });
 });

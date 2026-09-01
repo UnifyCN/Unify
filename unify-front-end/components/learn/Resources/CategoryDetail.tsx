@@ -32,12 +32,12 @@ export default function CategoryDetail({ category, onBack }: Props) {
         activeOpacity={0.7}
         accessibilityRole='button'
         accessibilityLabel={t('learn.resources.backToCategories')}
-        hitSlop={8}
+        hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
       >
         <Feather
           name='chevron-left'
-          size={20}
-          color={RESOURCE_THEME.textStrong}
+          size={18}
+          color={RESOURCE_THEME.textSecondary}
         />
         <Text style={styles.backText}>{t('learn.segment.resources')}</Text>
       </TouchableOpacity>
@@ -71,24 +71,30 @@ const styles = StyleSheet.create({
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    minHeight: 44,
+    alignSelf: 'flex-start',
+    // Sized to the label and grown to 44pt with hitSlop, the same way the
+    // landing screen's trust link is. A 44pt minHeight would centre the label
+    // and drop ~14pt of dead space between it and the segmented control.
+    paddingVertical: 2,
+    marginBottom: 8,
   },
   backText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: RESOURCE_THEME.textStrong,
+    fontSize: 14,
+    fontWeight: '600',
+    color: RESOURCE_THEME.textSecondary,
     marginLeft: 4,
   },
   title: {
+    // Same size and weight as the landing heading one tap back, rather than
+    // the spec's 24/700, so the two Resources screens read as one.
     fontSize: 24,
     fontWeight: '600',
     color: RESOURCE_THEME.textHeading,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    lineHeight: 20,
+    lineHeight: 19,
     color: RESOURCE_THEME.textSecondary,
     marginBottom: 12,
   },
