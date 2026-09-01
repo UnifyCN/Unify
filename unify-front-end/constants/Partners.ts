@@ -428,12 +428,12 @@ export const PARTNERS: Partner[] = [
     displayOrder: 0,
     active: true,
   },
-  // UNVERIFIED — do not promote this listing until someone confirms the
-  // business. Its About page publishes "MEMBER ID: R123456", a template
-  // placeholder, names no consultant, and carries another firm's copy
-  // ("Maple Leaf Visas"). A paid representative who is not CICC-registered is
-  // acting illegally, so check by phone and against college-ic.ca, or set
-  // active: false. Tracked in .design/state.json.
+  // HELD INACTIVE — unverifiable. Its About page publishes "MEMBER ID:
+  // R123456", a template placeholder, names no consultant, and carries another
+  // firm's copy ("Maple Leaf Visas"). A paid representative who is not
+  // CICC-registered is acting illegally, and this audience is who that harms.
+  // Re-activate only once someone confirms the business by phone and against
+  // college-ic.ca. Tracked in .design/state.json.
   {
     slug: 'global-connect-immigration',
     name: 'Global Connect Immigration',
@@ -464,7 +464,7 @@ export const PARTNERS: Partner[] = [
     ],
     logo: require('@/assets/images/partners/global-connect-immigration.png'),
     displayOrder: 1,
-    active: true,
+    active: false,
   },
   // ── Libraries & Learning ────────────────────────────────────────────────
   {

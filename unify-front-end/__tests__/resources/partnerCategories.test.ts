@@ -197,12 +197,26 @@ describe('partner category metadata', () => {
 describe('category grid icons', () => {
   const ICON_DIR = path.join(__dirname, '../../assets/icons/resources');
 
-  /** Last `fill="#rrggbb"` in the file — the glyph path, not the mask rect. */
-  function glyphFill(category: PartnerCategory): string {
+  /**
+   * Every painted fill in the file — the glyph paths, not the mask.
+   *
+   * Figma exports each icon as an alpha `<mask>` holding a bounding rect, then
+   * the glyph. The mask rect is never painted, so it is dropped by element
+   * rather than by position: keying on "the last fill" happened to work only
+   * because the exporter emits the mask first, and would silently start
+   * checking the wrong colour if that order changed or a glyph gained a second
+   * tone.
+   */
+  function glyphFills(category: PartnerCategory): string[] {
     const svg = fs.readFileSync(path.join(ICON_DIR, `${category}.svg`), 'utf8');
-    const fills = [...svg.matchAll(/fill="(#[0-9A-Fa-f]{6})"/g)].map(m => m[1]);
+    const painted = svg.replace(/<mask\b[\s\S]*?<\/mask>/g, '');
+    const fills = [
+      ...new Set(
+        [...painted.matchAll(/fill="(#[0-9A-Fa-f]{6})"/g)].map(m => m[1])
+      ),
+    ];
     expect(fills.length).toBeGreaterThan(0);
-    return fills[fills.length - 1];
+    return fills;
   }
 
   it('ships one SVG per category', () => {
@@ -213,12 +227,15 @@ describe('category grid icons', () => {
 
   it('every glyph meets WCAG AA contrast on its icon-chip tint', () => {
     for (const category of CATEGORY_ORDER) {
-      expect(
-        contrastRatio(
-          glyphFill(category),
-          PARTNER_CATEGORY_ICON_TINTS[category]
-        )
-      ).toBeGreaterThanOrEqual(4.5);
+      for (const fill of glyphFills(category)) {
+        // Compared as an object so a failure names the offending icon and tone.
+        expect({
+          category,
+          fill,
+          meetsAA:
+            contrastRatio(fill, PARTNER_CATEGORY_ICON_TINTS[category]) >= 4.5,
+        }).toEqual({ category, fill, meetsAA: true });
+      }
     }
   });
 });

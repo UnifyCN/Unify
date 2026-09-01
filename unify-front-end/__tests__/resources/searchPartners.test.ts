@@ -65,6 +65,14 @@ describe('normalizeQuery', () => {
     expect(normalizeQuery('  Québec  ')).toBe('quebec');
     expect(normalizeQuery('Montréal')).toBe('montreal');
   });
+
+  it('folds Vietnamese đ, which NFD leaves whole', () => {
+    // đ is its own letter, not d plus a combining mark, so stripping combining
+    // marks alone leaves "đinh" and a Vietnamese speaker matches nothing.
+    expect(normalizeQuery('Định')).toBe('dinh');
+    expect(normalizeQuery('Đà Nẵng')).toBe('da nang');
+    expect(normalizeQuery('đường')).toBe('duong');
+  });
 });
 
 describe('selectPartnersMatching', () => {

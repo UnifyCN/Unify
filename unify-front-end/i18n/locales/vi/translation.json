@@ -418,6 +418,7 @@
       "emptyText": "Chúng tôi đang chọn lọc các tổ chức đáng tin cậy cho bạn. Hãy quay lại sau.",
       "orgCount": "{{count}} tổ chức",
       "orgCount_plural": "{{count}} tổ chức",
+      "categoryTileA11y": "{{label}}, {{orgs}}",
       "backToCategories": "Quay lại danh mục",
       "noPartnersInCategory": "Chưa có đối tác hoạt động nào trong danh mục này.",
       "about": "Giới thiệu",

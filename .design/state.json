@@ -53,8 +53,8 @@
   "blockers": [
     {
       "id": "global-connect-unverified-rcic",
-      "note": "global-connect-immigration cannot be shown to newcomers until it is verified. Its About page publishes 'MEMBER ID: R123456' (a template placeholder), names no consultant, and carries another firm's copy ('Maple Leaf Visas'). An unregistered paid representative is illegal in Canada. Confirm by phone and against college-ic.ca, or set active: false.",
-      "status": "open"
+      "note": "global-connect-immigration is now active: false, so it renders nowhere. Its About page publishes 'MEMBER ID: R123456' (a template placeholder), names no consultant, and carries another firm's copy ('Maple Leaf Visas'). An unregistered paid representative is illegal in Canada. Re-activate only once someone confirms the business by phone and against college-ic.ca. Immigration Help is down to one organization while it is held.",
+      "status": "mitigated"
     }
   ]
 }

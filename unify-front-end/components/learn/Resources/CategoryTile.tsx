@@ -36,7 +36,12 @@ export default function CategoryTile({
       onPress={onPress}
       style={styles.tile}
       accessibilityRole='button'
-      accessibilityLabel={`${label}, ${count}`}
+      // `orgs`, not `count` — `count` is i18next's plural selector, and the
+      // already-pluralized org count is being interpolated as text here.
+      accessibilityLabel={t('learn.resources.categoryTileA11y', {
+        label,
+        orgs: count,
+      })}
     >
       <View
         style={[

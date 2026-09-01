@@ -418,6 +418,7 @@
       "emptyText": "Estamos seleccionando cuidadosamente organizaciones de confianza para ti. Vuelve pronto.",
       "orgCount": "{{count}} organización",
       "orgCount_plural": "{{count}} organizaciones",
+      "categoryTileA11y": "{{label}}, {{orgs}}",
       "backToCategories": "Volver a las categorías",
       "noPartnersInCategory": "Aún no hay socios activos en esta categoría.",
       "about": "Acerca de",

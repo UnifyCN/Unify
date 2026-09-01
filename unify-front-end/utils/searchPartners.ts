@@ -4,12 +4,17 @@ import type { Partner, PartnerCategory } from '@/types/partner';
  * Lowercase and strip combining accents so "Immigration Québec" matches
  * "quebec". The explicit \u0300-\u036f range is used instead of a
  * `\p{Diacritic}` property escape, which is not safe to assume on Hermes.
+ *
+ * đ is folded separately. It is its own letter rather than d plus a combining
+ * mark, so NFD leaves it whole and a Vietnamese speaker typing "Định" would
+ * otherwise match nothing.
  */
 export function normalizeQuery(value: string): string {
   return value
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
+    .replace(/đ/g, 'd')
     .trim();
 }
 

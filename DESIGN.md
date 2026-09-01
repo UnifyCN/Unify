@@ -37,8 +37,8 @@ changing its shape.
   shared `TabHeader variant='minimal'`.
 - The segmented control sits above **both** views, so any change to it affects
   Lessons as well.
-- Directory data is local (`constants/Partners.ts`), 23 active organizations
-  across 9 categories, all BC.
+- Directory data is local (`constants/Partners.ts`), 20 organizations across 9
+  categories, all BC. One is held inactive pending verification, so 19 render.
 - Four locales in lockstep: `en`, `es`, `hi`, `vi`.
 - Colour pairs must clear WCAG AA and are covered by
   `__tests__/resources/partnerCategories.test.ts`.
@@ -163,7 +163,7 @@ a Feather equivalent.
 
 ## What this is not
 
-- Not a search product. With 23 organizations, browsing stays the primary path.
+- Not a search product. With 20 organizations, browsing stays the primary path.
 - Not a task router. Leading with three "I need…" shortcuts was explored and
   rejected for want of data on which three actually lead.
 - Not a place for the nav search pill. That pill means "global search" elsewhere.

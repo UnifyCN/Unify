@@ -114,7 +114,14 @@ function ContactRow({
   );
 }
 
-/** True when any "Contact" field is populated. */
+/**
+ * True when any optional "Contact" field is populated.
+ *
+ * serviceArea is deliberately not counted: it is required on every Partner, so
+ * including it made this always true and the guard dead. A partner carrying
+ * nothing but its service area shows no Contact block — the value is already on
+ * the tag beside the category.
+ */
 function hasAnyContactField(p: Partner) {
   return Boolean(
     p.eligibility ||
@@ -124,8 +131,7 @@ function hasAnyContactField(p: Partner) {
       p.address ||
       p.hours ||
       p.languages?.length ||
-      p.cost ||
-      p.serviceArea
+      p.cost
   );
 }
 
