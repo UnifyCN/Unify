@@ -80,6 +80,26 @@ module.exports = {
       'expo-secure-store',
       'expo-tracking-transparency',
       'expo-web-browser',
+      [
+        'expo-build-properties',
+        {
+          ios: {
+            // GoogleSignIn pulls AppCheckCore, a Swift pod, which depends on
+            // GoogleUtilities and RecaptchaInterop. Those two are non-modular
+            // Objective-C, so CocoaPods refuses to integrate AppCheckCore as a
+            // static library. The google-signin plugin only enables modular
+            // headers for GoogleSignIn itself, not for its transitive deps.
+            //
+            // ios/ is gitignored, so there is no committed Podfile.lock and
+            // every build re-resolves pods. That is why this appeared without
+            // a matching change on our side.
+            extraPods: [
+              { name: 'GoogleUtilities', modular_headers: true },
+              { name: 'RecaptchaInterop', modular_headers: true },
+            ],
+          },
+        },
+      ],
     ],
     experiments: {
       typedRoutes: true,

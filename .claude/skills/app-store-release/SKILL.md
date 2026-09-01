@@ -292,6 +292,42 @@ as manual until those calls exist.
 - Capture anything durable (a new footgun, a changed credential, the shipped
   version) into the vault with `vault-capture`.
 
+## Reading a failed EAS build log
+
+The web UI is fine for a glance, but the log is worth pulling down when you
+need to grep it. It is **Brotli-compressed NDJSON**, and the signed URL expires
+after 15 minutes, so fetch and decompress in one go:
+
+```bash
+npx eas-cli@latest build:view <buildId> --json > bv.json
+node -e "require('fs').writeFileSync('url.txt', require('./bv.json').logFiles[0])"
+curl -s "$(cat url.txt)" -o log.br          # no --compressed: it breaks the transfer
+node -e "
+const z=require('zlib'),fs=require('fs');
+fs.writeFileSync('log.txt', z.brotliDecompressSync(fs.readFileSync('log.br')));"
+```
+
+Each line is JSON with `phase` and `msg`. Group by `phase` to find which one
+failed. Logs are pruned after a few months — a build from last release may
+return `NoSuchKey`, so do not plan on diffing against an old one.
+
+## A build can break with no change from us
+
+`unify-front-end/ios/` is gitignored, so **no `Podfile.lock` is committed and
+every EAS build re-resolves CocoaPods from scratch**. A new release of a
+transitive pod can break a build whose JavaScript did not change. When a build
+fails and the diff looks innocent, check the pod versions in the log before
+hunting through your own commits.
+
+Seen on 2026-09-01: `GoogleSignIn 9.2.0` began pulling `AppCheckCore 11.3.1`, a
+Swift pod whose dependencies `GoogleUtilities` and `RecaptchaInterop` are
+non-modular Objective-C, so CocoaPods refused to integrate it as a static
+library. The `@react-native-google-signin` plugin enables modular headers for
+`GoogleSignIn` alone. Fixed by naming the two dependencies in
+`expo-build-properties` → `ios.extraPods` with `modular_headers: true`.
+Prefer that targeted form over `ios.useFrameworks: "static"`, which changes
+linkage for every pod in the app.
+
 ## Footguns, ranked
 
 | Symptom | Cause | Fix |
@@ -302,6 +338,8 @@ as manual until those calls exist.
 | Store version looks wrong | Read `package.json` instead of `app.config.js` | `app.config.js` is canonical |
 | Build number conflict | Someone hand-edited `buildNumber` | Leave it to EAS; `appVersionSource` is `remote` |
 | OTA crashes the live app | JS calls a native module the shipped binary lacks | This is Step 1's job — never skip the audit |
+| `Install pods` fails: "Swift pods cannot yet be integrated as static libraries" | A transitive pod re-resolved to a version pulling a Swift pod with non-modular ObjC dependencies. No committed `Podfile.lock`, so this needs no change from us | Name the pods the error lists in `expo-build-properties` → `ios.extraPods` with `modular_headers: true` |
+| Build failed and the diff looks innocent | Pods re-resolve on every build | Check pod versions in the log before blaming your commits |
 
 ## Never
 
