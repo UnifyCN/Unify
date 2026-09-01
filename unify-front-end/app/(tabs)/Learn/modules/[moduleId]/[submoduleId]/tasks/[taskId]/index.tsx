@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,6 +19,7 @@ import RichTextRenderer from '@/components/sanity/RichTextRenderer';
 import SubmoduleProgressBar from '@/components/learn/SubmoduleProgressBar';
 import { useTaskProgress } from '@/hooks/progress/useTaskProgress';
 import { useTranslation } from 'react-i18next';
+import { hasLoadedContentItem } from '@/utils/learnCompletionNavigation';
 
 export default function TaskPageScreen() {
   const { t } = useTranslation();
@@ -31,7 +33,11 @@ export default function TaskPageScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const { data: task, isLoading } = useSanityTask(taskId || '');
-  const { data: tasks } = useSanityTasks(submoduleId || '');
+  const {
+    data: tasks,
+    isLoading: tasksLoading,
+    error: tasksError,
+  } = useSanityTasks(submoduleId || '');
   const { data: moduleData } = useSanityModule(moduleId || '');
   const { data: submoduleData } = useSanitySubmoduleWithLessons(
     submoduleId || ''
@@ -84,11 +90,19 @@ export default function TaskPageScreen() {
     ])
   );
 
-  const goToSubmoduleIndex = () => {
-    router.push({
+  const goToSubmoduleIndex = (justCompletedTasks = false) => {
+    const destination = {
       pathname: '/(tabs)/Learn/modules/[moduleId]/[submoduleId]' as any,
-      params: { moduleId, submoduleId },
-    });
+      params: justCompletedTasks
+        ? { moduleId, submoduleId, justCompletedTasks: '1' }
+        : { moduleId, submoduleId },
+    };
+
+    if (justCompletedTasks) {
+      router.dismissTo(destination);
+    } else {
+      router.push(destination);
+    }
   };
 
   const handleSaveAndLeave = () => {
@@ -116,7 +130,11 @@ export default function TaskPageScreen() {
     if (!taskId) return;
     setIsSaving(true);
     try {
-      await completeTask(taskId);
+      const didSave = await completeTask(taskId);
+      if (!didSave) {
+        Alert.alert(t('common.somethingWentWrong'), t('common.tryAgain'));
+        return;
+      }
       if (nextTask) {
         router.push({
           pathname:
@@ -124,14 +142,14 @@ export default function TaskPageScreen() {
           params: { moduleId, submoduleId, taskId: nextTask._id },
         });
       } else {
-        goToSubmoduleIndex();
+        goToSubmoduleIndex(true);
       }
     } finally {
       setIsSaving(false);
     }
   };
 
-  if (isLoading) {
+  if (isLoading || tasksLoading) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -145,7 +163,7 @@ export default function TaskPageScreen() {
     );
   }
 
-  if (!task) {
+  if (!task || tasksError || !hasLoadedContentItem(tasks, taskId)) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loading}>
@@ -198,7 +216,11 @@ export default function TaskPageScreen() {
           disabled={isSaving}
         >
           <Text style={styles.nextBtnText}>
-            {isSaving ? t('learn.tasks.savingProgress') : nextTask ? t('common.next') : t('learn.pathwayCard.done')}
+            {isSaving
+              ? t('learn.tasks.savingProgress')
+              : nextTask
+                ? t('common.next')
+                : t('learn.pathwayCard.done')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -212,9 +234,7 @@ export default function TaskPageScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('learn.tasks.leaveTitle')}</Text>
-            <Text style={styles.modalDesc}>
-              {t('learn.tasks.leaveBody')}
-            </Text>
+            <Text style={styles.modalDesc}>{t('learn.tasks.leaveBody')}</Text>
 
             <TouchableOpacity
               style={styles.modalPrimaryBtn}
@@ -229,7 +249,9 @@ export default function TaskPageScreen() {
               style={styles.modalSecondaryBtn}
               onPress={handleContinue}
             >
-              <Text style={styles.modalSecondaryBtnText}>{t('common.continue')}</Text>
+              <Text style={styles.modalSecondaryBtnText}>
+                {t('common.continue')}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

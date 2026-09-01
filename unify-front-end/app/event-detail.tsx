@@ -7,6 +7,7 @@ import {
   ScrollView,
   Linking,
   Share,
+  Alert,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,10 @@ import { useEffect, useMemo } from 'react';
 import { useAnalytics } from '@/utils/analytics';
 import BackHeader from '@/components/BackHeader';
 import { useEvents } from '@/hooks/events/useEvents';
+import {
+  getSafeEventExternalUrl,
+  handoffEventExternalUrl,
+} from '@/helpers/eventHelpers';
 
 const EventDetailScreen = () => {
   const { t } = useTranslation();
@@ -72,28 +77,38 @@ const EventDetailScreen = () => {
 
   if (!eventData) return null;
 
-  const handleExternalLink = () => {
-    if (eventData.externalLink) {
-      trackEventExternalLinkClicked(eventData.id.toString(), eventData.title);
-      Linking.openURL(eventData.externalLink);
-    }
+  const safeExternalLink = getSafeEventExternalUrl(eventData.externalLink);
+
+  const handleExternalLink = async () => {
+    await handoffEventExternalUrl({
+      value: safeExternalLink,
+      openUrl: url => Linking.openURL(url),
+      onOpened: () =>
+        trackEventExternalLinkClicked(eventData.id.toString(), eventData.title),
+      onFailure: () =>
+        Alert.alert(t('common.error'), t('events.linkOpenFailed')),
+    });
   };
 
   // Using react native built in share
   const handleShare = async () => {
     try {
       trackEventShared(eventData.id.toString(), eventData.title);
-      const shareMessage = [
-        `Check out this event: ${eventData.title}`,
-        `📅 ${formatEventDate(eventData.eventDatetime)}`,
-        `📍 ${eventData.location}`,
-        `🔗 ${eventData.externalLink}`,
-      ].join('\n\n');
+      const shareParts = [
+        t('events.shareMessage', { title: eventData.title }),
+        t('events.shareDate', {
+          date: formatEventDate(eventData.eventDatetime),
+        }),
+        t('events.shareLocation', { location: eventData.location }),
+      ];
+      if (safeExternalLink) {
+        shareParts.push(t('events.shareLink', { url: safeExternalLink }));
+      }
 
       await Share.share({
-        message: shareMessage,
-        title: 'Unify Gather',
-        url: eventData.externalLink,
+        message: shareParts.join('\n\n'),
+        title: t('events.shareDialogTitle'),
+        ...(safeExternalLink ? { url: safeExternalLink } : {}),
       });
     } catch (error) {
       if (
@@ -147,16 +162,14 @@ const EventDetailScreen = () => {
           />
           <Text style={styles.metadataText}>
             {formatEventDate(eventData.eventDatetime)}
-            {eventData.eventEndDatetime && (
-              <Text style={styles.metadataSecondary}>
-                {' '}
-                ·{' '}
-                {formatEventTimeRange(
-                  eventData.eventDatetime,
-                  eventData.eventEndDatetime
-                )}
-              </Text>
-            )}
+            <Text style={styles.metadataSecondary}>
+              {' '}
+              ·{' '}
+              {formatEventTimeRange(
+                eventData.eventDatetime,
+                eventData.eventEndDatetime
+              )}
+            </Text>
           </Text>
         </View>
 
@@ -193,7 +206,7 @@ const EventDetailScreen = () => {
         )}
 
         {/* CTA Button - View Event Details (now placed after metadata, before About) */}
-        {eventData.externalLink && (
+        {safeExternalLink && (
           <TouchableOpacity
             onPress={handleExternalLink}
             style={styles.ctaButton}
@@ -208,9 +221,7 @@ const EventDetailScreen = () => {
         {eventData.description ? (
           <Text style={styles.aboutText}>{eventData.description}</Text>
         ) : (
-          <Text style={styles.aboutText}>
-            {t('events.noEventDescription')}
-          </Text>
+          <Text style={styles.aboutText}>{t('events.noEventDescription')}</Text>
         )}
       </ScrollView>
     </View>

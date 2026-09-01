@@ -16,8 +16,11 @@ export function usePracticeProgress() {
   );
 
   const fetchProgressBySubmodule = useCallback(
-    (submoduleId: string): Promise<UserPracticeProgress[]> =>
-      getPracticeProgressBySubmodule(submoduleId),
+    (
+      submoduleId: string,
+      throwOnError = false
+    ): Promise<UserPracticeProgress[]> =>
+      getPracticeProgressBySubmodule(submoduleId, throwOnError),
     []
   );
 
@@ -41,7 +44,7 @@ export function usePracticeProgress() {
   );
 
   const complete = useCallback(async (practiceId: string) => {
-    await completePractice(practiceId);
+    return completePractice(practiceId);
   }, []);
 
   return {

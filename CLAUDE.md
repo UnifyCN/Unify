@@ -13,7 +13,7 @@ When designing any new feature or sub-task, **default to layered, in-place UI** 
 
 Try, in roughly this order:
 
-1. **Bottom sheets** (`@gorhom/bottom-sheet` is already in the project) — for forms, pickers, confirmations, secondary actions
+1. **Bottom sheets** (`components/common/BottomSheet.tsx`) — for forms, pickers, confirmations, secondary actions
 2. **Contextual menus / action sheets** — for choices tied to a specific item
 3. **Inline expansion** — reveal details/forms in place rather than navigating away
 4. **Popovers / tooltips** — for small bits of info or quick actions
@@ -63,5 +63,5 @@ Key routing rules:
 - Design system, brand → invoke design-consultation
 - Visual audit, design polish → invoke design-review
 - Architecture review → invoke plan-eng-review
-- Save progress, checkpoint, resume → invoke checkpoint
+- Save progress, checkpoint → invoke context-save; resume → invoke context-restore
 - Code quality, health check → invoke health

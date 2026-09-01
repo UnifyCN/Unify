@@ -9,6 +9,8 @@ import type {
   PersonalizedModule,
 } from '@/types/learn';
 import type { SanityModuleWithSubmodules } from '@/types/sanity';
+import { sanityQueryKeys } from '@/hooks/sanity/sanityQueryKeys';
+import { useSanityLanguage } from '@/hooks/sanity/useSanityLanguage';
 
 // ─── Personalize fetch ────────────────────────────────────────────────────────
 
@@ -48,7 +50,9 @@ async function fetchPersonalizedLearn(): Promise<PersonalizeLearnResponse | null
 
 // ─── Independent progress fetch (used in fallback path) ─────────────────────
 
-async function fetchAllModuleProgress(): Promise<Map<string, ModuleProgressStatus>> {
+async function fetchAllModuleProgress(): Promise<
+  Map<string, ModuleProgressStatus>
+> {
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -102,7 +106,12 @@ function mergePersonalizedWithSanity(
 
   // Append unscored Sanity modules at the end
   for (const remaining of sanityById.values()) {
-    result.push({ ...remaining, progress: 'not_started', score: 0, why_tag: '' });
+    result.push({
+      ...remaining,
+      progress: 'not_started',
+      score: 0,
+      why_tag: '',
+    });
   }
 
   return result;
@@ -125,6 +134,7 @@ interface UsePersonalizedModulesResult {
 }
 
 export function usePersonalizedModules(): UsePersonalizedModulesResult {
+  const language = useSanityLanguage();
   // Always fetch Sanity modules (they own colorTheme, icon, submodules)
   const {
     data: sanityModules,
@@ -132,11 +142,10 @@ export function usePersonalizedModules(): UsePersonalizedModulesResult {
     error: sanityError,
     refetch: refetchSanity,
   } = useQuery({
-    queryKey: ['sanity', 'modules'],
-    queryFn: getAllModulesWithSubmodules,
+    queryKey: sanityQueryKeys.modules(language),
+    queryFn: () => getAllModulesWithSubmodules(language),
     staleTime: 15 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    placeholderData: keepPreviousData,
   });
 
   // Always fetch personalized ranking
