@@ -75,7 +75,10 @@ export default function ResourcesView() {
 
   const openPartner = (slug: string) => {
     Keyboard.dismiss();
-    router.push(`/(tabs)/Learn/resources/${slug}` as any);
+    // `from=search` so the detail screen's back nav names the segment it
+    // returns to rather than the partner's category, which is not where the
+    // person came from.
+    router.push(`/(tabs)/Learn/resources/${slug}?from=search` as any);
   };
 
   if (selectedCategory) {

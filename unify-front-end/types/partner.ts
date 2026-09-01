@@ -227,8 +227,6 @@ export interface Partner {
     | 'learn.resources.cta.visitWelcomeCentre';
   /** Optional brand logo; falls back to a monogram avatar when absent. */
   logo?: ImageSourcePropType;
-  /** Optional hero photo; falls back to a category-tinted gradient when absent. */
-  heroImage?: ImageSourcePropType;
   /** Programs this partner runs, shown on the detail screen. */
   programs?: PartnerProgram[];
   /**

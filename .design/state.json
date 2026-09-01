@@ -18,7 +18,9 @@
     "latest_evidence": [
       ".design/evidence/resources-landing-2026-08-28.png",
       ".design/evidence/resources-category-detail-2026-08-30.png",
-      ".design/evidence/resources-search-results-2026-08-30.png"
+      ".design/evidence/resources-search-results-2026-08-30.png",
+      ".design/evidence/resources-partner-detail-2026-09-01.png",
+      ".design/evidence/resources-partner-detail-no-programs-2026-09-01.png"
     ],
     "latest_review": null
   },
@@ -34,7 +36,25 @@
       "question": "Should search queries that return nothing be tracked, to reveal which organizations are missing?",
       "blocking": false,
       "status": "open"
+    },
+    {
+      "id": "canada-shaw-brand",
+      "question": "Canada Shaw runs two live sites sharing one address and RCIC but different phones and emails: immshaws.com (+1 236-966-6899, info.imm@shawsglobal.com) and canadashaws.ca (+1 672-867-6886, info@canadashaws.com, the numbers we currently ship). Which brand and contact does the directory show?",
+      "blocking": true,
+      "status": "open"
+    },
+    {
+      "id": "desjardins-bc-presence",
+      "question": "Desjardins' own newcomer page states its network is in Quebec and Ontario only, and the account flow has an in-person step. Does a BC-only directory keep the listing, and does its phone stay 1-877-435-6098 or become the published 1-800-224-7737?",
+      "blocking": true,
+      "status": "open"
     }
   ],
-  "blockers": []
+  "blockers": [
+    {
+      "id": "global-connect-unverified-rcic",
+      "note": "global-connect-immigration cannot be shown to newcomers until it is verified. Its About page publishes 'MEMBER ID: R123456' (a template placeholder), names no consultant, and carries another firm's copy ('Maple Leaf Visas'). An unregistered paid representative is illegal in Canada. Confirm by phone and against college-ic.ca, or set active: false.",
+      "status": "open"
+    }
+  ]
 }

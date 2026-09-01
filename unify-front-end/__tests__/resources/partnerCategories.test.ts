@@ -140,6 +140,11 @@ describe('partner category metadata', () => {
     ['detail label on white', RESOURCE_THEME.textLabel, RESOURCE_THEME.surface],
     ['detail text on white', RESOURCE_THEME.textDetail, RESOURCE_THEME.surface],
     [
+      'partner detail body + contact values on white',
+      RESOURCE_THEME.textDetailWarm,
+      RESOURCE_THEME.surface,
+    ],
+    [
       'chip label on subtle surface',
       RESOURCE_THEME.textLabel,
       RESOURCE_THEME.surfaceChip,

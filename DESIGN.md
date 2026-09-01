@@ -1,9 +1,9 @@
 # DESIGN.md — Resources directory (Learn tab)
 
 > Status: current
-> Last updated: 2026-08-30
-> Scope of this contract: the Resources landing screen and the category detail
-> screen. The partner detail screen is not yet redesigned.
+> Last updated: 2026-09-01
+> Scope of this contract: all three Resources screens — the landing screen, the
+> category detail screen, and the partner detail screen.
 
 ## Job
 
@@ -24,10 +24,12 @@ the screen.
 
 **In:** The landing screen — segmented toggle, header block, search, category
 grid, and the "How we choose these" sheet. The category detail screen — back
-nav, title block, and the partner list.
+nav, title block, and the partner list. The partner detail screen — back nav,
+identity block, tags, About, Programs, Contact, and the pinned action bar.
 
-**Out:** Partner detail (`[slug].tsx`), the partner data model, and the Lessons
-view. Lessons is only touched where the two views must align.
+**Out:** The Lessons view, touched only where the two views must align. The
+partner data model, which is fixed; the redesign fills its fields rather than
+changing its shape.
 
 ## Source constraints
 
@@ -67,6 +69,26 @@ view. Lessons is only touched where the two views must align.
   in a row that draws the eye.
 - **Category detail title:** 24/600, the landing heading's size and weight, not
   the spec's 24/700.
+- **Partner detail keeps the tab chrome.** It renders under the shared
+  `TabHeader variant='minimal'` with the tab bar visible, and opens with a back
+  nav, exactly like the category detail it comes from. The old hero banner and
+  floating back button are gone; an organization page is a reference page, not
+  an immersive one.
+- **Partner detail structure:** back nav → identity (54pt logo, name, tagline) →
+  category and service-area tags → About → Programs → Contact → pinned actions.
+- **Programs replace the highlights bullets.** "How they help newcomers" is off
+  the screen; the program cards carry what an organization does, in the
+  organization's own named terms. `highlights` stays in the model because search
+  indexes it.
+- **Programs collapse after three,** with a "Show N more programs" disclosure.
+  Five-program organizations otherwise push Contact off the second screen.
+- **Contact is a data-driven list of labelled rows.** Every populated field
+  renders and nothing is inferred, so two organizations rarely show the same
+  rows. Eligibility leads it as "Who it's for".
+- **Actions are pinned above the tab bar,** not inline at the end of a long
+  scroll: primary "Visit website" plus icon buttons for call and directions.
+  Email lives as a trailing link on its own Contact row, the same slot the
+  address uses for "Map".
 
 See `.design/decisions.md` for rejected options and why.
 
@@ -110,7 +132,13 @@ a Feather equivalent.
 - Category tapped: detail renders in place, not pushed. Back nav returns to the
   grid and reads "Resources", the segment it returns to.
 - Category with no active partners: "No active partners" empty state.
-- Partner tapped: pushes `app/(tabs)/Learn/resources/[slug]`.
+- Partner tapped: pushes `app/(tabs)/Learn/resources/[slug]`. Its back nav names
+  the category, except when the person arrived from search — the push then
+  carries `?from=search` and back reads "Resources", the screen it returns to.
+- Partner with more than three programs: the rest are behind a disclosure.
+- Partner with no programs: About runs straight into Contact.
+- Partner with no website: the pinned bar promotes Call to the primary slot.
+- Unknown slug: "no longer available", with the back nav still present.
 
 ## Responsive and accessibility
 
@@ -128,6 +156,7 @@ a Feather equivalent.
 - `components/learn/Resources/PartnerRow.tsx` — the partner card. It renders in
   the category detail list **and** in the landing screen's search results, so it
   carries its own bottom margin and any change lands on both.
+- `app/(tabs)/Learn/resources/[slug].tsx` — the partner detail screen
 - `types/partner.ts` — category order, labels, colours, tints
 - `components/common/BottomSheet.tsx` — the sheet (**not** `@gorhom/bottom-sheet`,
   which is not installed despite what CLAUDE.md says)
@@ -148,6 +177,10 @@ a Feather equivalent.
 - [x] Contrast suite passes for every token pair, every category glyph, and all
       three cost chips
 - [x] Partner cards render in both the category list and the search results
+- [x] Partner detail renders every populated field and infers none
+- [x] Program disclosure, missing-website, and unknown-slug states render
+- [ ] Every organization's contact details and programs verified from its own
+      site
 - [ ] Verified on Android
 - [ ] Verified at the largest Dynamic Type setting
 

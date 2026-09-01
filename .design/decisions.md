@@ -205,3 +205,61 @@ filename and correct dimensions, and each is wrong:
   the crop 2.1:1, so it renders smaller than its neighbours; the uncropped icon
   fills the box but buries its wordmark. Neither is good.
 
+
+## R6 — Partner detail: the organization page
+
+**Date:** 2026-09-01
+**Figma:** `8134:34041` ("org page")
+**Decision:** Rebuild `[slug].tsx` as a reference page inside the tab chrome.
+
+**The hero goes.** The old screen opened with a 180pt photo or category gradient
+and a floating back button over it. No partner ships a `heroImage`, so every one
+of the 20 rendered the gradient — 180pt of colour carrying no information, above
+the fold, on every organization. The node replaces it with the tab header and a
+back nav, which is what the two screens behind it already do. `Partner.heroImage`
+is deleted rather than left as a hook nothing fills.
+
+**Programs replace the highlights bullets.** The node has no "How they help
+newcomers" section. It is the right cut: `highlights` is our prose about an
+organization, `programs` is the organization's own named services, and the second
+is both more useful and more defensible. `highlights` stays in the model because
+`selectPartnersMatching` indexes it.
+
+**Three programs, then a disclosure.** Five organizations run five or more
+programs. Listing them all pushes Contact past a second screen of scrolling on an
+iPhone 17 Pro, and Contact is the part someone came for.
+
+**Contact renders what is populated, in a fixed order.** The node shows exactly
+the five rows DIVERSEcity has data for — the designer was rendering real data, so
+the block is a data-driven list, not a fixed five. Hours, languages and cost take
+the same row treatment; an organization that publishes none of them simply has a
+shorter block.
+
+**Eligibility is a row, not a callout.** It keeps the first slot in Contact,
+because routing someone to a service they are not eligible for stays this
+feature's main failure mode. It loses the tinted box: on a page whose only other
+tint is the category tag, a second tinted block reads as an alert.
+
+**Actions pin above the tab bar.** The primary CTA used to sit at the bottom of a
+scroll that can run 1200pt. Pinned, "Visit website" is reachable at any scroll
+position, and the two 48pt icon buttons beside it cover call and directions.
+
+**Email keeps an action.** The node's contact rows are `justify-between` with a
+link slot on the right, used for the address's "Map". Email takes the same slot
+rather than a fourth button in the bar.
+
+**Back names where you came from.** From a category the nav reads the category,
+as drawn. From the landing screen's search results the same label would be wrong,
+so that push carries `?from=search` and the nav reads "Resources".
+
+**Rejected:**
+- **Keeping the hero as a category gradient.** It is decoration that costs the
+  fold, and it made the partner detail the only Resources screen with a coloured
+  header.
+- **Dropping hours, languages and cost** to match the five rows drawn in the
+  node. The node is one organization's data, not the schema.
+- **Rendering `highlights` only for organizations with no programs.** A section
+  that appears for 2 of 20 records is a hole in the layout, not a fallback. Those
+  organizations get real programs instead.
+- **A fourth icon button for email.** Four buttons in a 393pt bar leaves the
+  primary CTA too narrow for "Book a free assessment".

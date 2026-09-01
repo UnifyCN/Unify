@@ -24,6 +24,10 @@ export const RESOURCE_THEME = {
   surfaceNotice: '#F2F4F7',
   /** Hairline around a category card on white. */
   cardBorder: '#E7E4DE',
+  /** Divider above the pinned action bar on the partner detail screen. */
+  actionBarBorder: '#ECEAE6',
+  /** Outline on a secondary action button. */
+  buttonOutline: '#D8D5CD',
 
   // --- Text
   textHeading: '#1A1815',
@@ -32,6 +36,12 @@ export const RESOURCE_THEME = {
   textStrong: '#1F2937',
   textBody: '#3A3A3A',
   textDetail: '#374151',
+  /**
+   * About copy and contact values on the partner detail screen. The warm
+   * counterpart to textDetail, which is a blue-grey and reads cold beside the
+   * warm greys the rest of the directory uses.
+   */
+  textDetailWarm: '#3F3C36',
   textSecondary: '#6F6C64',
   /** Page subtitle. Same value as the Lessons subtitle in the Learn tab. */
   textSubtitle: '#000000',
