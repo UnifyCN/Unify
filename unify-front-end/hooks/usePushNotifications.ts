@@ -56,7 +56,7 @@ export function usePushNotifications() {
           trackPushPermissionPrompted({ prompted_in: 'in_app' });
           if (result.permission === 'granted') {
             trackPushPermissionGranted({ prompted_in: 'in_app' });
-          } else {
+          } else if (result.permission === 'denied') {
             trackPushPermissionDenied({ prompted_in: 'in_app' });
           }
         }

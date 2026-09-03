@@ -250,7 +250,7 @@ export default function OnboardingQuiz({
           trackPushPermissionPrompted({ prompted_in: 'onboarding' });
           if (result.permission === 'granted') {
             trackPushPermissionGranted({ prompted_in: 'onboarding' });
-          } else {
+          } else if (result.permission === 'denied') {
             trackPushPermissionDenied({ prompted_in: 'onboarding' });
           }
         })
