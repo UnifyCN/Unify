@@ -4,6 +4,7 @@ import {
   UserOnboardingProfile,
 } from '@/types/onboardingProfile';
 import { calculateUserStage, stageNumberToEnum } from '@/helpers/dateHelpers';
+import { normalizeProvince } from '@/constants/LocationData';
 import { redeemReferral, type RedeemResult } from '@/services/referrals/redeemReferral';
 
 export interface SaveOnboardingResult {
@@ -48,7 +49,7 @@ export const saveOnboardingProfile = async (
       referral_source_other: data.referral_source_other ?? null,
       arrival_date: data.arrival_date ?? null,
       city: data.city ?? null,
-      province: data.province ?? null,
+      province: normalizeProvince(data.province),
       goals: data.goals || [],
       goals_other: data.goals_other ?? null,
       learning_interests: data.learning_interests || [],
@@ -92,7 +93,7 @@ export const saveOnboardingProfile = async (
       referral_source_other: result.referral_source_other,
       arrival_date: result.arrival_date,
       city: result.city,
-      province: result.province,
+      province: normalizeProvince(result.province),
       stage: result.stage,
       goals: result.goals || [],
       goals_other: result.goals_other,
