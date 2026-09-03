@@ -663,9 +663,10 @@ export function useAnalytics() {
       trackSignUpCompleted: (method: AuthMethod = 'email') => {
         posthog?.capture(AnalyticsEvents.SIGN_UP_COMPLETED, { method });
       },
-      trackSignUpFailed: (errorType: string) => {
+      trackSignUpFailed: (errorType: string, method: AuthMethod = 'email') => {
         posthog?.capture(AnalyticsEvents.SIGN_UP_FAILED, {
           error_type: errorType,
+          method,
         });
       },
       trackSignInCompleted: (method: AuthMethod = 'email') => {

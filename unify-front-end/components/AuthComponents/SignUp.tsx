@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import {
   View,
@@ -10,6 +10,7 @@ import {
   Pressable,
   StyleSheet,
   ActivityIndicator,
+  AccessibilityInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckBox } from 'react-native-elements';
@@ -62,7 +63,12 @@ export function SignUp({
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [isChecked, setIsChecked] = React.useState(false);
+  // True after the user tried to continue without accepting the legal terms.
+  // Drives the red state on the checkbox row so the blocker is visible next
+  // to the control that clears it, not only in the generic error slot above.
+  const [consentError, setConsentError] = React.useState(false);
   const [webViewDoc, setWebViewDoc] = useState<LegalDocumentType | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -72,6 +78,26 @@ export function SignUp({
 
   const validateEmail = (emailInput: string) => {
     setIsEmailValid(emailRegex.test(emailInput.trim()));
+  };
+
+  const toggleConsent = () => {
+    setIsChecked(prev => !prev);
+    setConsentError(false);
+  };
+
+  /**
+   * Shared guard for every sign-up path. The email button is disabled until
+   * the box is ticked, but the Google and Apple buttons are always enabled, so
+   * this is the only place OAuth users learn that consent is required.
+   */
+  const requireConsent = (method: 'email' | 'google' | 'apple'): boolean => {
+    if (isChecked) return true;
+    setConsentError(true);
+    setErrorMessage(null);
+    trackSignUpFailed('terms_not_accepted', method);
+    AccessibilityInfo.announceForAccessibility(t('auth.acceptTermsRequired'));
+    scrollRef.current?.scrollToEnd({ animated: true });
+    return false;
   };
 
   const handleSignUp = async () => {
@@ -87,11 +113,7 @@ export function SignUp({
       return;
     }
 
-    if (!isChecked) {
-      setErrorMessage(t('auth.acceptTermsRequired'));
-      trackSignUpFailed('terms_not_accepted');
-      return;
-    }
+    if (!requireConsent('email')) return;
 
     setLoading(true);
     setErrorMessage(null);
@@ -156,11 +178,7 @@ export function SignUp({
 
   const handleGoogleSignIn = async () => {
     if (isExpoGo) return;
-    if (!isChecked) {
-      setErrorMessage(t('auth.acceptTermsRequired'));
-      trackSignUpFailed('terms_not_accepted');
-      return;
-    }
+    if (!requireConsent('google')) return;
 
     setLoading(true);
     setErrorMessage(null);
@@ -250,11 +268,7 @@ export function SignUp({
 
   const handleAppleSignIn = async () => {
     if (isExpoGo) return;
-    if (!isChecked) {
-      setErrorMessage(t('auth.acceptTermsRequired'));
-      trackSignUpFailed('terms_not_accepted');
-      return;
-    }
+    if (!requireConsent('apple')) return;
 
     setLoading(true);
     setErrorMessage(null);
@@ -343,6 +357,7 @@ export function SignUp({
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
+        ref={scrollRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps='handled'
@@ -478,17 +493,22 @@ export function SignUp({
         )}
 
         {/* Legal checkbox */}
-        <View style={styles.checkboxRow}>
+        <View
+          style={[styles.checkboxRow, consentError && styles.checkboxRowError]}
+        >
           <CheckBox
             checked={isChecked}
-            onPress={() => setIsChecked(!isChecked)}
+            onPress={toggleConsent}
             containerStyle={styles.checkboxContainer}
             iconType='material-community'
             checkedIcon='checkbox-marked'
             uncheckedIcon='checkbox-blank-outline'
             checkedColor='black'
-            uncheckedColor='black'
+            uncheckedColor={consentError ? '#f00' : 'black'}
             wrapperStyle={styles.checkboxWrapper}
+            accessibilityRole='checkbox'
+            accessibilityLabel={t('auth.acceptTermsRequired')}
+            accessibilityState={{ checked: isChecked }}
           />
           <Text style={styles.checkboxText}>
             <Trans
@@ -525,6 +545,14 @@ export function SignUp({
             />
           </Text>
         </View>
+        {consentError && (
+          <Text
+            style={styles.consentErrorMessage}
+            accessibilityLiveRegion='polite'
+          >
+            {t('auth.acceptTermsRequired')}
+          </Text>
+        )}
 
         {/* Sign Up button */}
         <TouchableOpacity
@@ -678,6 +706,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8 * S,
+    borderRadius: 8 * S,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    paddingVertical: 4 * S,
+    paddingRight: 8 * S,
+  },
+  checkboxRowError: {
+    borderColor: '#f00',
+    backgroundColor: '#fff4f4',
+  },
+  consentErrorMessage: {
+    color: '#f00',
+    fontSize: 13 * S,
+    fontFamily: 'FunnelSans_400Regular',
+    marginBottom: 12 * S,
   },
   checkboxContainer: {
     backgroundColor: 'transparent',
