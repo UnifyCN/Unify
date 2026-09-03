@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { StageNumber } from '@/types/checklist';
 import { Persona } from '@/types/onboardingProfile';
 import { getPublicOnboardingProfile } from '@/services/onboarding/getPublicOnboardingProfile';
+import { normalizeProvince } from '@/constants/LocationData';
 
 export interface UserInfo {
   id: string;
@@ -132,7 +133,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       persona: onboardingData?.persona ?? null,
       persona_other: onboardingData?.persona_other ?? null,
       city: onboardingData?.city ?? null,
-      province: onboardingData?.province ?? null,
+      province: normalizeProvince(onboardingData?.province),
       stage:
         onboardingData?.stage !== undefined && onboardingData?.stage !== null
           ? onboardingData.stage
@@ -206,7 +207,7 @@ export const getUserInfo = async (userId?: string): Promise<UserInfo> => {
       permissions: userData.permissions ?? Permissions.USER,
       arrivalDate,
       city: resolvedOnboarding?.city ?? null,
-      province: resolvedOnboarding?.province ?? null,
+      province: normalizeProvince(resolvedOnboarding?.province),
       stage: computedStage,
       persona: resolvedOnboarding?.persona ?? null,
       personaOther: resolvedOnboarding?.persona_other ?? null,

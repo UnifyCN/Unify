@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { UserOnboardingProfile } from '@/types/onboardingProfile';
+import { normalizeProvince } from '@/constants/LocationData';
 
 export const getOnboardingProfile = async (
   userId?: string
@@ -45,7 +46,7 @@ export const getOnboardingProfile = async (
       referral_source_other: data.referral_source_other,
       arrival_date: data.arrival_date,
       city: data.city,
-      province: data.province,
+      province: normalizeProvince(data.province),
       stage: data.stage,
       goals: data.goals || [],
       goals_other: data.goals_other,
