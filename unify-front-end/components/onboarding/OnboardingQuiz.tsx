@@ -69,8 +69,14 @@ export default function OnboardingQuiz({
 }: OnboardingQuizProps) {
   const { t } = useTranslation();
   const saveMutation = useSaveOnboardingProfile();
-  const { trackOnboardingStepCompleted, trackOnboardingCompleted, capture } =
-    useAnalytics();
+  const {
+    trackOnboardingStepCompleted,
+    trackOnboardingCompleted,
+    trackPushPermissionPrompted,
+    trackPushPermissionGranted,
+    trackPushPermissionDenied,
+    capture,
+  } = useAnalytics();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const inviteCtx = useInviteCode();
@@ -234,10 +240,23 @@ export default function OnboardingQuiz({
 
     // Always request push permission at step 9 (reminders) — social notifications always send.
     // The reminders toggle only controls learn reminders (server-side).
+    // This is where nearly every user first sees the system dialog, so the
+    // outcome must be tracked here — usePushNotifications only sees the
+    // already-decided status afterwards and never reports a grant.
     if (currentStep === 9) {
-      registerForPushNotifications().catch(err => {
-        console.error('Push registration from onboarding failed:', err);
-      });
+      registerForPushNotifications()
+        .then(result => {
+          if (result.permission === 'unsupported' || !result.prompted) return;
+          trackPushPermissionPrompted({ prompted_in: 'onboarding' });
+          if (result.permission === 'granted') {
+            trackPushPermissionGranted({ prompted_in: 'onboarding' });
+          } else if (result.permission === 'denied') {
+            trackPushPermissionDenied({ prompted_in: 'onboarding' });
+          }
+        })
+        .catch(err => {
+          console.error('Push registration from onboarding failed:', err);
+        });
     }
 
     // Request iOS App Store review after Outcomes step (peak positive sentiment)
