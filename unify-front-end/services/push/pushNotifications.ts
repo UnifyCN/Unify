@@ -41,12 +41,17 @@ export async function registerForPushNotifications(): Promise<PushRegistrationRe
   }
 
   // Check existing permission status
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  const { status: existingStatus, canAskAgain } =
+    await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
   let prompted = false;
 
-  // Request permission if not already granted
-  if (existingStatus !== 'granted') {
+  // Only request when the OS will actually show a prompt. On iOS a denied
+  // permission has canAskAgain=false and requestPermissionsAsync() resolves
+  // to 'denied' instantly with no dialog. Before this guard that resolved
+  // path fired a "prompted + denied" pair on every app launch, which is why
+  // analytics showed 0 grants and 3.6 denials per user.
+  if (existingStatus !== 'granted' && canAskAgain) {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
     prompted = true;
